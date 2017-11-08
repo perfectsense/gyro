@@ -1,0 +1,9 @@
+
+dist/
+
+*.iml
+.idea/
+target/
+
+# Output by Capsule
+dependency-reduced-pom.xml

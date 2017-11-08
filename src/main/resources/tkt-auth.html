@@ -1,0 +1,30 @@
+<html>
+<head>
+    <title>Login</title>
+    <link href='http://fonts.googleapis.com/css?family=News+Cycle:400,700' rel='stylesheet' type='text/css'>
+    <link href="/css/default.css" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+
+${error}
+
+<div class="info-module" id="login">
+    <form accept-charset="UTF-8" method="post">
+        <div class="info-step">
+            <div class="info-step-text">Project Sign in</div>
+        </div>
+        <div class="info-download">
+            <label for="login_field">Username</label>
+            <input autocapitalize="off" autocorrect="off" autofocus="autofocus" class="input-block" id="login_field" name="username" tabindex="1" type="text" value="${username}">
+
+            <label for="password">Password</label>
+            <input class="input-block" id="password" name="password" tabindex="2" type="password">
+
+        </div>
+        <div class="info-step">
+            <input class="button" name="commit" tabindex="3" type="submit" value="Sign in">
+        </div>
+    </form>
+</div>
+</body>
+</html>

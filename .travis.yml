@@ -1,0 +1,15 @@
+sudo: false
+
+language: java
+
+jdk:
+  - oraclejdk8
+
+cache:
+  directories:
+    - $HOME/.m2
+
+script: mvn -Dmaven.test.skip=true install
+
+after_success:
+  - git clone https://github.com/perfectsense/travis-maven-deploy.git && travis-maven-deploy/deploy.sh

@@ -1,0 +1,161 @@
+
+body {
+    background: #6BB1B5;
+    margin-top: 50px;
+    margin-bottom: 50px;
+    font-family: "News Cycle", arial, helvetica, san-serif;
+}
+
+.info-module {
+    background: #e1e1e1;
+    width: 640px;
+    margin: 0 auto;
+    border-radius: 3px;
+    box-shadow: 0px 0px 3px #999;
+}
+
+.info-module-error {
+    background: #f2dede;
+    color: #a94442;
+    width: 640px;
+    margin: 0 auto;
+    border-radius: 3px;
+    box-shadow: 0px 0px 3px #999;
+    padding: 20px;
+    width: 360px;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.info-step {
+    padding: 15px 30px;
+    color: #777;
+    font-weight: 700;
+    font-size: 130%;
+}
+
+.info-step i {
+    font-size: 190%;
+    color: #999;
+}
+
+.info-step-text {
+    vertical-align: top;
+    display: inline-block;
+    line-height: 200%;
+    padding-left: 10px;
+}
+
+.info-download {
+    background: #f5f5f5;
+    padding: 10px 30px;
+    border-radius: 0 0 3px 3px;
+    color: #555;
+    font-family: arial, helvetica, san-serif;
+}
+
+.info-download-button {
+    color: #fff;
+    margin: 5px;
+}
+.info-download-button a {
+    background: #6FB674;
+    padding: 7px;
+    border-radius: 3px;
+    border: 1px solid #999;
+    color: #fff;
+    text-decoration: none;
+    display: inline-block;
+    font-weight: normal;
+}
+
+.info-download-size {
+    color: #999;
+}
+
+.info-step .info-download-button {
+    font-size: 75%;
+    margin: 0 auto;
+}
+
+.info-step .info-download-button a {
+    padding: 7px;
+    text-align: center;
+    margin-left: 250px;
+    width: 50px;
+    font-weight: normal;
+    font-family: arial, helvetica, san-serif;
+}
+
+.info-screenshot-step {
+    border-bottom: 1px solid #ddd;
+    padding-top: 10px;
+    padding-bottom: 30px;
+}
+
+.info-screenshot {
+    box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.5);
+    border-radius: 3px;
+}
+
+input[type=text], input[type=password] {
+    min-height: 34px;
+    padding: 7px 8px;
+    font-size: 13px;
+    color: #333;
+    vertical-align: middle;
+    background-color: #fff;
+    background-repeat: no-repeat;
+    background-position: right center;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    outline: none;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.075);
+}
+
+.input-block {
+    display: block;
+    width: 100%;
+    margin-top: 5px;
+    margin-bottom: 15px;
+}
+
+label {
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.info-module {
+    width: 400px;
+}
+
+.info-step-text {
+    padding-left: 0px;
+}
+
+.button, .minibutton {
+    position: relative;
+    display: inline-block;
+    padding: 7px 12px;
+    font-size: 13px;
+    font-weight: bold;
+    color: #333;
+    text-shadow: 0 1px 0 rgba(255,255,255,0.9);
+    white-space: nowrap;
+    vertical-align: middle;
+    cursor: pointer;
+    background-color: #eee;
+    background-image: -moz-linear-gradient(#fcfcfc, #eee);
+    background-image: -webkit-linear-gradient(#fcfcfc, #eee);
+    background-image: linear-gradient(#fcfcfc, #eee);
+    background-repeat: repeat-x;
+    border: 1px solid #d5d5d5;
+    border-radius: 3px;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-appearance: none;
+}

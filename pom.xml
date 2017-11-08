@@ -1,0 +1,600 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <azure.version>0.9.2</azure.version>
+        <jclouds.version>1.9.0</jclouds.version>
+        <aws.version>1.10.70</aws.version>
+    </properties>
+
+    <parent>
+        <groupId>com.psddev</groupId>
+        <artifactId>dari-parent</artifactId>
+        <version>3.0-SNAPSHOT</version>
+    </parent>
+
+    <groupId>com.psdops</groupId>
+    <artifactId>beam</artifactId>
+    <version>0.12.12-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>beam</name>
+
+    <build>
+        <finalName>beam-${project.version}</finalName>
+
+        <resources>
+            <resource>
+                <directory>./</directory>
+                <includes>
+                    <include>pom.xml</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+        </resources>
+
+        <plugins>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>2.3.2</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <debug>false</debug>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>Capsule</mainClass>
+                            <classpathPrefix>lib</classpathPrefix>
+                            <addClasspath>true</addClasspath>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                        </manifest>
+                        <manifestEntries>
+                            <Application>./beam-${project.version}.jar</Application>
+                            <Application-Script>beam.sh</Application-Script>
+                            <Caplets>BeamCapsule</Caplets>
+                            <Min-Java-Version>1.8.0</Min-Java-Version>
+                            <System-Properties></System-Properties>
+                            <Repositories>central psd(http://public.psddev.com/maven) local</Repositories>
+                            <Allow-Snapshots>true</Allow-Snapshots>
+                        </manifestEntries>
+                    </archive>
+                    <descriptors>
+                        <descriptor>src/main/assembly/capsule-full.xml</descriptor>
+                    </descriptors>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <artifactId>exec-maven-plugin</artifactId>
+                <groupId>org.codehaus.mojo</groupId>
+                <version>1.3</version>
+                <executions>
+                    <execution>
+                        <id>clean-command</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>rm</executable>
+                            <arguments>
+                                <argument>-rf</argument>
+                                <argument>${basedir}/dist</argument>
+                                <argument>dependency-reduced-pom.xml</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>build-command</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <workingDirectory>${basedir}/scripts</workingDirectory>
+                            <executable>${basedir}/scripts/package.sh</executable>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>1.7</version>
+                <executions>
+                    <execution>
+                        <id>attach-artifacts</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>attach-artifact</goal>
+                        </goals>
+                        <configuration>
+                            <artifacts>
+                                <artifact>
+                                    <file>dist/beam</file>
+                                    <type>sh</type>
+                                </artifact>
+                            </artifacts>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.gmavenplus</groupId>
+                <artifactId>gmavenplus-plugin</artifactId>
+                <version>1.0</version>
+                <executions>
+                    <execution>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>execute</goal>
+                        </goals>
+                        <configuration>
+                            <scripts>
+                                <script><![CDATA[
+                                    def urls = org.reflections.util.ClasspathHelper.forPackage("beam");
+
+                                    new org.reflections.Reflections(new org.reflections.util.ConfigurationBuilder()
+                                        .setUrls(urls)
+                                        .setScanners(new org.reflections.scanners.SubTypesScanner()))
+                                        .save("${project.build.outputDirectory}/META-INF/reflections/${project.artifactId}-reflections.xml")
+                                ]]>
+                                </script>
+                            </scripts>
+                        </configuration>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.reflections</groupId>
+                        <artifactId>reflections</artifactId>
+                        <!-- use latest version of Reflections -->
+                        <version>0.9.10</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.codehaus.groovy</groupId>
+                        <artifactId>groovy-all</artifactId>
+                        <!-- any version of Groovy \>= 1.5.0 should work here -->
+                        <version>2.4.3</version>
+                        <scope>runtime</scope>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.lucee</groupId>
+                        <artifactId>dom4j</artifactId>
+                        <version>1.6.1</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>javax.servlet</groupId>
+                        <artifactId>javax.servlet-api</artifactId>
+                        <version>3.1.0</version>
+                        <scope>compile</scope>
+                    </dependency>
+                </dependencies>
+            </plugin>
+
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.lucee</groupId>
+            <artifactId>dom4j</artifactId>
+            <version>1.6.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>co.paralleluniverse</groupId>
+            <artifactId>capsule</artifactId>
+            <version>1.0.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.fusesource.jansi</groupId>
+            <artifactId>jansi</artifactId>
+            <version>1.11</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.airlift</groupId>
+            <artifactId>airline</artifactId>
+            <version>0.6</version>
+        </dependency>
+
+         <dependency>
+            <groupId>net.redhogs.cronparser</groupId>
+            <artifactId>cron-parser</artifactId>
+            <version>2.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>1.13</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.ini4j</groupId>
+            <artifactId>ini4j</artifactId>
+            <version>0.5.2</version>
+        </dependency>
+
+        <!-- Groovy dependencies -->
+
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy</artifactId>
+            <version>2.4.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-templates</artifactId>
+            <version>2.4.1</version>
+        </dependency>
+
+        <!--  Azure dependencies  -->
+
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-mgmt-resources</artifactId>
+            <version>${azure.version}</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>jackson-core</artifactId>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-mgmt-network</artifactId>
+            <version>${azure.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>adal4j</artifactId>
+            <version>1.1.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-mgmt-compute</artifactId>
+            <version>${azure.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-mgmt-dns</artifactId>
+            <version>${azure.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.microsoft.azure</groupId>
+            <artifactId>azure-storage</artifactId>
+            <version>4.0.0</version>
+        </dependency>
+
+        <!--  Rackspace US dependencies  -->
+
+        <dependency>
+            <groupId>org.apache.jclouds.driver</groupId>
+            <artifactId>jclouds-slf4j</artifactId>
+            <version>${jclouds.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.jclouds.labs</groupId>
+            <artifactId>rackspace-cloudnetworks-us</artifactId>
+            <version>${jclouds.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.jclouds.provider</groupId>
+            <artifactId>rackspace-cloudservers-us</artifactId>
+            <version>${jclouds.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.jclouds.labs</groupId>
+            <artifactId>rackspace-cloudfiles-us</artifactId>
+            <version>${jclouds.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.jclouds.provider</groupId>
+            <artifactId>rackspace-cloudblockstorage-us</artifactId>
+            <version>${jclouds.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.jclouds.provider</groupId>
+            <artifactId>rackspace-cloudloadbalancers-us</artifactId>
+            <version>${jclouds.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.jclouds.provider</groupId>
+            <artifactId>rackspace-clouddns-us</artifactId>
+            <version>${jclouds.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.jclouds.labs</groupId>
+            <artifactId>rackspace-autoscale-us</artifactId>
+            <version>${jclouds.version}</version>
+        </dependency>
+
+        <!-- AWS dependencies -->
+
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>2.8.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-core</artifactId>
+            <version>${aws.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-s3</artifactId>
+            <version>${aws.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-cloudfront</artifactId>
+            <version>${aws.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-autoscaling</artifactId>
+            <version>${aws.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-ec2</artifactId>
+            <version>${aws.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-cloudwatch</artifactId>
+            <version>${aws.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-cloudwatchmetrics</artifactId>
+            <version>${aws.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-iam</artifactId>
+            <version>${aws.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-route53</artifactId>
+            <version>${aws.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-sqs</artifactId>
+            <version>${aws.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-sts</artifactId>
+            <version>${aws.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.amazonaws</groupId>
+            <artifactId>aws-java-sdk-elasticloadbalancing</artifactId>
+            <version>${aws.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.googlecode.json-simple</groupId>
+            <artifactId>json-simple</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.cedarsoftware</groupId>
+            <artifactId>json-io</artifactId>
+            <version>2.6.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.9</version>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-net</groupId>
+            <artifactId>commons-net</artifactId>
+            <version>3.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.3.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.4</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.undertow</groupId>
+            <artifactId>undertow-core</artifactId>
+            <version>1.4.20.Final</version>
+        </dependency>
+
+        <dependency>
+            <groupId>us.monoid.web</groupId>
+            <artifactId>resty</artifactId>
+            <version>0.3.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+            <version>1.8.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>17.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.jcraft</groupId>
+            <artifactId>jsch.agentproxy.connector-factory</artifactId>
+            <version>0.0.7</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.jcraft</groupId>
+            <artifactId>jsch.agentproxy.jsch</artifactId>
+            <version>0.0.7</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.jgit</groupId>
+            <artifactId>org.eclipse.jgit</artifactId>
+            <version>3.4.1.201406201815-r</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.psddev</groupId>
+            <artifactId>dari-util</artifactId>
+            <version>3.0-SNAPSHOT</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>jackson-core-asl</artifactId>
+                    <groupId>org.codehaus.jackson</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.9.10</version>
+        </dependency>
+
+        <!-- Logging -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.6.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>log4j-over-slf4j</artifactId>
+            <version>1.7.12</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.1.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-chrome-driver</artifactId>
+            <version>2.53.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.github.bonigarcia</groupId>
+            <artifactId>webdrivermanager</artifactId>
+            <version>1.4.9</version>
+        </dependency>
+
+    </dependencies>
+
+    <distributionManagement>
+        <repository>
+            <id>psddev-releases</id>
+            <url>https://artifactory.psdops.com/psddev-releases</url>
+        </repository>
+
+        <snapshotRepository>
+            <id>psddev-snapshots</id>
+            <url>https://artifactory.psdops.com/psddev-snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <repositories>
+        <repository>
+            <id>public.psddev</id>
+            <url>https://artifactory.psdops.com/public</url>
+            <snapshots>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>st-snapshots</id>
+            <name>sonatype-snapshots</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>public.psddev</id>
+            <url>https://artifactory.psdops.com/public</url>
+            <snapshots>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
+
+</project>
