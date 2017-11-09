@@ -3,6 +3,7 @@ dist/
 
 *.iml
 .idea/
+.gradle
 target/
 
 # Output by Capsule

@@ -1,0 +1,42 @@
+buildscript {
+    ext.kotlin_version = '1.1.51'
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+plugins {
+    id "org.jetbrains.kotlin.jvm" version "1.1.51"
+    id "us.kirchmeier.capsule" version "1.0.2"
+}
+
+apply plugin: 'java'
+apply plugin: "kotlin"
+
+sourceCompatibility = 1.8
+version = '1.0'
+
+defaultTasks 'build'
+
+repositories {
+    mavenCentral()
+    maven {
+        url "https://artifactory.psdops.com/public"
+    }
+}
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+    compile "io.airlift:airline:0.7"
+
+}
+
+task dist(type: FatCapsule) {
+    applicationClass 'beam.Beam'
+}
