@@ -18,7 +18,7 @@ class Beam(args: Array<String>) : Runnable {
                     .withDefaultCommand(Help::class.java)
                     .withCommands(commands.asIterable())
 
-            cli = builder.build();
+            val cli = builder.build();
 
             val command = cli.parse(args.asIterable())
 
