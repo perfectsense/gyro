@@ -8,3 +8,6 @@ target/
 
 # Output by Capsule
 dependency-reduced-pom.xml
+
+# Ignore antlr4 generated code
+src/main/gen

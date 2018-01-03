@@ -4,6 +4,7 @@ plugins {
 }
 
 apply plugin: 'java'
+apply plugin: 'antlr'
 
 sourceCompatibility = 1.8
 version = '1.0'
@@ -19,6 +20,9 @@ repositories {
 
 dependencies {
     compile group: 'io.airlift', name: 'airline', version: '0.8'
+    compile group: 'org.parboiled', name: 'parboiled-java', version: '1.1.8'
+
+    antlr "org.antlr:antlr4:4.7.1"
 }
 
 task dist(type: FatCapsule) {
