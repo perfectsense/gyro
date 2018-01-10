@@ -47,6 +47,57 @@ allow for policy enforcement as well as other more advanced use cases.
 An example use case might be to ensure appropriate tags are on all resources. This could be accomplished
 with the Event Stream Plugin model as well.
 
+## Translator
+
+A translator (written in Groovy or Java) serves as a bridge between beam configuration and resources.
+
+This mechanism is intended for extension writers to build customized beam configurations which are not limited
+by how resources are defined.
+
+Example use cases are layers, build-in subnet routes etc.
+
+Translator of a regular aws vpc simply passes config data over to resource:
+```
+aws::vpc {
+    name: "AWS VPC"
+    region: "us-east-1"
+    cidr: "10.0.0.0/16"
+}
+```
+
+```
+def aws_vpc(data) {
+    VpcResource vpc = new VpcResource()
+    vpc.name = data.name
+    vpc.region = data.region
+    vpc.cidr = data.cidr
+}
+```
+
+Extension writers can define a customized vpc with cidr mapping and internet gateway composition:
+```
+def foo_vpc(data) {
+    def cidr_mappings = ["us-east-1": "10.0.0.0/16", "us-west-1": "10.1.0.0/16"]
+
+    VpcResource vpc = new VpcResource()
+    vpc.name = data.name
+    vpc.region = data.region
+    vpc.cidr = cidr_mappings.get(data.region)
+
+    InternetGatewayResource igw = new InternetGatewayResource()
+    vpc.internetGateway = igw
+}
+```
+
+The above translator will allow the customized vpc in beam configs:
+
+```
+foo::vpc {
+    name: "FOO VPC"
+    region: "us-east-1"
+}
+```
+
 # Syntax
 
 ## Identifiers
