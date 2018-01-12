@@ -254,7 +254,7 @@ import {
     # Git import with support for Git and Github syntax
     git:    https://github.com/perfectsense/beam-package.git
     github: perfectsense/beam-package
-    branch: release/1.0
+    tag: release/1.0
     
     # Local filesystem import
     path: /path/to/beam-package
