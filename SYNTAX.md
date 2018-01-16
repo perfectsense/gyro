@@ -193,9 +193,10 @@ An example beam filter:
 ```
 beam::environment {
     keys: [--environment, -e]
-	values: {
-		prod: [frontend.beam, backend.beam]
-		dev: [development.beam]
+    values: {
+        prod: [frontend.beam, backend.beam]
+        dev: [development.beam]
+    }
 }
 ```
 The above filter segregate prod and dev environment and can facilitate environment option for `beam up` such as
