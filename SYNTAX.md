@@ -180,6 +180,27 @@ aws::vpc {
 In the example above the `aws::subnet` resource does not need to explicity set the `vpc_id` on the
 subnet resource since it is implied based on being nested inside of the `aws::vpc` resource.
 
+# Filters
+
+Filters are used to segregate resources in the Beam configuration language. For example, an environment filter
+can segregate resources by different environments and help user to make changes only to one environment while
+leaving other environments untouched.
+
+Filters always following the format `beam::<filter> { <filter_block> }` where `filter_block` defines filter keys
+and values.
+
+An example beam filter:
+```
+beam::environment {
+    keys: [--environment, -e]
+	values: {
+		prod: [frontend.beam, backend.beam]
+		dev: [development.beam]
+}
+```
+The above filter segregate prod and dev environment and can facilitate environment option for `beam up` such as
+`beam up -e dev`
+
 ## Statement: include
 
 The `include` method is used to include and evaluate a Beam configuration file.
