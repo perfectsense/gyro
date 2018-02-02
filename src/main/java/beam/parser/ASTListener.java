@@ -5,6 +5,8 @@ import beam.parser.antlr4.BeamParser;
 import beam.parser.ast.ASTBeamRoot;
 import beam.providerHandler.ProviderHandler;
 import org.reflections.Reflections;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.Method;
 
 public class ASTListener extends BeamBaseListener {
 
@@ -58,6 +60,40 @@ public class ASTListener extends BeamBaseListener {
     @Override
     public void enterProviderBlock(BeamParser.ProviderBlockContext ctx) {
         super.enterProviderBlock(ctx);
+    }
+
+    @Override
+    public void exitProviderBlock(BeamParser.ProviderBlockContext ctx) {
+        super.enterProviderBlock(ctx);
+        String provider = ctx.providerName().PROVIDER_NAME().getSymbol().getText();
+        provider = provider.trim();
+        String providerName = provider.split("::")[0];
+        String resourceName = provider.split("::")[1];
+        try {
+            java.net.URLClassLoader loader = (java.net.URLClassLoader) ClassLoader.getSystemClassLoader();
+            Class<?> resourceClass = loader.loadClass(String.format("beam.%s.%s", providerName, resourceName));
+            Object resource = resourceClass.newInstance();
+            for (BeamParser.ResourceScopeContext resourceScopeContext : ctx.resourceScope()) {
+                for (BeamParser.KeyValueBlockContext keyValueBlockContext : resourceScopeContext.keyValueBlock()) {
+
+                    String key = keyValueBlockContext.key().getText();
+                    key = key.split(":")[0];
+                    String value = keyValueBlockContext.value().getText();
+                    PropertyDescriptor pd = new PropertyDescriptor(key, resourceClass);
+                    Method setter = pd.getWriteMethod();
+                    setter.invoke(resource, value);
+                }
+            }
+
+            System.out.println(resource);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void enterProviderName(BeamParser.ProviderNameContext ctx) {
+        super.enterProviderName(ctx);
     }
 
     @Override
