@@ -3,6 +3,8 @@ package beam.parser;
 import beam.parser.antlr4.BeamBaseListener;
 import beam.parser.antlr4.BeamParser;
 import beam.parser.ast.ASTBeamRoot;
+import beam.providerHandler.ProviderHandler;
+import org.reflections.Reflections;
 
 public class ASTListener extends BeamBaseListener {
 
@@ -26,6 +28,21 @@ public class ASTListener extends BeamBaseListener {
         super.enterGlobalScope(ctx);
     }
 
+    @Override
+    public void enterProviderLocation(BeamParser.ProviderLocationContext ctx) {
+        String key = ctx.QUOTED_STRING().getSymbol().getText();
+        key = key.replaceAll("^\"|\"$", "");
+        Reflections reflections = new Reflections("beam.providerHandler");
+        for (Class<? extends ProviderHandler> handlerClass : reflections.getSubTypesOf(ProviderHandler.class)) {
+            try {
+                ProviderHandler handler = handlerClass.newInstance();
+                if (handler.validate(key)) {
+                    handler.handle(key);
+                }
+            } catch (IllegalAccessException | InstantiationException error) {
+                error.printStackTrace();
+            }
+        }
     }
 
     @Override
