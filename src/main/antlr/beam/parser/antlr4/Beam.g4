@@ -84,8 +84,7 @@ INT
     : DIGIT+ ;
 
 // Keywords
-
-METHOD_INCLUDE: 'include' ;
+MODULE_INCLUDE: 'module' ;
 
 HASH          : '#' ;
 LPAREN        : '(' ;
