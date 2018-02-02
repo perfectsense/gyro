@@ -34,6 +34,6 @@ public class GradleBuilder extends ProviderBuilder {
             connection.close();
         }
 
-        return null;
+        return path + "/build/libs/beam.git-1.0.jar";
     }
 }
