@@ -21,7 +21,13 @@ resourceScope
     ;
 
 providerBlock
-    : PROVIDER_NAME LBLOCK (resourceScope)* RBLOCK
+    : providerName LBLOCK (resourceScope)* RBLOCK
+    ;
+
+providerName
+    : PROVIDER_NAME
+    ;
+
 providerImport
     : PROVIDER_IMPORT providerLocation
     ;
