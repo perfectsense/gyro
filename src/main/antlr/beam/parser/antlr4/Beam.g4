@@ -13,7 +13,7 @@ beamRoot
     ;
 
 globalScope
-    : (providerBlock | method)+
+    : (providerBlock | method | providerImport)+
     ;
 
 resourceScope
@@ -22,6 +22,12 @@ resourceScope
 
 providerBlock
     : PROVIDER_NAME LBLOCK (resourceScope)* RBLOCK
+providerImport
+    : PROVIDER_IMPORT providerLocation
+    ;
+
+providerLocation
+    : QUOTED_STRING
     ;
 
 key
@@ -58,6 +64,10 @@ methodNamedArgument
 fragment LETTER : [a-zA-Z_.] ;
 fragment DIGIT  : [0-9] ;
 
+PROVIDER_IMPORT
+    : 'provider' WHITESPACE
+    ;
+
 QUOTED_STRING
     : '"' ~('\\'|'"')* '"'
     | '\'' ~('\''|'"')* '\''
@@ -76,7 +86,6 @@ INT
 // Keywords
 
 METHOD_INCLUDE: 'include' ;
-METHOD_IMPORT : 'import' ;
 
 HASH          : '#' ;
 LPAREN        : '(' ;
