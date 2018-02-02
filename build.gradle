@@ -16,12 +16,19 @@ repositories {
     maven {
         url "https://artifactory.psdops.com/public"
     }
+
+    maven {
+        url "https://repo.gradle.org/gradle/libs-releases"
+    }
 }
 
 dependencies {
     compile group: 'io.airlift', name: 'airline', version: '0.8'
     compile group: 'org.parboiled', name: 'parboiled-java', version: '1.1.8'
     compile group: 'org.reflections', name: 'reflections', version: '0.9.10'
+    compile group: 'org.gradle', name: 'gradle-tooling-api', version: '4.5'
+    compile group: 'com.psddev', name: 'dari-util', version: '3.0-SNAPSHOT'
+    compile group: 'org.apache.maven.shared', name: 'maven-invoker', version: '3.0.0'
 
     antlr "org.antlr:antlr4:4.7.1"
 }
