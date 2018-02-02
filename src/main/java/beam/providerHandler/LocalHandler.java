@@ -33,7 +33,8 @@ public class LocalHandler extends ProviderHandler {
                     try {
                         ProviderBuilder builder = builderClass.newInstance();
                         if (builder.validate(key)) {
-                            builder.build(key);
+                            String packagePath = builder.build(key);
+                            loadLibrary(new File(packagePath));
                         }
                     } catch (IllegalAccessException | InstantiationException error) {
                         error.printStackTrace();
