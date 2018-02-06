@@ -1,5 +1,7 @@
 package beam.parser;
 
+import beam.core.BeamResource;
+import beam.core.ConfigKey;
 import beam.parser.antlr4.BeamBaseListener;
 import beam.parser.antlr4.BeamParser;
 import beam.parser.ast.ASTBeamRoot;
@@ -68,10 +70,23 @@ public class ASTListener extends BeamBaseListener {
         String provider = ctx.providerName().PROVIDER_NAME().getSymbol().getText();
         provider = provider.trim();
         String providerName = provider.split("::")[0];
-        String resourceName = provider.split("::")[1];
+        String resourceKey = provider.split("::")[1];
+        String resourceName = null;
         try {
+            Reflections reflections = new Reflections(String.format("beam.%s", providerName));
             java.net.URLClassLoader loader = (java.net.URLClassLoader) ClassLoader.getSystemClassLoader();
-            Class<?> resourceClass = loader.loadClass(String.format("beam.%s.%s", providerName, resourceName));
+            for (Class<? extends BeamResource> resource : reflections.getSubTypesOf(BeamResource.class)) {
+                ConfigKey configKey = resource.getAnnotation(ConfigKey.class);
+                if (configKey != null && resourceKey.equals(configKey.value())) {
+                    resourceName = resource.getName();
+                }
+            }
+
+            if (resourceName == null) {
+                throw new UnsupportedOperationException(String.format("%s is not supported!", provider));
+            }
+
+            Class<?> resourceClass = loader.loadClass(resourceName);
             Object resource = resourceClass.newInstance();
             for (BeamParser.ResourceScopeContext resourceScopeContext : ctx.resourceScope()) {
                 for (BeamParser.KeyValueBlockContext keyValueBlockContext : resourceScopeContext.keyValueBlock()) {

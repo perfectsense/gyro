@@ -1,6 +1,6 @@
 provider "https://github.com/perfectsense/beam.git?branch=feature/core"
 
-aws::VpcResource {
+aws::vpc {
     name: "Production VPC"
     region: "us-east-1"
     cidr: "10.0.0.0/16"
