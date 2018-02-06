@@ -12,7 +12,7 @@ import com.psddev.dari.util.StringUtils;
 
 public class GitHandler extends ProviderHandler {
 
-    private static String LONG_GITHUB_URL = "^https://github.com/(?<short>.*)";
+    private static String LONG_GITHUB_URL = "^https://github.com/(?<short>[^.]+)\\.git";
     private static Pattern LONG_GITHUB_URL_PAT = Pattern.compile(LONG_GITHUB_URL);
 
     private static String SHORT_GITHUB_URL = "(?<username>[^~/]+)/(?<repo>[^?]+)";
