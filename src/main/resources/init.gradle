@@ -1,0 +1,15 @@
+initscript {
+    repositories {
+        maven {
+            url "https://artifactory.psdops.com/public"
+        }
+    }
+
+    dependencies {
+        classpath group: 'beam', name: 'beam', version: '1.0'
+    }
+}
+
+allprojects {
+    apply plugin: beam.providerBuilder.builderUtil.gradle.ProjectPropertiesPlugin
+}
