@@ -47,6 +47,7 @@ public class GradleBuilder extends ProviderBuilder {
             jarName = model.getJarPath();
 
             BuildLauncher build = connection.newBuild();
+            build.forTasks("shadowJar");
             build.run();
 
         } catch (Exception e) {

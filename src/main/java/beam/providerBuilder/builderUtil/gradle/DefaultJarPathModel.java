@@ -13,6 +13,6 @@ public class DefaultJarPathModel implements Serializable, JarPathModel {
 
     @Override
     public String getJarPath() {
-        return String.format("%s-%s.jar", name, version);
+        return String.format("%s-%s-all.jar", name, version);
     }
 }
