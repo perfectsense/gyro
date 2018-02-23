@@ -50,9 +50,9 @@ public class LocalHandler extends ProviderHandler {
 
     protected static synchronized void loadLibrary(java.io.File jar) throws Exception {
         try {
-            java.net.URLClassLoader loader = (java.net.URLClassLoader)ClassLoader.getSystemClassLoader();
+            java.net.URLClassLoader loader = (java.net.URLClassLoader) ClassLoader.getSystemClassLoader();
             java.net.URL url = jar.toURI().toURL();
-            for (java.net.URL it : java.util.Arrays.asList(loader.getURLs())){
+            for (java.net.URL it : java.util.Arrays.asList(loader.getURLs())) {
                 if (it.equals(url)){
                     return;
                 }
@@ -64,7 +64,7 @@ public class LocalHandler extends ProviderHandler {
         } catch (java.lang.NoSuchMethodException |
                 java.lang.IllegalAccessException |
                 java.net.MalformedURLException |
-                java.lang.reflect.InvocationTargetException e){
+                java.lang.reflect.InvocationTargetException e) {
             throw new Exception(e);
         }
     }
@@ -81,15 +81,15 @@ public class LocalHandler extends ProviderHandler {
     }
 
     private static boolean isZip(File file) throws IOException {
-        if(file.isDirectory()) {
+        if (file.isDirectory()) {
             return false;
         }
 
-        if(!file.canRead()) {
+        if (!file.canRead()) {
             throw new IOException("Unable to read file " + file.getAbsolutePath());
         }
 
-        if(file.length() < 4) {
+        if (file.length() < 4) {
             return false;
         }
 
