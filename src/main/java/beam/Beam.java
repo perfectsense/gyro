@@ -1,6 +1,6 @@
 package beam;
 
-import beam.commands.ParseCommand;
+import beam.commands.UpCommand;
 import io.airlift.airline.Cli;
 import io.airlift.airline.Help;
 
@@ -10,7 +10,7 @@ public class Beam {
         Cli.CliBuilder<Object> builder = Cli.builder("beam").
                 withDescription("Beam.").
                 withDefaultCommand(Help.class).
-                withCommand(ParseCommand.class);
+                withCommand(UpCommand.class);
 
         Cli<Object> cli = builder.build();
 

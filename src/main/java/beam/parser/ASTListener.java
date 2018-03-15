@@ -1,18 +1,24 @@
 package beam.parser;
 
+import beam.core.BeamObject;
+import beam.core.BeamProvider;
 import beam.core.BeamResource;
-import beam.core.ConfigKey;
+import beam.core.diff.*;
 import beam.parser.antlr4.BeamBaseListener;
 import beam.parser.antlr4.BeamParser;
 import beam.parser.ast.ASTBeamRoot;
-import beam.providerHandler.ProviderHandler;
-import org.reflections.Reflections;
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.Method;
+
+import java.util.*;
 
 public class ASTListener extends BeamBaseListener {
 
     private ASTBeamRoot root;
+
+    private Set<BeamResource> pending;
+    private Map<String, BeamResource> symbolTable;
+    private Map<String, BeamProvider> providerTable;
+    private final Set<ChangeType> changeTypes = new HashSet<>();
+    private Stack<BeamObject> objectStack;
 
     public ASTBeamRoot getRoot() {
         return root;
@@ -24,7 +30,15 @@ public class ASTListener extends BeamBaseListener {
 
     @Override
     public void enterBeamRoot(BeamParser.BeamRootContext ctx) {
+        pending = new HashSet<>();
+        symbolTable = new HashMap<>();
+        providerTable = new HashMap<>();
+        objectStack = new Stack<>();
+    }
 
+    @Override
+    public void exitBeamRoot(BeamParser.BeamRootContext ctx) {
+        ASTHandler.exitBeamRoot(pending, changeTypes, providerTable);
     }
 
     @Override
@@ -36,17 +50,7 @@ public class ASTListener extends BeamBaseListener {
     public void enterProviderLocation(BeamParser.ProviderLocationContext ctx) {
         String key = ctx.QUOTED_STRING().getSymbol().getText();
         key = key.replaceAll("^\"|\"$", "");
-        Reflections reflections = new Reflections("beam.providerHandler");
-        for (Class<? extends ProviderHandler> handlerClass : reflections.getSubTypesOf(ProviderHandler.class)) {
-            try {
-                ProviderHandler handler = handlerClass.newInstance();
-                if (handler.validate(key)) {
-                    handler.handle(key);
-                }
-            } catch (IllegalAccessException | InstantiationException error) {
-                error.printStackTrace();
-            }
-        }
+        ASTHandler.enterProviderLocation(key);
     }
 
     @Override
@@ -61,48 +65,28 @@ public class ASTListener extends BeamBaseListener {
 
     @Override
     public void enterProviderBlock(BeamParser.ProviderBlockContext ctx) {
-        super.enterProviderBlock(ctx);
-    }
-
-    @Override
-    public void exitProviderBlock(BeamParser.ProviderBlockContext ctx) {
-        super.enterProviderBlock(ctx);
         String provider = ctx.providerName().PROVIDER_NAME().getSymbol().getText();
         provider = provider.trim();
         String providerName = provider.split("::")[0];
         String resourceKey = provider.split("::")[1];
-        String resourceName = null;
-        try {
-            Reflections reflections = new Reflections(String.format("beam.%s", providerName));
-            java.net.URLClassLoader loader = (java.net.URLClassLoader) ClassLoader.getSystemClassLoader();
-            for (Class<? extends BeamResource> resource : reflections.getSubTypesOf(BeamResource.class)) {
-                ConfigKey configKey = resource.getAnnotation(ConfigKey.class);
-                if (configKey != null && resourceKey.equals(configKey.value())) {
-                    resourceName = resource.getName();
-                }
+        String symbol = ctx.resourceSymbol() == null ? null : ctx.resourceSymbol().getText();
+        if (symbol != null) {
+            symbol = symbol.trim();
+        }
+
+        ASTHandler.createBeamObject(providerName, resourceKey, symbol, providerTable, symbolTable, objectStack);
+    }
+
+    @Override
+    public void exitProviderBlock(BeamParser.ProviderBlockContext ctx) {
+        BeamObject object = ASTHandler.loadBeamObject(objectStack, pending);
+        for (BeamParser.ResourceScopeContext resourceScopeContext : ctx.resourceScope()) {
+            for (BeamParser.KeyValueBlockContext keyValueBlockContext : resourceScopeContext.keyValueBlock()) {
+                String key = keyValueBlockContext.key().getText();
+                key = key.split(":")[0];
+                String value = keyValueBlockContext.value().getText();
+                ASTHandler.populateSettings(object, key, value, providerTable, symbolTable);
             }
-
-            if (resourceName == null) {
-                throw new UnsupportedOperationException(String.format("%s is not supported!", provider));
-            }
-
-            Class<?> resourceClass = loader.loadClass(resourceName);
-            Object resource = resourceClass.newInstance();
-            for (BeamParser.ResourceScopeContext resourceScopeContext : ctx.resourceScope()) {
-                for (BeamParser.KeyValueBlockContext keyValueBlockContext : resourceScopeContext.keyValueBlock()) {
-
-                    String key = keyValueBlockContext.key().getText();
-                    key = key.split(":")[0];
-                    String value = keyValueBlockContext.value().getText();
-                    PropertyDescriptor pd = new PropertyDescriptor(key, resourceClass);
-                    Method setter = pd.getWriteMethod();
-                    setter.invoke(resource, value);
-                }
-            }
-
-            System.out.println(resource);
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 

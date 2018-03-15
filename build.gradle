@@ -30,6 +30,8 @@ dependencies {
     compile group: 'org.gradle', name: 'gradle-tooling-api', version: '3.5'
     compile group: 'com.psddev', name: 'dari-util', version: '3.2-SNAPSHOT'
     compile group: 'org.apache.maven.shared', name: 'maven-invoker', version: '3.0.0'
+    compile group: 'org.fusesource.jansi', name: 'jansi', version: '1.11'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.6.3'
 
     antlr "org.antlr:antlr4:4.7.1"
 }

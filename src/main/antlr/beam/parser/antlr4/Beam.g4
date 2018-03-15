@@ -21,7 +21,7 @@ resourceScope
     ;
 
 providerBlock
-    : providerName LBLOCK (resourceScope)* RBLOCK
+    : (resourceSymbol SYMBOL_ASSIGN)? providerName LBLOCK (resourceScope)* RBLOCK
     ;
 
 providerName
@@ -41,7 +41,7 @@ key
     ;
 
 value
-    : (ID | QUOTED_STRING)+
+    : (ID | QUOTED_STRING | '$'ID('.'ID)?)+ | ('['QUOTED_STRING? (',' QUOTED_STRING)* ']')
     ;
 
 keyValueBlock
@@ -63,6 +63,9 @@ methodNamedArgument
     : ID MAP_ASSIGN QUOTED_STRING
     ;
 
+resourceSymbol
+    : ID
+    ;
 /*
  * Lexer Rules
  */
@@ -77,6 +80,10 @@ PROVIDER_IMPORT
 QUOTED_STRING
     : '"' ~('\\'|'"')* '"'
     | '\'' ~('\''|'"')* '\''
+    ;
+
+List_STRING
+    : '[' ~('\\'|'"'|'\''|'"')* ']'
     ;
 
 ID
@@ -99,6 +106,7 @@ LBLOCK        : '{' ;
 RBLOCK        : '}' ;
 METHOD        : '@' ID ;
 MAP_ASSIGN    : '=>' ;
+SYMBOL_ASSIGN : '=' ;
 COMMA         : ',' ;
 COLON         : ':' ;
 

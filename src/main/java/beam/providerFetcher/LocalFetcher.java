@@ -1,4 +1,4 @@
-package beam.providerHandler;
+package beam.providerFetcher;
 
 import beam.providerBuilder.ProviderBuilder;
 import org.reflections.Reflections;
@@ -11,7 +11,7 @@ import java.io.FileInputStream;
 import java.util.regex.Pattern;
 import java.util.zip.ZipFile;
 
-public class LocalHandler extends ProviderHandler {
+public class LocalFetcher extends ProviderFetcher {
 
     private static String LOCAL_KEY = "^(/[^/ ]*)+/?$";
     private static Pattern LOCAL_KEY_PAT = Pattern.compile(LOCAL_KEY);
@@ -22,7 +22,7 @@ public class LocalHandler extends ProviderHandler {
     }
 
     @Override
-    public void handle(String key) {
+    public void fetch(String key) {
         File localFile = new File(key);
         try {
             if (isJar(localFile)) {

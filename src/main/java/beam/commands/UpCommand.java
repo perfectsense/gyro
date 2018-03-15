@@ -12,11 +12,11 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
-@Command(name = "parse", description = "Parse")
-public class ParseCommand implements Runnable {
+@Command(name = "up", description = "Updates all assets to match the configuration.")
+public class UpCommand implements Runnable {
 
     public void run() {
-        ASTBeamRoot root = parse("test.beam");
+        ASTBeamRoot root = parse("test2.beam");
         if (root == null) {
             return;
         }
@@ -45,5 +45,4 @@ public class ParseCommand implements Runnable {
 
         return null;
     }
-
 }

@@ -1,4 +1,4 @@
-package beam.providerHandler;
+package beam.providerFetcher;
 
 import java.io.File;
 import java.nio.file.FileSystems;
@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 
 import com.psddev.dari.util.StringUtils;
 
-public class GitHandler extends ProviderHandler {
+public class GitFetcher extends ProviderFetcher {
 
     private static String LONG_GITHUB_URL = "^https://github.com/(?<short>[^.]+)\\.git";
     private static Pattern LONG_GITHUB_URL_PAT = Pattern.compile(LONG_GITHUB_URL);
@@ -37,7 +37,7 @@ public class GitHandler extends ProviderHandler {
     }
 
     @Override
-    public void handle(String key) {
+    public void fetch(String key) {
         String beamPath = System.getProperty("user.home") + "/.beam";
         final String destinationPath = beamPath + "/packages";
 
@@ -122,9 +122,9 @@ public class GitHandler extends ProviderHandler {
             buildAndRunProcess(arguments, null);
         }
 
-        LocalHandler localHandler = new LocalHandler();
+        LocalFetcher localHandler = new LocalFetcher();
         if (localHandler.validate(packagePath.toString())) {
-            localHandler.handle(packagePath.toString());
+            localHandler.fetch(packagePath.toString());
         }
     }
 

@@ -1,8 +1,8 @@
-package beam.providerHandler;
+package beam.providerFetcher;
 
 import java.util.regex.Pattern;
 
-public class MavenHandler extends ProviderHandler {
+public class MavenFetcher extends ProviderFetcher {
 
     private static String MAVEN_KEY = "^(?<organization>[^:]+):(?<package>[^:]+):(?<version>[^:]+)";
     private static Pattern MAVEN_KEY_PAT = Pattern.compile(MAVEN_KEY);
@@ -13,7 +13,7 @@ public class MavenHandler extends ProviderHandler {
     }
 
     @Override
-    public void handle(String key) {
+    public void fetch(String key) {
 
     }
 }
