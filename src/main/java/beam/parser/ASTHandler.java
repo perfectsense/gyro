@@ -1,9 +1,6 @@
 package beam.parser;
 
-import beam.core.BeamObject;
-import beam.core.BeamProvider;
-import beam.core.BeamResource;
-import beam.core.ConfigKey;
+import beam.core.*;
 import beam.core.diff.*;
 import beam.providerFetcher.ProviderFetcher;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -71,34 +68,34 @@ public class ASTHandler {
                     if (Collection.class.isAssignableFrom(type)) {
                         boolean needReference = false;
                         Collection collection = mapper.readValue(value, Collection.class);
+                        List referenceList = new ArrayList();
                         Iterator iterator = collection.iterator();
                         while (iterator.hasNext()) {
                             Object item = iterator.next();
-                            if (item != null && item.toString().startsWith("$")) {
-                                needReference = true;
-                                String symbol = item.toString().substring(1);
-                                BeamResource dependency = symbolTable.get(symbol);
+                            if (item != null && BeamReference.isReference(item.toString())) {
+                                BeamReference beamReference = new BeamReference(symbolTable, item.toString());
+                                BeamResource dependency = beamReference.getResource();
                                 resource.dependencies().add(dependency);
                                 dependency.dependents().add(resource);
-                                resource.getReferences().put(item.toString(), dependency);
-                                resource.getReferenceMeta().put(key, collection);
+                                referenceList.add(beamReference);
+                                needReference = true;
                             } else if (item != null) {
-                                // check type
+                                referenceList.add(item);
                             }
                         }
 
                         if (!needReference) {
                             setter.invoke(object, collection);
+                        } else {
+                            resource.getReferences().put(key, referenceList);
                         }
                     } else {
-                        System.out.println(value);
-                        if (value.startsWith("$")) {
-                            String symbol = value.substring(1);
-                            BeamResource dependency = symbolTable.get(symbol);
+                        if (BeamReference.isReference(value)) {
+                            BeamReference beamReference = new BeamReference(symbolTable, value);
+                            BeamResource dependency = beamReference.getResource();
                             resource.dependencies().add(dependency);
                             dependency.dependents().add(resource);
-                            resource.getReferences().put(value, dependency);
-                            resource.getReferenceMeta().put(key, value);
+                            resource.getReferences().put(key, beamReference);
                         } else {
                             setter.invoke(object, mapper.readValue(value, type));
                         }
@@ -214,7 +211,7 @@ public class ASTHandler {
                 if (className.endsWith(resourceClass)) {
                     Set<BeamResource> resourceSet = currentByResourceType.get(className);
                     for (BeamResource reference : resourceSet) {
-                        if (currentValue.equals(getFieldValue(reference, resourceProperty))) {
+                        if (currentValue.equals(DiffUtil.getPropertyValue(reference, resourceClass, resourceProperty))) {
                             currentResource.dependencies().add(reference);
                             reference.dependents().add(currentResource);
                         }
@@ -224,32 +221,17 @@ public class ASTHandler {
         }
     }
 
-    private static Object getFieldValue(BeamResource reference, String resourceProperty) throws IntrospectionException, IllegalAccessException, InvocationTargetException {
-        for (PropertyDescriptor property : Introspector.getBeanInfo(reference.getClass()).getPropertyDescriptors()) {
-            if (property.getName().equals(resourceProperty)) {
-                Method readMethod = property.getReadMethod();
-                if (readMethod != null) {
-                    return readMethod.invoke(reference);
-                }
-            }
-        }
-
-        return null;
-    }
-
     private static void adjustCurrentDependencies(Set<BeamResource> current, Map<String, Set<BeamResource>> currentByResourceType) {
         for (BeamResource currentResource : current) {
             try {
                 for (PropertyDescriptor p : Introspector.getBeanInfo(currentResource.getClass()).getPropertyDescriptors()) {
                     Method reader = p.getReadMethod();
-                    Class<?> returnType = reader.getReturnType();
-
                     if (reader == null) {
                         continue;
                     }
 
+                    Class<?> returnType = reader.getReturnType();
                     Object currentValue = reader.invoke(currentResource);
-
                     ResourceReferenceProperty propertyAnnotation = reader.getAnnotation(ResourceReferenceProperty.class);
 
                     if (propertyAnnotation != null) {

@@ -1,5 +1,7 @@
 package beam.core.diff;
 
+import beam.Beam;
+import beam.core.BeamReference;
 import beam.core.BeamResource;
 import beam.core.BeamProvider;
 import com.google.common.base.Throwables;
@@ -89,12 +91,11 @@ public abstract class ResourceChange<B extends BeamProvider> extends Change<Beam
 
             for (PropertyDescriptor p : Introspector.getBeanInfo(klass).getPropertyDescriptors()) {
                 Method reader = p.getReadMethod();
-                Class<?> returnType = reader.getReturnType();
-
                 if (reader == null) {
                     continue;
                 }
 
+                Class<?> returnType = reader.getReturnType();
                 Object pendingValue = reader.invoke(resource);
 
                 ResourceReferenceProperty propertyAnnotation = reader.getAnnotation(ResourceReferenceProperty.class);
@@ -108,29 +109,20 @@ public abstract class ResourceChange<B extends BeamProvider> extends Change<Beam
                     String resourceClass = annotation.split("\\.")[0];
                     String resourceProperty = annotation.split("\\.")[1];
 
-                    if (!resource.getReferenceMeta().containsKey(p.getName())) {
+                    if (!resource.getReferences().containsKey(p.getName())) {
                         if (ObjectUtils.isBlank(pendingValue)) {
                             if (resource.getParent() != null) {
                                 BeamResource parent = resource.getParent();
-                                if (parent.getClass().getName().endsWith(resourceClass)) {
-                                    for (PropertyDescriptor property : Introspector.getBeanInfo(parent.getClass()).getPropertyDescriptors()) {
-                                        if (property.getName().equals(resourceProperty)) {
-                                            Method readMethod = property.getReadMethod();
-                                            if (readMethod != null) {
-                                                Object value = readMethod.invoke(parent);
-                                                Method writeMethod = p.getWriteMethod();
-                                                writeMethod.invoke(resource, value);
-                                            }
-                                        }
-                                    }
-                                }
+                                Object value = DiffUtil.getPropertyValue(parent, resourceClass, resourceProperty);
+                                Method writeMethod = p.getWriteMethod();
+                                writeMethod.invoke(resource, value);
                             }
                         }
 
                         continue;
                     }
 
-                    Object referenceMeta = resource.getReferenceMeta().get(p.getName());
+                    Object referenceMeta = resource.getReferences().get(p.getName());
                     boolean resolvedAll = true;
                     if (Collection.class.isAssignableFrom(returnType)) {
                         Collection collection = (Collection) referenceMeta;
@@ -138,67 +130,38 @@ public abstract class ResourceChange<B extends BeamProvider> extends Change<Beam
                         Set references = new HashSet();
                         while (iterator.hasNext()) {
                             Object value = iterator.next();
-                            if (value != null && value.toString().startsWith("$")) {
-                                iterator.remove();
-                                if (resource.getReferences().containsKey(value)) {
-                                    BeamResource reference = resource.getReferences().get(value);
-                                    // this logic should consider package name (i.e. full class path)
-                                    if (reference.getClass().getName().endsWith(resourceClass)) {
-                                        for (PropertyDescriptor property : Introspector.getBeanInfo(reference.getClass()).getPropertyDescriptors()) {
-                                            if (property.getName().equals(resourceProperty)) {
-                                                Method readMethod = property.getReadMethod();
-                                                if (readMethod != null) {
-                                                    Object referenceValue = readMethod.invoke(reference);
-                                                    if (referenceValue == null) {
-                                                        references.add(value);
-                                                        resolvedAll = false;
-                                                    } else {
-                                                        references.add(referenceValue);
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    } else {
-                                        // wrong annotation type
-                                    }
-
+                            iterator.remove();
+                            if (value != null && value instanceof BeamReference) {
+                                BeamReference beamReference = (BeamReference) value;
+                                Object referenceValue = beamReference.resolveReference();
+                                if (referenceValue == null) {
+                                    references.add(value);
+                                    resolvedAll = false;
                                 } else {
-                                    // throw error
+                                    references.add(referenceValue);
                                 }
+                            } else {
+                                references.add(value);
                             }
                         }
 
                         collection.addAll(references);
 
                     } else {
-                        if (referenceMeta.toString().startsWith("$")) {
-                            BeamResource reference = resource.getReferences().get(referenceMeta.toString());
-                            // this logic should consider package name (i.e. full class path)
-                            if (reference.getClass().getName().endsWith(resourceClass)) {
-                                for (PropertyDescriptor property : Introspector.getBeanInfo(reference.getClass()).getPropertyDescriptors()) {
-                                    if (property.getName().equals(resourceProperty)) {
-                                        Method readMethod = property.getReadMethod();
-                                        if (readMethod != null) {
-                                            Object referenceValue = readMethod.invoke(reference);
-                                            if (referenceValue != null) {
-                                                Method writer = p.getWriteMethod();
-                                                writer.invoke(resource, referenceValue);
-                                            } else {
-                                                resolvedAll = false;
-                                            }
-                                        }
-                                    }
-                                }
+                        if (referenceMeta instanceof BeamReference) {
+                            BeamReference beamReference = (BeamReference) referenceMeta;
+                            Object referenceValue = beamReference.resolveReference();
+                            if (referenceValue != null) {
+                                Method writer = p.getWriteMethod();
+                                writer.invoke(resource, referenceValue);
                             } else {
-                                // wrong annotation type
+                                resolvedAll = false;
                             }
-                        } else {
-                            // throw error
                         }
                     }
 
                     if (resolvedAll) {
-                        resource.getReferenceMeta().remove(p.getName());
+                        resource.getReferences().remove(p.getName());
                     }
                 }
             }

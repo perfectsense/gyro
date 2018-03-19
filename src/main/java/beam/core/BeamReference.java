@@ -1,17 +1,23 @@
 package beam.core;
 
+import beam.core.diff.DiffUtil;
 import com.google.common.base.Preconditions;
 
-import java.util.UUID;
+import java.lang.reflect.Method;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * BeamReference to an AWS resource.
  */
 public class BeamReference {
 
+    private String key;
+    private static Pattern REFERENCE_PATTERN = Pattern.compile("[$][{](?<resource>[a-zA-Z][a-zA-Z_0-9]*)(?<properties>([.]([a-zA-Z][a-zA-Z_0-9]*))*)[}]");
     private final BeamResource parent;
     private final Class<? extends BeamResource<? extends BeamProvider>> resourceClass;
-    private final BeamResource resource;
+    private BeamResource resource;
     private final String awsId;
     private final String beamId;
 
@@ -54,6 +60,20 @@ public class BeamReference {
         this.resource = null;
         this.awsId = awsId;
         this.beamId = null;
+    }
+
+    public BeamReference(Map<String, BeamResource> symbolTable, String key) {
+        this.parent = null;
+        this.resourceClass = null;
+        this.resource = null;
+        this.awsId = null;
+        this.beamId = null;
+        this.key = key;
+        Matcher matcher = REFERENCE_PATTERN.matcher(key);
+
+        if (matcher.find()) {
+            resource = symbolTable.get(matcher.group("resource"));
+        }
     }
 
     public Class<? extends BeamResource<? extends BeamProvider>> getResourceClass() {
@@ -140,5 +160,52 @@ public class BeamReference {
         }
 
         return sb.toString();
+    }
+
+    public Object resolveReference() {
+        try {
+            Matcher matcher = REFERENCE_PATTERN.matcher(key);
+
+            if (matcher.find()) {
+                Object reference = resource;
+                String properties = matcher.group("properties");
+                if (properties != null) {
+                    properties = properties.substring(1);
+                    List<String> readerNames = Arrays.asList(properties.split("\\."));
+                    for (String readerName : readerNames) {
+                        if (reference != null) {
+                            reference = DiffUtil.getPropertyValue(reference, null, readerName);
+                        }
+                    }
+                }
+
+                return reference;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public static boolean isReference(String key) {
+        Matcher matcher = REFERENCE_PATTERN.matcher(key);
+        return matcher.find();
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
+    }
+
+    public BeamResource getResource() {
+        return resource;
+    }
+
+    public void setResource(BeamResource resource) {
+        this.resource = resource;
     }
 }

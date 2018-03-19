@@ -25,8 +25,7 @@ public abstract class BeamResource<B extends BeamProvider> extends BeamObject {
     private final Set<BeamResource<B>> dependents = new HashSet<>();
     private String beamId;
     private ResourceChange change;
-    private Map<String, BeamResource> references = new HashMap<>();
-    private Map<String, Object> referenceMeta = new HashMap<>();
+    private Map<String, Object> references = new HashMap<>();
 
     /**
      * Returns {@code true} if the given {@code awsResource} should be
@@ -187,18 +186,6 @@ public abstract class BeamResource<B extends BeamProvider> extends BeamObject {
 
     public Set<BeamResource<B>> dependents() {
         return dependents;
-    }
-
-    public Map<String, Object> getReferenceMeta() {
-        if (referenceMeta == null) {
-            referenceMeta = new HashMap<>();
-        }
-
-        return referenceMeta;
-    }
-
-    public void setReferenceMeta(Map<String, Object> referenceMeta) {
-        this.referenceMeta = referenceMeta;
     }
 
     /**
@@ -437,11 +424,11 @@ public abstract class BeamResource<B extends BeamProvider> extends BeamObject {
 
     public abstract String toDisplayString();
 
-    public Map<String, BeamResource> getReferences() {
+    public Map<String, Object> getReferences() {
         return references;
     }
 
-    public void setReferences(Map<String, BeamResource> references) {
+    public void setReferences(Map<String, Object> references) {
         this.references = references;
     }
 }

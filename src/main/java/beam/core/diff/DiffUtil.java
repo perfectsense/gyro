@@ -1,10 +1,30 @@
 package beam.core.diff;
 
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
 import java.io.PrintWriter;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Set;
 
 public class DiffUtil {
+
+    public static Object getPropertyValue(Object reference, String resourceClass, String resourceProperty) throws IntrospectionException, IllegalAccessException, InvocationTargetException {
+        if (resourceClass == null || reference.getClass().getName().endsWith(resourceClass)) {
+            for (PropertyDescriptor property : Introspector.getBeanInfo(reference.getClass()).getPropertyDescriptors()) {
+                if (property.getName().equals(resourceProperty)) {
+                    Method readMethod = property.getReadMethod();
+                    if (readMethod != null) {
+                        return readMethod.invoke(reference);
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
 
     public static void writeDiffs(List<Diff<?, ?, ?>> diffs, int indent, PrintWriter out, Set<ChangeType> changeTypes) {
         for (Diff<?, ?, ?> diff : diffs) {

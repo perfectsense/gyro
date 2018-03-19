@@ -28,5 +28,5 @@ myvpc = aws::vpc {
 aws::subnet {
     cidr: "10.80.3.0/26"
     zone: "us-east-1a"
-    vpcId: $myvpc
+    vpcId: "${myvpc.vpcId}"
 }
