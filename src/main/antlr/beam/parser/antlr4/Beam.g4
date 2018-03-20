@@ -36,12 +36,20 @@ providerLocation
     : QUOTED_STRING
     ;
 
+map
+    : LBLOCK (keyValueBlock)* RBLOCK
+    ;
+
+list
+    : '['value? (',' value)* ']'
+    ;
+
 key
     : ID COLON
     ;
 
 value
-    : (ID | QUOTED_STRING | '$'ID('.'ID)?)+ | ('['QUOTED_STRING? (',' QUOTED_STRING)* ']')
+    : QUOTED_STRING | ID | NUMBERS | list | map
     ;
 
 keyValueBlock
@@ -82,8 +90,8 @@ QUOTED_STRING
     | '\'' ~('\''|'"')* '\''
     ;
 
-List_STRING
-    : '[' ~('\\'|'"'|'\''|'"')* ']'
+NUMBERS
+    : DIGIT+
     ;
 
 ID
