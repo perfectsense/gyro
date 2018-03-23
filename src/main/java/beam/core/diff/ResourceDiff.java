@@ -1,8 +1,6 @@
 package beam.core.diff;
 
-import beam.core.BeamResource;
-import beam.core.BeamResourceFilter;
-import beam.core.BeamProvider;
+import beam.core.*;
 import com.google.common.base.Throwables;
 import com.psddev.dari.util.ObjectUtils;
 
@@ -76,7 +74,45 @@ public class ResourceDiff<B extends BeamProvider> extends Diff<ResourceDiffKey, 
             @Override
             protected BeamResource<B> change() {
                 this.resolveReference();
+                try {
+                    for (PropertyDescriptor p : Introspector.getBeanInfo(pending.getClass()).getPropertyDescriptors()) {
+                        Method reader = p.getReadMethod();
+                        if (reader == null) {
+                            continue;
+                        }
+
+                        DiffId diffId = reader.getAnnotation(DiffId.class);
+                        if (diffId != null) {
+                            Object pendingValue = reader.invoke(pending);
+                            if (pendingValue == null && pending.getConfigLocation() != null) {
+                                pending.getConfigLocation().getContentMap().put(p.getName(), null);
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
                 pending.create(cloud);
+
+                try {
+                    if (pending.getConfigLocation() != null) {
+                        Map<String, String> contentMap = pending.getConfigLocation().getContentMap();
+                        for (String property : contentMap.keySet()) {
+                            Object value = DiffUtil.getPropertyValue(pending, null, property);
+                            if (value != null) {
+                                contentMap.put(property, value.toString());
+                            } else {
+                                contentMap.remove(property);
+                            }
+                        }
+
+                        BeamRuntime.getBeamConfigLocations().add(pending.getConfigLocation());
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
                 return pending;
             }
 

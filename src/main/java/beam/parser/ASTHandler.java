@@ -15,9 +15,7 @@ import org.reflections.util.ConfigurationBuilder;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -380,6 +378,48 @@ public class ASTHandler {
 
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            if (!BeamRuntime.getBeamConfigLocations().isEmpty()) {
+                try {
+                    File tempConfig = File.createTempFile("beam_back_fill", ".beam");
+                    tempConfig.deleteOnExit();
+                    FileOutputStream outputStream = new FileOutputStream(tempConfig);
+
+                    BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream));
+
+                    // if config locations is empty don't do the copy
+                    File currentConfig = new File("test2.beam");
+                    BufferedReader br = new BufferedReader(new FileReader(currentConfig));
+
+                    String line = null;
+                    int count = 0;
+                    while ((line = br.readLine()) != null) {
+                        count++;
+                        for (BeamConfigLocation location : BeamRuntime.getBeamConfigLocations()) {
+                            if (location.getLine() == count) {
+                                for (String key : location.getContentMap().keySet()) {
+                                    for (int i = 0; i < location.getColumn(); i++) {
+                                        bufferedWriter.write(" ");
+                                    }
+
+                                    bufferedWriter.write(String.format("%s: \"%s\"", key, location.getContentMap().get(key)));
+                                    bufferedWriter.newLine();
+                                }
+                            }
+                        }
+
+                        bufferedWriter.write(line);
+                        bufferedWriter.newLine();
+                    }
+
+                    br.close();
+                    bufferedWriter.close();
+
+                    tempConfig.renameTo(currentConfig);
+                } catch (Exception e) {
+
+                }
+            }
         }
     }
 }

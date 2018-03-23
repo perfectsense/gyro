@@ -1,5 +1,6 @@
 package beam.parser;
 
+import beam.core.BeamConfigLocation;
 import beam.core.BeamObject;
 import beam.core.BeamProvider;
 import beam.core.BeamResource;
@@ -85,6 +86,12 @@ public class ASTListener extends BeamBaseListener {
                 String key = keyValueBlockContext.key().getText();
                 key = key.split(":")[0];
                 String value = keyValueBlockContext.value().getText();
+                if (object.getConfigLocation() == null) {
+                    int line = keyValueBlockContext.getStart().getLine();
+                    int column = keyValueBlockContext.getStart().getCharPositionInLine();
+                    object.setConfigLocation(new BeamConfigLocation(line, column));
+                }
+
                 ASTHandler.populateSettings(object, key, value, providerTable, symbolTable);
             }
         }
