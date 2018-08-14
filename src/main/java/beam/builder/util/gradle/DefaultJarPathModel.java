@@ -1,4 +1,4 @@
-package beam.providerBuilder.builderUtil.gradle;
+package beam.builder.util.gradle;
 
 import java.io.Serializable;
 

@@ -1,6 +1,7 @@
-package beam.providerFetcher;
+package beam.fetcher;
 
-import beam.providerBuilder.ProviderBuilder;
+import beam.core.BeamException;
+import beam.builder.ProviderBuilder;
 import org.reflections.Reflections;
 
 import java.io.File;
@@ -28,27 +29,33 @@ public class LocalFetcher extends ProviderFetcher {
             if (isJar(localFile)) {
                 loadLibrary(localFile);
             } else if (localFile.isDirectory()) {
-                Reflections reflections = new Reflections("beam.providerBuilder");
+                Reflections reflections = new Reflections("beam.builder");
+                boolean match = false;
                 for (Class<? extends ProviderBuilder> builderClass : reflections.getSubTypesOf(ProviderBuilder.class)) {
                     try {
                         ProviderBuilder builder = builderClass.newInstance();
                         if (builder.validate(key)) {
                             String packagePath = builder.build(key);
                             loadLibrary(new File(packagePath));
+                            match = true;
                         }
                     } catch (IllegalAccessException | InstantiationException error) {
-                        error.printStackTrace();
+                        throw new BeamException(String.format("Unable to access %s", builderClass.getName()), error);
                     }
+                }
+
+                if (!match) {
+                    throw new BeamException(String.format("Unable to find builder for provider: %s", key));
                 }
             } else {
                 throw new UnsupportedOperationException("Provider needs to be specified by a jar or a source code directory");
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IOException ioe) {
+            throw new BeamException(ioe.getMessage(), ioe);
         }
     }
 
-    protected static synchronized void loadLibrary(java.io.File jar) throws Exception {
+    protected static synchronized void loadLibrary(java.io.File jar) {
         try {
             java.net.URLClassLoader loader = (java.net.URLClassLoader) ClassLoader.getSystemClassLoader();
             java.net.URL url = jar.toURI().toURL();
@@ -65,7 +72,7 @@ public class LocalFetcher extends ProviderFetcher {
                 java.lang.IllegalAccessException |
                 java.net.MalformedURLException |
                 java.lang.reflect.InvocationTargetException e) {
-            throw new Exception(e);
+            throw new BeamException(String.format("Unable to load provider library: %s", jar.getAbsolutePath()), e);
         }
     }
 

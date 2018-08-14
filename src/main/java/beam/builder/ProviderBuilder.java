@@ -1,4 +1,4 @@
-package beam.providerBuilder;
+package beam.builder;
 
 public abstract class ProviderBuilder {
 

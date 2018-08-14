@@ -1,9 +1,10 @@
 package beam.core.diff;
 
-import beam.Beam;
+import beam.core.BeamException;
 import beam.core.BeamReference;
 import beam.core.BeamResource;
 import beam.core.BeamProvider;
+import beam.parser.ASTHandler;
 import com.google.common.base.Throwables;
 import com.psddev.dari.util.ObjectUtils;
 import com.psddev.dari.util.StringUtils;
@@ -13,10 +14,7 @@ import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 
 public abstract class ResourceChange<B extends BeamProvider> extends Change<BeamResource<B>> {
 
@@ -76,8 +74,36 @@ public abstract class ResourceChange<B extends BeamProvider> extends Change<Beam
         return dependencies;
     }
 
-    // this is to resolve references for diff
-    // also need to resolve reference when create
+    private Object resolveReference(Object value, BeamResource resource) {
+        Object result;
+        if (value instanceof Map) {
+            result = new HashMap<>();
+            for (Object key : ((Map) value).keySet()) {
+                ((Map) result).put(key, resolveReference(((Map) value).get(key), resource));
+            }
+
+        } else if (value instanceof Collection) {
+            result = new ArrayList<>();
+            for (Object item : (Collection) value) {
+                ((Collection) result).add(resolveReference(item, resource));
+            }
+        } else {
+            if (value != null && BeamReference.isReference(value.toString())) {
+                BeamReference beamReference = (BeamReference) resource.getReferences().get(value.toString());
+                result = beamReference.resolveReference();
+                if (result == null) {
+                    result = value;
+                } else {
+                    resource.getReferences().remove(value.toString());
+                }
+            } else {
+                result = value;
+            }
+        }
+
+        return result;
+    }
+
     public void resolveReference() {
         try {
             Class klass = resource != null ? resource.getClass() : null;
@@ -90,78 +116,47 @@ public abstract class ResourceChange<B extends BeamProvider> extends Change<Beam
             }
 
             for (PropertyDescriptor p : Introspector.getBeanInfo(klass).getPropertyDescriptors()) {
+                String key = p.getName();
                 Method reader = p.getReadMethod();
                 if (reader == null) {
                     continue;
                 }
 
-                Class<?> returnType = reader.getReturnType();
                 Object pendingValue = reader.invoke(resource);
-
                 ResourceReferenceProperty propertyAnnotation = reader.getAnnotation(ResourceReferenceProperty.class);
 
                 if (propertyAnnotation != null) {
                     String annotation = propertyAnnotation.value();
                     if (StringUtils.isBlank(annotation)) {
-                        //throw new BeamException("empty annotation");
+                        throw new BeamException(String.format("Invalid annotation for %s in %s", key, klass.getName()));
                     }
 
                     String resourceClass = annotation.split("\\.")[0];
                     String resourceProperty = annotation.split("\\.")[1];
 
-                    if (!resource.getReferences().containsKey(p.getName())) {
+                    // parent association need some improvement: e.g. security group ip permission have groupId and fromGroup, both are candidates for the parent ID
+                    if (!resource.getUnResolvedProperties().containsKey(p.getName())) {
                         if (ObjectUtils.isBlank(pendingValue)) {
                             if (resource.getParent() != null) {
                                 BeamResource parent = resource.getParent();
                                 Object value = DiffUtil.getPropertyValue(parent, resourceClass, resourceProperty);
-                                Method writeMethod = p.getWriteMethod();
-                                writeMethod.invoke(resource, value);
+                                if (value != null) {
+                                    Method writeMethod = p.getWriteMethod();
+                                    writeMethod.invoke(resource, value);
+                                }
                             }
                         }
 
                         continue;
                     }
 
-                    Object referenceMeta = resource.getReferences().get(p.getName());
-                    boolean resolvedAll = true;
-                    if (Collection.class.isAssignableFrom(returnType)) {
-                        Collection collection = (Collection) referenceMeta;
-                        Iterator iterator = collection.iterator();
-                        Set references = new HashSet();
-                        while (iterator.hasNext()) {
-                            Object value = iterator.next();
-                            iterator.remove();
-                            if (value != null && value instanceof BeamReference) {
-                                BeamReference beamReference = (BeamReference) value;
-                                Object referenceValue = beamReference.resolveReference();
-                                if (referenceValue == null) {
-                                    references.add(value);
-                                    resolvedAll = false;
-                                } else {
-                                    references.add(referenceValue);
-                                }
-                            } else {
-                                references.add(value);
-                            }
-                        }
-
-                        collection.addAll(references);
-
+                    Object value = resource.getUnResolvedProperties().get(p.getName());
+                    Object result = resolveReference(value, resource);
+                    if (ASTHandler.checkReference(result, resource, null)) {
+                        resource.getUnResolvedProperties().put(p.getName(), result);
                     } else {
-                        if (referenceMeta instanceof BeamReference) {
-                            BeamReference beamReference = (BeamReference) referenceMeta;
-                            Object referenceValue = beamReference.resolveReference();
-                            if (referenceValue != null) {
-                                Method writer = p.getWriteMethod();
-                                writer.invoke(resource, referenceValue);
-                            } else {
-                                resolvedAll = false;
-                            }
-                        }
-                    }
-
-                    if (resolvedAll) {
-                        resource.getReferences().remove(p.getName());
+                        ASTHandler.populate(resource, p.getName(), result);
+                        resource.getUnResolvedProperties().remove(p.getName());
                     }
                 }
             }
@@ -171,6 +166,8 @@ public abstract class ResourceChange<B extends BeamProvider> extends Change<Beam
 
         } catch (InvocationTargetException error) {
             throw Throwables.propagate(error);
+        } catch (Exception e) {
+            throw new BeamException("Unable to resolve reference", e);
         }
     }
 }

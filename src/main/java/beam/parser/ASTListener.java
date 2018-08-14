@@ -39,7 +39,9 @@ public class ASTListener extends BeamBaseListener {
 
     @Override
     public void exitBeamRoot(BeamParser.BeamRootContext ctx) {
-        ASTHandler.exitBeamRoot(pending, changeTypes, providerTable);
+        ResourceDiff diff = ASTHandler.exitBeamRoot(pending, changeTypes, providerTable);
+        root = new ASTBeamRoot();
+        root.setDiff(diff);
     }
 
     @Override
@@ -85,7 +87,18 @@ public class ASTListener extends BeamBaseListener {
             for (BeamParser.KeyValueBlockContext keyValueBlockContext : resourceScopeContext.keyValueBlock()) {
                 String key = keyValueBlockContext.key().getText();
                 key = key.split(":")[0];
-                String value = keyValueBlockContext.value().getText();
+                BeamParser.ValueContext valueContext = keyValueBlockContext.value();
+                Object value = null;
+                if (valueContext.map() != null) {
+                    value = parseMap(valueContext.map());
+                } else if (valueContext.list() != null) {
+                    value = parseList(valueContext.list());
+                } else {
+                    String quotedValue = valueContext.getText();
+                    quotedValue = quotedValue.replaceAll("^\"|\"$", "");
+                    value = quotedValue;
+                }
+
                 if (object.getConfigLocation() == null) {
                     int line = keyValueBlockContext.getStart().getLine();
                     int column = keyValueBlockContext.getStart().getCharPositionInLine();
@@ -95,6 +108,39 @@ public class ASTListener extends BeamBaseListener {
                 ASTHandler.populateSettings(object, key, value, providerTable, symbolTable);
             }
         }
+    }
+
+    private Map parseMap(BeamParser.MapContext mapContext) {
+        Map result = new HashMap();
+        for (BeamParser.KeyValueBlockContext keyValueBlockContext : mapContext.keyValueBlock()) {
+            String key = keyValueBlockContext.key().getText();
+            key = key.split(":")[0];
+            BeamParser.ValueContext value = keyValueBlockContext.value();
+            if (value.map() != null) {
+                result.put(key, parseMap(value.map()));
+            } else if (value.list() != null) {
+                result.put(key, parseList(value.list()));
+            } else {
+                result.put(key, value.getText().replaceAll("^\"|\"$", ""));
+            }
+        }
+
+        return result;
+    }
+
+    private List parseList(BeamParser.ListContext listContext) {
+        List result = new ArrayList();
+        for (BeamParser.ValueContext value : listContext.value()) {
+            if (value.map() != null) {
+                result.add(parseMap(value.map()));
+            } else if (value.list() != null) {
+                result.add(parseList(value.list()));
+            } else {
+                result.add(value.getText().replaceAll("^\"|\"$", ""));
+            }
+        }
+
+        return result;
     }
 
     @Override

@@ -2,12 +2,12 @@ package beam.parser;
 
 import beam.core.*;
 import beam.core.diff.*;
-import beam.providerFetcher.ProviderFetcher;
+import beam.fetcher.ProviderFetcher;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Throwables;
 import com.psddev.dari.util.ObjectUtils;
 import com.psddev.dari.util.StringUtils;
-import org.fusesource.jansi.AnsiRenderWriter;
 import org.reflections.Reflections;
 import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
@@ -15,29 +15,41 @@ import org.reflections.util.ConfigurationBuilder;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
-import java.io.*;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
+import java.lang.reflect.*;
 import java.util.*;
 
 public class ASTHandler {
 
+    private static Map<String, String> resourceClassMap = new HashMap<>();
+
     public static void enterProviderLocation(String key) {
-        Reflections reflections = new Reflections("beam.providerFetcher");
-        for (Class<? extends ProviderFetcher> handlerClass : reflections.getSubTypesOf(ProviderFetcher.class)) {
+
+        Reflections reflections = new Reflections("beam.fetcher");
+        boolean match = false;
+        for (Class<? extends ProviderFetcher> fetcherClass : reflections.getSubTypesOf(ProviderFetcher.class)) {
             try {
-                ProviderFetcher handler = handlerClass.newInstance();
-                if (handler.validate(key)) {
-                    handler.fetch(key);
+                ProviderFetcher fetcher = fetcherClass.newInstance();
+                if (fetcher.validate(key)) {
+                    fetcher.fetch(key);
+                    match = true;
                 }
             } catch (IllegalAccessException | InstantiationException error) {
-                error.printStackTrace();
+                throw new BeamException(String.format("Unable to access %s", fetcherClass.getName()), error);
             }
+        }
+
+        if (!match) {
+            throw new BeamException(String.format("Unable to find support for provider: %s", key));
         }
     }
 
-    private static String getClassName(String packageName, String resourceKey) {
+    private static String getClassName(String providerName, String resourceKey) {
+        String key = String.format("%s::%s", providerName, resourceKey);
+        if (resourceClassMap.containsKey(key)) {
+            return resourceClassMap.get(key);
+        }
+
+        String packageName = String.format("beam.%s", providerName);
         Reflections reflections = new Reflections(new ConfigurationBuilder()
                 .setUrls(ClasspathHelper.forPackage(packageName)), ClasspathHelper.forPackage("beam.core"));
 
@@ -49,66 +61,92 @@ public class ASTHandler {
             }
         }
 
+        if (className == null) {
+            throw new BeamException(String.format("Unsupported resource %s::%s", providerName, resourceKey));
+        }
+
+        resourceClassMap.put(key, className);
         return className;
     }
 
-    public static void populateSettings(BeamObject object, String key, String value, Map<String, BeamProvider> providerTable, Map<String, BeamResource> symbolTable) {
-        // need to convert value to the correct type
-        // need to remove reference and reference calls in BeamResource
+    public static boolean checkReference(Object value, BeamResource resource, Map<String, BeamResource> symbolTable) {
+        boolean hasReference = false;
+        if (value instanceof Map) {
+            for (Object key : ((Map) value).keySet()) {
+                hasReference = checkReference(((Map) value).get(key), resource, symbolTable) || hasReference;
+            }
+
+        } else if (value instanceof Collection) {
+            for (Object item : (Collection) value) {
+                hasReference = checkReference(item, resource, symbolTable) || hasReference;
+            }
+        } else {
+            if (value != null && BeamReference.isReference(value.toString())) {
+                if (symbolTable != null) {
+                    BeamReference beamReference = new BeamReference(symbolTable, value.toString());
+                    BeamResource dependency = beamReference.getResource();
+                    resource.dependencies().add(dependency);
+                    dependency.dependents().add(resource);
+                    resource.getReferences().put(beamReference.getKey(), beamReference);
+                }
+
+                hasReference = true;
+            } else {
+                hasReference = false;
+            }
+        }
+
+        return hasReference;
+    }
+
+    public static void populate(Object object, String key, Object value) {
         try {
             ObjectMapper mapper = new ObjectMapper();
-            if (object instanceof BeamResource) {
-                BeamResource resource = (BeamResource) object;
-                PropertyDescriptor pd = new PropertyDescriptor(key, object.getClass());
-                Method setter = pd.getWriteMethod();
+            PropertyDescriptor pd = new PropertyDescriptor(key, object.getClass());
+            Method setter = pd.getWriteMethod();
 
-                for (Class type : setter.getParameterTypes()) {
-                    if (Collection.class.isAssignableFrom(type)) {
-                        boolean needReference = false;
-                        Collection collection = mapper.readValue(value, Collection.class);
-                        List referenceList = new ArrayList();
-                        Iterator iterator = collection.iterator();
-                        while (iterator.hasNext()) {
-                            Object item = iterator.next();
-                            if (item != null && BeamReference.isReference(item.toString())) {
-                                BeamReference beamReference = new BeamReference(symbolTable, item.toString());
-                                BeamResource dependency = beamReference.getResource();
-                                resource.dependencies().add(dependency);
-                                dependency.dependents().add(resource);
-                                referenceList.add(beamReference);
-                                needReference = true;
-                            } else if (item != null) {
-                                referenceList.add(item);
-                            }
-                        }
+            if (setter == null) {
+                throw new BeamException(String.format("Unable find setter for %s in %s", key, object.getClass()));
+            } else if (setter.getParameterTypes().length != 1) {
+                throw new BeamException(String.format("Invalid setter for field %s in %s: setter accepts more than 1 argument", key, object.getClass()));
+            }
 
-                        if (!needReference) {
-                            setter.invoke(object, collection);
-                        } else {
-                            resource.getReferences().put(key, referenceList);
-                        }
-                    } else {
-                        if (BeamReference.isReference(value)) {
-                            BeamReference beamReference = new BeamReference(symbolTable, value);
-                            BeamResource dependency = beamReference.getResource();
-                            resource.dependencies().add(dependency);
-                            dependency.dependents().add(resource);
-                            resource.getReferences().put(key, beamReference);
-                        } else {
-                            setter.invoke(object, mapper.readValue(value, type));
-                        }
-                    }
-                }
+            Class parameterType = setter.getParameterTypes()[0];
+            Type[] types = setter.getGenericParameterTypes();
+
+            if (Map.class.isAssignableFrom(parameterType)) {
+                ParameterizedType pType = (ParameterizedType) types[0];
+                Class<?> keyClass = (Class<?>) pType.getActualTypeArguments()[0];
+                Class<?> valueClass = (Class<?>) pType.getActualTypeArguments()[1];
+                JavaType mapType = mapper.getTypeFactory().constructMapType(Map.class, keyClass, valueClass);
+                setter.invoke(object, (Object) mapper.readValue(ObjectUtils.toJson(value), mapType));
+            } else if (Collection.class.isAssignableFrom(parameterType)) {
+                ParameterizedType pType = (ParameterizedType) types[0];
+                Class<?> valueClass = (Class<?>) pType.getActualTypeArguments()[0];
+                JavaType collectionType = mapper.getTypeFactory().constructCollectionType(parameterType, valueClass);
+                // throw an error if the collection is null
+                setter.invoke(object, (Object) mapper.readValue(ObjectUtils.toJson(value), collectionType));
             } else {
-                PropertyDescriptor pd = new PropertyDescriptor(key, object.getClass());
-                Method setter = pd.getWriteMethod();
-                for (Class type : setter.getParameterTypes()) {
-                    setter.invoke(object, mapper.readValue(value, type));
-                }
+                JavaType valueType = mapper.getTypeFactory().constructType(parameterType);
+                setter.invoke(object, (Object) mapper.readValue(ObjectUtils.toJson(value), valueType));
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new BeamException(String.format("Unable to populate %s with %s in %s!", key, value, object), e);
+        }
+    }
+
+    // why symbol table has a null key??
+    public static void populateSettings(BeamObject object, String key, Object value, Map<String, BeamProvider> providerTable, Map<String, BeamResource> symbolTable) {
+        if (object instanceof BeamResource) {
+            BeamResource resource = (BeamResource) object;
+            if (checkReference(value, resource, symbolTable)) {
+                resource.getUnResolvedProperties().put(key, value);
+            } else {
+                populate(object, key, value);
+            }
+        } else {
+            populate(object, key, value);
         }
     }
 
@@ -135,11 +173,7 @@ public class ASTHandler {
     public static BeamObject createBeamObject(String providerName, String resourceKey, String id, Map<String, BeamProvider> providerTable, Map<String, BeamResource> symbolTable, Stack<BeamObject> objectStack) {
         String className = null;
         try {
-            String packageName = String.format("beam.%s", providerName);
-            className = getClassName(packageName, resourceKey);
-            if (className == null) {
-                throw new UnsupportedOperationException(String.format("%s::%s is not supported!", providerName, resourceKey));
-            }
+            className = getClassName(providerName, resourceKey);
 
             java.net.URLClassLoader loader = (java.net.URLClassLoader) ClassLoader.getSystemClassLoader();
             Class<?> clazz = loader.loadClass(className);
@@ -147,7 +181,9 @@ public class ASTHandler {
             BeamObject instance = (BeamObject) clazz.newInstance();
             if (instance instanceof BeamResource) {
                 BeamResource resource = (BeamResource) instance;
-                symbolTable.put(id, resource);
+                if (id != null) {
+                    symbolTable.put(id, resource);
+                }
 
             } else if (instance instanceof BeamProvider) {
                 BeamProvider provider = (BeamProvider) instance;
@@ -157,10 +193,8 @@ public class ASTHandler {
             objectStack.push(instance);
             return instance;
         } catch (Exception e) {
-            e.printStackTrace();
+           throw new BeamException(String.format("Unable to create resource %s::%s", providerName, resourceKey), e);
         }
-
-        return null;
     }
 
     private static void adjustCurrentResource(BeamResource currentResource, BeamResource pendingResource, Set<BeamResource> current, Set<BeamResource> adjustCurrent) {
@@ -289,8 +323,7 @@ public class ASTHandler {
         }
     }
 
-    public static void exitBeamRoot(Set<BeamResource> pending, Set<ChangeType> changeTypes, Map<String, BeamProvider> providerTable) {
-        PrintWriter out = new AnsiRenderWriter(System.out, true);
+    public static ResourceDiff exitBeamRoot(Set<BeamResource> pending, Set<ChangeType> changeTypes, Map<String, BeamProvider> providerTable) {
         BeamProvider beamProvider = null;
         for (BeamProvider oneProvider : providerTable.values()) {
             beamProvider = oneProvider;
@@ -299,127 +332,45 @@ public class ASTHandler {
         Reflections reflections = new Reflections("beam");
         Set<BeamResource> current = new HashSet<>();
 
-        // use class as key
         Map<String, Set<BeamResource>> currentByResourceType = new HashMap<>();
         Set<BeamResource> adjustCurrent = new HashSet<>();
+
+        long startTime = System.currentTimeMillis();
         for (Class<? extends BeamResource> resourceClass : reflections.getSubTypesOf(BeamResource.class)) {
             try {
+                ConfigKey configKey = resourceClass.getAnnotation(ConfigKey.class);
+                if (configKey == null) {
+                    continue;
+                }
+
                 BeamResource resource = resourceClass.newInstance();
                 Set<BeamResource> resourceSet = new HashSet<>();
                 resource.init(beamProvider, null, resourceSet);
                 current.addAll(resourceSet);
-                // use class name
                 currentByResourceType.put(resourceClass.getName(), resourceSet);
             } catch (IllegalAccessException | InstantiationException error) {
-                error.printStackTrace();
+                throw new BeamException(String.format("Unable to load resource from %s", resourceClass), error);
             }
         }
 
+        long endTime = System.currentTimeMillis();
+
+        System.out.println("load current took " + (endTime - startTime)/1000.0 + " seconds");
+
+        startTime = System.currentTimeMillis();
         adjustCurrentDependencies(current, currentByResourceType);
         adjustCurrentConfigs(current, adjustCurrent, pending);
-        ResourceDiff resourceDiff = new ResourceDiff(
-                beamProvider,
-                null,
-                adjustCurrent,
-                pending);
+        endTime = System.currentTimeMillis();
 
-        BufferedReader confirmReader = new BufferedReader(new InputStreamReader(System.in));
+        System.out.println("adjust current took " + (endTime - startTime)/1000.0 + " seconds");
+
         try {
-            resourceDiff.diff();
-            resourceDiff.getChanges().clear();
-            resourceDiff.diff();
-
+            ResourceDiff resourceDiff = DiffUtil.generateDiff(beamProvider, null, adjustCurrent, pending);
             resolveReference(Arrays.asList(resourceDiff));
-
-            changeTypes.clear();
-            DiffUtil.writeDiffs(Arrays.asList(resourceDiff), 0, out, changeTypes);
-
-            boolean hasChanges = false;
-            if (changeTypes.contains(ChangeType.CREATE) || changeTypes.contains(ChangeType.UPDATE)) {
-
-                out.format("\nAre you sure you want to create and/or update resources? (y/N) ");
-                out.flush();
-                hasChanges = true;
-
-                if ("y".equalsIgnoreCase(confirmReader.readLine())) {
-                    out.println("");
-                    out.flush();
-                    DiffUtil.setChangeable(Arrays.asList(resourceDiff));
-                    DiffUtil.createOrUpdate(Arrays.asList(resourceDiff), out);
-                }
-            }
-
-            boolean delete = true;
-            if (changeTypes.contains(ChangeType.DELETE)) {
-                hasChanges = true;
-
-                if (delete) {
-                    out.format("\nAre you sure you want to delete resources? (y/N) ");
-                    out.flush();
-
-                    if ("y".equalsIgnoreCase(confirmReader.readLine())) {
-
-                        out.println("");
-                        out.flush();
-                        DiffUtil.setChangeable(Arrays.asList(resourceDiff));
-                        DiffUtil.delete(Arrays.asList(resourceDiff), out);
-                    }
-
-                } else {
-                    out.format("\nSkipped deletes. Run again with the --delete option to execute them.\n");
-                    out.flush();
-                }
-            }
-
-            if (!hasChanges) {
-                out.format("\nNo changes.\n");
-                out.flush();
-            }
+            return resourceDiff;
 
         } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            if (!BeamRuntime.getBeamConfigLocations().isEmpty()) {
-                try {
-                    File tempConfig = File.createTempFile("beam_back_fill", ".beam");
-                    tempConfig.deleteOnExit();
-                    FileOutputStream outputStream = new FileOutputStream(tempConfig);
-
-                    BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream));
-
-                    // if config locations is empty don't do the copy
-                    File currentConfig = new File("test2.beam");
-                    BufferedReader br = new BufferedReader(new FileReader(currentConfig));
-
-                    String line = null;
-                    int count = 0;
-                    while ((line = br.readLine()) != null) {
-                        count++;
-                        for (BeamConfigLocation location : BeamRuntime.getBeamConfigLocations()) {
-                            if (location.getLine() == count) {
-                                for (String key : location.getContentMap().keySet()) {
-                                    for (int i = 0; i < location.getColumn(); i++) {
-                                        bufferedWriter.write(" ");
-                                    }
-
-                                    bufferedWriter.write(String.format("%s: \"%s\"", key, location.getContentMap().get(key)));
-                                    bufferedWriter.newLine();
-                                }
-                            }
-                        }
-
-                        bufferedWriter.write(line);
-                        bufferedWriter.newLine();
-                    }
-
-                    br.close();
-                    bufferedWriter.close();
-
-                    tempConfig.renameTo(currentConfig);
-                } catch (Exception e) {
-
-                }
-            }
+            throw new BeamException(e.getMessage(), e.getCause());
         }
     }
 }

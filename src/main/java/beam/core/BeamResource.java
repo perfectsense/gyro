@@ -1,11 +1,12 @@
 package beam.core;
 
+import beam.core.diff.ResourceDiffProperty;
+import beam.parser.BeamConfigGenerator;
 import com.google.common.base.Throwables;
 import com.psddev.dari.util.ObjectUtils;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -25,7 +26,8 @@ public abstract class BeamResource<B extends BeamProvider> extends BeamObject {
     private final Set<BeamResource<B>> dependents = new HashSet<>();
     private String beamId;
     private ResourceChange change;
-    private Map<String, Object> references = new HashMap<>();
+    private Map<String, BeamReference> references = new HashMap<>();
+    private Map<String, Object> unResolvedProperties = new HashMap<>();
 
     /**
      * Returns {@code true} if the given {@code awsResource} should be
@@ -424,11 +426,19 @@ public abstract class BeamResource<B extends BeamProvider> extends BeamObject {
 
     public abstract String toDisplayString();
 
-    public Map<String, Object> getReferences() {
+    public Map<String, BeamReference> getReferences() {
         return references;
     }
 
-    public void setReferences(Map<String, Object> references) {
+    public void setReferences(Map<String, BeamReference> references) {
         this.references = references;
+    }
+
+    public Map<String, Object> getUnResolvedProperties() {
+        return unResolvedProperties;
+    }
+
+    public void setUnResolvedProperties(Map<String, Object> unResolvedProperties) {
+        this.unResolvedProperties = unResolvedProperties;
     }
 }

@@ -1,5 +1,6 @@
 package beam.core;
 
+import beam.Beam;
 import beam.core.diff.DiffUtil;
 import com.google.common.base.Preconditions;
 
@@ -72,7 +73,11 @@ public class BeamReference {
         Matcher matcher = REFERENCE_PATTERN.matcher(key);
 
         if (matcher.find()) {
-            resource = symbolTable.get(matcher.group("resource"));
+            String resourceName = matcher.group("resource");
+            resource = symbolTable.get(resourceName);
+            if (resource == null) {
+                throw new BeamException(String.format("Reference %s is not defined for %s", resourceName, key));
+            }
         }
     }
 
