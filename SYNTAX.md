@@ -2,103 +2,124 @@
 
 # Extension Points
 
-## Event Stream Plugin
+## Workflow Plugin
 
-An event stream plugin allows extension writers to be notified of events during Beam
+An workflow plugin allows extension writers to be notified of events during Beam
 processing.
 
 Events Types:
 
-- RESOURCE_BEFORE_CREATE
-- RESOURCE_AFTER_CREATE
+- RESOURCE_BEFORE_CREATE - Called before a resource is created.
+- RESOURCE_SUBRESOURCES_BEFORE_CREATE - Called after any subresources are created.
+- RESOURCE_AFTER_CREATE - Called after a resource is created.
+- RESOURCE_SUBRESOURCES_AFTER_CREATE - Called after any subresources are created.
 - RESOURCE_BEFORE_DELETE
 - RESOURCE_AFTER_DELETE
 - RESOURCE_BEFORE_UPDATE
 - RESOURCE_AFTER_UPDATE
 
-This mechanism is intended for extension writers that want to enforce a policy on resources. An
-example use case would be requiring SSL on ELBs.
+Workflow plugins allow control and direct creation and updating of resources. An example 
+use case is a deployment workflow that creates a new autoscale group and ELB for 
+verification of instances prior to making them live.
+
+In the following example the workflow is triggered by changes in the resources
+defined within the workflow. It's the responsibility of the workflow implementation
+to determine when to modify the creation/updating of resources within the workflow.
+If the workflow does not modify the resources itself it should still allow changes to
+proceed.
+
+## Virtual Resource Plugin
+
+A virtual resource is similar to a regular resource provided by a provider implementation. The 
+difference is that it's backed by other resources and does not provide its own resource.
+
+This mechanism is intended for extension writers to build virtual resources that are a composition of
+other resources.
 
 ```java
-public interface BeamEventStreamPlugin {
+public interface VirtualResource {
     
-    // Return true to continue process, false to end processing.
-    public boolean processResourceEvent(BeamResource resource, BeamEventType type);
+    public List<Resource> init(Context context);
     
 }
 ```
 
-## Virtual Resources
-
-A virtual resource is similar to a regular resource provided by a provider impelementation. The difference
-is that it's backed by other resources.
-
-This mechanism is intended for extension writers to build virtual resources that are a composite of
-other resources and/or have a specific workflow that requires user interaction.
-
-An example use case is a deployment workflow that creates a new autoscale group and ELB for verification of
-instances prior to making them live.
-
-## AST Plugin
-
-An AST plugin allows extension writers to modify the AST after it is parsed. This method would also
-allow for policy enforcement as well as other more advanced use cases.
-
-An example use case might be to ensure appropriate tags are on all resources. This could be accomplished
-with the Event Stream Plugin model as well.
-
-## Translator
-
-A translator (written in Groovy or Java) serves as a bridge between beam configuration and resources.
-
-This mechanism is intended for extension writers to build customized beam configurations which are not limited
-by how resources are defined.
-
-Example use cases are layers, build-in subnet routes etc.
-
-Translator of a regular aws vpc simply passes config data over to resource:
 ```
-aws::vpc {
-    name: "AWS VPC"
-    region: "us-east-1"
-    cidr: "10.0.0.0/16"
-}
-```
-
-```
-def aws_vpc(data) {
-    VpcResource vpc = new VpcResource()
-    vpc.name = data.name
-    vpc.region = data.region
-    vpc.cidr = data.cidr
-}
-```
-
-Extension writers can define a customized vpc with cidr mapping and internet gateway composition:
-```
-def foo_vpc(data) {
-    def cidr_mappings = ["us-east-1": "10.0.0.0/16", "us-west-1": "10.1.0.0/16"]
-
-    VpcResource vpc = new VpcResource()
-    vpc.name = data.name
-    vpc.region = data.region
-    vpc.cidr = cidr_mappings.get(data.region)
-
-    InternetGatewayResource igw = new InternetGatewayResource()
-    vpc.internetGateway = igw
-}
-```
-
-The above translator will allow the customized vpc in beam configs:
-
-```
-foo::vpc {
-    name: "FOO VPC"
-    region: "us-east-1"
+perfectsense::frontend {
+    brightspot_build: s3://mybucket/builds/app-1.0.war
 }
 ```
 
 # Syntax
+
+# Variables
+
+Variables can be set using one of three methods: Using the `let` keyword, by giving
+a resource an implicit name, or by using the `let` command in combination with defining
+a resource.
+
+**Setting variable using `let` keyword**
+
+```
+let project = "my project"
+```
+
+**Setting variable by naming a resource**
+
+The following sets the variable `${web_elb}`.
+
+```
+aws::elb web_elb {
+    name: "web elb"
+}
+```
+
+**Setting variable from output of resource definition**
+
+```
+let web_elb = aws::elb {
+    name: "web elb"
+}
+```
+
+## Scoping 
+
+```
+let web_elb = aws::elb {
+    name: "web elb"
+}
+```
+
+Variables can be used from other files by using the `include` keyword with the variable 
+namespace option using the `as` keyword. When this option is not present variables from included 
+files cannot be referenced within the including file.
+
+### Scoping Example
+
+**defaults.beam**:
+
+``` 
+let default_vpc = aws::vpc {
+    name: "default vpc"
+    cidr: 10.0.0.0/16
+}
+
+let development_subnet = aws::subnet {
+    vpc: ${default_vpc}
+    cidr: 10.0.0.0/24
+}
+```
+
+**layer.beam**:
+```
+include "vpc.beam" as vpc
+
+aws::instance {
+    name: "dev box"
+    subnet: ${vpc.development_subnet}
+}
+
+```
 
 ## Identifiers
 
@@ -144,7 +165,7 @@ of the physical line. Comments are ignored by the syntax; they are not tokens.
 Resources are the primary type in the Beam configuration language. Resources define cloud infrastructure
 components and their attributes.
 
-Resources always following the format `<provider>::<resource> { <resource_block> }` where `resource_block` can be
+Resources always follow the format `<provider>::<resource> { <resource_block> }` where `resource_block` can be
 either attributes to configure the resource with or nested resources.
 
 An example resource:
@@ -179,28 +200,6 @@ aws::vpc {
 
 In the example above the `aws::subnet` resource does not need to explicity set the `vpc_id` on the
 subnet resource since it is implied based on being nested inside of the `aws::vpc` resource.
-
-# Filters
-
-Filters are used to segregate resources in the Beam configuration language. For example, an environment filter
-can segregate resources by different environments and help user to make changes only to one environment while
-leaving other environments untouched.
-
-Filters always following the format `beam::<filter> { <filter_block> }` where `filter_block` defines filter keys
-and values.
-
-An example beam filter:
-```
-beam::environment {
-    keys: [--environment, -e]
-    values: {
-        prod: [frontend.beam, backend.beam]
-        dev: [development.beam]
-    }
-}
-```
-The above filter segregate prod and dev environment and can facilitate environment option for `beam up` such as
-`beam up -e dev`
 
 ## Statement: include
 
@@ -248,7 +247,7 @@ module/src/main/groovy/beam/aws/ElasticLoadBalancer.groovy
 module/src/main/groovy/beam/aws/Instance.groovy
 ```
 
-**Composition Exampe**
+**Composition Example**
 
 ``` 
 module/init.beam
@@ -259,7 +258,14 @@ module/production/backend.beam
 module/development/backend.beam
 ```
 
-beam ssh production/frontend
+Commands can act on individual directories if needed. Commands like `beam ssh` would read
+the file and search for instances defined in that file. If a directory is specified instead
+of a file `beam ssh` would read all files in the directory. If nothing is specified `beam ssh`
+would look for any files in the current directory.
+
+Example:
+
+`beam ssh production/frontend`
 
 ## Statement: import
 
