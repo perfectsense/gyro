@@ -30,10 +30,11 @@ dependencies {
     compile group: 'org.gradle', name: 'gradle-tooling-api', version: '3.5'
     compile group: 'com.psddev', name: 'dari-util', version: '3.2-SNAPSHOT'
     compile group: 'org.apache.maven.shared', name: 'maven-invoker', version: '3.0.0'
-    compile group: 'org.fusesource.jansi', name: 'jansi', version: '1.11'
+    compile group: 'org.fusesource.jansi', name: 'jansi', version: '1.16'
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.6.3'
-
+    compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5'
     antlr "org.antlr:antlr4:4.7.1"
+    //compile group: 'org.slf4j', name: 'slf4j-simple', 'version': '1.7.6'
 }
 
 task dist(type: FatCapsule) {

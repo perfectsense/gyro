@@ -11,5 +11,5 @@ initscript {
 }
 
 allprojects {
-    apply plugin: beam.providerBuilder.builderUtil.gradle.ProjectPropertiesPlugin
+    apply plugin: beam.builder.util.gradle.ProjectPropertiesPlugin
 }

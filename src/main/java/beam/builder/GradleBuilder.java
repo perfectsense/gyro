@@ -1,6 +1,6 @@
-package beam.providerBuilder;
+package beam.builder;
 
-import beam.providerBuilder.builderUtil.gradle.JarPathModel;
+import beam.builder.util.gradle.JarPathModel;
 import com.google.common.base.Charsets;
 import com.psddev.dari.util.IoUtils;
 import org.gradle.tooling.BuildLauncher;

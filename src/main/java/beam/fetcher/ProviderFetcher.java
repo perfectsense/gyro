@@ -1,4 +1,4 @@
-package beam.providerFetcher;
+package beam.fetcher;
 
 public abstract class ProviderFetcher {
 

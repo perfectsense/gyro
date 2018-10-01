@@ -1,4 +1,4 @@
-package beam.providerFetcher;
+package beam.fetcher;
 
 import java.io.File;
 import java.nio.file.FileSystems;
@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import beam.core.BeamException;
 import com.psddev.dari.util.StringUtils;
 
 public class GitFetcher extends ProviderFetcher {
@@ -128,17 +129,16 @@ public class GitFetcher extends ProviderFetcher {
         }
     }
 
-    private int buildAndRunProcess(List<String> arguments, String workingDirectory) {
+    private void buildAndRunProcess(List<String> arguments, String workingDirectory) {
         try {
             ProcessBuilder gitProcess = new ProcessBuilder(arguments);
             if (workingDirectory != null) {
                 gitProcess.directory(new File(workingDirectory));
             }
-            return gitProcess.inheritIO().start().waitFor();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
 
-        return 1;
+            gitProcess.inheritIO().start().waitFor();
+        } catch (Exception ex) {
+            throw new BeamException("Unable to fetch using git provider", ex);
+        }
     }
 }
