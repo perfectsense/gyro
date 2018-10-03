@@ -125,31 +125,93 @@ Variables can be used from other files by using the `include` keyword with the v
 namespace option using the `as` keyword. When this option is not present variables from included 
 files cannot be referenced within the including file.
 
+The one exception to this rule is `init.beam` files. These files are always read before any configuration 
+in the same directory. Variables defined in these are global.
+
 ### Scoping Example
+
+**init.beam**:
+
+``` 
+let project = "perfectsense"
+```
 
 **defaults.beam**:
 
 ``` 
-let default_vpc = aws::vpc {
+aws::vpc project_vpc {
     name: "default vpc"
     cidr: 10.0.0.0/16
 }
 
-let development_subnet = aws::subnet {
-    vpc: ${default_vpc}
+aws::subnet development_subnet {
+    vpc: ${project_vpc}
     cidr: 10.0.0.0/24
 }
-```
 
-**layer.beam**:
-```
-include "vpc.beam" as vpc
-
-aws::instance {
-    name: "dev box"
-    subnet: ${vpc.development_subnet}
+aws::subnet us-east-1a {
+    vpc: ${project_vpc}
+    zone: us-east-1a
+    cidr: 10.0.0.0/24
 }
 
+aws::subnet us-east-1b {
+    vpc: ${project_vpc}
+    zone: us-east-1b
+    cidr: 10.0.1.0/24
+}
+
+let private_subnets = [${us-east-1b}, ${us-east-1a})]
+let public_subnets = [${us-east-1b}, ${us-east-1a})]
+
+let master_subnet = ${us-east-1a})
+let development_subnet = ${us-east-1a})
+```
+
+**development/init.beam**:
+
+``` 
+let environment = "production"
+```
+
+**development/box.beam**:
+
+```
+include "../defaults.beam" as defaults
+
+aws::instance development {
+    name: "development box"
+    instance_type: t2.medium
+    image: ami-12312adfaf
+    vpc: ${defaults.project_vpc}
+    subnet: ${defaults.development_subnet}
+}
+```
+
+**production/init.beam**:
+
+``` 
+let environment = "production"
+```
+
+**production/frontend.beam**:
+
+```
+include "../defaults.beam" as defaults
+
+let layer = "production"
+
+aws::elb web_elb {
+    name: "web"
+    
+    vpc: ${defaults.project_vpc}
+    subnets: ${defaults.public_subnets}
+}
+
+aws::autoscale_group web_asg {
+    elb: ${web_elb}
+    subnets: ${web_elb.subnets}
+}
 ```
 
 ## Identifiers
