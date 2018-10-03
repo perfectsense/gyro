@@ -13,15 +13,19 @@ beamRoot
     ;
 
 globalScope
-    : (providerBlock | method | providerImport)+
+    : (providerBlock | providerImport | assignmentBlock | includeStatement)+
+    ;
+
+includeStatement
+    : INCLUDE QUOTED_STRING AS alias
     ;
 
 resourceScope
-    :  (providerBlock | method | keyValueBlock)+
+    : (providerBlock | keyValueBlock)+
     ;
 
 providerBlock
-    : (resourceSymbol SYMBOL_ASSIGN)? providerName LBLOCK (resourceScope)* RBLOCK
+    : providerName resourceSymbol map
     ;
 
 providerName
@@ -41,39 +45,37 @@ map
     ;
 
 list
-    : '['value? (',' value)* ']'
+    : (LBRACET value? (COMMA value)* RBRACET)
     ;
 
 key
-    : ID COLON
+    : ID
     ;
 
 value
-    : QUOTED_STRING | ID | NUMBERS | list | map
+    : QUOTED_STRING | ID | NUMBERS | list | map | reference
     ;
 
 keyValueBlock
-    : key value
+    : key COLON value
     ;
 
-method
-    : (
-        (METHOD methodArguments (COMMA methodArguments)*) |
-        (METHOD LPAREN methodArguments (COMMA methodArguments)* RPAREN)
-      )+
+assignmentBlock
+    : VARIABLE resourceSymbol SYMBOL_ASSIGN value
     ;
 
-methodArguments
-    : (QUOTED_STRING | methodNamedArgument)+
-    ;
-
-methodNamedArgument
-    : ID MAP_ASSIGN QUOTED_STRING
+reference
+    : REFER LBLOCK ID (DOT ID)* RBLOCK
     ;
 
 resourceSymbol
     : ID
     ;
+
+alias
+    : ID
+    ;
+
 /*
  * Lexer Rules
  */
@@ -81,8 +83,24 @@ resourceSymbol
 fragment LETTER : [a-zA-Z_.] ;
 fragment DIGIT  : [0-9] ;
 
+VARIABLE
+    : 'let'
+    ;
+
+REFER
+    : '$'
+    ;
+
 PROVIDER_IMPORT
-    : 'provider' WHITESPACE
+    : 'provider'
+    ;
+
+INCLUDE
+    : 'include'
+    ;
+
+AS
+    : 'as'
     ;
 
 QUOTED_STRING
@@ -95,7 +113,15 @@ NUMBERS
     ;
 
 ID
-    : LETTER (LETTER|'0'..'9'|' ')*
+    : LETTER (LETTER | DIGIT)*
+    ;
+
+COMMA
+    : ','
+    ;
+
+DOT
+    : '.'
     ;
 
 PROVIDER_NAME
@@ -105,21 +131,20 @@ INT
     : DIGIT+ ;
 
 // Keywords
-MODULE_INCLUDE: 'module' ;
-
 HASH          : '#' ;
 LPAREN        : '(' ;
 RPAREN        : ')' ;
 LBLOCK        : '{' ;
 RBLOCK        : '}' ;
+LBRACET       : '[' ;
+RBRACET       : ']' ;
 METHOD        : '@' ID ;
 MAP_ASSIGN    : '=>' ;
 SYMBOL_ASSIGN : '=' ;
-COMMA         : ',' ;
 COLON         : ':' ;
 
 // Whitespace
-
+WS            : [ \t\n\r]+ -> skip;
 NEWLINE       : [\n\r]+ -> channel(HIDDEN);
 WHITESPACE    : [ \u000C\t]+ -> channel(HIDDEN);
 COMMENT       : '#' ~[\r\n]* '\r'? '\n' -> channel(HIDDEN) ;
