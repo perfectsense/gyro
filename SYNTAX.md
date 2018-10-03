@@ -2,51 +2,82 @@
 
 # Extension Points
 
-## Workflow Plugin
+## Event Hook Extension
 
-An workflow plugin allows extension writers to be notified of events during Beam
-processing.
-
-Events Types:
-
-- RESOURCE_BEFORE_CREATE - Called before a resource is created.
-- RESOURCE_SUBRESOURCES_BEFORE_CREATE - Called after any subresources are created.
-- RESOURCE_AFTER_CREATE - Called after a resource is created.
-- RESOURCE_SUBRESOURCES_AFTER_CREATE - Called after any subresources are created.
-- RESOURCE_BEFORE_DELETE
-- RESOURCE_AFTER_DELETE
-- RESOURCE_BEFORE_UPDATE
-- RESOURCE_AFTER_UPDATE
-
-Workflow plugins allow control and direct creation and updating of resources. An example 
-use case is a deployment workflow that creates a new autoscale group and ELB for 
-verification of instances prior to making them live.
-
-In the following example the workflow is triggered by changes in the resources
-defined within the workflow. It's the responsibility of the workflow implementation
-to determine when to modify the creation/updating of resources within the workflow.
-If the workflow does not modify the resources itself it should still allow changes to
-proceed.
-
-## Virtual Resource Plugin
-
-A virtual resource is similar to a regular resource provided by a provider implementation. The 
-difference is that it's backed by other resources and does not provide its own resource.
-
-This mechanism is intended for extension writers to build virtual resources that are a composition of
-other resources.
+An event hook extension allows extension writes to be notified at various points in the processing of
+Beam configuration. The available hooks are defined below:
 
 ```java
-public interface VirtualResource {
+public interface EventHookExtension {
     
-    public List<Resource> init(Context context);
+    public void afterResourceCreate();  
+    public void beforeResourceCreate();  
+    
+    public void afterResourceDelete();  
+    public void beforeResourceDelete();  
+    
+    public void afterResourceUpdate();  
+    public void beforeResourceUpdate();  
     
 }
 ```
 
+## Virtual Resource Extension
+
+A virtual resource extension allows plugins to extend the Beam configuration language in much the same way
+as provider extensions. The main differences is that virtual resources generate one or more cloud provider
+resources as their output. State is not saved for the virtual resource, only state of the cloud provider resources
+it generates are saved.
+
+```java
+public interface VirtualResource {
+    
+    public List<Resource> expand(Resource resource);
+    
+}
 ```
-perfectsense::frontend {
-    brightspot_build: s3://mybucket/builds/app-1.0.war
+
+**Example:**
+
+The example below defines a frontend layer virtual resource. This virtual resource takes the 
+information given to it and generates a load balancer resource, an autoscale group resource,
+and a launch configuration. This allows the frontend layer definition to contain only the 
+minimal necessary configuration values.
+
+```
+brightspot::frontend web {
+    brightspot_build_location: s3://mybucket/builds
+    brightspot_build_number: 495
+}
+```
+
+```java
+@Resource("frontend")
+public class FrontendLayer implements VirtualResource {
+    
+    public List<Resource> expand(Resource resource) {
+        List<Resource> resources = new ArrayList<>();
+        
+        LoadBalancerResource elb = new LoadBalancerResource();
+        elb.setName("frontend - build " + resource.getValue("brightspot_build_number"));
+        
+        LaunchConfiguration launchConfiguration = new LaunchConfiguration();
+        launchConfiguration.setUserData("build: " 
+            + resource.getValue("brightspot_build_location")
+            + "/app-" + resource.getValue("brightspot_build_number") + ".war");
+        
+        AutoscaleGroupResource asgResource = new AutoscaleGroupResource();
+        asgResource.setName("frontend - " + resource.getName());
+        asgResource.setLaunchConfiguration(launchConfiguration);
+        asgResource.setLoadBalancer(elb);
+        
+        resources.add(elb);
+        resources.add(launchConfiguration);
+        resources.add(asgResource);
+        
+        return resources;
+    }
+    
 }
 ```
 
