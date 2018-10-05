@@ -1,4 +1,4 @@
-include "project.beam" as _
+import "project.beam" as _
 
 aws::hosted_zone public {
     name: "${subdomain}."

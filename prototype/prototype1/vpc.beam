@@ -1,5 +1,5 @@
-include "project.beam" as _
-include "production/gateway.beam" as gateway
+import "project.beam" as _
+import "production/gateway.beam" as gateway
 
 aws::vpc vpc {
     name: "beam enterprise"
