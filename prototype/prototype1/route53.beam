@@ -1,0 +1,11 @@
+include "project.beam" as _
+
+aws::hosted_zone public {
+    name: "${subdomain}."
+}
+
+aws::hosted_zone private {
+    name: "private.${subdomain}."
+    private: true
+    vpcId: ${vpc.vpcId}
+}

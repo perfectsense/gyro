@@ -1,0 +1,72 @@
+import "../init.beam" as _
+import "../project.beam" as _
+import "../vpc.beam" as vpc
+
+import "../gateway.beam" as gateway
+import "frontend.beam" as frontend
+
+aws::security_group backend-security-group {
+    vpcId: ${vpc.vpcId}
+
+    ingress {
+        fromPort: 3306
+        toPort: 3306
+        protocol: "tcp"
+        securityGroups: [${frontend.frontend-security-group}] 
+    }
+
+    ingress {
+        fromPort: 8180
+        toPort: 8180
+        protocol: "tcp"
+        securityGroups: [${frontend.frontend-security-group}] 
+    }
+}
+
+aws::instance backend-us-east-1a {
+    image: ami-04aaab62bebf49db8
+    instanceType: t2.medium
+    iamInstanceProfile: ${gateway-instance-role.name}
+    securityGroupIds: [${backend-security-group.id}, ${project.operation-security-group.id}]
+    subnetId: ${vpc.public-us-east-1a.subnetId}
+    keyPair: ${project-key-pair}
+
+    tags: {
+        Project: "${project}"
+        Serial: "${serial}"
+        beam.environment: "${environment}"
+        beam.layer: "backend""
+    }
+}
+
+aws::instance backend-us-east-1b {
+    image: ami-04aaab62bebf49db8
+    instanceType: t2.medium
+    iamInstanceProfile: ${gateway-instance-role.name}
+    securityGroupIds: [${backend-security-group.id}, ${project.operation-security-group.id}]
+    subnetId: ${vpc.public-us-east-1b.subnetId}
+    keyPair: ${project-key-pair}
+
+    tags: {
+        Project: "${project}"
+        Serial: "${serial}"
+        beam.environment: "${environment}"
+        beam.layer: "backend""
+    }
+}
+
+aws::instance master-us-east-1c {
+    image: ami-04aaab62bebf49db8
+    instanceType: t2.medium
+    iamInstanceProfile: ${gateway-instance-role.name}
+    securityGroupIds: [${backend-security-group.id}, ${project.operation-security-group.id}]
+    subnetId: ${vpc.public-us-east-1c.subnetId}
+    keyPair: ${project-key-pair}
+
+    tags: {
+        Project: "${project}"
+        Serial: "${serial}"
+        beam.environment: "${environment}"
+        beam.layer: "backend""
+    }
+}
