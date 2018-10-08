@@ -1,11 +1,12 @@
-import "project.beam" as _
+import "project.beam" as project
+import "vpc.beam" as vpc
 
 aws::hosted_zone public {
-    name: "${subdomain}."
+    name: "${project.subdomain}."
 }
 
 aws::hosted_zone private {
-    name: "private.${subdomain}."
+    name: "private.${project.subdomain}."
     private: true
-    vpcId: ${vpc.vpcId}
+    vpcId: ${vpc.vpc.vpcId}
 }

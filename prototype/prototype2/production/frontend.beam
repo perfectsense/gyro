@@ -1,10 +1,9 @@
-import "../init.beam" as _
-import "../project.beam" as _
+import "../project.beam" as project
 import "../vpc.beam" as vpc
 import "../gateway.beam" as gateway
 
 aws::security_group elb-security-group {
-    vpcId: ${vpc.vpcId}
+    vpcId: ${vpc.vpc.vpcId}
         
     ingress {
         fromPort: 80
@@ -22,7 +21,7 @@ aws::security_group elb-security-group {
 }
 
 aws::elastic_load_balancer web {
-    name: "${project}-web-${serial}" 
+    name: "${project.name}-web-${project.serial}" 
 
     listener {
         loadBalancerPort: 80
@@ -50,16 +49,16 @@ aws::elastic_load_balancer web {
     securityGroups: [${elb-security-group}]
 }
 
-aws::hosted_zone_record prod.${subdomain} {
+aws::hosted_zone_record prod.${project.subdomain} {
     zoneId: ${route53.public.zoneId}
-    name: "prod.${subdomain}"
+    name: "prod.${project.subdomain}"
     type: "CNAME"
     ttl: 300
     records: [${web.canonicalHostedZoneName}]
 }
 
 aws::security_group frontend-security-group {
-    vpcId: ${vpc.vpcId}
+    vpcId: ${vpc.vpc.vpcId}
         
     ingress {
         fromPort: 80
@@ -91,9 +90,9 @@ aws::security_group frontend-security-group {
 }
 
 aws::launch_configuration frontend-launch-config {
-    name: "${project} frontend ${environment} v${serial}"
+    name: "${project.name} frontend ${project.environment} v${project.serial}"
 
-    keyPair: ${project-key-pair}
+    keyPair: ${project.project-key-pair}
     instanceType: "t2.medium"
     image: "ami-0ddcc69ab30ed9c03"
 
@@ -110,7 +109,7 @@ aws::autoscaling_group frontend-autoscaling-group {
     minSize: 4
     maxSize: 8
 
-    tags: ${defaultTags}
+    tags: ${project.defaultTags}
 
     aws::autoscaling_policy high-cpu-scale-up {
         name: "high-cpu-scale-up"
@@ -159,4 +158,4 @@ aws::autoscaling_group frontend-autoscaling-group {
 
         alarmActions: [${high-cpu-scale-down.arn}]
     }
-}
+

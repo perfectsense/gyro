@@ -1,4 +1,4 @@
-let project = "beam-enterprise"
+let name = "beam-enterprise"
 let subdomain = "beam-enterprise.psdops.com"
 let serial = 1
 let defaultTags = {
@@ -25,7 +25,7 @@ aws::credentials aws_us_east_2 {
 }
 
 aws::key_pair project-key-pair {
-    name: "${project}"
+    name: "${name}"
 }
 
 aws::security_group operations-security-group {

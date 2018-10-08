@@ -1,4 +1,4 @@
-import "project.beam" as _
+import "project.beam" as project
 import "production/gateway.beam" as gateway
 
 aws::vpc vpc {
@@ -7,51 +7,51 @@ aws::vpc vpc {
     enableDnsSupport: true
     enableDnsHostnames: true
 
-    tags: ${defaultTags}
+    tags: ${project.defaultTags}
 
     aws::internet_gateway igw {
         name: "beam enterprise"
-        tags: ${defaultTags}
+        tags: ${project.defaultTags}
     }
 }
 
 ## US-EAST-1 - Zone A
 
 aws::subnet public-us-east-1a {
-    name: "${project} [public, public-us-east, public-us-east-1a]"
+    name: "${project.project} [public, public-us-east, public-us-east-1a]"
     
     vpcId: ${vpc.vpcId}
     cidrBlock: "10.0.0.0/26"
     availabilityZone: "us-east-1a"
     assignPublicIPv4Address: true
 
-    tags: ${defaultTags}
+    tags: ${project.defaultTags}
 }
 
 aws::subnet private-us-east-1a {
-    name: "${project} [private, private-us-east, private-us-east-1a]"
+    name: "${project.project} [private, private-us-east, private-us-east-1a]"
     
     vpcId: ${vpc.vpcId}
     cidrBlock: "10.0.0.128/25"
     availabilityZone: "us-east-1a"
     assignPublicIPv4Address: no
 
-    tags: ${defaultTags}
+    tags: ${project.defaultTags}
 }
 
 aws::subnet development {
-    name: "${project} [development]
+    name: "${project.project} [development]
     
     vpcId: ${vpc.vpcId}
     cidrBlock: "10.0.0.64/26"
     availabilityZone: "us-east-1a"
     assignPublicIPv4Address: no
 
-    tags: ${defaultTags}
+    tags: ${project.defaultTags}
 }
 
 aws::route_table public-route-us-east-1a {
-    name: "${project} public, us-east-1a"
+    name: "${project.project} public, us-east-1a"
         
     vpcId: ${vpc.vpcId}
 
@@ -70,7 +70,7 @@ aws::route_table public-route-us-east-1a {
 }
 
 aws::route_table private-route-us-east-1a {
-    name: "${project} private, us-east-1a"
+    name: "${project.project} private, us-east-1a"
         
     vpcId: ${vpc.vpcId}
 
@@ -101,7 +101,7 @@ aws::subnet private-us-east-1b {
     availabilityZone: "us-east-1b"
     assignPublicIPv4Address: no
 
-    tags: ${defaultTags}
+    tags: ${project.defaultTags}
 }
 
 ## US-EAST-1 - Zone C
@@ -114,7 +114,7 @@ aws::subnet public-us-east-1c {
     availabilityZone: "us-east-1c"
     assignPublicIPv4Address: true
 
-    tags: ${defaultTags}
+    tags: ${project.defaultTags}
 }
 
 aws::subnet private-us-east-1c {
@@ -125,7 +125,7 @@ aws::subnet private-us-east-1c {
     availabilityZone: "us-east-1c"
     assignPublicIPv4Address: no
 
-    tags: ${defaultTags}
+    tags: ${project.defaultTags}
 }
 
 let privateSubnets = [${private-us-east-1a}, ${private-us-east-1b}, ${private-us-east-1c}]

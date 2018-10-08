@@ -1,5 +1,4 @@
-import "../init.beam" as _
-import "../project.beam" as _
+import "../project.beam" as project 
 import "../vpc.beam" as vpc
 import "../route53.beam" as route53
 
@@ -7,7 +6,7 @@ import "frontend.beam" as frontend
 import "backend.beam" as backend
 
 aws::security_group security-group {
-    vpcId: ${vpc.vpcId}
+    vpcId: ${vpc.vpc.vpcId}
         
     ingress {
         fromPort: 0
@@ -38,7 +37,7 @@ aws::security_group security-group {
 }
 
 aws::iam_role gateway-role {
-    name: "${project}-production-${serial}-gateway"
+    name: "${project.name}-production-${project.serial}-gateway"
 
     aws::iam_role_policy {
         name: "beam-server-readonly"
@@ -59,12 +58,12 @@ aws::instance us-east-1a {
     iamInstanceProfile: ${gateway-instance-role.name}
     securityGroupIds: [${security-group.id}, ${project.operation-security-group.id}]
     subnetId: ${vpc.public-us-east-1a.subnetId}
-    keyPair: ${project-key-pair}
+    keyPair: ${project.project-key-pair}
 
     tags: {
-        Project: "${project}"
-        Serial: "${serial}"
-        beam.environment: "gateway"
+        Project: "${project.name}"
+        Serial: "${project.serial}"
+        beam.environment: "project.gateway"
     }
 
     beam::provisioner knife-solo {
@@ -84,11 +83,11 @@ aws::instance us-east-1b {
     iamInstanceProfile: ${gateway-instance-role.name}
     securityGroupIds: [${security-group.id}, ${project.operation-security-group.id}]
     subnetId: ${vpc.public-us-east-1b.subnetId}
-    keyPair: ${project-key-pair}
+    keyPair: ${project.project-key-pair}
 
     tags: {
-        Project: "${project}"
-        Serial: "${serial}"
+        Project: "${project.name}"
+        Serial: "${project.serial}"
         beam.environment: "gateway"
     }
 
@@ -109,12 +108,12 @@ aws::instance us-east-1c {
     iamInstanceProfile: ${gateway-instance-role.name}
     securityGroupIds: [${security-group.id}, ${project.operation-security-group.id}]
     subnetId: ${vpc.public-us-east-1c.subnetId}
-    keyPair: ${project-key-pair}
+    keyPair: ${project.project-key-pair}
 
     tags: {
-        Project: "${project}"
-        Serial: "${serial}"
-        beam.environment: "gateway"
+        Project: "${project.name}"
+        Serial: "${project.serial}"
+        beam.environment: "project.gateway"
     }
 
     beam::provisioner knife-solo {
@@ -125,9 +124,9 @@ aws::instance us-east-1c {
     }
 }
 
-aws::hosted_zone_record vpn.${subdomain} {
+aws::hosted_zone_record vpn.${project.subdomain} {
     zoneId: ${route53.public.zoneId}
-    name: "vpn.${subdomain}"
+    name: "vpn.${project.subdomain}"
     type: "A"
     ttl: 300
     records: [

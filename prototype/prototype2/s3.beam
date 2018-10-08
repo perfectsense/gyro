@@ -1,4 +1,4 @@
-import "project.beam" as _
+import "project.beam" as project
 
 aws::bucket beam-enterprise-ops {
     name: "beam-enterprise-ops"
@@ -6,7 +6,7 @@ aws::bucket beam-enterprise-ops {
     corsRule {
         allowedHeaders: [ "*" ]
         allowedMethods: [ "GET" ]
-        allowedOrigins: [ "https://${subdomain}" ]
+        allowedOrigins: [ "https://${project.subdomain}" ]
         maxAgeSeconds: 3000 
     }
 }
