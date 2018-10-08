@@ -50,10 +50,9 @@ public class ASTListener extends BeamBaseListener {
     }
 
     @Override
-    public void enterProviderLocation(BeamParser.ProviderLocationContext ctx) {
-        String key = ctx.QUOTED_STRING().getSymbol().getText();
-        key = key.replaceAll("^\"|\"$", "");
-        ASTHandler.enterProviderLocation(key);
+    public void enterPluginBlock(BeamParser.PluginBlockContext ctx) {
+        String path = ctx.path().getText();
+        ASTHandler.fetchPlugin(stripQuotes(path));
     }
 
     @Override
@@ -171,5 +170,7 @@ public class ASTListener extends BeamBaseListener {
     @Override
     public void enterMethodNamedArgument(BeamParser.MethodNamedArgumentContext ctx) {
         super.enterMethodNamedArgument(ctx);
+    private String stripQuotes(String string) {
+        return string.replaceAll("^[\"\']|[\"\']$", "");
     }
 }

@@ -2,7 +2,7 @@ package beam.parser;
 
 import beam.core.*;
 import beam.core.diff.*;
-import beam.fetcher.ProviderFetcher;
+import beam.fetcher.PluginFetcher;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Throwables;
@@ -22,15 +22,14 @@ public class ASTHandler {
 
     private static Map<String, String> resourceClassMap = new HashMap<>();
 
-    public static void enterProviderLocation(String key) {
-
+    public static void fetchPlugin(String path) {
         Reflections reflections = new Reflections("beam.fetcher");
         boolean match = false;
-        for (Class<? extends ProviderFetcher> fetcherClass : reflections.getSubTypesOf(ProviderFetcher.class)) {
+        for (Class<? extends PluginFetcher> fetcherClass : reflections.getSubTypesOf(PluginFetcher.class)) {
             try {
-                ProviderFetcher fetcher = fetcherClass.newInstance();
-                if (fetcher.validate(key)) {
-                    fetcher.fetch(key);
+                PluginFetcher fetcher = fetcherClass.newInstance();
+                if (fetcher.validate(path)) {
+                    fetcher.fetch(path);
                     match = true;
                 }
             } catch (IllegalAccessException | InstantiationException error) {
@@ -39,7 +38,7 @@ public class ASTHandler {
         }
 
         if (!match) {
-            throw new BeamException(String.format("Unable to find support for provider: %s", key));
+            throw new BeamException(String.format("Unable to find support for plugin: %s", path));
         }
     }
 
