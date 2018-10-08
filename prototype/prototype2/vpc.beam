@@ -1,0 +1,134 @@
+import "project.beam" as _
+import "production/gateway.beam" as gateway
+
+aws::vpc vpc {
+    name: "beam enterprise"
+    cidrBlock: "10.0.0.0/16"
+    enableDnsSupport: true
+    enableDnsHostnames: true
+
+    tags: ${defaultTags}
+
+    aws::internet_gateway igw {
+        name: "beam enterprise"
+        tags: ${defaultTags}
+    }
+}
+
+## US-EAST-1 - Zone A
+
+aws::subnet public-us-east-1a {
+    name: "${project} [public, public-us-east, public-us-east-1a]"
+    
+    vpcId: ${vpc.vpcId}
+    cidrBlock: "10.0.0.0/26"
+    availabilityZone: "us-east-1a"
+    assignPublicIPv4Address: true
+
+    tags: ${defaultTags}
+}
+
+aws::subnet private-us-east-1a {
+    name: "${project} [private, private-us-east, private-us-east-1a]"
+    
+    vpcId: ${vpc.vpcId}
+    cidrBlock: "10.0.0.128/25"
+    availabilityZone: "us-east-1a"
+    assignPublicIPv4Address: no
+
+    tags: ${defaultTags}
+}
+
+aws::subnet development {
+    name: "${project} [development]
+    
+    vpcId: ${vpc.vpcId}
+    cidrBlock: "10.0.0.64/26"
+    availabilityZone: "us-east-1a"
+    assignPublicIPv4Address: no
+
+    tags: ${defaultTags}
+}
+
+aws::route_table public-route-us-east-1a {
+    name: "${project} public, us-east-1a"
+        
+    vpcId: ${vpc.vpcId}
+
+    aws::route {
+        cidrBlock: "0.0.0.0/0"
+        gatewayId: ${igw.gatewayId}
+    }
+
+    associate_subnet {
+        subnetId: ${public-us-east-1a.subnetId}
+    }
+
+    associate_subnet {
+        subnetId: ${public-us-east-1b.subnetId}
+    }
+}
+
+aws::route_table private-route-us-east-1a {
+    name: "${project} private, us-east-1a"
+        
+    vpcId: ${vpc.vpcId}
+
+    aws::route {
+        cidrBlock: "0.0.0.0/0"
+        instanceId: ${gateway.us-east-1a}
+    }
+}
+
+## US-EAST-1 - Zone B
+
+aws::subnet public-us-east-1b {
+    name: "beam enterprise [public, public-us-east, public-us-east-1b]"
+    
+    vpcId: ${vpc.vpcId}
+    cidrBlock: "10.0.1.0/26"
+    availabilityZone: "us-east-1b"
+    assignPublicIPv4Address: true
+
+    tags: ${defaultTags}
+}
+
+aws::subnet private-us-east-1b {
+    name: "beam enterprise [private, private-us-east, private-us-east-1b]"
+    
+    vpcId: ${vpc.vpcId}
+    cidrBlock: "10.0.1.128/25"
+    availabilityZone: "us-east-1b"
+    assignPublicIPv4Address: no
+
+    tags: ${defaultTags}
+}
+
+## US-EAST-1 - Zone C
+
+aws::subnet public-us-east-1c {
+    name: "beam enterprise [public, public-us-east, public-us-east-1c]"
+    
+    vpcId: ${vpc.vpcId}
+    cidrBlock: "10.0.2.0/26"
+    availabilityZone: "us-east-1c"
+    assignPublicIPv4Address: true
+
+    tags: ${defaultTags}
+}
+
+aws::subnet private-us-east-1c {
+    name: "beam enterprise [private, private-us-east, private-us-east-1c]"
+    
+    vpcId: ${vpc.vpcId}
+    cidrBlock: "10.0.2.128/25"
+    availabilityZone: "us-east-1c"
+    assignPublicIPv4Address: no
+
+    tags: ${defaultTags}
+}
+
+let privateSubnets = [${private-us-east-1a}, ${private-us-east-1b}, ${private-us-east-1c}]
+let publicSubnets = [${public-us-east-1a}, ${public-us-east-1b}, ${public-us-east-1c}]
+let masterSubnet = ${private-us-east-1c}
+let developmentSubnet = ${development}
