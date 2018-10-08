@@ -101,7 +101,7 @@ public class SyncCommand implements Runnable {
             BeamParser parser = new BeamParser(tokens);
             BeamParser.BeamRootContext context = parser.beamRoot();
 
-            ASTListener listener = new ASTListener();
+            ASTListener listener = new ASTListener("");
             ParseTreeWalker.DEFAULT.walk(listener, context);
 
             return listener.getRoot();

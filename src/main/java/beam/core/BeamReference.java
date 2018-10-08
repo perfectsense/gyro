@@ -81,6 +81,15 @@ public class BeamReference {
         }
     }
 
+    public BeamReference(String key) {
+        this.parent = null;
+        this.resourceClass = null;
+        this.resource = null;
+        this.awsId = null;
+        this.beamId = null;
+        this.key = key;
+    }
+
     public Class<? extends BeamResource<? extends BeamProvider>> getResourceClass() {
         return resourceClass;
     }
@@ -161,7 +170,7 @@ public class BeamReference {
 
         } else {
             sb.append("beam:");
-            sb.append(beamId);
+            sb.append(getKey());
         }
 
         return sb.toString();
