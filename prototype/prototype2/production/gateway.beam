@@ -40,15 +40,16 @@ aws::security_group $security-group {
 
 aws::iam_role $gateway-role {
     name: "${project.NAME}-${ENVIRONMENT}-${project.SERIAL}-gateway"
+}
 
-    aws::iam_role_policy {
-        name: "beam-server-readonly"
-        path: "roles/beam-server-readonly.json"
-    }
+aws::iam_role_policy $gateway-beam-server-readonly-policy {
+    roleName: ${gateway-role.name}"
+    name: "beam-server-readonly"
+    path: "roles/beam-server-readonly.json"
+}
 
-    aws::iam_instance_profile gateway-instance-role {
-        name: ${parent.name} # <- parent is the iam_role, needs thought
-    }
+aws::iam_instance_profile gateway-instance-role {
+    name: ${gateway-beam-server-readonly-policy.name}
 }
 
 aws::instance $us-east-1a {
@@ -66,13 +67,6 @@ aws::instance $us-east-1a {
         Project: "${project.NAME}"
         Serial: "${project.SERIAL}"
         beam.environment: "${ENVIRONMENT}"
-    }
-
-    beam::provisioner knife-solo {
-        type: knife-solo
-        cookbookPath: ../chef
-        environment: ${environment}
-        recipe: "beam-enterprise::gateway"
     }
 }
 
@@ -92,13 +86,6 @@ aws::instance $us-east-1b {
         Serial: "${project.SERIAL}"
         beam.environment: "${ENVIRONMENT}"
     }
-
-    beam::provisioner knife-solo {
-        type: knife-solo
-        cookbookPath: ../chef
-        environment: ${environment}
-        recipe: "beam-enterprise::gateway"
-    }
 }
 
 aws::instance $us-east-1c {
@@ -116,13 +103,6 @@ aws::instance $us-east-1c {
         Project: "${project.name}"
         Serial: "${project.serial}"
         beam.environment: "${ENVIRONMENT}"
-    }
-
-    beam::provisioner knife-solo {
-        type: knife-solo
-        cookbookPath: ../chef
-        environment: ${environment}
-        recipe: "beam-enterprise::gateway"
     }
 }
 

@@ -102,6 +102,7 @@ aws::launch_configuration $frontend-launch-config {
 }
 
 aws::autoscaling_group $frontend-autoscaling-group {
+    autoscaleGroupName: ${frontend-launch-config.name} 
     launchConfigurationName: ${frontend-launch-config.name} 
     loadBalancerNames: [${web.name}]
     vpcZoneIdentitiers: ${vpc.privateSubnets}
@@ -112,52 +113,54 @@ aws::autoscaling_group $frontend-autoscaling-group {
     maxSize: 8
 
     tags: ${project.defaultTags}
+}
 
-    aws::autoscaling_policy $high-cpu-scale-up {
-        name: "high-cpu-scale-up"
-        adjustmentType: "ChangeInCapacity"
-        scalingAdjustment: 4
-        coolDown: 120
+aws::autoscaling_policy $high-cpu-scale-up {
+    name: "high-cpu-scale-up"
+    autoscaleGroupName: ${frontend-autoscaling-group.autoscaleGroupName}
+    adjustmentType: "ChangeInCapacity"
+    scalingAdjustment: 4
+    coolDown: 120
+}
+
+aws::cloudwatch_metric_alarm $frontend-autoscaling-cpu-high {
+    name: "${high-cpu-scale-up.name}"
+    metricName: "CPUUtilization"
+    namespace: "AWS/EC2"
+    evaluationPeriods: 1
+    period: 60
+    threshold: 60
+    statistic: "Average"
+    comparisonOperator: "GreaterThanThreshold"
+
+    dimensions: {
+        AutoScalingGroupName: "${frontend-autoscaling-group.name}"
     }
 
-    aws::cloudwatch_metric_alarm $frontend-autoscaling-cpu-high {
-        name: "${high-cpu-scale-up.name}"
-        metricName: "CPUUtilization"
-        namespace: "AWS/EC2"
-        evaluationPeriods: 1
-        period: 60
-        threshold: 60
-        statistic: "Average"
-        comparisonOperator: "GreaterThanThreshold"
+    alarmActions: [${high-cpu-scale-up.arn}]
+}
 
-        dimensions: {
-            AutoScalingGroupName: "${frontend-autoscaling-group.name}"
-        }
+aws::autoscaling_policy $high-cpu-scale-down {
+    name: "high-cpu-scale-down"
+    autoscaleGroupName: ${frontend-autoscaling-group.autoscaleGroupName}
+    adjustmentType: "ChangeInCapacity"
+    scalingAdjustment: -4
+    coolDown: 300
+}
 
-        alarmActions: [${high-cpu-scale-up.arn}]
+aws::cloudwatch_metric_alarm $frontend-autoscaling-cpu-low {
+    name: "${high-cpu-scale-down.name}"
+    metricName: "CPUUtilization"
+    namespace: "AWS/EC2"
+    evaluationPeriods: 1
+    period: 300
+    threshold: 20
+    statistic: "Average"
+    comparisonOperator: "LessThanThreshold"
+
+    dimensions: {
+        AutoScalingGroupName: "${frontend-autoscaling-group.name}"
     }
 
-    aws::autoscaling_policy $high-cpu-scale-down {
-        name: "high-cpu-scale-down"
-        adjustmentType: "ChangeInCapacity"
-        scalingAdjustment: -4
-        coolDown: 300
-    }
-
-    aws::cloudwatch_metric_alarm $frontend-autoscaling-cpu-low {
-        name: "${high-cpu-scale-down.name}"
-        metricName: "CPUUtilization"
-        namespace: "AWS/EC2"
-        evaluationPeriods: 1
-        period: 300
-        threshold: 20
-        statistic: "Average"
-        comparisonOperator: "LessThanThreshold"
-
-        dimensions: {
-            AutoScalingGroupName: "${frontend-autoscaling-group.name}"
-        }
-
-        alarmActions: [${high-cpu-scale-down.arn}]
-    }
-
+    alarmActions: [${high-cpu-scale-down.arn}]
+}
