@@ -4,6 +4,8 @@ import "../vpc.beam" as vpc
 import "../gateway.beam" as gateway
 import "frontend.beam" as frontend
 
+ENVIRONMENT = "production"
+
 aws::security_group $backend-security-group {
     vpcId: ${vpc.vpcId}
 
@@ -31,10 +33,10 @@ aws::instance $backend-us-east-1a {
     keyPair: ${project.project-key-pair}
 
     tags: {
-        Project: "${project.name}"
-        Serial: "${project.serial}"
-        beam.environment: "${project.environment}"
-        beam.layer: "backend""
+        Project: "${project.NAME}"
+        Serial: "${project.SERIAL}"
+        beam.environment: "${ENVIRONMENT}"
+        beam.layer: "backend"
     }
 }
 
@@ -47,10 +49,10 @@ aws::instance $backend-us-east-1b {
     keyPair: ${project.project-key-pair}
 
     tags: {
-        Project: "${project}"
-        Serial: "${serial}"
-        beam.environment: "${environment}"
-        beam.layer: "backend""
+        Project: "${project.NAME}"
+        Serial: "${project.SERIAL}"
+        beam.environment: "${ENVIRONMENT}"
+        beam.layer: "backend"
     }
 }
 
@@ -63,9 +65,9 @@ aws::instance $master-us-east-1c {
     keyPair: ${project.project-key-pair}
 
     tags: {
-        Project: "${project.name}"
-        Serial: "${project.serial}"
-        beam.environment: "${project.environment}"
-        beam.layer: "backend""
+        Project: "${project.NAME}"
+        Serial: "${project.SERIAL}"
+        beam.environment: "${ENVIRONMENT}"
+        beam.layer: "backend"
     }
 }

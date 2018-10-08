@@ -5,6 +5,8 @@ import "../route53.beam" as route53
 import "frontend.beam" as frontend
 import "backend.beam" as backend
 
+ENVIRONMENT = "production"
+
 aws::security_group $security-group {
     vpcId: ${vpc.vpc.vpcId}
         
@@ -37,7 +39,7 @@ aws::security_group $security-group {
 }
 
 aws::iam_role $gateway-role {
-    name: "${project.name}-production-${project.serial}-gateway"
+    name: "${project.NAME}-${ENVIRONMENT}-${project.SERIAL}-gateway"
 
     aws::iam_role_policy {
         name: "beam-server-readonly"
@@ -61,9 +63,9 @@ aws::instance $us-east-1a {
     keyPair: ${project.project-key-pair}
 
     tags: {
-        Project: "${project.name}"
-        Serial: "${project.serial}"
-        beam.environment: "project.gateway"
+        Project: "${project.NAME}"
+        Serial: "${project.SERIAL}"
+        beam.environment: "${ENVIRONMENT}"
     }
 
     beam::provisioner knife-solo {
@@ -86,9 +88,9 @@ aws::instance $us-east-1b {
     keyPair: ${project.project-key-pair}
 
     tags: {
-        Project: "${project.name}"
-        Serial: "${project.serial}"
-        beam.environment: "gateway"
+        Project: "${project.NAME}"
+        Serial: "${project.SERIAL}"
+        beam.environment: "${ENVIRONMENT}"
     }
 
     beam::provisioner knife-solo {
@@ -113,7 +115,7 @@ aws::instance $us-east-1c {
     tags: {
         Project: "${project.name}"
         Serial: "${project.serial}"
-        beam.environment: "project.gateway"
+        beam.environment: "${ENVIRONMENT}"
     }
 
     beam::provisioner knife-solo {
@@ -124,9 +126,9 @@ aws::instance $us-east-1c {
     }
 }
 
-aws::hosted_zone_record "vpn.${project.subdomain}" {
+aws::hosted_zone_record "vpn.${project.SUBDOMAIN}" {
     zoneId: ${route53.public.zoneId}
-    name: "vpn.${project.subdomain}"
+    name: "vpn.${project.SUBDOMAIN}"
     type: "A"
     ttl: 300
     records: [

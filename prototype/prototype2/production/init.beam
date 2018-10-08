@@ -1,2 +1,2 @@
 
-let environment = "production"
+ENVIRONMENT = "production"
