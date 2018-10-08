@@ -13,35 +13,31 @@ beamRoot
     ;
 
 globalScope
-    : (providerBlock | providerImport | assignmentBlock | includeStatement)+
+    : ( pluginBlock | importBlock | resourceBlock | assignmentBlock)+
     ;
 
-includeStatement
-    : INCLUDE QUOTED_STRING AS alias
+pluginBlock
+    : PLUGIN path
     ;
 
-resourceScope
-    : (providerBlock | keyValueBlock)+
+importBlock
+    : IMPORT path AS variable
     ;
 
-providerBlock
-    : providerName resourceSymbol map
+resourceBlock
+    : resourceProvider variable map
     ;
 
-providerName
-    : PROVIDER_NAME
+assignmentBlock
+    : LET variable ASSIGN value
     ;
 
-providerImport
-    : PROVIDER_IMPORT providerLocation
-    ;
-
-providerLocation
-    : QUOTED_STRING
+resourceProvider
+    : RESOURCE_PROVIDER
     ;
 
 map
-    : LBLOCK (keyValueBlock)* RBLOCK
+    : LBLOCK (keyValueBlock | resourceBlock)* RBLOCK
     ;
 
 list
@@ -60,48 +56,49 @@ keyValueBlock
     : key COLON value
     ;
 
-assignmentBlock
-    : VARIABLE resourceSymbol SYMBOL_ASSIGN value
-    ;
-
 reference
-    : REFER LBLOCK ID (DOT ID)* RBLOCK
+    : REFERENCE LBLOCK referenceChain RBLOCK
     ;
 
-resourceSymbol
+referenceChain
+    : ID (DOT ID)*
+    ;
+
+variable
     : ID
     ;
 
-alias
-    : ID
+path
+    : QUOTED_STRING
     ;
 
 /*
  * Lexer Rules
  */
 
-fragment LETTER : [a-zA-Z_.] ;
-fragment DIGIT  : [0-9] ;
+// key words
+IMPORT
+    : 'import'
+    ;
 
-VARIABLE
+LET
     : 'let'
     ;
 
-REFER
-    : '$'
+PLUGIN
+    : 'plugin'
     ;
 
-PROVIDER_IMPORT
-    : 'provider'
-    ;
-
-INCLUDE
-    : 'include'
+WORKFLOW
+    : 'workflow'
     ;
 
 AS
     : 'as'
     ;
+
+fragment LETTER : [a-zA-Z_.] ;
+fragment DIGIT  : [0-9] ;
 
 QUOTED_STRING
     : '"' ~('\\'|'"')* '"'
@@ -109,28 +106,19 @@ QUOTED_STRING
     ;
 
 NUMBERS
-    : DIGIT+
+    : '-'?DIGIT+
     ;
 
 ID
     : LETTER (LETTER | DIGIT)*
     ;
 
-COMMA
-    : ','
-    ;
-
-DOT
-    : '.'
-    ;
-
-PROVIDER_NAME
+RESOURCE_PROVIDER
     : ID '::' ID ;
 
 INT
     : DIGIT+ ;
 
-// Keywords
 HASH          : '#' ;
 LPAREN        : '(' ;
 RPAREN        : ')' ;
@@ -138,10 +126,11 @@ LBLOCK        : '{' ;
 RBLOCK        : '}' ;
 LBRACET       : '[' ;
 RBRACET       : ']' ;
-METHOD        : '@' ID ;
-MAP_ASSIGN    : '=>' ;
-SYMBOL_ASSIGN : '=' ;
+ASSIGN        : '=' ;
 COLON         : ':' ;
+REFERENCE     : '$' ;
+COMMA         : ',' ;
+DOT           : '.' ;
 
 // Whitespace
 WS            : [ \t\n\r]+ -> skip;
