@@ -1,7 +1,7 @@
 import "project.beam" as project
 import "production/gateway.beam" as gateway
 
-aws::vpc vpc {
+aws::vpc $vpc {
     name: "beam enterprise"
     cidrBlock: "10.0.0.0/16"
     enableDnsSupport: true
@@ -17,7 +17,7 @@ aws::vpc vpc {
 
 ## US-EAST-1 - Zone A
 
-aws::subnet public-us-east-1a {
+aws::subnet $public-us-east-1a #public {
     name: "${project.project} [public, public-us-east, public-us-east-1a]"
     
     vpcId: ${vpc.vpcId}
@@ -28,7 +28,7 @@ aws::subnet public-us-east-1a {
     tags: ${project.defaultTags}
 }
 
-aws::subnet private-us-east-1a {
+aws::subnet $private-us-east-1a #private {
     name: "${project.project} [private, private-us-east, private-us-east-1a]"
     
     vpcId: ${vpc.vpcId}
@@ -39,7 +39,7 @@ aws::subnet private-us-east-1a {
     tags: ${project.defaultTags}
 }
 
-aws::subnet development {
+aws::subnet $development {
     name: "${project.project} [development]
     
     vpcId: ${vpc.vpcId}
@@ -50,7 +50,7 @@ aws::subnet development {
     tags: ${project.defaultTags}
 }
 
-aws::route_table public-route-us-east-1a {
+aws::route_table $public-us-east-1a {
     name: "${project.project} public, us-east-1a"
         
     vpcId: ${vpc.vpcId}
@@ -69,7 +69,7 @@ aws::route_table public-route-us-east-1a {
     }
 }
 
-aws::route_table private-route-us-east-1a {
+aws::route_table $private-us-east-1a {
     name: "${project.project} private, us-east-1a"
         
     vpcId: ${vpc.vpcId}
@@ -82,7 +82,7 @@ aws::route_table private-route-us-east-1a {
 
 ## US-EAST-1 - Zone B
 
-aws::subnet public-us-east-1b {
+aws::subnet $public-us-east-1b #public {
     name: "beam enterprise [public, public-us-east, public-us-east-1b]"
     
     vpcId: ${vpc.vpcId}
@@ -93,7 +93,7 @@ aws::subnet public-us-east-1b {
     tags: ${defaultTags}
 }
 
-aws::subnet private-us-east-1b {
+aws::subnet $private-us-east-1b #private {
     name: "beam enterprise [private, private-us-east, private-us-east-1b]"
     
     vpcId: ${vpc.vpcId}
@@ -106,7 +106,7 @@ aws::subnet private-us-east-1b {
 
 ## US-EAST-1 - Zone C
 
-aws::subnet public-us-east-1c {
+aws::subnet $public-us-east-1c #public {
     name: "beam enterprise [public, public-us-east, public-us-east-1c]"
     
     vpcId: ${vpc.vpcId}
@@ -117,7 +117,7 @@ aws::subnet public-us-east-1c {
     tags: ${project.defaultTags}
 }
 
-aws::subnet private-us-east-1c {
+aws::subnet $private-us-east-1c #master #private {
     name: "beam enterprise [private, private-us-east, private-us-east-1c]"
     
     vpcId: ${vpc.vpcId}
@@ -127,8 +127,3 @@ aws::subnet private-us-east-1c {
 
     tags: ${project.defaultTags}
 }
-
-let privateSubnets = [${private-us-east-1a}, ${private-us-east-1b}, ${private-us-east-1c}]
-let publicSubnets = [${public-us-east-1a}, ${public-us-east-1b}, ${public-us-east-1c}]
-let masterSubnet = ${private-us-east-1c}
-let developmentSubnet = ${development}

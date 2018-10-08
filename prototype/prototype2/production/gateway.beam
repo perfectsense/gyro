@@ -5,7 +5,7 @@ import "../route53.beam" as route53
 import "frontend.beam" as frontend
 import "backend.beam" as backend
 
-aws::security_group security-group {
+aws::security_group $security-group {
     vpcId: ${vpc.vpc.vpcId}
         
     ingress {
@@ -36,7 +36,7 @@ aws::security_group security-group {
     }
 }
 
-aws::iam_role gateway-role {
+aws::iam_role $gateway-role {
     name: "${project.name}-production-${project.serial}-gateway"
 
     aws::iam_role_policy {
@@ -49,7 +49,7 @@ aws::iam_role gateway-role {
     }
 }
 
-aws::instance us-east-1a {
+aws::instance $us-east-1a {
     image: "ami-04aaab62bebf49db8"
     instanceType: "t2.medium"
     privateIp: "10.0.0.10"
@@ -74,7 +74,7 @@ aws::instance us-east-1a {
     }
 }
 
-aws::instance us-east-1b {
+aws::instance $us-east-1b {
     image: "ami-04aaab62bebf49db8"
     instanceType: "t2.medium"
     privateIp: "10.0.1.10"
@@ -99,7 +99,7 @@ aws::instance us-east-1b {
     }
 }
 
-aws::instance us-east-1c {
+aws::instance $us-east-1c {
     image: ami-04aaab62bebf49db8
     instanceType: t2.medium
     privateIp: 10.0.2.10
@@ -124,7 +124,7 @@ aws::instance us-east-1c {
     }
 }
 
-aws::hosted_zone_record vpn.${project.subdomain} {
+aws::hosted_zone_record "vpn.${project.subdomain}" {
     zoneId: ${route53.public.zoneId}
     name: "vpn.${project.subdomain}"
     type: "A"
