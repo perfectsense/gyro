@@ -1,0 +1,12 @@
+import "project.beam" as project
+
+aws::bucket beam-enterprise-ops {
+    name: "beam-enterprise-ops"
+
+    corsRule {
+        allowedHeaders: [ "*" ]
+        allowedMethods: [ "GET" ]
+        allowedOrigins: [ "https://${project.SUBDOMAIN}" ]
+        maxAgeSeconds: 3000 
+    }
+}

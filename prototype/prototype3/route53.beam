@@ -1,0 +1,12 @@
+import "project.beam" as project
+import "vpc.beam" as vpc
+
+aws::hosted_zone public {
+    name: "${project.SUBDOMAIN}."
+}
+
+aws::hosted_zone private {
+    name: "private.${project.SUBDOMAIN}."
+    private: true
+    vpcId: ${vpc.vpc.vpcId}
+}
