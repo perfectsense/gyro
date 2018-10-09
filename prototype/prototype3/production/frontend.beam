@@ -4,8 +4,8 @@ import "../gateway.beam" as gateway
 
 ENVIRONMENT = "production"
 
-aws::security_group "elb-security-group" {
-    vpcId: ${vpc.vpc.vpcId}
+aws::security_group "elb" {
+    vpcId: @(aws::vpc vpc.vpc.vpcId)
         
     ingress {
         fromPort: 80
@@ -47,65 +47,65 @@ aws::elastic_load_balancer "web" {
         healthyThreshold: 2
     }
 
-    subnets: ${vpc.publicSubnets}
-    securityGroups: [${elb-security-group}]
+    subnets: #{aws::subnet vpc.public)
+    securityGroups: [@(aws::security_group elb)]
 }
 
 aws::hosted_zone_record "prod.${project.SUBDOMAIN}" {
-    zoneId: ${route53.public.zoneId}
+    zoneId: @(aws::hosted_zone route53.public.zoneId)
     name: "prod.${project.subdomain}"
     type: "CNAME"
     ttl: 300
-    records: [${web.canonicalHostedZoneName}]
+    records: [@(aws::elastic_load_balancer web.canonicalHostedZoneName)]
 }
 
-aws::security_group "frontend-security-group" {
-    vpcId: ${vpc.vpc.vpcId}
-        
+aws::security_group "frontend" {
+    vpcId: @(aws::vpc vpc.vpc.vpcId)
+
     ingress {
         fromPort: 80
         toPort: 80
         protocol: "tcp"
-        securityGroups: [${elb-security-group}] 
+        securityGroups: [@(aws::security_group elb)]
     }
 
     ingress {
         fromPort: 22
         toPort: 22
         protocol: "tcp"
-        securityGroups: [${gateway.security-group}] 
+        securityGroups: [@(aws::security_group elb)]
     }
 
     ingress {
         fromPort: 80
         toPort: 80
         protocol: "tcp"
-        securityGroups: [${gateway.security-group}] 
+        securityGroups: [@(aws::security_group elb)]
     }
 
     ingress {
         fromPort: 8080
         toPort: 8080
         protocol: "tcp"
-        securityGroups: [${gateway.security-group}] 
+        securityGroups: [@(aws::security_group elb)]
     }
 }
 
-aws::launch_configuration "frontend-launch-config" {
+aws::launch_configuration "frontend" {
     name: "${project.NAME} frontend ${ENVIRONMENT} v${project.SERIAL}"
 
-    keyPair: ${project.project-key-pair}
-    instanceType: "t2.medium"
     image: "ami-0ddcc69ab30ed9c03"
+    instanceType: "t2.medium"
+    keyPair: @(aws::key_pair project.key-pair)
 
-    securityGroups: [${frontend-security-group}]
+    securityGroups: [@(aws::security_group frontend)]
 }
 
-aws::autoscaling_group "frontend-autoscaling-group" {
-    autoscaleGroupName: ${frontend-launch-config.name} 
-    launchConfigurationName: ${frontend-launch-config.name} 
-    loadBalancerNames: [${web.name}]
-    vpcZoneIdentitiers: ${vpc.privateSubnets}
+aws::autoscaling_group "frontend" {
+    autoscaleGroupName: @(aws::launch_configuration frontend.name)
+    launchConfigurationName: @(aws::launch_configuration frontend.name)
+    loadBalancerNames: [@{aws::elastic_load_balancer web.name)]
+    vpcZoneIdentitiers: #(aws::subnet vpc.private)
     defaultCoolDown: 300
     healthCheckType: "ec2"
     
@@ -117,14 +117,14 @@ aws::autoscaling_group "frontend-autoscaling-group" {
 
 aws::autoscaling_policy "high-cpu-scale-up" {
     name: "high-cpu-scale-up"
-    autoscaleGroupName: ${frontend-autoscaling-group.autoscaleGroupName}
+    autoscaleGroupName: @(aws::autoscaling_group frontend.autoscaleGroupName)
     adjustmentType: "ChangeInCapacity"
     scalingAdjustment: 4
     coolDown: 120
 }
 
 aws::cloudwatch_metric_alarm "frontend-autoscaling-cpu-high" {
-    name: "${high-cpu-scale-up.name}"
+    name: @(aws::autoscaling_policy high-cpu-scale-up.name)
     metricName: "CPUUtilization"
     namespace: "AWS/EC2"
     evaluationPeriods: 1
@@ -134,22 +134,22 @@ aws::cloudwatch_metric_alarm "frontend-autoscaling-cpu-high" {
     comparisonOperator: "GreaterThanThreshold"
 
     dimensions: {
-        AutoScalingGroupName: "${frontend-autoscaling-group.name}"
+        AutoScalingGroupName: @(aws::autoscaling_group frontend.autoscaleGroupName)
     }
 
-    alarmActions: [${high-cpu-scale-up.arn}]
+    alarmActions: [@(aws::autoscaling_policy high-cpu-scale-up.arn)]
 }
 
 aws::autoscaling_policy "high-cpu-scale-down" {
     name: "high-cpu-scale-down"
-    autoscaleGroupName: ${frontend-autoscaling-group.autoscaleGroupName}
+    autoscaleGroupName: @(aws::autoscaling_group frontend.autoscaleGroupName)
     adjustmentType: "ChangeInCapacity"
     scalingAdjustment: -4
     coolDown: 300
 }
 
 aws::cloudwatch_metric_alarm "frontend-autoscaling-cpu-low" {
-    name: "${high-cpu-scale-down.name}"
+    name: @(aws::autoscaling_policy high-cpu-scale-down.name)
     metricName: "CPUUtilization"
     namespace: "AWS/EC2"
     evaluationPeriods: 1
@@ -159,8 +159,8 @@ aws::cloudwatch_metric_alarm "frontend-autoscaling-cpu-low" {
     comparisonOperator: "LessThanThreshold"
 
     dimensions: {
-        AutoScalingGroupName: "${frontend-autoscaling-group.name}"
+        AutoScalingGroupName: @(aws::autoscaling_group frontend.autoscaleGroupName)
     }
 
-    alarmActions: [${high-cpu-scale-down.arn}]
+    alarmActions: [@(aws::autoscaling_policy high-cpu-scale-down.arn)]
 }

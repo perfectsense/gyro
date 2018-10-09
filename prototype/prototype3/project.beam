@@ -9,6 +9,8 @@ DEFAULT_TAGS = {
 plugin "perfectsense/beam-provider-aws", version: "~1.0"
 plugin "perfectsense/beam-workflow-brightspot", branch: "release/1.0.0"
 
+improt "vpc.beam" as vpc
+
 # Provide credentials via the following environment variables:
 # AWS_ACCESS_KEY_ID
 # AWS_SECRET_ACCESS_KEY
@@ -25,11 +27,11 @@ aws::credentials "aws_us_east_2" {
 }
 
 aws::key_pair "project-key-pair {
-    name: "${NAME}"
+    name: ${NAME}
 }
 
-aws::security_group "operations-security-group" {
-    vpcId: ${vpc.vpcId}
+aws::security_group "operations" {
+    vpcId: @(aws::vpc vpc.vpcId)
         
     # Office & VPN IPs
     ingress {

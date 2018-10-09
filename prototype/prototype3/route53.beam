@@ -8,5 +8,5 @@ aws::hosted_zone "public" {
 aws::hosted_zone "private" {
     name: "private.${project.SUBDOMAIN}."
     private: true
-    vpcId: ${vpc.vpc.vpcId}
+    vpcId: @(aws::vpc vpc.vpc.vpcId)
 }
