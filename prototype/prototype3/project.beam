@@ -9,7 +9,7 @@ DEFAULT_TAGS = {
 plugin "perfectsense/beam-provider-aws", version: "~1.0"
 plugin "perfectsense/beam-workflow-brightspot", branch: "release/1.0.0"
 
-improt "vpc.beam" as vpc
+import "vpc.beam" as vpc
 
 # Provide credentials via the following environment variables:
 # AWS_ACCESS_KEY_ID
