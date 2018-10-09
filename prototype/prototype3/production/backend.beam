@@ -6,7 +6,7 @@ import "frontend.beam" as frontend
 
 ENVIRONMENT = "production"
 
-aws::security_group $backend-security-group {
+aws::security_group "backend-security-group" {
     vpcId: ${vpc.vpcId}
 
     ingress {
@@ -24,7 +24,7 @@ aws::security_group $backend-security-group {
     }
 }
 
-aws::instance $backend-us-east-1a {
+aws::instance "backend-us-east-1a" {
     image: ami-04aaab62bebf49db8
     instanceType: t2.medium
     iamInstanceProfile: ${gateway-instance-role.name}
@@ -40,7 +40,7 @@ aws::instance $backend-us-east-1a {
     }
 }
 
-aws::instance $backend-us-east-1b {
+aws::instance "backend-us-east-1b" {
     image: ami-04aaab62bebf49db8
     instanceType: t2.medium
     iamInstanceProfile: ${gateway-instance-role.name}
@@ -56,7 +56,7 @@ aws::instance $backend-us-east-1b {
     }
 }
 
-aws::instance $master-us-east-1c {
+aws::instance "master-us-east-1c" {
     image: ami-04aaab62bebf49db8
     instanceType: t2.medium
     iamInstanceProfile: ${gateway-instance-role.name}

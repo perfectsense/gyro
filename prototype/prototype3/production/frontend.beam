@@ -4,7 +4,7 @@ import "../gateway.beam" as gateway
 
 ENVIRONMENT = "production"
 
-aws::security_group $elb-security-group {
+aws::security_group "elb-security-group" {
     vpcId: ${vpc.vpc.vpcId}
         
     ingress {
@@ -22,7 +22,7 @@ aws::security_group $elb-security-group {
     }
 }
 
-aws::elastic_load_balancer $web {
+aws::elastic_load_balancer "web" {
     name: "${project.NAME}-web-${project.SERIAL}" 
 
     listener {
@@ -59,7 +59,7 @@ aws::hosted_zone_record "prod.${project.SUBDOMAIN}" {
     records: [${web.canonicalHostedZoneName}]
 }
 
-aws::security_group $frontend-security-group {
+aws::security_group "frontend-security-group" {
     vpcId: ${vpc.vpc.vpcId}
         
     ingress {
@@ -91,7 +91,7 @@ aws::security_group $frontend-security-group {
     }
 }
 
-aws::launch_configuration $frontend-launch-config {
+aws::launch_configuration "frontend-launch-config" {
     name: "${project.NAME} frontend ${ENVIRONMENT} v${project.SERIAL}"
 
     keyPair: ${project.project-key-pair}
@@ -101,7 +101,7 @@ aws::launch_configuration $frontend-launch-config {
     securityGroups: [${frontend-security-group}]
 }
 
-aws::autoscaling_group $frontend-autoscaling-group {
+aws::autoscaling_group "frontend-autoscaling-group" {
     autoscaleGroupName: ${frontend-launch-config.name} 
     launchConfigurationName: ${frontend-launch-config.name} 
     loadBalancerNames: [${web.name}]
@@ -115,7 +115,7 @@ aws::autoscaling_group $frontend-autoscaling-group {
     tags: ${project.defaultTags}
 }
 
-aws::autoscaling_policy $high-cpu-scale-up {
+aws::autoscaling_policy "high-cpu-scale-up" {
     name: "high-cpu-scale-up"
     autoscaleGroupName: ${frontend-autoscaling-group.autoscaleGroupName}
     adjustmentType: "ChangeInCapacity"
@@ -123,7 +123,7 @@ aws::autoscaling_policy $high-cpu-scale-up {
     coolDown: 120
 }
 
-aws::cloudwatch_metric_alarm $frontend-autoscaling-cpu-high {
+aws::cloudwatch_metric_alarm "frontend-autoscaling-cpu-high" {
     name: "${high-cpu-scale-up.name}"
     metricName: "CPUUtilization"
     namespace: "AWS/EC2"
@@ -140,7 +140,7 @@ aws::cloudwatch_metric_alarm $frontend-autoscaling-cpu-high {
     alarmActions: [${high-cpu-scale-up.arn}]
 }
 
-aws::autoscaling_policy $high-cpu-scale-down {
+aws::autoscaling_policy "high-cpu-scale-down" {
     name: "high-cpu-scale-down"
     autoscaleGroupName: ${frontend-autoscaling-group.autoscaleGroupName}
     adjustmentType: "ChangeInCapacity"
@@ -148,7 +148,7 @@ aws::autoscaling_policy $high-cpu-scale-down {
     coolDown: 300
 }
 
-aws::cloudwatch_metric_alarm $frontend-autoscaling-cpu-low {
+aws::cloudwatch_metric_alarm "frontend-autoscaling-cpu-low" {
     name: "${high-cpu-scale-down.name}"
     metricName: "CPUUtilization"
     namespace: "AWS/EC2"
