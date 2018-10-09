@@ -2,7 +2,7 @@ package beam.fetcher;
 
 import java.util.regex.Pattern;
 
-public class MavenFetcher extends ProviderFetcher {
+public class MavenFetcher extends PluginFetcher {
 
     private static String MAVEN_KEY = "^(?<organization>[^:]+):(?<package>[^:]+):(?<version>[^:]+)";
     private static Pattern MAVEN_KEY_PAT = Pattern.compile(MAVEN_KEY);

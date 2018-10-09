@@ -1,14 +1,16 @@
 package beam.parser;
 
-import beam.core.BeamConfigLocation;
-import beam.core.BeamObject;
-import beam.core.BeamProvider;
-import beam.core.BeamResource;
+import beam.core.*;
 import beam.core.diff.*;
 import beam.parser.antlr4.BeamBaseListener;
+import beam.parser.antlr4.BeamLexer;
 import beam.parser.antlr4.BeamParser;
 import beam.parser.ast.ASTBeamRoot;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
+import java.io.IOException;
 import java.util.*;
 
 public class ASTListener extends BeamBaseListener {
@@ -16,10 +18,14 @@ public class ASTListener extends BeamBaseListener {
     private ASTBeamRoot root;
 
     private Set<BeamResource> pending;
-    private Map<String, BeamResource> symbolTable;
-    private Map<String, BeamProvider> providerTable;
     private final Set<ChangeType> changeTypes = new HashSet<>();
-    private Stack<BeamObject> objectStack;
+    private String configName;
+    private BeamContext context;
+
+    public ASTListener(String configName) {
+        this.configName = configName;
+        this.context = new BeamContext();
+    }
 
     public ASTBeamRoot getRoot() {
         return root;
@@ -29,85 +35,111 @@ public class ASTListener extends BeamBaseListener {
         this.root = root;
     }
 
+    public String getConfigName() {
+        return configName;
+    }
+
+    public void setConfigName(String configName) {
+        this.configName = configName;
+    }
+
+    public BeamContext getContext() {
+        return context;
+    }
+
+    public void setContext(BeamContext context) {
+        this.context = context;
+    }
+
     @Override
     public void enterBeamRoot(BeamParser.BeamRootContext ctx) {
         pending = new HashSet<>();
-        symbolTable = new HashMap<>();
-        providerTable = new HashMap<>();
-        objectStack = new Stack<>();
+        context = new BeamContext();
     }
 
     @Override
     public void exitBeamRoot(BeamParser.BeamRootContext ctx) {
-        ResourceDiff diff = ASTHandler.exitBeamRoot(pending, changeTypes, providerTable);
-        root = new ASTBeamRoot();
-        root.setDiff(diff);
-    }
-
-    @Override
-    public void enterGlobalScope(BeamParser.GlobalScopeContext ctx) {
-        super.enterGlobalScope(ctx);
-    }
-
-    @Override
-    public void enterProviderLocation(BeamParser.ProviderLocationContext ctx) {
-        String key = ctx.QUOTED_STRING().getSymbol().getText();
-        key = key.replaceAll("^\"|\"$", "");
-        ASTHandler.enterProviderLocation(key);
-    }
-
-    @Override
-    public void enterKey(BeamParser.KeyContext ctx) {
-        super.enterKey(ctx);
-    }
-
-    @Override
-    public void enterResourceScope(BeamParser.ResourceScopeContext ctx) {
-        super.enterResourceScope(ctx);
-    }
-
-    @Override
-    public void enterProviderBlock(BeamParser.ProviderBlockContext ctx) {
-        String provider = ctx.providerName().PROVIDER_NAME().getSymbol().getText();
-        provider = provider.trim();
-        String providerName = provider.split("::")[0];
-        String resourceKey = provider.split("::")[1];
-        String symbol = ctx.resourceSymbol() == null ? null : ctx.resourceSymbol().getText();
-        if (symbol != null) {
-            symbol = symbol.trim();
+        System.out.println(getConfigName());
+        BeamContext context = getContext();
+        for (String key : context.getContext().keySet()) {
+            System.out.println(String.format("%s = %s", key, context.getContext().get(key)));
         }
 
-        ASTHandler.createBeamObject(providerName, resourceKey, symbol, providerTable, symbolTable, objectStack);
+        System.out.println();
     }
 
     @Override
-    public void exitProviderBlock(BeamParser.ProviderBlockContext ctx) {
-        BeamObject object = ASTHandler.loadBeamObject(objectStack, pending);
-        for (BeamParser.ResourceScopeContext resourceScopeContext : ctx.resourceScope()) {
-            for (BeamParser.KeyValueBlockContext keyValueBlockContext : resourceScopeContext.keyValueBlock()) {
-                String key = keyValueBlockContext.key().getText();
-                key = key.split(":")[0];
-                BeamParser.ValueContext valueContext = keyValueBlockContext.value();
-                Object value = null;
-                if (valueContext.map() != null) {
-                    value = parseMap(valueContext.map());
-                } else if (valueContext.list() != null) {
-                    value = parseList(valueContext.list());
-                } else {
-                    String quotedValue = valueContext.getText();
-                    quotedValue = quotedValue.replaceAll("^\"|\"$", "");
-                    value = quotedValue;
-                }
+    public void enterPluginBlock(BeamParser.PluginBlockContext ctx) {
+        String path = ctx.path().getText();
+        ASTHandler.fetchPlugin(stripQuotes(path));
+    }
 
-                if (object.getConfigLocation() == null) {
-                    int line = keyValueBlockContext.getStart().getLine();
-                    int column = keyValueBlockContext.getStart().getCharPositionInLine();
-                    object.setConfigLocation(new BeamConfigLocation(line, column));
-                }
+    @Override
+    public void enterImportBlock(BeamParser.ImportBlockContext ctx) {
+        String path = ctx.path().getText();
+        path = stripQuotes(path);
 
-                ASTHandler.populateSettings(object, key, value, providerTable, symbolTable);
-            }
+        String alias = ctx.variable().getText();
+
+        try {
+            BeamLexer lexer = new BeamLexer(CharStreams.fromFileName(path));
+            CommonTokenStream tokens = new CommonTokenStream(lexer);
+
+            BeamParser parser = new BeamParser(tokens);
+            BeamParser.BeamRootContext context = parser.beamRoot();
+
+            ASTListener listener = new ASTListener(path);
+            ParseTreeWalker.DEFAULT.walk(listener, context);
+
+            BeamContext scopeContext = listener.getContext().scopeContext(alias);
+            getContext().getContext().putAll(scopeContext.getContext());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+    }
+
+    @Override
+    public void enterResourceBlock(BeamParser.ResourceBlockContext ctx) {
+
+    }
+
+    @Override
+    public void exitResourceBlock(BeamParser.ResourceBlockContext ctx) {
+        String resourceProvider = ctx.resourceProvider().RESOURCE_PROVIDER().getSymbol().getText();
+        resourceProvider = resourceProvider.trim();
+        String packageName = resourceProvider.split("::")[0];
+        String resourceKey = resourceProvider.split("::")[1];
+
+        BeamResource resource = (BeamResource) ASTHandler.createBeamObject(packageName, resourceKey);
+        for (BeamParser.KeyValueBlockContext keyValueBlockContext : ctx.map().keyValueBlock()) {
+            String key = keyValueBlockContext.key().getText();
+            ASTHandler.populateSettings(resource, key, parseValueContext(keyValueBlockContext.value()));
+        }
+
+        String resourceName = ctx.variable().getText();
+        getContext().getContext().put(resourceName, resource);
+        System.out.println("unresolved properties: " + resource.getUnResolvedProperties());
+    }
+
+    @Override
+    public void exitAssignmentBlock(BeamParser.AssignmentBlockContext ctx) {
+        String varName = ctx.variable().getText();
+        getContext().getContext().put(varName, parseValueContext(ctx.value()));
+    }
+
+    private Object parseValueContext(BeamParser.ValueContext valueContext) {
+        Object value;
+        if (valueContext.map() != null) {
+            value = parseMap(valueContext.map());
+        } else if (valueContext.list() != null) {
+            value = parseList(valueContext.list());
+        } else if (valueContext.reference() != null) {
+            value = new BeamReference(valueContext.reference().referenceChain().getText());
+        } else {
+            value = stripQuotes(valueContext.getText());
+        }
+
+        return value;
     }
 
     private Map parseMap(BeamParser.MapContext mapContext) {
@@ -120,8 +152,10 @@ public class ASTListener extends BeamBaseListener {
                 result.put(key, parseMap(value.map()));
             } else if (value.list() != null) {
                 result.put(key, parseList(value.list()));
+            } else if (value.reference() != null) {
+                result.put(key, new BeamReference(value.reference().referenceChain().getText()));
             } else {
-                result.put(key, value.getText().replaceAll("^\"|\"$", ""));
+                result.put(key, stripQuotes(value.getText()));
             }
         }
 
@@ -135,41 +169,17 @@ public class ASTListener extends BeamBaseListener {
                 result.add(parseMap(value.map()));
             } else if (value.list() != null) {
                 result.add(parseList(value.list()));
+            } else if (value.reference() != null) {
+                result.add(new BeamReference(value.reference().referenceChain().getText()));
             } else {
-                result.add(value.getText().replaceAll("^\"|\"$", ""));
+                result.add(stripQuotes(value.getText()));
             }
         }
 
         return result;
     }
 
-    @Override
-    public void enterProviderName(BeamParser.ProviderNameContext ctx) {
-        super.enterProviderName(ctx);
-    }
-
-    @Override
-    public void enterValue(BeamParser.ValueContext ctx) {
-        super.enterValue(ctx);
-    }
-
-    @Override
-    public void enterKeyValueBlock(BeamParser.KeyValueBlockContext ctx) {
-        super.enterKeyValueBlock(ctx);
-    }
-
-    @Override
-    public void enterMethod(BeamParser.MethodContext ctx) {
-        super.enterMethod(ctx);
-    }
-
-    @Override
-    public void enterMethodArguments(BeamParser.MethodArgumentsContext ctx) {
-        super.enterMethodArguments(ctx);
-    }
-
-    @Override
-    public void enterMethodNamedArgument(BeamParser.MethodNamedArgumentContext ctx) {
-        super.enterMethodNamedArgument(ctx);
+    private String stripQuotes(String string) {
+        return string.replaceAll("^[\"\']|[\"\']$", "");
     }
 }

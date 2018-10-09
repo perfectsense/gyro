@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
 import beam.core.BeamException;
 import com.psddev.dari.util.StringUtils;
 
-public class GitFetcher extends ProviderFetcher {
+public class GitFetcher extends PluginFetcher {
 
     private static String LONG_GITHUB_URL = "^https://github.com/(?<short>[^.]+)\\.git";
     private static Pattern LONG_GITHUB_URL_PAT = Pattern.compile(LONG_GITHUB_URL);

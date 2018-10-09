@@ -2,7 +2,7 @@ package beam.parser;
 
 import beam.core.*;
 import beam.core.diff.*;
-import beam.fetcher.ProviderFetcher;
+import beam.fetcher.PluginFetcher;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Throwables;
@@ -22,15 +22,14 @@ public class ASTHandler {
 
     private static Map<String, String> resourceClassMap = new HashMap<>();
 
-    public static void enterProviderLocation(String key) {
-
+    public static void fetchPlugin(String path) {
         Reflections reflections = new Reflections("beam.fetcher");
         boolean match = false;
-        for (Class<? extends ProviderFetcher> fetcherClass : reflections.getSubTypesOf(ProviderFetcher.class)) {
+        for (Class<? extends PluginFetcher> fetcherClass : reflections.getSubTypesOf(PluginFetcher.class)) {
             try {
-                ProviderFetcher fetcher = fetcherClass.newInstance();
-                if (fetcher.validate(key)) {
-                    fetcher.fetch(key);
+                PluginFetcher fetcher = fetcherClass.newInstance();
+                if (fetcher.validate(path)) {
+                    fetcher.fetch(path);
                     match = true;
                 }
             } catch (IllegalAccessException | InstantiationException error) {
@@ -39,7 +38,7 @@ public class ASTHandler {
         }
 
         if (!match) {
-            throw new BeamException(String.format("Unable to find support for provider: %s", key));
+            throw new BeamException(String.format("Unable to find support for plugin: %s", path));
         }
     }
 
@@ -136,11 +135,10 @@ public class ASTHandler {
         }
     }
 
-    // why symbol table has a null key??
-    public static void populateSettings(BeamObject object, String key, Object value, Map<String, BeamProvider> providerTable, Map<String, BeamResource> symbolTable) {
+    public static void populateSettings(BeamObject object, String key, Object value) {
         if (object instanceof BeamResource) {
             BeamResource resource = (BeamResource) object;
-            if (checkReference(value, resource, symbolTable)) {
+            if (BeamReference.containsReference(value)) {
                 resource.getUnResolvedProperties().put(key, value);
             } else {
                 populate(object, key, value);
@@ -170,30 +168,17 @@ public class ASTHandler {
         return object;
     }
 
-    public static BeamObject createBeamObject(String providerName, String resourceKey, String id, Map<String, BeamProvider> providerTable, Map<String, BeamResource> symbolTable, Stack<BeamObject> objectStack) {
-        String className = null;
+    public static BeamObject createBeamObject(String pluginPackage, String pluginClass) {
+        String className;
         try {
-            className = getClassName(providerName, resourceKey);
+            className = getClassName(pluginPackage, pluginClass);
 
             java.net.URLClassLoader loader = (java.net.URLClassLoader) ClassLoader.getSystemClassLoader();
             Class<?> clazz = loader.loadClass(className);
+            return (BeamObject) clazz.newInstance();
 
-            BeamObject instance = (BeamObject) clazz.newInstance();
-            if (instance instanceof BeamResource) {
-                BeamResource resource = (BeamResource) instance;
-                if (id != null) {
-                    symbolTable.put(id, resource);
-                }
-
-            } else if (instance instanceof BeamProvider) {
-                BeamProvider provider = (BeamProvider) instance;
-                providerTable.put(id, provider);
-            }
-
-            objectStack.push(instance);
-            return instance;
         } catch (Exception e) {
-           throw new BeamException(String.format("Unable to create resource %s::%s", providerName, resourceKey), e);
+           throw new BeamException(String.format("Unable to create resource %s::%s", pluginPackage, pluginClass), e);
         }
     }
 

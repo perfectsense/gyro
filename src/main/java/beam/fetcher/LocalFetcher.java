@@ -12,7 +12,7 @@ import java.io.FileInputStream;
 import java.util.regex.Pattern;
 import java.util.zip.ZipFile;
 
-public class LocalFetcher extends ProviderFetcher {
+public class LocalFetcher extends PluginFetcher {
 
     private static String LOCAL_KEY = "^(/[^/ ]*)+/?$";
     private static Pattern LOCAL_KEY_PAT = Pattern.compile(LOCAL_KEY);

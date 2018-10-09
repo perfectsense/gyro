@@ -99,10 +99,11 @@ AS
 
 fragment LETTER : [a-zA-Z_.] ;
 fragment DIGIT  : [0-9] ;
+fragment STRING : ~('\''|'"')* ;
 
 QUOTED_STRING
-    : '"' ~('\\'|'"')* '"'
-    | '\'' ~('\''|'"')* '\''
+    : '"' STRING '"'
+    | '\'' STRING '\''
     ;
 
 NUMBERS

@@ -1,6 +1,6 @@
 package beam.fetcher;
 
-public abstract class ProviderFetcher {
+public abstract class PluginFetcher {
 
     public abstract boolean validate(String key);
 
