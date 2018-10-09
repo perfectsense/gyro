@@ -222,4 +222,47 @@ public class BeamReference {
     public void setResource(BeamResource resource) {
         this.resource = resource;
     }
+
+    public static boolean containsReference(Object value) {
+        if (value instanceof Map) {
+            return mapContainsReference((Map) value);
+        } else if (value instanceof List) {
+            return listContainsReference((List) value);
+        } else if (value instanceof BeamReference) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private static boolean mapContainsReference(Map map) {
+        boolean result = false;
+        for (Object key : map.keySet()) {
+            Object value = map.get(key);
+            if (value instanceof Map) {
+                result = result || mapContainsReference((Map) value);
+            } else if (value instanceof List) {
+                result = result || listContainsReference((List) value);
+            } else if (value instanceof BeamReference) {
+                return true;
+            }
+        }
+
+        return result;
+    }
+
+    private static boolean listContainsReference(List list) {
+        boolean result = false;
+        for (Object value : list) {
+            if (value instanceof Map) {
+                result = result || mapContainsReference((Map) value);
+            } else if (value instanceof List) {
+                result = result || listContainsReference((List) value);
+            } else if (value instanceof BeamReference) {
+                return true;
+            }
+        }
+
+        return result;
+    }
 }

@@ -18,10 +18,7 @@ public class ASTListener extends BeamBaseListener {
     private ASTBeamRoot root;
 
     private Set<BeamResource> pending;
-    private Map<String, BeamResource> symbolTable;
-    private Map<String, BeamProvider> providerTable;
     private final Set<ChangeType> changeTypes = new HashSet<>();
-    private Stack<BeamObject> objectStack;
     private String configName;
     private BeamContext context;
 
@@ -57,9 +54,6 @@ public class ASTListener extends BeamBaseListener {
     @Override
     public void enterBeamRoot(BeamParser.BeamRootContext ctx) {
         pending = new HashSet<>();
-        symbolTable = new HashMap<>();
-        providerTable = new HashMap<>();
-        objectStack = new Stack<>();
         context = new BeamContext();
     }
 
@@ -111,15 +105,29 @@ public class ASTListener extends BeamBaseListener {
 
     @Override
     public void exitResourceBlock(BeamParser.ResourceBlockContext ctx) {
+        String resourceProvider = ctx.resourceProvider().RESOURCE_PROVIDER().getSymbol().getText();
+        resourceProvider = resourceProvider.trim();
+        String packageName = resourceProvider.split("::")[0];
+        String resourceKey = resourceProvider.split("::")[1];
+
+        BeamResource resource = (BeamResource) ASTHandler.createBeamObject(packageName, resourceKey);
+        for (BeamParser.KeyValueBlockContext keyValueBlockContext : ctx.map().keyValueBlock()) {
+            String key = keyValueBlockContext.key().getText();
+            ASTHandler.populateSettings(resource, key, parseValueContext(keyValueBlockContext.value()));
+        }
+
         String resourceName = ctx.variable().getText();
-        String resourceType = ctx.resourceProvider().getText();
-        getContext().getContext().put(resourceName, resourceType);
+        getContext().getContext().put(resourceName, resource);
+        System.out.println("unresolved properties: " + resource.getUnResolvedProperties());
     }
 
     @Override
     public void exitAssignmentBlock(BeamParser.AssignmentBlockContext ctx) {
         String varName = ctx.variable().getText();
-        BeamParser.ValueContext valueContext = ctx.value();
+        getContext().getContext().put(varName, parseValueContext(ctx.value()));
+    }
+
+    private Object parseValueContext(BeamParser.ValueContext valueContext) {
         Object value;
         if (valueContext.map() != null) {
             value = parseMap(valueContext.map());
@@ -131,7 +139,7 @@ public class ASTListener extends BeamBaseListener {
             value = stripQuotes(valueContext.getText());
         }
 
-        getContext().getContext().put(varName, value);
+        return value;
     }
 
     private Map parseMap(BeamParser.MapContext mapContext) {
@@ -169,16 +177,6 @@ public class ASTListener extends BeamBaseListener {
         }
 
         return result;
-    }
-
-    @Override
-    public void enterValue(BeamParser.ValueContext ctx) {
-        super.enterValue(ctx);
-    }
-
-    @Override
-    public void enterKeyValueBlock(BeamParser.KeyValueBlockContext ctx) {
-        super.enterKeyValueBlock(ctx);
     }
 
     private String stripQuotes(String string) {

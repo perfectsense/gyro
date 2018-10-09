@@ -11,6 +11,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -27,7 +28,7 @@ public abstract class BeamResource<B extends BeamProvider> extends BeamObject {
     private String beamId;
     private ResourceChange change;
     private Map<String, BeamReference> references = new HashMap<>();
-    private Map<String, Object> unResolvedProperties = new HashMap<>();
+    private Map<String, Object> unResolvedProperties = new ConcurrentHashMap<>();
 
     /**
      * Returns {@code true} if the given {@code awsResource} should be
