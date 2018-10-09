@@ -6,6 +6,7 @@ import beam.parser.antlr4.BeamBaseListener;
 import beam.parser.antlr4.BeamLexer;
 import beam.parser.antlr4.BeamParser;
 import beam.parser.ast.ASTBeamRoot;
+import com.psddev.dari.util.ObjectUtils;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
@@ -59,13 +60,6 @@ public class ASTListener extends BeamBaseListener {
 
     @Override
     public void exitBeamRoot(BeamParser.BeamRootContext ctx) {
-        System.out.println(getConfigName());
-        BeamContext context = getContext();
-        for (String key : context.getContext().keySet()) {
-            System.out.println(String.format("%s = %s", key, context.getContext().get(key)));
-        }
-
-        System.out.println();
     }
 
     @Override
@@ -118,7 +112,10 @@ public class ASTListener extends BeamBaseListener {
 
         String resourceName = ctx.variable().getText();
         getContext().getContext().put(resourceName, resource);
+        resource.setContext(getContext());
         System.out.println("unresolved properties: " + resource.getUnResolvedProperties());
+        resource.resolveReference();
+        System.out.println(ObjectUtils.toJson(resource));
     }
 
     @Override
