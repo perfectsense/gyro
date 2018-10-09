@@ -1,0 +1,128 @@
+import "../project.beam" as project 
+import "../vpc.beam" as vpc
+import "../route53.beam" as route53
+
+import "frontend.beam" as frontend
+import "backend.beam" as backend
+
+ENVIRONMENT = "production"
+
+aws::security_group "security-group" {
+    vpcId: @(aws::vpc vpc.vpc.vpcId)
+        
+    ingress {
+        fromPort: 0
+        toPort: 0
+        protocol: "-1"
+
+        securityGroups: [
+            @(aws::security_group frontend.security-group.securityGroupId),
+            @(aws::security_group backend.security-group.securityGroupId)
+        ] 
+    }
+
+    # OpenVPN
+    ingress {
+        fromPort: 1194
+        toPort: 1194
+        protocol: "udp"
+        cidrBlock: "0.0.0.0/0"
+    }
+
+    # Office & VPN IPs
+    ingress {
+        fromPort: 22
+        toPort: 22
+        protocol: "tcp"
+        cidrBlock: "52.5.144.128/32"
+    }
+}
+
+aws::iam_role "gateway-role" {
+    name: "${project.NAME}-${ENVIRONMENT}-${project.SERIAL}-gateway"
+}
+
+aws::iam_role_policy "gateway-beam-server-readonly-policy" {
+    roleName: @(aws::iam_role gateway-role.name)
+    name: "beam-server-readonly"
+    path: "roles/beam-server-readonly.json"
+}
+
+aws::iam_instance_profile "gateway-instance-role" {
+    name: @(aws::iam_role_polify gateway-beam-server-readonly-policy.name)
+}
+
+aws::instance "us-east-1a" {
+    image: "ami-04aaab62bebf49db8"
+    instanceType: "t2.medium"
+    privateIp: "10.0.0.10"
+    associatePublicIpAddress: true
+    sourceDestCheck: false
+    iamInstanceProfile: @(aws::iame_instance_profile gateway-instance-role.name)
+    securityGroupIds: [
+        @(aws::security_group security-group.securityGroupId),
+        @(aws::security_group project.operation.securityGroupId)
+    ]
+    subnetId: @(aws::subnet vpc.public-us-east-1a.subnetId)
+    keyPair: @(aws::key_pair project.key-pair)
+
+    tags: {
+        Project: "${project.NAME}"
+        Serial: "${project.SERIAL}"
+        beam.environment: "${ENVIRONMENT}"
+    }
+}
+
+aws::instance "us-east-1b" {
+    image: "ami-04aaab62bebf49db8"
+    instanceType: "t2.medium"
+    privateIp: "10.0.1.10"
+    associatePublicIpAddress: true
+    sourceDestCheck: false
+    iamInstanceProfile: @(aws::iame_instance_profile gateway-instance-role.name)
+    securityGroupIds: [
+        @(aws::security_group security-group.securityGroupId),
+        @(aws::security_group project.operation.securityGroupId)
+    ]
+    subnetId: @(aws::subnet vpc.public-us-east-1a.subnetId)
+    keyPair: @(aws::key_pair project.key-pair)
+
+    tags: {
+        Project: "${project.NAME}"
+        Serial: "${project.SERIAL}"
+        beam.environment: "${ENVIRONMENT}"
+    }
+}
+
+aws::instance "us-east-1c" {
+    image: "ami-04aaab62bebf49db8"
+    instanceType: "t2.medium"
+    privateIp: "10.0.2.10"
+    associatePublicIpAddress: true
+    sourceDestCheck: false
+    iamInstanceProfile: @(aws::iame_instance_profile gateway-instance-role.name)
+    securityGroupIds: [
+        @(aws::security_group security-group.securityGroupId),
+        @(aws::security_group project.operation.securityGroupId)
+    ]
+    subnetId: @(aws::subnet vpc.public-us-east-1a.subnetId)
+    keyPair: @(aws::key_pair project.key-pair)
+
+    tags: {
+        Project: "${project.NAME}"
+        Serial: "${project.SERIAL}"
+        beam.environment: "${ENVIRONMENT}"
+    }
+}
+
+aws::hosted_zone_record "vpn.${project.SUBDOMAIN}" {
+    zoneId: @(aws::hosted_zoe route53.public.zoneId)
+    name: "vpn.${project.SUBDOMAIN}"
+    type: "A"
+    ttl: 300
+    records: [
+        @(aws::instance us-east-1a.publicIpAddress),
+        @(aws::instance us-east-1b.publicIpAddress),
+        @(aws::instance us-east-1c.publicIpAddress)
+    ]
+}

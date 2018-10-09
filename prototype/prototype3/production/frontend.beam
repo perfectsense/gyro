@@ -1,0 +1,166 @@
+import "../project.beam" as project
+import "../vpc.beam" as vpc
+import "../gateway.beam" as gateway
+
+ENVIRONMENT = "production"
+
+aws::security_group "elb" {
+    vpcId: @(aws::vpc vpc.vpc.vpcId)
+        
+    ingress {
+        fromPort: 80
+        toPort: 80
+        protocol: "tcp"
+        cidrBlock: "0.0.0.0/0"
+    }
+
+    ingress {
+        fromPort: 443
+        toPort: 443
+        protocol: "tcp"
+        cidrBlock: "0.0.0.0/0"
+    }
+}
+
+aws::elastic_load_balancer "web" {
+    name: "${project.NAME}-web-${project.SERIAL}" 
+
+    listener {
+        loadBalancerPort: 80
+        instanceProtocol: "http"
+        instancePort: 80
+    }
+
+    listener {
+        loadBalancerPort: 443
+        instanceProtocol: "https"
+        instancePort: 80
+    }
+
+    healthCheck {
+        protocol: "http"
+        port: 80
+        path: "/_ping"
+        timeout: 5
+        interval: 6
+        unhealthyThreshold: 2
+        healthyThreshold: 2
+    }
+
+    subnets: #{aws::subnet vpc.public)
+    securityGroups: [@(aws::security_group elb)]
+}
+
+aws::hosted_zone_record "prod.${project.SUBDOMAIN}" {
+    zoneId: @(aws::hosted_zone route53.public.zoneId)
+    name: "prod.${project.subdomain}"
+    type: "CNAME"
+    ttl: 300
+    records: [@(aws::elastic_load_balancer web.canonicalHostedZoneName)]
+}
+
+aws::security_group "frontend" {
+    vpcId: @(aws::vpc vpc.vpc.vpcId)
+
+    ingress {
+        fromPort: 80
+        toPort: 80
+        protocol: "tcp"
+        securityGroups: [@(aws::security_group elb)]
+    }
+
+    ingress {
+        fromPort: 22
+        toPort: 22
+        protocol: "tcp"
+        securityGroups: [@(aws::security_group elb)]
+    }
+
+    ingress {
+        fromPort: 80
+        toPort: 80
+        protocol: "tcp"
+        securityGroups: [@(aws::security_group elb)]
+    }
+
+    ingress {
+        fromPort: 8080
+        toPort: 8080
+        protocol: "tcp"
+        securityGroups: [@(aws::security_group elb)]
+    }
+}
+
+aws::launch_configuration "frontend" {
+    name: "${project.NAME} frontend ${ENVIRONMENT} v${project.SERIAL}"
+
+    image: "ami-0ddcc69ab30ed9c03"
+    instanceType: "t2.medium"
+    keyPair: @(aws::key_pair project.key-pair)
+
+    securityGroups: [@(aws::security_group frontend)]
+}
+
+aws::autoscaling_group "frontend" {
+    autoscaleGroupName: @(aws::launch_configuration frontend.name)
+    launchConfigurationName: @(aws::launch_configuration frontend.name)
+    loadBalancerNames: [@{aws::elastic_load_balancer web.name)]
+    vpcZoneIdentitiers: #(aws::subnet vpc.private)
+    defaultCoolDown: 300
+    healthCheckType: "ec2"
+    
+    minSize: 4
+    maxSize: 8
+
+    tags: ${project.defaultTags}
+}
+
+aws::autoscaling_policy "high-cpu-scale-up" {
+    name: "high-cpu-scale-up"
+    autoscaleGroupName: @(aws::autoscaling_group frontend.autoscaleGroupName)
+    adjustmentType: "ChangeInCapacity"
+    scalingAdjustment: 4
+    coolDown: 120
+}
+
+aws::cloudwatch_metric_alarm "frontend-autoscaling-cpu-high" {
+    name: @(aws::autoscaling_policy high-cpu-scale-up.name)
+    metricName: "CPUUtilization"
+    namespace: "AWS/EC2"
+    evaluationPeriods: 1
+    period: 60
+    threshold: 60
+    statistic: "Average"
+    comparisonOperator: "GreaterThanThreshold"
+
+    dimensions: {
+        AutoScalingGroupName: @(aws::autoscaling_group frontend.autoscaleGroupName)
+    }
+
+    alarmActions: [@(aws::autoscaling_policy high-cpu-scale-up.arn)]
+}
+
+aws::autoscaling_policy "high-cpu-scale-down" {
+    name: "high-cpu-scale-down"
+    autoscaleGroupName: @(aws::autoscaling_group frontend.autoscaleGroupName)
+    adjustmentType: "ChangeInCapacity"
+    scalingAdjustment: -4
+    coolDown: 300
+}
+
+aws::cloudwatch_metric_alarm "frontend-autoscaling-cpu-low" {
+    name: @(aws::autoscaling_policy high-cpu-scale-down.name)
+    metricName: "CPUUtilization"
+    namespace: "AWS/EC2"
+    evaluationPeriods: 1
+    period: 300
+    threshold: 20
+    statistic: "Average"
+    comparisonOperator: "LessThanThreshold"
+
+    dimensions: {
+        AutoScalingGroupName: @(aws::autoscaling_group frontend.autoscaleGroupName)
+    }
+
+    alarmActions: [@(aws::autoscaling_policy high-cpu-scale-down.arn)]
+}
