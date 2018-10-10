@@ -1,9 +1,9 @@
-NAME = "beam-enterprise"
-SUBDOMAIN = "beam-enterprise.psdops.com"
+NAME = beam-enterprise
+SUBDOMAIN = beam-enterprise.psdops.com
 SERIAL = 1
 DEFAULT_TAGS = {
-    Project: "${project}"
-    Serial: "${serial}"
+    Project: ${project}
+    Serial: ${serial}
 }
 
 plugin "perfectsense/beam-provider-aws", version: "~1.0"
@@ -13,11 +13,11 @@ import "vpc.beam" as vpc
 
 aws::credentials {
     default-credentials: true
-    region: "us-east-1"
+    region: us-east-1
 }
 
 aws::credentials aws_us_east_2 {
-    region: "us-east-2"
+    region: us-east-2
 }
 
 aws::key-pair project-key-pair {
@@ -31,7 +31,7 @@ aws::security-group operations {
     ingress {
         from-port: 0
         to-port: 0
-        protocol: "-1"
-        cidr-block: "52.5.144.128/32"
+        protocol: -1
+        cidr-block: 52.5.144.128/32
     }
 }

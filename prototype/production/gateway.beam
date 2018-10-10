@@ -5,7 +5,7 @@ import "../route53.beam" as route53
 import "frontend.beam" as frontend
 import "backend.beam" as backend
 
-ENVIRONMENT = "production"
+ENVIRONMENT = production
 
 aws::security-group security-group {
     vpc-id: @(aws::vpc vpc.vpc | vpc-id)
@@ -13,7 +13,7 @@ aws::security-group security-group {
     ingress {
         from-port: 0
         to-port: 0
-        protocol: "-1"
+        protocol: -1
 
         security-groups: [
             @(aws::security-group frontend.security-group | security-group-id),
@@ -25,27 +25,27 @@ aws::security-group security-group {
     ingress {
         from-port: 1194
         to-port: 1194
-        protocol: "udp"
-        cidr-block: "0.0.0.0/0"
+        protocol: udp
+        cidr-block: 0.0.0.0/0
     }
 
     // Office & VPN IPs
     ingress {
         from-port: 22
         to-port: 22
-        protocol: "tcp"
-        cidr-block: "52.5.144.128/32"
+        protocol: tcp
+        cidr-block: 52.5.144.128/32
     }
 }
 
 aws::iam-role gateway-role {
-    name: "${project.NAME}-${ENVIRONMENT}-${project.SERIAL}-gateway"
+    name: ${project.NAME}-${ENVIRONMENT}-${project.SERIAL}-gateway
 }
 
 aws::iam-role-policy gateway-beam-server-readonly-policy {
     role-name: @(aws::iam-role gateway-role | name)
-    name: "beam-server-readonly"
-    path: "roles/beam-server-readonly.json"
+    name: beam-server-readonly
+    path: roles/beam-server-readonly.json
 }
 
 aws::iam-instance-profile gateway-instance-role {
@@ -53,9 +53,9 @@ aws::iam-instance-profile gateway-instance-role {
 }
 
 aws::instance us-east-1a {
-    image: "ami-04aaab62bebf49db8"
-    instance-type: "t2.medium"
-    private-ip: "10.0.0.10"
+    image: ami-04aaab62bebf49db8
+    instance-type: t2.medium
+    private-ip: 10.0.0.10
     associate-public-ip-address: true
     source-dest-check: false
     iam-instance-profile: @(aws::iam-instance-profile gateway-instance-role | name)
@@ -67,16 +67,16 @@ aws::instance us-east-1a {
     key-pair: @(aws::key-pair project.key-pair | name)
 
     tags: {
-        Project: "${project.NAME}"
-        Serial: "${project.SERIAL}"
-        beam.environment: "${ENVIRONMENT}"
+        Project: ${project.NAME}
+        Serial: ${project.SERIAL}
+        beam.environment: ${ENVIRONMENT}
     }
 }
 
 aws::instance us-east-1b {
-    image: "ami-04aaab62bebf49db8"
-    instance-type: "t2.medium"
-    private-ip: "10.0.1.10"
+    image: ami-04aaab62bebf49db8
+    instance-type: t2.medium
+    private-ip: 10.0.1.10
     associate-public-ip-address: true
     source-dest-check: false
     iam-instance-profile: @(aws::iam-instance-profile gateway-instance-role | name)
@@ -88,16 +88,16 @@ aws::instance us-east-1b {
     key-pair: @(aws::key-pair project.key-pair | name)
 
     tags: {
-        Project: "${project.NAME}"
-        Serial: "${project.SERIAL}"
-        beam.environment: "${ENVIRONMENT}"
+        Project: ${project.NAME}
+        Serial: ${project.SERIAL}
+        beam.environment: ${ENVIRONMENT}
     }
 }
 
 aws::instance us-east-1c {
-    image: "ami-04aaab62bebf49db8"
-    instance-type: "t2.medium"
-    private-ip: "10.0.2.10"
+    image: ami-04aaab62bebf49db8
+    instance-type: t2.medium
+    private-ip: 10.0.2.10
     associate-public-ip-address: true
     source-dest-check: false
     iam-instance-profile: @(aws::iam-instance-profile gateway-instance-role | name)
@@ -109,16 +109,16 @@ aws::instance us-east-1c {
     key-pair: @(aws::key-pair project.key-pair | name)
 
     tags: {
-        Project: "${project.NAME}"
-        Serial: "${project.SERIAL}"
-        beam.environment: "${ENVIRONMENT}"
+        Project: ${project.NAME}
+        Serial: ${project.SERIAL}
+        beam.environment: ${ENVIRONMENT}
     }
 }
 
 aws::hosted-zone-record vpn.${project.SUBDOMAIN} {
     zone-id: @(aws::hosted-zone route53.public | zone-id)
-    name: "vpn.${project.SUBDOMAIN}"
-    type: "A"
+    name: vpn.${project.SUBDOMAIN}
+    type: A
     ttl: 300
     records: [
         @(aws::instance us-east-1a | public-ip-address),
