@@ -1,12 +1,12 @@
 import "project.beam" as project
 import "vpc.beam" as vpc
 
-aws::hostedZone public {
+aws::hosted-zone public {
     name: "${project.SUBDOMAIN}."
 }
 
-aws::hostedZone private {
+aws::hosted-zone private {
     name: "private.${project.SUBDOMAIN}."
     private: true
-    vpcId: @(aws::vpc vpc.vpc | vpcId)
+    vpc-id: @(aws::vpc vpc.vpc | vpc-id)
 }

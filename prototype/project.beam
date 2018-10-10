@@ -12,7 +12,7 @@ plugin "perfectsense/beam-workflow-brightspot", branch: "release/1.0.0"
 import "vpc.beam" as vpc
 
 aws::credentials {
-    defaultCredentials: true
+    default-credentials: true
     region: "us-east-1"
 }
 
@@ -25,13 +25,13 @@ aws::key-pair project-key-pair {
 }
 
 aws::security-group operations {
-    vpcId: @(aws::vpc vpc | vpcId)
+    vpc-id: @(aws::vpc vpc | vpc-id)
         
     // Office & VPN IPs
     ingress {
-        fromPort: 0
-        toPort: 0
+        from-port: 0
+        to-port: 0
         protocol: "-1"
-        cidrBlock: "52.5.144.128/32"
+        cidr-block: "52.5.144.128/32"
     }
 }
