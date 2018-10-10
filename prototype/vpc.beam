@@ -1,7 +1,7 @@
 import "project.beam" as project
 import "production/gateway.beam" as gateway
 
-AWS::Vpc "vpc" {
+AWS::Vpc vpc {
     name: "beam enterprise"
     cidrBlock: "10.0.0.0/16"
     enableDnsSupport: true
@@ -10,7 +10,7 @@ AWS::Vpc "vpc" {
     tags: ${project.DEFAULT_TAGS}
 }
 
-AWS::InternetGateway "igw" {
+AWS::InternetGateway igw {
     vpcId: @(AWS::Vpc vpc.vpcId)
     name: "beam enterprise"
     tags: ${project.DEFAULT_TAGS}
@@ -18,7 +18,7 @@ AWS::InternetGateway "igw" {
 
 // US-EAST-1 - Zone A
 
-AWS::Subnet "public-us-east-1a" tags "public" {
+AWS::Subnet public-us-east-1a tags: [ public ] {
     name: "${project.NAME} [public, public-us-east, public-us-east-1a]"
     
     vpcId: @(AWS::Vpc vpc.vpcId)
@@ -29,7 +29,7 @@ AWS::Subnet "public-us-east-1a" tags "public" {
     tags: ${project.DEFAULT_TAGS}
 }
 
-AWS::Subnet "private-us-east-1a" tags "private" {
+AWS::Subnet private-us-east-1a tags: [ private ] {
     name: "${project.NAME} [private, private-us-east, private-us-east-1a]"
     
     vpcId: @(AWS::Vpc vpc.vpcId)
@@ -40,7 +40,7 @@ AWS::Subnet "private-us-east-1a" tags "private" {
     tags: ${project.DEFAULT_TAGS}
 }
 
-AWS::Subnet "development" {
+AWS::Subnet development {
     name: "${project.NAME} [development]
     
     vpcId: @(AWS::Vpc vpc.vpcId)
@@ -51,7 +51,7 @@ AWS::Subnet "development" {
     tags: ${project.DEFAULT_TAGS}
 }
 
-AWS::RouteTable "public-us-east-1a" {
+AWS::RouteTable public-us-east-1a {
     name: "${project.NAME} public, us-east-1a"
         
     vpcId: @(AWS::Vpc vpc.vpcId)
@@ -65,19 +65,19 @@ AWS::RouteTable "public-us-east-1a" {
     }
 }
 
-AWS::Route "public-us-east-1a" {
+AWS::Route public-us-east-1a {
     routeTableId: @(AWS::RouteTable public-us-east-1a)
     cidrBlock: "0.0.0.0/0"
     gatewayId: @(AWS::InternetGateway igw.gatewayId)
 }
 
-AWS::RouteTable "private-us-east-1a" {
+AWS::RouteTable private-us-east-1a {
     name: "${project.NAME} private, us-east-1a"
         
     vpcId: @(AWS::Vpc vpc.vpcId)
 }
 
-AWS::Route "private-us-east-1a" {
+AWS::Route private-us-east-1a {
     routeTableId: @(AWS::RouteTable private-us-east-1a)
     cidrBlock: "0.0.0.0/0"
     instanceId: @(AWS::Instance gateway.us-east-1a.instanceId)
@@ -85,7 +85,7 @@ AWS::Route "private-us-east-1a" {
 
 // US-EAST-1 - Zone B
 
-AWS::Subnet "public-us-east-1b" tags "public" {
+AWS::Subnet public-us-east-1b tags: [ public ] {
     name: "beam enterprise [public, public-us-east, public-us-east-1b]"
     
     vpcId: @(AWS::Vpc vpc.vpcId)
@@ -96,7 +96,7 @@ AWS::Subnet "public-us-east-1b" tags "public" {
     tags: ${DEFAULT_TAGS}
 }
 
-AWS::Subnet "private-us-east-1b" tags "private" {
+AWS::Subnet private-us-east-1b tags: [ private ] {
     name: "beam enterprise [private, private-us-east, private-us-east-1b]"
     
     vpcId: @(AWS::Vpc vpc.vpcId)
@@ -107,13 +107,13 @@ AWS::Subnet "private-us-east-1b" tags "private" {
     tags: ${project.DEFAULT_TAGS}
 }
 
-AWS::RouteTable "private-us-east-1b" {
+AWS::RouteTable private-us-east-1b {
     name: "${project.project} private, us-east-1b"
         
     vpcId: @(AWS::Vpc vpc.vpcId)
 }
 
-AWS::Route "private-us-east-1b" {
+AWS::Route private-us-east-1b {
     routeTableId: @(AWS::RouteTable private-us-east-1b)
     cidrBlock: "0.0.0.0/0"
     instanceId: @(AWS::Instance gateway.us-east-1b.instanceId)
@@ -121,7 +121,7 @@ AWS::Route "private-us-east-1b" {
 
 // US-EAST-1 - Zone C
 
-AWS::Subnet "public-us-east-1c" tags "public" {
+AWS::Subnet public-us-east-1c tags: [ public ] {
     name: "beam enterprise [public, public-us-east, public-us-east-1c]"
     
     vpcId: @(AWS::Vpc vpc.vpcId)
@@ -132,7 +132,7 @@ AWS::Subnet "public-us-east-1c" tags "public" {
     tags: ${project.DEFAULT_TAGS}
 }
 
-AWS::Subnet "private-us-east-1c" tags "master" "private" {
+AWS::Subnet private-us-east-1c tags: [ master, private ] {
     name: "beam enterprise [private, private-us-east, private-us-east-1c]"
     
     vpcId: @(AWS::Vpc vpc.vpcId)
@@ -143,13 +143,13 @@ AWS::Subnet "private-us-east-1c" tags "master" "private" {
     tags: ${project.DEFAULT_TAGS}
 }
 
-AWS::RouteTable "private-us-east-1c" {
+AWS::RouteTable private-us-east-1c {
     name: "${project.project} private, us-east-1c"
         
     vpcId: @(AWS::Vpc vpc.vpcId)
 }
 
-AWS::Route "private-us-east-1c" {
+AWS::Route private-us-east-1c {
     routeTableId: @(AWS::RouteTable private-us-east-1c)
     cidrBlock: "0.0.0.0/0"
     instanceId: @(AWS::Instance gateway.us-east-1c.instanceId)

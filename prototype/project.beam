@@ -22,15 +22,15 @@ AWS::Credentials {
     region: "us-east-1"
 }
 
-AWS::Credentials "aws_us_east_2" {
+AWS::Credentials aws_us_east_2 {
     region: "us-east-2"
 }
 
-AWS::KeyPair "project-key-pair {
+AWS::KeyPair project-key-pair {
     name: ${NAME}
 }
 
-AWS::SecurityGroup "operations" {
+AWS::SecurityGroup operations {
     vpcId: @(AWS::Vpc vpc.vpcId)
         
     // Office & VPN IPs

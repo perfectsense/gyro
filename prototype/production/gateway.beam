@@ -7,7 +7,7 @@ import "backend.beam" as backend
 
 ENVIRONMENT = "production"
 
-AWS::SecurityGroup "security-group" {
+AWS::SecurityGroup security-group {
     vpcId: @(AWS::Vpc vpc.vpc.vpcId)
         
     ingress {
@@ -38,21 +38,21 @@ AWS::SecurityGroup "security-group" {
     }
 }
 
-AWS::IamRole "gateway-role" {
+AWS::IamRole gateway-role {
     name: "${project.NAME}-${ENVIRONMENT}-${project.SERIAL}-gateway"
 }
 
-AWS::IamRolePolicy "gateway-beam-server-readonly-policy" {
+AWS::IamRolePolicy gateway-beam-server-readonly-policy {
     roleName: @(AWS::IamRole gateway-role.name)
     name: "beam-server-readonly"
     path: "roles/beam-server-readonly.json"
 }
 
-AWS::IamInstanceProfile "gateway-instance-role" {
+AWS::IamInstanceProfile gateway-instance-role {
     name: @(AWS::IamRolePolicy gateway-beam-server-readonly-policy.name)
 }
 
-AWS::Instance "us-east-1a" {
+AWS::Instance us-east-1a {
     image: "ami-04aaab62bebf49db8"
     instanceType: "t2.medium"
     privateIp: "10.0.0.10"
@@ -73,7 +73,7 @@ AWS::Instance "us-east-1a" {
     }
 }
 
-AWS::Instance "us-east-1b" {
+AWS::Instance us-east-1b {
     image: "ami-04aaab62bebf49db8"
     instanceType: "t2.medium"
     privateIp: "10.0.1.10"
@@ -94,7 +94,7 @@ AWS::Instance "us-east-1b" {
     }
 }
 
-AWS::Instance "us-east-1c" {
+AWS::Instance us-east-1c {
     image: "ami-04aaab62bebf49db8"
     instanceType: "t2.medium"
     privateIp: "10.0.2.10"
@@ -115,7 +115,7 @@ AWS::Instance "us-east-1c" {
     }
 }
 
-AWS::HostedZoneRecord "vpn.${project.SUBDOMAIN}" {
+AWS::HostedZoneRecord vpn.${project.SUBDOMAIN} {
     zoneId: @(AWS::HostedZone route53.public.zoneId)
     name: "vpn.${project.SUBDOMAIN}"
     type: "A"

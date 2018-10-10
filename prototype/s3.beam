@@ -1,6 +1,6 @@
 import "project.beam" as project
 
-AWS::Bucket "beam-enterprise-ops" {
+AWS::Bucket beam-enterprise-ops {
     name: "beam-enterprise-ops"
 
     corsRule {

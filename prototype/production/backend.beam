@@ -6,7 +6,7 @@ import "frontend.beam" as frontend
 
 ENVIRONMENT = "production"
 
-AWS::SecurityGroup "backend" {
+AWS::SecurityGroup backend {
     vpcId: @(AWS::Vpc vpc.vpc.vpcId)
 
     ingress {
@@ -24,21 +24,21 @@ AWS::SecurityGroup "backend" {
     }
 }
 
-AWS::IamRole "backend" {
+AWS::IamRole backend {
     name: "${project.NAME}-${ENVIRONMENT}-${project.SERIAL}-backend"
 }
 
-AWS::IamRolePolicy "production-backend-s3" {
+AWS::IamRolePolicy production-backend-s3 {
     roleName: @(AWS::IamRole backend.name}"
     name: "production-backend-s3"
     path: "roles/production-backend-s3.json"
 }
 
-AWS::IamInstanceProfile "backend" {
+AWS::IamInstanceProfile backend {
     name: @(AWS::IamRolePolicy production-backend-s3.name)
 }
 
-AWS::Instance "backend-us-east-1a" {
+AWS::Instance backend-us-east-1a {
     image: ami-04aaab62bebf49db8
     instanceType: t2.medium
     iamInstanceProfile: @(AWS::IamInstanceProfile backend.name)
@@ -57,7 +57,7 @@ AWS::Instance "backend-us-east-1a" {
     }
 }
 
-AWS::Instance "backend-us-east-1b" {
+AWS::Instance backend-us-east-1b {
     image: ami-04aaab62bebf49db8
     instanceType: t2.medium
     iamInstanceProfile: @(AWS::IamInstanceProfile backend.name)
@@ -76,7 +76,7 @@ AWS::Instance "backend-us-east-1b" {
     }
 }
 
-AWS::Instance "master-us-east-1c" tags "backend-master" {
+AWS::Instance master-us-east-1c tags: [ backend-master ] {
     image: ami-04aaab62bebf49db8
     instanceType: t2.medium
     iamInstanceProfile: @(AWS::IamInstanceProfile backend.name)
