@@ -4,7 +4,7 @@ import "../vpc.beam" as vpc
 import "../gateway.beam" as gateway
 import "frontend.beam" as frontend
 
-ENVIRONMENT = "production"
+ENVIRONMENT = production
 
 aws::security-group backend {
     vpc-id: @(aws::vpc vpc.vpc | vpc-id)
@@ -12,26 +12,26 @@ aws::security-group backend {
     ingress {
         from-port: 3306
         to-port: 3306
-        protocol: "tcp"
+        protocol: tcp
         security-groups: #(aws::security-group frontend.frontend | security-group-id)
     }
 
     ingress {
         from-port: 8180
         to-port: 8180
-        protocol: "tcp"
+        protocol: tcp
         security-groups: #(aws::security-group frontend.frontend | security-group-id)
     }
 }
 
 aws::iam-role backend {
-    name: "${project.NAME}-${ENVIRONMENT}-${project.SERIAL}-backend"
+    name: ${project.NAME}-${ENVIRONMENT}-${project.SERIAL}-backend
 }
 
 aws::iam-role-policy production-backend-s3 {
-    role-name: @(aws::iam-role backend.name}"
-    name: "production-backend-s3"
-    path: "roles/production-backend-s3.json"
+    role-name: @(aws::iam-role backend.name}
+    name: production-backend-s3
+    path: roles/production-backend-s3.json
 }
 
 aws::iam-instance-profile backend {
@@ -47,10 +47,10 @@ aws::instance backend-us-east-1a {
     key-pair: @(aws::key-pair project.key-pair | name)
 
     tags: {
-        Project: "${project.NAME}"
-        Serial: "${project.SERIAL}"
-        beam.environment: "${ENVIRONMENT}"
-        beam.layer: "backend"
+        Project: ${project.NAME}
+        Serial: ${project.SERIAL}
+        beam.environment: ${ENVIRONMENT}
+        beam.layer: backend
     }
 }
 
@@ -63,10 +63,10 @@ aws::instance backend-us-east-1b {
     key-pair: @(aws::key-pair project.key-pair | name)
 
     tags: {
-        Project: "${project.NAME}"
-        Serial: "${project.SERIAL}"
-        beam.environment: "${ENVIRONMENT}"
-        beam.layer: "backend"
+        Project: ${project.NAME}
+        Serial: ${project.SERIAL}
+        beam.environment: ${ENVIRONMENT}
+        beam.layer: backend
     }
 }
 
@@ -79,9 +79,9 @@ aws::instance master-us-east-1c tags: [ backend-master ] {
     key-pair: @(aws::key-pair project.key-pair | name)
 
     tags: {
-        Project: "${project.NAME}"
-        Serial: "${project.SERIAL}"
-        beam.environment: "${ENVIRONMENT}"
-        beam.layer: "backend"
+        Project: ${project.NAME}
+        Serial: ${project.SERIAL}
+        beam.environment: ${ENVIRONMENT}
+        beam.layer: backend
     }
 }
