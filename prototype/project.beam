@@ -31,7 +31,7 @@ AWS::KeyPair project-key-pair {
 }
 
 AWS::SecurityGroup operations {
-    vpcId: @(AWS::Vpc vpc.vpcId)
+    vpcId: @(AWS::Vpc vpc | vpcId)
         
     // Office & VPN IPs
     ingress {

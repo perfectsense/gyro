@@ -7,20 +7,20 @@ import "frontend.beam" as frontend
 ENVIRONMENT = "production"
 
 AWS::SecurityGroup backend {
-    vpcId: @(AWS::Vpc vpc.vpc.vpcId)
+    vpcId: @(AWS::Vpc vpc.vpc | vpcId)
 
     ingress {
         fromPort: 3306
         toPort: 3306
         protocol: "tcp"
-        securityGroups: [@(AWS::SecurityGroup frontend.frontend.securityGroupId)]
+        securityGroups: [@(AWS::SecurityGroup frontend.frontend | securityGroupId)]
     }
 
     ingress {
         fromPort: 8180
         toPort: 8180
         protocol: "tcp"
-        securityGroups: [@(AWS::SecurityGroup frontend.frontend.securityGroupId)]
+        securityGroups: [@(AWS::SecurityGroup frontend.frontend | securityGroupId)]
     }
 }
 
@@ -35,16 +35,16 @@ AWS::IamRolePolicy production-backend-s3 {
 }
 
 AWS::IamInstanceProfile backend {
-    name: @(AWS::IamRolePolicy production-backend-s3.name)
+    name: @(AWS::IamRolePolicy production-backend-s3 | name)
 }
 
 AWS::Instance backend-us-east-1a {
     image: ami-04aaab62bebf49db8
     instanceType: t2.medium
-    iamInstanceProfile: @(AWS::IamInstanceProfile backend.name)
+    iamInstanceProfile: @(AWS::IamInstanceProfile backend | name)
     securityGroupIds: [
-        @(AWS::SecurityGroup backend.securityGroupId),
-        @(AWS::SecurityGroup project.operation.securityGroupId)
+        @(AWS::SecurityGroup backend | securityGroupId),
+        @(AWS::SecurityGroup project.operation | securityGroupId)
     ]
     subnetId: @(AWS::Subnet vpc.public-us-east-1a.subnetId}
     keyPair: @(AWS::KeyPair project.key-pair)
@@ -60,10 +60,10 @@ AWS::Instance backend-us-east-1a {
 AWS::Instance backend-us-east-1b {
     image: ami-04aaab62bebf49db8
     instanceType: t2.medium
-    iamInstanceProfile: @(AWS::IamInstanceProfile backend.name)
+    iamInstanceProfile: @(AWS::IamInstanceProfile backend | name)
     securityGroupIds: [
-        @(AWS::SecurityGroup backend.securityGroupId),
-        @(AWS::SecurityGroup project.operation.securityGroupId)
+        @(AWS::SecurityGroup backend | securityGroupId),
+        @(AWS::SecurityGroup project.operation | securityGroupId)
     ]
     subnetId: @(AWS::Subnet vpc.public-us-east-1a.subnetId}
     keyPair: @(AWS::KeyPair project.key-pair)
@@ -79,13 +79,13 @@ AWS::Instance backend-us-east-1b {
 AWS::Instance master-us-east-1c tags: [ backend-master ] {
     image: ami-04aaab62bebf49db8
     instanceType: t2.medium
-    iamInstanceProfile: @(AWS::IamInstanceProfile backend.name)
+    iamInstanceProfile: @(AWS::IamInstanceProfile backend | name)
     securityGroupIds: [
-        @(AWS::SecurityGroup backend.securityGroupId),
-        @(AWS::SecurityGroup project.operation.securityGroupId)
+        @(AWS::SecurityGroup backend | securityGroupId),
+        @(AWS::SecurityGroup project.operation | securityGroupId)
     ]
-    subnetId: @(AWS::Subnet vpc.public-us-east-1a.subnetId}
-    keyPair: @(AWS::KeyPair project.key-pair)
+    subnetId: @(AWS::Subnet vpc.public-us-east-1a | subnetId)
+    keyPair: @(AWS::KeyPair project.key-pair | name)
 
     tags: {
         Project: "${project.NAME}"

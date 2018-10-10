@@ -8,7 +8,7 @@ import "backend.beam" as backend
 ENVIRONMENT = "production"
 
 AWS::SecurityGroup security-group {
-    vpcId: @(AWS::Vpc vpc.vpc.vpcId)
+    vpcId: @(AWS::Vpc vpc.vpc | vpcId)
         
     ingress {
         fromPort: 0
@@ -16,8 +16,8 @@ AWS::SecurityGroup security-group {
         protocol: "-1"
 
         securityGroups: [
-            @(AWS::SecurityGroup frontend.security-group.securityGroupId),
-            @(AWS::SecurityGroup backend.security-group.securityGroupId)
+            @(AWS::SecurityGroup frontend.security-group | securityGroupId),
+            @(AWS::SecurityGroup backend.security-group | securityGroupId)
         ] 
     }
 
@@ -43,13 +43,13 @@ AWS::IamRole gateway-role {
 }
 
 AWS::IamRolePolicy gateway-beam-server-readonly-policy {
-    roleName: @(AWS::IamRole gateway-role.name)
+    roleName: @(AWS::IamRole gateway-role | name)
     name: "beam-server-readonly"
     path: "roles/beam-server-readonly.json"
 }
 
 AWS::IamInstanceProfile gateway-instance-role {
-    name: @(AWS::IamRolePolicy gateway-beam-server-readonly-policy.name)
+    name: @(AWS::IamRolePolicy gateway-beam-server-readonly-policy | name)
 }
 
 AWS::Instance us-east-1a {
@@ -58,13 +58,13 @@ AWS::Instance us-east-1a {
     privateIp: "10.0.0.10"
     associatePublicIpAddress: true
     sourceDestCheck: false
-    iamInstanceProfile: @(AWS::IamInstanceProfile gateway-instance-role.name)
+    iamInstanceProfile: @(AWS::IamInstanceProfile gateway-instance-role | name)
     securityGroupIds: [
-        @(AWS::SecurityGroup security-group.securityGroupId),
-        @(AWS::SecurityGroup project.operation.securityGroupId)
+        @(AWS::SecurityGroup security-group | securityGroupId),
+        @(AWS::SecurityGroup project.operation | securityGroupId)
     ]
-    subnetId: @(AWS::Subnet vpc.public-us-east-1a.subnetId)
-    keyPair: @(AWS::KeyPair project.key-pair)
+    subnetId: @(AWS::Subnet vpc.public-us-east-1a | subnetId)
+    keyPair: @(AWS::KeyPair project.key-pair | name)
 
     tags: {
         Project: "${project.NAME}"
@@ -79,13 +79,13 @@ AWS::Instance us-east-1b {
     privateIp: "10.0.1.10"
     associatePublicIpAddress: true
     sourceDestCheck: false
-    iamInstanceProfile: @(AWS::IamInstanceProfile gateway-instance-role.name)
+    iamInstanceProfile: @(AWS::IamInstanceProfile gateway-instance-role | name)
     securityGroupIds: [
-        @(AWS::SecurityGroup security-group.securityGroupId),
-        @(AWS::SecurityGroup project.operation.securityGroupId)
+        @(AWS::SecurityGroup security-group | securityGroupId),
+        @(AWS::SecurityGroup project.operation | securityGroupId)
     ]
-    subnetId: @(AWS::Subnet vpc.public-us-east-1a.subnetId)
-    keyPair: @(AWS::KeyPair project.key-pair)
+    subnetId: @(AWS::Subnet vpc.public-us-east-1a | subnetId)
+    keyPair: @(AWS::KeyPair project.key-pair | name)
 
     tags: {
         Project: "${project.NAME}"
@@ -100,13 +100,13 @@ AWS::Instance us-east-1c {
     privateIp: "10.0.2.10"
     associatePublicIpAddress: true
     sourceDestCheck: false
-    iamInstanceProfile: @(AWS::IamInstanceProfile gateway-instance-role.name)
+    iamInstanceProfile: @(AWS::IamInstanceProfile gateway-instance-role | name)
     securityGroupIds: [
-        @(AWS::SecurityGroup security-group.securityGroupId),
-        @(AWS::SecurityGroup project.operation.securityGroupId)
+        @(AWS::SecurityGroup security-group | securityGroupId),
+        @(AWS::SecurityGroup project.operation | securityGroupId)
     ]
-    subnetId: @(AWS::Subnet vpc.public-us-east-1a.subnetId)
-    keyPair: @(AWS::KeyPair project.key-pair)
+    subnetId: @(AWS::Subnet vpc.public-us-east-1a | subnetId)
+    keyPair: @(AWS::KeyPair project.key-pair | name)
 
     tags: {
         Project: "${project.NAME}"
@@ -116,13 +116,13 @@ AWS::Instance us-east-1c {
 }
 
 AWS::HostedZoneRecord vpn.${project.SUBDOMAIN} {
-    zoneId: @(AWS::HostedZone route53.public.zoneId)
+    zoneId: @(AWS::HostedZone route53.public | zoneId)
     name: "vpn.${project.SUBDOMAIN}"
     type: "A"
     ttl: 300
     records: [
-        @(AWS::Instance us-east-1a.publicIpAddress),
-        @(AWS::Instance us-east-1b.publicIpAddress),
-        @(AWS::Instance us-east-1c.publicIpAddress)
+        @(AWS::Instance us-east-1a | publicIpAddress),
+        @(AWS::Instance us-east-1b | publicIpAddress),
+        @(AWS::Instance us-east-1c | publicIpAddress)
     ]
 }

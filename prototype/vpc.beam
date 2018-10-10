@@ -11,7 +11,7 @@ AWS::Vpc vpc {
 }
 
 AWS::InternetGateway igw {
-    vpcId: @(AWS::Vpc vpc.vpcId)
+    vpcId: @(AWS::Vpc vpc | vpcId)
     name: "beam enterprise"
     tags: ${project.DEFAULT_TAGS}
 }
@@ -21,7 +21,7 @@ AWS::InternetGateway igw {
 AWS::Subnet public-us-east-1a tags: [ public ] {
     name: "${project.NAME} [public, public-us-east, public-us-east-1a]"
     
-    vpcId: @(AWS::Vpc vpc.vpcId)
+    vpcId: @(AWS::Vpc vpc | vpcId)
     cidrBlock: "10.0.0.0/26"
     availabilityZone: "us-east-1a"
     assignPublicIPv4Address: true
@@ -32,7 +32,7 @@ AWS::Subnet public-us-east-1a tags: [ public ] {
 AWS::Subnet private-us-east-1a tags: [ private ] {
     name: "${project.NAME} [private, private-us-east, private-us-east-1a]"
     
-    vpcId: @(AWS::Vpc vpc.vpcId)
+    vpcId: @(AWS::Vpc vpc | vpcId)
     cidrBlock: "10.0.0.128/25"
     availabilityZone: "us-east-1a"
     assignPublicIPv4Address: no
@@ -43,7 +43,7 @@ AWS::Subnet private-us-east-1a tags: [ private ] {
 AWS::Subnet development {
     name: "${project.NAME} [development]
     
-    vpcId: @(AWS::Vpc vpc.vpcId)
+    vpcId: @(AWS::Vpc vpc | vpcId)
     cidrBlock: "10.0.0.64/26"
     availabilityZone: "us-east-1a"
     assignPublicIPv4Address: no
@@ -54,33 +54,33 @@ AWS::Subnet development {
 AWS::RouteTable public-us-east-1a {
     name: "${project.NAME} public, us-east-1a"
         
-    vpcId: @(AWS::Vpc vpc.vpcId)
+    vpcId: @(AWS::Vpc vpc | vpcId)
 
     associate_subnet {
-        subnetId: @(AWS::Subet public-us-east-1a.subnetId)
+        subnetId: @(AWS::Subet public-us-east-1a | subnetId)
     }
 
     associate_subnet {
-        subnetId: @(AWS::Subnet public-us-east-1b.subnetId)
+        subnetId: @(AWS::Subnet public-us-east-1b | subnetId)
     }
 }
 
 AWS::Route public-us-east-1a {
     routeTableId: @(AWS::RouteTable public-us-east-1a)
     cidrBlock: "0.0.0.0/0"
-    gatewayId: @(AWS::InternetGateway igw.gatewayId)
+    gatewayId: @(AWS::InternetGateway igw | gatewayId)
 }
 
 AWS::RouteTable private-us-east-1a {
     name: "${project.NAME} private, us-east-1a"
         
-    vpcId: @(AWS::Vpc vpc.vpcId)
+    vpcId: @(AWS::Vpc vpc | vpcId)
 }
 
 AWS::Route private-us-east-1a {
-    routeTableId: @(AWS::RouteTable private-us-east-1a)
+    routeTableId: @(AWS::RouteTable private-us-east-1a | routeTableId)
     cidrBlock: "0.0.0.0/0"
-    instanceId: @(AWS::Instance gateway.us-east-1a.instanceId)
+    instanceId: @(AWS::Instance gateway.us-east-1a | instanceId)
 }
 
 // US-EAST-1 - Zone B
@@ -88,7 +88,7 @@ AWS::Route private-us-east-1a {
 AWS::Subnet public-us-east-1b tags: [ public ] {
     name: "beam enterprise [public, public-us-east, public-us-east-1b]"
     
-    vpcId: @(AWS::Vpc vpc.vpcId)
+    vpcId: @(AWS::Vpc vpc | vpcId)
     cidrBlock: "10.0.1.0/26"
     availabilityZone: "us-east-1b"
     assignPublicIPv4Address: true
@@ -99,7 +99,7 @@ AWS::Subnet public-us-east-1b tags: [ public ] {
 AWS::Subnet private-us-east-1b tags: [ private ] {
     name: "beam enterprise [private, private-us-east, private-us-east-1b]"
     
-    vpcId: @(AWS::Vpc vpc.vpcId)
+    vpcId: @(AWS::Vpc vpc | vpcId)
     cidrBlock: "10.0.1.128/25"
     availabilityZone: "us-east-1b"
     assignPublicIPv4Address: no
@@ -110,13 +110,13 @@ AWS::Subnet private-us-east-1b tags: [ private ] {
 AWS::RouteTable private-us-east-1b {
     name: "${project.project} private, us-east-1b"
         
-    vpcId: @(AWS::Vpc vpc.vpcId)
+    vpcId: @(AWS::Vpc vpc | vpcId)
 }
 
 AWS::Route private-us-east-1b {
     routeTableId: @(AWS::RouteTable private-us-east-1b)
     cidrBlock: "0.0.0.0/0"
-    instanceId: @(AWS::Instance gateway.us-east-1b.instanceId)
+    instanceId: @(AWS::Instance gateway.us-east-1b | instanceId)
 }
 
 // US-EAST-1 - Zone C
@@ -124,7 +124,7 @@ AWS::Route private-us-east-1b {
 AWS::Subnet public-us-east-1c tags: [ public ] {
     name: "beam enterprise [public, public-us-east, public-us-east-1c]"
     
-    vpcId: @(AWS::Vpc vpc.vpcId)
+    vpcId: @(AWS::Vpc vpc | vpcId)
     cidrBlock: "10.0.2.0/26"
     availabilityZone: "us-east-1c"
     assignPublicIPv4Address: true
@@ -135,7 +135,7 @@ AWS::Subnet public-us-east-1c tags: [ public ] {
 AWS::Subnet private-us-east-1c tags: [ master, private ] {
     name: "beam enterprise [private, private-us-east, private-us-east-1c]"
     
-    vpcId: @(AWS::Vpc vpc.vpcId)
+    vpcId: @(AWS::Vpc vpc | vpcId)
     cidrBlock: "10.0.2.128/25"
     availabilityZone: "us-east-1c"
     assignPublicIPv4Address: no
@@ -146,11 +146,11 @@ AWS::Subnet private-us-east-1c tags: [ master, private ] {
 AWS::RouteTable private-us-east-1c {
     name: "${project.project} private, us-east-1c"
         
-    vpcId: @(AWS::Vpc vpc.vpcId)
+    vpcId: @(AWS::Vpc vpc | vpcId)
 }
 
 AWS::Route private-us-east-1c {
     routeTableId: @(AWS::RouteTable private-us-east-1c)
     cidrBlock: "0.0.0.0/0"
-    instanceId: @(AWS::Instance gateway.us-east-1c.instanceId)
+    instanceId: @(AWS::Instance gateway.us-east-1c | instanceId)
 }
