@@ -1,6 +1,7 @@
 package beam.core;
 
 import beam.core.diff.ResourceDiffProperty;
+import beam.parser.ASTHandler;
 import beam.parser.BeamConfigGenerator;
 import com.google.common.base.Throwables;
 import com.psddev.dari.util.ObjectUtils;
@@ -29,6 +30,7 @@ public abstract class BeamResource<B extends BeamProvider> extends BeamObject {
     private ResourceChange change;
     private Map<String, BeamReference> references = new HashMap<>();
     private Map<String, Object> unResolvedProperties = new ConcurrentHashMap<>();
+    private BeamContext context;
 
     /**
      * Returns {@code true} if the given {@code awsResource} should be
@@ -441,5 +443,68 @@ public abstract class BeamResource<B extends BeamProvider> extends BeamObject {
 
     public void setUnResolvedProperties(Map<String, Object> unResolvedProperties) {
         this.unResolvedProperties = unResolvedProperties;
+    }
+
+    public BeamContext getContext() {
+        return context;
+    }
+
+    public void setContext(BeamContext context) {
+        this.context = context;
+    }
+
+    public void resolveReference() {
+        for (String key : getUnResolvedProperties().keySet()) {
+            Object value = getUnResolvedProperties().get(key);
+            Object resolvedValue = resolve(value, getContext());
+            ASTHandler.populate(this, key, resolvedValue);
+        }
+    }
+
+    public static Object resolve(Object value, BeamContext context) {
+        if (value instanceof Map) {
+            return resolveMap((Map) value, context);
+        } else if (value instanceof List) {
+            return resolveList((List) value, context);
+        } else if (value instanceof BeamReference) {
+            return ((BeamReference) value).resolve(context);
+        } else {
+            return value;
+        }
+    }
+
+    private static Map resolveMap(Map map, BeamContext context) {
+        Map result = new HashMap<>();
+        for (Object key : map.keySet()) {
+            Object value = map.get(key);
+            if (value instanceof Map) {
+                result.put(key, resolveMap((Map) value, context));
+            } else if (value instanceof List) {
+                result.put(key, resolveList((List) value, context));
+            } else if (value instanceof BeamReference) {
+                result.put(key, ((BeamReference) value).resolve(context));
+            } else {
+                result.put(key, value);
+            }
+        }
+
+        return result;
+    }
+
+    private static List resolveList(List list, BeamContext context) {
+        List result = new ArrayList();
+        for (Object value : list) {
+            if (value instanceof Map) {
+                result.add(resolveMap((Map) value, context));
+            } else if (value instanceof List) {
+                result.add(resolveList((List) value, context));
+            } else if (value instanceof BeamReference) {
+                result.add(((BeamReference) value).resolve(context));
+            } else {
+                result.add(value);
+            }
+        }
+
+        return result;
     }
 }

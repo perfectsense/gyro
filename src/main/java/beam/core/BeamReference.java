@@ -3,6 +3,7 @@ package beam.core;
 import beam.Beam;
 import beam.core.diff.DiffUtil;
 import com.google.common.base.Preconditions;
+import com.psddev.dari.util.StringUtils;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -225,9 +226,9 @@ public class BeamReference {
 
     public static boolean containsReference(Object value) {
         if (value instanceof Map) {
-            return mapContainsReference((Map) value);
+            return containsReference((Map) value);
         } else if (value instanceof List) {
-            return listContainsReference((List) value);
+            return containsReference((List) value);
         } else if (value instanceof BeamReference) {
             return true;
         } else {
@@ -235,14 +236,14 @@ public class BeamReference {
         }
     }
 
-    private static boolean mapContainsReference(Map map) {
+    private static boolean containsReference(Map map) {
         boolean result = false;
         for (Object key : map.keySet()) {
             Object value = map.get(key);
             if (value instanceof Map) {
-                result = result || mapContainsReference((Map) value);
+                result = result || containsReference((Map) value);
             } else if (value instanceof List) {
-                result = result || listContainsReference((List) value);
+                result = result || containsReference((List) value);
             } else if (value instanceof BeamReference) {
                 return true;
             }
@@ -251,18 +252,58 @@ public class BeamReference {
         return result;
     }
 
-    private static boolean listContainsReference(List list) {
+    private static boolean containsReference(List list) {
         boolean result = false;
         for (Object value : list) {
             if (value instanceof Map) {
-                result = result || mapContainsReference((Map) value);
+                result = result || containsReference((Map) value);
             } else if (value instanceof List) {
-                result = result || listContainsReference((List) value);
+                result = result || containsReference((List) value);
             } else if (value instanceof BeamReference) {
                 return true;
             }
         }
 
         return result;
+    }
+
+    public Object resolve(BeamContext context) {
+        String targetKey = "";
+        for (String contextKey : context.getContext().keySet()) {
+            if (getKey().startsWith(contextKey)) {
+                if (contextKey.length() > targetKey.length()) {
+                    targetKey = contextKey;
+                }
+            }
+        }
+
+        if (StringUtils.isBlank(targetKey)) {
+            throw new BeamException(String.format("Unable to resolve %s", getKey()));
+        }
+
+        Object value = context.getContext().get(targetKey);
+
+        // resolved value can be a collection but not map
+        Object resolvedValue = containsReference(value) ? BeamResource.resolve(value, context) : value;
+        if (targetKey.length() == getKey().length()) {
+            return resolvedValue;
+        }
+
+        String propertiesString = getKey().substring(targetKey.length());
+
+        try {
+            propertiesString = propertiesString.substring(1);
+            List<String> readerNames = Arrays.asList(propertiesString.split("\\."));
+            for (String readerName : readerNames) {
+                if (resolvedValue != null) {
+                    resolvedValue = DiffUtil.getPropertyValue(resolvedValue, null, readerName);
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return resolvedValue;
     }
 }
