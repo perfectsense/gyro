@@ -1,0 +1,18 @@
+import ../brightspot
+import "../project.beam" as project
+import "../vpc.beam" as vpc
+
+brightspot::frontend-layer cms-layer {
+    project-name: ${project.NAME}
+    environment: production
+    serial: ${project.SERIAL}
+
+    vpc-id: @(aws::vpc vpc.vpc | vpc-id)
+    key-pair-name: @(aws::key-pair project.key-pair | name)
+
+    host-zone-id: @(aws::hosted-zone public | hosted-zone-id)
+    subdomain: ${project.SUBDOMAIN}
+
+    elb-subnets: #{aws::subnet vpc.public | subnet-id)
+    frontend-subnets: #{aws::subnet vpc.private | subnet-id)
+}
