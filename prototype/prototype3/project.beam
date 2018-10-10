@@ -17,21 +17,21 @@ import "vpc.beam" as vpc
 # AWS_SESSION_TOKEN
 # or
 # AWS_PROFILE (to use ~/.aws/config profile)
-aws::credentials {
+AWS::Credentials {
     defaultCredentials: true
     region: "us-east-1"
 }
 
-aws::credentials "aws_us_east_2" {
+AWS::Credentials "aws_us_east_2" {
     region: "us-east-2"
 }
 
-aws::key_pair "project-key-pair {
+AWS::KeyPair "project-key-pair {
     name: ${NAME}
 }
 
-aws::security_group "operations" {
-    vpcId: @(aws::vpc vpc.vpcId)
+AWS::SecurityGroup "operations" {
+    vpcId: @(AWS::Vpc vpc.vpcId)
         
     # Office & VPN IPs
     ingress {

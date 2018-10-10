@@ -7,8 +7,8 @@ import "backend.beam" as backend
 
 ENVIRONMENT = "production"
 
-aws::security_group "security-group" {
-    vpcId: @(aws::vpc vpc.vpc.vpcId)
+AWS::SecurityGroup "security-group" {
+    vpcId: @(AWS::Vpc vpc.vpc.vpcId)
         
     ingress {
         fromPort: 0
@@ -16,8 +16,8 @@ aws::security_group "security-group" {
         protocol: "-1"
 
         securityGroups: [
-            @(aws::security_group frontend.security-group.securityGroupId),
-            @(aws::security_group backend.security-group.securityGroupId)
+            @(AWS::SecurityGroup frontend.security-group.securityGroupId),
+            @(AWS::SecurityGroup backend.security-group.securityGroupId)
         ] 
     }
 
@@ -38,33 +38,33 @@ aws::security_group "security-group" {
     }
 }
 
-aws::iam_role "gateway-role" {
+AWS::IamRole "gateway-role" {
     name: "${project.NAME}-${ENVIRONMENT}-${project.SERIAL}-gateway"
 }
 
-aws::iam_role_policy "gateway-beam-server-readonly-policy" {
-    roleName: @(aws::iam_role gateway-role.name)
+AWS::IamRolePolicy "gateway-beam-server-readonly-policy" {
+    roleName: @(AWS::IamRole gateway-role.name)
     name: "beam-server-readonly"
     path: "roles/beam-server-readonly.json"
 }
 
-aws::iam_instance_profile "gateway-instance-role" {
-    name: @(aws::iam_role_polify gateway-beam-server-readonly-policy.name)
+AWS::IamInstanceProfile "gateway-instance-role" {
+    name: @(AWS::IamRolePolicy gateway-beam-server-readonly-policy.name)
 }
 
-aws::instance "us-east-1a" {
+AWS::Instance "us-east-1a" {
     image: "ami-04aaab62bebf49db8"
     instanceType: "t2.medium"
     privateIp: "10.0.0.10"
     associatePublicIpAddress: true
     sourceDestCheck: false
-    iamInstanceProfile: @(aws::iame_instance_profile gateway-instance-role.name)
+    iamInstanceProfile: @(AWS::IamInstanceProfile gateway-instance-role.name)
     securityGroupIds: [
-        @(aws::security_group security-group.securityGroupId),
-        @(aws::security_group project.operation.securityGroupId)
+        @(AWS::SecurityGroup security-group.securityGroupId),
+        @(AWS::SecurityGroup project.operation.securityGroupId)
     ]
-    subnetId: @(aws::subnet vpc.public-us-east-1a.subnetId)
-    keyPair: @(aws::key_pair project.key-pair)
+    subnetId: @(AWS::Subnet vpc.public-us-east-1a.subnetId)
+    keyPair: @(AWS::KeyPair project.key-pair)
 
     tags: {
         Project: "${project.NAME}"
@@ -73,19 +73,19 @@ aws::instance "us-east-1a" {
     }
 }
 
-aws::instance "us-east-1b" {
+AWS::Instance "us-east-1b" {
     image: "ami-04aaab62bebf49db8"
     instanceType: "t2.medium"
     privateIp: "10.0.1.10"
     associatePublicIpAddress: true
     sourceDestCheck: false
-    iamInstanceProfile: @(aws::iame_instance_profile gateway-instance-role.name)
+    iamInstanceProfile: @(AWS::IamInstanceProfile gateway-instance-role.name)
     securityGroupIds: [
-        @(aws::security_group security-group.securityGroupId),
-        @(aws::security_group project.operation.securityGroupId)
+        @(AWS::SecurityGroup security-group.securityGroupId),
+        @(AWS::SecurityGroup project.operation.securityGroupId)
     ]
-    subnetId: @(aws::subnet vpc.public-us-east-1a.subnetId)
-    keyPair: @(aws::key_pair project.key-pair)
+    subnetId: @(AWS::Subnet vpc.public-us-east-1a.subnetId)
+    keyPair: @(AWS::KeyPair project.key-pair)
 
     tags: {
         Project: "${project.NAME}"
@@ -94,19 +94,19 @@ aws::instance "us-east-1b" {
     }
 }
 
-aws::instance "us-east-1c" {
+AWS::Instance "us-east-1c" {
     image: "ami-04aaab62bebf49db8"
     instanceType: "t2.medium"
     privateIp: "10.0.2.10"
     associatePublicIpAddress: true
     sourceDestCheck: false
-    iamInstanceProfile: @(aws::iame_instance_profile gateway-instance-role.name)
+    iamInstanceProfile: @(AWS::IamInstanceProfile gateway-instance-role.name)
     securityGroupIds: [
-        @(aws::security_group security-group.securityGroupId),
-        @(aws::security_group project.operation.securityGroupId)
+        @(AWS::SecurityGroup security-group.securityGroupId),
+        @(AWS::SecurityGroup project.operation.securityGroupId)
     ]
-    subnetId: @(aws::subnet vpc.public-us-east-1a.subnetId)
-    keyPair: @(aws::key_pair project.key-pair)
+    subnetId: @(AWS::Subnet vpc.public-us-east-1a.subnetId)
+    keyPair: @(AWS::KeyPair project.key-pair)
 
     tags: {
         Project: "${project.NAME}"
@@ -115,14 +115,14 @@ aws::instance "us-east-1c" {
     }
 }
 
-aws::hosted_zone_record "vpn.${project.SUBDOMAIN}" {
-    zoneId: @(aws::hosted_zoe route53.public.zoneId)
+AWS::HostedZoneRecord "vpn.${project.SUBDOMAIN}" {
+    zoneId: @(AWS::HostedZone route53.public.zoneId)
     name: "vpn.${project.SUBDOMAIN}"
     type: "A"
     ttl: 300
     records: [
-        @(aws::instance us-east-1a.publicIpAddress),
-        @(aws::instance us-east-1b.publicIpAddress),
-        @(aws::instance us-east-1c.publicIpAddress)
+        @(AWS::Instance us-east-1a.publicIpAddress),
+        @(AWS::Instance us-east-1b.publicIpAddress),
+        @(AWS::Instance us-east-1c.publicIpAddress)
     ]
 }
