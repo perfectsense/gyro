@@ -11,27 +11,21 @@ plugin "perfectsense/beam-workflow-brightspot", branch: "release/1.0.0"
 
 import "vpc.beam" as vpc
 
-// Provide credentials via the following environment variables:
-// AWS_ACCESS_KEY_ID
-// AWS_SECRET_ACCESS_KEY
-// AWS_SESSION_TOKEN
-// or
-// AWS_PROFILE (to use ~/.aws/config profile)
-AWS::Credentials {
+aws::credentials {
     defaultCredentials: true
     region: "us-east-1"
 }
 
-AWS::Credentials aws_us_east_2 {
+aws::credentials aws_us_east_2 {
     region: "us-east-2"
 }
 
-AWS::KeyPair project-key-pair {
+aws::key-pair project-key-pair {
     name: ${NAME}
 }
 
-AWS::SecurityGroup operations {
-    vpcId: @(AWS::Vpc vpc | vpcId)
+aws::security-group operations {
+    vpcId: @(aws::vpc vpc | vpcId)
         
     // Office & VPN IPs
     ingress {
