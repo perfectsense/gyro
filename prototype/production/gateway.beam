@@ -21,7 +21,7 @@ AWS::SecurityGroup "security-group" {
         ] 
     }
 
-    # OpenVPN
+    // OpenVPN
     ingress {
         fromPort: 1194
         toPort: 1194
@@ -29,7 +29,7 @@ AWS::SecurityGroup "security-group" {
         cidrBlock: "0.0.0.0/0"
     }
 
-    # Office & VPN IPs
+    // Office & VPN IPs
     ingress {
         fromPort: 22
         toPort: 22

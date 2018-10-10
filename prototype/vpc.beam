@@ -16,7 +16,7 @@ AWS::InternetGateway "igw" {
     tags: ${project.DEFAULT_TAGS}
 }
 
-## US-EAST-1 - Zone A
+// US-EAST-1 - Zone A
 
 AWS::Subnet "public-us-east-1a" tags "public" {
     name: "${project.NAME} [public, public-us-east, public-us-east-1a]"
@@ -83,7 +83,7 @@ AWS::Route "private-us-east-1a" {
     instanceId: @(AWS::Instance gateway.us-east-1a.instanceId)
 }
 
-## US-EAST-1 - Zone B
+// US-EAST-1 - Zone B
 
 AWS::Subnet "public-us-east-1b" tags "public" {
     name: "beam enterprise [public, public-us-east, public-us-east-1b]"
@@ -119,7 +119,7 @@ AWS::Route "private-us-east-1b" {
     instanceId: @(AWS::Instance gateway.us-east-1b.instanceId)
 }
 
-## US-EAST-1 - Zone C
+// US-EAST-1 - Zone C
 
 AWS::Subnet "public-us-east-1c" tags "public" {
     name: "beam enterprise [public, public-us-east, public-us-east-1c]"
