@@ -13,6 +13,6 @@ brightspot::frontend-layer cms-layer {
     host-zone-id: @(aws::hosted-zone public | hosted-zone-id)
     subdomain: ${project.SUBDOMAIN}
 
-    elb-subnets: #{aws::subnet vpc.public | subnet-id)
-    frontend-subnets: #{aws::subnet vpc.private | subnet-id)
+    elb-subnets: #(aws::subnet vpc.public | subnet-id)
+    frontend-subnets: #(aws::subnet vpc.private | subnet-id)
 }
