@@ -75,7 +75,7 @@ actionBlock
     ;
 
 actionBody
-    : (keyValueBlock lineSeparator)*
+    : (keyValueBlock)*
     ;
 
 reference
