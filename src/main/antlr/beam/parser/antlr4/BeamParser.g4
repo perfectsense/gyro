@@ -35,7 +35,7 @@ key
     ;
 
 value
-    : scalar | NEWLINE list | NEWLINE map
+    : scalar | SCALAR_WS* NEWLINE list | SCALAR_WS* NEWLINE map
     ;
 
 scalar
