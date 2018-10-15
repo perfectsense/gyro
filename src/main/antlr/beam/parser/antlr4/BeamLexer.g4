@@ -69,11 +69,6 @@ WS            : [ \t]+ -> skip;
 NEWLINE       : [\r\n] ;
 WHITESPACE    : [ \u000C\t]+ -> channel(HIDDEN);
 COMMENT       : '//' ~[\r\n]* '\r'? '\n' -> channel(HIDDEN) ;
-//UNQUOTED_LITERAL : ~('\''|'"'|'\n'|'\r'|' '|'{'|'['|'@'|'$'|'#'|'(')~('\''|'"'|'\n'|'\r'|'{'|'['|'@'|'$'|'#'|'(')*~('\''|'"'|'\n'|'\r'|' '|'{'|'['|'@'|'$'|'#'|'(');
-
-mode VALUE;
-VALUE_NEWLINE       : [\r\n] -> type(NEWLINE), popMode ;
-VAULE_WS : [ \t]+ -> pushMode(SCALAR);
 
 mode SCALAR;
 SCALAR_HASH          : '#' -> type(HASH), pushMode(REFERENCE) ;
@@ -81,9 +76,7 @@ SCALAR_DOLLAR        : '$' -> type(DOLLAR), pushMode(REFERENCE) ;
 SCALAR_AT            : '@' -> type(AT), pushMode(REFERENCE) ;
 SCALAR_WS  : [ \t];
 
-//SCALAR_NEWLINE       : [\n\r]+ -> skip;
 UNQUOTED_LITERAL : ~('\''|'"'|'\n'|'\r'|' '|'\t'|'@'|'$'|'#')+;
-//UNQUOTED_LITERAL : [\'\"\n\r]\''|'"'|'\n'|'\r'|' '|'\t'|'@'|'$'|'#')+;
 SCALAR_END: [\r\n] -> type(NEWLINE), popMode;
 
 mode REFERENCE;

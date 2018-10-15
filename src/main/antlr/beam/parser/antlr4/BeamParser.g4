@@ -1,4 +1,5 @@
-parser grammar Beam;
+parser grammar BeamParser;
+
 options
    { tokenVocab = BeamLexer; }
 /*
@@ -10,35 +11,23 @@ beamRoot
     ;
 
 globalScope
-    : ( pluginBlock | importBlock | resourceBlock | assignmentBlock)+
-    ;
-
-pluginBlock
-    : PLUGIN path
-    ;
-
-importBlock
-    : IMPORT path AS variable
+    : (resourceBlock)+
     ;
 
 resourceBlock
-    : resourceProvider variable map
+    : RESOURCE_PROVIDER ID lineSeparator resourceBody END lineSeparator
     ;
 
-assignmentBlock
-    : LET variable ASSIGN value
+lineSeparator
+    : NEWLINE+
     ;
 
-resourceProvider
-    : RESOURCE_PROVIDER
+resourceBody
+    : (keyValueBlock lineSeparator | actionBlock)*
     ;
 
-map
-    : LBLOCK (keyValueBlock | resourceBlock)* RBLOCK
-    ;
-
-list
-    : (LBRACET value? (COMMA value)* RBRACET)
+keyValueBlock
+    : key COLON value
     ;
 
 key
@@ -46,25 +35,77 @@ key
     ;
 
 value
-    : QUOTED_STRING | ID | NUMBERS | list | map | reference
+    : scalar | NEWLINE list | NEWLINE map
     ;
 
-keyValueBlock
-    : key COLON value
+scalar
+    : scalarFirstLiteral scalarRestLiterals
+    ;
+
+scalarFirstLiteral
+    : SCALAR_WS* (reference | unquotedLiteral)
+    ;
+
+scalarRestLiterals
+    : (SCALAR_WS* (reference | unquotedLiteral))*
+    ;
+
+list
+    : (listEntry)+
+    ;
+
+listEntry
+    : DASH scalar NEWLINE
+    ;
+
+map
+    : (mapEntry)+
+    ;
+
+mapEntry
+    : STAR keyScalarBlock NEWLINE
+    ;
+
+keyScalarBlock
+    : key COLON scalar
+    ;
+
+actionBlock
+    : ID lineSeparator actionBody END lineSeparator
+    ;
+
+actionBody
+    : (keyValueBlock lineSeparator)*
     ;
 
 reference
-    : REFERENCE LBLOCK referenceChain RBLOCK
+    : resourceReference | tagReference | constantReference
+    ;
+
+unquotedString
+    : unquotedLiteral (SCALAR_WS* (unquotedLiteral | reference))*
+    ;
+
+unquotedLiteral
+    : UNQUOTED_LITERAL
+    ;
+
+resourceReference
+    : AT LPAREN RESOURCE_PROVIDER referenceChain PIPE referenceChain RPAREN
+    ;
+
+tagReference
+    : HASH LPAREN RESOURCE_PROVIDER referenceChain PIPE referenceChain RPAREN
     ;
 
 referenceChain
     : ID (DOT ID)*
     ;
 
-variable
-    : ID
+constantReference
+    : DOLLAR LPAREN constantReferenceChain RPAREN
     ;
 
-path
-    : QUOTED_STRING
+constantReferenceChain
+    : (ID.)* CONST_VAR
     ;
