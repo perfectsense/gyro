@@ -11,7 +11,23 @@ beamRoot
     ;
 
 globalScope
-    : (resourceBlock)+
+    : pluginBlock* importBlock* assignmentBlock* resourceBlock*
+    ;
+
+pluginBlock
+    : PLUGIN path lineSeparator
+    ;
+
+importBlock
+    : IMPORT path AS ID lineSeparator
+    ;
+
+path
+    : QUOTED_STRING
+    ;
+
+assignmentBlock
+    : CONST_VAR ASSIGN value
     ;
 
 resourceBlock

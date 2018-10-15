@@ -47,6 +47,11 @@ RESOURCE_PROVIDER
 INT
     : DIGIT+ ;
 
+QUOTED_STRING
+    : '"' STRING '"'
+    | '\'' STRING '\''
+    ;
+
 HASH          : '#' ;
 LPAREN        : '(' ;
 RPAREN        : ')' ;
