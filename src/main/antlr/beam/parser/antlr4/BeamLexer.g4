@@ -74,7 +74,7 @@ mode SCALAR;
 SCALAR_HASH          : '#' -> type(HASH), pushMode(REFERENCE) ;
 SCALAR_DOLLAR        : '$' -> type(DOLLAR), pushMode(REFERENCE) ;
 SCALAR_AT            : '@' -> type(AT), pushMode(REFERENCE) ;
-SCALAR_WS  : [ \t];
+SCALAR_WS            : [ \t] -> type(WS);
 
 UNQUOTED_LITERAL : ~('\''|'"'|'\n'|'\r'|' '|'\t'|'@'|'$'|'#')+;
 SCALAR_END: [\r\n] -> type(NEWLINE), popMode;

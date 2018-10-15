@@ -23,7 +23,7 @@ lineSeparator
     ;
 
 resourceBody
-    : (keyValueBlock lineSeparator | actionBlock)*
+    : (keyValueBlock | actionBlock)*
     ;
 
 keyValueBlock
@@ -35,7 +35,7 @@ key
     ;
 
 value
-    : scalar | SCALAR_WS* NEWLINE list | SCALAR_WS* NEWLINE map
+    : scalar lineSeparator | WS* NEWLINE list NEWLINE* | WS* NEWLINE map NEWLINE*
     ;
 
 scalar
@@ -43,11 +43,11 @@ scalar
     ;
 
 scalarFirstLiteral
-    : SCALAR_WS* (reference | unquotedLiteral)
+    : WS* (reference | unquotedLiteral)
     ;
 
 scalarRestLiterals
-    : (SCALAR_WS* (reference | unquotedLiteral))*
+    : (WS* (reference | unquotedLiteral))*
     ;
 
 list
@@ -80,10 +80,6 @@ actionBody
 
 reference
     : resourceReference | tagReference | constantReference
-    ;
-
-unquotedString
-    : unquotedLiteral (SCALAR_WS* (unquotedLiteral | reference))*
     ;
 
 unquotedLiteral
