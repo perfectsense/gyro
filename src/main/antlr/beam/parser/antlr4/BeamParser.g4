@@ -15,7 +15,7 @@ globalScope
     ;
 
 resourceBlock
-    : RESOURCE_PROVIDER ID lineSeparator resourceBody END lineSeparator
+    : RESOURCE_PROVIDER ID lineSeparator resourceBody END (lineSeparator | EOF)
     ;
 
 lineSeparator
