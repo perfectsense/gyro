@@ -1,4 +1,4 @@
-package brightspot::frontend-layer {
+package brightspot::frontend-layer
     project-name, environment, serial
 
     vpc-id,
@@ -9,42 +9,42 @@ package brightspot::frontend-layer {
 
     elb-subnets,
     frontend-subnets
-}
+end
 
-aws::security-group elb {
-    vpc-id: ${vpc-id}
+aws::security-group elb
+    vpc-id: $(vpc-id)
         
-    ingress {
+    add ingress
         from-port: 80
         to-port: 80
         protocol: tcp
         cidr-block: 0.0.0.0/0
-    }
+    end
 
-    ingress {
+    add ingress
         from-port: 443
         to-port: 443
         protocol: tcp
         cidr-block: 0.0.0.0/0
-    }
-}
+    end
+end
 
-aws::elastic-load-balancer web {
-    name: ${project-name}-web-${serial}
+aws::elastic-load-balancer web
+    name: $(project-name)-web-$(serial)
 
-    listener {
+    add listener
         load-balancer-port: 80
         instance-protocol: http
         instance-port: 80
-    }
+    end
 
-    listener {
+    add listener
         load-balancer-port: 443
         instance-protocol: https
         instance-port: 80
-    }
+    end
 
-    health-check {
+    add health-check
         protocol: http
         port: 80
         path: /_ping
@@ -52,85 +52,85 @@ aws::elastic-load-balancer web {
         interval: 6
         unhealthy-threshold: 2
         healthy-threshold: 2
-    }
+    end
 
-    subnets: ${public-subnets}
+    subnets: $(public-subnets)
     security-groups-ids: [@(aws::security-group elb | security-group-ids)]
-}
+end
 
-aws::hosted-zone-record prod.${subdomain} {
-    zone-id: ${hosted-zone-id}
-    name: prod.${subdomain}
+aws::hosted-zone-record prod.$subdomainend
+    zone-id: $hosted-zone-idend
+    name: prod.$subdomainend
     type: CNAME
     ttl: 300
     records: [@(aws::elastic-load-balancer web | canonical-hosted-zone-name)]
-}
+end
 
-aws::security-group frontend {
-    vpc-id: ${vpc}
+aws::security-group frontend
+    vpc-id: $vpcend
 
-    ingress {
+    add ingress
         from-port: 80
         to-port: 80
         protocol: tcp
         security-groups: [@(aws::security-group elb | security-group-id)]
-    }
+    end
 
-    ingress {
+    add ingress
         from-port: 22
         to-port: 22
         protocol: tcp
         security-groups: [@(aws::security-group elb | security-group-id)]
-    }
+    end
 
-    ingress {
+    add ingress
         from-port: 80
         to-port: 80
         protocol: tcp
         security-groups: [@(aws::security-group elb | security-group-id)]
-    }
+    end
 
-    ingress {
+    add ingress
         from-port: 8080
         to-port: 8080
         protocol: tcp
         security-groups: [@(aws::security-group elb | security-group-id)]
-    }
-}
+    end
+end
 
-aws::launch-configuration frontend {
-    name: ${project-name} frontend ${environment} v${serial}
+aws::launch-configuration frontend
+    name: $project-nameend frontend $environmentend v$serialend
 
     image: ami-0ddcc69ab30ed9c03
     instance-type: t2.medium
-    key-pair: ${key-pair-name}
+    key-pair: $key-pair-nameend
 
     security-groups: [@(aws::security-group frontend | security-group-id)]
-}
+end
 
-aws::autoscaling-group frontend {
+aws::autoscaling-group frontend
     autoscale-group-name: @(aws::launch-configuration frontend | name)
     launch-configuration-name: @(aws::launch-configuration frontend | name)
     load-balancer-names: [@(aws::elastic-load-balancer web | name)]
-    vpc-zone-identitiers: ${frontend-subnets}
+    vpc-zone-identitiers: $frontend-subnetsend
     default-cool-down: 300
     health-check-type: ec2
     
     minSize: 4
     maxSize: 8
 
-    tags: ${project.defaultTags}
-}
+    tags: $project.defaultTagsend
+end
 
-aws::autoscaling-policy high-cpu-scale-up {
+aws::autoscaling-policy high-cpu-scale-up
     name: high-cpu-scale-up
     autoscale-group-name: @(aws::autoscaling-group frontend | autoscale-group-name)
     adjustment-type: ChangeInCapacity
     scaling-adjustment: 4
     cool-down: 120
-}
+end
 
-aws::cloudwatch-metric-alarm frontend-autoscaling-cpu-high {
+aws::cloudwatch-metric-alarm frontend-autoscaling-cpu-high
     name: @(aws::autoscaling-policy high-cpu-scale-up | name)
     metric-name: CPUUtilization
     namespace: AWS/EC2
@@ -140,22 +140,22 @@ aws::cloudwatch-metric-alarm frontend-autoscaling-cpu-high {
     statistic: Average
     comparison-operator: GreaterThanThreshold
 
-    dimensions: {
+    dimensions:
         AutoScalingGroupName: @(aws::autoscaling-group frontend | autoscale-group-name)
-    }
+    end
 
     alarm-actions: [@(aws::autoscaling-policy high-cpu-scale-up | arn)]
-}
+end
 
-aws::autoscaling-policy high-cpu-scale-down {
+aws::autoscaling-policy high-cpu-scale-down
     name: high-cpu-scale-down
     autoscale-group-name: @(aws::autoscaling-group frontend | autoscale-group-name)
     adjustment-type: ChangeInCapacity
     scaling-adjustment: -4
     cool-down: 300
-}
+end
 
-aws::cloudwatch-metric-alarm frontend-autoscaling-cpu-low {
+aws::cloudwatch-metric-alarm frontend-autoscaling-cpu-low
     name: @(aws::autoscaling-policy high-cpu-scale-down | name)
     metric-name: CPUUtilization
     namespace: AWS/EC2
@@ -165,9 +165,9 @@ aws::cloudwatch-metric-alarm frontend-autoscaling-cpu-low {
     statistic: Average
     comparison-operator: LessThanThreshold
 
-    dimensions: {
+    dimensions:
         AutoScalingGroupName: @(aws::autoscaling-group frontend | autoscale-group-name)
-    }
+    end
 
     alarm-actions: [@(aws::autoscaling-policy high-cpu-scale-down | arn)]
-}
+end
