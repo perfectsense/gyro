@@ -27,24 +27,6 @@ define
         end
     end
 
-    aws::security-group elb
-        vpc-id: @(aws::vpc vpc | vpc-id)
-
-        add ingress
-            from-port: 80
-            to-port: 80
-            protocol: tcp
-            cidr-block: 0.0.0.0/0
-        end
-
-        add ingress
-            from-port: 443
-            to-port: 443
-            protocol: tcp
-            cidr-block: 0.0.0.0/0
-        end
-    end
-
     aws::elastic-load-balancer web
         name: $(project-name)-web-$(serial)
 
@@ -136,56 +118,6 @@ define
         maxSize: 8
 
         tags: $project.defaultTags
-    end
-
-    aws::autoscaling-policy high-cpu-scale-up
-        name: high-cpu-scale-up
-        autoscale-group-name: @(aws::autoscaling-group frontend | autoscale-group-name)
-        adjustment-type: ChangeInCapacity
-        scaling-adjustment: 4
-        cool-down: 120
-    end
-
-    aws::cloudwatch-metric-alarm frontend-autoscaling-cpu-high
-        name: @(aws::autoscaling-policy high-cpu-scale-up | name)
-        metric-name: CPUUtilization
-        namespace: AWS/EC2
-        evaluation-periods: 1
-        period: 60
-        threshold: 60
-        statistic: Average
-        comparison-operator: GreaterThanThreshold
-
-        dimensions:
-            AutoScalingGroupName: @(aws::autoscaling-group frontend | autoscale-group-name)
-        end
-
-        alarm-actions: [@(aws::autoscaling-policy high-cpu-scale-up | arn)]
-    end
-
-    aws::autoscaling-policy high-cpu-scale-down
-        name: high-cpu-scale-down
-        autoscale-group-name: @(aws::autoscaling-group frontend | autoscale-group-name)
-        adjustment-type: ChangeInCapacity
-        scaling-adjustment: -4
-        cool-down: 300
-    end
-
-    aws::cloudwatch-metric-alarm frontend-autoscaling-cpu-low
-        name: @(aws::autoscaling-policy high-cpu-scale-down | name)
-        metric-name: CPUUtilization
-        namespace: AWS/EC2
-        evaluation-periods: 1
-        period: 300
-        threshold: 20
-        statistic: Average
-        comparison-operator: LessThanThreshold
-
-        dimensions:
-            AutoScalingGroupName: @(aws::autoscaling-group frontend | autoscale-group-name)
-        end
-
-        alarm-actions: [@(aws::autoscaling-policy high-cpu-scale-down | arn)]
     end
 
 end
