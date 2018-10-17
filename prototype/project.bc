@@ -2,8 +2,8 @@ NAME = beam-enterprise
 SUBDOMAIN = beam-enterprise.psdops.com
 SERIAL = 1
 DEFAULT_TAGS = {
-    Project: ${project}
-    Serial: ${serial}
+    Project: $(NAME)
+    Serial: $(SERIAL)
 }
 
 plugin "perfectsense/beam-provider-aws", version: "~1.0"
@@ -11,20 +11,20 @@ plugin "perfectsense/beam-workflow-brightspot", branch: "release/1.0.0"
 
 import "vpc.beam" as vpc
 
-aws::credentials {
+aws::credentials
     default-credentials: true
     region: us-east-1
-}
+end
 
-aws::credentials aws_us_east_2 {
+aws::credentials aws_us_east_2
     region: us-east-2
-}
+end
 
-aws::key-pair key-pair {
-    name: ${NAME}
-}
+aws::key-pair key-pair
+    name: $(NAME)
+end
 
-aws::security-group operations {
+aws::security-group operations
     vpc-id: @(aws::vpc vpc | vpc-id)
         
     // Office & VPN IPs
@@ -33,5 +33,5 @@ aws::security-group operations {
         to-port: 0
         protocol: -1
         cidr-block: 52.5.144.128/32
-    }
-}
+    end
+end

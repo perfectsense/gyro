@@ -6,39 +6,39 @@ import "frontend.beam" as frontend
 
 ENVIRONMENT = production
 
-aws::security-group backend {
+aws::security-group backend
     vpc-id: @(aws::vpc vpc.vpc | vpc-id)
 
-    ingress {
+    add ingress
         from-port: 3306
         to-port: 3306
         protocol: tcp
         security-groups: #(aws::security-group frontend.frontend | security-group-id)
-    }
+    end
 
-    ingress {
+    add ingress
         from-port: 8180
         to-port: 8180
         protocol: tcp
         security-groups: #(aws::security-group frontend.frontend | security-group-id)
-    }
-}
+    end
+end
 
-aws::iam-role backend {
-    name: ${project.NAME}-${ENVIRONMENT}-${project.SERIAL}-backend
-}
+aws::iam-role backend
+    name: $(project.NAME)-$(ENVIRONMENT)-$(project.SERIAL)-backend
+end
 
-aws::iam-role-policy production-backend-s3 {
-    role-name: @(aws::iam-role backend.name}
+aws::iam-role-policy production-backend-s3
+    role-name: @(aws::iam-role backend.nameend
     name: production-backend-s3
     path: roles/production-backend-s3.json
-}
+end
 
-aws::iam-instance-profile backend {
+aws::iam-instance-profile backend
     name: @(aws::iam-role-policy production-backend-s3 | role-name)
-}
+end
 
-aws::instance backend-us-east-1a {
+aws::instance backend-us-east-1a
     image: ami-04aaab62bebf49db8
     instance-type: t2.medium
     iam-instance-profile: @(aws::iam-instance-profile backend | name)
@@ -46,15 +46,15 @@ aws::instance backend-us-east-1a {
     subnet-id: @(aws::subnet vpc.public-us-east-1a | subnet-id)
     key-pair: @(aws::key-pair project.key-pair | name)
 
-    tags: {
-        Project: ${project.NAME}
-        Serial: ${project.SERIAL}
-        beam.environment: ${ENVIRONMENT}
+    tags:
+        Project: $(project.NAME)
+        Serial: $(project.SERIAL)
+        beam.environment: $(ENVIRONMENT)
         beam.layer: backend
-    }
-}
+    end
+end
 
-aws::instance backend-us-east-1b {
+aws::instance backend-us-east-1b
     image: ami-04aaab62bebf49db8
     instance-type: t2.medium
     iam-instance-profile: @(aws::iam-instance-profile backend | name)
@@ -62,15 +62,15 @@ aws::instance backend-us-east-1b {
     subnet-id: @(aws::subnet vpc.public-us-east-1b | subnet-id)
     key-pair: @(aws::key-pair project.key-pair | name)
 
-    tags: {
-        Project: ${project.NAME}
-        Serial: ${project.SERIAL}
-        beam.environment: ${ENVIRONMENT}
+    tags:
+        Project: $project.NAMEend
+        Serial: $project.SERIALend
+        beam.environment: $ENVIRONMENTend
         beam.layer: backend
-    }
-}
+    end
+end
 
-aws::instance master-us-east-1c tags: [ backend-master ] {
+aws::instance master-us-east-1c tags: [ backend-master ]
     image: ami-04aaab62bebf49db8
     instance-type: t2.medium
     iam-instance-profile: @(aws::iam-instance-profile backend | name)
@@ -78,10 +78,10 @@ aws::instance master-us-east-1c tags: [ backend-master ] {
     subnet-id: @(aws::subnet vpc.public-us-east-1b | subnet-id)
     key-pair: @(aws::key-pair project.key-pair | name)
 
-    tags: {
-        Project: ${project.NAME}
-        Serial: ${project.SERIAL}
-        beam.environment: ${ENVIRONMENT}
+    tags:
+        Project: $project.NAMEend
+        Serial: $project.SERIALend
+        beam.environment: $ENVIRONMENTend
         beam.layer: backend
-    }
-}
+    end
+end
