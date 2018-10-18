@@ -3,11 +3,15 @@ package beam.core;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BeamScalar {
+public class BeamScalar implements BeamReferable {
 
-    private List<Object> elements;
+    private List<BeamLiteral> elements;
 
-    public List<Object> getElements() {
+    private boolean resolved;
+
+    private Object value;
+
+    public List<BeamLiteral> getElements() {
         if (elements == null) {
             elements = new ArrayList<>();
         }
@@ -15,39 +19,61 @@ public class BeamScalar {
         return elements;
     }
 
-    public void setElements(List<Object> elements) {
+    public void setElements(List<BeamLiteral> elements) {
         this.elements = elements;
     }
 
-    public Object resolve(BeamContext context) {
+    @Override
+    public Object getValue() {
+        return value;
+    }
+
+    @Override
+    public boolean resolve(BeamContext context) {
         if (getElements().isEmpty()) {
             throw new BeamException("Unable to resolve scalar with zero elements!");
         }
 
+        if (resolved) {
+            return false;
+        }
+
+        boolean progress = false;
         if (getElements().size() == 1) {
-            Object element = getElements().get(0);
-            if (element instanceof BeamReference) {
-                return ((BeamReference) element).resolve(context);
-            } else {
-                return element;
-            }
-        }
+            BeamLiteral literal = getElements().get(0);
+            progress = literal.resolve(context);
 
-        StringBuilder sb = new StringBuilder();
-        for (Object element : getElements()) {
-            if (element instanceof BeamReference) {
-                Object resolvedElement = ((BeamReference) element).resolve(context);
-                if (!(resolvedElement instanceof String)) {
-                    sb.append(element);
+            if (literal.getValue() != null) {
+                value = literal.getValue();
+                resolved = true;
+                progress = true;
+            }
+
+        } else {
+            StringBuilder sb = new StringBuilder();
+            for (BeamLiteral literal : getElements()) {
+                progress = progress || literal.resolve(context);
+
+                if (literal.getValue() != null) {
+                    Object resolvedLiteral = literal.getValue();
+
+                    // Enforce string concat
+                    if (!(resolvedLiteral instanceof String)) {
+                        throw new BeamException(String.format("Illegal placement of %s in %s, expect a String", literal.getLiteral(), this));
+                    } else {
+                        sb.append(resolvedLiteral);
+                    }
                 } else {
-                    sb.append(resolvedElement);
+                    return progress;
                 }
-            } else {
-                sb.append(element);
             }
+
+            value = sb.toString();
+            resolved = true;
+            progress = true;
         }
 
-        return sb.toString();
+        return progress;
     }
 
     @Override
