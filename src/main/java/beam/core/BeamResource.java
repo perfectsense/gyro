@@ -1,15 +1,6 @@
 package beam.core;
 
-import beam.core.diff.ResourceDiffProperty;
 import beam.parser.ASTHandler;
-import beam.parser.BeamConfigGenerator;
-import com.google.common.base.Throwables;
-import com.psddev.dari.util.ObjectUtils;
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,7 +11,7 @@ import java.util.List;
 import java.util.Set;
 import beam.core.diff.ResourceChange;
 
-public abstract class BeamResource<B extends BeamProvider> extends BeamObject {
+public abstract class BeamResource<B extends BeamProvider> extends BeamObject implements BeamReferable {
 
     private BeamResource<B> parent;
     private List<BeamResource<B>> children = new ArrayList<>();
@@ -29,7 +20,7 @@ public abstract class BeamResource<B extends BeamProvider> extends BeamObject {
     private String beamId;
     private ResourceChange change;
     private Map<String, BeamReference> references = new HashMap<>();
-    private Map<String, Object> unResolvedProperties = new ConcurrentHashMap<>();
+    private Map<String, BeamReferable> unResolvedProperties = new ConcurrentHashMap<>();
     private BeamContext context;
 
     /**
@@ -42,111 +33,6 @@ public abstract class BeamResource<B extends BeamProvider> extends BeamObject {
      */
     public static boolean isInclude(BeamResourceFilter filter, Object awsResource) {
         return filter == null || filter.isInclude(awsResource);
-    }
-
-    /**
-     * Updates the parent/child relationships on all resources in the
-     * given {@code cloudConfig}.
-     *
-     * @param providerConfig Can't be {@code null}.
-     */
-    public static void updateTree(ProviderConfig providerConfig) {
-        updateTreeRecursively(providerConfig, null);
-        updateDependenciesRecursively(providerConfig);
-    }
-
-    private static void updateTreeRecursively(Object object, BeamResource<? extends BeamProvider> parent) {
-        try {
-            Class<?> objectClass = object.getClass();
-
-            for (PropertyDescriptor p : Introspector.getBeanInfo(objectClass).getPropertyDescriptors()) {
-                Method reader = p.getReadMethod();
-
-                if (reader != null) {
-                    Object value = reader.invoke(object);
-
-                    if (value != null) {
-                        for (Object item : ObjectUtils.to(Iterable.class, value)) {
-                            if (item instanceof BeamResource) {
-                                BeamResource itemResource = (BeamResource) item;
-
-                                if (parent != null) {
-                                    itemResource.parent = parent;
-                                    parent.children.add(itemResource);
-                                }
-
-                                updateTreeRecursively(item, itemResource);
-                            }
-                        }
-                    }
-                }
-            }
-
-        } catch (IllegalAccessException |
-                IntrospectionException error) {
-            throw new IllegalStateException(error);
-
-        } catch (InvocationTargetException error) {
-            throw Throwables.propagate(error.getCause());
-        }
-    }
-
-    private static void updateDependenciesRecursively(Object object) {
-        try {
-            Class<?> objectClass = object.getClass();
-
-            for (PropertyDescriptor p : Introspector.getBeanInfo(objectClass).getPropertyDescriptors()) {
-                Method reader = p.getReadMethod();
-
-                if (reader != null) {
-                    Object value = reader.invoke(object);
-
-                    if (value != null) {
-                        for (Object item : ObjectUtils.to(Iterable.class, value)) {
-                            if (item instanceof BeamResource) {
-                                updateDependenciesRecursively(item);
-
-                            } else if (object instanceof BeamResource &&
-                                    item instanceof BeamReference) {
-
-                                BeamReference itemRef = (BeamReference) item;
-                                BeamResource<? extends BeamProvider> itemResource = itemRef.resolve();
-
-                                if (itemResource != null) {
-                                    BeamResource objectResource = (BeamResource) object;
-
-                                    objectResource.dependencies.add(itemResource);
-                                    itemResource.dependents.add(objectResource);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-        } catch (IllegalAccessException |
-                IntrospectionException error) {
-            throw new IllegalStateException(error);
-
-        } catch (InvocationTargetException error) {
-            throw Throwables.propagate(error.getCause());
-        }
-    }
-
-    public static Set<String> awsIdSet(Iterable<? extends BeamReference> references) {
-        Set<String> awsIds = new HashSet<>();
-
-        if (references != null) {
-            for (BeamReference r : references) {
-                String awsId = r.awsId();
-
-                if (awsId != null) {
-                    awsIds.add(awsId);
-                }
-            }
-        }
-
-        return awsIds;
     }
 
     public String getBeamId() {
@@ -193,58 +79,6 @@ public abstract class BeamResource<B extends BeamProvider> extends BeamObject {
         return dependents;
     }
 
-    /**
-     * Creates a new reference based on the given {@code resource}.
-     *
-     * @param resource If {@code null}, returns {@code null}.
-     * @return May be {@code null}.
-     */
-    public BeamReference newReference(BeamResource<B> resource) {
-        return resource != null ? new BeamReference(this, resource) : null;
-    }
-
-    /**
-     * Creates a new referenced based on the given {@code awsId}.
-     *
-     * @param awsId If {@code null}, returns {@code null}.
-     * @return May be {@code null}.
-     */
-    public BeamReference newReference(Class<? extends BeamResource<B>> resourceClass, String awsId) {
-        return awsId != null ? new BeamReference(this, resourceClass, awsId) : null;
-    }
-
-    /**
-     * Creates a new set of references based on the given {@code awsIds}.
-     *
-     * @param awsIds If {@code null}, returns an empty set.
-     * @return Never {@code null}.
-     */
-    public Set<BeamReference> newReferenceSet(Class<? extends BeamResource<B>> resourceClass, Iterable<String> awsIds) {
-        Set<BeamReference> refs = new HashSet<>();
-
-        if (awsIds != null) {
-            for (String awsId : awsIds) {
-                refs.add(newReference(resourceClass, awsId));
-            }
-        }
-
-        return refs;
-    }
-
-    /**
-     * Returns a reference to the parent that's an instance of the given
-     * {@code resourceClass}, or if not found, the given
-     * {@code defaultReference}.
-     *
-     * @param resourceClass Can't be {@code null}.
-     * @param defaultReference May be {@code null}.
-     * @return May be {@code null}.
-     */
-    public BeamReference newParentReference(Class<? extends BeamResource<B>> resourceClass, BeamReference defaultReference) {
-        BeamResource<B> parent = findParent(resourceClass);
-
-        return parent != null ? newReference(parent) : defaultReference;
-    }
 
     @SuppressWarnings("unchecked")
     public <T extends BeamResource<B>> T findParent(Class<T> parentClass) {
@@ -437,11 +271,11 @@ public abstract class BeamResource<B extends BeamProvider> extends BeamObject {
         this.references = references;
     }
 
-    public Map<String, Object> getUnResolvedProperties() {
+    public Map<String, BeamReferable> getUnResolvedProperties() {
         return unResolvedProperties;
     }
 
-    public void setUnResolvedProperties(Map<String, Object> unResolvedProperties) {
+    public void setUnResolvedProperties(Map<String, BeamReferable> unResolvedProperties) {
         this.unResolvedProperties = unResolvedProperties;
     }
 
@@ -453,58 +287,23 @@ public abstract class BeamResource<B extends BeamProvider> extends BeamObject {
         this.context = context;
     }
 
-    public void resolveReference() {
+    public boolean resolve(BeamContext context) {
+        boolean progress = false;
         for (String key : getUnResolvedProperties().keySet()) {
-            Object value = getUnResolvedProperties().get(key);
-            Object resolvedValue = resolve(value, getContext());
-            ASTHandler.populate(this, key, resolvedValue);
-        }
-    }
-
-    public static Object resolve(Object value, BeamContext context) {
-        if (value instanceof Map) {
-            return resolveMap((Map) value, context);
-        } else if (value instanceof List) {
-            return resolveList((List) value, context);
-        } else if (value instanceof BeamReference) {
-            return ((BeamReference) value).resolve(context);
-        } else {
-            return value;
-        }
-    }
-
-    private static Map resolveMap(Map map, BeamContext context) {
-        Map result = new HashMap<>();
-        for (Object key : map.keySet()) {
-            Object value = map.get(key);
-            if (value instanceof Map) {
-                result.put(key, resolveMap((Map) value, context));
-            } else if (value instanceof List) {
-                result.put(key, resolveList((List) value, context));
-            } else if (value instanceof BeamReference) {
-                result.put(key, ((BeamReference) value).resolve(context));
-            } else {
-                result.put(key, value);
+            BeamReferable referable = getUnResolvedProperties().get(key);
+            progress = progress || referable.resolve(context);
+            if (referable.getValue() != null) {
+                ASTHandler.populate(this, key, referable.getValue());
+                getUnResolvedProperties().remove(key);
+                progress = true;
             }
         }
 
-        return result;
+        return progress;
     }
 
-    private static List resolveList(List list, BeamContext context) {
-        List result = new ArrayList();
-        for (Object value : list) {
-            if (value instanceof Map) {
-                result.add(resolveMap((Map) value, context));
-            } else if (value instanceof List) {
-                result.add(resolveList((List) value, context));
-            } else if (value instanceof BeamReference) {
-                result.add(((BeamReference) value).resolve(context));
-            } else {
-                result.add(value);
-            }
-        }
-
-        return result;
+    @Override
+    public Object getValue() {
+        return this;
     }
 }
