@@ -4,7 +4,7 @@ import ../gateway
 import ../route53
 import ../brightspot
 
-ENVIRONMENT = production
+ENVIRONMENT: production
 
 brightspot::frontend-layer web
     project-name: $(project.NAME)

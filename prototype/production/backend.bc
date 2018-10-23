@@ -4,7 +4,7 @@ import "../vpc.beam" as vpc
 import "../gateway.beam" as gateway
 import "frontend.beam" as frontend
 
-ENVIRONMENT = production
+ENVIRONMENT: production
 
 aws::security-group backend
     vpc-id: @(aws::vpc vpc.vpc | vpc-id)

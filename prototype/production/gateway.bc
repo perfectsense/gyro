@@ -5,7 +5,7 @@ import "../route53.beam" as route53
 import "frontend.beam" as frontend
 import "backend.beam" as backend
 
-ENVIRONMENT = production
+ENVIRONMENT: production
 
 aws::security-group security-group
     vpc-id: @(aws::vpc vpc.vpc | vpc-id)
