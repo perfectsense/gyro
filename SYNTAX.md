@@ -104,6 +104,14 @@ aws::elb frontend
 end
 ```
 
+Resources can be tagged by adding additional names after the resource name:
+
+```
+aws::elb frontend external
+    name: frontend
+end
+```
+
 **Referencing a constant**
 
 Constant variables are referenced using `$(<name>)` syntax.
@@ -131,8 +139,16 @@ resources can be queried using `#(<type> <name> | <attribute>)`. The `#()` synta
 resources are found an empty list is returned.
 
 ```
+aws::subnet us-east-1a public 
+    cidr: 10.0.0.0/24
+end
+
+aws::subnet us-east-1b public 
+    cidr: 10.0.1.0/24
+end
+
 aws::elb frontend {
-    subnet-ids: @(aws::vpc vpc | vpc-id)
+    subnet-ids: #(aws::subnet public | subnet-id)
 }
 ```
 
