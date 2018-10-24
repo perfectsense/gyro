@@ -1,6 +1,6 @@
-import "../project.beam" as project 
-import "../vpc.beam" as vpc
-import "../route53.beam" as route53
+import project
+import vpc.beam
+import route53
 
 import "frontend.beam" as frontend
 import "backend.beam" as backend

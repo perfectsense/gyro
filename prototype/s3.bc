@@ -1,4 +1,4 @@
-import "project.beam" as project
+import project
 
 aws::bucket beam-enterprise-ops
     name: beam-enterprise-ops

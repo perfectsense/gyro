@@ -1,8 +1,8 @@
-import "../project.beam" as project
-import "../vpc.beam" as vpc
+import project
+import vpc
 
-import "../gateway.beam" as gateway
-import "frontend.beam" as frontend
+import gateway
+import frontend
 
 ENVIRONMENT: production
 

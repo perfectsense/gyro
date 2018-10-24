@@ -1,12 +1,10 @@
-import ../project
-import ../vpc
-import ../gateway
-import ../route53
-import ../brightspot
+import project
+import gateway
+import brightspot.*
 
 ENVIRONMENT: production
 
-brightspot::frontend-layer web
+brightspot::frontend web
     project-name: $(project.NAME)
     environment: production
     serial: $(project.SERIAL)

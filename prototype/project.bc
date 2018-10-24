@@ -5,10 +5,22 @@ DEFAULT_TAGS:
     * Project: $(NAME)
     * Serial: $(SERIAL)
 
-plugin "perfectsense/beam-provider-aws", version: "~1.0"
-plugin "perfectsense/beam-workflow-brightspot", branch: "release/1.0.0"
+provider
+    github: perfectsense/beam-provider-aws
+    version: ~1.0
+end
 
-import "vpc.beam" as vpc
+package
+    github: perfectsense/beam-workflow-brightspot
+    branch: release/1.0.0
+end
+
+state
+    plugin: s3
+    bucket: abc1
+end
+
+import vpc
 
 aws::credentials
     default-credentials: true

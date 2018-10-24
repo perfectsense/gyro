@@ -1,4 +1,4 @@
-virtual_resource frontend
+virtual_resource
     project-name
     environment
     serial

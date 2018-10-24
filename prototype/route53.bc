@@ -1,5 +1,5 @@
-import "project.beam" as project
-import "vpc.beam" as vpc
+import project
+import vpc
 
 aws::hosted-zone public
     name: $(project.SUBDOMAIN).

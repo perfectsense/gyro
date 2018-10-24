@@ -1,5 +1,5 @@
-import "project.beam" as project
-import "production/gateway.beam" as gateway
+import project
+import production.gateway as gateway
 
 aws::vpc vpc
     name: beam enterprise
