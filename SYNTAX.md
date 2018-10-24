@@ -45,10 +45,10 @@ and a launch configuration. This allows the frontend layer definition to contain
 minimal necessary configuration values.
 
 ```
-brightspot::frontend web {
+brightspot::frontend web 
     brightspot_build_location: s3://mybucket/builds
     brightspot_build_number: 495
-}
+end
 ```
 
 ```java
@@ -85,309 +85,149 @@ public class FrontendLayer implements VirtualResource {
 
 # Variables
 
-Variables can be set using one of three methods: Using the `let` keyword, by giving
-a resource an implicit name, or by using the `let` command in combination with defining
-a resource.
+The Beam Configuration Language has two types of variables: constants and resources. Constant variables that can contain 
+strings, numbers, booleans, lists, and maps. Resources are cloud resources defined by providers plugins.
 
-**Setting variable using `let` keyword**
-
-```
-let project = "my project"
-```
-
-**Setting variable by naming a resource**
-
-The following sets the variable `${web_elb}`.
+**Constant variable**
 
 ```
-aws::elb web_elb {
-    name: "web elb"
+PROJECT: web
+```
+
+**Implicit variables defined by resources**
+
+The following example sets the `frontend` resource variable.
+
+```
+aws::elb frontend
+    name: frontend
+end
+```
+
+**Referencing a constant**
+
+Constant variables are referenced using `$(<name>)` syntax.
+
+```
+aws::elb frontend {
+    name: $(PROJECT) frontend
 }
 ```
 
-**Setting variable from output of resource definition**
+**Referencing a resource**
+
+Resources are referenced using `@(<type> <name>)` syntax or optionally an attribute of the resource
+can be queried using `@(<type> <name> | <attribute>)`. The `@()` syntax always returns a single resource or
+throws an error if the referenced resource is not found.
 
 ```
-let web_elb = aws::elb {
-    name: "web elb"
+aws::instance webserver {
+    subnet-id: @(aws::vpc vpc | vpc-id)
 }
 ```
+
+Tagged resources can be referenced using `#(<type> <name>)` syntax or optionally attributes of the tagged
+resources can be queried using `#(<type> <name> | <attribute>)`. The `#()` syntax always returns a list. If no
+resources are found an empty list is returned.
+
+```
+aws::elb frontend {
+    subnet-ids: @(aws::vpc vpc | vpc-id)
+}
+```
+
+## Module
+
+A module is single file that defines one or more cloud resources. Files that define modules should with `.bc`.
+
+## Package
+
+A package is a group of modules. Packages can be included directly in a Beam project or they can
+be defined outside the project and referenced in using the `package` keyword.
 
 ## Scoping 
 
-```
-let web_elb = aws::elb {
-    name: "web elb"
-}
-```
+Resources can be imported and referenced from modules or packages using the `import` keyword. By default resources
+imported from a module are namespaced using the name of the module.
 
-Variables can be used from other files by using the `include` keyword with the variable 
-namespace option using the `as` keyword. When this option is not present variables from included 
-files cannot be referenced within the including file.
+Example:
 
-The one exception to this rule is `init.beam` files. These files are always read before any configuration 
-in the same directory. Variables defined in these are global.
-
-### Scoping Example
-
-**init.beam**:
-
-``` 
-let project = "perfectsense"
-```
-
-**defaults.beam**:
-
-``` 
-aws::vpc project_vpc {
-    name: "default vpc"
-    cidr: 10.0.0.0/16
-}
-
-aws::subnet development_subnet {
-    vpc: ${project_vpc}
-    cidr: 10.0.0.0/24
-}
-
-aws::subnet us-east-1a {
-    vpc: ${project_vpc}
-    zone: us-east-1a
-    cidr: 10.0.0.0/24
-}
-
-aws::subnet us-east-1b {
-    vpc: ${project_vpc}
-    zone: us-east-1b
-    cidr: 10.0.1.0/24
-}
-
-let private_subnets = [${us-east-1b}, ${us-east-1a})]
-let public_subnets = [${us-east-1b}, ${us-east-1a})]
-
-let master_subnet = ${us-east-1a})
-let development_subnet = ${us-east-1a})
-```
-
-**development/init.beam**:
-
-``` 
-let environment = "production"
-```
-
-**development/box.beam**:
+**project.bc**
 
 ```
-include "../defaults.beam" as defaults
+import vpc
 
-aws::instance development {
-    name: "development box"
-    instance_type: t2.medium
-    image: ami-12312adfaf
-    vpc: ${defaults.project_vpc}
-    subnet: ${defaults.development_subnet}
-}
+aws::instance webserver
+    subnet-id: @(aws::vpc vpc.vpc | vpc-id)
+end
 ```
 
-**production/init.beam**:
-
-``` 
-let environment = "production"
-```
-
-**production/frontend.beam**:
+The namespace a module is imported as can be changed using the `as` keyword:
 
 ```
-include "../defaults.beam" as defaults
+import vpc as network
 
-let layer = "production"
-
-aws::elb web_elb {
-    name: "web"
-    
-    vpc: ${defaults.project_vpc}
-    subnets: ${defaults.public_subnets}
-}
-
-aws::autoscale_group web_asg {
-    elb: ${web_elb}
-    subnets: ${web_elb.subnets}
-}
-```
-
-## Identifiers
-
-Examples:
-
-	foobar
-	beam_is_great
-	
-Identifiers are consist of alphabets, decimal digits, and the underscore character, and begin with a
-alphabets(including underscore). There are no restrictions on the lengths of identifiers.
-
-# Literals
-
-## String Literals
-
-`"double quoted strings"` - eventually these will have variable (`$var`) interpolation
-
-`'single quoted strings` - never interpolates
-
-## Array Expression
-
-`[1, 2, 3]`
-
-`["1", "2", "3"]`
-
-## Hash Expression
-
-```
-{
-    stringKey: "value"
-    literalKey: value2
-    numericKey: 123
-}
+aws::instance webserver
+    subnet-id: @(aws::vpc network.vpc | vpc-id)
+end
 ```
 
 ## Comments
 
-A comment starts with a hash character (#) that is not part of a string literal, and ends at the end
-of the physical line. Comments are ignored by the syntax; they are not tokens.
+A comment starts with double forward slashes (`//`) and ends at the end of the physical line.
 
 # Resources
 
-Resources are the primary type in the Beam configuration language. Resources define cloud infrastructure
+Resources are the primary type in the Beam Configuration Language. Resources define cloud infrastructure
 components and their attributes.
 
-Resources always follow the format `<provider>::<resource> { <resource_block> }` where `resource_block` can be
-either attributes to configure the resource with or nested resources.
+Resources always follow the format `<provider>::<resource> <newline> <resource_block> <end>`.
 
 An example resource:
 
 ``` 
-aws::instance {
+aws::instance webserver
     image:         backend hvm [1]
     instance_type: t2.medium
     
-    tags: {
-        Name: "MySQL Database Backend"
-    }
-}
+    tags: 
+        * Name: "MySQL Database Backend"
+end
 ```
-
-Resources can be nested as necessary to indicate a dependency. It is up to the resource provider to implement
-nested resources where it makes sense.
-
-An example nested resource:
-
-```
-aws::vpc {
-    name: "Production VPC"
-    cidr: "10.0.0.0/16"
-    
-    aws::subnet {
-        name: "private"
-        cidr: "10.0.0.0/24"
-    }
-}
-```
-
-In the example above the `aws::subnet` resource does not need to explicity set the `vpc_id` on the
-subnet resource since it is implied based on being nested inside of the `aws::vpc` resource.
-
-## Statement: include
-
-The `include` method is used to include and evaluate a Beam configuration file.
-
-Each file is scoped. There are two concepts of scoping to consider:
-
--  The first is when the `include` keyword is used to include another file. That file 
-   may been passed some context from the parent file.
-  
--  Second when using the `module` keyword a module may make available information about
-   the resources it created to the parent file.
 
 ## Statement: package
 
-The `package` method is used to define a package. A package is a group of Beam configuration files
-that group functionality. Additionally packages can add custom cloud resources written in a
-supported extension language (Groovy or Java).
+The `package` keyword is used to import a package. A package is a group of modules.
 
 ```
-package {
-    name: "aws"
+package 
+    github: perfectsense/beam-package
     version: 1.0.1
-    description: "Implements basic AWS cloud resources."
-}
+end
 ```
 
-#### Arguments
+Arguments are the same as a provider.
 
-- **name**  - The name of the package. (Required)
-- **version** - The version of the package. (Required)
-- **description** - A short description of the package. (Optional)
+## Statement: provider
 
-Packages may include other packages using the `import` method. All package depdendencies are resolved at
-runtime rather than compile time.
-
-#### Package Layout
-
-**Provider Example**
+The `provider` keyword is used to import a provider. 
 
 ``` 
-module/pom.xml
-module/src/main/groovy/beam/aws/VPC.groovy
-module/src/main/groovy/beam/aws/ElasticLoadBalancer.groovy
-module/src/main/groovy/beam/aws/Instance.groovy
-```
-
-**Composition Example**
-
-``` 
-module/init.beam
-module/vpc.beam
-module/production/gateway.beam
-module/production/frontend.beam
-module/production/backend.beam
-module/development/backend.beam
-```
-
-Commands can act on individual directories if needed. Commands like `beam ssh` would read
-the file and search for instances defined in that file. If a directory is specified instead
-of a file `beam ssh` would read all files in the directory. If nothing is specified `beam ssh`
-would look for any files in the current directory.
-
-Example:
-
-`beam ssh production/frontend`
-
-## Statement: import
-
-The `import` method is used to import a package. Packages may be imported from the local filesystem,
-a Maven repository or a URL.
-
-``` 
-import {
-    package: "aws"
-    
+provider
     # Direct Jar import
     url: https://s3.amazonaws.com/mybucket/path/to/package.jar
     
     # Git import with support for Git and Github syntax
-    git:    https://github.com/perfectsense/beam-package.git
-    github: perfectsense/beam-package
+    git:    https://github.com/perfectsense/beam-provider-aws.git
+    github: perfectsense/beam-provider-aws
     tag: release/1.0
     
     # Local filesystem import
-    path: /path/to/beam-package
+    path: /path/to/beam-provider-aws
     
     # Maven import
-    maven: com.psdops:beam:beam-package:1.0
-}
+    maven: com.psdops:beam:beam-provider-aws:1.0
+end
 ```
 
-The local filesystem and git based imports assume the package is in source form. When using this format
-for packages only Beam configuration language files and Groovy extensions are supported. Beam will not
-compile Java code for inclusion in the module.
-
-The Maven and JAR URL imports expect the package to be in `jar` format.
-
+The local filesystem and git based imports assume the provider is in source form.
