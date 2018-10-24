@@ -18,7 +18,7 @@ end
 
 // US-EAST-1 - Zone A
 
-aws::subnet public-us-east-1a tags: [ public ]
+aws::subnet public-us-east-1a public
     name: $(project.NAME) [public, public-us-east, public-us-east-1a]
     
     vpc-id: @(aws::vpc vpc | vpc-id)
@@ -29,7 +29,7 @@ aws::subnet public-us-east-1a tags: [ public ]
     tags: $(project.DEFAULT_TAGS)
 end
 
-aws::subnet private-us-east-1a tags: [ private ]
+aws::subnet private-us-east-1a private
     name: $(project.NAME) [private, private-us-east, private-us-east-1a]
     
     vpc-id: @(aws::vpc vpc | vpc-id)
@@ -85,7 +85,7 @@ end
 
 // US-EAST-1 - Zone B
 
-aws::subnet public-us-east-1b tags: [ public ]
+aws::subnet public-us-east-1b public
     name: beam enterprise [public, public-us-east, public-us-east-1b]
     
     vpc-id: @(aws::vpc vpc | vpc-id)
@@ -96,7 +96,7 @@ aws::subnet public-us-east-1b tags: [ public ]
     tags: $(DEFAULT_TAGS)
 end
 
-aws::subnet private-us-east-1b tags: [ private ]
+aws::subnet private-us-east-1b private
     name: beam enterprise [private, private-us-east, private-us-east-1b]
     
     vpc-id: @(aws::vpc vpc | vpc-id)
@@ -121,7 +121,7 @@ end
 
 // US-EAST-1 - Zone C
 
-aws::subnet public-us-east-1c tags: [ public ]
+aws::subnet public-us-east-1c public
     name: beam enterprise [public, public-us-east, public-us-east-1c]
     
     vpc-id: @(aws::vpc vpc | vpc-id)
@@ -132,7 +132,7 @@ aws::subnet public-us-east-1c tags: [ public ]
     tags: $(project.DEFAULT_TAGS)
 end
 
-aws::subnet private-us-east-1c tags: [ master, private ]
+aws::subnet private-us-east-1c master, private
     name: beam enterprise [private, private-us-east, private-us-east-1c]
     
     vpc-id: @(aws::vpc vpc | vpc-id)
