@@ -1,13 +1,13 @@
-resource frontend-layer
-    project-name     $()
-    environment      $()
-    serial           $()
-    subdomain        $()
-    vpc              @(aws::vpc)
-    key-pair         @(aws::key-pair)
-    hosted-zone      @(aws::hosted-zone)
-    elb-subnets      #(aws::subnet)
-    frontend-subnets #(aws::subnet)
+resource frontend
+    project-name
+    environment
+    serial
+    subdomain
+    vpc
+    key-pair
+    hosted-zone
+    elb-subnets
+    frontend-subnets
 define
     aws::security-group elb
         vpc-id: @(aws::vpc vpc | vpc-id)
