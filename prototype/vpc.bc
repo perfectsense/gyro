@@ -129,7 +129,7 @@ resource aws.subnet public-us-east-1c public
     tags: $(project.DEFAULT_TAGS)
 end
 
-resource aws.subnet private-us-east-1c master, private
+resource aws.subnet private-us-east-1c private master
     name: beam enterprise [private, private-us-east, private-us-east-1c]
     
     vpc-id: @(aws.vpc vpc | vpc-id)
