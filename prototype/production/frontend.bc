@@ -4,34 +4,34 @@ import brightspot.*
 
 ENVIRONMENT: production
 
-brightspot::frontend web
+virtual-resource brightspot.frontend web
     project-name: $(project.NAME)
     environment: production
     serial: $(project.SERIAL)
     subdomain: $(project.SUBDOMAIN)
 
-    vpc: @(aws::vpc vpc.vpc)
-    key-pair: @(aws::key-pair project.key-pair)
-    hosted-zone: @(aws::hosted-zone route53.public)
+    vpc: @(aws.vpc vpc.vpc)
+    key-pair: @(aws.key-pair project.key-pair)
+    hosted-zone: @(aws.hosted-zone route53.public)
 
-    elb-subnets: #(aws::subnet vpc.public)
-    frontend-subnets: #(aws::subnet vpc.private)
+    elb-subnets: #(aws.subnet vpc.public)
+    frontend-subnets: #(aws.subnet vpc.private)
 end
 
 // Defining scaling policies outside of the virtual resource to show
 // how interaction with resources defined by the virtual resource can
 // be referenced.
 
-aws::autoscaling-policy high-cpu-scale-up
+resource aws.autoscaling-policy high-cpu-scale-up
     name: high-cpu-scale-up
-    autoscale-group-name: @(aws::autoscaling-group web.frontend | autoscale-group-name)
+    autoscale-group-name: @(aws.autoscaling-group web.frontend | autoscale-group-name)
     adjustment-type: ChangeInCapacity
     scaling-adjustment: 4
     cool-down: 120
 end
 
-aws::cloudwatch-metric-alarm frontend-autoscaling-cpu-high
-    name: @(aws::autoscaling-policy high-cpu-scale-up | name)
+resource aws.cloudwatch-metric-alarm frontend-autoscaling-cpu-high
+    name: @(aws.autoscaling-policy high-cpu-scale-up | name)
     metric-name: CPUUtilization
     namespace: AWS/EC2
     evaluation-periods: 1
@@ -41,22 +41,22 @@ aws::cloudwatch-metric-alarm frontend-autoscaling-cpu-high
     comparison-operator: GreaterThanThreshold
 
     dimensions:
-        AutoScalingGroupName: @(aws::autoscaling-group frontend | autoscale-group-name)
+        AutoScalingGroupName: @(aws.autoscaling-group frontend | autoscale-group-name)
     end
 
-    alarm-actions: [@(aws::autoscaling-policy high-cpu-scale-up | arn)]
+    alarm-actions: [@(aws.autoscaling-policy high-cpu-scale-up | arn)]
 end
 
-aws::autoscaling-policy high-cpu-scale-down
+resource aws.autoscaling-policy high-cpu-scale-down
     name: high-cpu-scale-down
-    autoscale-group-name: @(aws::autoscaling-group web.frontend | autoscale-group-name)
+    autoscale-group-name: @(aws.autoscaling-group web.frontend | autoscale-group-name)
     adjustment-type: ChangeInCapacity
     scaling-adjustment: -4
     cool-down: 300
 end
 
-aws::cloudwatch-metric-alarm frontend-autoscaling-cpu-low
-    name: @(aws::autoscaling-policy high-cpu-scale-down | name)
+resource aws.cloudwatch-metric-alarm frontend-autoscaling-cpu-low
+    name: @(aws.autoscaling-policy high-cpu-scale-down | name)
     metric-name: CPUUtilization
     namespace: AWS/EC2
     evaluation-periods: 1
@@ -66,8 +66,8 @@ aws::cloudwatch-metric-alarm frontend-autoscaling-cpu-low
     comparison-operator: LessThanThreshold
 
     dimensions:
-        AutoScalingGroupName: @(aws::autoscaling-group web.frontend | autoscale-group-name)
+        AutoScalingGroupName: @(aws.autoscaling-group web.frontend | autoscale-group-name)
     end
 
-    alarm-actions: [@(aws::autoscaling-policy high-cpu-scale-down | arn)]
+    alarm-actions: [@(aws.autoscaling-policy high-cpu-scale-down | arn)]
 end

@@ -9,8 +9,8 @@ virtual_resource
     elb-subnets
     frontend-subnets
 define
-    aws::security-group elb
-        vpc-id: @(aws::vpc vpc | vpc-id)
+    resource aws.security-group elb
+        vpc-id: @(aws.vpc vpc | vpc-id)
 
         add ingress
             from-port: 80
@@ -27,7 +27,7 @@ define
         end
     end
 
-    aws::elastic-load-balancer web
+    resource aws.elastic-load-balancer web
         name: $(project-name)-web-$(serial)
 
         add listener
@@ -52,65 +52,65 @@ define
             healthy-threshold: 2
         end
 
-        subnets: #(aws::subnet elb-subnets | subnet-id)
-        security-groups-ids: [@(aws::security-group elb | security-group-ids)]
+        subnets: #(aws.subnet elb-subnets | subnet-id)
+        security-groups-ids: [@(aws.security-group elb | security-group-ids)]
     end
 
-    aws::hosted-zone-record prod.$subdomainend
-        zone-id: @(aws::hosted-zone hosted-zone | zone-id)
+    resource aws.hosted-zone-record prod.$subdomainend
+        zone-id: @(aws.hosted-zone hosted-zone | zone-id)
         name: prod.$(subdomain)
         type: CNAME
         ttl: 300
-        records: [@(aws::elastic-load-balancer web | canonical-hosted-zone-name)]
+        records: [@(aws.elastic-load-balancer web | canonical-hosted-zone-name)]
     end
 
-    aws::security-group frontend
-        vpc-id: @(aws::vpc vpc | vpc-id)
+    resource aws.security-group frontend
+        vpc-id: @(aws.vpc vpc | vpc-id)
 
         add ingress
             from-port: 80
             to-port: 80
             protocol: tcp
-            security-groups: [@(aws::security-group elb | security-group-id)]
+            security-groups: [@(aws.security-group elb | security-group-id)]
         end
 
         add ingress
             from-port: 22
             to-port: 22
             protocol: tcp
-            security-groups: [@(aws::security-group elb | security-group-id)]
+            security-groups: [@(aws.security-group elb | security-group-id)]
         end
 
         add ingress
             from-port: 80
             to-port: 80
             protocol: tcp
-            security-groups: [@(aws::security-group elb | security-group-id)]
+            security-groups: [@(aws.security-group elb | security-group-id)]
         end
 
         add ingress
             from-port: 8080
             to-port: 8080
             protocol: tcp
-            security-groups: [@(aws::security-group elb | security-group-id)]
+            security-groups: [@(aws.security-group elb | security-group-id)]
         end
     end
 
-    aws::launch-configuration frontend
+    resource aws.launch-configuration frontend
         name: $(project-name) frontend $(environment) v$(serial)
 
         image: ami-0ddcc69ab30ed9c03
         instance-type: t2.medium
-        key-pair: @(aws::key-pair key-pair | name)
+        key-pair: @(aws.key-pair key-pair | name)
 
-        security-groups: [@(aws::security-group frontend | security-group-id)]
+        security-groups: [@(aws.security-group frontend | security-group-id)]
     end
 
-    aws::autoscaling-group frontend
-        autoscale-group-name: @(aws::launch-configuration frontend | name)
-        launch-configuration-name: @(aws::launch-configuration frontend | name)
-        load-balancer-names: [@(aws::elastic-load-balancer web | name)]
-        vpc-zone-identitiers: #(aws::subnet frontend-subnets | subnet-id)
+    resource aws.autoscaling-group frontend
+        autoscale-group-name: @(aws.launch-configuration frontend | name)
+        launch-configuration-name: @(aws.launch-configuration frontend | name)
+        load-balancer-names: [@(aws.elastic-load-balancer web | name)]
+        vpc-zone-identitiers: #(aws.subnet frontend-subnets | subnet-id)
         default-cool-down: 300
         health-check-type: ec2
 
