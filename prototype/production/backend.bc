@@ -70,7 +70,7 @@ resource aws.instance backend-us-east-1b
     end
 end
 
-resource aws.instance master-us-east-1c tags: [ backend-master ]
+resource aws.instance master-us-east-1c backend-master
     image: ami-04aaab62bebf49db8
     instance-type: t2.medium
     iam-instance-profile: @(aws.iam-instance-profile backend | name)

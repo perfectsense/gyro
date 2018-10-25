@@ -119,7 +119,7 @@ resource aws.hosted-zone-record vpn.$project.SUBDOMAIN
     type: A
     ttl: 300
     records:
-        - @(aws.instance us-east-1a | public-ip-address),
-        - @(aws.instance us-east-1b | public-ip-address),
+        - @(aws.instance us-east-1a | public-ip-address)
+        - @(aws.instance us-east-1b | public-ip-address)
         - @(aws.instance us-east-1c | public-ip-address)
 end
