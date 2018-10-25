@@ -1,9 +1,9 @@
 import project
-import vpc.beam
+import vpc
 import route53
 
-import "frontend.beam" as frontend
-import "backend.beam" as backend
+import frontend
+import backend
 
 ENVIRONMENT: production
 
