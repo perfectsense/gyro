@@ -59,11 +59,15 @@ scalar
     ;
 
 scalarFirstLiteral
-    : WS* (reference | unquotedLiteral)
+    : scalarLiteral
     ;
 
 scalarRestLiterals
-    : (WS* (reference | unquotedLiteral))*
+    : (scalarLiteral)*
+    ;
+
+scalarLiteral
+    : WS* (reference | unquotedLiteral)
     ;
 
 list
@@ -119,5 +123,5 @@ constantReference
     ;
 
 constantReferenceChain
-    : (ID.)* CONST_VAR
+    : (ID.)* VARIABLE
     ;
