@@ -29,6 +29,10 @@ public class BeamContextKey {
         this.id = id;
     }
 
+    public BeamContextKey scopeContextKey(String scope) {
+        return new BeamContextKey(type, String.format("%s.%s", scope, id));
+    }
+
     @Override
     public String toString() {
         return String.format("%s %s", type, id);
