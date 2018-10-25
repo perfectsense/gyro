@@ -1,6 +1,6 @@
-import brightspot.frontend
 import project
-import vpc
+import network.vpc
+import brightspot.frontend
 
 brightspot.frontend cms
     project-name: $(project.NAME)

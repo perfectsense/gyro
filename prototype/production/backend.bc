@@ -1,6 +1,5 @@
 import project
-import vpc
-
+import network.vpc
 import frontend
 
 aws.security-group backend

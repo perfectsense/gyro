@@ -1,5 +1,5 @@
 import project
-import gateway
+import network.*
 import brightspot.*
 
 ENVIRONMENT: production
