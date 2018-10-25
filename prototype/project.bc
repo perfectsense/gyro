@@ -25,20 +25,20 @@ end
 
 import vpc
 
-resource aws.credentials
+aws.credentials
     default-credentials: true
     region: us-east-1
 end
 
-resource aws.credentials aws_us_east_2
+aws.credentials aws_us_east_2
     region: us-east-2
 end
 
-resource aws.key-pair key-pair
+aws.key-pair key-pair
     name: $(NAME)
 end
 
-resource aws.security-group operations
+aws.security-group operations
     vpc-id: @(aws.vpc vpc | vpc-id)
         
     // Office & VPN IPs

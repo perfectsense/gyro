@@ -3,7 +3,7 @@ import vpc
 
 import frontend
 
-resource aws.security-group backend
+aws.security-group backend
     vpc-id: @(aws.vpc vpc.vpc | vpc-id)
 
     for port in [3306, 8180]:
@@ -16,17 +16,17 @@ resource aws.security-group backend
     end
 end
 
-resource aws.iam-role backend
+aws.iam-role backend
     name: $(project.NAME)-$(ENVIRONMENT)-$(project.SERIAL)-backend
 end
 
-resource aws.iam-role-policy production-backend-s3
+aws.iam-role-policy production-backend-s3
     role-name: @(aws.iam-role backend.nameend
     name: production-backend-s3
     path: roles/production-backend-s3.json
 end
 
-resource aws.iam-instance-profile backend
+aws.iam-instance-profile backend
     name: @(aws.iam-role-policy production-backend-s3 | role-name)
 end
 

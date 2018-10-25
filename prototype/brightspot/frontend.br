@@ -9,7 +9,7 @@ virtual_resource
     elb-subnets
     frontend-subnets
 define
-    resource aws.security-group elb
+    aws.security-group elb
         vpc-id: @(aws.vpc vpc | vpc-id)
 
         add ingress
@@ -27,7 +27,7 @@ define
         end
     end
 
-    resource aws.elastic-load-balancer elb
+    aws.elastic-load-balancer elb
         name: $(project-name)-web-$(serial)
 
         add listener
@@ -56,7 +56,7 @@ define
         security-groups-ids: [@(aws.security-group elb | security-group-ids)]
     end
 
-    resource aws.hosted-zone-record prod.$subdomainend
+    aws.hosted-zone-record prod.$subdomainend
         zone-id: @(aws.hosted-zone hosted-zone | zone-id)
         name: prod.$(subdomain)
         type: CNAME
@@ -64,7 +64,7 @@ define
         records: [@(aws.elastic-load-balancer web | canonical-hosted-zone-name)]
     end
 
-    resource aws.security-group security-group
+    aws.security-group security-group
         vpc-id: @(aws.vpc vpc | vpc-id)
 
         add ingress
@@ -96,7 +96,7 @@ define
         end
     end
 
-    resource aws.launch-configuration launch-configuration
+    aws.launch-configuration launch-configuration
         name: $(project-name) frontend $(environment) v$(serial)
 
         image: ami-0ddcc69ab30ed9c03
@@ -106,7 +106,7 @@ define
         security-groups: [@(aws.security-group frontend | security-group-id)]
     end
 
-    resource aws.autoscaling-group autoscaling-group
+    aws.autoscaling-group autoscaling-group
         autoscale-group-name: @(aws.launch-configuration frontend | name)
         launch-configuration-name: @(aws.launch-configuration frontend | name)
         load-balancer-names: [@(aws.elastic-load-balancer web | name)]
@@ -119,5 +119,4 @@ define
 
         tags: $project.defaultTags
     end
-
 end

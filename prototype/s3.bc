@@ -1,6 +1,6 @@
 import project
 
-resource aws.bucket beam-enterprise-ops
+aws.bucket beam-enterprise-ops
     name: beam-enterprise-ops
 
     add cors-rule

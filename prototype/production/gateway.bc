@@ -7,7 +7,7 @@ import backend
 
 ENVIRONMENT: production
 
-resource aws.security-group security-group
+aws.security-group security-group
     vpc-id: @(aws.vpc vpc.vpc | vpc-id)
         
     add ingress
@@ -38,21 +38,21 @@ resource aws.security-group security-group
     end
 end
 
-resource aws.iam-role gateway-role
+aws.iam-role gateway-role
     name: $(project.NAME)-$(ENVIRONMENT)-$(project.SERIAL)-gateway
 end
 
-resource aws.iam-role-policy gateway-beam-server-readonly-policy
+aws.iam-role-policy gateway-beam-server-readonly-policy
     role-name: @(aws.iam-role gateway-role | name)
     name: beam-server-readonly
     path: roles/beam-server-readonly.json
 end
 
-resource aws.iam-instance-profile gateway-instance-role
+aws.iam-instance-profile gateway-instance-role
     name: @(aws.iam-role-policy gateway-beam-server-readonly-policy | name)
 end
 
-resource aws.instance us-east-1a
+aws.instance us-east-1a
     image: ami-04aaab62bebf49db8
     instance-type: t2.medium
     private-ip: 10.0.0.10
@@ -72,7 +72,7 @@ resource aws.instance us-east-1a
     end
 end
 
-resource aws.instance us-east-1b
+aws.instance us-east-1b
     image: ami-04aaab62bebf49db8
     instance-type: t2.medium
     private-ip: 10.0.1.10
@@ -92,7 +92,7 @@ resource aws.instance us-east-1b
     end
 end
 
-resource aws.instance us-east-1c
+aws.instance us-east-1c
     image: ami-04aaab62bebf49db8
     instance-type: t2.medium
     private-ip: 10.0.2.10
@@ -113,7 +113,7 @@ resource aws.instance us-east-1c
     end
 end
 
-resource aws.hosted-zone-record vpn.$project.SUBDOMAIN
+aws.hosted-zone-record vpn.$project.SUBDOMAIN
     zone-id: @(aws.hosted-zone route53.public | zone-id)
     name: vpn.$project.SUBDOMAINend
     type: A

@@ -1,7 +1,7 @@
 import project
 import production.gateway as gateway
 
-resource aws.vpc vpc
+aws.vpc vpc
     name: beam enterprise
     cidr-block: 10.0.0.0/16
     enable-dns-support: true
@@ -10,7 +10,7 @@ resource aws.vpc vpc
     tags: $(project.DEFAULT_TAGS)
 end
 
-resource aws.internet-gateway igw
+aws.internet-gateway igw
     vpc-id: @(aws.vpc vpc | vpc-id)
     name: beam enterprise
     tags: $(project.DEFAULT_TAGS)
@@ -18,7 +18,7 @@ end
 
 // US-EAST-1 - Zone A
 
-resource aws.subnet public-us-east-1a public
+aws.subnet public-us-east-1a public
     name: $(project.NAME) [public, public-us-east, public-us-east-1a]
     
     vpc-id: @(aws.vpc vpc | vpc-id)
@@ -29,7 +29,7 @@ resource aws.subnet public-us-east-1a public
     tags: $(project.DEFAULT_TAGS)
 end
 
-resource aws.subnet private-us-east-1a private
+aws.subnet private-us-east-1a private
     name: $(project.NAME) [private, private-us-east, private-us-east-1a]
     
     vpc-id: @(aws.vpc vpc | vpc-id)
@@ -40,7 +40,7 @@ resource aws.subnet private-us-east-1a private
     tags: $(project.DEFAULT_TAGS)
 end
 
-resource aws.subnet development
+aws.subnet development
     name: $(project.NAME) [development]
     
     vpc-id: @(aws.vpc vpc | vpc-id)
@@ -51,7 +51,7 @@ resource aws.subnet development
     tags: $(project.DEFAULT_TAGS)
 end
 
-resource aws.route-table public-us-east-1a
+aws.route-table public-us-east-1a
     name: $(project.NAME) public, us-east-1a
         
     vpc-id: @(aws.vpc vpc | vpc-id)
@@ -62,19 +62,19 @@ resource aws.route-table public-us-east-1a
 end
 
 
-resource aws.route public-us-east-1a
+aws.route public-us-east-1a
     route-table-id: @(aws.route-table public-us-east-1a)
     cidr-block: 0.0.0.0/0
     gateway-id: @(aws.internet-gateway igw | gateway-id)
 end
 
-resource aws.route-table private-us-east-1a
+aws.route-table private-us-east-1a
     name: $(project.NAME) private, us-east-1a
         
     vpc-id: @(aws.vpc vpc | vpc-id)
 end
 
-resource aws.route private-us-east-1a
+aws.route private-us-east-1a
     route-table-id: @(aws.route-table private-us-east-1a | route-table-id)
     cidr-block: 0.0.0.0/0
     instance-id: @(aws.instance gateway.us-east-1a | instance-id)
@@ -82,7 +82,7 @@ end
 
 // US-EAST-1 - Zone B
 
-resource aws.subnet public-us-east-1b public
+aws.subnet public-us-east-1b public
     name: beam enterprise [public, public-us-east, public-us-east-1b]
     
     vpc-id: @(aws.vpc vpc | vpc-id)
@@ -93,7 +93,7 @@ resource aws.subnet public-us-east-1b public
     tags: $(DEFAULT_TAGS)
 end
 
-resource aws.subnet private-us-east-1b private
+aws.subnet private-us-east-1b private
     name: beam enterprise [private, private-us-east, private-us-east-1b]
     
     vpc-id: @(aws.vpc vpc | vpc-id)
@@ -104,13 +104,13 @@ resource aws.subnet private-us-east-1b private
     tags: $(project.DEFAULT_TAGS)
 end
 
-resource aws.route-table private-us-east-1b
+aws.route-table private-us-east-1b
     name: $(project.project) private, us-east-1b
         
     vpc-id: @(aws.vpc vpc | vpc-id)
 end
 
-resource aws.route private-us-east-1b
+aws.route private-us-east-1b
     route-table-id: @(aws.route-table private-us-east-1b)
     cidr-block: 0.0.0.0/0
     instance-id: @(aws.instance gateway.us-east-1b | instance-id)
@@ -118,7 +118,7 @@ end
 
 // US-EAST-1 - Zone C
 
-resource aws.subnet public-us-east-1c public
+aws.subnet public-us-east-1c public
     name: beam enterprise [public, public-us-east, public-us-east-1c]
     
     vpc-id: @(aws.vpc vpc | vpc-id)
@@ -129,7 +129,7 @@ resource aws.subnet public-us-east-1c public
     tags: $(project.DEFAULT_TAGS)
 end
 
-resource aws.subnet private-us-east-1c private master
+aws.subnet private-us-east-1c private master
     name: beam enterprise [private, private-us-east, private-us-east-1c]
     
     vpc-id: @(aws.vpc vpc | vpc-id)
@@ -140,13 +140,13 @@ resource aws.subnet private-us-east-1c private master
     tags: $(project.DEFAULT_TAGS)
 end
 
-resource aws.route-table private-us-east-1c
+aws.route-table private-us-east-1c
     name: $(project.project) private, us-east-1c
         
     vpc-id: @(aws.vpc vpc | vpc-id)
 end
 
-resource aws.route private-us-east-1c
+aws.route private-us-east-1c
     route-table-id: @(aws.route-table private-us-east-1c)
     cidr-block: 0.0.0.0/0
     instance-id: @(aws.instance gateway.us-east-1c | instance-id)
