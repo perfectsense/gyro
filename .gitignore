@@ -5,6 +5,8 @@ dist/
 .idea/
 .gradle
 target/
+build/
+out/
 
 # Output by Capsule
 dependency-reduced-pom.xml
