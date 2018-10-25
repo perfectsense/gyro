@@ -12,34 +12,25 @@ define
     aws.security-group elb
         vpc-id: @(aws.vpc vpc | vpc-id)
 
-        add ingress
-            from-port: 80
-            to-port: 80
-            protocol: tcp
-            cidr-block: 0.0.0.0/0
-        end
-
-        add ingress
-            from-port: 443
-            to-port: 443
-            protocol: tcp
-            cidr-block: 0.0.0.0/0
+        for port in [80, 443]:
+            add ingress
+                from-port: $(port)
+                to-port: $(port)
+                protocol: tcp
+                cidr-block: 0.0.0.0/0
+            end
         end
     end
 
     aws.elastic-load-balancer elb
         name: $(project-name)-web-$(serial)
 
-        add listener
-            load-balancer-port: 80
-            instance-protocol: http
-            instance-port: 80
-        end
-
-        add listener
-            load-balancer-port: 443
-            instance-protocol: https
-            instance-port: 80
+        for load-balancer-port, instance-port, instance-protocol in [80, 80, http, 443, 80, https]:
+            add listener
+                load-balancer-port: $(load-balancer-port)
+                instance-protocol: $(instance-protocol)
+                instance-port: $(instance-port)
+            end
         end
 
         add health-check
@@ -67,32 +58,13 @@ define
     aws.security-group security-group
         vpc-id: @(aws.vpc vpc | vpc-id)
 
-        add ingress
-            from-port: 80
-            to-port: 80
-            protocol: tcp
-            security-groups: [@(aws.security-group elb | security-group-id)]
-        end
-
-        add ingress
-            from-port: 22
-            to-port: 22
-            protocol: tcp
-            security-groups: [@(aws.security-group elb | security-group-id)]
-        end
-
-        add ingress
-            from-port: 80
-            to-port: 80
-            protocol: tcp
-            security-groups: [@(aws.security-group elb | security-group-id)]
-        end
-
-        add ingress
-            from-port: 8080
-            to-port: 8080
-            protocol: tcp
-            security-groups: [@(aws.security-group elb | security-group-id)]
+        for port in [80, 22, 8080]:
+            add ingress
+                from-port: $(port)
+                to-port: $(port)
+                protocol: tcp
+                security-groups: [@(aws.security-group elb | security-group-id)]
+            end
         end
     end
 
@@ -117,6 +89,6 @@ define
         minSize: 4
         maxSize: 8
 
-        tags: $project.defaultTags
+        tags: $(project.defaultTags)
     end
 end
