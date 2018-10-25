@@ -1,14 +1,9 @@
 package beam.commands;
 
 import java.io.*;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Scanner;
-import java.util.Set;
+import java.util.*;
 
-import beam.core.BeamConfigLocation;
-import beam.core.BeamException;
-import beam.core.BeamRuntime;
+import beam.core.*;
 import beam.core.diff.ChangeType;
 import beam.core.diff.DiffUtil;
 import beam.core.diff.ResourceDiff;
@@ -16,7 +11,7 @@ import beam.parser.ASTListener;
 import beam.parser.antlr4.BeamLexer;
 import beam.parser.antlr4.BeamParser;
 import beam.parser.ast.ASTBeamRoot;
-import beam.parser.ast.Node;
+import com.psddev.dari.util.ObjectUtils;
 import io.airlift.airline.Arguments;
 import io.airlift.airline.Command;
 import io.airlift.airline.Option;
@@ -38,19 +33,45 @@ public class UpCommand implements Runnable {
 
     public void run() {
         parse(configName);
+        boolean progress = true;
+        while (progress) {
+            progress = false;
+            for (String path : BeamRuntime.getContexts().keySet()) {
+                BeamContext context = BeamRuntime.getContexts().get(path);
+                for (BeamContextKey key : context.getNativeContext().keySet()) {
+                    BeamReferable referable = context.getNativeContext().get(key);
+                    progress = referable.resolve(context) || progress;
+                }
+            }
+        }
+
+        for (String path : BeamRuntime.getContexts().keySet()) {
+            BeamContext context = BeamRuntime.getContexts().get(path);
+            System.out.println(path);
+            for (BeamContextKey key : context.getContext().keySet()) {
+                BeamReferable referable = context.getContext().get(key);
+                System.out.println(key);
+                if (referable.getValue() != null) {
+                    System.out.println(referable.getValue().getClass());
+                    System.out.println(ObjectUtils.toJson(referable.getValue()));
+                }
+
+                System.out.println();
+                System.out.println();
+            }
+        }
     }
 
     public ASTBeamRoot parse(String filename) {
         try {
-
-
             BeamLexer lexer = new BeamLexer(CharStreams.fromFileName(filename));
             CommonTokenStream tokens = new CommonTokenStream(lexer);
 
             BeamParser parser = new BeamParser(tokens);
             BeamParser.BeamRootContext context = parser.beamRoot();
 
-            ASTListener listener = new ASTListener(filename);
+            File configFile = new File(filename);
+            ASTListener listener = new ASTListener(configFile.getCanonicalPath());
             ParseTreeWalker.DEFAULT.walk(listener, context);
             return listener.getRoot();
 

@@ -17,6 +17,7 @@ import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.*;
 import java.util.*;
+import com.google.common.base.CaseFormat;
 
 public class ASTHandler {
 
@@ -68,38 +69,9 @@ public class ASTHandler {
         return className;
     }
 
-    public static boolean checkReference(Object value, BeamResource resource, Map<String, BeamResource> symbolTable) {
-        boolean hasReference = false;
-        if (value instanceof Map) {
-            for (Object key : ((Map) value).keySet()) {
-                hasReference = checkReference(((Map) value).get(key), resource, symbolTable) || hasReference;
-            }
-
-        } else if (value instanceof Collection) {
-            for (Object item : (Collection) value) {
-                hasReference = checkReference(item, resource, symbolTable) || hasReference;
-            }
-        } else {
-            if (value != null && BeamReference.isReference(value.toString())) {
-                if (symbolTable != null) {
-                    BeamReference beamReference = new BeamReference(symbolTable, value.toString());
-                    BeamResource dependency = beamReference.getResource();
-                    resource.dependencies().add(dependency);
-                    dependency.dependents().add(resource);
-                    resource.getReferences().put(beamReference.getKey(), beamReference);
-                }
-
-                hasReference = true;
-            } else {
-                hasReference = false;
-            }
-        }
-
-        return hasReference;
-    }
-
     public static void populate(Object object, String key, Object value) {
         try {
+            key = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key);
             ObjectMapper mapper = new ObjectMapper();
             PropertyDescriptor pd = new PropertyDescriptor(key, object.getClass());
             Method setter = pd.getWriteMethod();
@@ -132,19 +104,6 @@ public class ASTHandler {
 
         } catch (Exception e) {
             throw new BeamException(String.format("Unable to populate %s with %s in %s!", key, value, object), e);
-        }
-    }
-
-    public static void populateSettings(BeamObject object, String key, Object value) {
-        if (object instanceof BeamResource) {
-            BeamResource resource = (BeamResource) object;
-            if (BeamReference.containsReference(value)) {
-                resource.getUnResolvedProperties().put(key, value);
-            } else {
-                populate(object, key, value);
-            }
-        } else {
-            populate(object, key, value);
         }
     }
 
@@ -296,18 +255,6 @@ public class ASTHandler {
         }
     }
 
-    private static void resolveReference(List<Diff<?, ?, ?>> diffs) {
-        for (Diff<?, ?, ?> diff : diffs) {
-            for (Change<?> change : diff.getChanges()) {
-                if (change instanceof ResourceChange) {
-                    ((ResourceChange) change).resolveReference();
-                }
-
-                resolveReference(change.getDiffs());
-            }
-        }
-    }
-
     public static ResourceDiff exitBeamRoot(Set<BeamResource> pending, Set<ChangeType> changeTypes, Map<String, BeamProvider> providerTable) {
         BeamProvider beamProvider = null;
         for (BeamProvider oneProvider : providerTable.values()) {
@@ -351,7 +298,7 @@ public class ASTHandler {
 
         try {
             ResourceDiff resourceDiff = DiffUtil.generateDiff(beamProvider, null, adjustCurrent, pending);
-            resolveReference(Arrays.asList(resourceDiff));
+            //resolveReference(Arrays.asList(resourceDiff));
             return resourceDiff;
 
         } catch (Exception e) {
