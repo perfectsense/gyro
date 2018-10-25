@@ -1,7 +1,7 @@
-import "project.beam" as project
-import "production/gateway.beam" as gateway
+import project
+import production.gateway as gateway
 
-aws::vpc vpc
+resource aws.vpc vpc
     name: beam enterprise
     cidr-block: 10.0.0.0/16
     enable-dns-support: true
@@ -10,18 +10,18 @@ aws::vpc vpc
     tags: $(project.DEFAULT_TAGS)
 end
 
-aws::internet-gateway igw
-    vpc-id: @(aws::vpc vpc | vpc-id)
+resource aws.internet-gateway igw
+    vpc-id: @(aws.vpc vpc | vpc-id)
     name: beam enterprise
     tags: $(project.DEFAULT_TAGS)
 end
 
 // US-EAST-1 - Zone A
 
-aws::subnet public-us-east-1a tags: [ public ]
+resource aws.subnet public-us-east-1a public
     name: $(project.NAME) [public, public-us-east, public-us-east-1a]
     
-    vpc-id: @(aws::vpc vpc | vpc-id)
+    vpc-id: @(aws.vpc vpc | vpc-id)
     cidr-block: 10.0.0.0/26
     availability-zone: us-east-1a
     assign-public-ip-v4-address: true
@@ -29,10 +29,10 @@ aws::subnet public-us-east-1a tags: [ public ]
     tags: $(project.DEFAULT_TAGS)
 end
 
-aws::subnet private-us-east-1a tags: [ private ]
+resource aws.subnet private-us-east-1a private
     name: $(project.NAME) [private, private-us-east, private-us-east-1a]
     
-    vpc-id: @(aws::vpc vpc | vpc-id)
+    vpc-id: @(aws.vpc vpc | vpc-id)
     cidr-block: 10.0.0.128/25
     availability-zone: us-east-1a
     assign-public-ip-v4-address: no
@@ -40,10 +40,10 @@ aws::subnet private-us-east-1a tags: [ private ]
     tags: $(project.DEFAULT_TAGS)
 end
 
-aws::subnet development
+resource aws.subnet development
     name: $(project.NAME) [development]
     
-    vpc-id: @(aws::vpc vpc | vpc-id)
+    vpc-id: @(aws.vpc vpc | vpc-id)
     cidr-block: 10.0.0.64/26
     availability-zone: us-east-1a
     assign-public-ip-v4-address: no
@@ -51,44 +51,41 @@ aws::subnet development
     tags: $(project.DEFAULT_TAGS)
 end
 
-aws::route-table public-us-east-1a
+resource aws.route-table public-us-east-1a
     name: $(project.NAME) public, us-east-1a
         
-    vpc-id: @(aws::vpc vpc | vpc-id)
+    vpc-id: @(aws.vpc vpc | vpc-id)
 
     associate_subnet
-        subnetId: @(aws::subet public-us-east-1a | subnet-id)
-
-
-    associate_subnet
-        subnetId: @(aws::subnet public-us-east-1b | subnet-id)
+        subnetId: @(aws.subet public-us-east-1a | subnet-id)
+    end
 end
 
 
-aws::route public-us-east-1a
-    route-table-id: @(aws::route-table public-us-east-1a)
+resource aws.route public-us-east-1a
+    route-table-id: @(aws.route-table public-us-east-1a)
     cidr-block: 0.0.0.0/0
-    gateway-id: @(aws::internet-gateway igw | gateway-id)
+    gateway-id: @(aws.internet-gateway igw | gateway-id)
 end
 
-aws::route-table private-us-east-1a
+resource aws.route-table private-us-east-1a
     name: $(project.NAME) private, us-east-1a
         
-    vpc-id: @(aws::vpc vpc | vpc-id)
+    vpc-id: @(aws.vpc vpc | vpc-id)
 end
 
-aws::route private-us-east-1a
-    route-table-id: @(aws::route-table private-us-east-1a | route-table-id)
+resource aws.route private-us-east-1a
+    route-table-id: @(aws.route-table private-us-east-1a | route-table-id)
     cidr-block: 0.0.0.0/0
-    instance-id: @(aws::instance gateway.us-east-1a | instance-id)
+    instance-id: @(aws.instance gateway.us-east-1a | instance-id)
 end
 
 // US-EAST-1 - Zone B
 
-aws::subnet public-us-east-1b tags: [ public ]
+resource aws.subnet public-us-east-1b public
     name: beam enterprise [public, public-us-east, public-us-east-1b]
     
-    vpc-id: @(aws::vpc vpc | vpc-id)
+    vpc-id: @(aws.vpc vpc | vpc-id)
     cidr-block: 10.0.1.0/26
     availability-zone: us-east-1b
     assign-public-ip-v4-address: true
@@ -96,10 +93,10 @@ aws::subnet public-us-east-1b tags: [ public ]
     tags: $(DEFAULT_TAGS)
 end
 
-aws::subnet private-us-east-1b tags: [ private ]
+resource aws.subnet private-us-east-1b private
     name: beam enterprise [private, private-us-east, private-us-east-1b]
     
-    vpc-id: @(aws::vpc vpc | vpc-id)
+    vpc-id: @(aws.vpc vpc | vpc-id)
     cidr-block: 10.0.1.128/25
     availability-zone: us-east-1b
     assign-public-ip-v4-address: no
@@ -107,24 +104,24 @@ aws::subnet private-us-east-1b tags: [ private ]
     tags: $(project.DEFAULT_TAGS)
 end
 
-aws::route-table private-us-east-1b
+resource aws.route-table private-us-east-1b
     name: $(project.project) private, us-east-1b
         
-    vpc-id: @(aws::vpc vpc | vpc-id)
+    vpc-id: @(aws.vpc vpc | vpc-id)
 end
 
-aws::route private-us-east-1b
-    route-table-id: @(aws::route-table private-us-east-1b)
+resource aws.route private-us-east-1b
+    route-table-id: @(aws.route-table private-us-east-1b)
     cidr-block: 0.0.0.0/0
-    instance-id: @(aws::instance gateway.us-east-1b | instance-id)
+    instance-id: @(aws.instance gateway.us-east-1b | instance-id)
 end
 
 // US-EAST-1 - Zone C
 
-aws::subnet public-us-east-1c tags: [ public ]
+resource aws.subnet public-us-east-1c public
     name: beam enterprise [public, public-us-east, public-us-east-1c]
     
-    vpc-id: @(aws::vpc vpc | vpc-id)
+    vpc-id: @(aws.vpc vpc | vpc-id)
     cidr-block: 10.0.2.0/26
     availability-zone: us-east-1c
     assign-public-ip-v4-address: true
@@ -132,10 +129,10 @@ aws::subnet public-us-east-1c tags: [ public ]
     tags: $(project.DEFAULT_TAGS)
 end
 
-aws::subnet private-us-east-1c tags: [ master, private ]
+resource aws.subnet private-us-east-1c master, private
     name: beam enterprise [private, private-us-east, private-us-east-1c]
     
-    vpc-id: @(aws::vpc vpc | vpc-id)
+    vpc-id: @(aws.vpc vpc | vpc-id)
     cidr-block: 10.0.2.128/25
     availability-zone: us-east-1c
     assign-public-ip-v4-address: no
@@ -143,14 +140,14 @@ aws::subnet private-us-east-1c tags: [ master, private ]
     tags: $(project.DEFAULT_TAGS)
 end
 
-aws::route-table private-us-east-1c
+resource aws.route-table private-us-east-1c
     name: $(project.project) private, us-east-1c
         
-    vpc-id: @(aws::vpc vpc | vpc-id)
+    vpc-id: @(aws.vpc vpc | vpc-id)
 end
 
-aws::route private-us-east-1c
-    route-table-id: @(aws::route-table private-us-east-1c)
+resource aws.route private-us-east-1c
+    route-table-id: @(aws.route-table private-us-east-1c)
     cidr-block: 0.0.0.0/0
-    instance-id: @(aws::instance gateway.us-east-1c | instance-id)
+    instance-id: @(aws.instance gateway.us-east-1c | instance-id)
 end
