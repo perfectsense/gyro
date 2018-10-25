@@ -1,26 +1,18 @@
 import project
 import vpc
 
-import gateway
 import frontend
-
-ENVIRONMENT: production
 
 resource aws.security-group backend
     vpc-id: @(aws.vpc vpc.vpc | vpc-id)
 
-    add ingress
-        from-port: 3306
-        to-port: 3306
-        protocol: tcp
-        security-groups: #(aws.security-group frontend.frontend | security-group-id)
-    end
-
-    add ingress
-        from-port: 8180
-        to-port: 8180
-        protocol: tcp
-        security-groups: #(aws.security-group frontend.frontend | security-group-id)
+    for port in [3306, 8180]:
+        add ingress
+            from-port: $(port)
+            to-port: $(port)
+            protocol: tcp
+            security-groups: #(aws.security-group frontend.frontend | security-group-id)
+        end
     end
 end
 
@@ -38,50 +30,26 @@ resource aws.iam-instance-profile backend
     name: @(aws.iam-role-policy production-backend-s3 | role-name)
 end
 
-resource aws.instance backend-us-east-1a
-    image: ami-04aaab62bebf49db8
-    instance-type: t2.medium
-    iam-instance-profile: @(aws.iam-instance-profile backend | name)
-    security-group-ids: #(aws.security-group backend project.operation | security-group-id)
-    subnet-id: @(aws.subnet vpc.public-us-east-1a | subnet-id)
-    key-pair: @(aws.key-pair project.key-pair | name)
-
-    tags:
-        Project: $(project.NAME)
-        Serial: $(project.SERIAL)
-        beam.environment: $(ENVIRONMENT)
-        beam.layer: backend
+for zone-resource in #(aws.subnet vpc.private):
+    type: backend
+    zone: @(aws.subnet zone-resource | availability-zone)
+    if @(aws.subnet zone-resource) == #(aws.subnet vpc.master):
+        type: master
     end
-end
 
-resource aws.instance backend-us-east-1b
-    image: ami-04aaab62bebf49db8
-    instance-type: t2.medium
-    iam-instance-profile: @(aws.iam-instance-profile backend | name)
-    security-group-ids: #(aws.security-group backend project.operation | security-group-id)
-    subnet-id: @(aws.subnet vpc.public-us-east-1b | subnet-id)
-    key-pair: @(aws.key-pair project.key-pair | name)
+    aws.instance $(type)-$(zone)
+        image: ami-04aaab62bebf49db8
+        instance-type: t2.medium
+        iam-instance-profile: @(aws.iam-instance-profile backend | name)
+        security-group-ids: #(aws.security-group backend project.operation | security-group-id)
+        subnet-id: @(aws.subnet zone-resource | subnet-id)
+        key-pair: @(aws.key-pair project.key-pair | name)
 
-    tags:
-        Project: $project.NAMEend
-        Serial: $project.SERIALend
-        beam.environment: $ENVIRONMENTend
-        beam.layer: backend
-    end
-end
-
-resource aws.instance master-us-east-1c backend-master
-    image: ami-04aaab62bebf49db8
-    instance-type: t2.medium
-    iam-instance-profile: @(aws.iam-instance-profile backend | name)
-    security-group-ids: #(aws.security-group backend project.operation | security-group-id)
-    subnet-id: @(aws.subnet vpc.public-us-east-1b | subnet-id)
-    key-pair: @(aws.key-pair project.key-pair | name)
-
-    tags:
-        Project: $project.NAMEend
-        Serial: $project.SERIALend
-        beam.environment: $ENVIRONMENTend
-        beam.layer: backend
+        tags:
+            Project: $(project.NAME)
+            beam.project: $(project.NAME)
+            beam.serial: $(project.SERIAL)
+            beam.environment: $(ENVIRONMENT)
+            beam.layer: $(type)
     end
 end
