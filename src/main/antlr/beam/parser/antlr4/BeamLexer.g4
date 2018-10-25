@@ -57,7 +57,6 @@ AT            : '@' ;
 COMMA         : ',' ;
 DOT           : '.' ;
 PIPE          : '|' ;
-ASSIGN        : '=' -> pushMode(SCALAR) ;
 COLON         : ':' -> pushMode(SCALAR) ;
 DASH          : '-' -> pushMode(SCALAR) ;
 STAR          : '*' -> pushMode(MAP) ;

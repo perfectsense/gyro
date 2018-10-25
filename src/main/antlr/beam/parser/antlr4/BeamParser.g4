@@ -27,7 +27,7 @@ path
     ;
 
 assignmentBlock
-    : CONST_VAR ASSIGN value
+    : VARIABLE COLON value
     ;
 
 resourceBlock
