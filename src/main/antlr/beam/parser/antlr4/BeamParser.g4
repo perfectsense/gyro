@@ -87,7 +87,11 @@ mapEntry
     ;
 
 keyScalarBlock
-    : key COLON scalar
+    : mapKey COLON scalar
+    ;
+
+mapKey
+    : MAP_KEY
     ;
 
 actionBlock
