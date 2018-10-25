@@ -291,7 +291,7 @@ public abstract class BeamResource<B extends BeamProvider> extends BeamObject im
         boolean progress = false;
         for (String key : getUnResolvedProperties().keySet()) {
             BeamReferable referable = getUnResolvedProperties().get(key);
-            progress = progress || referable.resolve(context);
+            progress = referable.resolve(context) || progress;
             if (referable.getValue() != null) {
                 ASTHandler.populate(this, key, referable.getValue());
                 getUnResolvedProperties().remove(key);

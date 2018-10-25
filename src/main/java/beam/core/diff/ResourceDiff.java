@@ -73,7 +73,7 @@ public class ResourceDiff<B extends BeamProvider> extends Diff<ResourceDiffKey, 
 
             @Override
             protected BeamResource<B> change() {
-                this.resolveReference();
+                //this.resolveReference();
                 try {
                     for (PropertyDescriptor p : Introspector.getBeanInfo(pending.getClass()).getPropertyDescriptors()) {
                         Method reader = p.getReadMethod();

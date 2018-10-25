@@ -3,7 +3,6 @@ package beam.core;
 import beam.parser.BeamConfigGenerator;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -14,7 +13,7 @@ public class BeamRuntime {
 
     private static BeamConfigGenerator beamConfigTranslator = new BeamConfigGenerator();
 
-    private static Map<String, Object> context = new ConcurrentHashMap<>();
+    private static Map<String, BeamContext> contexts = new ConcurrentHashMap<>();
 
     public static List<BeamConfigLocation> getBeamConfigLocations() {
         return beamConfigLocations;
@@ -32,11 +31,11 @@ public class BeamRuntime {
         BeamRuntime.beamConfigTranslator = beamConfigTranslator;
     }
 
-    public static Map<String, Object> getContext() {
-        return context;
+    public static Map<String, BeamContext> getContexts() {
+        return contexts;
     }
 
-    public static void setContext(Map<String, Object> context) {
-        BeamRuntime.context = context;
+    public static void setContexts(Map<String, BeamContext> context) {
+        BeamRuntime.contexts = contexts;
     }
 }

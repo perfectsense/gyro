@@ -52,7 +52,7 @@ public class BeamScalar implements BeamReferable {
         } else {
             StringBuilder sb = new StringBuilder();
             for (BeamLiteral literal : getElements()) {
-                progress = progress || literal.resolve(context);
+                progress = literal.resolve(context) || progress;
 
                 if (literal.getValue() != null) {
                     Object resolvedLiteral = literal.getValue();

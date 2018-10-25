@@ -27,7 +27,7 @@ path
     ;
 
 assignmentBlock
-    : CONST_VAR ASSIGN value
+    : VARIABLE COLON value
     ;
 
 resourceBlock
@@ -59,11 +59,15 @@ scalar
     ;
 
 scalarFirstLiteral
-    : WS* (reference | unquotedLiteral)
+    : scalarLiteral
     ;
 
 scalarRestLiterals
-    : (WS* (reference | unquotedLiteral))*
+    : (scalarLiteral)*
+    ;
+
+scalarLiteral
+    : WS* (reference | unquotedLiteral)
     ;
 
 list
@@ -83,7 +87,11 @@ mapEntry
     ;
 
 keyScalarBlock
-    : key COLON scalar
+    : mapKey COLON scalar
+    ;
+
+mapKey
+    : MAP_KEY
     ;
 
 actionBlock
@@ -119,5 +127,5 @@ constantReference
     ;
 
 constantReferenceChain
-    : (ID.)* CONST_VAR
+    : (ID.)* VARIABLE
     ;

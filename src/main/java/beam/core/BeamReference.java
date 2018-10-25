@@ -18,14 +18,12 @@ public class BeamReference extends BeamLiteral {
 
     private Object value;
 
-    public BeamReference(BeamContextKey key, List<String> referenceChain, String literal) {
-        super(literal);
+    public BeamReference(BeamContextKey key, List<String> referenceChain) {
         this.key = key;
         this.referenceChain = referenceChain;
     }
 
-    public BeamReference(BeamContextKey key, String chain, String literal) {
-        super(literal);
+    public BeamReference(BeamContextKey key, String chain) {
         this.key = key;
         this.referenceChain = parseReferenceChain(chain);
     }

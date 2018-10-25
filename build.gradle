@@ -37,6 +37,27 @@ dependencies {
     //compile group: 'org.slf4j', name: 'slf4j-simple', 'version': '1.7.6'
 }
 
+final PARSER_PACKAGE_NAME = 'beam.parser.antlr4'
+generateGrammarSource {
+    outputs.cacheIf { true }
+    arguments += ["-package", PARSER_PACKAGE_NAME, "-Xexact-output-dir"]
+
+    doLast {
+        def parserFilePattern = 'Groovy*'
+        def outputPath = generateGrammarSource.outputDirectory.canonicalPath
+        def parserPackagePath = "${outputPath}/${PARSER_PACKAGE_NAME.replace('.', '/')}"
+        file(parserPackagePath).mkdirs()
+        copy {
+            from outputPath
+            into parserPackagePath
+            include parserFilePattern
+        }
+        delete fileTree(outputPath) {
+            include parserFilePattern
+        }
+    }
+}
+
 task dist(type: FatCapsule) {
     applicationClass 'beam.Beam'
 }
