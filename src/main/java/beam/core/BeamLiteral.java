@@ -4,6 +4,9 @@ public class BeamLiteral implements BeamReferable {
 
     private String literal;
 
+    public BeamLiteral() {
+    }
+
     public BeamLiteral(String literal) {
         this.literal = literal;
     }
