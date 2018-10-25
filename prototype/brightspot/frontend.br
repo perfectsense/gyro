@@ -27,7 +27,7 @@ define
         end
     end
 
-    resource aws.elastic-load-balancer web
+    resource aws.elastic-load-balancer elb
         name: $(project-name)-web-$(serial)
 
         add listener
@@ -64,7 +64,7 @@ define
         records: [@(aws.elastic-load-balancer web | canonical-hosted-zone-name)]
     end
 
-    resource aws.security-group frontend
+    resource aws.security-group security-group
         vpc-id: @(aws.vpc vpc | vpc-id)
 
         add ingress
@@ -96,7 +96,7 @@ define
         end
     end
 
-    resource aws.launch-configuration frontend
+    resource aws.launch-configuration launch-configuration
         name: $(project-name) frontend $(environment) v$(serial)
 
         image: ami-0ddcc69ab30ed9c03
@@ -106,7 +106,7 @@ define
         security-groups: [@(aws.security-group frontend | security-group-id)]
     end
 
-    resource aws.autoscaling-group frontend
+    resource aws.autoscaling-group autoscaling-group
         autoscale-group-name: @(aws.launch-configuration frontend | name)
         launch-configuration-name: @(aws.launch-configuration frontend | name)
         load-balancer-names: [@(aws.elastic-load-balancer web | name)]

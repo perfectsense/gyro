@@ -4,7 +4,7 @@ import brightspot.*
 
 ENVIRONMENT: production
 
-virtual-resource brightspot.frontend web
+virtual-resource brightspot.frontend layer
     project-name: $(project.NAME)
     environment: production
     serial: $(project.SERIAL)
@@ -16,6 +16,13 @@ virtual-resource brightspot.frontend web
 
     elb-subnets: #(aws.subnet vpc.public)
     frontend-subnets: #(aws.subnet vpc.private)
+end
+
+workflow brightspot.deploy deployment
+    elb: @(aws.elb layer.elb)
+    hosted-zone: @(aws.hosted-zone hosted-zone)
+    autoscale-group: @(aws.autoscale-group layer.autoscale-group)
+    launch-configuration: @(aws.launch-configuration layer.launch-configuration)
 end
 
 // Defining scaling policies outside of the virtual resource to show

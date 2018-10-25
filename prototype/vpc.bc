@@ -58,10 +58,7 @@ resource aws.route-table public-us-east-1a
 
     associate_subnet
         subnetId: @(aws.subet public-us-east-1a | subnet-id)
-
-
-    associate_subnet
-        subnetId: @(aws.subnet public-us-east-1b | subnet-id)
+    end
 end
 
 
