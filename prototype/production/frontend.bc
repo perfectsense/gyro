@@ -1,10 +1,10 @@
 import project
-import gateway
+import network.*
 import brightspot.*
 
 ENVIRONMENT: production
 
-virtual-resource brightspot.frontend layer
+brightspot.frontend layer
     project-name: $(project.NAME)
     environment: production
     serial: $(project.SERIAL)
@@ -29,7 +29,7 @@ end
 // how interaction with resources defined by the virtual resource can
 // be referenced.
 
-resource aws.autoscaling-policy high-cpu-scale-up
+aws.autoscaling-policy high-cpu-scale-up
     name: high-cpu-scale-up
     autoscale-group-name: @(aws.autoscaling-group web.frontend | autoscale-group-name)
     adjustment-type: ChangeInCapacity
@@ -37,7 +37,7 @@ resource aws.autoscaling-policy high-cpu-scale-up
     cool-down: 120
 end
 
-resource aws.cloudwatch-metric-alarm frontend-autoscaling-cpu-high
+aws.cloudwatch-metric-alarm frontend-autoscaling-cpu-high
     name: @(aws.autoscaling-policy high-cpu-scale-up | name)
     metric-name: CPUUtilization
     namespace: AWS/EC2
@@ -54,7 +54,7 @@ resource aws.cloudwatch-metric-alarm frontend-autoscaling-cpu-high
     alarm-actions: [@(aws.autoscaling-policy high-cpu-scale-up | arn)]
 end
 
-resource aws.autoscaling-policy high-cpu-scale-down
+aws.autoscaling-policy high-cpu-scale-down
     name: high-cpu-scale-down
     autoscale-group-name: @(aws.autoscaling-group web.frontend | autoscale-group-name)
     adjustment-type: ChangeInCapacity
@@ -62,7 +62,7 @@ resource aws.autoscaling-policy high-cpu-scale-down
     cool-down: 300
 end
 
-resource aws.cloudwatch-metric-alarm frontend-autoscaling-cpu-low
+aws.cloudwatch-metric-alarm frontend-autoscaling-cpu-low
     name: @(aws.autoscaling-policy high-cpu-scale-down | name)
     metric-name: CPUUtilization
     namespace: AWS/EC2

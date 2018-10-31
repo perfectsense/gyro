@@ -1,13 +1,10 @@
 import project
 import vpc
 import route53
+import production.frontend
+import production.backend
 
-import frontend
-import backend
-
-ENVIRONMENT: production
-
-resource aws.security-group security-group
+aws.security-group security-group
     vpc-id: @(aws.vpc vpc.vpc | vpc-id)
         
     add ingress
@@ -15,10 +12,9 @@ resource aws.security-group security-group
         to-port: 0
         protocol: -1
 
-        security-groups: [
-            @(aws.security-group frontend.security-group | security-group-id),
-            @(aws.security-group backend.security-group | security-group-id)
-        ] 
+        security-groups:
+            - @(aws.security-group frontend.security-group | security-group-id),
+            - @(aws.security-group backend.security-group | security-group-id)
     end
 
     // OpenVPN
@@ -38,21 +34,21 @@ resource aws.security-group security-group
     end
 end
 
-resource aws.iam-role gateway-role
-    name: $(project.NAME)-$(ENVIRONMENT)-$(project.SERIAL)-gateway
+aws.iam-role gateway-role
+    name: $(project.NAME)-network-$(project.SERIAL)-gateway
 end
 
-resource aws.iam-role-policy gateway-beam-server-readonly-policy
+aws.iam-role-policy gateway-beam-server-readonly-policy
     role-name: @(aws.iam-role gateway-role | name)
     name: beam-server-readonly
     path: roles/beam-server-readonly.json
 end
 
-resource aws.iam-instance-profile gateway-instance-role
+aws.iam-instance-profile gateway-instance-role
     name: @(aws.iam-role-policy gateway-beam-server-readonly-policy | name)
 end
 
-resource aws.instance us-east-1a
+aws.instance us-east-1a gateway
     image: ami-04aaab62bebf49db8
     instance-type: t2.medium
     private-ip: 10.0.0.10
@@ -66,13 +62,12 @@ resource aws.instance us-east-1a
     key-pair: @(aws.key-pair project.key-pair | name)
 
     tags:
-        Project: $(project.NAME)
-        Serial: $(project.SERIAL)
-        beam.environment: $(ENVIRONMENT)
-    end
+        Project: $project.NAME
+        beam.serial: $project.SERIAL
+        beam.environment: network
 end
 
-resource aws.instance us-east-1b
+aws.instance us-east-1b gateway
     image: ami-04aaab62bebf49db8
     instance-type: t2.medium
     private-ip: 10.0.1.10
@@ -86,13 +81,12 @@ resource aws.instance us-east-1b
     key-pair: @(aws.key-pair project.key-pair | name)
 
     tags:
-        Project: $project.NAMEend
-        Serial: $project.SERIALend
-        beam.environment: $ENVIRONMENTend
-    end
+        Project: $project.NAME
+        beam.serial: $project.SERIAL
+        beam.environment: network
 end
 
-resource aws.instance us-east-1c
+aws.instance us-east-1c gateway
     image: ami-04aaab62bebf49db8
     instance-type: t2.medium
     private-ip: 10.0.2.10
@@ -107,19 +101,15 @@ resource aws.instance us-east-1c
     key-pair: @(aws.key-pair project.key-pair | name)
 
     tags:
-        Project: $project.NAMEend
-        Serial: $project.SERIALend
-        beam.environment: $ENVIRONMENTend
-    end
+        Project: $project.NAME
+        beam.serial: $project.SERIAL
+        beam.environment: network
 end
 
-resource aws.hosted-zone-record vpn.$project.SUBDOMAIN
+aws.hosted-zone-record vpn.$project.SUBDOMAIN
     zone-id: @(aws.hosted-zone route53.public | zone-id)
     name: vpn.$project.SUBDOMAINend
     type: A
     ttl: 300
-    records:
-        - @(aws.instance us-east-1a | public-ip-address)
-        - @(aws.instance us-east-1b | public-ip-address)
-        - @(aws.instance us-east-1c | public-ip-address)
+    records: #(aws.instance gateway | public-ip-address)
 end

@@ -9,37 +9,28 @@ virtual_resource
     elb-subnets
     frontend-subnets
 define
-    resource aws.security-group elb
+    aws.security-group elb
         vpc-id: @(aws.vpc vpc | vpc-id)
 
-        add ingress
-            from-port: 80
-            to-port: 80
-            protocol: tcp
-            cidr-block: 0.0.0.0/0
-        end
-
-        add ingress
-            from-port: 443
-            to-port: 443
-            protocol: tcp
-            cidr-block: 0.0.0.0/0
+        for port in [80, 443]:
+            add ingress
+                from-port: $(port)
+                to-port: $(port)
+                protocol: tcp
+                cidr-block: 0.0.0.0/0
+            end
         end
     end
 
-    resource aws.elastic-load-balancer elb
+    aws.elastic-load-balancer elb
         name: $(project-name)-web-$(serial)
 
-        add listener
-            load-balancer-port: 80
-            instance-protocol: http
-            instance-port: 80
-        end
-
-        add listener
-            load-balancer-port: 443
-            instance-protocol: https
-            instance-port: 80
+        for load-balancer-port, instance-port, instance-protocol in [80, 80, http, 443, 80, https]:
+            add listener
+                load-balancer-port: $(load-balancer-port)
+                instance-protocol: $(instance-protocol)
+                instance-port: $(instance-port)
+            end
         end
 
         add health-check
@@ -56,7 +47,7 @@ define
         security-groups-ids: [@(aws.security-group elb | security-group-ids)]
     end
 
-    resource aws.hosted-zone-record prod.$subdomainend
+    aws.hosted-zone-record prod.$subdomainend
         zone-id: @(aws.hosted-zone hosted-zone | zone-id)
         name: prod.$(subdomain)
         type: CNAME
@@ -64,39 +55,20 @@ define
         records: [@(aws.elastic-load-balancer web | canonical-hosted-zone-name)]
     end
 
-    resource aws.security-group security-group
+    aws.security-group security-group
         vpc-id: @(aws.vpc vpc | vpc-id)
 
-        add ingress
-            from-port: 80
-            to-port: 80
-            protocol: tcp
-            security-groups: [@(aws.security-group elb | security-group-id)]
-        end
-
-        add ingress
-            from-port: 22
-            to-port: 22
-            protocol: tcp
-            security-groups: [@(aws.security-group elb | security-group-id)]
-        end
-
-        add ingress
-            from-port: 80
-            to-port: 80
-            protocol: tcp
-            security-groups: [@(aws.security-group elb | security-group-id)]
-        end
-
-        add ingress
-            from-port: 8080
-            to-port: 8080
-            protocol: tcp
-            security-groups: [@(aws.security-group elb | security-group-id)]
+        for port in [80, 22, 8080]:
+            add ingress
+                from-port: $(port)
+                to-port: $(port)
+                protocol: tcp
+                security-groups: [@(aws.security-group elb | security-group-id)]
+            end
         end
     end
 
-    resource aws.launch-configuration launch-configuration
+    aws.launch-configuration launch-configuration
         name: $(project-name) frontend $(environment) v$(serial)
 
         image: ami-0ddcc69ab30ed9c03
@@ -106,7 +78,7 @@ define
         security-groups: [@(aws.security-group frontend | security-group-id)]
     end
 
-    resource aws.autoscaling-group autoscaling-group
+    aws.autoscaling-group autoscaling-group
         autoscale-group-name: @(aws.launch-configuration frontend | name)
         launch-configuration-name: @(aws.launch-configuration frontend | name)
         load-balancer-names: [@(aws.elastic-load-balancer web | name)]
@@ -117,7 +89,6 @@ define
         minSize: 4
         maxSize: 8
 
-        tags: $project.defaultTags
+        tags: $(project.defaultTags)
     end
-
 end

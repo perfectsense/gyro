@@ -1,8 +1,8 @@
-import brightspot.frontend
 import project
-import vpc
+import network.vpc
+import brightspot.frontend
 
-virtual-resource brightspot.frontend cms
+brightspot.frontend cms
     project-name: $(project.NAME)
     environment: production
     serial: $(project.SERIAL)

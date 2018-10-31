@@ -1,11 +1,11 @@
 import project
 import vpc
 
-resource aws.hosted-zone public
+aws.hosted-zone public
     name: $(project.SUBDOMAIN).
 end
 
-aws::hosted-zone private
+aws.hosted-zone private
     name: private.$(project.SUBDOMAIN).
     private: true
     vpc-id: @(aws::vpc vpc.vpc | vpc-id)
