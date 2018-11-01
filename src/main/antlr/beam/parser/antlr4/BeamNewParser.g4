@@ -27,7 +27,7 @@ extension
     ;
 
 param
-    : (TOKEN | LITERAL | reference)+
+    : value
     ;
 
 configBlock
@@ -39,7 +39,7 @@ completeBlock
     ;
 
 listEntry
-    : STAR value lineSeparator
+    : DASH value lineSeparator
     ;
 
 simpleBlock
@@ -47,7 +47,7 @@ simpleBlock
     ;
 
 value
-    : (TOKEN | LITERAL | reference)+
+    : (TOKEN | LITERAL | reference) (DASH | TOKEN | LITERAL | reference)*
     ;
 
 reference

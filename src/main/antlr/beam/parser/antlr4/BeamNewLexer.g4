@@ -7,7 +7,6 @@ lexer grammar BeamNewLexer;
 fragment DIGIT  : [0-9] ;
 fragment LETTER : [A-Za-z] ;
 fragment UNDER_SCORE : [_] ;
-fragment DASH : [-] ;
 fragment STRING : ~('\''|'"')* ;
 
 END
@@ -16,10 +15,6 @@ END
 
 DONE
     : 'done'
-    ;
-
-TOKEN
-    : (LETTER | DIGIT | DASH | UNDER_SCORE | DOT | SLASH | COMMA | LBLOCK | RBLOCK | LBRACET | RBRACET)+
     ;
 
 LITERAL
@@ -44,6 +39,11 @@ PIPE          : '|' ;
 DOT           : '.' ;
 SLASH         : '/' ;
 STAR          : '*' ;
+DASH          : '-' ;
+
+TOKEN
+    : (LETTER | DIGIT | DASH | UNDER_SCORE | DOT | SLASH | COMMA | LBLOCK | RBLOCK | LBRACET | RBRACET | STAR)+
+    ;
 
 // Whitespace
 WS            : [ \t]+ -> skip ;
