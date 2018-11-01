@@ -8,6 +8,9 @@ fragment DIGIT  : [0-9] ;
 fragment LETTER : [A-Za-z] ;
 fragment UNDER_SCORE : [_] ;
 fragment STRING : ~('\''|'"')* ;
+fragment COMMON: LETTER | DIGIT | DASH | UNDER_SCORE | DOT | SLASH | STAR | RBLOCK | LBLOCK;
+fragment NO_START: LBRACET ;
+fragment NO_END: RBRACET ;
 
 END
     : 'end'
@@ -17,7 +20,7 @@ DONE
     : 'done'
     ;
 
-LITERAL
+QUOTED_STRING
     : '"' STRING '"' | '\'' STRING '\''
     ;
 
@@ -42,7 +45,7 @@ STAR          : '*' ;
 DASH          : '-' ;
 
 TOKEN
-    : (LETTER | DIGIT | DASH | UNDER_SCORE | DOT | SLASH | COMMA | LBLOCK | RBLOCK | LBRACET | RBRACET | STAR)+
+    : (NO_END+ (COMMON | NO_START)+)+ | COMMON+ (NO_START (NO_START | COMMON)*)* (NO_END+ (COMMON | NO_START)+)*
     ;
 
 // Whitespace

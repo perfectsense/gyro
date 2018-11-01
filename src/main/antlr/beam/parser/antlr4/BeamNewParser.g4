@@ -27,7 +27,11 @@ extension
     ;
 
 param
-    : value
+    : literal
+    ;
+
+literal
+    : (TOKEN | QUOTED_STRING | reference)
     ;
 
 configBlock
@@ -39,15 +43,23 @@ completeBlock
     ;
 
 listEntry
-    : DASH value lineSeparator
+    : listDelineator value lineSeparator
+    ;
+
+listDelineator
+    : DASH
     ;
 
 simpleBlock
-    : COLON value
+    : COLON (inlineList | value)
     ;
 
 value
-    : (TOKEN | LITERAL | reference) (DASH | TOKEN | LITERAL | reference)*
+    : literal+
+    ;
+
+inlineList
+    : LBRACET value (COMMA value)* RBRACET | RBRACET
     ;
 
 reference
