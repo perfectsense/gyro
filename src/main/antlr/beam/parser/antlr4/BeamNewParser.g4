@@ -31,7 +31,7 @@ param
     ;
 
 literal
-    : (TOKEN | QUOTED_STRING | reference)
+    : TOKEN | QUOTED_STRING | reference
     ;
 
 configBlock
