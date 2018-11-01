@@ -43,6 +43,7 @@ COMMA         : ',' ;
 PIPE          : '|' ;
 DOT           : '.' ;
 SLASH         : '/' ;
+STAR          : '*' ;
 
 // Whitespace
 WS            : [ \t]+ -> skip ;

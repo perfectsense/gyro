@@ -15,7 +15,7 @@ globalScope
     ;
 
 config
-    : extension param* (configBlock)? (lineSeparator | EOF)
+    : extension? param+ (configBlock)? (lineSeparator | EOF)
     ;
 
 lineSeparator
@@ -35,7 +35,11 @@ configBlock
     ;
 
 completeBlock
-    : COLON lineSeparator config* END
+    : COLON lineSeparator (config* | listEntry*) END
+    ;
+
+listEntry
+    : STAR value lineSeparator
     ;
 
 simpleBlock
