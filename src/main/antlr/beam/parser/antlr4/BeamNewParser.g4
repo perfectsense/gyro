@@ -27,7 +27,7 @@ extension
     ;
 
 param
-    : literal
+    : literal | inlineList
     ;
 
 literal
