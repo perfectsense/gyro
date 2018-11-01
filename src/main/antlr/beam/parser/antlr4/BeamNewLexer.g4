@@ -8,6 +8,7 @@ fragment DIGIT  : [0-9] ;
 fragment LETTER : [A-Za-z] ;
 fragment UNDER_SCORE : [_] ;
 fragment STRING : ~('\''|'"')* ;
+fragment STAR : '*' ;
 fragment COMMON: LETTER | DIGIT | DASH | UNDER_SCORE | DOT | SLASH | STAR | RBLOCK | LBLOCK;
 fragment NO_START: LBRACET ;
 fragment NO_END: RBRACET ;
@@ -41,7 +42,6 @@ COMMA         : ',' ;
 PIPE          : '|' ;
 DOT           : '.' ;
 SLASH         : '/' ;
-STAR          : '*' ;
 DASH          : '-' ;
 
 TOKEN
