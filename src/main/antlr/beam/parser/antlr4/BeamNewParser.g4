@@ -55,7 +55,7 @@ simpleBlock
     ;
 
 value
-    : literal+
+    : literal (DASH | literal)*
     ;
 
 inlineList
