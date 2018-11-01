@@ -9,9 +9,10 @@ fragment LETTER : [A-Za-z] ;
 fragment UNDER_SCORE : [_] ;
 fragment STRING : ~('\''|'"')* ;
 fragment STAR : '*' ;
-fragment COMMON: LETTER | DIGIT | DASH | UNDER_SCORE | DOT | SLASH | STAR | RBLOCK | LBLOCK;
-fragment NO_START: LBRACET ;
-fragment NO_END: RBRACET ;
+fragment TILDE : '~' ;
+fragment COMMON : LETTER | DIGIT | DASH | UNDER_SCORE | DOT | SLASH | STAR | RBLOCK | LBLOCK | TILDE;
+fragment NO_START : LBRACET ;
+fragment NO_END : RBRACET ;
 
 END
     : 'end'
