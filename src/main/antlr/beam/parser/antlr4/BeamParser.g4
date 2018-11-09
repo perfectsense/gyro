@@ -7,125 +7,101 @@ options
  */
 
 beamRoot
-    : globalScope EOF
+    : NEWLINE* globalScope EOF
     ;
 
 globalScope
-    : pluginBlock* importBlock* assignmentBlock* resourceBlock*
+    : (keyValuePair | extension)*
     ;
 
-pluginBlock
-    : PLUGIN path lineSeparator
+keyValuePair
+    : key COLON value (lineSeparator | EOF)
     ;
 
-importBlock
-    : IMPORT path AS ID lineSeparator
+key
+    : TOKEN | QUOTED_STRING
     ;
 
-path
-    : QUOTED_STRING
+value
+    : scalar | lineSeparator list | inlineList | lineSeparator map
     ;
 
-assignmentBlock
-    : VARIABLE COLON value
+scalar
+    : firstLiteral (restLiteral)*
     ;
 
-resourceBlock
-    : RESOURCE_PROVIDER ID lineSeparator resourceBody END (lineSeparator | EOF)
+firstLiteral
+    : literal
+    ;
+
+restLiteral
+    : DASH | literal
+    ;
+
+literal
+    : tokenChain | QUOTED_STRING | reference
+    ;
+
+reference
+    : DOLLAR LPAREN (referenceScope PIPE)* referenceName RPAREN
+    ;
+
+tokenChain
+    : TOKEN (DOT TOKEN)*
+    ;
+
+referenceScope
+    : referenceType? referenceId
+    ;
+
+referenceName
+    : referenceChain | referenceScope
+    ;
+
+referenceType
+    : TOKEN
+    ;
+
+referenceId
+    : TOKEN
+    ;
+
+referenceChain
+    : tokenChain
+    ;
+
+list
+    : listEntry+ END
+    ;
+
+listEntry
+    : DASH scalar lineSeparator
+    ;
+
+inlineList
+    : LBRACET scalar (COMMA scalar)* RBRACET | RBRACET
+    ;
+
+map
+    : keyValuePair+ END
     ;
 
 lineSeparator
     : NEWLINE+
     ;
 
-resourceBody
-    : (keyValueBlock | actionBlock)*
+extension
+    : extensionName param+ (lineSeparator methodBody)? (lineSeparator | EOF)
     ;
 
-keyValueBlock
-    : key COLON value
+extensionName
+    : TOKEN
     ;
 
-key
-    : ID
+param
+    : literal | inlineList
     ;
 
-value
-    : scalar lineSeparator | WS* NEWLINE list NEWLINE* | WS* NEWLINE map NEWLINE*
-    ;
-
-scalar
-    : scalarFirstLiteral scalarRestLiterals
-    ;
-
-scalarFirstLiteral
-    : scalarLiteral
-    ;
-
-scalarRestLiterals
-    : (scalarLiteral)*
-    ;
-
-scalarLiteral
-    : WS* (reference | unquotedLiteral)
-    ;
-
-list
-    : (listEntry)+
-    ;
-
-listEntry
-    : DASH scalar NEWLINE
-    ;
-
-map
-    : (mapEntry)+
-    ;
-
-mapEntry
-    : STAR keyScalarBlock NEWLINE
-    ;
-
-keyScalarBlock
-    : mapKey COLON scalar
-    ;
-
-mapKey
-    : MAP_KEY
-    ;
-
-actionBlock
-    : ID lineSeparator actionBody END lineSeparator
-    ;
-
-actionBody
-    : (keyValueBlock)*
-    ;
-
-reference
-    : resourceReference | tagReference | constantReference
-    ;
-
-unquotedLiteral
-    : UNQUOTED_LITERAL
-    ;
-
-resourceReference
-    : AT LPAREN RESOURCE_PROVIDER referenceChain PIPE referenceChain RPAREN
-    ;
-
-tagReference
-    : HASH LPAREN RESOURCE_PROVIDER referenceChain PIPE referenceChain RPAREN
-    ;
-
-referenceChain
-    : ID (DOT ID)*
-    ;
-
-constantReference
-    : DOLLAR LPAREN constantReferenceChain RPAREN
-    ;
-
-constantReferenceChain
-    : (ID.)* VARIABLE
+methodBody
+    :  (extension | keyValuePair)+ END
     ;
