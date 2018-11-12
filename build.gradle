@@ -34,8 +34,14 @@ dependencies {
     compile group: 'org.fusesource.jansi', name: 'jansi', version: '1.16'
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.6.3'
     compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5'
+    compile group: 'org.yaml', name: 'snakeyaml', version: '1.21'
+
+    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.16'
+    compile group: 'org.slf4j', name: 'log4j-over-slf4j', version: '1.7.12'
+    compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
+    compile 'org.lucee:dom4j:1.6.1'
+
     antlr "org.antlr:antlr4:4.7.1"
-    //compile group: 'org.slf4j', name: 'slf4j-simple', 'version': '1.7.6'
 }
 
 final PARSER_PACKAGE_NAME = 'beam.parser.antlr4'
@@ -61,6 +67,6 @@ generateGrammarSource {
 
 bootJar {
     classifier = 'boot'
-    mainClassName = 'beam.Beam'
+    mainClassName = 'beam.core.Beam'
     launchScript()
 }

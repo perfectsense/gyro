@@ -1,5 +1,7 @@
 package beam.lang;
 
+import beam.core.BeamUI;
+import beam.core.CLIBeamUI;
 import beam.parser.antlr4.BeamLexer;
 import beam.parser.antlr4.BeamParser;
 import com.psddev.dari.util.ThreadLocalStack;

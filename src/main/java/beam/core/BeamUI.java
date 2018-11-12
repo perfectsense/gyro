@@ -1,4 +1,4 @@
-package beam.lang;
+package beam.core;
 
 public interface BeamUI {
 
@@ -29,7 +29,8 @@ public interface BeamUI {
 
     void write(String message, Object... arguments);
 
+    void writeError(Throwable error, String message, Object... arguments);
+
     String dump(String message, Object... arguments);
 
-    void writeError(Throwable error, String message, Object... arguments);
 }
