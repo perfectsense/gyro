@@ -1,10 +1,11 @@
 
 plugins {
-    id "us.kirchmeier.capsule" version "1.0.2"
+    id 'org.springframework.boot' version '2.1.0.RELEASE'
 }
 
 apply plugin: 'java'
 apply plugin: 'antlr'
+apply plugin: 'io.spring.dependency-management'
 
 sourceCompatibility = 1.8
 version = '1.0'
@@ -58,6 +59,8 @@ generateGrammarSource {
     }
 }
 
-task dist(type: FatCapsule) {
-    applicationClass 'beam.Beam'
+bootJar {
+    classifier = 'boot'
+    mainClassName = 'beam.Beam'
+    launchScript()
 }
