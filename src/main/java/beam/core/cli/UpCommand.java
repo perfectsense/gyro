@@ -1,6 +1,7 @@
 package beam.core.cli;
 
 import beam.core.BeamCommand;
+import beam.core.extensions.ProviderExtension;
 import beam.lang.BCL;
 import beam.lang.BeamConfig;
 import io.airlift.airline.Command;
@@ -13,6 +14,7 @@ public class UpCommand implements BeamCommand {
 
         try {
             BCL.init();
+            BCL.addExtension(new ProviderExtension());
             BeamConfig root = BCL.parse("./example.bcl");
             BCL.resolve(root);
 
