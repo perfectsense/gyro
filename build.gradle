@@ -13,6 +13,7 @@ version = '1.0'
 defaultTasks 'build'
 
 repositories {
+    mavenLocal()
     mavenCentral()
     maven {
         url "https://artifactory.psdops.com/public"
@@ -40,29 +41,8 @@ dependencies {
     compile group: 'org.slf4j', name: 'log4j-over-slf4j', version: '1.7.12'
     compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
     compile 'org.lucee:dom4j:1.6.1'
+    compile group: 'beam', name: 'beam-lang', version: '1.0'
 
-    antlr "org.antlr:antlr4:4.7.1"
-}
-
-final PARSER_PACKAGE_NAME = 'beam.parser.antlr4'
-generateGrammarSource {
-    outputs.cacheIf { true }
-    arguments += ["-package", PARSER_PACKAGE_NAME, "-Xexact-output-dir"]
-
-    doLast {
-        def parserFilePattern = 'Groovy*'
-        def outputPath = generateGrammarSource.outputDirectory.canonicalPath
-        def parserPackagePath = "${outputPath}/${PARSER_PACKAGE_NAME.replace('.', '/')}"
-        file(parserPackagePath).mkdirs()
-        copy {
-            from outputPath
-            into parserPackagePath
-            include parserFilePattern
-        }
-        delete fileTree(outputPath) {
-            include parserFilePattern
-        }
-    }
 }
 
 bootJar {
