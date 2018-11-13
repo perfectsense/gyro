@@ -68,5 +68,7 @@ generateGrammarSource {
 bootJar {
     classifier = 'boot'
     mainClassName = 'beam.core.Beam'
-    launchScript()
+    launchScript {
+        script = file('scripts/stub.sh')
+    }
 }
