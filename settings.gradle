@@ -1,0 +1,3 @@
+rootProject.name = 'beam'
+
+include 'beam-core', 'beam-cli'

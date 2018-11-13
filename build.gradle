@@ -1,54 +1,7 @@
+allprojects {
+    apply plugin: 'java'
+    group = 'beam'
+    version = '0.5'
 
-plugins {
-    id 'org.springframework.boot' version '2.1.0.RELEASE'
-}
-
-apply plugin: 'java'
-apply plugin: 'antlr'
-apply plugin: 'io.spring.dependency-management'
-
-sourceCompatibility = 1.8
-version = '1.0'
-
-defaultTasks 'build'
-
-repositories {
-    mavenLocal()
-    mavenCentral()
-    maven {
-        url "https://artifactory.psdops.com/public"
-    }
-
-    maven {
-        url "https://repo.gradle.org/gradle/libs-releases"
-    }
-}
-
-dependencies {
-    compile group: 'io.airlift', name: 'airline', version: '0.8'
-    compile group: 'org.parboiled', name: 'parboiled-java', version: '1.1.8'
-    compile group: 'org.reflections', name: 'reflections', version: '0.9.10'
-    compile group: 'org.gradle', name: 'gradle-core', version: '4.10.2'
-    compile group: 'org.gradle', name: 'gradle-tooling-api', version: '4.10.2'
-    compile group: 'com.psddev', name: 'dari-util', version: '3.2-SNAPSHOT'
-    compile group: 'org.apache.maven.shared', name: 'maven-invoker', version: '3.0.0'
-    compile group: 'org.fusesource.jansi', name: 'jansi', version: '1.16'
-    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.6.3'
-    compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5'
-    compile group: 'org.yaml', name: 'snakeyaml', version: '1.21'
-
-    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.16'
-    compile group: 'org.slf4j', name: 'log4j-over-slf4j', version: '1.7.12'
-    compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
-    compile 'org.lucee:dom4j:1.6.1'
-    compile group: 'beam', name: 'beam-lang', version: '1.0'
-
-}
-
-bootJar {
-    classifier = 'boot'
-    mainClassName = 'beam.core.Beam'
-    launchScript {
-        script = file('scripts/stub.sh')
-    }
+    defaultTasks 'build'
 }
