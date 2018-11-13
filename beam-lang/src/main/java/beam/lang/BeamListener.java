@@ -1,0 +1,158 @@
+package beam.lang;
+
+import beam.parser.antlr4.BeamParser;
+import beam.parser.antlr4.BeamParserBaseListener;
+
+import java.util.List;
+
+public class BeamListener extends BeamParserBaseListener {
+
+    private String configName;
+    private BeamConfig config;
+
+    public BeamListener(String configName, BeamConfig context) {
+        this.configName = configName;
+        this.config = context;
+    }
+
+    public String getConfigName() {
+        return configName;
+    }
+
+    public void setConfigName(String configName) {
+        this.configName = configName;
+    }
+
+    public BeamConfig getConfig() {
+        return config;
+    }
+
+    public void setConfig(BeamConfig config) {
+        this.config = config;
+    }
+
+    @Override
+    public void enterBeamRoot(BeamParser.BeamRootContext ctx) {
+        config = new BeamConfig();
+    }
+
+    @Override
+    public void exitGlobalScope(BeamParser.GlobalScopeContext ctx) {
+        if (ctx.keyValuePair() != null) {
+            for (BeamParser.KeyValuePairContext pairContext : ctx.keyValuePair()) {
+                String id = pairContext.key().getText();
+                BeamConfigKey key = new BeamConfigKey(null, id);
+                BeamResolvable referable = parseValue(pairContext.value());
+                config.getContext().put(key, referable);
+            }
+        }
+
+        if (ctx.extension() != null) {
+            for (BeamParser.ExtensionContext extensionContext : ctx.extension()) {
+                String name = extensionContext.extensionName().getText();
+                if (BCL.getExtensions().containsKey(name)) {
+                    BeamExtension extension = BCL.getExtensions().get(name);
+                    extension.exitExtension(extensionContext, config);
+                } else {
+                    throw new BeamLangException(String.format("Unable to load extension %s", name));
+                }
+            }
+        }
+    }
+
+    public static BeamResolvable parseValue(BeamParser.ValueContext valueContext) {
+        if (valueContext.map() != null) {
+            return parseMap(valueContext.map());
+        } else if (valueContext.list() != null) {
+            return parseList(valueContext.list());
+        } else if (valueContext.scalar() != null) {
+            return parseScalar(valueContext.scalar());
+        } else if (valueContext.inlineList() != null) {
+            return parseInlineList(valueContext.inlineList());
+        } else {
+            throw new IllegalStateException();
+        }
+    }
+
+    public static BeamMap parseMap(BeamParser.MapContext mapContext) {
+        BeamMap result = new BeamMap();
+        for (BeamParser.KeyValuePairContext pairContext : mapContext.keyValuePair()) {
+            String key = pairContext.key().getText();
+            BeamParser.ValueContext value = pairContext.value();
+            result.getMap().put(key, parseValue(value));
+        }
+
+        return result;
+    }
+
+    public static BeamList parseList(BeamParser.ListContext listContext) {
+        BeamList result = new BeamList();
+        for (BeamParser.ListEntryContext listEntryContext : listContext.listEntry()) {
+            BeamParser.ScalarContext item = listEntryContext.scalar();
+            result.getList().add(parseScalar(item));
+        }
+
+        return result;
+    }
+
+    public static BeamList parseInlineList(BeamParser.InlineListContext listContext) {
+        BeamList result = new BeamList();
+        for (BeamParser.ScalarContext scalarContext : listContext.scalar()) {
+            result.getList().add(parseScalar(scalarContext));
+        }
+
+        return result;
+    }
+
+    public static BeamScalar parseScalar(BeamParser.ScalarContext scalarContext) {
+        BeamScalar beamScalar = new BeamScalar();
+        beamScalar.getElements().add(parseLiteral(scalarContext.firstLiteral().literal()));
+        if (scalarContext.restLiteral() != null) {
+            for (BeamParser.RestLiteralContext literalContext : scalarContext.restLiteral()) {
+                if (literalContext.literal() != null) {
+                    beamScalar.getElements().add(parseLiteral(literalContext.literal()));
+
+                } else if (literalContext.DASH() != null) {
+                    beamScalar.getElements().add(new BeamLiteral(literalContext.DASH().getText()));
+                }
+            }
+        }
+
+        return beamScalar;
+    }
+
+    public static BeamLiteral parseLiteral(BeamParser.LiteralContext literalContext) {
+        if (literalContext.reference() != null) {
+            return parseReference(literalContext.reference());
+        } else {
+            return new BeamLiteral((literalContext.getText()));
+        }
+    }
+
+    public static BeamReference parseReference(BeamParser.ReferenceContext referenceContext) {
+        BeamReference reference = new BeamReference();
+        List<BeamParser.ReferenceScopeContext> scopeContexts = referenceContext.referenceScope();
+        if (scopeContexts != null) {
+            for (BeamParser.ReferenceScopeContext scopeContext : scopeContexts) {
+                String id = scopeContext.referenceId().getText();
+                String type = scopeContext.referenceType() != null ? scopeContext.referenceType().getText() : null;
+                reference.getScopeChain().add(new BeamConfigKey(type, id));
+            }
+        }
+
+        BeamParser.ReferenceNameContext nameContext = referenceContext.referenceName();
+        if (nameContext.referenceScope() != null) {
+            String id = nameContext.referenceScope().referenceId().getText();
+            String type = nameContext.referenceScope().referenceType() != null ? nameContext.referenceScope().referenceType().getText() : null;
+            reference.getScopeChain().add(new BeamConfigKey(type, id));
+        } else if (nameContext.referenceChain() != null) {
+            reference.setReferenceChain(reference.parseReferenceChain(nameContext.referenceChain().getText()));
+        }
+
+        return reference;
+    }
+
+    private String stripQuotes(String string) {
+        return string.replaceAll("^[\"\']|[\"\']$", "");
+    }
+}
