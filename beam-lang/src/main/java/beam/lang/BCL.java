@@ -26,11 +26,13 @@ public class BCL {
         return UI.get();
     }
 
-    public static void addExtension(BeamExtension extension) {
-        String name = extension.getName();
-        getExtensions().put(name, extension);
+    public static void addExtension(String alias, BeamExtension extension) {
+        getExtensions().put(alias, extension);
     }
 
+    public static void addExtension(BeamExtension extension) {
+        addExtension(extension.getName(), extension);
+    }
 
     public static void init() {
         UI.push(new Formatter());
