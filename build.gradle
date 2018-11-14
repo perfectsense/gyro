@@ -1,7 +1,82 @@
+plugins {
+    id 'maven-publish'
+}
+
+defaultTasks 'build', 'publish', 'publishToMavenLocal', 'distDir', 'dist'
+
 allprojects {
+    version = '0.5'
+}
+
+subprojects {
     apply plugin: 'java'
+    apply plugin: 'maven-publish'
+
+    defaultTasks 'build', 'publish', 'publishToMavenLocal'
+
     group = 'beam'
     version = '0.5'
 
-    defaultTasks 'build'
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        maven {
+            url "https://artifactory.psdops.com/public"
+        }
+
+        maven {
+            url "https://repo.gradle.org/gradle/libs-releases"
+        }
+    }
+
+    dependencies {
+        compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.16'
+        compile group: 'org.slf4j', name: 'log4j-over-slf4j', version: '1.7.12'
+        compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
+        compile group: 'org.lucee', name: 'dom4j', version: '1.6.1'
+    }
+
+    publishing {
+        publications {
+            beam(MavenPublication) {
+                from components.java
+                afterEvaluate {
+                    artifactId = jar.baseName
+                }
+            }
+        }
+    }
 }
+
+project(":beam-core") {
+    dependencies {
+        compile project(':beam-lang')
+    }
+}
+
+project(":beam-cli") {
+
+    dependencies {
+        compile project(':beam-core')
+    }
+
+    publish {
+        dependsOn assemble
+    }
+}
+
+task distDir {
+    doLast {
+        mkdir "dist"
+    }
+}
+
+task dist(type: Copy) {
+    from project("beam-cli").libsDir
+    include '*.jar'
+    into "dist"
+
+    rename "beam-cli-0.5.jar", 'beam'
+}
+
+

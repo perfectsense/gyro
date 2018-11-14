@@ -3,25 +3,12 @@ plugins {
     id 'maven-publish'
 }
 
-apply plugin: 'java'
 apply plugin: 'antlr'
 
 sourceCompatibility = 1.8
 group = "beam"
-version = "1.0"
 
 defaultTasks 'build'
-
-repositories {
-    mavenCentral()
-    maven {
-        url "https://artifactory.psdops.com/public"
-    }
-
-    maven {
-        url "https://repo.gradle.org/gradle/libs-releases"
-    }
-}
 
 dependencies {
     compile group: 'com.psddev', name: 'dari-util', version: '3.2-SNAPSHOT'
@@ -46,18 +33,5 @@ generateGrammarSource {
         delete fileTree(outputPath) {
             include parserFilePattern
         }
-    }
-}
-
-publishing {
-    publications {
-        beam(MavenPublication) {
-            artifactId = 'beam-lang'
-            from components.java
-        }
-    }
-
-    repositories {
-        mavenLocal()
     }
 }
