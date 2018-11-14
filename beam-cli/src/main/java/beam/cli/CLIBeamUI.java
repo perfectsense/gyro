@@ -1,5 +1,6 @@
-package beam.core;
+package beam.cli;
 
+import beam.core.BeamUI;
 import com.google.common.collect.ImmutableSet;
 import org.fusesource.jansi.AnsiRenderer;
 

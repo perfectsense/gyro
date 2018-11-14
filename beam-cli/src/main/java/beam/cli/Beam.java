@@ -1,5 +1,7 @@
-package beam.core;
+package beam.cli;
 
+import beam.core.BeamException;
+import beam.core.BeamUI;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import com.psddev.dari.util.ThreadLocalStack;
@@ -40,13 +42,10 @@ public class Beam {
     }
 
     public static void main(String[] arguments) throws Exception {
-        List<String> beamArguments = new ArrayList<>();
-        beamArguments.addAll(Arrays.asList(arguments));
-
         UI.push(new CLIBeamUI());
 
         try {
-            Beam beam = new Beam(beamArguments);
+            Beam beam = new Beam(Arrays.asList(arguments));
             beam.run();
 
         } finally {
@@ -98,8 +97,8 @@ public class Beam {
             if (command instanceof Runnable) {
                 ((Runnable) command).run();
 
-            } else if (command instanceof BeamCommand) {
-                ((BeamCommand) command).execute();
+            } else if (command instanceof AbstractCommand) {
+                ((AbstractCommand) command).doExecute();
             } else {
                 throw new IllegalStateException(String.format(
                         "[%s] must be an instance of [%s] or [%s]!",

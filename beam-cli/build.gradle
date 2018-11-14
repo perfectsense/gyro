@@ -19,7 +19,7 @@ dependencies {
 
 bootJar {
     classifier = ''
-    mainClassName = 'beam.core.Beam'
+    mainClassName = 'beam.cli.Beam'
     launchScript {
         script = file('scripts/stub.sh')
     }

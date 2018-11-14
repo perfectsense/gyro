@@ -1,4 +1,4 @@
-package beam.core;
+package beam.cli;
 
 /**
  * CLI command.
