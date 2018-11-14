@@ -15,7 +15,10 @@ dependencies {
     compile group: 'org.fusesource.jansi', name: 'jansi', version: '1.16'
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.6.3'
     compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5'
+    compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5'
     compile group: 'org.yaml', name: 'snakeyaml', version: '1.21'
+
+    compile 'commons-beanutils:commons-beanutils-core:1.8.3'
 
     compile group: 'com.psddev', name: 'dari-util', version: '3.2-SNAPSHOT'
     compile group: 'beam', name: 'beam-lang', version: version

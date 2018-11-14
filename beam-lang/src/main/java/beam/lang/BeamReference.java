@@ -106,7 +106,7 @@ public class BeamReference extends BeamLiteral {
                 throw new BeamLangException(String.format("Illegal reference %s, %s is not a collection", this, nextResolvable));
             }
 
-            if (nextResolvable.getValue() == null) {
+            if (nextResolvable == null || nextResolvable.getValue() == null) {
                 return false;
             }
         }

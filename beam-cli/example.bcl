@@ -1,18 +1,18 @@
 project: ops-test
 serial: 99
 environment: production
-config vpc
-    cidr: "10.0.0.0/16"
-    region: us-east-1
-    vpc-id: vpc-123456
-    name: $(project)-$(serial)-$(environment)-$(config vpc | region)
+
+VpcResource vpc
+    resourceName: $(project)-$(serial)-$(environment)
+    cidrBlock: "10.0.0.0/16"
 end
 
-config subnet
-    vpc-id: $(config vpc | vpc-id)
-    zone: $(config vpc | region)b
+SubnetResource subnet
+    vpc: $(VpcResource vpc)
+    availabilityZone: $(VpcResource vpc | region)b
+    cidrBlock: "10.0.0.0/24"
     tags:
-        belongsTo: $(config vpc | name)
+        belongsTo: $(VpcResource vpc | name)
     end
 end
 

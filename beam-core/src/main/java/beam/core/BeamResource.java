@@ -15,11 +15,15 @@ import java.util.regex.Pattern;
 
 import beam.core.diff.ResourceChange;
 
+import beam.lang.BeamConfig;
+import beam.lang.BeamConfigKey;
+import beam.lang.BeamResolvable;
 import com.google.common.base.Throwables;
 import com.psddev.dari.util.ObjectUtils;
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 
-public abstract class BeamResource<C extends BeamCloud> implements Comparable<BeamResource> {
+public abstract class BeamResource<C extends BeamCloud> extends BeamConfig implements Comparable<BeamResource> {
 
     private String resourceName;
     private transient BeamResource<C> parent;
@@ -27,6 +31,28 @@ public abstract class BeamResource<C extends BeamCloud> implements Comparable<Be
     private transient final Map<String, BeamResource<C>> dependencies = new TreeMap<>();
     private transient final List<BeamResource<C>> dependents = new ArrayList<>();
     private transient ResourceChange change;
+
+    @Override
+    public boolean resolve(BeamConfig config) {
+        boolean progress = super.resolve(config);
+
+        for (BeamConfigKey key : getContext().keySet()) {
+            if (key.getType() != null) {
+                continue;
+            }
+
+            BeamResolvable referable = getContext().get(key);
+            Object value = referable.getValue();
+
+            try {
+                BeanUtils.setProperty(this, key.getId(), value);
+            } catch (IllegalArgumentException | InvocationTargetException | IllegalAccessException e) {
+
+            }
+        }
+
+        return progress;
+    }
 
     public String getResourceName() {
         return resourceName;
