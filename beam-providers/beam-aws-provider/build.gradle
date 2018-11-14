@@ -1,0 +1,39 @@
+
+plugins {
+    id 'maven-publish'
+}
+
+sourceCompatibility = 1.8
+def aws_version = '1.11.391'
+
+defaultTasks 'build'
+
+dependencies {
+    compile group: 'org.reflections', name: 'reflections', version: '0.9.10'
+    compile group: 'org.gradle', name: 'gradle-core', version: '4.10.2'
+    compile group: 'org.gradle', name: 'gradle-tooling-api', version: '4.10.2'
+    compile group: 'org.apache.maven.shared', name: 'maven-invoker', version: '3.0.0'
+    compile group: 'org.fusesource.jansi', name: 'jansi', version: '1.16'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.6.3'
+    compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5'
+    compile group: 'org.yaml', name: 'snakeyaml', version: '1.21'
+
+    compile 'us.monoid.web:resty:0.3.2'
+
+    compile "com.amazonaws:aws-java-sdk-core:${aws_version}"
+    compile "com.amazonaws:aws-java-sdk-s3:${aws_version}"
+    compile "com.amazonaws:aws-java-sdk-cloudfront:${aws_version}"
+    compile "com.amazonaws:aws-java-sdk-autoscaling:${aws_version}"
+    compile "com.amazonaws:aws-java-sdk-ec2:${aws_version}"
+    compile "com.amazonaws:aws-java-sdk-cloudwatch:${aws_version}"
+    compile "com.amazonaws:aws-java-sdk-cloudwatchmetrics:${aws_version}"
+    compile "com.amazonaws:aws-java-sdk-iam:${aws_version}"
+    compile "com.amazonaws:aws-java-sdk-route53:${aws_version}"
+    compile "com.amazonaws:aws-java-sdk-sqs:${aws_version}"
+    compile "com.amazonaws:aws-java-sdk-sts:${aws_version}"
+    compile "com.amazonaws:aws-java-sdk-elasticloadbalancing:${aws_version}"
+    compile "com.amazonaws:aws-java-sdk-cloudtrail:${aws_version}"
+
+    compile group: 'com.psddev', name: 'dari-util', version: '3.2-SNAPSHOT'
+    compile group: 'beam', name: 'beam-core', version: version
+}

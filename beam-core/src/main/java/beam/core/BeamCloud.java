@@ -1,9 +1,6 @@
 package beam.core;
 
-import java.util.List;
 import java.util.Map;
-
-import beam.core.diff.ResourceDiff;
 
 public abstract class BeamCloud {
 
@@ -32,12 +29,6 @@ public abstract class BeamCloud {
 
     public abstract void deleteState(BeamResource resource);
 
-    /**
-     * @param runtime Can't be {@code null}.
-     * @return May be {@code null} to indicate no changes.
-     */
-    public abstract List<ResourceDiff<?>> findChanges() throws Exception;
-
     public Map<String, String> findCredentials() {
         return findCredentials(false);
     }
@@ -64,7 +55,5 @@ public abstract class BeamCloud {
     public String toString() {
         return "Provider: " + getName();
     }
-
-    public abstract void consoleLogin(boolean readonly, boolean urlOnly, boolean china) throws Exception;
 
 }
