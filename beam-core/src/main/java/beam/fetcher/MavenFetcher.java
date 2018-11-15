@@ -4,6 +4,7 @@ import beam.core.BeamException;
 import beam.core.BeamResource;
 import beam.core.extensions.ResourceExtension;
 import beam.lang.BCL;
+import beam.lang.BeamConfig;
 import com.psddev.dari.util.StringUtils;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;
@@ -45,13 +46,21 @@ public class MavenFetcher extends PluginFetcher {
     private static Pattern MAVEN_KEY_PAT = Pattern.compile(MAVEN_KEY);
 
     @Override
-    public boolean validate(String key) {
-        return MAVEN_KEY_PAT.matcher(key).find();
+    public boolean validate(BeamConfig fetcherContext) {
+        if (fetcherContext.get("artifact") != null) {
+            String key = (String) fetcherContext.get("artifact").getValue();
+            if (key != null) {
+                return MAVEN_KEY_PAT.matcher(key).find();
+            }
+        }
+
+        return false;
     }
 
     @Override
-    public void fetch(String key) {
+    public void fetch(BeamConfig fetcherContext) {
         try {
+            String key = (String) fetcherContext.get("artifact").getValue();
             DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
             locator.addService(RepositoryConnectorFactory.class, BasicRepositoryConnectorFactory.class);
             locator.addService(TransporterFactory.class, FileTransporterFactory.class);
@@ -62,12 +71,19 @@ public class MavenFetcher extends PluginFetcher {
             LocalRepository localRepo = new LocalRepository(System.getProperty("user.home") + File.separator + ".m2" + File.separator + "repository");
             session.setLocalRepositoryManager(system.newLocalRepositoryManager(session, localRepo));
 
-            RemoteRepository central = new RemoteRepository.Builder("central", "default", "http://repo1.maven.org/maven2/").build();
-            RemoteRepository gradle = new RemoteRepository.Builder("gradle", "default", "https://repo.gradle.org/gradle/libs-releases/").build();
+            List<RemoteRepository> remoteRepositories = new ArrayList<>();
+            if (fetcherContext.get("repositories") != null && fetcherContext.get("repositories").getValue() != null) {
+                List<String> repos = (List<String>) fetcherContext.get("repositories").getValue();
+                for (String repo : repos) {
+                    remoteRepositories.add(new RemoteRepository.Builder(repo, "default", repo).build());
+                }
+            } else {
+                remoteRepositories.add(new RemoteRepository.Builder("central", "default", "http://repo1.maven.org/maven2/").build());
+            }
 
             Artifact artifact = new DefaultArtifact(key);
 
-            CollectRequest collectRequest = new CollectRequest(new Dependency(artifact, JavaScopes.COMPILE), Arrays.asList(central, gradle));
+            CollectRequest collectRequest = new CollectRequest(new Dependency(artifact, JavaScopes.COMPILE), remoteRepositories);
             DependencyFilter filter = DependencyFilterUtils.classpathFilter(JavaScopes.COMPILE);
             DependencyRequest request = new DependencyRequest(collectRequest, filter);
             DependencyResult result = system.resolveDependencies(session, request);
