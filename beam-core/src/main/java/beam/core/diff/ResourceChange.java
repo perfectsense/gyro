@@ -79,7 +79,7 @@ public class ResourceChange<C extends BeamCloud> {
         Set<ResourceChange<?>> dependencies = new HashSet<>();
 
         BeamResource<C> resource = pendingResource != null ? pendingResource : currentResource;
-        for (BeamResource<C> r : (getType() == ChangeType.DELETE ? resource.dependents() : resource.dependencies().values())) {
+        for (BeamResource<C> r : (getType() == ChangeType.DELETE ? resource.dependents() : resource.dependencies())) {
             ResourceChange<?> c = r.getChange();
 
             if (c != null) {
@@ -314,7 +314,6 @@ public class ResourceChange<C extends BeamCloud> {
         ChangeType type = getType();
 
         if (type == ChangeType.UPDATE) {
-            pendingResource.resolveDependencies();
             pendingResource.update(cloud, currentResource, updatedProperties);
             cloud.saveState(pendingResource);
             return pendingResource;

@@ -9,15 +9,14 @@ def aws_version = '1.11.391'
 defaultTasks 'build'
 
 dependencies {
-    compile group: 'org.reflections', name: 'reflections', version: '0.9.10'
-    compile group: 'org.gradle', name: 'gradle-core', version: '4.10.2'
-    compile group: 'org.gradle', name: 'gradle-tooling-api', version: '4.10.2'
-    compile group: 'org.apache.maven.shared', name: 'maven-invoker', version: '3.0.0'
-    compile group: 'org.fusesource.jansi', name: 'jansi', version: '1.16'
-    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.6.3'
-    compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5'
-    compile group: 'org.yaml', name: 'snakeyaml', version: '1.21'
-
+    compile 'org.reflections:reflections:0.9.10'
+    compile 'org.gradle:gradle-core:4.10.2'
+    compile 'org.gradle:gradle-tooling-api:4.10.2'
+    compile 'org.apache.maven.shared:maven-invoker:3.0.0'
+    compile 'org.fusesource.jansi:jansi:1.16'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.6.3'
+    compile 'org.apache.httpcomponents:httpclient:4.5'
+    compile 'org.yaml:snakeyaml:1.21'
     compile 'us.monoid.web:resty:0.3.2'
 
     compile "com.amazonaws:aws-java-sdk-core:${aws_version}"
@@ -34,6 +33,6 @@ dependencies {
     compile "com.amazonaws:aws-java-sdk-elasticloadbalancing:${aws_version}"
     compile "com.amazonaws:aws-java-sdk-cloudtrail:${aws_version}"
 
-    compile group: 'com.psddev', name: 'dari-util', version: '3.2-SNAPSHOT'
-    compile group: 'beam', name: 'beam-core', version: version
+    compile 'com.psddev:dari-util:3.3.607-xe0f27a'
+    compile "beam:beam-core:${version}"
 }

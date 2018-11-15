@@ -44,7 +44,7 @@ public class UpCommand extends AbstractCommand {
                 BeamResolvable resolvable = root.getContext().get(key);
                 Object value = resolvable.getValue();
 
-                if (value instanceof BeamResource) {
+                if (value instanceof BeamResource && value.getClass().getSimpleName().equals("VpcResource")) {
                     resources.add((BeamResource) value);
                 }
             }
@@ -55,8 +55,6 @@ public class UpCommand extends AbstractCommand {
                     new ArrayList<>(),
                     resources);
 
-            diff.diff();
-            diff.getChanges().clear();
             diff.diff();
 
             changeTypes.clear();

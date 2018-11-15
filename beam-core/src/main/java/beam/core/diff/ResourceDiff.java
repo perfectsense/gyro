@@ -6,8 +6,10 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -71,7 +73,6 @@ public class ResourceDiff<C extends BeamCloud> {
 
             @Override
             protected BeamResource<C> change() {
-                pendingResource.resolveDependencies();
                 pendingResource.create(cloud);
                 cloud.saveState(pendingResource);
                 return pendingResource;
@@ -84,6 +85,11 @@ public class ResourceDiff<C extends BeamCloud> {
         };
 
         pendingResource.setChange(create);
+
+        for (BeamResource pendingDependent : pendingResource.dependents()) {
+            createOne(create, pendingDependent);
+        }
+
         return create;
     }
 
@@ -135,6 +141,16 @@ public class ResourceDiff<C extends BeamCloud> {
 
         currentResource.setChange(update);
         pendingResource.setChange(update);
+
+        for (BeamResource pendingDependent : pendingResource.dependents()) {
+            for (BeamResource currentDependent : currentResource.dependents()) {
+                if (currentDependent.getResourceName().equals(pendingDependent.getResourceName())) {
+                    System.out.println("Update");
+                    updateOne(update, currentDependent, pendingDependent);
+                }
+            }
+        }
+
         return update;
     }
 
@@ -177,6 +193,18 @@ public class ResourceDiff<C extends BeamCloud> {
         change.getDiffs().add(diff);
     }
 
+    public void createOne(ResourceChange<?> change, BeamResource<C> pendingResource) throws Exception {
+        if (pendingResource != null) {
+            ResourceDiff diff = new ResourceDiff(
+                    cloud,
+                    null,
+                    Arrays.asList(pendingResource));
+
+            diff.diff();
+            change.getDiffs().add(diff);
+        }
+    }
+
     public <R extends BeamResource<C>> void update(ResourceChange<?> change, Collection<R> currentResources, Collection<R> pendingResources) throws Exception {
         ResourceDiff diff = new ResourceDiff(
                 cloud,
@@ -187,6 +215,26 @@ public class ResourceDiff<C extends BeamCloud> {
         change.getDiffs().add(diff);
     }
 
+    public <R extends BeamResource<C>> void updateOne(ResourceChange<?> change, R currentResource, R pendingResource) throws Exception {
+        if (currentResource != null) {
+            if (pendingResource != null) {
+                ResourceDiff diff = new ResourceDiff(
+                        cloud,
+                        Arrays.asList(currentResource),
+                        Arrays.asList(pendingResource));
+
+                diff.diff();
+                change.getDiffs().add(diff);
+
+            } else {
+                deleteOne(change, currentResource);
+            }
+
+        } else if (pendingResource != null) {
+            createOne(change, pendingResource);
+        }
+    }
+
     public void delete(ResourceChange<?> change, Collection<? extends BeamResource<C>> currentResources) throws Exception {
         ResourceDiff diff = new ResourceDiff(
                 cloud,
@@ -195,6 +243,18 @@ public class ResourceDiff<C extends BeamCloud> {
 
         diff.diff();
         change.getDiffs().add(diff);
+    }
+
+    public void deleteOne(ResourceChange<?> change, BeamResource<C> currentResource) throws Exception {
+        if (currentResource != null) {
+            ResourceDiff diff = new ResourceDiff(
+                    cloud,
+                    Arrays.asList(currentResource),
+                    null);
+
+            diff.diff();
+            change.getDiffs().add(diff);
+        }
     }
 
     private boolean isNullable(Method reader) {
