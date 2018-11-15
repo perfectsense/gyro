@@ -1,8 +1,10 @@
 package beam.fetcher;
 
+import beam.lang.BeamConfig;
+
 public abstract class PluginFetcher {
 
-    public abstract boolean validate(String key);
+    public abstract boolean validate(BeamConfig fetcherContext);
 
-    public abstract void fetch(String key);
+    public abstract void fetch(BeamConfig fetcherContext);
 }
