@@ -125,7 +125,12 @@ public class BeamListener extends BeamParserBaseListener {
         if (literalContext.reference() != null) {
             return parseReference(literalContext.reference());
         } else {
-            return new BeamLiteral((literalContext.getText()));
+            String text = literalContext.getText();
+            if (literalContext.QUOTED_STRING() != null) {
+                text = stripQuotes(text);
+            }
+
+            return new BeamLiteral(text);
         }
     }
 
@@ -152,7 +157,7 @@ public class BeamListener extends BeamParserBaseListener {
         return reference;
     }
 
-    private String stripQuotes(String string) {
+    private static String stripQuotes(String string) {
         return string.replaceAll("^[\"\']|[\"\']$", "");
     }
 }
