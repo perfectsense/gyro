@@ -1,3 +1,6 @@
+provider aws
+    path: "beam:beam-aws-provider:0.5"
+end
 project: ops-test
 serial: 99
 environment: production
