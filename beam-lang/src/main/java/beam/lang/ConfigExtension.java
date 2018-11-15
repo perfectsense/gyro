@@ -38,7 +38,9 @@ public class ConfigExtension implements BeamExtension {
             }
         }
 
-        String id = ctx.param().get(0).getText();
-        context.getContext().put(new BeamConfigKey(getName(), id), config);
+        BeamLiteral id = BeamListener.parseLiteral(ctx.param().get(0).literal());
+        id.resolve(context);
+        config.resolve(context);
+        context.getContext().put(new BeamConfigKey(getName(), id.getValue().toString()), config);
     }
 }

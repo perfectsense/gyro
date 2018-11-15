@@ -37,6 +37,7 @@ public class BCL {
     public static void init() {
         UI.push(new Formatter());
         BCL.addExtension(new ConfigExtension());
+        BCL.addExtension(new ForExtension());
     }
 
     public static void shutdown() {
