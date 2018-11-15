@@ -1,22 +1,17 @@
 package beam.cli;
 
-import beam.aws.AwsCloud;
 import beam.core.BeamException;
 import beam.core.BeamResource;
 import beam.core.diff.ChangeType;
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiff;
 import beam.core.extensions.ProviderExtension;
-import beam.core.extensions.ResourceExtension;
 import beam.lang.BCL;
 import beam.lang.BeamConfig;
 import beam.lang.BeamConfigKey;
 import beam.lang.BeamResolvable;
 import io.airlift.airline.Arguments;
 import io.airlift.airline.Command;
-import org.reflections.Reflections;
-
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -41,15 +36,6 @@ public class UpCommand extends AbstractCommand {
             BCL.init();
             BCL.addExtension(new ProviderExtension());
 
-            Reflections r = new Reflections("beam.aws.resources");
-            for (Class<?> c : r.getSubTypesOf(BeamResource.class)) {
-                if (Modifier.isAbstract(c.getModifiers())) {
-                    continue;
-                }
-
-                BCL.addExtension(c.getSimpleName(), new ResourceExtension(c));
-            }
-
             BeamConfig root = BCL.parse(getArguments().get(0));
             BCL.resolve(root);
 
@@ -63,8 +49,9 @@ public class UpCommand extends AbstractCommand {
                 }
             }
 
+            // ResourceDiff probably shouldn't take cloud, pass null for now
             ResourceDiff diff = new ResourceDiff(
-                    new AwsCloud(),
+                    null,
                     new ArrayList<>(),
                     resources);
 

@@ -14,7 +14,6 @@ dependencies {
     compile group: 'io.airlift', name: 'airline', version: '0.8'
     compile group: 'org.fusesource.jansi', name: 'jansi', version: '1.16'
 
-    compile group: 'beam', name: 'beam-aws-provider', version: version
     compile group: 'beam', name: 'beam-core', version: version
 }
 

@@ -59,7 +59,6 @@ project(":beam-cli") {
 
     dependencies {
         compile project(':beam-core')
-        compile project(':beam-providers:beam-aws-provider')
     }
 
     publish {
