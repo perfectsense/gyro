@@ -1,0 +1,6 @@
+for zone in [us-east-1a, us-east-1b, us-east-1c]
+    config $(zone)
+        description: $(zone)-subnet
+    end
+end
+
