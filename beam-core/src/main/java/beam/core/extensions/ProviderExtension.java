@@ -16,28 +16,23 @@ public class ProviderExtension extends MethodExtension {
 
     @Override
     public void call(BeamConfig globalContext, List<String> arguments, BeamConfig methodContext) {
-        if (methodContext.get("path") != null) {
-            if (methodContext.get("path").resolve(globalContext)) {
-                String path = (String) methodContext.get("path").getValue();
-
-                Reflections reflections = new Reflections("beam.fetcher");
-                boolean match = false;
-                for (Class<? extends PluginFetcher> fetcherClass : reflections.getSubTypesOf(PluginFetcher.class)) {
-                    try {
-                        PluginFetcher fetcher = fetcherClass.newInstance();
-                        if (fetcher.validate(path)) {
-                            fetcher.fetch(path);
-                            match = true;
-                        }
-                    } catch (IllegalAccessException | InstantiationException error) {
-                        throw new BeamException(String.format("Unable to access %s", fetcherClass.getName()), error);
-                    }
+        methodContext.resolve(globalContext);
+        Reflections reflections = new Reflections("beam.fetcher");
+        boolean match = false;
+        for (Class<? extends PluginFetcher> fetcherClass : reflections.getSubTypesOf(PluginFetcher.class)) {
+            try {
+                PluginFetcher fetcher = fetcherClass.newInstance();
+                if (fetcher.validate(methodContext)) {
+                    fetcher.fetch(methodContext);
+                    match = true;
                 }
-
-                if (!match) {
-                    throw new BeamException(String.format("Unable to fetch plugin %s", path));
-                }
+            } catch (IllegalAccessException | InstantiationException error) {
+                throw new BeamException(String.format("Unable to access %s", fetcherClass.getName()), error);
             }
+        }
+
+        if (!match) {
+            throw new BeamException(String.format("Unable to find fetcher matching:\n %s", methodContext));
         }
     }
 }

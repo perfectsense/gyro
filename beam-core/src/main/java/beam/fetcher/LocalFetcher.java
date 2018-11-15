@@ -2,6 +2,7 @@ package beam.fetcher;
 
 import beam.core.BeamException;
 import beam.builder.ProviderBuilder;
+import beam.lang.BeamConfig;
 import org.reflections.Reflections;
 
 import java.io.File;
@@ -20,13 +21,21 @@ public class LocalFetcher extends PluginFetcher {
     private static Pattern LOCAL_KEY_PAT = Pattern.compile(LOCAL_KEY);
 
     @Override
-    public boolean validate(String key) {
-        File path = new File(key);
-        return path.exists();
+    public boolean validate(BeamConfig fetcherContext) {
+        if (fetcherContext.get("path") != null) {
+            String key = (String) fetcherContext.get("path").getValue();
+            if (key != null) {
+                File path = new File(key);
+                return path.exists();
+            }
+        }
+
+        return false;
     }
 
     @Override
-    public void fetch(String key) {
+    public void fetch(BeamConfig fetcherContext) {
+        String key = (String) fetcherContext.get("path").getValue();
         File localFile = new File(key);
         try {
            if (localFile.isDirectory()) {

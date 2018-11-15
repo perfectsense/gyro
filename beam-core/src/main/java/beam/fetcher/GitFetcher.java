@@ -9,6 +9,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import beam.core.BeamException;
+import beam.lang.BeamConfig;
+import beam.lang.BeamConfigKey;
+import beam.lang.BeamLiteral;
 import com.psddev.dari.util.StringUtils;
 
 public class GitFetcher extends PluginFetcher {
@@ -23,22 +26,28 @@ public class GitFetcher extends PluginFetcher {
     private static Pattern SSH_GIT_URL_PAT = Pattern.compile(SSH_GIT_URL);
 
     @Override
-    public boolean validate(String key) {
-        if (key.contains("?")) {
-            key = key.split("\\?")[0];
-        }
+    public boolean validate(BeamConfig fetcherContext) {
+        if (fetcherContext.get("path") != null) {
+            String key = (String) fetcherContext.get("path").getValue();
+            if (key != null) {
+                if (key.contains("?")) {
+                    key = key.split("\\?")[0];
+                }
 
-        if (key.matches(SSH_GIT_URL) ||
-                key.matches(LONG_GITHUB_URL) ||
-                key.matches(SHORT_GITHUB_URL)) {
-            return true;
+                if (key.matches(SSH_GIT_URL) ||
+                        key.matches(LONG_GITHUB_URL) ||
+                        key.matches(SHORT_GITHUB_URL)) {
+                    return true;
+                }
+            }
         }
 
         return false;
     }
 
     @Override
-    public void fetch(String key) {
+    public void fetch(BeamConfig fetcherContext) {
+        String key = (String) fetcherContext.get("path").getValue();
         String beamPath = System.getProperty("user.home") + "/.beam";
         final String destinationPath = beamPath + "/packages";
 
@@ -124,8 +133,10 @@ public class GitFetcher extends PluginFetcher {
         }
 
         LocalFetcher localHandler = new LocalFetcher();
-        if (localHandler.validate(packagePath.toString())) {
-            localHandler.fetch(packagePath.toString());
+        BeamConfig localFetcherContext = new BeamConfig();
+        localFetcherContext.getContext().put(new BeamConfigKey(null, "path"), new BeamLiteral(packagePath.toString()));
+        if (localHandler.validate(localFetcherContext)) {
+            localHandler.fetch(localFetcherContext);
         }
     }
 
