@@ -1,9 +1,10 @@
 package beam.core.extensions;
 
 import beam.core.BeamException;
-import beam.fetcher.LocalFetcher;
+import beam.fetcher.PluginFetcher;
 import beam.lang.BeamConfig;
 
+import org.reflections.Reflections;
 import java.util.List;
 
 public class ProviderExtension extends MethodExtension {
@@ -19,16 +20,24 @@ public class ProviderExtension extends MethodExtension {
             if (methodContext.get("path").resolve(globalContext)) {
                 String path = (String) methodContext.get("path").getValue();
 
-                LocalFetcher local = new LocalFetcher();
-                if (local.validate(path)) {
-                    local.fetch(path);
+                Reflections reflections = new Reflections("beam.fetcher");
+                boolean match = false;
+                for (Class<? extends PluginFetcher> fetcherClass : reflections.getSubTypesOf(PluginFetcher.class)) {
+                    try {
+                        PluginFetcher fetcher = fetcherClass.newInstance();
+                        if (fetcher.validate(path)) {
+                            fetcher.fetch(path);
+                            match = true;
+                        }
+                    } catch (IllegalAccessException | InstantiationException error) {
+                        throw new BeamException(String.format("Unable to access %s", fetcherClass.getName()), error);
+                    }
+                }
 
-                    // Load all BeamResource classes
-                } else {
-                    throw new BeamException(String.format("Unable to find provider for path: %s", path));
+                if (!match) {
+                    throw new BeamException(String.format("Unable to fetch plugin %s", path));
                 }
             }
         }
     }
-
 }
