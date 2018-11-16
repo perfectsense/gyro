@@ -29,3 +29,18 @@ SubnetResource subnet
     end
 end
 
+AwsCredentials sandbox
+    profileName: psd-sandbox
+end
+
+VpcResource vpc-sandbox
+    resourceName: $(project)-$(serial)-development
+    resourceCredentials: $(AwsCredentials sandbox)
+    cidrBlock: "10.1.0.0/16"
+end
+
+SubnetResource subnet-sandbox
+    vpc: $(VpcResource vpc-sandbox)
+    availabilityZone: $(VpcResource vpc-sandbox | region)b
+    cidrBlock: "10.1.0.0/24"
+end
