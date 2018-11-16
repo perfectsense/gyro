@@ -41,12 +41,12 @@ public class AwsCredentials extends BeamCredentials {
 
     @Override
     public void saveState(BeamResource resource) {
-        getStateBackend().saveState(this, resource.getResourceName(), resource);
+        getStateBackend().saveState(this, resource.getResourceIdentifier(), resource);
     }
 
     @Override
     public void deleteState(BeamResource resource) {
-        getStateBackend().deleteState(this, resource.getResourceName());
+        getStateBackend().deleteState(this, resource.getResourceIdentifier());
     }
 
     @Override

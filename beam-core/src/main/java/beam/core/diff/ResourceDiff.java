@@ -136,7 +136,7 @@ public class ResourceDiff {
 
         for (BeamResource pendingDependent : pendingResource.dependents()) {
             for (BeamResource currentDependent : currentResource.dependents()) {
-                if (currentDependent.getResourceName().equals(pendingDependent.getResourceName())) {
+                if (currentDependent.getResourceIdentifier().equals(pendingDependent.getResourceIdentifier())) {
                     System.out.println("Update");
                     updateOne(update, currentDependent, pendingDependent);
                 }
@@ -243,7 +243,7 @@ public class ResourceDiff {
 
         if (currentResources != null) {
             for (BeamResource resource : currentResources) {
-                currentResourcesByName.put(resource.getResourceName(), resource);
+                currentResourcesByName.put(resource.getResourceIdentifier(), resource);
             }
         }
 
@@ -251,7 +251,7 @@ public class ResourceDiff {
 
         if (pendingConfigs != null) {
             for (BeamResource config : pendingConfigs) {
-                String name = config.getResourceName();
+                String name = config.getResourceIdentifier();
                 BeamResource asset = currentResourcesByName.remove(name);
                 ResourceChange change = asset != null ? newUpdate(asset, config) : newCreate(config);
 

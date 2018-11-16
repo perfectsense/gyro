@@ -3,6 +3,7 @@ package beam.fetcher;
 import beam.core.BeamCredentials;
 import beam.core.BeamException;
 import beam.core.BeamResource;
+import beam.core.diff.ResourceName;
 import beam.core.extensions.CredentialsExtension;
 import beam.core.extensions.ResourceExtension;
 import beam.lang.BCL;
@@ -117,7 +118,19 @@ public class MavenFetcher extends PluginFetcher {
                 Class c = loader.loadClass(className);
                 if (BeamResource.class.isAssignableFrom(c)) {
                     if (!Modifier.isAbstract(c.getModifiers())) {
-                        BCL.addExtension(c.getSimpleName(), new ResourceExtension(c));
+                        BeamResource resource = (BeamResource) c.newInstance();
+                        BeamCredentials credentials = (BeamCredentials) resource.getResourceCredentialsClass().newInstance();
+
+                        String resourceNamespace = credentials.getName();
+                        String resourceName = c.getSimpleName();
+
+                        if (c.isAnnotationPresent(ResourceName.class)) {
+                            ResourceName name = (ResourceName) c.getAnnotation(ResourceName.class);
+                            resourceName = name.value();
+                        }
+
+                        String fullName = String.format("%s::%s", resourceNamespace, resourceName);
+                        BCL.addExtension(fullName, new ResourceExtension(fullName, c));
                     }
                 } else if (BeamCredentials.class.isAssignableFrom(c)) {
                     BCL.addExtension(c.getSimpleName(), new CredentialsExtension(c));

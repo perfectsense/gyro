@@ -1,9 +1,9 @@
 package beam.aws.resources;
 
-import beam.aws.AwsCredentials;
 import beam.core.BeamCredentials;
 import beam.core.BeamException;
 import beam.core.diff.ResourceDiffProperty;
+import beam.core.diff.ResourceName;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.CreateVpcRequest;
 import com.amazonaws.services.ec2.model.DeleteVpcRequest;
@@ -16,6 +16,7 @@ import com.psddev.dari.util.ObjectUtils;
 
 import java.util.Set;
 
+@ResourceName("vpc")
 public class VpcResource extends TaggableResource<Vpc> {
 
     private String vpcId;

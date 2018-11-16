@@ -34,7 +34,6 @@ public abstract class AwsResource extends BeamResource {
         return null;
     }
 
-    @Override
     public Class getResourceCredentialsClass() {
         return AwsCredentials.class;
     }

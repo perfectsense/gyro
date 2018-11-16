@@ -1,9 +1,9 @@
 package beam.aws.resources;
 
-import beam.aws.AwsCredentials;
 import beam.core.BeamCredentials;
 import beam.core.BeamException;
 import beam.core.diff.ResourceDiffProperty;
+import beam.core.diff.ResourceName;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.CreateSubnetRequest;
 import com.amazonaws.services.ec2.model.DeleteSubnetRequest;
@@ -17,6 +17,7 @@ import com.psddev.dari.util.ObjectUtils;
 import java.util.Arrays;
 import java.util.Set;
 
+@ResourceName("subnet")
 public class SubnetResource extends TaggableResource<Subnet> {
 
     private String subnetId;

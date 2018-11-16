@@ -15,17 +15,16 @@ AwsCredentials default
     profileName: psd-sandbox
 end
 
-VpcResource vpc
-    resourceName: $(project)-$(serial)-$(environment)
+aws::vpc vpc
     cidrBlock: "10.0.0.0/16"
 end
 
-SubnetResource subnet
-    vpc: $(VpcResource vpc)
-    availabilityZone: $(VpcResource vpc | region)b
+aws::subnet subnet
+    vpc: $(aws::vpc vpc)
+    availabilityZone: $(aws::vpc vpc | region)b
     cidrBlock: "10.0.0.0/24"
     tags:
-        belongsTo: $(VpcResource vpc | name)
+        belongsTo: $(aws::vpc vpc | name)
     end
 end
 
@@ -33,14 +32,13 @@ AwsCredentials sandbox
     profileName: psd-sandbox
 end
 
-VpcResource vpc-sandbox
-    resourceName: $(project)-$(serial)-development
+aws::vpc vpc-sandbox
     resourceCredentials: $(AwsCredentials sandbox)
     cidrBlock: "10.1.0.0/16"
 end
 
-SubnetResource subnet-sandbox
-    vpc: $(VpcResource vpc-sandbox)
-    availabilityZone: $(VpcResource vpc-sandbox | region)b
+aws::subnet subnet-sandbox
+    vpc: $(aws::vpc vpc-sandbox)
+    availabilityZone: $(aws::vpc vpc-sandbox | region)b
     cidrBlock: "10.1.0.0/24"
 end

@@ -15,7 +15,7 @@ import org.apache.commons.beanutils.BeanUtils;
 
 public abstract class BeamResource extends BeamConfig implements Comparable<BeamResource> {
 
-    private String resourceName;
+    private String resourceIdentifier;
     private BeamCredentials resourceCredentials;
 
     private transient BeamResource parent;
@@ -59,12 +59,12 @@ public abstract class BeamResource extends BeamConfig implements Comparable<Beam
         return progress;
     }
 
-    public String getResourceName() {
-        return resourceName;
+    public String getResourceIdentifier() {
+        return resourceIdentifier;
     }
 
-    public void setResourceName(String resourceName) {
-        this.resourceName = resourceName;
+    public void setResourceIdentifier(String resourceIdentifier) {
+        this.resourceIdentifier = resourceIdentifier;
     }
 
     public abstract Class getResourceCredentialsClass();
@@ -135,8 +135,8 @@ public abstract class BeamResource extends BeamConfig implements Comparable<Beam
 
     @Override
     public int compareTo(BeamResource o) {
-        if (getResourceName() != null) {
-            return getResourceName().compareTo(o.getResourceName());
+        if (getResourceIdentifier() != null) {
+            return getResourceIdentifier().compareTo(o.getResourceIdentifier());
         }
 
         return -1;
