@@ -49,7 +49,10 @@ public class UpCommand extends AbstractCommand {
                 if (value instanceof BeamCredentials) {
                     BeamCredentials credentials = (BeamCredentials) value;
                     for (BeamResource resource : credentials.dependents()) {
-                        resources.add(resource.findTop());
+                        BeamResource resourceRoot = resource.findTop();
+                        if (resourceRoot != null) {
+                            resources.add(resourceRoot);
+                        }
                     }
                 }
             }

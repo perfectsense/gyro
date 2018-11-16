@@ -41,8 +41,7 @@ public abstract class BeamResource extends BeamConfig implements Comparable<Beam
             Object value = referable.getValue();
 
             if (value instanceof BeamResource) {
-                BeamResource parent = (BeamResource) value;
-
+                parent = (BeamResource) value;
                 parent.dependents.add(this);
                 dependencies.add(parent);
             } else if (value instanceof BeamCredentials) {
