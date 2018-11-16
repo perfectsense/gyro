@@ -27,7 +27,13 @@ public class ResourceExtension extends MethodExtension {
         try {
             BeamResource resource = (BeamResource) resourceClass.newInstance();
             BeamConfigKey key = new BeamConfigKey(resourceClass.getSimpleName(), arguments.get(0));
+            resource.setResourceName(arguments.get(0));
             resource.setContext(methodContext.getContext());
+
+            if (globalContext.getContext().containsKey(key)) {
+                throw new BeamException("Resource with name " + arguments.get(0) + " already exists.");
+            }
+
             globalContext.getContext().put(key, resource);
 
             // Assign implicit reference to default credentials.
