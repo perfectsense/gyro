@@ -65,6 +65,7 @@ public class BeamReference extends BeamLiteral {
             sb.append(scope);
             sb.append(" | ");
         }
+        sb.setLength(sb.length() - 3);
 
         sb.append(String.join(".", getReferenceChain()));
         sb.append(')');

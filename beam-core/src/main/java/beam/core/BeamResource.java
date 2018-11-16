@@ -13,13 +13,15 @@ import beam.lang.BeamConfigKey;
 import beam.lang.BeamResolvable;
 import org.apache.commons.beanutils.BeanUtils;
 
-public abstract class BeamResource<C extends BeamCloud> extends BeamConfig implements Comparable<BeamResource> {
+public abstract class BeamResource extends BeamConfig implements Comparable<BeamResource> {
 
     private String resourceName;
-    private transient BeamResource<C> parent;
-    private transient List<BeamResource<C>> children = new ArrayList<>();
-    private transient final Set<BeamResource<C>> dependencies = new TreeSet<>();
-    private transient final Set<BeamResource<C>> dependents = new TreeSet<>();
+    private BeamCredentials resourceCredentials;
+
+    private transient BeamResource parent;
+    private transient List<BeamResource> children = new ArrayList<>();
+    private transient final Set<BeamResource> dependencies = new TreeSet<>();
+    private transient final Set<BeamResource> dependents = new TreeSet<>();
     private transient ResourceChange change;
 
     @Override
@@ -43,6 +45,9 @@ public abstract class BeamResource<C extends BeamCloud> extends BeamConfig imple
 
                 parent.dependents.add(this);
                 dependencies.add(parent);
+            } else if (value instanceof BeamCredentials) {
+                BeamCredentials credentials = (BeamCredentials) value;
+                credentials.dependents().add(this);
             }
 
             try {
@@ -63,6 +68,16 @@ public abstract class BeamResource<C extends BeamCloud> extends BeamConfig imple
         this.resourceName = resourceName;
     }
 
+    public abstract Class getResourceCredentialsClass();
+
+    public BeamCredentials getResourceCredentials() {
+        return resourceCredentials;
+    }
+
+    public void setResourceCredentials(BeamCredentials resourceCredentials) {
+        this.resourceCredentials = resourceCredentials;
+    }
+
     public ResourceChange getChange() {
         return change;
     }
@@ -71,19 +86,19 @@ public abstract class BeamResource<C extends BeamCloud> extends BeamConfig imple
         this.change = change;
     }
 
-    public Set<BeamResource<C>> dependencies() {
+    public Set<BeamResource> dependencies() {
         return dependencies;
     }
 
-    public Set<BeamResource<C>> dependents() {
+    public Set<BeamResource> dependents() {
         return dependents;
     }
 
-    public BeamResource<C> findTop() {
-        BeamResource<C> top = this;
+    public BeamResource findTop() {
+        BeamResource top = this;
 
         while (true) {
-            BeamResource<C> parent = top.parent;
+            BeamResource parent = top.parent;
 
             if (parent == null) {
                 return top;
@@ -95,8 +110,8 @@ public abstract class BeamResource<C extends BeamCloud> extends BeamConfig imple
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends BeamResource<C>> T findParent(Class<T> parentClass) {
-        for (BeamResource<C> parent = this; (parent = parent.parent) != null;) {
+    public <T extends BeamResource> T findParent(Class<T> parentClass) {
+        for (BeamResource parent = this; (parent = parent.parent) != null;) {
             if (parentClass.isInstance(parent)) {
                 return (T) parent;
             }
@@ -105,17 +120,17 @@ public abstract class BeamResource<C extends BeamCloud> extends BeamConfig imple
         return null;
     }
 
-    public abstract void refresh(C cloud);
+    public abstract void refresh(BeamCredentials cloud);
 
-    public BeamResource<C> findCurrent(C cloud) {
+    public BeamResource findCurrent() {
         return null;
     }
 
-    public abstract void create(C cloud);
+    public abstract void create();
 
-    public abstract void update(C cloud, BeamResource<C> current, Set<String> changedProperties);
+    public abstract void update(BeamResource current, Set<String> changedProperties);
 
-    public abstract void delete(C cloud);
+    public abstract void delete();
 
     public abstract String toDisplayString();
 

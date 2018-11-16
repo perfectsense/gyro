@@ -1,8 +1,8 @@
 package beam.aws.resources;
 
-import beam.aws.AwsCloud;
+import beam.aws.AwsCredentials;
+import beam.core.BeamCredentials;
 import beam.core.BeamException;
-import beam.core.BeamResource;
 import beam.core.diff.ResourceDiffProperty;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.CreateVpcRequest;
@@ -63,8 +63,8 @@ public class VpcResource extends TaggableResource<Vpc> {
     }
 
     @Override
-    public void refresh(AwsCloud cloud) {
-        AmazonEC2Client client = createClient(AmazonEC2Client.class, cloud.getProvider());
+    public void refresh(BeamCredentials credentials) {
+        AmazonEC2Client client = createClient(AmazonEC2Client.class);
 
         if (ObjectUtils.isBlank(getVpcId())) {
             throw new BeamException("vpc-id is missing, unable to load vpc.");
@@ -74,14 +74,14 @@ public class VpcResource extends TaggableResource<Vpc> {
         request.withVpcIds(getVpcId());
 
         for (Vpc vpc : client.describeVpcs(request).getVpcs()) {
-            doInit(cloud, vpc);
+            doInit(vpc);
             break;
         }
     }
 
     @Override
-    protected void doInit(AwsCloud cloud, Vpc vpc) {
-        AmazonEC2Client ec2Client = createClient(AmazonEC2Client.class, cloud.getProvider());
+    protected void doInit(Vpc vpc) {
+        AmazonEC2Client ec2Client = createClient(AmazonEC2Client.class);
         String vpcId = vpc.getVpcId();
 
         setCidrBlock(vpc.getCidrBlock());
@@ -103,8 +103,8 @@ public class VpcResource extends TaggableResource<Vpc> {
     }
 
     @Override
-    protected void doCreate(AwsCloud cloud) {
-        AmazonEC2Client client = createClient(AmazonEC2Client.class, cloud.getProvider());
+    protected void doCreate() {
+        AmazonEC2Client client = createClient(AmazonEC2Client.class);
         CreateVpcRequest cvRequest = new CreateVpcRequest();
 
         cvRequest.setCidrBlock(getCidrBlock());
@@ -114,8 +114,8 @@ public class VpcResource extends TaggableResource<Vpc> {
     }
 
     @Override
-    protected void doUpdate(AwsCloud cloud, AwsResource current, Set<String> changedProperties) {
-        AmazonEC2Client client = createClient(AmazonEC2Client.class, cloud.getProvider());
+    protected void doUpdate(AwsResource current, Set<String> changedProperties) {
+        AmazonEC2Client client = createClient(AmazonEC2Client.class);
 
         modifyAttributes(client);
     }
@@ -144,8 +144,8 @@ public class VpcResource extends TaggableResource<Vpc> {
     }
 
     @Override
-    public void delete(AwsCloud cloud) {
-        AmazonEC2Client client = createClient(AmazonEC2Client.class, cloud.getProvider());
+    public void delete() {
+        AmazonEC2Client client = createClient(AmazonEC2Client.class);
         DeleteVpcRequest dvRequest = new DeleteVpcRequest();
 
         dvRequest.setVpcId(getVpcId());

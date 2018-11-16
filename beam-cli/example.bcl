@@ -1,3 +1,7 @@
+project: ops-test
+serial: 99
+environment: production
+
 provider aws
     artifact: "beam:beam-aws-provider:0.5"
     repositories:
@@ -6,9 +10,10 @@ provider aws
         - "https://artifactory.psdops.com/public"
     end
 end
-project: ops-test
-serial: 99
-environment: production
+
+AwsCredentials default
+    profileName: psd-sandbox
+end
 
 VpcResource vpc
     resourceName: $(project)-$(serial)-$(environment)

@@ -1,7 +1,9 @@
 package beam.fetcher;
 
+import beam.core.BeamCredentials;
 import beam.core.BeamException;
 import beam.core.BeamResource;
+import beam.core.extensions.CredentialsExtension;
 import beam.core.extensions.ResourceExtension;
 import beam.lang.BCL;
 import beam.lang.BeamConfig;
@@ -117,6 +119,8 @@ public class MavenFetcher extends PluginFetcher {
                     if (!Modifier.isAbstract(c.getModifiers())) {
                         BCL.addExtension(c.getSimpleName(), new ResourceExtension(c));
                     }
+                } else if (BeamCredentials.class.isAssignableFrom(c)) {
+                    BCL.addExtension(c.getSimpleName(), new CredentialsExtension(c));
                 }
             }
         } catch (Exception e) {

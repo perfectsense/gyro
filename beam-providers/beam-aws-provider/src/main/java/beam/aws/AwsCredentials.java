@@ -1,6 +1,6 @@
 package beam.aws;
 
-import beam.core.BeamCloud;
+import beam.core.BeamCredentials;
 import beam.core.BeamException;
 import beam.core.BeamResource;
 import com.amazonaws.AmazonClientException;
@@ -12,16 +12,26 @@ import org.joda.time.DateTime;
 
 import java.util.Map;
 
-public class AwsCloud extends BeamCloud {
+public class AwsCredentials extends BeamCredentials {
 
     private final AWSCredentialsProvider provider;
 
-    public AwsCloud() {
+    private String profileName;
+
+    public AwsCredentials() {
         this.provider = null;
     }
 
     public AWSCredentialsProvider getProvider() {
         return provider;
+    }
+
+    public String getProfileName() {
+        return profileName;
+    }
+
+    public void setProfileName(String profileName) {
+        this.profileName = profileName;
     }
 
     @Override

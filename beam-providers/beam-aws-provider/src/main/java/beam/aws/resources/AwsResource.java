@@ -1,6 +1,7 @@
 package beam.aws.resources;
 
-import beam.aws.AwsCloud;
+import beam.aws.AwsCredentials;
+import beam.core.BeamCredentials;
 import beam.core.BeamException;
 import beam.core.BeamResource;
 import com.amazonaws.AmazonWebServiceClient;
@@ -9,13 +10,15 @@ import com.amazonaws.regions.Region;
 
 import java.lang.reflect.Constructor;
 
-public abstract class AwsResource extends BeamResource<AwsCloud> {
+public abstract class AwsResource extends BeamResource {
 
     private Region region;
 
-    public <T extends AmazonWebServiceClient> T createClient(Class<T> clientClass, AWSCredentialsProvider provider) {
+    public <T extends AmazonWebServiceClient> T createClient(Class<T> clientClass) {
 
         try {
+            AwsCredentials credentials = (AwsCredentials) getResourceCredentials();
+            AWSCredentialsProvider provider = credentials.getProvider();
             Constructor<?> constructor = clientClass.getConstructor(AWSCredentialsProvider.class);
 
             T client = (T) constructor.newInstance(provider);
@@ -29,6 +32,11 @@ public abstract class AwsResource extends BeamResource<AwsCloud> {
         }
 
         return null;
+    }
+
+    @Override
+    public Class getResourceCredentialsClass() {
+        return AwsCredentials.class;
     }
 
     @FunctionalInterface

@@ -1,6 +1,6 @@
 package beam.aws.resources;
 
-import beam.aws.AwsCloud;
+import beam.aws.AwsCredentials;
 import beam.core.BeamResource;
 import beam.core.diff.ResourceDiffProperty;
 import com.amazonaws.services.ec2.AmazonEC2Client;
@@ -53,11 +53,11 @@ public abstract class TaggableResource<T> extends AwsResource implements Taggabl
 
     protected abstract String getId();
 
-    protected void doInit(AwsCloud cloud, T resource) {
+    protected void doInit(T resource) {
     }
 
-    public final void init(AwsCloud cloud, T resource) {
-        doInit(cloud, resource);
+    public final void init(T resource) {
+        doInit(resource);
 
         try {
             for (Object item : ObjectUtils.to(Iterable.class, resource)) {
@@ -84,27 +84,27 @@ public abstract class TaggableResource<T> extends AwsResource implements Taggabl
         }
     }
 
-    protected abstract void doCreate(AwsCloud cloud);
+    protected abstract void doCreate();
 
     @Override
-    public final void create(AwsCloud cloud) {
-        doCreate(cloud);
-        createTags(cloud);
+    public final void create() {
+        doCreate();
+        createTags();
     }
 
-    protected abstract void doUpdate(AwsCloud cloud, AwsResource config, Set<String> changedProperties);
+    protected abstract void doUpdate(AwsResource config, Set<String> changedProperties);
 
     @Override
-    public final void update(AwsCloud cloud, BeamResource<AwsCloud> current, Set<String> changedProperties) {
-        doUpdate(cloud, (AwsResource) current, changedProperties);
-        createTags(cloud);
+    public final void update(BeamResource current, Set<String> changedProperties) {
+        doUpdate((AwsResource) current, changedProperties);
+        createTags();
     }
 
-    private void createTags(AwsCloud cloud) {
+    private void createTags() {
         Map<String, String> tags = getTags();
 
         if (tags != null && !tags.isEmpty()) {
-            AmazonEC2Client client = createClient(AmazonEC2Client.class, cloud.getProvider());
+            AmazonEC2Client client = createClient(AmazonEC2Client.class);
             CreateTagsRequest ctRequest = new CreateTagsRequest();
 
             for (Map.Entry<String, String> entry : tags.entrySet()) {

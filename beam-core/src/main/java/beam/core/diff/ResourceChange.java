@@ -1,6 +1,6 @@
 package beam.core.diff;
 
-import beam.core.BeamCloud;
+import beam.core.BeamCredentials;
 import beam.core.BeamResource;
 import com.google.common.base.Throwables;
 import com.google.common.collect.MapDifference;
@@ -19,15 +19,13 @@ import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.util.*;
 
-public class ResourceChange<C extends BeamCloud> {
-
-    private final C cloud;
+public class ResourceChange {
 
     private final BeamResource currentResource;
     private final BeamResource pendingResource;
 
     private final ResourceDiff diff;
-    private final List<ResourceDiff<?>> diffs = new ArrayList<>();
+    private final List<ResourceDiff> diffs = new ArrayList<>();
     private boolean changeable;
     private boolean changed;
 
@@ -36,25 +34,24 @@ public class ResourceChange<C extends BeamCloud> {
     private final Set<String> replacedProperties = new HashSet<>();
     private final StringBuilder replacedPropertiesDisplay = new StringBuilder();
 
-    private final Lazy<BeamResource<C>> changedResource = new Lazy<BeamResource<C>>() {
+    private final Lazy<BeamResource> changedResource = new Lazy<BeamResource>() {
 
         @Override
-        public final BeamResource<C> create() throws Exception {
-            BeamResource<C> resource = change();
+        public final BeamResource create() throws Exception {
+            BeamResource resource = change();
             changed = true;
 
             return resource;
         }
     };
 
-    public ResourceChange(ResourceDiff diff, BeamResource<C> currentResource, BeamResource<C> pendingResource, C cloud) {
+    public ResourceChange(ResourceDiff diff, BeamResource currentResource, BeamResource pendingResource) {
         this.currentResource = currentResource;
         this.pendingResource = pendingResource;
-        this.cloud = cloud;
         this.diff = diff;
     }
 
-    public BeamResource<C> getChangedResource() {
+    public BeamResource getChangedResource() {
         if (isChangeable()) {
             return changedResource.get();
 
@@ -63,24 +60,24 @@ public class ResourceChange<C extends BeamCloud> {
         }
     }
 
-    public void create(Collection<? extends BeamResource<C>> pendingResources) throws Exception {
+    public void create(Collection<? extends BeamResource> pendingResources) throws Exception {
         diff.create(this, pendingResources);
     }
 
-    public <R extends BeamResource<C>> void update(Collection<R> currentResources, Collection<R> pendingResources) throws Exception {
+    public <R extends BeamResource> void update(Collection<R> currentResources, Collection<R> pendingResources) throws Exception {
         diff.update(this, currentResources, pendingResources);
     }
 
-    public void delete(Collection<? extends BeamResource<C>> pendingResources) throws Exception {
+    public void delete(Collection<? extends BeamResource> pendingResources) throws Exception {
         diff.delete(this, pendingResources);
     }
 
-    public Set<ResourceChange<?>> dependencies() {
-        Set<ResourceChange<?>> dependencies = new HashSet<>();
+    public Set<ResourceChange> dependencies() {
+        Set<ResourceChange> dependencies = new HashSet<>();
 
-        BeamResource<C> resource = pendingResource != null ? pendingResource : currentResource;
-        for (BeamResource<C> r : (getType() == ChangeType.DELETE ? resource.dependents() : resource.dependencies())) {
-            ResourceChange<?> c = r.getChange();
+        BeamResource resource = pendingResource != null ? pendingResource : currentResource;
+        for (BeamResource r : (getType() == ChangeType.DELETE ? resource.dependents() : resource.dependencies())) {
+            ResourceChange c = r.getChange();
 
             if (c != null) {
                 dependencies.add(c);
@@ -104,11 +101,11 @@ public class ResourceChange<C extends BeamCloud> {
         }
     }
 
-    public BeamResource<C> getCurrentResource() {
+    public BeamResource getCurrentResource() {
         return currentResource;
     }
 
-    public List<ResourceDiff<?>> getDiffs() {
+    public List<ResourceDiff> getDiffs() {
         return diffs;
     }
 
@@ -310,12 +307,11 @@ public class ResourceChange<C extends BeamCloud> {
         }
     }
 
-    protected BeamResource<C> change() {
+    protected BeamResource change() {
         ChangeType type = getType();
 
         if (type == ChangeType.UPDATE) {
-            pendingResource.update(cloud, currentResource, updatedProperties);
-            cloud.saveState(pendingResource);
+            pendingResource.update(currentResource, updatedProperties);
             return pendingResource;
 
         } else if (type == ChangeType.REPLACE) {

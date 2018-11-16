@@ -1,10 +1,16 @@
 package beam.core;
 
-import java.util.Map;
+import beam.lang.BeamConfig;
+import org.antlr.v4.runtime.misc.Array2DHashSet;
 
-public abstract class BeamCloud {
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+
+public abstract class BeamCredentials extends BeamConfig {
 
     private BeamState stateBackend;
+    private final Set<BeamResource> dependents = new TreeSet<>();
 
     /**
      * Return the name of this cloud.
@@ -28,6 +34,10 @@ public abstract class BeamCloud {
     public abstract void saveState(BeamResource resource);
 
     public abstract void deleteState(BeamResource resource);
+
+    public Set<BeamResource> dependents() {
+        return dependents;
+    }
 
     public Map<String, String> findCredentials() {
         return findCredentials(false);

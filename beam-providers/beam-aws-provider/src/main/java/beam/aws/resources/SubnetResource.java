@@ -1,6 +1,7 @@
 package beam.aws.resources;
 
-import beam.aws.AwsCloud;
+import beam.aws.AwsCredentials;
+import beam.core.BeamCredentials;
 import beam.core.BeamException;
 import beam.core.diff.ResourceDiffProperty;
 import com.amazonaws.services.ec2.AmazonEC2Client;
@@ -71,8 +72,8 @@ public class SubnetResource extends TaggableResource<Subnet> {
     }
 
     @Override
-    public void refresh(AwsCloud cloud) {
-        AmazonEC2Client client = createClient(AmazonEC2Client.class, cloud.getProvider());
+    public void refresh(BeamCredentials credentials) {
+        AmazonEC2Client client = createClient(AmazonEC2Client.class);
 
         if (ObjectUtils.isBlank(getSubnetId())) {
             throw new BeamException("subnet-id is missing, unable to load subnet.");
@@ -82,13 +83,13 @@ public class SubnetResource extends TaggableResource<Subnet> {
         request.withSubnetIds(getSubnetId());
 
         for (Subnet subnet : client.describeSubnets(request).getSubnets()) {
-            doInit(cloud, subnet);
+            doInit(subnet);
             break;
         }
     }
 
     @Override
-    protected void doInit(AwsCloud cloud, Subnet subnet) {
+    protected void doInit(Subnet subnet) {
         String subnetId = subnet.getSubnetId();
 
         setAvailabilityZone(subnet.getAvailabilityZone());
@@ -98,8 +99,8 @@ public class SubnetResource extends TaggableResource<Subnet> {
     }
 
     @Override
-    protected void doCreate(AwsCloud cloud) {
-        AmazonEC2Client client = createClient(AmazonEC2Client.class, cloud.getProvider());
+    protected void doCreate() {
+        AmazonEC2Client client = createClient(AmazonEC2Client.class);
         CreateSubnetRequest csRequest = new CreateSubnetRequest();
 
         csRequest.setAvailabilityZone(getAvailabilityZone());
@@ -110,8 +111,8 @@ public class SubnetResource extends TaggableResource<Subnet> {
     }
 
     @Override
-    protected void doUpdate(AwsCloud cloud, AwsResource current, Set<String> changedProperties) {
-        AmazonEC2Client client = createClient(AmazonEC2Client.class, cloud.getProvider());
+    protected void doUpdate(AwsResource current, Set<String> changedProperties) {
+        AmazonEC2Client client = createClient(AmazonEC2Client.class);
 
         modifyAttribute(client);
     }
@@ -129,8 +130,8 @@ public class SubnetResource extends TaggableResource<Subnet> {
     }
 
     @Override
-    public void delete(AwsCloud cloud) {
-        AmazonEC2Client client = createClient(AmazonEC2Client.class, cloud.getProvider());
+    public void delete() {
+        AmazonEC2Client client = createClient(AmazonEC2Client.class);
 
         // Network interfaces may still be detaching, so check and wait
         // before deleting the subnet.

@@ -1,5 +1,6 @@
 package beam.cli;
 
+import beam.core.BeamCredentials;
 import beam.core.BeamException;
 import beam.core.BeamResource;
 import beam.core.diff.ChangeType;
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 @Command(name = "up", description = "Updates all resources to match the configuration.")
 public class UpCommand extends AbstractCommand {
@@ -39,27 +41,25 @@ public class UpCommand extends AbstractCommand {
             BeamConfig root = BCL.parse(getArguments().get(0));
             BCL.resolve(root);
 
-            List<BeamResource> resources = new ArrayList<>();
+            Set<BeamResource> resources = new TreeSet<>();
             for (BeamConfigKey key : root.getContext().keySet()) {
                 BeamResolvable resolvable = root.getContext().get(key);
                 Object value = resolvable.getValue();
 
-                if (value instanceof BeamResource && value.getClass().getSimpleName().equals("VpcResource")) {
-                    resources.add((BeamResource) value);
+                if (value instanceof BeamCredentials) {
+                    BeamCredentials credentials = (BeamCredentials) value;
+                    for (BeamResource resource : credentials.dependents()) {
+                        resources.add(resource.findTop());
+                    }
                 }
             }
 
-            // ResourceDiff probably shouldn't take cloud, pass null for now
-            ResourceDiff diff = new ResourceDiff(
-                    null,
-                    new ArrayList<>(),
-                    resources);
-
+            ResourceDiff diff = new ResourceDiff(new ArrayList<>(), resources);
             diff.diff();
 
             changeTypes.clear();
 
-            List<ResourceDiff<?>> diffs = new ArrayList<>();
+            List<ResourceDiff> diffs = new ArrayList<>();
             diffs.add(diff);
 
             writeDiffs(diffs);
@@ -73,20 +73,20 @@ public class UpCommand extends AbstractCommand {
         return arguments;
     }
 
-    private void writeDiffs(List<ResourceDiff<?>> diffs) {
-        for (ResourceDiff<?> diff : diffs) {
+    private void writeDiffs(List<ResourceDiff> diffs) {
+        for (ResourceDiff diff : diffs) {
             if (!diff.hasChanges()) {
                 continue;
             }
 
-            for (ResourceChange<?> change : diff.getChanges()) {
+            for (ResourceChange change : diff.getChanges()) {
                 ChangeType type = change.getType();
-                List<ResourceDiff<?>> changeDiffs = change.getDiffs();
+                List<ResourceDiff> changeDiffs = change.getDiffs();
 
                 if (type == ChangeType.KEEP) {
                     boolean hasChanges = false;
 
-                    for (ResourceDiff<?> changeDiff : changeDiffs) {
+                    for (ResourceDiff changeDiff : changeDiffs) {
                         if (changeDiff.hasChanges()) {
                             hasChanges = true;
                             break;
@@ -106,7 +106,7 @@ public class UpCommand extends AbstractCommand {
         }
     }
 
-    private void writeChange(ResourceChange<?> change) {
+    private void writeChange(ResourceChange change) {
         switch (change.getType()) {
             case CREATE :
                 Beam.ui().write("@|green + %s|@", change);
