@@ -66,6 +66,17 @@ public class UpCommand extends AbstractCommand {
             diffs.add(diff);
 
             writeDiffs(diffs);
+
+            boolean hasChanges = false;
+            if (changeTypes.contains(ChangeType.CREATE) || changeTypes.contains(ChangeType.UPDATE)) {
+                hasChanges = true;
+
+                if (Beam.ui().readBoolean(Boolean.FALSE, "\nAre you sure you want to create and/or update resources?")) {
+                    Beam.ui().write("\n");
+                    setChangeable(diffs);
+                    createOrUpdate(diffs);
+                }
+            }
         } finally {
             BCL.shutdown();
         }
@@ -134,6 +145,63 @@ public class UpCommand extends AbstractCommand {
             default :
                 Beam.ui().write(change.toString());
         }
+    }
+
+    private void setChangeable(List<ResourceDiff> diffs) {
+        for (ResourceDiff diff : diffs) {
+            for (ResourceChange change : diff.getChanges()) {
+                change.setChangeable(true);
+                setChangeable(change.getDiffs());
+            }
+        }
+    }
+
+    private void createOrUpdate(List<ResourceDiff> diffs) {
+        for (ResourceDiff diff : diffs) {
+            for (ResourceChange change : diff.getChanges()) {
+                ChangeType type = change.getType();
+
+                if (type == ChangeType.CREATE || type == ChangeType.UPDATE) {
+                    execute(change);
+                }
+
+                createOrUpdate(change.getDiffs());
+            }
+        }
+    }
+
+    private void delete(List<ResourceDiff> diffs) {
+        for (ResourceDiff diff : diffs) {
+            for (ResourceChange change : diff.getChanges()) {
+                delete(change.getDiffs());
+
+                if (change.getType() == ChangeType.DELETE) {
+                    execute(change);
+                }
+            }
+        }
+    }
+
+    private void execute(ResourceChange change) {
+        ChangeType type = change.getType();
+
+        if (type == ChangeType.KEEP || type == ChangeType.REPLACE ||
+                change.isChanged()) {
+            return;
+        }
+
+        Set<ResourceChange> dependencies = change.dependencies();
+
+        if (dependencies != null && !dependencies.isEmpty()) {
+            for (ResourceChange d : dependencies) {
+                execute(d);
+            }
+        }
+
+        Beam.ui().write("Executing: ");
+        writeChange(change);
+        change.executeChange();
+        Beam.ui().write(" OK\n");
     }
 
 }

@@ -51,7 +51,7 @@ public class ResourceChange {
         this.diff = diff;
     }
 
-    public BeamResource getChangedResource() {
+    public BeamResource executeChange() {
         if (isChangeable()) {
             return changedResource.get();
 
