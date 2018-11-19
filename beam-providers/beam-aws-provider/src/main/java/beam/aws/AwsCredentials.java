@@ -3,23 +3,31 @@ package beam.aws;
 import beam.core.BeamCredentials;
 import beam.core.BeamException;
 import beam.core.BeamResource;
+import beam.lang.BeamConfig;
+import beam.lang.BeamConfigKey;
+import beam.lang.BeamResolvable;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.auth.AWSCredentialsProviderChain;
 import com.amazonaws.auth.AWSSessionCredentials;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.google.common.collect.ImmutableMap;
+import org.apache.commons.beanutils.BeanUtils;
 import org.joda.time.DateTime;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 public class AwsCredentials extends BeamCredentials {
 
-    private final AWSCredentialsProvider provider;
+    private AWSCredentialsProvider provider;
 
     private String profileName;
 
     public AwsCredentials() {
-        this.provider = null;
+        this.provider = new AWSCredentialsProviderChain(DefaultAWSCredentialsProviderChain.getInstance());
     }
 
     public AWSCredentialsProvider getProvider() {
@@ -32,6 +40,11 @@ public class AwsCredentials extends BeamCredentials {
 
     public void setProfileName(String profileName) {
         this.profileName = profileName;
+
+        this.provider = new AWSCredentialsProviderChain(
+                new ProfileCredentialsProvider(profileName),
+                DefaultAWSCredentialsProviderChain.getInstance()
+        );
     }
 
     @Override
@@ -81,6 +94,32 @@ public class AwsCredentials extends BeamCredentials {
     @Override
     public Map<String, String> findCredentials(boolean refresh, boolean extended) {
         return findCredentials(refresh);
+    }
+
+    @Override
+    public boolean resolve(BeamConfig config) {
+        boolean progress = super.resolve(config);
+
+        if (!progress) {
+            return progress;
+        }
+
+        for (BeamConfigKey key : getContext().keySet()) {
+            if (key.getType() != null) {
+                continue;
+            }
+
+            BeamResolvable referable = getContext().get(key);
+            Object value = referable.getValue();
+
+            try {
+                BeanUtils.setProperty(this, key.getId(), value);
+            } catch (IllegalArgumentException | InvocationTargetException | IllegalAccessException e) {
+
+            }
+        }
+
+        return progress;
     }
 
 }
