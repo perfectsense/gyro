@@ -2,11 +2,11 @@ package beam.cli;
 
 import beam.core.BeamCredentials;
 import beam.core.BeamException;
+import beam.core.BeamProvider;
 import beam.core.BeamResource;
 import beam.core.diff.ChangeType;
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiff;
-import beam.core.extensions.ProviderExtension;
 import beam.lang.BCL;
 import beam.lang.BeamConfig;
 import beam.lang.BeamConfigKey;
@@ -36,9 +36,16 @@ public class UpCommand extends AbstractCommand {
 
         try {
             BCL.init();
-            BCL.addExtension(new ProviderExtension());
 
             BeamConfig root = BCL.parse(getArguments().get(0));
+            root.applyExtension();
+            BCL.resolve(root);
+
+            BCL.addExtension(new BeamProvider());
+            root.applyExtension();
+            BCL.resolve(root);
+
+            root.applyExtension();
             BCL.resolve(root);
 
             Set<BeamResource> resources = new TreeSet<>();

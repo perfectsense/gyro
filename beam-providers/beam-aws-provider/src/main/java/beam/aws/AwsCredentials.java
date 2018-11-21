@@ -100,10 +100,6 @@ public class AwsCredentials extends BeamCredentials {
     public boolean resolve(BeamConfig config) {
         boolean progress = super.resolve(config);
 
-        if (!progress) {
-            return progress;
-        }
-
         for (BeamConfigKey key : getContext().keySet()) {
             if (key.getType() != null) {
                 continue;

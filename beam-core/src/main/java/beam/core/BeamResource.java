@@ -10,6 +10,7 @@ import beam.core.diff.ResourceChange;
 
 import beam.lang.BeamConfig;
 import beam.lang.BeamConfigKey;
+import beam.lang.BeamReference;
 import beam.lang.BeamResolvable;
 import org.apache.commons.beanutils.BeanUtils;
 
@@ -26,12 +27,21 @@ public abstract class BeamResource extends BeamConfig implements Comparable<Beam
 
     @Override
     public boolean resolve(BeamConfig config) {
-        boolean progress = super.resolve(config);
+        String id = getParams().get(0).getValue().toString();
+        setResourceIdentifier(id);
 
-        if (!progress) {
-            return progress;
+        if (get("resourceCredentials") == null) {
+            BeamConfigKey credentialsKey = new BeamConfigKey(getResourceCredentialsClass().getSimpleName(), "default");
+
+            BeamReference credentialsReference = new BeamReference();
+            credentialsReference.getScopeChain().add(credentialsKey);
+
+            // Add reference to current resource
+            BeamConfigKey resourceCredentialsKey = new BeamConfigKey(null, "resourceCredentials");
+            getContext().put(resourceCredentialsKey, credentialsReference);
         }
 
+        boolean progress = super.resolve(config);
         for (BeamConfigKey key : getContext().keySet()) {
             if (key.getType() != null) {
                 continue;
