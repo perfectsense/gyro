@@ -32,10 +32,6 @@ public class BeamScalar implements BeamResolvable {
             throw new BeamLangException("Unable to resolve scalar with zero elements!");
         }
 
-        if (value != null) {
-            return false;
-        }
-
         boolean progress = false;
         if (getElements().size() == 1) {
             BeamLiteral literal = getElements().get(0);
@@ -43,10 +39,15 @@ public class BeamScalar implements BeamResolvable {
 
             if (literal.getValue() != null) {
                 value = literal.getValue();
-                progress = true;
             }
 
+            return progress;
+
         } else {
+            if (value != null) {
+                return false;
+            }
+
             StringBuilder sb = new StringBuilder();
             for (BeamLiteral literal : getElements()) {
                 progress = literal.resolve(config) || progress;

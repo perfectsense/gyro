@@ -49,13 +49,9 @@ public class BeamListener extends BeamParserBaseListener {
 
         if (ctx.extension() != null) {
             for (BeamParser.ExtensionContext extensionContext : ctx.extension()) {
-                String name = extensionContext.extensionName().getText();
-                if (BCL.getExtensions().containsKey(name)) {
-                    BeamExtension extension = BCL.getExtensions().get(name);
-                    extension.exitExtension(extensionContext, config);
-                } else {
-                    throw new BeamLangException(String.format("Unable to load extension %s", name));
-                }
+                BeamExtension extension = new ConfigExtension();
+                BeamConfig subConfig = extension.applyExtension(extensionContext);
+                config.getUnResolvedContext().add(subConfig);
             }
         }
     }

@@ -79,10 +79,6 @@ public class BeamReference extends BeamLiteral {
 
     @Override
     public boolean resolve(BeamConfig config) {
-        if (value != null) {
-            return false;
-        }
-
         BeamResolvable resolvable = config;
         for (BeamConfigKey scope : getScopeChain()) {
             if (config.getContext().containsKey(scope)) {
@@ -112,7 +108,11 @@ public class BeamReference extends BeamLiteral {
             }
         }
 
-        value = nextResolvable.getValue();
-        return true;
+        if (value != null && value.getClass() == nextResolvable.getValue().getClass()) {
+            return false;
+        } else {
+            value = nextResolvable.getValue();
+            return true;
+        }
     }
 }

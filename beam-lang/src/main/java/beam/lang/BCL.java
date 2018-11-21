@@ -10,15 +10,14 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
 
 public class BCL {
 
-    private static Map<String, BeamExtension> extensions = new HashMap<>();
+    private static Map<String, BeamConfig> extensions = new HashMap<>();
 
     private static final ThreadLocalStack<Formatter> UI = new ThreadLocalStack<>();
 
-    public static Map<String, BeamExtension> getExtensions() {
+    public static Map<String, BeamConfig> getExtensions() {
         return extensions;
     }
 
@@ -26,18 +25,16 @@ public class BCL {
         return UI.get();
     }
 
-    public static void addExtension(String alias, BeamExtension extension) {
+    public static void addExtension(String alias, BeamConfig extension) {
         getExtensions().put(alias, extension);
     }
 
-    public static void addExtension(BeamExtension extension) {
-        addExtension(extension.getName(), extension);
+    public static void addExtension(BeamConfig extension) {
+        addExtension(extension.getType(), extension);
     }
 
     public static void init() {
         UI.push(new Formatter());
-        BCL.addExtension(new ConfigExtension());
-        BCL.addExtension(new ForExtension());
     }
 
     public static void shutdown() {

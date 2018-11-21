@@ -1,11 +1,20 @@
 package beam.lang;
 
-import java.util.HashMap;
-import java.util.Map;
+import beam.parser.antlr4.BeamParser;
+
+import java.util.*;
 
 public class BeamConfig implements BeamResolvable, BeamCollection {
 
     private Map<BeamConfigKey, BeamResolvable> context;
+
+    private List<BeamResolvable> params;
+
+    private List<BeamConfig> unResolvedContext;
+
+    private String type = "config";
+
+    private BeamParser.ExtensionContext ctx;
 
     public Map<BeamConfigKey, BeamResolvable> getContext() {
         if (context == null) {
@@ -19,15 +28,36 @@ public class BeamConfig implements BeamResolvable, BeamCollection {
         this.context = context;
     }
 
-    @Override
-    public boolean resolve(BeamConfig config) {
-        boolean progress = false;
-        for (BeamConfigKey key : getContext().keySet()) {
-            BeamResolvable referable = getContext().get(key);
-            progress = referable.resolve(config) || progress;
+    public List<BeamResolvable> getParams() {
+        if (params == null) {
+            params = new ArrayList<>();
         }
 
-        return progress;
+        return params;
+    }
+
+    public void setParams(List<BeamResolvable> params) {
+        this.params = params;
+    }
+
+    public List<BeamConfig> getUnResolvedContext() {
+        if (unResolvedContext == null) {
+            unResolvedContext = new ArrayList<>();
+        }
+
+        return unResolvedContext;
+    }
+
+    public void setUnResolvedContext(List<BeamConfig> unResolvedContext) {
+        this.unResolvedContext = unResolvedContext;
+    }
+
+    public BeamParser.ExtensionContext getCtx() {
+        return ctx;
+    }
+
+    public void setCtx(BeamParser.ExtensionContext ctx) {
+        this.ctx = ctx;
     }
 
     @Override
@@ -35,9 +65,100 @@ public class BeamConfig implements BeamResolvable, BeamCollection {
         return this;
     }
 
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    protected boolean resolveParams(BeamConfig config) {
+        boolean success = true;
+        for (BeamResolvable param : getParams()) {
+            param.resolve(config);
+            success = success && param.getValue() != null;
+        }
+
+        return success;
+    }
+
+    protected boolean resolve(BeamConfig parent, BeamConfig root) {
+        boolean progress = false;
+        String id = getParams().get(0).getValue().toString();
+        BeamConfigKey key = new BeamConfigKey(getType(), id);
+        if (parent.getContext().containsKey(key)) {
+            BeamConfig existingConfig = (BeamConfig) parent.getContext().get(key);
+
+            if (existingConfig.getClass() != this.getClass()) {
+                parent.getContext().put(key, this);
+                progress = true;
+            }
+        } else {
+            parent.getContext().put(key, this);
+            progress = true;
+        }
+
+        return resolve(root) || progress;
+    }
+
+    @Override
+    public boolean resolve(BeamConfig root) {
+        boolean progress = false;
+        Iterator<BeamConfig> iterator = getUnResolvedContext().iterator();
+        while (iterator.hasNext()) {
+            BeamConfig unResolvedConfig = iterator.next();
+            if (unResolvedConfig.resolveParams(root)) {
+                progress = unResolvedConfig.resolve(this, root) || progress;
+            }
+        }
+
+        for (BeamConfigKey key : getContext().keySet()) {
+            BeamResolvable referable = getContext().get(key);
+            if (referable instanceof BeamConfig) {
+                continue;
+            }
+
+            progress = referable.resolve(root) || progress;
+        }
+
+        return progress;
+    }
+
     @Override
     public BeamResolvable get(String key) {
         return getContext().get(new BeamConfigKey(null, key));
+    }
+
+    public void applyExtension() {
+        List<BeamConfig> newConfigs = new ArrayList<>();
+        Iterator<BeamConfig> iterator = getUnResolvedContext().iterator();
+        while (iterator.hasNext()) {
+            BeamConfig config = iterator.next();
+            if (BCL.getExtensions().containsKey(config.getType())) {
+                BeamConfig extension = BCL.getExtensions().get(config.getType());
+                if (config.getClass() != extension.getClass()) {
+                    try {
+                        BeamConfig newConfig = extension.getClass().newInstance();
+                        newConfig.setCtx(config.getCtx());
+                        newConfig.setType(config.getType());
+                        newConfig.setContext(config.getContext());
+                        newConfig.setParams(config.getParams());
+                        newConfig.setUnResolvedContext(config.getUnResolvedContext());
+                        newConfigs.add(newConfig);
+                        newConfig.applyExtension();
+                        iterator.remove();
+
+                    } catch (InstantiationException | IllegalAccessException ie) {
+                        throw new BeamLangException("Unable to instantiate " + extension.getClass().getSimpleName());
+                    }
+                } else {
+                    config.applyExtension();
+                }
+            }
+        }
+
+        getUnResolvedContext().addAll(newConfigs);
     }
 
     @Override
