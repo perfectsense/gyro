@@ -48,6 +48,8 @@ public class UpCommand extends AbstractCommand {
             root.applyExtension();
             BCL.resolve(root);
 
+            BCL.getDependencies(root);
+
             Set<BeamResource> resources = new TreeSet<>();
             for (BeamConfigKey key : root.getContext().keySet()) {
                 BeamResolvable resolvable = root.getContext().get(key);

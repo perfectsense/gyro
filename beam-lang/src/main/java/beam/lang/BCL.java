@@ -70,4 +70,8 @@ public class BCL {
             progress = root.resolve(root);
         }
     }
+
+    public static void getDependencies(BeamConfig root) {
+        root.getDependencies(root);
+    }
 }

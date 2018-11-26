@@ -16,6 +16,8 @@ public class BeamConfig implements BeamResolvable, BeamCollection {
 
     private BeamParser.ExtensionContext ctx;
 
+    private Set<BeamConfig> dependencies;
+
     public Map<BeamConfigKey, BeamResolvable> getContext() {
         if (context == null) {
             context = new HashMap<>();
@@ -60,6 +62,14 @@ public class BeamConfig implements BeamResolvable, BeamCollection {
         this.ctx = ctx;
     }
 
+    public Set<BeamConfig> getDependencies() {
+        return dependencies;
+    }
+
+    public void setDependencies(Set<BeamConfig> dependencies) {
+        this.dependencies = dependencies;
+    }
+
     @Override
     public Object getValue() {
         return this;
@@ -100,6 +110,18 @@ public class BeamConfig implements BeamResolvable, BeamCollection {
         }
 
         return resolve(root) || progress;
+    }
+
+    @Override
+    public Set<BeamConfig> getDependencies(BeamConfig config) {
+        Set<BeamConfig> dependencies = new HashSet<>();
+        for (BeamConfigKey key : getContext().keySet()) {
+            BeamResolvable referable = getContext().get(key);
+            dependencies.addAll(referable.getDependencies(config));
+        }
+
+        this.dependencies = dependencies;
+        return dependencies;
     }
 
     @Override

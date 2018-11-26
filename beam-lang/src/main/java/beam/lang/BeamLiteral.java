@@ -1,5 +1,8 @@
 package beam.lang;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class BeamLiteral implements BeamResolvable {
 
     private String literal;
@@ -27,5 +30,10 @@ public class BeamLiteral implements BeamResolvable {
 
     public String toString() {
         return literal;
+    }
+
+    @Override
+    public Set<BeamConfig> getDependencies(BeamConfig config) {
+        return new HashSet<>();
     }
 }
