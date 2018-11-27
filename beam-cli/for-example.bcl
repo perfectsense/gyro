@@ -1,6 +1,31 @@
-for zone in [us-east-1a, us-east-1b, us-east-1c]
-    config $(zone)
-        description: $(zone)-subnet
+region: $(aws::vpc vpc | region)
+
+provider aws
+    artifact: "beam:beam-aws-provider:0.5"
+    repositories:
+        - "http://repo1.maven.org/maven2/"
+        - "https://repo.gradle.org/gradle/libs-releases/"
+        - "https://artifactory.psdops.com/public"
     end
+end
+
+for zone in [$(region)a,$(region)b, $(region)c]
+    aws::subnet $(zone) 
+        availabilityZone: $(zone)
+        cidrBlock: "10.0.0.0/24"
+        tags:
+            belongsTo: $(aws::vpc vpc | cidrBlock)
+        end
+        vpc: $(aws::vpc vpc)
+    end
+end
+
+aws::vpc vpc
+    cidrBlock: "10.0.0.0/16"
+    region: us-west-1
+end
+
+AwsCredentials default
+    profileName: psd-sandbox
 end
 

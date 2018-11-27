@@ -1,29 +1,31 @@
-package beam.core.extensions;
+package beam.core;
 
-import beam.core.BeamException;
 import beam.fetcher.PluginFetcher;
-import beam.lang.BeamConfig;
+import beam.lang.*;
 
 import org.reflections.Reflections;
-import java.util.List;
 
-public class ProviderExtension extends MethodExtension {
+public class BeamProvider extends BeamConfig {
 
     @Override
-    public String getName() {
+    public String getType() {
         return "provider";
     }
 
     @Override
-    public void call(BeamConfig globalContext, List<String> arguments, BeamConfig methodContext) {
-        methodContext.resolve(globalContext);
+    protected boolean resolve(BeamConfig parent, BeamConfig root) {
+        fetch();
+        return super.resolve(parent, root);
+    }
+
+    private void fetch() {
         Reflections reflections = new Reflections("beam.fetcher");
         boolean match = false;
         for (Class<? extends PluginFetcher> fetcherClass : reflections.getSubTypesOf(PluginFetcher.class)) {
             try {
                 PluginFetcher fetcher = fetcherClass.newInstance();
-                if (fetcher.validate(methodContext)) {
-                    fetcher.fetch(methodContext);
+                if (fetcher.validate(this)) {
+                    fetcher.fetch(this);
                     match = true;
                 }
             } catch (IllegalAccessException | InstantiationException error) {
@@ -32,7 +34,7 @@ public class ProviderExtension extends MethodExtension {
         }
 
         if (!match) {
-            throw new BeamException(String.format("Unable to find fetcher matching:\n %s", methodContext));
+            throw new BeamException(String.format("Unable to find fetcher matching:\n %s", this));
         }
     }
 }

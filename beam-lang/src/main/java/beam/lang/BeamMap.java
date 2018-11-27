@@ -1,7 +1,9 @@
 package beam.lang;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class BeamMap implements BeamResolvable, BeamCollection {
 
@@ -40,6 +42,21 @@ public class BeamMap implements BeamResolvable, BeamCollection {
 
         value = result;
         return true;
+    }
+
+    @Override
+    public Set<BeamConfig> getDependencies(BeamConfig config) {
+        Set<BeamConfig> dependencies = new HashSet<>();
+        if (getValue() != null) {
+            return dependencies;
+        }
+
+        for (String key : getMap().keySet()) {
+            BeamResolvable referable = getMap().get(key);
+            dependencies.addAll(referable.getDependencies(config));
+        }
+
+        return dependencies;
     }
 
     @Override

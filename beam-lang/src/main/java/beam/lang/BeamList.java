@@ -1,7 +1,9 @@
 package beam.lang;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class BeamList implements BeamResolvable, BeamCollection {
 
@@ -39,6 +41,20 @@ public class BeamList implements BeamResolvable, BeamCollection {
 
         value = result;
         return true;
+    }
+
+    @Override
+    public Set<BeamConfig> getDependencies(BeamConfig config) {
+        Set<BeamConfig> dependencies = new HashSet<>();
+        if (getValue() != null) {
+            return dependencies;
+        }
+
+        for (BeamResolvable referable : getList()) {
+            dependencies.addAll(referable.getDependencies(config));
+        }
+
+        return dependencies;
     }
 
     @Override

@@ -10,4 +10,9 @@ public abstract class BeamState extends BeamConfig {
 
     public abstract void delete(String name);
 
+    @Override
+    public String getType() {
+        return "state";
+    }
+
 }

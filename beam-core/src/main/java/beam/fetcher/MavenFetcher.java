@@ -4,8 +4,6 @@ import beam.core.BeamCredentials;
 import beam.core.BeamException;
 import beam.core.BeamResource;
 import beam.core.diff.ResourceName;
-import beam.core.extensions.CredentialsExtension;
-import beam.core.extensions.ResourceExtension;
 import beam.lang.BCL;
 import beam.lang.BeamConfig;
 import com.psddev.dari.util.StringUtils;
@@ -130,10 +128,10 @@ public class MavenFetcher extends PluginFetcher {
                         }
 
                         String fullName = String.format("%s::%s", resourceNamespace, resourceName);
-                        BCL.addExtension(fullName, new ResourceExtension(fullName, c));
+                        BCL.addExtension(fullName, (BeamConfig) c.newInstance());
                     }
                 } else if (BeamCredentials.class.isAssignableFrom(c)) {
-                    BCL.addExtension(c.getSimpleName(), new CredentialsExtension(c));
+                    BCL.addExtension(c.getSimpleName(), (BeamConfig) c.newInstance());
                 }
             }
         } catch (Exception e) {

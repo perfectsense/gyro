@@ -7,7 +7,7 @@ state local
 end
 
 provider aws
-    artifact: "beam:beam-aws-provider:0.5"
+    artifact: "beam:beam-aws-provider:$(AwsCredentials default | version)"
     repositories:
         - "http://repo1.maven.org/maven2/"
         - "https://repo.gradle.org/gradle/libs-releases/"
@@ -16,6 +16,7 @@ provider aws
 end
 
 AwsCredentials default
+    version: 0.5
     profileName: psd-sandbox
 end
 

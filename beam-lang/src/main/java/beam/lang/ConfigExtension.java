@@ -4,19 +4,14 @@ import beam.parser.antlr4.BeamParser;
 
 public class ConfigExtension implements BeamExtension {
 
-    @Override
-    public String getName() {
-        return "config";
+    public BeamConfig init() {
+        return new BeamConfig();
     }
 
-    @Override
-    public void enterExtension(BeamParser.ExtensionContext ctx, BeamConfig context) {
-
-    }
-
-    @Override
-    public void exitExtension(BeamParser.ExtensionContext ctx, BeamConfig context) {
-        BeamConfig config = new BeamConfig();
+    public final void parse(BeamParser.ExtensionContext ctx, BeamConfig config) {
+        config.setCtx(ctx);
+        String type = ctx.extensionName().getText();
+        config.setType(type);
         BeamParser.MethodBodyContext methodBodyContext = ctx.methodBody();
         if (methodBodyContext != null) {
             if (methodBodyContext.keyValuePair() != null) {
@@ -27,20 +22,35 @@ public class ConfigExtension implements BeamExtension {
 
             if (methodBodyContext.extension() != null) {
                 for (BeamParser.ExtensionContext extensionContext : methodBodyContext.extension()) {
-                    String name = extensionContext.extensionName().getText();
-                    if (BCL.getExtensions().containsKey(name)) {
-                        BeamExtension extension = BCL.getExtensions().get(name);
-                        extension.exitExtension(extensionContext, config);
-                    } else {
-                        throw new BeamLangException(String.format("Unable to load extension %s", name));
-                    }
+                    BeamExtension extension = new ConfigExtension();
+                    BeamConfig subConfig = extension.applyExtension(extensionContext);
+                    config.getUnResolvedContext().add(subConfig);
                 }
             }
         }
 
-        BeamLiteral id = BeamListener.parseLiteral(ctx.param().get(0).literal());
-        id.resolve(context);
-        config.resolve(context);
-        context.getContext().put(new BeamConfigKey(getName(), id.getValue().toString()), config);
+        for (BeamParser.ParamContext paramContext : ctx.param()) {
+            if (paramContext.literal() != null) {
+                config.getParams().add(BeamListener.parseLiteral(paramContext.literal()));
+            } else if (paramContext.inlineList() != null) {
+                config.getParams().add(BeamListener.parseInlineList(paramContext.inlineList()));
+            }
+        }
+    }
+
+    public void customize(BeamConfig config) {
+    }
+
+    @Override
+    public String getName() {
+        return "config";
+    }
+
+    @Override
+    public BeamConfig applyExtension(BeamParser.ExtensionContext ctx) {
+        BeamConfig config = init();
+        parse(ctx, config);
+        customize(config);
+        return config;
     }
 }

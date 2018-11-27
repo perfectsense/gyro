@@ -3,6 +3,8 @@ package beam.lang;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 
 public class BeamReference extends BeamLiteral {
 
@@ -79,10 +81,6 @@ public class BeamReference extends BeamLiteral {
 
     @Override
     public boolean resolve(BeamConfig config) {
-        if (value != null) {
-            return false;
-        }
-
         BeamResolvable resolvable = config;
         for (BeamConfigKey scope : getScopeChain()) {
             if (config.getContext().containsKey(scope)) {
@@ -112,7 +110,50 @@ public class BeamReference extends BeamLiteral {
             }
         }
 
-        value = nextResolvable.getValue();
-        return true;
+        if (value != null && value.getClass() == nextResolvable.getValue().getClass()) {
+            return false;
+        } else {
+            value = nextResolvable.getValue();
+            return true;
+        }
+    }
+
+    @Override
+    public Set<BeamConfig> getDependencies(BeamConfig config) {
+        Set<BeamConfig> dependencies = new HashSet<>();
+        if (getValue() != null) {
+            return dependencies;
+        }
+
+        BeamResolvable resolvable = config;
+        for (BeamConfigKey scope : getScopeChain()) {
+            if (config.getContext().containsKey(scope)) {
+                resolvable = config.getContext().get(scope);
+                if (resolvable instanceof BeamConfig) {
+                    config = (BeamConfig) resolvable;
+                } else {
+                    throw new BeamLangException(String.format("Unable to resolve %s, expecting %s as BeamConfig found %s", this, scope, resolvable.getClass()));
+                }
+            }
+        }
+
+        if (resolvable == null) {
+            throw new BeamLangException("Unable to find BeamConfig");
+        }
+
+        BeamResolvable nextResolvable = resolvable;
+        for (String key : getReferenceChain()) {
+            if (nextResolvable instanceof BeamCollection) {
+                nextResolvable = ((BeamCollection) nextResolvable).get(key);
+            } else {
+                throw new BeamLangException(String.format("Illegal reference %s, %s is not a collection", this, nextResolvable));
+            }
+
+            if (nextResolvable == null || nextResolvable.getValue() == null) {
+                dependencies.add((BeamConfig) resolvable);
+            }
+        }
+
+        return dependencies;
     }
 }

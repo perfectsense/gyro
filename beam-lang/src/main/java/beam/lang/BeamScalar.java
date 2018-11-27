@@ -1,7 +1,9 @@
 package beam.lang;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class BeamScalar implements BeamResolvable {
 
@@ -32,10 +34,6 @@ public class BeamScalar implements BeamResolvable {
             throw new BeamLangException("Unable to resolve scalar with zero elements!");
         }
 
-        if (value != null) {
-            return false;
-        }
-
         boolean progress = false;
         if (getElements().size() == 1) {
             BeamLiteral literal = getElements().get(0);
@@ -43,10 +41,15 @@ public class BeamScalar implements BeamResolvable {
 
             if (literal.getValue() != null) {
                 value = literal.getValue();
-                progress = true;
             }
 
+            return progress;
+
         } else {
+            if (value != null) {
+                return false;
+            }
+
             StringBuilder sb = new StringBuilder();
             for (BeamLiteral literal : getElements()) {
                 progress = literal.resolve(config) || progress;
@@ -70,6 +73,26 @@ public class BeamScalar implements BeamResolvable {
         }
 
         return progress;
+    }
+
+    @Override
+    public Set<BeamConfig> getDependencies(BeamConfig config) {
+        Set<BeamConfig> dependencies = new HashSet<>();
+        if (getValue() != null) {
+            return dependencies;
+        }
+
+        if (getElements().size() == 1) {
+            BeamLiteral literal = getElements().get(0);
+            dependencies.addAll(literal.getDependencies(config));
+
+        } else {
+            for (BeamLiteral literal : getElements()) {
+                dependencies.addAll(literal.getDependencies(config));
+            }
+        }
+
+        return dependencies;
     }
 
     @Override
