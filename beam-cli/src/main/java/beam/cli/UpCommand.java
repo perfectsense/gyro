@@ -3,10 +3,12 @@ package beam.cli;
 import beam.core.BeamCredentials;
 import beam.core.BeamException;
 import beam.core.BeamResource;
+import beam.core.BeamState;
 import beam.core.diff.ChangeType;
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiff;
 import beam.core.extensions.ProviderExtension;
+import beam.core.extensions.StateExtension;
 import beam.lang.BCL;
 import beam.lang.BeamConfig;
 import beam.lang.BeamConfigKey;
@@ -27,6 +29,8 @@ public class UpCommand extends AbstractCommand {
 
     private final Set<ChangeType> changeTypes = new HashSet<>();
 
+    private BeamState stateBackend;
+
     @Override
     public void doExecute() throws Exception {
 
@@ -37,6 +41,7 @@ public class UpCommand extends AbstractCommand {
         try {
             BCL.init();
             BCL.addExtension(new ProviderExtension());
+            BCL.addExtension(new StateExtension());
 
             BeamConfig root = BCL.parse(getArguments().get(0));
             BCL.resolve(root);
@@ -54,6 +59,8 @@ public class UpCommand extends AbstractCommand {
                             resources.add(resourceRoot);
                         }
                     }
+                } else if (value instanceof BeamState) {
+                    stateBackend = (BeamState) value;
                 }
             }
 
@@ -201,6 +208,10 @@ public class UpCommand extends AbstractCommand {
         Beam.ui().write("Executing: ");
         writeChange(change);
         change.executeChange();
+
+        BeamResource resource = change.getCurrentResource();
+        stateBackend.save(resource.getResourceIdentifier(), resource);
+
         Beam.ui().write(" OK\n");
     }
 

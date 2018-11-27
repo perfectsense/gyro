@@ -1,7 +1,6 @@
 package beam.core;
 
 import beam.lang.BeamConfig;
-import org.antlr.v4.runtime.misc.Array2DHashSet;
 
 import java.util.Map;
 import java.util.Set;
@@ -18,22 +17,6 @@ public abstract class BeamCredentials extends BeamConfig {
      * @return Never {@code null}.
      */
     public abstract String getName();
-
-    public BeamState getStateBackend() {
-        if (stateBackend == null) {
-            //return new LocalYamlState();
-        }
-
-        return stateBackend;
-    }
-
-    public void setStateBackend(BeamState stateBackend) {
-        this.stateBackend = stateBackend;
-    }
-
-    public abstract void saveState(BeamResource resource);
-
-    public abstract void deleteState(BeamResource resource);
 
     public Set<BeamResource> dependents() {
         return dependents;

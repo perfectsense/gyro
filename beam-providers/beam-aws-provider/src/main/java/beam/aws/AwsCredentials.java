@@ -53,16 +53,6 @@ public class AwsCredentials extends BeamCredentials {
     }
 
     @Override
-    public void saveState(BeamResource resource) {
-        getStateBackend().saveState(this, resource.getResourceIdentifier(), resource);
-    }
-
-    @Override
-    public void deleteState(BeamResource resource) {
-        getStateBackend().deleteState(this, resource.getResourceIdentifier());
-    }
-
-    @Override
     public Map<String, String> findCredentials(boolean refresh) {
         ImmutableMap.Builder<String, String> mapBuilder = new ImmutableMap.Builder<>();
         AWSCredentials creds;

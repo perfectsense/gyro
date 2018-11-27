@@ -1,11 +1,13 @@
 package beam.core;
 
-public abstract class BeamState<C extends BeamCredentials> {
+import beam.lang.BeamConfig;
 
-    public abstract BeamResource loadState(BeamCredentials credentials, String name);
+public abstract class BeamState extends BeamConfig {
 
-    public abstract void saveState(BeamCredentials credentials, String name, BeamResource resource);
+    public abstract BeamResource load(String name);
 
-    public abstract void deleteState(BeamCredentials credentials, String name);
+    public abstract void save(String name, BeamResource resource);
+
+    public abstract void delete(String name);
 
 }
