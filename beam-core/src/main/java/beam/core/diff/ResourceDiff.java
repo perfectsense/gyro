@@ -93,44 +93,38 @@ public class ResourceDiff {
     public ResourceChange newUpdate(final BeamResource currentResource, final BeamResource pendingResource) throws Exception {
 
         // Fill the empty properties in pending with the values from current.
-//        try {
-//            Class klass = pendingResource != null ? pendingResource.getClass() : null;
-//            if (klass == null && currentResource != null) {
-//                klass = currentResource.getClass();
-//            }
-//
-//            System.out.println(pendingResource.getClass());
-//            System.out.println(currentResource.getClass());
-//            if (klass != null) {
-//                for (PropertyDescriptor p : Introspector.getBeanInfo(klass).getPropertyDescriptors()) {
-//                    Method reader = p.getReadMethod();
-//
-//                    if (reader != null) {
-//                        Method writer = p.getWriteMethod();
-//
-//                        Object pendingValue = reader.invoke(pendingResource);
-//                        System.out.println(pendingValue);
-//                        System.out.println(currentResource.toDisplayString());
-//                        if (writer != null && !isNullable(reader) &&
-//                                (pendingValue == null ||
-//                                        (ObjectUtils.isBlank(pendingValue) && pendingValue instanceof NullArrayList) ||
-//                                        (ObjectUtils.isBlank(pendingValue) && pendingValue instanceof NullSet))) {
-//                            System.out.println(reader.invoke(currentResource));
-//                            System.out.println(reader.invoke(currentResource).getClass());
-//                            writer.invoke(pendingResource, reader.invoke(currentResource));
-//                        }
-//                    }
-//                }
-//            }
-//
-//        } catch (IllegalAccessException |
-//                IntrospectionException error) {
-//
-//            throw new IllegalStateException(error);
-//
-//        } catch (InvocationTargetException error) {
-//            throw Throwables.propagate(error);
-//        }
+        try {
+            Class klass = pendingResource != null ? pendingResource.getClass() : null;
+            if (klass == null && currentResource != null) {
+                klass = currentResource.getClass();
+            }
+
+            if (klass != null) {
+                for (PropertyDescriptor p : Introspector.getBeanInfo(klass).getPropertyDescriptors()) {
+                    Method reader = p.getReadMethod();
+
+                    if (reader != null) {
+                        Method writer = p.getWriteMethod();
+
+                        Object pendingValue = reader.invoke(pendingResource);
+                        if (writer != null && !isNullable(reader) &&
+                                (pendingValue == null ||
+                                        (ObjectUtils.isBlank(pendingValue) && pendingValue instanceof NullArrayList) ||
+                                        (ObjectUtils.isBlank(pendingValue) && pendingValue instanceof NullSet))) {
+                            writer.invoke(pendingResource, reader.invoke(currentResource));
+                        }
+                    }
+                }
+            }
+
+        } catch (IllegalAccessException |
+                IntrospectionException error) {
+
+            throw new IllegalStateException(error);
+
+        } catch (InvocationTargetException error) {
+            throw Throwables.propagate(error);
+        }
 
         ResourceChange update = new ResourceChange(this, currentResource, pendingResource);
 
