@@ -1,7 +1,7 @@
 package beam.cli;
 
+import beam.core.BeamCore;
 import beam.core.BeamException;
-import beam.core.BeamProvider;
 import beam.core.BeamResource;
 import beam.core.BeamState;
 import beam.core.BeamLocalState;
@@ -12,16 +12,16 @@ import beam.lang.BCL;
 import beam.lang.BeamConfig;
 import beam.lang.BeamConfigKey;
 import beam.lang.BeamResolvable;
-import beam.lang.ForConfig;
 import io.airlift.airline.Arguments;
 import io.airlift.airline.Command;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.Map;
+import java.util.HashMap;
 
 @Command(name = "up", description = "Updates all resources to match the configuration.")
 public class UpCommand extends AbstractCommand {
@@ -43,10 +43,10 @@ public class UpCommand extends AbstractCommand {
         try {
             BCL.init();
 
-            BeamConfig root = processConfig(getArguments().get(0));
-            BeamConfig state = processStateConfig(getArguments().get(0) + ".state");
+            BeamConfig root = BeamCore.processConfig(getArguments().get(0));
 
             Set<BeamResource> resources = new TreeSet<>();
+            Map<BeamConfigKey, BeamResolvable> pendingState = new HashMap<>();
             for (BeamConfigKey key : root.getContext().keySet()) {
                 BeamResolvable resolvable = root.getContext().get(key);
                 Object value = resolvable.getValue();
@@ -58,9 +58,15 @@ public class UpCommand extends AbstractCommand {
                 } else if (value instanceof BeamState) {
                     stateBackend = (BeamState) value;
                 } else {
-                    state.getContext().put(key, resolvable);
+                    pendingState.put(key, resolvable);
                 }
             }
+
+            if (stateBackend == null) {
+                stateBackend = new BeamLocalState();
+            }
+
+            BeamConfig state = stateBackend.load(getArguments().get(0) + ".state");
 
             Set<BeamResource> current = new TreeSet<>();
             for (BeamConfigKey key : state.getContext().keySet()) {
@@ -109,6 +115,7 @@ public class UpCommand extends AbstractCommand {
                 Beam.ui().write("\nNo changes.\n");
             }
 
+            state.getContext().putAll(pendingState);
             stateBackend.save(getArguments().get(0) + ".state", state);
 
         } finally {
@@ -243,36 +250,5 @@ public class UpCommand extends AbstractCommand {
         }
 
         Beam.ui().write(" OK\n");
-    }
-
-    private BeamConfig processConfig(String path) {
-        BCL.getExtensions().clear();
-        BCL.addExtension(new ForConfig());
-
-        BeamConfig root = BCL.parse(path);
-        root.applyExtension();
-        BCL.resolve(root);
-
-        BCL.addExtension(new BeamLocalState());
-        root.applyExtension();
-
-        BCL.addExtension(new BeamProvider());
-        root.applyExtension();
-        BCL.resolve(root);
-
-        root.applyExtension();
-        BCL.resolve(root);
-
-        BCL.getDependencies(root);
-        return root;
-    }
-
-    private BeamConfig processStateConfig(String path) {
-        File stateFile = new File(path);
-        if (stateFile.exists() && !stateFile.isDirectory()) {
-            return processConfig(path);
-        } else {
-            return new BeamConfig();
-        }
     }
 }

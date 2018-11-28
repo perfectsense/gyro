@@ -3,14 +3,21 @@ package beam.core;
 import beam.lang.BeamConfig;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
 public class BeamLocalState extends BeamState {
 
     @Override
-    public BeamResource load(String name) {
-        return null;
+    public BeamConfig load(String name) {
+
+        File stateFile = new File(name);
+        if (stateFile.exists() && !stateFile.isDirectory()) {
+            return BeamCore.processConfig(name);
+        } else {
+            return new BeamConfig();
+        }
     }
 
     @Override
