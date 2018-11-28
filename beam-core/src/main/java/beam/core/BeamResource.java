@@ -60,6 +60,24 @@ public abstract class BeamResource extends BeamConfig implements Comparable<Beam
         return progress;
     }
 
+    @Override
+    public Set<BeamConfig> getDependencies(BeamConfig config) {
+        Set<BeamConfig> dependencies = super.getDependencies(config);
+        this.dependencies.clear();
+        for (BeamConfig dependency : dependencies) {
+            if (dependency instanceof BeamResource) {
+                BeamResource resource = (BeamResource) dependency;
+                this.dependencies.add(resource);
+                resource.dependents.add(this);
+
+            } else {
+                throw new BeamException("Dependency has to be BeamResource");
+            }
+        }
+
+        return dependencies;
+    }
+
     public String getResourceIdentifier() {
         return resourceIdentifier;
     }
