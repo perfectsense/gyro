@@ -4,6 +4,8 @@ import beam.core.BeamCredentials;
 import beam.core.BeamException;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
+import beam.lang.BeamConfigKey;
+import beam.lang.BeamLiteral;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.CreateVpcRequest;
 import com.amazonaws.services.ec2.model.DeleteVpcRequest;
@@ -110,6 +112,7 @@ public class VpcResource extends TaggableResource<Vpc> {
 
         cvRequest.setCidrBlock(getCidrBlock());
         setVpcId(client.createVpc(cvRequest).getVpc().getVpcId());
+        getContext().put(new BeamConfigKey(null, "vpcId"), new BeamLiteral(getVpcId()));
 
         modifyAttributes(client);
     }

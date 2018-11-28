@@ -4,6 +4,8 @@ import beam.core.BeamCredentials;
 import beam.core.BeamException;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
+import beam.lang.BeamConfigKey;
+import beam.lang.BeamLiteral;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.CreateSubnetRequest;
 import com.amazonaws.services.ec2.model.DeleteSubnetRequest;
@@ -24,7 +26,7 @@ public class SubnetResource extends TaggableResource<Subnet> {
     private String availabilityZone;
     private String cidrBlock;
     private Boolean mapPublicIpOnLaunch;
-    private VpcResource vpc;
+    private String vpcId;
 
     public String getSubnetId() {
         return subnetId;
@@ -60,12 +62,12 @@ public class SubnetResource extends TaggableResource<Subnet> {
         this.mapPublicIpOnLaunch = mapPublicIpOnLaunch;
     }
 
-    public VpcResource getVpc() {
-        return vpc;
+    public String getVpcId() {
+        return vpcId;
     }
 
-    public void setVpc(VpcResource vpc) {
-        this.vpc = vpc;
+    public void setVpcId(String vpcId) {
+        this.vpcId = vpcId;
     }
 
     public String getId() {
@@ -106,8 +108,9 @@ public class SubnetResource extends TaggableResource<Subnet> {
 
         csRequest.setAvailabilityZone(getAvailabilityZone());
         csRequest.setCidrBlock(getCidrBlock());
-        csRequest.setVpcId(getVpc().getVpcId());
+        csRequest.setVpcId(getVpcId());
         setSubnetId(client.createSubnet(csRequest).getSubnet().getSubnetId());
+        getContext().put(new BeamConfigKey(null, "subnetId"), new BeamLiteral(getSubnetId()));
         modifyAttribute(client);
     }
 
