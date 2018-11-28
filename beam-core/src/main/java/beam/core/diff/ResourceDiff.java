@@ -78,10 +78,6 @@ public class ResourceDiff {
 
         pendingResource.setChange(create);
 
-        for (BeamResource pendingDependent : pendingResource.dependents()) {
-            createOne(create, pendingDependent);
-        }
-
         return create;
     }
 
@@ -133,15 +129,6 @@ public class ResourceDiff {
 
         currentResource.setChange(update);
         pendingResource.setChange(update);
-
-        for (BeamResource pendingDependent : pendingResource.dependents()) {
-            for (BeamResource currentDependent : currentResource.dependents()) {
-                if (currentDependent.getResourceIdentifier().equals(pendingDependent.getResourceIdentifier())) {
-                    System.out.println("Update");
-                    updateOne(update, currentDependent, pendingDependent);
-                }
-            }
-        }
 
         return update;
     }
