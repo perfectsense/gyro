@@ -97,10 +97,6 @@ public class BeamScalar implements BeamResolvable {
 
     @Override
     public String toString() {
-        if (value != null) {
-            return value.toString();
-        }
-
         StringBuilder sb = new StringBuilder();
         for (Object element : getElements()) {
             sb.append(element);

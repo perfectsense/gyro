@@ -29,7 +29,7 @@ public class BeamLiteral implements BeamResolvable {
     }
 
     public String toString() {
-        return literal;
+        return "'" + literal + "'";
     }
 
     @Override

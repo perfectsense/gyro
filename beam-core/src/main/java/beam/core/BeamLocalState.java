@@ -1,5 +1,11 @@
 package beam.core;
 
+import beam.lang.BeamConfig;
+
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+
 public class BeamLocalState extends BeamState {
 
     @Override
@@ -8,8 +14,14 @@ public class BeamLocalState extends BeamState {
     }
 
     @Override
-    public void save(String name, BeamResource resource) {
-
+    public void save(String name, BeamConfig state) {
+        try {
+            BufferedWriter out = new BufferedWriter(new FileWriter(name));
+            out.write(state.toString());
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

@@ -43,10 +43,4 @@ public abstract class BeamCredentials extends BeamConfig {
                 (other != null &&
                 getClass().equals(other.getClass()));
     }
-
-    @Override
-    public String toString() {
-        return "Provider: " + getName();
-    }
-
 }

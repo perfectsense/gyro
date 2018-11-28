@@ -1,10 +1,10 @@
 package beam.cli;
 
-import beam.core.BeamCredentials;
 import beam.core.BeamException;
 import beam.core.BeamProvider;
 import beam.core.BeamResource;
 import beam.core.BeamState;
+import beam.core.BeamLocalState;
 import beam.core.diff.ChangeType;
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiff;
@@ -12,6 +12,7 @@ import beam.lang.BCL;
 import beam.lang.BeamConfig;
 import beam.lang.BeamConfigKey;
 import beam.lang.BeamResolvable;
+import beam.lang.ForConfig;
 import io.airlift.airline.Arguments;
 import io.airlift.airline.Command;
 import java.util.ArrayList;
@@ -40,18 +41,8 @@ public class UpCommand extends AbstractCommand {
         try {
             BCL.init();
 
-            BeamConfig root = BCL.parse(getArguments().get(0));
-            root.applyExtension();
-            BCL.resolve(root);
-
-            BCL.addExtension(new BeamProvider());
-            root.applyExtension();
-            BCL.resolve(root);
-
-            root.applyExtension();
-            BCL.resolve(root);
-
-            BCL.getDependencies(root);
+            BeamConfig root = processConfig(getArguments().get(0));
+            BeamConfig state = processConfig(getArguments().get(0) + ".state");
 
             Set<BeamResource> resources = new TreeSet<>();
             for (BeamConfigKey key : root.getContext().keySet()) {
@@ -60,13 +51,28 @@ public class UpCommand extends AbstractCommand {
 
                 if (value instanceof BeamResource) {
                     BeamResource resource = (BeamResource) value;
+                    resource.setRoot(root);
                     resources.add(resource);
                 } else if (value instanceof BeamState) {
                     stateBackend = (BeamState) value;
+                } else {
+                    state.getContext().put(key, resolvable);
                 }
             }
 
-            ResourceDiff diff = new ResourceDiff(new ArrayList<>(), resources);
+            Set<BeamResource> current = new TreeSet<>();
+            for (BeamConfigKey key : state.getContext().keySet()) {
+                BeamResolvable resolvable = state.getContext().get(key);
+                Object value = resolvable.getValue();
+
+                if (value instanceof BeamResource) {
+                    BeamResource resource = (BeamResource) value;
+                    resource.setRoot(state);
+                    current.add(resource);
+                }
+            }
+
+            ResourceDiff diff = new ResourceDiff(current, resources);
             diff.diff();
 
             changeTypes.clear();
@@ -83,13 +89,13 @@ public class UpCommand extends AbstractCommand {
                 if (Beam.ui().readBoolean(Boolean.FALSE, "\nAre you sure you want to create and/or update resources?")) {
                     Beam.ui().write("\n");
                     setChangeable(diffs);
-                    createOrUpdate(diffs);
+                    createOrUpdate(diffs, state);
                 }
             }
+            stateBackend.save(getArguments().get(0) + ".state", state);
         } finally {
             BCL.shutdown();
         }
-
     }
 
     public List<String> getArguments() {
@@ -165,33 +171,33 @@ public class UpCommand extends AbstractCommand {
         }
     }
 
-    private void createOrUpdate(List<ResourceDiff> diffs) {
+    private void createOrUpdate(List<ResourceDiff> diffs, BeamConfig state) {
         for (ResourceDiff diff : diffs) {
             for (ResourceChange change : diff.getChanges()) {
                 ChangeType type = change.getType();
 
                 if (type == ChangeType.CREATE || type == ChangeType.UPDATE) {
-                    execute(change);
+                    execute(change, state);
                 }
 
-                createOrUpdate(change.getDiffs());
+                createOrUpdate(change.getDiffs(), state);
             }
         }
     }
 
-    private void delete(List<ResourceDiff> diffs) {
+    private void delete(List<ResourceDiff> diffs, BeamConfig state) {
         for (ResourceDiff diff : diffs) {
             for (ResourceChange change : diff.getChanges()) {
-                delete(change.getDiffs());
+                delete(change.getDiffs(), state);
 
                 if (change.getType() == ChangeType.DELETE) {
-                    execute(change);
+                    execute(change, state);
                 }
             }
         }
     }
 
-    private void execute(ResourceChange change) {
+    private void execute(ResourceChange change, BeamConfig state) {
         ChangeType type = change.getType();
 
         if (type == ChangeType.KEEP || type == ChangeType.REPLACE ||
@@ -203,18 +209,43 @@ public class UpCommand extends AbstractCommand {
 
         if (dependencies != null && !dependencies.isEmpty()) {
             for (ResourceChange d : dependencies) {
-                execute(d);
+                execute(d, state);
             }
         }
 
         Beam.ui().write("Executing: ");
         writeChange(change);
-        change.executeChange();
+        BeamResource resource = change.executeChange();
+        BeamConfigKey key = new BeamConfigKey(resource.getType(), resource.getResourceIdentifier());
 
-        BeamResource resource = change.getCurrentResource();
-        stateBackend.save(resource.getResourceIdentifier(), resource);
+        if (type == ChangeType.DELETE) {
+            state.getContext().remove(key);
+        } else {
+            state.getContext().put(key, resource);
+        }
 
         Beam.ui().write(" OK\n");
     }
 
+    private BeamConfig processConfig(String path) {
+        BCL.getExtensions().clear();
+        BCL.addExtension(new ForConfig());
+
+        BeamConfig root = BCL.parse(path);
+        root.applyExtension();
+        BCL.resolve(root);
+
+        BCL.addExtension(new BeamLocalState());
+        root.applyExtension();
+
+        BCL.addExtension(new BeamProvider());
+        root.applyExtension();
+        BCL.resolve(root);
+
+        root.applyExtension();
+        BCL.resolve(root);
+
+        BCL.getDependencies(root);
+        return root;
+    }
 }

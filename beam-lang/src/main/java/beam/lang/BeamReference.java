@@ -56,10 +56,6 @@ public class BeamReference extends BeamLiteral {
 
     @Override
     public String toString() {
-        if (value != null) {
-            return value.toString();
-        }
-
         StringBuilder sb = new StringBuilder();
         sb.append('$');
         sb.append('(');
@@ -67,9 +63,12 @@ public class BeamReference extends BeamLiteral {
             sb.append(scope);
             sb.append(" | ");
         }
-        sb.setLength(sb.length() - 3);
+        if (!getReferenceChain().isEmpty()) {
+            sb.append(String.join(".", getReferenceChain()));
+        } else {
+            sb.setLength(sb.length() - 3);
+        }
 
-        sb.append(String.join(".", getReferenceChain()));
         sb.append(')');
         return sb.toString();
     }

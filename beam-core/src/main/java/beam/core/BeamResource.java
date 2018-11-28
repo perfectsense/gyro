@@ -24,6 +24,7 @@ public abstract class BeamResource extends BeamConfig implements Comparable<Beam
     private transient final Set<BeamResource> dependencies = new TreeSet<>();
     private transient final Set<BeamResource> dependents = new TreeSet<>();
     private transient ResourceChange change;
+    private transient BeamConfig root;
 
     @Override
     public boolean resolve(BeamConfig config) {
@@ -110,6 +111,14 @@ public abstract class BeamResource extends BeamConfig implements Comparable<Beam
 
     public Set<BeamResource> dependents() {
         return dependents;
+    }
+
+    public BeamConfig getRoot() {
+        return root;
+    }
+
+    public void setRoot(BeamConfig root) {
+        this.root = root;
     }
 
     public BeamResource findTop() {
