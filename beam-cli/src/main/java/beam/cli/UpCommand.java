@@ -15,6 +15,8 @@ import beam.lang.BeamResolvable;
 import beam.lang.ForConfig;
 import io.airlift.airline.Arguments;
 import io.airlift.airline.Command;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -42,7 +44,7 @@ public class UpCommand extends AbstractCommand {
             BCL.init();
 
             BeamConfig root = processConfig(getArguments().get(0));
-            BeamConfig state = processConfig(getArguments().get(0) + ".state");
+            BeamConfig state = processStateConfig(getArguments().get(0) + ".state");
 
             Set<BeamResource> resources = new TreeSet<>();
             for (BeamConfigKey key : root.getContext().keySet()) {
@@ -263,5 +265,14 @@ public class UpCommand extends AbstractCommand {
 
         BCL.getDependencies(root);
         return root;
+    }
+
+    private BeamConfig processStateConfig(String path) {
+        File stateFile = new File(path);
+        if (stateFile.exists() && !stateFile.isDirectory()) {
+            return processConfig(path);
+        } else {
+            return new BeamConfig();
+        }
     }
 }
