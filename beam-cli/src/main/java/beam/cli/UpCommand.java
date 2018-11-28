@@ -58,14 +58,9 @@ public class UpCommand extends AbstractCommand {
                 BeamResolvable resolvable = root.getContext().get(key);
                 Object value = resolvable.getValue();
 
-                if (value instanceof BeamCredentials) {
-                    BeamCredentials credentials = (BeamCredentials) value;
-                    for (BeamResource resource : credentials.dependents()) {
-                        BeamResource resourceRoot = resource.findTop();
-                        if (resourceRoot != null) {
-                            resources.add(resourceRoot);
-                        }
-                    }
+                if (value instanceof BeamResource) {
+                    BeamResource resource = (BeamResource) value;
+                    resources.add(resource);
                 } else if (value instanceof BeamState) {
                     stateBackend = (BeamState) value;
                 }
