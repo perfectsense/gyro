@@ -145,7 +145,7 @@ public class ResourceDiff {
             @Override
             protected BeamResource change() {
                 currentResource.delete();
-                return null;
+                return currentResource;
             }
 
             @Override

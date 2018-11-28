@@ -92,7 +92,23 @@ public class UpCommand extends AbstractCommand {
                     createOrUpdate(diffs, state);
                 }
             }
+
+            if (changeTypes.contains(ChangeType.DELETE)) {
+                hasChanges = true;
+
+                if (Beam.ui().readBoolean(Boolean.FALSE, "\nAre you sure you want to delete resources?")) {
+                    Beam.ui().write("\n");
+                    setChangeable(diffs);
+                    delete(diffs, state);
+                }
+            }
+
+            if (!hasChanges) {
+                Beam.ui().write("\nNo changes.\n");
+            }
+
             stateBackend.save(getArguments().get(0) + ".state", state);
+
         } finally {
             BCL.shutdown();
         }
