@@ -127,6 +127,7 @@ public class ResourceDiff {
         }
 
         ResourceChange update = new ResourceChange(this, currentResource, pendingResource);
+        update.tryToKeep();
 
         currentResource.setChange(update);
         pendingResource.setChange(update);
