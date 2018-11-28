@@ -50,15 +50,6 @@ public abstract class BeamResource extends BeamConfig implements Comparable<Beam
             BeamResolvable referable = getContext().get(key);
             Object value = referable.getValue();
 
-            if (value instanceof BeamResource) {
-                parent = (BeamResource) value;
-                parent.dependents.add(this);
-                dependencies.add(parent);
-            } else if (value instanceof BeamCredentials) {
-                BeamCredentials credentials = (BeamCredentials) value;
-                credentials.dependents().add(this);
-            }
-
             try {
                 BeanUtils.setProperty(this, key.getId(), value);
             } catch (IllegalArgumentException | InvocationTargetException | IllegalAccessException e) {
