@@ -8,16 +8,16 @@ public class BeamCore {
 
     public static BeamConfig processConfig(String path) {
         BCL.getExtensions().clear();
-        BCL.addExtension(new ForConfig());
+        BCL.addExtension("for", ForConfig.class);
 
         BeamConfig root = BCL.parse(path);
         root.applyExtension();
         BCL.resolve(root);
 
-        BCL.addExtension(new BeamLocalState());
+        BCL.addExtension("state", BeamLocalState.class);
         root.applyExtension();
 
-        BCL.addExtension(new BeamProvider());
+        BCL.addExtension("provider", BeamProvider.class);
         root.applyExtension();
         BCL.resolve(root);
 

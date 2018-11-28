@@ -34,9 +34,10 @@ import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Pattern;
@@ -45,6 +46,8 @@ public class MavenFetcher extends PluginFetcher {
 
     private static String MAVEN_KEY = "^(?<group>[^:]+):(?<artifactId>[^:]+):(?<version>[^:]+)";
     private static Pattern MAVEN_KEY_PAT = Pattern.compile(MAVEN_KEY);
+
+    private static Map<String, Class<? extends BeamConfig>> provider = new HashMap<>();
 
     @Override
     public boolean validate(BeamConfig fetcherContext) {
@@ -128,10 +131,18 @@ public class MavenFetcher extends PluginFetcher {
                         }
 
                         String fullName = String.format("%s::%s", resourceNamespace, resourceName);
-                        BCL.addExtension(fullName, (BeamConfig) c.newInstance());
+                        if (!provider.containsKey(fullName)) {
+                            provider.put(fullName, c);
+                        }
+
+                        BCL.addExtension(fullName, provider.get(fullName));
                     }
                 } else if (BeamCredentials.class.isAssignableFrom(c)) {
-                    BCL.addExtension(c.getSimpleName(), (BeamConfig) c.newInstance());
+                    if (!provider.containsKey(c.getSimpleName())) {
+                        provider.put(c.getSimpleName(), c);
+                    }
+
+                    BCL.addExtension(c.getSimpleName(), provider.get(c.getSimpleName()));
                 }
             }
         } catch (Exception e) {

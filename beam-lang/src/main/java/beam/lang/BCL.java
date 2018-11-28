@@ -13,11 +13,11 @@ import java.util.Map;
 
 public class BCL {
 
-    private static Map<String, BeamConfig> extensions = new HashMap<>();
+    private static Map<String, Class<? extends BeamConfig>> extensions = new HashMap<>();
 
     private static final ThreadLocalStack<Formatter> UI = new ThreadLocalStack<>();
 
-    public static Map<String, BeamConfig> getExtensions() {
+    public static Map<String, Class<? extends BeamConfig>> getExtensions() {
         return extensions;
     }
 
@@ -25,17 +25,13 @@ public class BCL {
         return UI.get();
     }
 
-    public static void addExtension(String alias, BeamConfig extension) {
+    public static void addExtension(String alias, Class<? extends BeamConfig> extension) {
         getExtensions().put(alias, extension);
-    }
-
-    public static void addExtension(BeamConfig extension) {
-        addExtension(extension.getType(), extension);
     }
 
     public static void init() {
         UI.push(new Formatter());
-        BCL.addExtension(new ForConfig());
+        BCL.addExtension("for", ForConfig.class);
     }
 
     public static void shutdown() {

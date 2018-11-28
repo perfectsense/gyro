@@ -158,10 +158,10 @@ public class BeamConfig implements BeamResolvable, BeamCollection {
         while (iterator.hasNext()) {
             BeamConfig config = iterator.next();
             if (BCL.getExtensions().containsKey(config.getType())) {
-                BeamConfig extension = BCL.getExtensions().get(config.getType());
-                if (config.getClass() != extension.getClass()) {
+                Class<? extends BeamConfig> extension = BCL.getExtensions().get(config.getType());
+                if (config.getClass() != extension) {
                     try {
-                        BeamConfig newConfig = extension.getClass().newInstance();
+                        BeamConfig newConfig = extension.newInstance();
                         newConfig.setCtx(config.getCtx());
                         newConfig.setType(config.getType());
                         newConfig.setContext(config.getContext());
