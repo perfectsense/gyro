@@ -16,7 +16,6 @@ provider aws
 end
 
 AwsCredentials default
-    version: 0.5
     profileName: psd-sandbox
 end
 
@@ -25,12 +24,9 @@ aws::vpc vpc
 end
 
 aws::subnet subnet
-    vpc: $(aws::vpc vpc)
-    availabilityZone: $(aws::vpc vpc | region)b
+    vpcId: $(aws::vpc vpc | vpcId)
+    availabilityZone: us-east-1a
     cidrBlock: "10.0.0.0/24"
-    tags:
-        belongsTo: $(aws::vpc vpc | name)
-    end
 end
 
 AwsCredentials sandbox
@@ -43,7 +39,8 @@ aws::vpc vpc-sandbox
 end
 
 aws::subnet subnet-sandbox
-    vpc: $(aws::vpc vpc-sandbox)
-    availabilityZone: $(aws::vpc vpc-sandbox | region)b
+    vpcId: $(aws::vpc vpc-sandbox | vpcId)
+    availabilityZone: us-east-1b
     cidrBlock: "10.1.0.0/24"
 end
+
