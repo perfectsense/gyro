@@ -14,6 +14,8 @@ import java.util.Map;
 
 import beam.core.BeamResource;
 
+import beam.lang.BeamConfigKey;
+import beam.lang.BeamLiteral;
 import com.google.common.base.Throwables;
 import com.psddev.dari.util.CompactMap;
 import com.psddev.dari.util.ObjectUtils;
@@ -112,6 +114,9 @@ public class ResourceDiff {
                                         (ObjectUtils.isBlank(pendingValue) && pendingValue instanceof NullArrayList) ||
                                         (ObjectUtils.isBlank(pendingValue) && pendingValue instanceof NullSet))) {
                             writer.invoke(pendingResource, reader.invoke(currentResource));
+                            if (reader.invoke(currentResource) != null) {
+                                pendingResource.getContext().put(new BeamConfigKey(null, p.getName()), new BeamLiteral((String) reader.invoke(currentResource)));
+                            }
                         }
                     }
                 }
