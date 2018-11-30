@@ -8,20 +8,20 @@ public class ConfigExtension implements BeamExtension {
         return new BeamConfig();
     }
 
-    public final void parse(BeamParser.ExtensionContext ctx, BeamConfig config) {
+    public final void parse(BeamParser.ConfigContext ctx, BeamConfig config) {
         config.setCtx(ctx);
-        String type = ctx.extensionName().getText();
+        String type = ctx.configType().getText();
         config.setType(type);
-        BeamParser.MethodBodyContext methodBodyContext = ctx.methodBody();
-        if (methodBodyContext != null) {
-            if (methodBodyContext.keyValuePair() != null) {
-                for (BeamParser.KeyValuePairContext pairContext: methodBodyContext.keyValuePair()) {
+        BeamParser.ConfigBodyContext configBodyContext = ctx.configBody();
+        if (configBodyContext != null) {
+            if (configBodyContext.keyValuePair() != null) {
+                for (BeamParser.KeyValuePairContext pairContext: configBodyContext.keyValuePair()) {
                     config.getContext().put(new BeamConfigKey(null, pairContext.key().getText()), BeamListener.parseValue(pairContext.value()));
                 }
             }
 
-            if (methodBodyContext.extension() != null) {
-                for (BeamParser.ExtensionContext extensionContext : methodBodyContext.extension()) {
+            if (configBodyContext.config() != null) {
+                for (BeamParser.ConfigContext extensionContext : configBodyContext.config()) {
                     BeamExtension extension = new ConfigExtension();
                     BeamConfig subConfig = extension.applyExtension(extensionContext);
                     config.getUnResolvedContext().add(subConfig);
@@ -53,7 +53,7 @@ public class ConfigExtension implements BeamExtension {
     }
 
     @Override
-    public BeamConfig applyExtension(BeamParser.ExtensionContext ctx) {
+    public BeamConfig applyExtension(BeamParser.ConfigContext ctx) {
         BeamConfig config = init();
         parse(ctx, config);
         customize(config);

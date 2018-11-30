@@ -6,5 +6,5 @@ public interface BeamExtension {
 
     String getName();
 
-    BeamConfig applyExtension(BeamParser.ExtensionContext ctx);
+    BeamConfig applyExtension(BeamParser.ConfigContext ctx);
 }

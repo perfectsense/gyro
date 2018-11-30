@@ -11,7 +11,7 @@ beamRoot
     ;
 
 globalScope
-    : (keyValuePair | extension)*
+    : (keyValuePair | config)*
     ;
 
 keyValuePair
@@ -94,11 +94,11 @@ lineSeparator
     : NEWLINE+
     ;
 
-extension
-    : extensionName param+ tag* (lineSeparator methodBody)? (lineSeparator | EOF)
+config
+    : configType param+ tag* (lineSeparator configBody)? (lineSeparator | EOF)
     ;
 
-extensionName
+configType
     : TOKEN
     ;
 
@@ -110,6 +110,6 @@ tag
     : HASH TOKEN
     ;
 
-methodBody
-    :  (extension | keyValuePair)+ END
+configBody
+    :  (config | keyValuePair)+ END
     ;

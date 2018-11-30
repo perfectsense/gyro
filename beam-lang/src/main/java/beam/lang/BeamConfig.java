@@ -16,7 +16,7 @@ public class BeamConfig implements BeamResolvable, BeamCollection {
 
     private String type = "config";
 
-    private BeamParser.ExtensionContext ctx;
+    private BeamParser.ConfigContext ctx;
 
     private Set<BeamConfig> dependencies;
 
@@ -82,11 +82,11 @@ public class BeamConfig implements BeamResolvable, BeamCollection {
         this.unResolvedContext = unResolvedContext;
     }
 
-    public BeamParser.ExtensionContext getCtx() {
+    public BeamParser.ConfigContext getCtx() {
         return ctx;
     }
 
-    public void setCtx(BeamParser.ExtensionContext ctx) {
+    public void setCtx(BeamParser.ConfigContext ctx) {
         this.ctx = ctx;
     }
 
