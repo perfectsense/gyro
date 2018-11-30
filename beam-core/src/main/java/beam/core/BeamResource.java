@@ -12,6 +12,9 @@ import beam.lang.BeamConfig;
 import beam.lang.BeamConfigKey;
 import beam.lang.BeamReference;
 import beam.lang.BeamResolvable;
+import beam.lang.BeamList;
+import beam.lang.BeamLiteral;
+import beam.lang.BeamScalar;
 import org.apache.commons.beanutils.BeanUtils;
 
 public abstract class BeamResource extends BeamConfig implements Comparable<BeamResource> {
@@ -62,10 +65,30 @@ public abstract class BeamResource extends BeamConfig implements Comparable<Beam
     }
 
     @Override
-    public Set<BeamConfig> getDependencies(BeamConfig config) {
-        Set<BeamConfig> dependencies = super.getDependencies(config);
+    public Set<BeamReference> getDependencies(BeamConfig config) {
+        Set<BeamReference> dependencies = super.getDependencies(config);
+        BeamResolvable resolvable = get("depends-on");
+        if (resolvable instanceof BeamList) {
+            BeamList beamList = (BeamList) resolvable;
+            for (BeamScalar beamScalar : beamList.getList()) {
+                if (beamScalar.getElements().size() != 1) {
+                    throw new IllegalStateException();
+                }
+
+                BeamLiteral beamLiteral = beamScalar.getElements().get(0);
+                if (beamLiteral instanceof BeamReference) {
+                    dependencies.add((BeamReference) beamLiteral);
+                } else {
+                    throw new IllegalArgumentException("depends-on contains non reference value");
+                }
+            }
+        } else if (resolvable != null) {
+            throw new IllegalArgumentException("depends-on has to be a list");
+        }
+
         this.dependencies.clear();
-        for (BeamConfig dependency : dependencies) {
+        for (BeamReference reference : dependencies) {
+            Object dependency = reference.getValue();
             if (dependency instanceof BeamResource) {
                 BeamResource resource = (BeamResource) dependency;
                 this.dependencies.add(resource);

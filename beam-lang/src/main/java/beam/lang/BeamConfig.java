@@ -18,7 +18,7 @@ public class BeamConfig implements BeamResolvable, BeamCollection {
 
     private BeamParser.ConfigContext ctx;
 
-    private Set<BeamConfig> dependencies;
+    private Set<BeamReference> dependencies;
 
     private Map<String, Map<BeamConfigKey, BeamConfig>> taggedConfigs;
 
@@ -90,11 +90,11 @@ public class BeamConfig implements BeamResolvable, BeamCollection {
         this.ctx = ctx;
     }
 
-    public Set<BeamConfig> getDependencies() {
+    public Set<BeamReference> getDependencies() {
         return dependencies;
     }
 
-    public void setDependencies(Set<BeamConfig> dependencies) {
+    public void setDependencies(Set<BeamReference> dependencies) {
         this.dependencies = dependencies;
     }
 
@@ -150,14 +150,25 @@ public class BeamConfig implements BeamResolvable, BeamCollection {
     }
 
     @Override
-    public Set<BeamConfig> getDependencies(BeamConfig config) {
-        Set<BeamConfig> dependencies = new HashSet<>();
+    public Set<BeamReference> getDependencies(BeamConfig config) {
+        Set<BeamReference> dependencies = new HashSet<>();
         for (BeamConfigKey key : getContext().keySet()) {
             BeamResolvable referable = getContext().get(key);
             dependencies.addAll(referable.getDependencies(config));
         }
 
         this.dependencies = dependencies;
+        BeamList beamList = new BeamList();
+        for (BeamReference reference : dependencies) {
+            BeamScalar beamScalar = new BeamScalar();
+            beamScalar.getElements().add(reference);
+            beamList.getList().add(beamScalar);
+        }
+
+        if (!beamList.getList().isEmpty()) {
+            getContext().put(new BeamConfigKey(null, "depends-on"), beamList);
+        }
+
         return dependencies;
     }
 

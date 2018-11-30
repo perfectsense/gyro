@@ -25,13 +25,10 @@ public class BeamList implements BeamValue, BeamCollection {
 
     @Override
     public boolean resolve(BeamConfig config) {
-        if (value != null) {
-            return false;
-        }
-
+        boolean progress = false;
         List<Object> result = new ArrayList<>();
         for (BeamScalar beamScalar : getList()) {
-            beamScalar.resolve(config);
+            progress = beamScalar.resolve(config) || progress;
             if (beamScalar.getValue() != null) {
                 result.add(beamScalar.getValue());
             } else {
@@ -40,12 +37,12 @@ public class BeamList implements BeamValue, BeamCollection {
         }
 
         value = result;
-        return true;
+        return progress;
     }
 
     @Override
-    public Set<BeamConfig> getDependencies(BeamConfig config) {
-        Set<BeamConfig> dependencies = new HashSet<>();
+    public Set<BeamReference> getDependencies(BeamConfig config) {
+        Set<BeamReference> dependencies = new HashSet<>();
         if (getValue() != null) {
             return dependencies;
         }

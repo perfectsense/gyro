@@ -118,8 +118,8 @@ public class BeamReference extends BeamLiteral {
     }
 
     @Override
-    public Set<BeamConfig> getDependencies(BeamConfig config) {
-        Set<BeamConfig> dependencies = new HashSet<>();
+    public Set<BeamReference> getDependencies(BeamConfig config) {
+        Set<BeamReference> dependencies = new HashSet<>();
         if (getValue() != null) {
             return dependencies;
         }
@@ -140,6 +140,10 @@ public class BeamReference extends BeamLiteral {
             throw new BeamLangException("Unable to find BeamConfig");
         }
 
+        BeamReference reference = new BeamReference();
+        reference.setScopeChain(getScopeChain());
+        reference.value = resolvable;
+
         BeamResolvable nextResolvable = resolvable;
         for (String key : getReferenceChain()) {
             if (nextResolvable instanceof BeamCollection) {
@@ -149,7 +153,7 @@ public class BeamReference extends BeamLiteral {
             }
 
             if (nextResolvable == null || nextResolvable.getValue() == null) {
-                dependencies.add((BeamConfig) resolvable);
+                dependencies.add(reference);
             }
         }
 

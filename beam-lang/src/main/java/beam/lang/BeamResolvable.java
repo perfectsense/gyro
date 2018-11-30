@@ -8,5 +8,5 @@ public interface BeamResolvable {
 
     Object getValue();
 
-    Set<BeamConfig> getDependencies(BeamConfig config);
+    Set<BeamReference> getDependencies(BeamConfig config);
 }

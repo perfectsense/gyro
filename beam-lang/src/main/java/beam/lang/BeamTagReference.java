@@ -51,7 +51,7 @@ public class BeamTagReference implements BeamValue {
     }
 
     @Override
-    public Set<BeamConfig> getDependencies(BeamConfig config) {
+    public Set<BeamReference> getDependencies(BeamConfig config) {
         return new HashSet<>();
     }
 }

@@ -45,8 +45,8 @@ public class BeamMap implements BeamValue, BeamCollection {
     }
 
     @Override
-    public Set<BeamConfig> getDependencies(BeamConfig config) {
-        Set<BeamConfig> dependencies = new HashSet<>();
+    public Set<BeamReference> getDependencies(BeamConfig config) {
+        Set<BeamReference> dependencies = new HashSet<>();
         if (getValue() != null) {
             return dependencies;
         }
