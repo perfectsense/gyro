@@ -5,13 +5,13 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class BeamMap implements BeamResolvable, BeamCollection {
+public class BeamMap implements BeamValue, BeamCollection {
 
-    private Map<String, BeamResolvable> map;
+    private Map<String, BeamValue> map;
 
-    private Map value;
+    private Map<String, Object> value;
 
-    public Map<String, BeamResolvable> getMap() {
+    public Map<String, BeamValue> getMap() {
         if (map == null) {
             map = new HashMap<>();
         }
@@ -19,7 +19,7 @@ public class BeamMap implements BeamResolvable, BeamCollection {
         return map;
     }
 
-    public void setMap(Map<String, BeamResolvable> map) {
+    public void setMap(Map<String, BeamValue> map) {
         this.map = map;
     }
 
@@ -29,12 +29,12 @@ public class BeamMap implements BeamResolvable, BeamCollection {
             return false;
         }
 
-        Map result = new HashMap();
+        Map<String, Object> result = new HashMap<>();
         for (String key : getMap().keySet()) {
-            BeamResolvable referable = getMap().get(key);
-            referable.resolve(config);
-            if (referable.getValue() != null) {
-                result.put(key, referable.getValue());
+            BeamValue beamValue = getMap().get(key);
+            beamValue.resolve(config);
+            if (beamValue.getValue() != null) {
+                result.put(key, beamValue.getValue());
             } else {
                 return false;
             }
@@ -79,19 +79,19 @@ public class BeamMap implements BeamResolvable, BeamCollection {
         for (String key : getMap().keySet()) {
             sb.append(BCL.ui().dump(key));
             sb.append(":");
-            BeamResolvable value = getMap().get(key);
+            BeamValue beamValue = getMap().get(key);
 
-            if (value instanceof BeamCollection) {
+            if (beamValue instanceof BeamCollection) {
                 sb.append("\n");
 
                 BCL.ui().indent();
-                sb.append(value);
+                sb.append(beamValue);
                 BCL.ui().unindent();
 
                 sb.append(BCL.ui().dump("end\n"));
             } else {
                 sb.append(" ");
-                sb.append(value);
+                sb.append(beamValue);
                 sb.append("\n");
             }
         }

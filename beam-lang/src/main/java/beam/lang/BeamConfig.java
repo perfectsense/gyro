@@ -243,13 +243,19 @@ public class BeamConfig implements BeamResolvable, BeamCollection {
                     sb.append(String.join(" ", config.getBeamTags()));
                 }
 
-                sb.append("\n");
+                if (referable instanceof BeamInlineList) {
+                    sb.append(" ");
+                    sb.append(referable);
+                    sb.append("\n");
+                } else {
+                    sb.append("\n");
 
-                BCL.ui().indent();
-                sb.append(referable);
-                BCL.ui().unindent();
+                    BCL.ui().indent();
+                    sb.append(referable);
+                    BCL.ui().unindent();
 
-                sb.append(BCL.ui().dump("end\n"));
+                    sb.append(BCL.ui().dump("end\n"));
+                }
             } else {
                 sb.append(" ");
                 sb.append(referable);

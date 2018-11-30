@@ -2,11 +2,11 @@ package beam.lang;
 
 import java.util.*;
 
-public class BeamTagReference implements BeamResolvable {
+public class BeamTagReference implements BeamValue {
 
     private String tag;
 
-    private List value;
+    private List<BeamConfig> value;
 
     public BeamTagReference() {
     }
@@ -34,7 +34,7 @@ public class BeamTagReference implements BeamResolvable {
     }
 
     @Override
-    public List getValue() {
+    public List<BeamConfig> getValue() {
         return value;
     }
 
@@ -45,7 +45,7 @@ public class BeamTagReference implements BeamResolvable {
             return false;
         }
 
-        value = new ArrayList();
+        value = new ArrayList<>();
         value.addAll(tagMap.values());
         return false;
     }
@@ -55,4 +55,3 @@ public class BeamTagReference implements BeamResolvable {
         return new HashSet<>();
     }
 }
-

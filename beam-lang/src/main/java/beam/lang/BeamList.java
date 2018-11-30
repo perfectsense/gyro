@@ -5,13 +5,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class BeamList implements BeamResolvable, BeamCollection {
+public class BeamList implements BeamValue, BeamCollection {
 
-    private List<BeamResolvable> list;
+    private List<BeamScalar> list;
 
-    private List value;
+    private List<Object> value;
 
-    public List<BeamResolvable> getList() {
+    public List<BeamScalar> getList() {
         if (list == null) {
             list = new ArrayList<>();
         }
@@ -19,7 +19,7 @@ public class BeamList implements BeamResolvable, BeamCollection {
         return list;
     }
 
-    public void setList(List<BeamResolvable> list) {
+    public void setList(List<BeamScalar> list) {
         this.list = list;
     }
 
@@ -29,11 +29,11 @@ public class BeamList implements BeamResolvable, BeamCollection {
             return false;
         }
 
-        List result = new ArrayList();
-        for (BeamResolvable referable : getList()) {
-            referable.resolve(config);
-            if (referable.getValue() != null) {
-                result.add(referable.getValue());
+        List<Object> result = new ArrayList<>();
+        for (BeamScalar beamScalar : getList()) {
+            beamScalar.resolve(config);
+            if (beamScalar.getValue() != null) {
+                result.add(beamScalar.getValue());
             } else {
                 return false;
             }
@@ -79,9 +79,9 @@ public class BeamList implements BeamResolvable, BeamCollection {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        for (BeamResolvable resolvable : getList()) {
+        for (BeamScalar beamScalar : getList()) {
             sb.append(BCL.ui().dump("- "));
-            sb.append(resolvable);
+            sb.append(beamScalar);
             sb.append("\n");
         }
 

@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class BeamScalar implements BeamResolvable {
+public class BeamScalar implements BeamValue {
 
     private List<BeamLiteral> elements;
 
@@ -69,10 +69,8 @@ public class BeamScalar implements BeamResolvable {
             }
 
             value = sb.toString();
-            progress = true;
+            return true;
         }
-
-        return progress;
     }
 
     @Override

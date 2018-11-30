@@ -42,8 +42,8 @@ public class BeamListener extends BeamParserBaseListener {
             for (BeamParser.KeyValuePairContext pairContext : ctx.keyValuePair()) {
                 String id = pairContext.key().getText();
                 BeamConfigKey key = new BeamConfigKey(null, id);
-                BeamResolvable referable = parseValue(pairContext.value());
-                config.getContext().put(key, referable);
+                BeamValue beamValue = parseValue(pairContext.value());
+                config.getContext().put(key, beamValue);
             }
         }
 
@@ -56,7 +56,7 @@ public class BeamListener extends BeamParserBaseListener {
         }
     }
 
-    public static BeamResolvable parseValue(BeamParser.ValueContext valueContext) {
+    public static BeamValue parseValue(BeamParser.ValueContext valueContext) {
         if (valueContext.map() != null) {
             return parseMap(valueContext.map());
         } else if (valueContext.list() != null) {
@@ -92,9 +92,8 @@ public class BeamListener extends BeamParserBaseListener {
 
         return result;
     }
-
-    public static BeamList parseInlineList(BeamParser.InlineListContext listContext) {
-        BeamList result = new BeamList();
+    public static BeamInlineList parseInlineList(BeamParser.InlineListContext listContext) {
+        BeamInlineList result = new BeamInlineList();
         for (BeamParser.ScalarContext scalarContext : listContext.scalar()) {
             result.getList().add(parseScalar(scalarContext));
         }
