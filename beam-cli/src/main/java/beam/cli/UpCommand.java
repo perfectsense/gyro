@@ -90,6 +90,8 @@ public class UpCommand extends AbstractCommand {
 
             writeDiffs(diffs);
 
+            state.getContext().putAll(pendingState);
+
             boolean hasChanges = false;
             if (changeTypes.contains(ChangeType.CREATE) || changeTypes.contains(ChangeType.UPDATE)) {
                 hasChanges = true;
@@ -114,9 +116,6 @@ public class UpCommand extends AbstractCommand {
             if (!hasChanges) {
                 Beam.ui().write("\nNo changes.\n");
             }
-
-            state.getContext().putAll(pendingState);
-            stateBackend.save(getArguments().get(0) + ".state", state);
 
         } finally {
             BCL.shutdown();
@@ -250,5 +249,6 @@ public class UpCommand extends AbstractCommand {
         }
 
         Beam.ui().write(" OK\n");
+        stateBackend.save(getArguments().get(0) + ".state", state);
     }
 }
