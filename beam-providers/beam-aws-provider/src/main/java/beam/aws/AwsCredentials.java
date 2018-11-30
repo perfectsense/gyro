@@ -13,6 +13,7 @@ import com.amazonaws.auth.AWSCredentialsProviderChain;
 import com.amazonaws.auth.AWSSessionCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.beanutils.BeanUtils;
 import org.joda.time.DateTime;
@@ -99,7 +100,8 @@ public class AwsCredentials extends BeamCredentials {
             Object value = referable.getValue();
 
             try {
-                BeanUtils.setProperty(this, key.getId(), value);
+                String keyId = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key.getId());
+                BeanUtils.setProperty(this, keyId, value);
             } catch (IllegalArgumentException | InvocationTargetException | IllegalAccessException e) {
 
             }

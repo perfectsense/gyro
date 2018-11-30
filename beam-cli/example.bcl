@@ -16,31 +16,31 @@ provider aws
 end
 
 AwsCredentials default
-    profileName: psd-sandbox
+    profile-name: psd-sandbox
 end
 
 aws::vpc vpc
-    cidrBlock: "10.0.0.0/16"
+    cidr-block: "10.0.0.0/16"
 end
 
 aws::subnet subnet
-    vpcId: $(aws::vpc vpc | vpcId)
-    availabilityZone: us-east-1a
-    cidrBlock: "10.0.0.0/24"
+    vpc-id: $(aws::vpc vpc | vpc-id)
+    availability-zone: us-east-1a
+    cidr-block: "10.0.0.0/24"
 end
 
 AwsCredentials sandbox
-    profileName: psd-sandbox
+    profile-name: psd-sandbox
 end
 
 aws::vpc vpc-sandbox
-    resourceCredentials: $(AwsCredentials sandbox)
-    cidrBlock: "10.1.0.0/16"
+    resource-credentials: $(AwsCredentials sandbox)
+    cidr-block: "10.1.0.0/16"
 end
 
 aws::subnet subnet-sandbox
-    vpcId: $(aws::vpc vpc-sandbox | vpcId)
-    availabilityZone: us-east-1b
-    cidrBlock: "10.1.0.0/24"
+    vpc-id: $(aws::vpc vpc-sandbox | vpc-id)
+    availability-zone: us-east-1b
+    cidr-block: "10.1.0.0/24"
 end
 

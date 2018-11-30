@@ -15,6 +15,7 @@ import beam.lang.BeamResolvable;
 import beam.lang.BeamList;
 import beam.lang.BeamLiteral;
 import beam.lang.BeamScalar;
+import com.google.common.base.CaseFormat;
 import org.apache.commons.beanutils.BeanUtils;
 
 public abstract class BeamResource extends BeamConfig implements Comparable<BeamResource> {
@@ -34,14 +35,14 @@ public abstract class BeamResource extends BeamConfig implements Comparable<Beam
         String id = getParams().get(0).getValue().toString();
         setResourceIdentifier(id);
 
-        if (get("resourceCredentials") == null) {
+        if (get("resource-credentials") == null) {
             BeamConfigKey credentialsKey = new BeamConfigKey(getResourceCredentialsClass().getSimpleName(), "default");
 
             BeamReference credentialsReference = new BeamReference();
             credentialsReference.getScopeChain().add(credentialsKey);
 
             // Add reference to current resource
-            BeamConfigKey resourceCredentialsKey = new BeamConfigKey(null, "resourceCredentials");
+            BeamConfigKey resourceCredentialsKey = new BeamConfigKey(null, "resource-credentials");
             getContext().put(resourceCredentialsKey, credentialsReference);
         }
 
@@ -55,7 +56,8 @@ public abstract class BeamResource extends BeamConfig implements Comparable<Beam
             Object value = referable.getValue();
 
             try {
-                BeanUtils.setProperty(this, key.getId(), value);
+                String keyId = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key.getId());
+                BeanUtils.setProperty(this, keyId, value);
             } catch (IllegalArgumentException | InvocationTargetException | IllegalAccessException e) {
 
             }

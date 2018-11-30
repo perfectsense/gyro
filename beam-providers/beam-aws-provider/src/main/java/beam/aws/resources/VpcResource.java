@@ -112,7 +112,7 @@ public class VpcResource extends TaggableResource<Vpc> {
 
         cvRequest.setCidrBlock(getCidrBlock());
         setVpcId(client.createVpc(cvRequest).getVpc().getVpcId());
-        getContext().put(new BeamConfigKey(null, "vpcId"), new BeamLiteral(getVpcId()));
+        getContext().put(new BeamConfigKey(null, "vpc-id"), new BeamLiteral(getVpcId()));
 
         modifyAttributes(client);
     }
