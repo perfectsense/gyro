@@ -65,6 +65,8 @@ public class BeamListener extends BeamParserBaseListener {
             return parseScalar(valueContext.scalar());
         } else if (valueContext.inlineList() != null) {
             return parseInlineList(valueContext.inlineList());
+        } else if (valueContext.tagReference() != null) {
+            return parseTagReference(valueContext.tagReference());
         } else {
             throw new IllegalStateException();
         }
@@ -150,6 +152,13 @@ public class BeamListener extends BeamParserBaseListener {
             reference.setReferenceChain(reference.parseReferenceChain(nameContext.referenceChain().getText()));
         }
 
+        return reference;
+    }
+
+    public static BeamTagReference parseTagReference(BeamParser.TagReferenceContext tagReferenceContext) {
+        BeamTagReference reference = new BeamTagReference();
+        String tag = tagReferenceContext.TOKEN().getText();
+        reference.setTag(tag);
         return reference;
     }
 

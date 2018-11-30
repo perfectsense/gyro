@@ -36,6 +36,12 @@ public class ConfigExtension implements BeamExtension {
                 config.getParams().add(BeamListener.parseInlineList(paramContext.inlineList()));
             }
         }
+
+        for (BeamParser.TagContext tagContext : ctx.tag()) {
+            if (tagContext.TOKEN() != null) {
+                config.getBeamTags().add(tagContext.TOKEN().getText());
+            }
+        }
     }
 
     public void customize(BeamConfig config) {

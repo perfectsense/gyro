@@ -23,7 +23,7 @@ key
     ;
 
 value
-    : scalar | lineSeparator list | inlineList | lineSeparator map
+    : scalar | lineSeparator list | inlineList | lineSeparator map | tagReference
     ;
 
 scalar
@@ -40,6 +40,10 @@ restLiteral
 
 literal
     : tokenChain | QUOTED_STRING | reference
+    ;
+
+tagReference
+    : HASH LPAREN TOKEN RPAREN
     ;
 
 reference
@@ -91,7 +95,7 @@ lineSeparator
     ;
 
 extension
-    : extensionName param+ (lineSeparator methodBody)? (lineSeparator | EOF)
+    : extensionName param+ tag* (lineSeparator methodBody)? (lineSeparator | EOF)
     ;
 
 extensionName
@@ -100,6 +104,10 @@ extensionName
 
 param
     : literal | inlineList
+    ;
+
+tag
+    : HASH TOKEN
     ;
 
 methodBody

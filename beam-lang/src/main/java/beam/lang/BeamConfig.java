@@ -10,6 +10,8 @@ public class BeamConfig implements BeamResolvable, BeamCollection {
 
     private List<BeamResolvable> params;
 
+    private List<String> beamTags;
+
     private List<BeamConfig> unResolvedContext;
 
     private String type = "config";
@@ -17,6 +19,20 @@ public class BeamConfig implements BeamResolvable, BeamCollection {
     private BeamParser.ExtensionContext ctx;
 
     private Set<BeamConfig> dependencies;
+
+    private Map<String, Map<BeamConfigKey, BeamConfig>> taggedConfigs;
+
+    public Map<String, Map<BeamConfigKey, BeamConfig>> getTaggedConfigs() {
+        if (taggedConfigs == null) {
+            taggedConfigs = new HashMap<>();
+        }
+
+        return taggedConfigs;
+    }
+
+    public void setTaggedConfigs(Map<String, Map<BeamConfigKey, BeamConfig>> taggedConfigs) {
+        this.taggedConfigs = taggedConfigs;
+    }
 
     public Map<BeamConfigKey, BeamResolvable> getContext() {
         if (context == null) {
@@ -40,6 +56,18 @@ public class BeamConfig implements BeamResolvable, BeamCollection {
 
     public void setParams(List<BeamResolvable> params) {
         this.params = params;
+    }
+
+    public List<String> getBeamTags() {
+        if (beamTags == null) {
+            beamTags = new ArrayList<>();
+        }
+
+        return beamTags;
+    }
+
+    public void setBeamTags(List<String> beamTags) {
+        this.beamTags = beamTags;
     }
 
     public List<BeamConfig> getUnResolvedContext() {
@@ -109,6 +137,15 @@ public class BeamConfig implements BeamResolvable, BeamCollection {
             progress = true;
         }
 
+        for (String tag : getBeamTags()) {
+            if (!parent.getTaggedConfigs().containsKey(tag)) {
+                parent.getTaggedConfigs().put(tag, new HashMap<>());
+            }
+
+            Map<BeamConfigKey, BeamConfig> tagMap = parent.getTaggedConfigs().get(tag);
+            tagMap.put(key, this);
+        }
+
         return resolve(root) || progress;
     }
 
@@ -141,7 +178,11 @@ public class BeamConfig implements BeamResolvable, BeamCollection {
                 continue;
             }
 
-            progress = referable.resolve(root) || progress;
+            if (referable instanceof BeamTagReference) {
+                progress = referable.resolve(this) || progress;
+            } else {
+                progress = referable.resolve(root) || progress;
+            }
         }
 
         return progress;
@@ -167,6 +208,7 @@ public class BeamConfig implements BeamResolvable, BeamCollection {
                         newConfig.setContext(config.getContext());
                         newConfig.setParams(config.getParams());
                         newConfig.setUnResolvedContext(config.getUnResolvedContext());
+                        newConfig.setBeamTags(config.getBeamTags());
                         newConfigs.add(newConfig);
                         newConfig.applyExtension();
                         iterator.remove();
@@ -194,6 +236,13 @@ public class BeamConfig implements BeamResolvable, BeamCollection {
             }
 
             if (referable instanceof BeamCollection) {
+                if (referable instanceof BeamConfig) {
+                    // should also add params
+                    BeamConfig config = (BeamConfig) referable;
+                    sb.append(" ");
+                    sb.append(String.join(" ", config.getBeamTags()));
+                }
+
                 sb.append("\n");
 
                 BCL.ui().indent();
