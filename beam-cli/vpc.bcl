@@ -1,0 +1,34 @@
+project: ops-test
+serial: 99
+environment: production
+
+state local
+    empty: value
+end
+
+provider aws
+    artifact: "beam:beam-aws-provider:0.5"
+    repositories:
+        - "http://repo1.maven.org/maven2/"
+        - "https://repo.gradle.org/gradle/libs-releases/"
+        - "https://artifactory.psdops.com/public"
+    end
+end
+
+AwsCredentials default
+    profile-name: psd-sandbox
+end
+
+aws::vpc vpc
+    cidr-block: "10.0.0.0/16"
+end
+
+AwsCredentials sandbox
+    profile-name: psd-sandbox
+end
+
+aws::vpc vpc-sandbox
+    resource-credentials: $(AwsCredentials sandbox)
+    cidr-block: "10.1.0.0/16"
+end
+
