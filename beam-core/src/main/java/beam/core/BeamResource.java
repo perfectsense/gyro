@@ -22,6 +22,7 @@ public abstract class BeamResource extends BeamConfig implements Comparable<Beam
 
     private String resourceIdentifier;
     private BeamCredentials resourceCredentials;
+    private String path;
 
     private transient BeamResource parent;
     private transient List<BeamResource> children = new ArrayList<>();
@@ -29,6 +30,14 @@ public abstract class BeamResource extends BeamConfig implements Comparable<Beam
     private transient final Set<BeamResource> dependents = new TreeSet<>();
     private transient ResourceChange change;
     private transient BeamConfig root;
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
+    }
 
     @Override
     public boolean resolve(BeamConfig config) {

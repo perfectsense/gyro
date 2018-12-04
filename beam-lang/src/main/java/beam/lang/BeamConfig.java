@@ -241,6 +241,10 @@ public class BeamConfig implements BeamResolvable, BeamCollection {
         StringBuilder sb = new StringBuilder();
         for (BeamConfigKey key : getContext().keySet()) {
             BeamResolvable referable = getContext().get(key);
+            if (key.getType() == null && referable instanceof BeamConfig) {
+                continue;
+            }
+
             sb.append(BCL.ui().dump(key.toString()));
             if (!(referable instanceof BeamConfig)) {
                 sb.append(":");

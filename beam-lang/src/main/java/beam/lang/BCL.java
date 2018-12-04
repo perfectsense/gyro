@@ -10,12 +10,16 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
+import java.util.ArrayList;
 
 public class BCL {
 
     private static Map<String, Class<? extends BeamConfig>> extensions = new HashMap<>();
 
     private static final ThreadLocalStack<Formatter> UI = new ThreadLocalStack<>();
+
+    private static final Map<String, BeamConfig> configs = new HashMap<>();
 
     public static Map<String, Class<? extends BeamConfig>> getExtensions() {
         return extensions;
@@ -29,9 +33,14 @@ public class BCL {
         getExtensions().put(alias, extension);
     }
 
+    public static Map<String, BeamConfig> getConfigs() {
+        return configs;
+    }
+
     public static void init() {
         UI.push(new Formatter());
         BCL.addExtension("for", ForConfig.class);
+        BCL.addExtension("import", ImportConfig.class);
     }
 
     public static void shutdown() {
@@ -40,6 +49,10 @@ public class BCL {
 
     public static BeamConfig parse(String filename) {
         try {
+            if (getConfigs().containsKey(filename)) {
+                return getConfigs().get(filename);
+            }
+
             BeamLexer lexer = new BeamLexer(CharStreams.fromFileName(filename));
             CommonTokenStream tokens = new CommonTokenStream(lexer);
 
@@ -51,6 +64,7 @@ public class BCL {
 
             BeamListener listener = new BeamListener(configFile.getCanonicalPath(), passingContext);
             ParseTreeWalker.DEFAULT.walk(listener, context);
+            getConfigs().put(filename, listener.getConfig());
             return listener.getConfig();
 
         } catch (Exception error) {
@@ -60,14 +74,27 @@ public class BCL {
         return new BeamConfig();
     }
 
-    public static void resolve(BeamConfig root) {
+    public static void resolve() {
         boolean progress = true;
         while (progress) {
-            progress = root.resolve(root);
+            progress = false;
+            List<BeamConfig> configs = new ArrayList<>();
+            configs.addAll(getConfigs().values());
+            for (BeamConfig root : configs) {
+                progress = root.resolve(root) || progress;
+            }
         }
     }
 
-    public static void getDependencies(BeamConfig root) {
-        root.getDependencies(root);
+    public static void applyExtension() {
+        for (BeamConfig config : getConfigs().values()) {
+            config.applyExtension();
+        }
+    }
+
+    public static void getDependencies() {
+        for (BeamConfig config : getConfigs().values()) {
+            config.getDependencies(config);
+        }
     }
 }

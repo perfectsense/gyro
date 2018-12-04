@@ -105,6 +105,10 @@ public class ResourceChange {
         return currentResource;
     }
 
+    public BeamResource getPendingResource() {
+        return pendingResource;
+    }
+
     public List<ResourceDiff> getDiffs() {
         return diffs;
     }

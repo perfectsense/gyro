@@ -33,6 +33,8 @@ public class UpCommand extends AbstractCommand {
 
     private BeamState stateBackend;
 
+    private Map<String, Map<BeamConfigKey, BeamResolvable>> pendingStates;
+
     @Override
     public void doExecute() throws Exception {
 
@@ -42,41 +44,58 @@ public class UpCommand extends AbstractCommand {
 
         try {
             BCL.init();
-
-            BeamConfig root = BeamCore.processConfig(getArguments().get(0));
-
+            BeamCore.processConfig(getArguments().get(0));
             Set<BeamResource> resources = new TreeSet<>();
-            Map<BeamConfigKey, BeamResolvable> pendingState = new HashMap<>();
-            for (BeamConfigKey key : root.getContext().keySet()) {
-                BeamResolvable resolvable = root.getContext().get(key);
-                Object value = resolvable.getValue();
-
-                if (value instanceof BeamResource) {
-                    BeamResource resource = (BeamResource) value;
-                    resource.setRoot(root);
-                    resources.add(resource);
-                } else if (value instanceof BeamState) {
-                    stateBackend = (BeamState) value;
-                } else {
-                    pendingState.put(key, resolvable);
-                }
-            }
-
-            if (stateBackend == null) {
-                stateBackend = new BeamLocalState();
-            }
-
-            BeamConfig state = stateBackend.load(getArguments().get(0) + ".state");
-
             Set<BeamResource> current = new TreeSet<>();
-            for (BeamConfigKey key : state.getContext().keySet()) {
-                BeamResolvable resolvable = state.getContext().get(key);
-                Object value = resolvable.getValue();
+            Map<String, BeamConfig> configMap = new HashMap<>();
+            configMap.putAll(BCL.getConfigs());
+            pendingStates = new HashMap<>();
 
-                if (value instanceof BeamResource) {
-                    BeamResource resource = (BeamResource) value;
-                    resource.setRoot(state);
-                    current.add(resource);
+            for (String fileName : configMap.keySet()) {
+                String stateName = fileName + ".state";
+                BeamConfig root = configMap.get(fileName);
+
+                Map<BeamConfigKey, BeamResolvable> pendingState = new HashMap<>();
+                for (BeamConfigKey key : root.getContext().keySet()) {
+                    BeamResolvable resolvable = root.getContext().get(key);
+                    Object value = resolvable.getValue();
+
+                    if (value instanceof BeamResource) {
+                        BeamResource resource = (BeamResource) value;
+                        resource.setPath(stateName);
+                        resource.setRoot(root);
+                        resources.add(resource);
+                    } else if (value instanceof BeamState) {
+                        stateBackend = (BeamState) value;
+                    } else {
+                        pendingState.put(key, resolvable);
+                    }
+                }
+
+                if (stateBackend == null) {
+                    stateBackend = new BeamLocalState();
+                }
+
+                pendingStates.put(stateName, pendingState);
+            }
+
+            BCL.getConfigs().clear();
+            stateBackend.load(getArguments().get(0) + ".state");
+            Map<String, BeamConfig> stateMap = new HashMap<>();
+            stateMap.putAll(BCL.getConfigs());
+
+            for (String fileName : stateMap.keySet()) {
+                BeamConfig state = stateMap.get(fileName);
+                for (BeamConfigKey key : state.getContext().keySet()) {
+                    BeamResolvable resolvable = state.getContext().get(key);
+                    Object value = resolvable.getValue();
+
+                    if (value instanceof BeamResource) {
+                        BeamResource resource = (BeamResource) value;
+                        resource.setPath(fileName);
+                        resource.setRoot(state);
+                        current.add(resource);
+                    }
                 }
             }
 
@@ -90,8 +109,6 @@ public class UpCommand extends AbstractCommand {
 
             writeDiffs(diffs);
 
-            state.getContext().putAll(pendingState);
-
             boolean hasChanges = false;
             if (changeTypes.contains(ChangeType.CREATE) || changeTypes.contains(ChangeType.UPDATE)) {
                 hasChanges = true;
@@ -99,7 +116,7 @@ public class UpCommand extends AbstractCommand {
                 if (Beam.ui().readBoolean(Boolean.FALSE, "\nAre you sure you want to create and/or update resources?")) {
                     Beam.ui().write("\n");
                     setChangeable(diffs);
-                    createOrUpdate(diffs, state);
+                    createOrUpdate(diffs, stateMap);
                 }
             }
 
@@ -109,13 +126,14 @@ public class UpCommand extends AbstractCommand {
                 if (Beam.ui().readBoolean(Boolean.FALSE, "\nAre you sure you want to delete resources?")) {
                     Beam.ui().write("\n");
                     setChangeable(diffs);
-                    delete(diffs, state);
+                    delete(diffs, stateMap);
                 }
             }
 
             if (!hasChanges) {
                 Beam.ui().write("\nNo changes.\n");
             }
+
 
         } finally {
             BCL.shutdown();
@@ -195,33 +213,33 @@ public class UpCommand extends AbstractCommand {
         }
     }
 
-    private void createOrUpdate(List<ResourceDiff> diffs, BeamConfig state) {
+    private void createOrUpdate(List<ResourceDiff> diffs, Map<String, BeamConfig> stateMap) {
         for (ResourceDiff diff : diffs) {
             for (ResourceChange change : diff.getChanges()) {
                 ChangeType type = change.getType();
 
                 if (type == ChangeType.CREATE || type == ChangeType.UPDATE) {
-                    execute(change, state);
+                    execute(change, stateMap);
                 }
 
-                createOrUpdate(change.getDiffs(), state);
+                createOrUpdate(change.getDiffs(), stateMap);
             }
         }
     }
 
-    private void delete(List<ResourceDiff> diffs, BeamConfig state) {
+    private void delete(List<ResourceDiff> diffs, Map<String, BeamConfig> stateMap) {
         for (ResourceDiff diff : diffs) {
             for (ResourceChange change : diff.getChanges()) {
-                delete(change.getDiffs(), state);
+                delete(change.getDiffs(), stateMap);
 
                 if (change.getType() == ChangeType.DELETE) {
-                    execute(change, state);
+                    execute(change, stateMap);
                 }
             }
         }
     }
 
-    private void execute(ResourceChange change, BeamConfig state) {
+    private void execute(ResourceChange change, Map<String, BeamConfig> stateMap) {
         ChangeType type = change.getType();
 
         if (type == ChangeType.KEEP || type == ChangeType.REPLACE ||
@@ -233,7 +251,7 @@ public class UpCommand extends AbstractCommand {
 
         if (dependencies != null && !dependencies.isEmpty()) {
             for (ResourceChange d : dependencies) {
-                execute(d, state);
+                execute(d, stateMap);
             }
         }
 
@@ -242,13 +260,28 @@ public class UpCommand extends AbstractCommand {
         BeamResource resource = change.executeChange();
         BeamConfigKey key = new BeamConfigKey(resource.getType(), resource.getResourceIdentifier());
 
+        String path;
+        BeamConfig state;
         if (type == ChangeType.DELETE) {
+            path = change.getCurrentResource().getPath();
+            state = stateMap.get(path);
             state.getContext().remove(key);
         } else {
+            path = change.getPendingResource().getPath();
+            if (!stateMap.containsKey(path)) {
+                stateMap.put(path, new BeamConfig());
+            }
+
+            state = stateMap.get(path);
             state.getContext().put(key, resource);
         }
 
+        if (pendingStates.containsKey(path)) {
+            state.getContext().putAll(pendingStates.get(path));
+            pendingStates.remove(path);
+        }
+
         Beam.ui().write(" OK\n");
-        stateBackend.save(getArguments().get(0) + ".state", state);
+        stateBackend.save(path, state);
     }
 }
