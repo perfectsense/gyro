@@ -1,8 +1,11 @@
 package beam.aws.resources;
 
 import beam.aws.AwsBeamCredentials;
+import beam.core.BeamCredentials;
 import beam.core.BeamException;
 import beam.core.BeamResource;
+import beam.core.diff.ResourceName;
+import beam.lang.BCL;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;

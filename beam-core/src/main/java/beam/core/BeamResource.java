@@ -8,6 +8,7 @@ import java.util.TreeSet;
 
 import beam.core.diff.ResourceChange;
 
+import beam.core.diff.ResourceName;
 import beam.lang.BeamConfig;
 import beam.lang.BeamContext;
 import beam.lang.BeamContextKey;
@@ -46,7 +47,7 @@ public abstract class BeamResource extends BeamConfig implements Comparable<Beam
         setResourceIdentifier(id);
 
         if (get("resource-credentials") == null) {
-            BeamContextKey credentialsKey = new BeamContextKey(getResourceCredentialsClass().getSimpleName(), "default");
+            BeamContextKey credentialsKey = new BeamContextKey(getResourceCredentialsName(), "default");
 
             BeamReference credentialsReference = new BeamReference();
             credentialsReference.getScopeChain().add(credentialsKey);
@@ -123,6 +124,27 @@ public abstract class BeamResource extends BeamConfig implements Comparable<Beam
     }
 
     public abstract Class getResourceCredentialsClass();
+
+    public String getResourceCredentialsName() {
+        Class c = getResourceCredentialsClass();
+
+        try {
+            BeamCredentials credentials = (BeamCredentials) c.newInstance();
+
+            String resourceNamespace = credentials.getName();
+            String resourceName = c.getSimpleName();
+            if (c.isAnnotationPresent(ResourceName.class)) {
+                ResourceName name = (ResourceName) c.getAnnotation(ResourceName.class);
+                resourceName = name.value();
+
+                return String.format("%s::%s", resourceNamespace, resourceName);
+            }
+        } catch (Exception ex) {
+        }
+
+        return c.getSimpleName();
+    }
+
 
     public BeamCredentials getResourceCredentials() {
         return resourceCredentials;

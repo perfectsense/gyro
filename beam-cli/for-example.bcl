@@ -25,7 +25,7 @@ aws::vpc vpc
     region: us-west-1
 end
 
-AwsBeamCredentials default
+aws::credentials default
     profileName: psd-sandbox
     region: us-east-1
 end
