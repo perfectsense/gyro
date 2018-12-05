@@ -13,11 +13,11 @@ public class ForConfig extends BeamConfig {
     }
 
     @Override
-    protected boolean resolve(BeamConfig parent, BeamConfig root) {
+    protected boolean resolve(BeamContext parent, BeamContext root) {
         BeamList list = (BeamList) getParams().get(2);
         BeamResolvable var = getParams().get(0);
         String varId = var.getValue().toString();
-        BeamResolvable resolvable = root.get(varId);
+        BeamReferable referable = root.getReferable(new BeamContextKey(null, varId));
         boolean progress = false;
         int size = list.getList().size();
         if (!expanded) {
@@ -39,16 +39,16 @@ public class ForConfig extends BeamConfig {
         int index = 0;
         int originSize = getUnResolvedContext().size() / size;
         for (BeamConfig unResolvedConfig : getUnResolvedContext()) {
-            root.getContext().put(new BeamConfigKey(null, varId), list.getList().get(index ++ / originSize));
+            root.addReferable(new BeamContextKey(null, varId), list.getList().get(index ++ / originSize));
             if (unResolvedConfig.resolveParams(root)) {
                 progress = unResolvedConfig.resolve(parent, root) || progress;
             }
         }
 
-        if (resolvable != null) {
-            root.getContext().put(new BeamConfigKey(null, varId), resolvable);
+        if (referable != null) {
+            root.addReferable(new BeamContextKey(null, varId), referable);
         } else {
-            root.getContext().remove(new BeamConfigKey(null, varId));
+            root.removeReferable(new BeamContextKey(null, varId));
         }
 
         return progress;

@@ -9,7 +9,8 @@ import java.util.TreeSet;
 import beam.core.diff.ResourceChange;
 
 import beam.lang.BeamConfig;
-import beam.lang.BeamConfigKey;
+import beam.lang.BeamContext;
+import beam.lang.BeamContextKey;
 import beam.lang.BeamReference;
 import beam.lang.BeamResolvable;
 import beam.lang.BeamList;
@@ -40,28 +41,28 @@ public abstract class BeamResource extends BeamConfig implements Comparable<Beam
     }
 
     @Override
-    public boolean resolve(BeamConfig config) {
+    public boolean resolve(BeamContext context) {
         String id = getParams().get(0).getValue().toString();
         setResourceIdentifier(id);
 
         if (get("resource-credentials") == null) {
-            BeamConfigKey credentialsKey = new BeamConfigKey(getResourceCredentialsClass().getSimpleName(), "default");
+            BeamContextKey credentialsKey = new BeamContextKey(getResourceCredentialsClass().getSimpleName(), "default");
 
             BeamReference credentialsReference = new BeamReference();
             credentialsReference.getScopeChain().add(credentialsKey);
 
             // Add reference to current resource
-            BeamConfigKey resourceCredentialsKey = new BeamConfigKey(null, "resource-credentials");
-            getContext().put(resourceCredentialsKey, credentialsReference);
+            BeamContextKey resourceCredentialsKey = new BeamContextKey(null, "resource-credentials");
+            addReferable(resourceCredentialsKey, credentialsReference);
         }
 
-        boolean progress = super.resolve(config);
-        for (BeamConfigKey key : getContext().keySet()) {
+        boolean progress = super.resolve(context);
+        for (BeamContextKey key : listContextKeys()) {
             if (key.getType() != null) {
                 continue;
             }
 
-            BeamResolvable referable = getContext().get(key);
+            BeamResolvable referable = getReferable(key);
             Object value = referable.getValue();
 
             try {

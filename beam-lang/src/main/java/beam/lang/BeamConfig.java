@@ -4,9 +4,9 @@ import beam.parser.antlr4.BeamParser;
 
 import java.util.*;
 
-public class BeamConfig implements BeamResolvable, BeamCollection {
+public class BeamConfig implements BeamReferable, BeamCollection, BeamContext {
 
-    private Map<BeamConfigKey, BeamResolvable> context;
+    private Map<BeamContextKey, BeamReferable> context = new HashMap<>();
 
     private List<BeamResolvable> params;
 
@@ -85,29 +85,29 @@ public class BeamConfig implements BeamResolvable, BeamCollection {
         this.type = type;
     }
 
-    protected boolean resolveParams(BeamConfig config) {
+    protected boolean resolveParams(BeamContext context) {
         boolean success = true;
         for (BeamResolvable param : getParams()) {
-            param.resolve(config);
+            param.resolve(context);
             success = success && param.getValue() != null;
         }
 
         return success;
     }
 
-    protected boolean resolve(BeamConfig parent, BeamConfig root) {
+    protected boolean resolve(BeamContext parent, BeamContext root) {
         boolean progress = false;
         String id = getParams().get(0).getValue().toString();
-        BeamConfigKey key = new BeamConfigKey(getType(), id);
-        if (parent.getContext().containsKey(key)) {
-            BeamConfig existingConfig = (BeamConfig) parent.getContext().get(key);
+        BeamContextKey key = new BeamContextKey(getType(), id);
+        if (parent.hasKey(key)) {
+            BeamConfig existingConfig = (BeamConfig) parent.getReferable(key);
 
             if (existingConfig.getClass() != this.getClass()) {
-                parent.getContext().put(key, this);
+                parent.addReferable(key, this);
                 progress = true;
             }
         } else {
-            parent.getContext().put(key, this);
+            parent.addReferable(key, this);
             progress = true;
         }
 
@@ -117,8 +117,8 @@ public class BeamConfig implements BeamResolvable, BeamCollection {
     @Override
     public Set<BeamReference> getDependencies(BeamConfig config) {
         Set<BeamReference> dependencies = new HashSet<>();
-        for (BeamConfigKey key : getContext().keySet()) {
-            BeamResolvable referable = getContext().get(key);
+        for (BeamContextKey key : listContextKeys()) {
+            BeamResolvable referable = getReferable(key);
             dependencies.addAll(referable.getDependencies(config));
         }
 
@@ -131,14 +131,14 @@ public class BeamConfig implements BeamResolvable, BeamCollection {
         }
 
         if (!beamList.getList().isEmpty()) {
-            getContext().put(new BeamConfigKey(null, "depends-on"), beamList);
+            addReferable(new BeamContextKey(null, "depends-on"), beamList);
         }
 
         return dependencies;
     }
 
     @Override
-    public boolean resolve(BeamConfig root) {
+    public boolean resolve(BeamContext root) {
         boolean progress = false;
         Iterator<BeamConfig> iterator = getUnResolvedContext().iterator();
         while (iterator.hasNext()) {
@@ -148,25 +148,27 @@ public class BeamConfig implements BeamResolvable, BeamCollection {
             }
         }
 
-        for (BeamConfigKey key : getContext().keySet()) {
-            BeamResolvable referable = getContext().get(key);
+        for (BeamContextKey key : listContextKeys()) {
+            BeamResolvable referable = getReferable(key);
             if (referable instanceof BeamConfig) {
                 continue;
             }
 
-            if (referable instanceof BeamTagReference) {
-                progress = referable.resolve(this) || progress;
-            } else {
-                progress = referable.resolve(root) || progress;
-            }
+//            if (referable instanceof BeamTagReference) {
+//                progress = referable.resolve(this) || progress;
+//            } else {
+//                progress = referable.resolve(root) || progress;
+//            }
+
+            progress = referable.resolve(root) || progress;
         }
 
         return progress;
     }
 
     @Override
-    public BeamResolvable get(String key) {
-        return getContext().get(new BeamConfigKey(null, key));
+    public BeamReferable get(String key) {
+        return getReferable(new BeamContextKey(null, key));
     }
 
     public void applyExtension() {
@@ -181,7 +183,7 @@ public class BeamConfig implements BeamResolvable, BeamCollection {
                         BeamConfig newConfig = extension.newInstance();
                         newConfig.setCtx(config.getCtx());
                         newConfig.setType(config.getType());
-                        newConfig.setContext(config.getContext());
+                        newConfig.importContext(config);
                         newConfig.setParams(config.getParams());
                         newConfig.setUnResolvedContext(config.getUnResolvedContext());
                         newConfig.setBeamTags(config.getBeamTags());
@@ -204,8 +206,8 @@ public class BeamConfig implements BeamResolvable, BeamCollection {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        for (BeamConfigKey key : getContext().keySet()) {
-            BeamResolvable referable = getContext().get(key);
+        for (BeamContextKey key : listContextKeys()) {
+            BeamResolvable referable = getReferable(key);
             if (key.getType() == null && referable instanceof BeamConfig) {
                 continue;
             }
@@ -244,5 +246,37 @@ public class BeamConfig implements BeamResolvable, BeamCollection {
         }
 
         return sb.toString();
+    }
+
+    @Override
+    public boolean hasKey(BeamContextKey key) {
+        return context.containsKey(key);
+    }
+
+    @Override
+    public BeamReferable getReferable(BeamContextKey key) {
+        return context.get(key);
+    }
+
+    @Override
+    public void addReferable(BeamContextKey key, BeamReferable value) {
+        context.put(key, value);
+    }
+
+    @Override
+    public BeamReferable removeReferable(BeamContextKey key) {
+        return context.remove(key);
+    }
+
+    @Override
+    public List<BeamContextKey> listContextKeys() {
+        return new ArrayList<>(context.keySet());
+    }
+
+    @Override
+    public void importContext(BeamContext context) {
+        for (BeamContextKey key : context.listContextKeys()) {
+            addReferable(key, context.getReferable(key));
+        }
     }
 }

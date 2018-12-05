@@ -29,7 +29,7 @@ public class BeamScalar implements BeamValue {
     }
 
     @Override
-    public boolean resolve(BeamConfig config) {
+    public boolean resolve(BeamContext context) {
         if (getElements().isEmpty()) {
             throw new BeamLangException("Unable to resolve scalar with zero elements!");
         }
@@ -37,7 +37,7 @@ public class BeamScalar implements BeamValue {
         boolean progress = false;
         if (getElements().size() == 1) {
             BeamLiteral literal = getElements().get(0);
-            progress = literal.resolve(config);
+            progress = literal.resolve(context);
 
             if (literal.getValue() != null) {
                 value = literal.getValue();
@@ -52,7 +52,7 @@ public class BeamScalar implements BeamValue {
 
             StringBuilder sb = new StringBuilder();
             for (BeamLiteral literal : getElements()) {
-                progress = literal.resolve(config) || progress;
+                progress = literal.resolve(context) || progress;
 
                 if (literal.getValue() != null) {
                     Object resolvedLiteral = literal.getValue();

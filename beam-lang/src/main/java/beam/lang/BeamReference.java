@@ -8,7 +8,7 @@ import java.util.HashSet;
 
 public class BeamReference extends BeamLiteral {
 
-    private List<BeamConfigKey> scopeChain;
+    private List<BeamContextKey> scopeChain;
 
     private List<String> referenceChain;
 
@@ -17,12 +17,12 @@ public class BeamReference extends BeamLiteral {
     public BeamReference() {
     }
 
-    public BeamReference(List<BeamConfigKey> scopeChain, String chain) {
+    public BeamReference(List<BeamContextKey> scopeChain, String chain) {
         this.scopeChain = scopeChain;
         this.referenceChain = parseReferenceChain(chain);
     }
 
-    public List<BeamConfigKey> getScopeChain() {
+    public List<BeamContextKey> getScopeChain() {
         if (scopeChain == null) {
             scopeChain = new ArrayList<>();
         }
@@ -30,7 +30,7 @@ public class BeamReference extends BeamLiteral {
         return scopeChain;
     }
 
-    public void setScopeChain(List<BeamConfigKey> scopeChain) {
+    public void setScopeChain(List<BeamContextKey> scopeChain) {
         this.scopeChain = scopeChain;
     }
 
@@ -59,7 +59,7 @@ public class BeamReference extends BeamLiteral {
         StringBuilder sb = new StringBuilder();
         sb.append('$');
         sb.append('(');
-        for (BeamConfigKey scope : getScopeChain()) {
+        for (BeamContextKey scope : getScopeChain()) {
             sb.append(scope);
             sb.append(" | ");
         }
@@ -79,40 +79,40 @@ public class BeamReference extends BeamLiteral {
     }
 
     @Override
-    public boolean resolve(BeamConfig config) {
-        BeamResolvable resolvable = config;
-        for (BeamConfigKey scope : getScopeChain()) {
-            if (config.getContext().containsKey(scope)) {
-                resolvable = config.getContext().get(scope);
-                if (resolvable instanceof BeamConfig) {
-                    config = (BeamConfig) resolvable;
+    public boolean resolve(BeamContext context) {
+        BeamReferable referable = null;
+        for (BeamContextKey scope : getScopeChain()) {
+            if (context.hasKey(scope)) {
+                referable = context.getReferable(scope);
+                if (referable instanceof BeamContext) {
+                    context = (BeamContext) referable;
                 } else {
-                    throw new BeamLangException(String.format("Unable to resolve %s, expecting %s as BeamConfig found %s", this, scope, resolvable.getClass()));
+                    throw new BeamLangException(String.format("Unable to resolve %s, expecting %s to be an BeamContext found %s", this, scope, referable.getClass()));
                 }
             }
         }
 
-        if (resolvable == null) {
+        if (referable == null) {
             return false;
         }
 
-        BeamResolvable nextResolvable = resolvable;
+        BeamReferable nextReferable = referable;
         for (String key : getReferenceChain()) {
-            if (nextResolvable instanceof BeamCollection) {
-                nextResolvable = ((BeamCollection) nextResolvable).get(key);
+            if (nextReferable instanceof BeamCollection) {
+                nextReferable = ((BeamCollection) nextReferable).get(key);
             } else {
-                throw new BeamLangException(String.format("Illegal reference %s, %s is not a collection", this, nextResolvable));
+                throw new BeamLangException(String.format("Illegal reference %s, %s is not a collection", this, nextReferable));
             }
 
-            if (nextResolvable == null || nextResolvable.getValue() == null) {
+            if (nextReferable == null || nextReferable.getValue() == null) {
                 return false;
             }
         }
 
-        if (value != null && value.getClass() == nextResolvable.getValue().getClass()) {
+        if (value != null && value.getClass() == nextReferable.getValue().getClass()) {
             return false;
         } else {
-            value = nextResolvable.getValue();
+            value = nextReferable.getValue();
             return true;
         }
     }
@@ -125,9 +125,9 @@ public class BeamReference extends BeamLiteral {
         }
 
         BeamResolvable resolvable = config;
-        for (BeamConfigKey scope : getScopeChain()) {
-            if (config.getContext().containsKey(scope)) {
-                resolvable = config.getContext().get(scope);
+        for (BeamContextKey scope : getScopeChain()) {
+            if (config.hasKey(scope)) {
+                resolvable = config.getReferable(scope);
                 if (resolvable instanceof BeamConfig) {
                     config = (BeamConfig) resolvable;
                 } else {

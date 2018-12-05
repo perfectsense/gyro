@@ -24,11 +24,11 @@ public class BeamList implements BeamValue, BeamCollection {
     }
 
     @Override
-    public boolean resolve(BeamConfig config) {
+    public boolean resolve(BeamContext context) {
         boolean progress = false;
         List<Object> result = new ArrayList<>();
         for (BeamScalar beamScalar : getList()) {
-            progress = beamScalar.resolve(config) || progress;
+            progress = beamScalar.resolve(context) || progress;
             if (beamScalar.getValue() != null) {
                 result.add(beamScalar.getValue());
             } else {
@@ -60,7 +60,7 @@ public class BeamList implements BeamValue, BeamCollection {
     }
 
     @Override
-    public BeamResolvable get(String reference) {
+    public BeamReferable get(String reference) {
         if (value == null) {
             throw new IllegalStateException();
         }

@@ -3,7 +3,7 @@ package beam.lang;
 import java.util.HashSet;
 import java.util.Set;
 
-public class BeamLiteral implements BeamResolvable {
+public class BeamLiteral implements BeamReferable {
 
     private String literal;
 
@@ -19,7 +19,7 @@ public class BeamLiteral implements BeamResolvable {
     }
 
     @Override
-    public boolean resolve(BeamConfig config) {
+    public boolean resolve(BeamContext context) {
         return false;
     }
 

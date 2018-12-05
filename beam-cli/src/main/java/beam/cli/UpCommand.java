@@ -10,8 +10,10 @@ import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiff;
 import beam.lang.BCL;
 import beam.lang.BeamConfig;
-import beam.lang.BeamConfigKey;
+import beam.lang.BeamContext;
+import beam.lang.BeamContextKey;
 import beam.lang.BeamResolvable;
+import beam.lang.BeamReferable;
 import io.airlift.airline.Arguments;
 import io.airlift.airline.Command;
 
@@ -33,7 +35,7 @@ public class UpCommand extends AbstractCommand {
 
     private BeamState stateBackend;
 
-    private Map<String, Map<BeamConfigKey, BeamResolvable>> pendingStates;
+    private Map<String, BeamContext> pendingStates;
 
     @Override
     public void doExecute() throws Exception {
@@ -55,10 +57,10 @@ public class UpCommand extends AbstractCommand {
                 String stateName = fileName + ".state";
                 BeamConfig root = configMap.get(fileName);
 
-                Map<BeamConfigKey, BeamResolvable> pendingState = new HashMap<>();
-                for (BeamConfigKey key : root.getContext().keySet()) {
-                    BeamResolvable resolvable = root.getContext().get(key);
-                    Object value = resolvable.getValue();
+                BeamConfig pendingState = new BeamConfig();
+                for (BeamContextKey key : root.listContextKeys()) {
+                    BeamReferable referable = root.getReferable(key);
+                    Object value = referable.getValue();
 
                     if (value instanceof BeamResource) {
                         BeamResource resource = (BeamResource) value;
@@ -68,7 +70,7 @@ public class UpCommand extends AbstractCommand {
                     } else if (value instanceof BeamState) {
                         stateBackend = (BeamState) value;
                     } else {
-                        pendingState.put(key, resolvable);
+                        pendingState.addReferable(key, referable);
                     }
                 }
 
@@ -86,8 +88,8 @@ public class UpCommand extends AbstractCommand {
 
             for (String fileName : stateMap.keySet()) {
                 BeamConfig state = stateMap.get(fileName);
-                for (BeamConfigKey key : state.getContext().keySet()) {
-                    BeamResolvable resolvable = state.getContext().get(key);
+                for (BeamContextKey key : state.listContextKeys()) {
+                    BeamResolvable resolvable = state.getReferable(key);
                     Object value = resolvable.getValue();
 
                     if (value instanceof BeamResource) {
@@ -258,14 +260,14 @@ public class UpCommand extends AbstractCommand {
         Beam.ui().write("Executing: ");
         writeChange(change);
         BeamResource resource = change.executeChange();
-        BeamConfigKey key = new BeamConfigKey(resource.getType(), resource.getResourceIdentifier());
+        BeamContextKey key = new BeamContextKey(resource.getType(), resource.getResourceIdentifier());
 
         String path;
         BeamConfig state;
         if (type == ChangeType.DELETE) {
             path = change.getCurrentResource().getPath();
             state = stateMap.get(path);
-            state.getContext().remove(key);
+            state.removeReferable(key);
         } else {
             path = change.getPendingResource().getPath();
             if (!stateMap.containsKey(path)) {
@@ -273,11 +275,11 @@ public class UpCommand extends AbstractCommand {
             }
 
             state = stateMap.get(path);
-            state.getContext().put(key, resource);
+            state.addReferable(key, resource);
         }
 
         if (pendingStates.containsKey(path)) {
-            state.getContext().putAll(pendingStates.get(path));
+            state.importContext(pendingStates.get(path));
             pendingStates.remove(path);
         }
 

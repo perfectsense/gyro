@@ -4,7 +4,7 @@ import java.util.Set;
 
 public interface BeamResolvable {
 
-    boolean resolve(BeamConfig config);
+    boolean resolve(BeamContext context);
 
     Object getValue();
 

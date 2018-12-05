@@ -24,7 +24,7 @@ public class BeamMap implements BeamValue, BeamCollection {
     }
 
     @Override
-    public boolean resolve(BeamConfig config) {
+    public boolean resolve(BeamContext context) {
         if (value != null) {
             return false;
         }
@@ -32,7 +32,7 @@ public class BeamMap implements BeamValue, BeamCollection {
         Map<String, Object> result = new HashMap<>();
         for (String key : getMap().keySet()) {
             BeamValue beamValue = getMap().get(key);
-            beamValue.resolve(config);
+            beamValue.resolve(context);
             if (beamValue.getValue() != null) {
                 result.put(key, beamValue.getValue());
             } else {
@@ -65,7 +65,7 @@ public class BeamMap implements BeamValue, BeamCollection {
     }
 
     @Override
-    public BeamResolvable get(String key) {
+    public BeamReferable get(String key) {
         if (value == null) {
             throw new IllegalStateException();
         }

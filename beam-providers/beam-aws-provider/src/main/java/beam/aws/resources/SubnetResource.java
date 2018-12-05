@@ -4,7 +4,7 @@ import beam.core.BeamCredentials;
 import beam.core.BeamException;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
-import beam.lang.BeamConfigKey;
+import beam.lang.BeamContextKey;
 import beam.lang.BeamLiteral;
 import com.amazonaws.services.ec2.AmazonEC2Client;
 import com.amazonaws.services.ec2.model.CreateSubnetRequest;
@@ -110,7 +110,7 @@ public class SubnetResource extends TaggableResource<Subnet> {
         csRequest.setCidrBlock(getCidrBlock());
         csRequest.setVpcId(getVpcId());
         setSubnetId(client.createSubnet(csRequest).getSubnet().getSubnetId());
-        getContext().put(new BeamConfigKey(null, "subnet-id"), new BeamLiteral(getSubnetId()));
+        addReferable(new BeamContextKey(null, "subnet-id"), new BeamLiteral(getSubnetId()));
         modifyAttribute(client);
     }
 

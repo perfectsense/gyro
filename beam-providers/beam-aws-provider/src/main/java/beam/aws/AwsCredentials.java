@@ -2,9 +2,8 @@ package beam.aws;
 
 import beam.core.BeamCredentials;
 import beam.core.BeamException;
-import beam.core.BeamResource;
-import beam.lang.BeamConfig;
-import beam.lang.BeamConfigKey;
+import beam.lang.BeamContext;
+import beam.lang.BeamContextKey;
 import beam.lang.BeamResolvable;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.auth.AWSCredentials;
@@ -88,15 +87,15 @@ public class AwsCredentials extends BeamCredentials {
     }
 
     @Override
-    public boolean resolve(BeamConfig config) {
-        boolean progress = super.resolve(config);
+    public boolean resolve(BeamContext context) {
+        boolean progress = super.resolve(context);
 
-        for (BeamConfigKey key : getContext().keySet()) {
+        for (BeamContextKey key : listContextKeys()) {
             if (key.getType() != null) {
                 continue;
             }
 
-            BeamResolvable referable = getContext().get(key);
+            BeamResolvable referable = getReferable(key);
             Object value = referable.getValue();
 
             try {

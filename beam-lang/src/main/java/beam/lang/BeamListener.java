@@ -41,9 +41,9 @@ public class BeamListener extends BeamParserBaseListener {
         if (ctx.keyValuePair() != null) {
             for (BeamParser.KeyValuePairContext pairContext : ctx.keyValuePair()) {
                 String id = pairContext.key().getText();
-                BeamConfigKey key = new BeamConfigKey(null, id);
+                BeamContextKey key = new BeamContextKey(null, id);
                 BeamValue beamValue = parseValue(pairContext.value());
-                config.getContext().put(key, beamValue);
+                config.addReferable(key, beamValue);
             }
         }
 
@@ -136,7 +136,7 @@ public class BeamListener extends BeamParserBaseListener {
             for (BeamParser.ReferenceScopeContext scopeContext : scopeContexts) {
                 String id = scopeContext.referenceId().getText();
                 String type = scopeContext.referenceType() != null ? scopeContext.referenceType().getText() : null;
-                reference.getScopeChain().add(new BeamConfigKey(type, id));
+                reference.getScopeChain().add(new BeamContextKey(type, id));
             }
         }
 
@@ -144,7 +144,7 @@ public class BeamListener extends BeamParserBaseListener {
         if (nameContext.referenceScope() != null) {
             String id = nameContext.referenceScope().referenceId().getText();
             String type = nameContext.referenceScope().referenceType() != null ? nameContext.referenceScope().referenceType().getText() : null;
-            reference.getScopeChain().add(new BeamConfigKey(type, id));
+            reference.getScopeChain().add(new BeamContextKey(type, id));
         } else if (nameContext.referenceChain() != null) {
             reference.setReferenceChain(reference.parseReferenceChain(nameContext.referenceChain().getText()));
         }

@@ -14,7 +14,7 @@ import java.util.Map;
 
 import beam.core.BeamResource;
 
-import beam.lang.BeamConfigKey;
+import beam.lang.BeamContextKey;
 import beam.lang.BeamLiteral;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Throwables;
@@ -117,7 +117,7 @@ public class ResourceDiff {
                             writer.invoke(pendingResource, reader.invoke(currentResource));
                             if (reader.invoke(currentResource) != null) {
                                 String keyId = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, p.getName());
-                                pendingResource.getContext().put(new BeamConfigKey(null, keyId), new BeamLiteral((String) reader.invoke(currentResource)));
+                                pendingResource.addReferable(new BeamContextKey(null, keyId), new BeamLiteral((String) reader.invoke(currentResource)));
                             }
                         }
                     }

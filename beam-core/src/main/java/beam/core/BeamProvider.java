@@ -13,7 +13,7 @@ public class BeamProvider extends BeamConfig {
     }
 
     @Override
-    protected boolean resolve(BeamConfig parent, BeamConfig root) {
+    protected boolean resolve(BeamContext parent, BeamContext root) {
         fetch();
         return super.resolve(parent, root);
     }

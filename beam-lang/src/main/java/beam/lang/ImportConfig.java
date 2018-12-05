@@ -7,7 +7,7 @@ public class ImportConfig extends BeamConfig {
     private boolean imported;
 
     @Override
-    protected boolean resolve(BeamConfig parent, BeamConfig root) {
+    protected boolean resolve(BeamContext parent, BeamContext root) {
         boolean progress = false;
         BeamResolvable pathResolvable = getParams().get(0);
         BeamResolvable idResolvable = getParams().get(2);
@@ -15,23 +15,23 @@ public class ImportConfig extends BeamConfig {
         String id = idResolvable.getValue().toString();
 
         String statePath = StringUtils.ensureEnd(path, ".state");
-        BeamConfigKey key = new BeamConfigKey(getType(), String.format("%s %s %s", statePath, "as", id));
-        if (parent.getContext().containsKey(key)) {
-            BeamConfig existingConfig = (BeamConfig) parent.getContext().get(key);
+        BeamContextKey key = new BeamContextKey(getType(), String.format("%s %s %s", statePath, "as", id));
+        if (parent.hasKey(key)) {
+            BeamConfig existingConfig = (BeamConfig) parent.getReferable(key);
 
             if (existingConfig.getClass() != this.getClass()) {
-                parent.getContext().put(key, this);
+                parent.addReferable(key, this);
                 progress = true;
             }
         } else {
-            parent.getContext().put(key, this);
+            parent.addReferable(key, this);
             progress = true;
         }
 
         if (!imported) {
             BeamConfig importConfig = BCL.parse(path);
             importConfig.applyExtension();
-            root.getContext().put(new BeamConfigKey(null, id), importConfig);
+            root.addReferable(new BeamContextKey(null, id), importConfig);
             imported = true;
             progress = true;
         }

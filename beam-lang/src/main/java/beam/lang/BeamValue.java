@@ -1,4 +1,4 @@
 package beam.lang;
 
-public interface BeamValue extends BeamResolvable {
+public interface BeamValue extends BeamReferable {
 }
