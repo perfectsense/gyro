@@ -1,37 +1,44 @@
 package beam.aws;
 
 import beam.core.BeamCredentials;
-import beam.core.BeamException;
 import beam.lang.BeamContext;
 import beam.lang.BeamContextKey;
 import beam.lang.BeamResolvable;
-import com.amazonaws.AmazonClientException;
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.AWSCredentialsProviderChain;
-import com.amazonaws.auth.AWSSessionCredentials;
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.beanutils.BeanUtils;
 import org.joda.time.DateTime;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain;
+import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
-public class AwsCredentials extends BeamCredentials {
+public class AwsBeamCredentials extends BeamCredentials {
 
-    private AWSCredentialsProvider provider;
+    private AwsCredentialsProvider provider;
 
     private String profileName;
 
-    public AwsCredentials() {
-        this.provider = new AWSCredentialsProviderChain(DefaultAWSCredentialsProviderChain.getInstance());
+    private String region;
+
+    public AwsBeamCredentials() {
+        this.provider = AwsCredentialsProviderChain.builder()
+                .credentialsProviders(DefaultCredentialsProvider.create())
+                .build();
     }
 
-    public AWSCredentialsProvider getProvider() {
+    public AwsCredentialsProvider getProvider() {
         return provider;
+    }
+
+    @Override
+    public String getName() {
+        return "aws";
     }
 
     public String getProfileName() {
@@ -41,38 +48,39 @@ public class AwsCredentials extends BeamCredentials {
     public void setProfileName(String profileName) {
         this.profileName = profileName;
 
-        this.provider = new AWSCredentialsProviderChain(
-                new ProfileCredentialsProvider(profileName),
-                DefaultAWSCredentialsProviderChain.getInstance()
-        );
+        this.provider = AwsCredentialsProviderChain.builder()
+                .credentialsProviders(
+                        ProfileCredentialsProvider.create(profileName),
+                        DefaultCredentialsProvider.create()
+                )
+                .build();
     }
 
-    @Override
-    public String getName() {
-        return "aws";
+    public void setProvider(AwsCredentialsProvider provider) {
+        this.provider = provider;
+    }
+
+    public String getRegion() {
+        return region;
+    }
+
+    public void setRegion(String region) {
+        this.region = region;
     }
 
     @Override
     public Map<String, String> findCredentials(boolean refresh) {
         ImmutableMap.Builder<String, String> mapBuilder = new ImmutableMap.Builder<>();
-        AWSCredentials creds;
+        AwsCredentials creds;
 
-        try {
-            AWSCredentialsProvider provider = getProvider();
-            if (refresh) {
-                provider.refresh();
-            }
+        AwsCredentialsProvider provider = getProvider();
+        creds = provider.resolveCredentials();
 
-            creds = provider.getCredentials();
-        } catch (AmazonClientException ace) {
-            throw new BeamException(ace.getMessage(), null, "no-account");
-        }
+        mapBuilder.put("accessKeyId", creds.accessKeyId());
+        mapBuilder.put("secretKey", creds.secretAccessKey());
 
-        mapBuilder.put("accessKeyId", creds.getAWSAccessKeyId());
-        mapBuilder.put("secretKey", creds.getAWSSecretKey());
-
-        if (creds instanceof AWSSessionCredentials) {
-            mapBuilder.put("sessionToken", ((AWSSessionCredentials) creds).getSessionToken());
+        if (creds instanceof AwsSessionCredentials) {
+            mapBuilder.put("sessionToken", ((AwsSessionCredentials) creds).sessionToken());
         }
 
         Long expiration = DateTime.now().plusDays(1).getMillis();

@@ -6,15 +6,17 @@ import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 import beam.lang.BeamContextKey;
 import beam.lang.BeamLiteral;
-import com.amazonaws.services.ec2.AmazonEC2Client;
-import com.amazonaws.services.ec2.model.CreateVpcRequest;
-import com.amazonaws.services.ec2.model.DeleteVpcRequest;
-import com.amazonaws.services.ec2.model.DescribeVpcAttributeRequest;
-import com.amazonaws.services.ec2.model.DescribeVpcsRequest;
-import com.amazonaws.services.ec2.model.ModifyVpcAttributeRequest;
-import com.amazonaws.services.ec2.model.Vpc;
-import com.amazonaws.services.ec2.model.VpcAttributeName;
 import com.psddev.dari.util.ObjectUtils;
+import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.ec2.model.AttributeBooleanValue;
+import software.amazon.awssdk.services.ec2.model.CreateVpcRequest;
+import software.amazon.awssdk.services.ec2.model.CreateVpcResponse;
+import software.amazon.awssdk.services.ec2.model.DeleteVpcRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeVpcAttributeRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeVpcsRequest;
+import software.amazon.awssdk.services.ec2.model.ModifyVpcAttributeRequest;
+import software.amazon.awssdk.services.ec2.model.Vpc;
+import software.amazon.awssdk.services.ec2.model.VpcAttributeName;
 
 import java.util.Set;
 
@@ -67,16 +69,17 @@ public class VpcResource extends TaggableResource<Vpc> {
 
     @Override
     public void refresh(BeamCredentials credentials) {
-        AmazonEC2Client client = createClient(AmazonEC2Client.class);
+        Ec2Client client = createClient(Ec2Client.class);
 
         if (ObjectUtils.isBlank(getVpcId())) {
             throw new BeamException("vpc-id is missing, unable to load vpc.");
         }
 
-        DescribeVpcsRequest request = new DescribeVpcsRequest();
-        request.withVpcIds(getVpcId());
+        DescribeVpcsRequest request = DescribeVpcsRequest.builder()
+                .vpcIds(getVpcId())
+                .build();
 
-        for (Vpc vpc : client.describeVpcs(request).getVpcs()) {
+        for (Vpc vpc : client.describeVpcs(request).vpcs()) {
             doInit(vpc);
             break;
         }
@@ -84,34 +87,37 @@ public class VpcResource extends TaggableResource<Vpc> {
 
     @Override
     protected void doInit(Vpc vpc) {
-        AmazonEC2Client ec2Client = createClient(AmazonEC2Client.class);
-        String vpcId = vpc.getVpcId();
+        Ec2Client client = createClient(Ec2Client.class);
+        String vpcId = vpc.vpcId();
 
-        setCidrBlock(vpc.getCidrBlock());
+        setCidrBlock(vpc.cidrBlock());
         setVpcId(vpcId);
 
         // VPC attributes.
-        DescribeVpcAttributeRequest dvaRequest = new DescribeVpcAttributeRequest();
+        DescribeVpcAttributeRequest request = DescribeVpcAttributeRequest.builder()
+                .vpcId(vpcId)
+                .attribute(VpcAttributeName.ENABLE_DNS_HOSTNAMES)
+                .build();
+        setEnableDnsHostnames(client.describeVpcAttribute(request).enableDnsHostnames().value());
 
-        dvaRequest.setVpcId(vpcId);
-        dvaRequest.setAttribute(VpcAttributeName.EnableDnsHostnames);
-        setEnableDnsHostnames(ec2Client.
-                describeVpcAttribute(dvaRequest).
-                isEnableDnsHostnames());
-
-        dvaRequest.setAttribute(VpcAttributeName.EnableDnsSupport);
-        setEnableDnsSupport(ec2Client.
-                describeVpcAttribute(dvaRequest).
-                isEnableDnsSupport());
+        request = DescribeVpcAttributeRequest.builder()
+                .vpcId(vpcId)
+                .attribute(VpcAttributeName.ENABLE_DNS_SUPPORT)
+                .build();
+        setEnableDnsSupport(client.describeVpcAttribute(request).enableDnsSupport().value());
     }
 
     @Override
     protected void doCreate() {
-        AmazonEC2Client client = createClient(AmazonEC2Client.class);
-        CreateVpcRequest cvRequest = new CreateVpcRequest();
+        Ec2Client client = createClient(Ec2Client.class);
 
-        cvRequest.setCidrBlock(getCidrBlock());
-        setVpcId(client.createVpc(cvRequest).getVpc().getVpcId());
+        CreateVpcRequest request = CreateVpcRequest.builder()
+                .cidrBlock(getCidrBlock())
+                .build();
+
+        CreateVpcResponse response = client.createVpc(request);
+
+        setVpcId(response.vpc().vpcId());
         addReferable(new BeamContextKey(null, "vpc-id"), new BeamLiteral(getVpcId()));
 
         modifyAttributes(client);
@@ -119,41 +125,47 @@ public class VpcResource extends TaggableResource<Vpc> {
 
     @Override
     protected void doUpdate(AwsResource current, Set<String> changedProperties) {
-        AmazonEC2Client client = createClient(AmazonEC2Client.class);
+        Ec2Client client = createClient(Ec2Client.class);
 
         modifyAttributes(client);
     }
 
-    private void modifyAttributes(AmazonEC2Client client) {
-        String vpcId = getVpcId();
-        Boolean dnsHostnames = getEnableDnsHostnames();
+    private void modifyAttributes(Ec2Client client) {
+        if (getEnableDnsHostnames() != null) {
+            ModifyVpcAttributeRequest request = ModifyVpcAttributeRequest.builder()
+                    .vpcId(getVpcId())
+                    .enableDnsHostnames(AttributeBooleanValue.builder().value(getEnableDnsHostnames()).build())
+                    .build();
 
-        if (dnsHostnames != null) {
-            ModifyVpcAttributeRequest mvaRequest = new ModifyVpcAttributeRequest();
-
-            mvaRequest.setVpcId(vpcId);
-            mvaRequest.setEnableDnsHostnames(dnsHostnames);
-            client.modifyVpcAttribute(mvaRequest);
+            client.modifyVpcAttribute(request);
         }
 
-        Boolean dnsSupport = getEnableDnsSupport();
+        if (getEnableDnsSupport() != null) {
+            ModifyVpcAttributeRequest request = ModifyVpcAttributeRequest.builder()
+                    .vpcId(getVpcId())
+                    .enableDnsSupport(AttributeBooleanValue.builder().value(getEnableDnsSupport()).build())
+                    .build();
 
-        if (dnsSupport != null) {
-            ModifyVpcAttributeRequest mvaRequest = new ModifyVpcAttributeRequest();
+            client.modifyVpcAttribute(request);
 
-            mvaRequest.setVpcId(vpcId);
-            mvaRequest.setEnableDnsSupport(dnsSupport);
-            client.modifyVpcAttribute(mvaRequest);
+            request = ModifyVpcAttributeRequest.builder()
+                    .vpcId(getVpcId())
+                    .enableDnsHostnames(AttributeBooleanValue.builder().value(getEnableDnsHostnames()).build())
+                    .build();
+
+            client.modifyVpcAttribute(request);
         }
     }
 
     @Override
     public void delete() {
-        AmazonEC2Client client = createClient(AmazonEC2Client.class);
-        DeleteVpcRequest dvRequest = new DeleteVpcRequest();
+        Ec2Client client = createClient(Ec2Client.class);
 
-        dvRequest.setVpcId(getVpcId());
-        client.deleteVpc(dvRequest);
+        DeleteVpcRequest request = DeleteVpcRequest.builder()
+                .vpcId(getVpcId())
+                .build();
+
+        client.deleteVpc(request);
     }
 
     @Override

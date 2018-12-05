@@ -15,16 +15,18 @@ provider aws
     end
 end
 
-AwsCredentials default
+AwsBeamCredentials default
     profile-name: psd-sandbox
+    region: us-east-1
 end
 
 aws::vpc vpc
     cidr-block: "10.0.0.0/16"
 end
 
-AwsCredentials sandbox
+AwsBeamCredentials sandbox
     profile-name: psd-sandbox
+    region: us-east-1
 end
 
 aws::vpc vpc-sandbox
