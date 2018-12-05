@@ -20,6 +20,7 @@ end
 
 AwsCredentials default
     profile-name: psd-sandbox
+    region: us-east-1
 end
 
 aws::subnet subnet
@@ -30,6 +31,7 @@ end
 
 AwsCredentials sandbox
     profile-name: psd-sandbox
+    region: us-east-1
 end
 
 aws::subnet subnet-sandbox

@@ -1,17 +1,18 @@
 package beam.aws.resources;
 
-import beam.aws.AwsCredentials;
 import beam.core.BeamResource;
 import beam.core.diff.ResourceDiffProperty;
-import com.amazonaws.services.ec2.AmazonEC2Client;
-import com.amazonaws.services.ec2.model.CreateTagsRequest;
-import com.amazonaws.services.ec2.model.Tag;
 import com.google.common.base.Throwables;
 import com.psddev.dari.util.CompactMap;
 import com.psddev.dari.util.ObjectUtils;
+import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.ec2.model.CreateTagsRequest;
+import software.amazon.awssdk.services.ec2.model.Tag;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -101,20 +102,23 @@ public abstract class TaggableResource<T> extends AwsResource implements Taggabl
     }
 
     private void createTags() {
+        Ec2Client client = createClient(Ec2Client.class);
+
         Map<String, String> tags = getTags();
-
         if (tags != null && !tags.isEmpty()) {
-            AmazonEC2Client client = createClient(AmazonEC2Client.class);
-            CreateTagsRequest ctRequest = new CreateTagsRequest();
 
+            List<Tag> tagObjects = new ArrayList<>();
             for (Map.Entry<String, String> entry : tags.entrySet()) {
-                ctRequest.getTags().add(new Tag(entry.getKey(), entry.getValue()));
+                tagObjects.add(Tag.builder().key(entry.getKey()).value(entry.getValue()).build());
             }
 
-            ctRequest.withResources(getId());
+            CreateTagsRequest request = CreateTagsRequest.builder()
+                    .resources(getId())
+                    .tags(tagObjects)
+                    .build();
 
             executeService(() -> {
-                client.createTags(ctRequest);
+                client.createTags(request);
                 return null;
             });
         }

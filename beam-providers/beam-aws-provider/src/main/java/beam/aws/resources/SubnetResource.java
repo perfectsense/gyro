@@ -6,15 +6,17 @@ import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 import beam.lang.BeamContextKey;
 import beam.lang.BeamLiteral;
-import com.amazonaws.services.ec2.AmazonEC2Client;
-import com.amazonaws.services.ec2.model.CreateSubnetRequest;
-import com.amazonaws.services.ec2.model.DeleteSubnetRequest;
-import com.amazonaws.services.ec2.model.DescribeNetworkInterfacesRequest;
-import com.amazonaws.services.ec2.model.DescribeSubnetsRequest;
-import com.amazonaws.services.ec2.model.Filter;
-import com.amazonaws.services.ec2.model.ModifySubnetAttributeRequest;
-import com.amazonaws.services.ec2.model.Subnet;
 import com.psddev.dari.util.ObjectUtils;
+import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.ec2.model.AttributeBooleanValue;
+import software.amazon.awssdk.services.ec2.model.CreateSubnetRequest;
+import software.amazon.awssdk.services.ec2.model.CreateSubnetResponse;
+import software.amazon.awssdk.services.ec2.model.DeleteSubnetRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeNetworkInterfacesRequest;
+import software.amazon.awssdk.services.ec2.model.DescribeSubnetsRequest;
+import software.amazon.awssdk.services.ec2.model.Filter;
+import software.amazon.awssdk.services.ec2.model.ModifySubnetAttributeRequest;
+import software.amazon.awssdk.services.ec2.model.Subnet;
 
 import java.util.Arrays;
 import java.util.Set;
@@ -76,16 +78,17 @@ public class SubnetResource extends TaggableResource<Subnet> {
 
     @Override
     public void refresh(BeamCredentials credentials) {
-        AmazonEC2Client client = createClient(AmazonEC2Client.class);
+        Ec2Client client = createClient(Ec2Client.class);
 
         if (ObjectUtils.isBlank(getSubnetId())) {
             throw new BeamException("subnet-id is missing, unable to load subnet.");
         }
 
-        DescribeSubnetsRequest request = new DescribeSubnetsRequest();
-        request.withSubnetIds(getSubnetId());
+        DescribeSubnetsRequest request = DescribeSubnetsRequest.builder()
+                .subnetIds(getSubnetId())
+                .build();
 
-        for (Subnet subnet : client.describeSubnets(request).getSubnets()) {
+        for (Subnet subnet : client.describeSubnets(request).subnets()) {
             doInit(subnet);
             break;
         }
@@ -93,62 +96,64 @@ public class SubnetResource extends TaggableResource<Subnet> {
 
     @Override
     protected void doInit(Subnet subnet) {
-        String subnetId = subnet.getSubnetId();
+        String subnetId = subnet.subnetId();
 
-        setAvailabilityZone(subnet.getAvailabilityZone());
-        setCidrBlock(subnet.getCidrBlock());
-        setMapPublicIpOnLaunch(subnet.getMapPublicIpOnLaunch());
+        setAvailabilityZone(subnet.availabilityZone());
+        setCidrBlock(subnet.cidrBlock());
+        setMapPublicIpOnLaunch(subnet.mapPublicIpOnLaunch());
         setSubnetId(subnetId);
     }
 
     @Override
     protected void doCreate() {
-        AmazonEC2Client client = createClient(AmazonEC2Client.class);
-        CreateSubnetRequest csRequest = new CreateSubnetRequest();
+        Ec2Client client = createClient(Ec2Client.class);
 
-        csRequest.setAvailabilityZone(getAvailabilityZone());
-        csRequest.setCidrBlock(getCidrBlock());
-        csRequest.setVpcId(getVpcId());
-        setSubnetId(client.createSubnet(csRequest).getSubnet().getSubnetId());
+        CreateSubnetRequest request = CreateSubnetRequest.builder()
+                .availabilityZone(getAvailabilityZone())
+                .cidrBlock(getCidrBlock())
+                .vpcId(getVpcId())
+                .build();
+
+        CreateSubnetResponse response = client.createSubnet(request);
+
+        setSubnetId(response.subnet().subnetId());
         addReferable(new BeamContextKey("subnet-id"), new BeamLiteral(getSubnetId()));
+
         modifyAttribute(client);
     }
 
     @Override
     protected void doUpdate(AwsResource current, Set<String> changedProperties) {
-        AmazonEC2Client client = createClient(AmazonEC2Client.class);
+        Ec2Client client = createClient(Ec2Client.class);
 
         modifyAttribute(client);
     }
 
-    private void modifyAttribute(AmazonEC2Client client) {
-        Boolean mapPublicIpOnLaunch = getMapPublicIpOnLaunch();
+    private void modifyAttribute(Ec2Client client) {
+        if (getMapPublicIpOnLaunch() != null) {
+            ModifySubnetAttributeRequest request = ModifySubnetAttributeRequest.builder()
+                    .subnetId(getSubnetId())
+                    .mapPublicIpOnLaunch(AttributeBooleanValue.builder().value(getMapPublicIpOnLaunch()).build())
+                    .build();
 
-        if (mapPublicIpOnLaunch != null) {
-            ModifySubnetAttributeRequest msaRequest = new ModifySubnetAttributeRequest();
-
-            msaRequest.setSubnetId(getSubnetId());
-            msaRequest.setMapPublicIpOnLaunch(mapPublicIpOnLaunch);
-            client.modifySubnetAttribute(msaRequest);
+            client.modifySubnetAttribute(request);
         }
     }
 
     @Override
     public void delete() {
-        AmazonEC2Client client = createClient(AmazonEC2Client.class);
+        Ec2Client client = createClient(Ec2Client.class);
 
         // Network interfaces may still be detaching, so check and wait
         // before deleting the subnet.
         while (true) {
-            DescribeNetworkInterfacesRequest dniRequest = new DescribeNetworkInterfacesRequest();
+            DescribeNetworkInterfacesRequest request = DescribeNetworkInterfacesRequest.builder()
+                    .filters(Filter.builder()
+                            .name("subnet-id")
+                            .values(getSubnetId()).build())
+                    .build();
 
-            dniRequest.setFilters(Arrays.asList(
-                    new Filter("subnet-id").withValues(getSubnetId())));
-
-            if (client.
-                    describeNetworkInterfaces(dniRequest).
-                    getNetworkInterfaces().
-                    isEmpty()) {
+            if (client.describeNetworkInterfaces(request).networkInterfaces().isEmpty()) {
                 break;
             }
 
@@ -160,10 +165,11 @@ public class SubnetResource extends TaggableResource<Subnet> {
             }
         }
 
-        DeleteSubnetRequest dsRequest = new DeleteSubnetRequest();
+        DeleteSubnetRequest request = DeleteSubnetRequest.builder()
+                .subnetId(getSubnetId())
+                .build();
 
-        dsRequest.setSubnetId(getSubnetId());
-        client.deleteSubnet(dsRequest);
+        client.deleteSubnet(request);
     }
 
     @Override
