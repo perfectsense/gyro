@@ -18,7 +18,7 @@ provider aws
     end
 end
 
-AwsCredentials default
+aws::credentials default
     profile-name: psd-sandbox
     region: us-east-1
 end
@@ -29,7 +29,7 @@ aws::subnet subnet
     cidr-block: "10.0.0.0/24"
 end
 
-AwsCredentials sandbox
+aws::credentials sandbox
     profile-name: psd-sandbox
     region: us-east-1
 end

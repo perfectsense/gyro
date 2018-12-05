@@ -1,6 +1,7 @@
 package beam.aws;
 
 import beam.core.BeamCredentials;
+import beam.core.diff.ResourceName;
 import beam.lang.BeamContext;
 import beam.lang.BeamContextKey;
 import beam.lang.BeamResolvable;
@@ -18,6 +19,7 @@ import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
+@ResourceName("credentials")
 public class AwsBeamCredentials extends BeamCredentials {
 
     private AwsCredentialsProvider provider;

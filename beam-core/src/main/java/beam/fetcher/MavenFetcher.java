@@ -138,11 +138,21 @@ public class MavenFetcher extends PluginFetcher {
                         BCL.addExtension(fullName, provider.get(fullName));
                     }
                 } else if (BeamCredentials.class.isAssignableFrom(c)) {
-                    if (!provider.containsKey(c.getSimpleName())) {
-                        provider.put(c.getSimpleName(), c);
+                    BeamCredentials credentials = (BeamCredentials) c.newInstance();
+
+                    String resourceNamespace = credentials.getName();
+                    String resourceName = c.getSimpleName();
+                    if (c.isAnnotationPresent(ResourceName.class)) {
+                        ResourceName name = (ResourceName) c.getAnnotation(ResourceName.class);
+                        resourceName = name.value();
                     }
 
-                    BCL.addExtension(c.getSimpleName(), provider.get(c.getSimpleName()));
+                    String fullName = String.format("%s::%s", resourceNamespace, resourceName);
+                    if (!provider.containsKey(fullName)) {
+                        provider.put(fullName, c);
+                    }
+
+                    BCL.addExtension(fullName, provider.get(fullName));
                 }
             }
         } catch (Exception e) {
