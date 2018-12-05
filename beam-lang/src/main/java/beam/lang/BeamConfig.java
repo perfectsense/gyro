@@ -20,32 +20,6 @@ public class BeamConfig implements BeamResolvable, BeamCollection {
 
     private Set<BeamReference> dependencies;
 
-    private Map<String, Map<BeamConfigKey, BeamConfig>> taggedConfigs;
-
-    public Map<String, Map<BeamConfigKey, BeamConfig>> getTaggedConfigs() {
-        if (taggedConfigs == null) {
-            taggedConfigs = new HashMap<>();
-        }
-
-        return taggedConfigs;
-    }
-
-    public void setTaggedConfigs(Map<String, Map<BeamConfigKey, BeamConfig>> taggedConfigs) {
-        this.taggedConfigs = taggedConfigs;
-    }
-
-    public Map<BeamConfigKey, BeamResolvable> getContext() {
-        if (context == null) {
-            context = new HashMap<>();
-        }
-
-        return context;
-    }
-
-    public void setContext(Map<BeamConfigKey, BeamResolvable> context) {
-        this.context = context;
-    }
-
     public List<BeamResolvable> getParams() {
         if (params == null) {
             params = new ArrayList<>();
@@ -135,15 +109,6 @@ public class BeamConfig implements BeamResolvable, BeamCollection {
         } else {
             parent.getContext().put(key, this);
             progress = true;
-        }
-
-        for (String tag : getBeamTags()) {
-            if (!parent.getTaggedConfigs().containsKey(tag)) {
-                parent.getTaggedConfigs().put(tag, new HashMap<>());
-            }
-
-            Map<BeamConfigKey, BeamConfig> tagMap = parent.getTaggedConfigs().get(tag);
-            tagMap.put(key, this);
         }
 
         return resolve(root) || progress;
