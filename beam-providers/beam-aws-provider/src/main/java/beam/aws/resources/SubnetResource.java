@@ -110,7 +110,7 @@ public class SubnetResource extends TaggableResource<Subnet> {
         csRequest.setCidrBlock(getCidrBlock());
         csRequest.setVpcId(getVpcId());
         setSubnetId(client.createSubnet(csRequest).getSubnet().getSubnetId());
-        addReferable(new BeamContextKey(null, "subnet-id"), new BeamLiteral(getSubnetId()));
+        addReferable(new BeamContextKey("subnet-id"), new BeamLiteral(getSubnetId()));
         modifyAttribute(client);
     }
 

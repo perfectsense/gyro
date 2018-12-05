@@ -31,7 +31,7 @@ public class ImportConfig extends BeamConfig {
         if (!imported) {
             BeamConfig importConfig = BCL.parse(path);
             importConfig.applyExtension();
-            root.addReferable(new BeamContextKey(null, id), importConfig);
+            root.addReferable(new BeamContextKey(id), importConfig);
             imported = true;
             progress = true;
         }

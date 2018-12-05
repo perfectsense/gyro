@@ -131,7 +131,7 @@ public class BeamConfig implements BeamReferable, BeamCollection, BeamContext {
         }
 
         if (!beamList.getList().isEmpty()) {
-            addReferable(new BeamContextKey(null, "depends-on"), beamList);
+            addReferable(new BeamContextKey("depends-on"), beamList);
         }
 
         return dependencies;
@@ -162,7 +162,7 @@ public class BeamConfig implements BeamReferable, BeamCollection, BeamContext {
 
     @Override
     public BeamReferable get(String key) {
-        return getReferable(new BeamContextKey(null, key));
+        return getReferable(new BeamContextKey(key));
     }
 
     public void applyExtension() {

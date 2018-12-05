@@ -52,7 +52,7 @@ public abstract class BeamResource extends BeamConfig implements Comparable<Beam
             credentialsReference.getScopeChain().add(credentialsKey);
 
             // Add reference to current resource
-            BeamContextKey resourceCredentialsKey = new BeamContextKey(null, "resource-credentials");
+            BeamContextKey resourceCredentialsKey = new BeamContextKey("resource-credentials");
             addReferable(resourceCredentialsKey, credentialsReference);
         }
 

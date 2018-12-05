@@ -116,7 +116,7 @@ public class ResourceDiff {
                                         (ObjectUtils.isBlank(pendingValue) && pendingValue instanceof NullSet))) {
                             writer.invoke(pendingResource, reader.invoke(currentResource));
                             String keyId = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, p.getName());
-                            BeamContextKey key = new BeamContextKey(null, keyId);
+                            BeamContextKey key = new BeamContextKey(keyId);
                             if (reader.invoke(currentResource) != null && !pendingResource.hasKey(key)) {
                                 pendingResource.addReferable(key, currentResource.getReferable(key));
                             }

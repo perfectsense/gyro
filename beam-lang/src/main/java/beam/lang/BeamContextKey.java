@@ -6,8 +6,8 @@ public class BeamContextKey {
 
     private String id;
 
-    public BeamContextKey() {
-
+    public BeamContextKey(String id) {
+        this(null, id);
     }
 
     public BeamContextKey(String type, String id) {

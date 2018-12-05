@@ -41,7 +41,7 @@ public class BeamListener extends BeamParserBaseListener {
         if (ctx.keyValuePair() != null) {
             for (BeamParser.KeyValuePairContext pairContext : ctx.keyValuePair()) {
                 String id = pairContext.key().getText();
-                BeamContextKey key = new BeamContextKey(null, id);
+                BeamContextKey key = new BeamContextKey(id);
                 BeamValue beamValue = parseValue(pairContext.value());
                 config.addReferable(key, beamValue);
             }
