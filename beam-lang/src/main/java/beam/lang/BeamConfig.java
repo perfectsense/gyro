@@ -154,12 +154,6 @@ public class BeamConfig implements BeamReferable, BeamCollection, BeamContext {
                 continue;
             }
 
-//            if (referable instanceof BeamTagReference) {
-//                progress = referable.resolve(this) || progress;
-//            } else {
-//                progress = referable.resolve(root) || progress;
-//            }
-
             progress = referable.resolve(root) || progress;
         }
 
