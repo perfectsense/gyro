@@ -116,7 +116,6 @@ public class SubnetResource extends TaggableResource<Subnet> {
         CreateSubnetResponse response = client.createSubnet(request);
 
         setSubnetId(response.subnet().subnetId());
-        addReferable(new BeamContextKey("subnet-id"), new BeamLiteral(getSubnetId()));
 
         modifyAttribute(client);
     }

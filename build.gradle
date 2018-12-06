@@ -1,3 +1,14 @@
+buildscript {
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath "gradle.plugin.aspectj:gradle-aspectj:0.1.6"
+    }
+}
+
 plugins {
     id 'maven-publish'
 }
@@ -6,6 +17,10 @@ defaultTasks 'build', 'publish', 'publishToMavenLocal', 'distDir', 'dist'
 
 allprojects {
     version = '0.5'
+}
+
+ext {
+    aspectjVersion = '1.9.0'
 }
 
 subprojects {
@@ -35,6 +50,8 @@ subprojects {
         compile group: 'org.slf4j', name: 'log4j-over-slf4j', version: '1.7.12'
         compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
         compile group: 'org.lucee', name: 'dom4j', version: '1.6.1'
+        compile "org.aspectj:aspectjrt:1.9.0"
+        compile "org.aspectj:aspectjweaver:1.9.0"
     }
 
     publishing {

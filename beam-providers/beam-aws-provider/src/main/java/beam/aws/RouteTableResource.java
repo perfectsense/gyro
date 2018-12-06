@@ -72,8 +72,6 @@ public class RouteTableResource extends TaggableResource<RouteTable> {
 
         setRouteTableId(response.routeTable().routeTableId());
         setOwnerId(response.routeTable().ownerId());
-
-        addReferable(new BeamContextKey("route-table-id"), new BeamLiteral(getRouteTableId()));
     }
 
     @Override

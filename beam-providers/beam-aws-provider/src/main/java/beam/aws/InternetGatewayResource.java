@@ -63,7 +63,6 @@ public class InternetGatewayResource extends TaggableResource<InternetGateway> {
         CreateInternetGatewayResponse response = client.createInternetGateway();
 
         setInternetGatewayId(response.internetGateway().internetGatewayId());
-        addReferable(new BeamContextKey("internet-gateway-id"), new BeamLiteral(getInternetGatewayId()));
 
         if (getVpcId() != null) {
             client.attachInternetGateway(r -> r.internetGatewayId(getInternetGatewayId())

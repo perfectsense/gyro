@@ -197,9 +197,7 @@ public class VpcResource extends TaggableResource<Vpc> {
         Vpc vpc = response.vpc();
         setVpcId(response.vpc().vpcId());
         setOwnerId(vpc.ownerId());
-
-        addReferable(new BeamContextKey("vpc-id"), new BeamLiteral(getVpcId()));
-        addReferable(new BeamContextKey("owner-id"), new BeamLiteral(getOwnerId()));
+        setInstanceTenancy(vpc.instanceTenancyAsString());
 
         modifySettings(client);
     }
