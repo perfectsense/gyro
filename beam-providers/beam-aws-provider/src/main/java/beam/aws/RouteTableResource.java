@@ -1,4 +1,4 @@
-package beam.aws.resources;
+package beam.aws;
 
 import beam.core.BeamCredentials;
 import beam.core.diff.ResourceName;

@@ -1,11 +1,10 @@
-package beam.aws.resources;
+package beam.aws;
 
 import beam.core.BeamCredentials;
 import beam.core.diff.ResourceName;
 import beam.lang.BeamContextKey;
 import beam.lang.BeamLiteral;
 import software.amazon.awssdk.services.ec2.Ec2Client;
-import software.amazon.awssdk.services.ec2.model.AttachInternetGatewayResponse;
 import software.amazon.awssdk.services.ec2.model.CreateInternetGatewayResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeInternetGatewaysResponse;
 import software.amazon.awssdk.services.ec2.model.InternetGateway;

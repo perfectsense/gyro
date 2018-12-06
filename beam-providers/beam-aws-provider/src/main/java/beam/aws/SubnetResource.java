@@ -1,4 +1,4 @@
-package beam.aws.resources;
+package beam.aws;
 
 import beam.core.BeamCredentials;
 import beam.core.BeamException;
@@ -18,7 +18,6 @@ import software.amazon.awssdk.services.ec2.model.Filter;
 import software.amazon.awssdk.services.ec2.model.ModifySubnetAttributeRequest;
 import software.amazon.awssdk.services.ec2.model.Subnet;
 
-import java.util.Arrays;
 import java.util.Set;
 
 @ResourceName("subnet")
