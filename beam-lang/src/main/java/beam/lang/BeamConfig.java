@@ -98,7 +98,7 @@ public class BeamConfig implements BeamReferable, BeamCollection, BeamContext {
     protected boolean resolve(BeamContext parent, BeamContext root) {
         boolean progress = false;
         String id = getParams().get(0).getValue().toString();
-        BeamContextKey key = new BeamContextKey(getType(), id);
+        BeamContextKey key = new BeamContextKey(id, getType());
         if (parent.hasKey(key)) {
             BeamConfig existingConfig = (BeamConfig) parent.getReferable(key);
 

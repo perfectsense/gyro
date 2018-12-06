@@ -267,7 +267,7 @@ public class UpCommand extends AbstractCommand {
         Beam.ui().write("Executing: ");
         writeChange(change);
         BeamResource resource = change.executeChange();
-        BeamContextKey key = new BeamContextKey(resource.getType(), resource.getResourceIdentifier());
+        BeamContextKey key = new BeamContextKey(resource.getResourceIdentifier(), resource.getType());
 
         String path;
         BeamConfig state;

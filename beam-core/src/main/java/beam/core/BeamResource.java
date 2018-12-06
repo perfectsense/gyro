@@ -47,7 +47,7 @@ public abstract class BeamResource extends BeamConfig implements Comparable<Beam
         setResourceIdentifier(id);
 
         if (get("resource-credentials") == null) {
-            BeamContextKey credentialsKey = new BeamContextKey(getResourceCredentialsName(), "default");
+            BeamContextKey credentialsKey = new BeamContextKey("default", getResourceCredentialsName());
 
             BeamReference credentialsReference = new BeamReference();
             credentialsReference.getScopeChain().add(credentialsKey);

@@ -136,7 +136,7 @@ public class BeamListener extends BeamParserBaseListener {
             for (BeamParser.ReferenceScopeContext scopeContext : scopeContexts) {
                 String id = scopeContext.referenceId().getText();
                 String type = scopeContext.referenceType() != null ? scopeContext.referenceType().getText() : null;
-                reference.getScopeChain().add(new BeamContextKey(type, id));
+                reference.getScopeChain().add(new BeamContextKey(id, type));
             }
         }
 
@@ -144,7 +144,7 @@ public class BeamListener extends BeamParserBaseListener {
         if (nameContext.referenceScope() != null) {
             String id = nameContext.referenceScope().referenceId().getText();
             String type = nameContext.referenceScope().referenceType() != null ? nameContext.referenceScope().referenceType().getText() : null;
-            reference.getScopeChain().add(new BeamContextKey(type, id));
+            reference.getScopeChain().add(new BeamContextKey(id, type));
         } else if (nameContext.referenceChain() != null) {
             reference.setReferenceChain(reference.parseReferenceChain(nameContext.referenceChain().getText()));
         }

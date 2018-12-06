@@ -7,12 +7,12 @@ public class BeamContextKey {
     private String id;
 
     public BeamContextKey(String id) {
-        this(null, id);
+        this(id, null);
     }
 
-    public BeamContextKey(String type, String id) {
-        this.type = type;
+    public BeamContextKey(String id, String type) {
         this.id = id;
+        this.type = type;
     }
 
     public String getType() {
@@ -32,7 +32,7 @@ public class BeamContextKey {
     }
 
     public BeamContextKey scopeContextKey(String scope) {
-        return new BeamContextKey(type, String.format("%s.%s", scope, id));
+        return new BeamContextKey(String.format("%s.%s", scope, id), type);
     }
 
     @Override

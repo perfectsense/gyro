@@ -15,7 +15,7 @@ public class ImportConfig extends BeamConfig {
         String id = idResolvable.getValue().toString();
 
         String statePath = StringUtils.ensureEnd(path, ".state");
-        BeamContextKey key = new BeamContextKey(getType(), String.format("%s %s %s", statePath, "as", id));
+        BeamContextKey key = new BeamContextKey(String.format("%s %s %s", statePath, "as", id), getType());
         if (parent.hasKey(key)) {
             BeamConfig existingConfig = (BeamConfig) parent.getReferable(key);
 
