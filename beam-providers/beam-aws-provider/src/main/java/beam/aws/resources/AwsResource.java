@@ -34,12 +34,7 @@ public abstract class AwsResource extends BeamResource {
             AwsDefaultClientBuilder builder = (AwsDefaultClientBuilder) method.invoke(null);
             builder.credentialsProvider(provider);
             builder.region(Region.of(credentials.getRegion()));
-            builder.httpClient(
-                    ApacheHttpClient.builder()
-                            .connectionAcquisitionTimeout(Duration.ofSeconds(10000))
-                            .connectionTimeout(Duration.ofSeconds(100000))
-                            .build()
-            );
+            builder.httpClientBuilder(ApacheHttpClient.builder());
 
             if (getRegion() != null) {
                 builder.region(getRegion());
