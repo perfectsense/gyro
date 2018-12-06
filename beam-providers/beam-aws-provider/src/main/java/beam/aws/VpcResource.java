@@ -260,7 +260,6 @@ public class VpcResource extends TaggableResource<Vpc> {
         DescribeVpcClassicLinkResponse clResponse =  client.describeVpcClassicLink(r -> r.vpcIds(getVpcId()));
         for (VpcClassicLink classicLink : clResponse.vpcs()) {
             setEnableClassicLink(classicLink.classicLinkEnabled());
-            System.out.println(getEnableClassicLink());
             break;
         }
 
