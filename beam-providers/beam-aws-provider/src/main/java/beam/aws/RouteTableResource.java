@@ -54,7 +54,7 @@ public class RouteTableResource extends TaggableResource<RouteTable> {
         for (RouteTable routeTable : response.routeTables()) {
             setVpcId(routeTable.vpcId());
             setOwnerId(routeTable.ownerId());
-
+            init(routeTable);
             return;
         }
     }

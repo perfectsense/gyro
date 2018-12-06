@@ -163,7 +163,7 @@ public class VpcResource extends TaggableResource<Vpc> {
                 .build();
 
         for (Vpc vpc : client.describeVpcs(request).vpcs()) {
-            doInit(vpc);
+            init(vpc);
             break;
         }
     }

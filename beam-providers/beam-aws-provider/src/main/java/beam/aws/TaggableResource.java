@@ -2,15 +2,11 @@ package beam.aws;
 
 import beam.core.BeamResource;
 import beam.core.diff.ResourceDiffProperty;
-import com.google.common.base.Throwables;
 import com.psddev.dari.util.CompactMap;
-import com.psddev.dari.util.ObjectUtils;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.CreateTagsRequest;
 import software.amazon.awssdk.services.ec2.model.Tag;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import software.amazon.awssdk.services.ec2.paginators.DescribeTagsIterable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -60,29 +56,18 @@ public abstract class TaggableResource<T> extends AwsResource implements Taggabl
     public final void init(T resource) {
         doInit(resource);
 
-        try {
-            for (Object item : ObjectUtils.to(Iterable.class, resource)) {
-                Method getTagsMethod = item.getClass().getMethod("getTags");
+        Ec2Client client = createClient(Ec2Client.class);
+        DescribeTagsIterable response = client.describeTagsPaginator(
+                r -> r.filters(
+                f -> f.name("resource-id")
+                        .values(getId())
+                        .build())
+                .build());
 
-                for (Object tag : ObjectUtils.to(Iterable.class, getTagsMethod.invoke(item))) {
-                    Class<?> tagClass = tag.getClass();
-                    Method getKeyMethod = tagClass.getMethod("getKey");
-                    Method getValueMethod = tagClass.getMethod("getValue");
-                    String key = ObjectUtils.to(String.class, getKeyMethod.invoke(tag));
+        response.stream().forEach(
+                r -> r.tags().forEach(
+                        t -> getTags().put(t.key(), t.value())));
 
-                    if (!key.startsWith("aws:")) {
-                        getTags().put(key, ObjectUtils.to(String.class, getValueMethod.invoke(tag)));
-                    }
-                }
-            }
-
-        } catch (IllegalAccessException |
-                NoSuchMethodException error) {
-            throw new IllegalStateException(error);
-
-        } catch (InvocationTargetException error) {
-            throw Throwables.propagate(error.getCause());
-        }
     }
 
     protected abstract void doCreate();

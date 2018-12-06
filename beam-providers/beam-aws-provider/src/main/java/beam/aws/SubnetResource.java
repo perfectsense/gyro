@@ -88,7 +88,7 @@ public class SubnetResource extends TaggableResource<Subnet> {
                 .build();
 
         for (Subnet subnet : client.describeSubnets(request).subnets()) {
-            doInit(subnet);
+            init(subnet);
             break;
         }
     }

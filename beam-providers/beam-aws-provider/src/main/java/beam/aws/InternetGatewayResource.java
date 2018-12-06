@@ -53,6 +53,8 @@ public class InternetGatewayResource extends TaggableResource<InternetGateway> {
 
                 break;
             }
+
+            init(gateway);
         }
     }
 
