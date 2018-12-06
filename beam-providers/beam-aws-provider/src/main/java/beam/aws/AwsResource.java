@@ -1,26 +1,23 @@
 package beam.aws;
 
-import beam.aws.AwsBeamCredentials;
-import beam.core.BeamCredentials;
 import beam.core.BeamException;
 import beam.core.BeamResource;
-import beam.core.diff.ResourceName;
-import beam.lang.BCL;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 
 import java.lang.reflect.Method;
-import java.time.Duration;
 
 public abstract class AwsResource extends BeamResource {
 
-    private Region region;
+    private SdkClient client;
 
-    public <T extends SdkClient> T createClient(Class<T> clientClass) {
+    <T extends SdkClient> T createClient(Class<T> clientClass) {
+        if (client != null) {
+            return (T) client;
+        }
 
         try {
             AwsBeamCredentials credentials = (AwsBeamCredentials) getResourceCredentials();
@@ -36,16 +33,12 @@ public abstract class AwsResource extends BeamResource {
             builder.region(Region.of(credentials.getRegion()));
             builder.httpClientBuilder(ApacheHttpClient.builder());
 
-            if (getRegion() != null) {
-                builder.region(getRegion());
-            }
-
-            return (T) builder.build();
+            client = (T) builder.build();
         } catch (Exception ex) {
             ex.printStackTrace();
         }
 
-        return null;
+        return (T) client;
     }
 
     public Class getResourceCredentialsClass() {
@@ -88,18 +81,6 @@ public abstract class AwsResource extends BeamResource {
        }
 
        return result;
-    }
-
-    public Region getRegion() {
-        return region;
-    }
-
-    public void setRegion(Region region) {
-        this.region = region;
-    }
-
-    public void setRegion(String region) {
-        this.region = Region.of(region);
     }
 
 }
