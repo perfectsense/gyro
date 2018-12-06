@@ -20,10 +20,24 @@ aws::vpc vpc-example
     end
 end
 
+aws::internet-gateway ig-example
+    vpc-id: $(aws::vpc vpc-example | vpc-id)
+
+    tags:
+        Name: ig-example
+    end
+end
+
 aws::route-table route-table-example
     vpc-id: $(aws::vpc vpc-example | vpc-id)
 
     tags:
         Name: route-table-example
     end
+end
+
+aws::route route-example
+    route-table-id: $(aws::route-table route-table-example | route-table-id)
+    destination-cidr-block: 0.0.0.0/0
+    gateway-id: $(aws::internet-gateway ig-example | internet-gateway-id)
 end
