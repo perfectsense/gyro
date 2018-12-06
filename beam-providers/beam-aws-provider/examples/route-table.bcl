@@ -1,0 +1,29 @@
+provider aws
+    artifact: "beam:beam-aws-provider:0.5"
+    repositories:
+        - "http://repo1.maven.org/maven2/"
+        - "https://repo.gradle.org/gradle/libs-releases/"
+        - "https://artifactory.psdops.com/public"
+    end
+end
+
+aws::credentials default
+    profile-name: psd-sandbox
+    region: us-east-1
+end
+
+aws::vpc vpc-example
+    cidr-block: "10.0.0.0/16"
+
+    tags:
+        Name: vpc-example
+    end
+end
+
+aws::route-table route-table-example
+    vpc-id: $(aws::vpc vpc-example | vpc-id)
+
+    tags:
+        Name: route-table-example
+    end
+end
