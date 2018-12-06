@@ -151,7 +151,7 @@ public class VpcResource extends TaggableResource<Vpc> {
     }
 
     @Override
-    public void refresh(BeamCredentials credentials) {
+    public void refresh() {
         Ec2Client client = createClient(Ec2Client.class);
 
         if (ObjectUtils.isBlank(getVpcId())) {

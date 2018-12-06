@@ -125,7 +125,7 @@ public class RouteResource extends AwsResource {
     }
 
     @Override
-    public void refresh(BeamCredentials cloud) {
+    public void refresh() {
         Ec2Client client = createClient(Ec2Client.class);
 
         DescribeRouteTablesResponse response = client.describeRouteTables(r -> r.filters(

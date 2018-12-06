@@ -44,7 +44,7 @@ public class RouteTableResource extends TaggableResource<RouteTable> {
     }
 
     @Override
-    public void refresh(BeamCredentials cloud) {
+    public void refresh() {
         Ec2Client client = createClient(Ec2Client.class);
 
         DescribeRouteTablesResponse response = client.describeRouteTables(r -> r.filters(

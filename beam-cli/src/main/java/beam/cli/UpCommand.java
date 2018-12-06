@@ -16,6 +16,7 @@ import beam.lang.BeamResolvable;
 import beam.lang.BeamReferable;
 import io.airlift.airline.Arguments;
 import io.airlift.airline.Command;
+import io.airlift.airline.Option;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -30,6 +31,9 @@ public class UpCommand extends AbstractCommand {
 
     @Arguments
     private List<String> arguments;
+
+    @Option(name = { "--refresh" })
+    public boolean refresh;
 
     private final Set<ChangeType> changeTypes = new HashSet<>();
 
@@ -97,6 +101,9 @@ public class UpCommand extends AbstractCommand {
                         resource.setPath(fileName);
                         resource.setRoot(state);
                         current.add(resource);
+                        if (refresh) {
+                            resource.refresh();
+                        }
                     }
                 }
             }

@@ -76,7 +76,7 @@ public class SubnetResource extends TaggableResource<Subnet> {
     }
 
     @Override
-    public void refresh(BeamCredentials credentials) {
+    public void refresh() {
         Ec2Client client = createClient(Ec2Client.class);
 
         if (ObjectUtils.isBlank(getSubnetId())) {

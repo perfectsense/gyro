@@ -204,7 +204,7 @@ public abstract class BeamResource extends BeamConfig implements Comparable<Beam
         return null;
     }
 
-    public abstract void refresh(BeamCredentials cloud);
+    public abstract void refresh();
 
     public BeamResource findCurrent() {
         return null;

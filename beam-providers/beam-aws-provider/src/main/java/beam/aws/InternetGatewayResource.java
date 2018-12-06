@@ -40,7 +40,7 @@ public class InternetGatewayResource extends TaggableResource<InternetGateway> {
     }
 
     @Override
-    public void refresh(BeamCredentials cloud) {
+    public void refresh() {
         Ec2Client client = createClient(Ec2Client.class);
 
         DescribeInternetGatewaysResponse response = client.describeInternetGateways(
