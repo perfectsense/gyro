@@ -135,13 +135,13 @@ public class RouteResource extends AwsResource {
         Route route = null;
         for (RouteTable routeTable : response.routeTables()) {
             for (Route r : routeTable.routes()) {
-                if (r.destinationCidrBlock().equals(getDestinationCidrBlock())) {
+                if (r.destinationCidrBlock() != null && r.destinationCidrBlock().equals(getDestinationCidrBlock())) {
                     route = r;
                     break;
-                } else if (r.destinationIpv6CidrBlock().equals(getDestinationCidrBlock())) {
+                } else if (r.destinationIpv6CidrBlock() != null && r.destinationIpv6CidrBlock().equals(getDestinationCidrBlock())) {
                     route = r;
                     break;
-                } else if (r.destinationPrefixListId().equals(getDestinationPrefixListId())) {
+                } else if (r.destinationPrefixListId() != null && r.destinationPrefixListId().equals(getDestinationPrefixListId())) {
                     route = r;
                     break;
                 }
