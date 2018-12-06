@@ -36,7 +36,7 @@ public class InternetGatewayResource extends TaggableResource<InternetGateway> {
 
     @Override
     protected String getId() {
-        return getVpcId();
+        return getInternetGatewayId();
     }
 
     @Override
