@@ -1,11 +1,3 @@
-project: ops-test
-serial: 99
-environment: production
-
-state local
-    empty: value
-end
-
 provider aws
     artifact: "beam:beam-aws-provider:0.5"
     repositories:
@@ -22,15 +14,9 @@ end
 
 aws::vpc vpc
     cidr-block: "10.0.0.0/16"
-end
 
-aws::credentials sandbox
-    profile-name: psd-sandbox
-    region: us-east-1
-end
-
-aws::vpc vpc-sandbox
-    resource-credentials: $(AwsCredentials sandbox)
-    cidr-block: "10.1.0.0/16"
+    tag:
+        Name: vpc-example
+    end
 end
 

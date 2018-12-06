@@ -1,14 +1,3 @@
-import 'beam-cli/vpc.bcl' as vpc
-    empty: value
-end
-project: $(vpc | project)
-serial: $(vpc | serial)
-environment: $(vpc | environment)
-
-state local
-    empty: value
-end
-
 provider aws
     artifact: "beam:beam-aws-provider:0.5"
     repositories:
@@ -23,19 +12,21 @@ aws::credentials default
     region: us-east-1
 end
 
+aws::vpc vpc
+    cidr-block: "10.0.0.0/16"
+
+    tags:
+        Name: vpc-example
+    end
+end
+
 aws::subnet subnet
     vpc-id: $(vpc | aws::vpc vpc | vpc-id)
     availability-zone: us-east-1a
     cidr-block: "10.0.0.0/24"
+
+    tags:
+        Name: subnet-example
+    end
 end
 
-aws::credentials sandbox
-    profile-name: psd-sandbox
-    region: us-east-1
-end
-
-aws::subnet subnet-sandbox
-    vpc-id: $(vpc | aws::vpc vpc-sandbox | vpc-id)
-    availability-zone: us-east-1b
-    cidr-block: "10.1.0.0/24"
-end
