@@ -1,11 +1,9 @@
-package beam.aws;
+package beam.aws.ec2;
 
-import beam.core.BeamCredentials;
+import beam.aws.AwsResource;
 import beam.core.BeamException;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
-import beam.lang.BeamContextKey;
-import beam.lang.BeamLiteral;
 import com.psddev.dari.util.ObjectUtils;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.AttributeBooleanValue;
@@ -21,7 +19,7 @@ import software.amazon.awssdk.services.ec2.model.Subnet;
 import java.util.Set;
 
 @ResourceName("subnet")
-public class SubnetResource extends TaggableResource<Subnet> {
+public class SubnetResource extends Ec2TaggableResource<Subnet> {
 
     private String subnetId;
     private String availabilityZone;

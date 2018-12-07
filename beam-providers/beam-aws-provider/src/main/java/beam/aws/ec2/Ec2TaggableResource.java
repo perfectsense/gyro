@@ -1,5 +1,6 @@
-package beam.aws;
+package beam.aws.ec2;
 
+import beam.aws.AwsResource;
 import beam.core.BeamResource;
 import beam.core.diff.ResourceDiffProperty;
 import com.psddev.dari.util.CompactMap;
@@ -12,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public abstract class TaggableResource<T> extends AwsResource implements Taggable {
+public abstract class Ec2TaggableResource<T> extends AwsResource {
 
     private static final String NAME_KEY = "Name";
 

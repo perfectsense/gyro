@@ -1,5 +1,6 @@
-package beam.aws;
+package beam.aws.ec2;
 
+import beam.aws.AwsResource;
 import beam.core.BeamCredentials;
 import beam.core.BeamResource;
 import beam.core.diff.ResourceName;
