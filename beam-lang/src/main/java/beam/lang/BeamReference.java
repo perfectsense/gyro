@@ -92,27 +92,31 @@ public class BeamReference extends BeamLiteral {
             }
         }
 
-        if (referable == null) {
-            return false;
-        }
-
-        BeamReferable nextReferable = referable;
         for (String key : getReferenceChain()) {
-            if (nextReferable instanceof BeamCollection) {
-                nextReferable = ((BeamCollection) nextReferable).get(key);
+            if (referable == null) {
+                BeamContextKey contextKey = new BeamContextKey(key);
+                referable = context.getReferable(contextKey);
             } else {
-                throw new BeamLangException(String.format("Illegal reference %s, %s is not a collection", this, nextReferable));
+                if (referable instanceof BeamCollection) {
+                    referable = ((BeamCollection) referable).get(key);
+                } else {
+                    throw new BeamLangException(String.format("Illegal reference %s, %s is not a collection", this, referable));
+                }
             }
 
-            if (nextReferable == null || nextReferable.getValue() == null) {
+            if (referable == null || referable.getValue() == null) {
                 return false;
             }
         }
 
-        if (value != null && value.getClass() == nextReferable.getValue().getClass()) {
+        if (referable == null) {
+            return false;
+        }
+
+        if (value != null && value.getClass() == referable.getValue().getClass()) {
             return false;
         } else {
-            value = nextReferable.getValue();
+            value = referable.getValue();
             return true;
         }
     }
