@@ -44,7 +44,7 @@ public class RouteTableResource extends TaggableResource<RouteTable> {
     }
 
     @Override
-    public void refresh() {
+    public void doRefresh() {
         Ec2Client client = createClient(Ec2Client.class);
 
         DescribeRouteTablesResponse response = client.describeRouteTables(r -> r.filters(
@@ -54,7 +54,6 @@ public class RouteTableResource extends TaggableResource<RouteTable> {
         for (RouteTable routeTable : response.routeTables()) {
             setVpcId(routeTable.vpcId());
             setOwnerId(routeTable.ownerId());
-            init(routeTable);
             return;
         }
     }

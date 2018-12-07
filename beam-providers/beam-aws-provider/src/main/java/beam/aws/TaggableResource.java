@@ -50,11 +50,12 @@ public abstract class TaggableResource<T> extends AwsResource implements Taggabl
 
     protected abstract String getId();
 
-    protected void doInit(T resource) {
+    protected void doRefresh() {
     }
 
-    public final void init(T resource) {
-        doInit(resource);
+    @Override
+    public final void refresh() {
+        doRefresh();
 
         Ec2Client client = createClient(Ec2Client.class);
         DescribeTagsIterable response = client.describeTagsPaginator(

@@ -151,7 +151,7 @@ public class VpcResource extends TaggableResource<Vpc> {
     }
 
     @Override
-    public void refresh() {
+    public void doRefresh() {
         Ec2Client client = createClient(Ec2Client.class);
 
         if (ObjectUtils.isBlank(getVpcId())) {
@@ -163,24 +163,18 @@ public class VpcResource extends TaggableResource<Vpc> {
                 .build();
 
         for (Vpc vpc : client.describeVpcs(request).vpcs()) {
-            init(vpc);
+            String vpcId = vpc.vpcId();
+
+            setVpcId(vpcId);
+            setCidrBlock(vpc.cidrBlock());
+            setInstanceTenancy(vpc.instanceTenancyAsString());
+            setDhcpOptionsId(vpc.dhcpOptionsId());
+            setOwnerId(vpc.ownerId());
+            setDefaultVpc(vpc.isDefault());
+
+            loadSettings(client);
             break;
         }
-    }
-
-    @Override
-    protected void doInit(Vpc vpc) {
-        Ec2Client client = createClient(Ec2Client.class);
-        String vpcId = vpc.vpcId();
-
-        setVpcId(vpcId);
-        setCidrBlock(vpc.cidrBlock());
-        setInstanceTenancy(vpc.instanceTenancyAsString());
-        setDhcpOptionsId(vpc.dhcpOptionsId());
-        setOwnerId(vpc.ownerId());
-        setDefaultVpc(vpc.isDefault());
-
-        loadSettings(client);
     }
 
     @Override

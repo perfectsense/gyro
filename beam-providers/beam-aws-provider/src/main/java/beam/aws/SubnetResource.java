@@ -76,7 +76,7 @@ public class SubnetResource extends TaggableResource<Subnet> {
     }
 
     @Override
-    public void refresh() {
+    public void doRefresh() {
         Ec2Client client = createClient(Ec2Client.class);
 
         if (ObjectUtils.isBlank(getSubnetId())) {
@@ -88,19 +88,14 @@ public class SubnetResource extends TaggableResource<Subnet> {
                 .build();
 
         for (Subnet subnet : client.describeSubnets(request).subnets()) {
-            init(subnet);
+            String subnetId = subnet.subnetId();
+
+            setAvailabilityZone(subnet.availabilityZone());
+            setCidrBlock(subnet.cidrBlock());
+            setMapPublicIpOnLaunch(subnet.mapPublicIpOnLaunch());
+            setSubnetId(subnetId);
             break;
         }
-    }
-
-    @Override
-    protected void doInit(Subnet subnet) {
-        String subnetId = subnet.subnetId();
-
-        setAvailabilityZone(subnet.availabilityZone());
-        setCidrBlock(subnet.cidrBlock());
-        setMapPublicIpOnLaunch(subnet.mapPublicIpOnLaunch());
-        setSubnetId(subnetId);
     }
 
     @Override

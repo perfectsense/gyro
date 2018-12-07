@@ -40,7 +40,7 @@ public class InternetGatewayResource extends TaggableResource<InternetGateway> {
     }
 
     @Override
-    public void refresh() {
+    public void doRefresh() {
         Ec2Client client = createClient(Ec2Client.class);
 
         DescribeInternetGatewaysResponse response = client.describeInternetGateways(
@@ -53,8 +53,6 @@ public class InternetGatewayResource extends TaggableResource<InternetGateway> {
 
                 break;
             }
-
-            init(gateway);
         }
     }
 
