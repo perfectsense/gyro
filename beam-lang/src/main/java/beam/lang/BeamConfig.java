@@ -10,8 +10,6 @@ public class BeamConfig implements BeamReferable, BeamCollection, BeamContext {
 
     private List<BeamResolvable> params;
 
-    private List<String> beamTags;
-
     private List<BeamConfig> unResolvedContext;
 
     private String type = "config";
@@ -30,18 +28,6 @@ public class BeamConfig implements BeamReferable, BeamCollection, BeamContext {
 
     public void setParams(List<BeamResolvable> params) {
         this.params = params;
-    }
-
-    public List<String> getBeamTags() {
-        if (beamTags == null) {
-            beamTags = new ArrayList<>();
-        }
-
-        return beamTags;
-    }
-
-    public void setBeamTags(List<String> beamTags) {
-        this.beamTags = beamTags;
     }
 
     public List<BeamConfig> getUnResolvedContext() {
@@ -180,7 +166,6 @@ public class BeamConfig implements BeamReferable, BeamCollection, BeamContext {
                         newConfig.importContext(config);
                         newConfig.setParams(config.getParams());
                         newConfig.setUnResolvedContext(config.getUnResolvedContext());
-                        newConfig.setBeamTags(config.getBeamTags());
                         newConfigs.add(newConfig);
                         newConfig.applyExtension();
                         iterator.remove();
@@ -214,9 +199,6 @@ public class BeamConfig implements BeamReferable, BeamCollection, BeamContext {
             if (referable instanceof BeamCollection) {
                 if (referable instanceof BeamConfig) {
                     // should also add params
-                    BeamConfig config = (BeamConfig) referable;
-                    sb.append(" ");
-                    sb.append(String.join(" ", config.getBeamTags()));
                 }
 
                 if (referable instanceof BeamInlineList) {
