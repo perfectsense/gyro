@@ -18,5 +18,5 @@ dependencies {
     compile 'com.psddev:dari-util:3.3.607-xe0f27a'
     compile "beam:beam-core:${version}"
 
-    aspectpath "beam:beam-lang:${version}"
+    aspectpath project(':beam-lang')
 }
