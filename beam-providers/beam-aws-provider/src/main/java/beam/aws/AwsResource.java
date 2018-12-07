@@ -14,7 +14,7 @@ public abstract class AwsResource extends BeamResource {
 
     private SdkClient client;
 
-    <T extends SdkClient> T createClient(Class<T> clientClass) {
+    protected <T extends SdkClient> T createClient(Class<T> clientClass) {
         if (client != null) {
             return (T) client;
         }

@@ -1,9 +1,7 @@
-package beam.aws;
+package beam.aws.ec2;
 
-import beam.core.BeamCredentials;
+import beam.aws.AwsResource;
 import beam.core.diff.ResourceName;
-import beam.lang.BeamContextKey;
-import beam.lang.BeamLiteral;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.CreateRouteTableResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeRouteTablesResponse;
@@ -13,7 +11,7 @@ import software.amazon.awssdk.services.ec2.model.RouteTable;
 import java.util.Set;
 
 @ResourceName("route-table")
-public class RouteTableResource extends TaggableResource<RouteTable> {
+public class RouteTableResource extends Ec2TaggableResource<RouteTable> {
 
     private String routeTableId;
     private String ownerId;

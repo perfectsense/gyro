@@ -21,7 +21,7 @@ aws::vpc vpc
 end
 
 aws::subnet subnet
-    vpc-id: $(vpc | aws::vpc vpc | vpc-id)
+    vpc-id: $(aws::vpc vpc | vpc-id)
     availability-zone: us-east-1a
     cidr-block: "10.0.0.0/24"
 
@@ -29,4 +29,3 @@ aws::subnet subnet
         Name: subnet-example
     end
 end
-

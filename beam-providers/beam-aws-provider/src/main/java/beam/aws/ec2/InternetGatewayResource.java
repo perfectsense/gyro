@@ -1,9 +1,7 @@
-package beam.aws;
+package beam.aws.ec2;
 
-import beam.core.BeamCredentials;
+import beam.aws.AwsResource;
 import beam.core.diff.ResourceName;
-import beam.lang.BeamContextKey;
-import beam.lang.BeamLiteral;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.CreateInternetGatewayResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeInternetGatewaysResponse;
@@ -13,7 +11,7 @@ import software.amazon.awssdk.services.ec2.model.InternetGatewayAttachment;
 import java.util.Set;
 
 @ResourceName("internet-gateway")
-public class InternetGatewayResource extends TaggableResource<InternetGateway> {
+public class InternetGatewayResource extends Ec2TaggableResource<InternetGateway> {
 
     private String internetGatewayId;
     private String vpcId;
