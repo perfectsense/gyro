@@ -5,6 +5,6 @@ plugins {
 
 dependencies {
     compile "com.google.guava:guava:23.0"
-    compile "beam:beam-core:${version}"
+    compile project(":beam-core")
     compile files("${System.getProperty('java.home')}/../lib/tools.jar")
 }
