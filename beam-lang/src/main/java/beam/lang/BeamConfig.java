@@ -10,7 +10,7 @@ public class BeamConfig implements BeamReferable, BeamCollection, BeamContext {
 
     private List<BeamResolvable> params;
 
-    private List<BeamConfig> unResolvedContext;
+    private List<BeamConfig> subConfigs;
 
     private String type = "config";
 
@@ -30,16 +30,16 @@ public class BeamConfig implements BeamReferable, BeamCollection, BeamContext {
         this.params = params;
     }
 
-    public List<BeamConfig> getUnResolvedContext() {
-        if (unResolvedContext == null) {
-            unResolvedContext = new ArrayList<>();
+    public List<BeamConfig> getSubConfigs() {
+        if (subConfigs == null) {
+            subConfigs = new ArrayList<>();
         }
 
-        return unResolvedContext;
+        return subConfigs;
     }
 
-    public void setUnResolvedContext(List<BeamConfig> unResolvedContext) {
-        this.unResolvedContext = unResolvedContext;
+    public void setSubConfigs(List<BeamConfig> subConfigs) {
+        this.subConfigs = subConfigs;
     }
 
     public BeamParser.ConfigContext getCtx() {
@@ -126,7 +126,7 @@ public class BeamConfig implements BeamReferable, BeamCollection, BeamContext {
     @Override
     public boolean resolve(BeamContext root) {
         boolean progress = false;
-        Iterator<BeamConfig> iterator = getUnResolvedContext().iterator();
+        Iterator<BeamConfig> iterator = getSubConfigs().iterator();
         while (iterator.hasNext()) {
             BeamConfig unResolvedConfig = iterator.next();
             if (unResolvedConfig.resolveParams(root)) {
@@ -153,7 +153,7 @@ public class BeamConfig implements BeamReferable, BeamCollection, BeamContext {
 
     public void applyExtension() {
         List<BeamConfig> newConfigs = new ArrayList<>();
-        Iterator<BeamConfig> iterator = getUnResolvedContext().iterator();
+        Iterator<BeamConfig> iterator = getSubConfigs().iterator();
         while (iterator.hasNext()) {
             BeamConfig config = iterator.next();
             if (BCL.getExtensions().containsKey(config.getType())) {
@@ -165,7 +165,7 @@ public class BeamConfig implements BeamReferable, BeamCollection, BeamContext {
                         newConfig.setType(config.getType());
                         newConfig.importContext(config);
                         newConfig.setParams(config.getParams());
-                        newConfig.setUnResolvedContext(config.getUnResolvedContext());
+                        newConfig.setSubConfigs(config.getSubConfigs());
                         newConfigs.add(newConfig);
                         newConfig.applyExtension();
                         iterator.remove();
@@ -179,7 +179,7 @@ public class BeamConfig implements BeamReferable, BeamCollection, BeamContext {
             }
         }
 
-        getUnResolvedContext().addAll(newConfigs);
+        getSubConfigs().addAll(newConfigs);
     }
 
     @Override

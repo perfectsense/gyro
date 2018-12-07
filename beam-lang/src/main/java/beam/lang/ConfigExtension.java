@@ -24,7 +24,7 @@ public class ConfigExtension implements BeamExtension {
                 for (BeamParser.ConfigContext extensionContext : configBodyContext.config()) {
                     BeamExtension extension = new ConfigExtension();
                     BeamConfig subConfig = extension.applyExtension(extensionContext);
-                    config.getUnResolvedContext().add(subConfig);
+                    config.getSubConfigs().add(subConfig);
                 }
             }
         }

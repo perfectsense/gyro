@@ -58,7 +58,7 @@ public class ForConfig extends BeamConfig {
         if (!expanded) {
             List<BeamConfig> newList = new ArrayList<>();
             for (int i = 0; i < size; i++) {
-                for (BeamConfig unResolvedConfig : getUnResolvedContext()) {
+                for (BeamConfig unResolvedConfig : getSubConfigs()) {
                     // need to find extensions based on type
                     BeamExtension extension = new ConfigExtension();
 
@@ -67,13 +67,13 @@ public class ForConfig extends BeamConfig {
                 }
             }
 
-            setUnResolvedContext(newList);
+            setSubConfigs(newList);
             expanded = true;
         }
 
         int index = 0;
-        int originSize = getUnResolvedContext().size() / size;
-        for (BeamConfig unResolvedConfig : getUnResolvedContext()) {
+        int originSize = getSubConfigs().size() / size;
+        for (BeamConfig unResolvedConfig : getSubConfigs()) {
             int valueIndex = index++ / originSize;
             for (int i = 0; i < variables.size(); i++) {
                 String varId = variables.get(i).getValue().toString();
