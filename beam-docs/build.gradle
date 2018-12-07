@@ -1,0 +1,10 @@
+
+plugins {
+    id 'maven-publish'
+}
+
+dependencies {
+    compile "com.google.guava:guava:23.0"
+    compile "beam:beam-core:${version}"
+    compile files("${System.getProperty('java.home')}/../lib/tools.jar")
+}
