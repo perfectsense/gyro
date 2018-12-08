@@ -1,10 +1,19 @@
 
 plugins {
     id 'maven-publish'
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version "4.0.3"
 }
+
+defaultTasks 'shadowJar'
 
 dependencies {
     compile "com.google.guava:guava:23.0"
     compile project(":beam-core")
     compile files("${System.getProperty('java.home')}/../lib/tools.jar")
+}
+
+shadowJar {
+    baseName = 'beam-docs'
+    classifier = ''
 }
