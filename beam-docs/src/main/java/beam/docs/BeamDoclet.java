@@ -49,6 +49,7 @@ public class BeamDoclet extends jdk.javadoc.doclet.StandardDoclet {
                     DocCommentTree fieldComment = docTrees.getDocCommentTree(fieldElement);
                     if (fieldComment != null) {
                         String fieldName = fieldElement.getSimpleName().toString();
+                        fieldName = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN, fieldName);
                         System.out.println(fieldName + " - " + fieldComment);
                     }
                 }
