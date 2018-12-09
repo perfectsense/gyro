@@ -2,6 +2,7 @@ package beam.fetcher;
 
 import beam.core.BeamCredentials;
 import beam.core.BeamException;
+import beam.core.BeamObject;
 import beam.core.BeamResource;
 import beam.core.diff.ResourceName;
 import beam.lang.BCL;
@@ -153,6 +154,22 @@ public class MavenFetcher extends PluginFetcher {
                     }
 
                     BCL.addExtension(fullName, provider.get(fullName));
+                } else if (BeamObject.class.isAssignableFrom(c)) {
+                    if (!Modifier.isAbstract(c.getModifiers())) {
+                        String resourceName = c.getSimpleName();
+
+                        if (c.isAnnotationPresent(ResourceName.class)) {
+                            ResourceName name = (ResourceName) c.getAnnotation(ResourceName.class);
+                            resourceName = name.value();
+                        }
+
+                        String fullName = resourceName;
+                        if (!provider.containsKey(fullName)) {
+                            provider.put(fullName, c);
+                        }
+
+                        BCL.addExtension(fullName, provider.get(fullName));
+                    }
                 }
             }
         } catch (Exception e) {
