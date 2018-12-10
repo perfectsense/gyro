@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class BeamScalar implements BeamValue {
+public class BeamScalar extends BeamValue {
 
     private List<BeamLiteral> elements;
 

@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class BeamMap implements BeamValue, BeamCollection {
+public class BeamMap extends BeamValue implements BeamCollection {
 
     private Map<String, BeamValue> map;
 

@@ -1,12 +1,10 @@
 package beam.core;
 
-import beam.lang.BeamConfig;
-
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-public abstract class BeamCredentials extends BeamConfig {
+public abstract class BeamCredentials extends BeamValidatedConfig {
 
     private BeamState stateBackend;
     private final Set<BeamResource> dependents = new TreeSet<>();

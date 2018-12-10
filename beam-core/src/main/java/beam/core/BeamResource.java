@@ -1,7 +1,6 @@
 package beam.core;
 
 import java.beans.PropertyDescriptor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -26,13 +25,13 @@ import beam.lang.BeamScalar;
 import beam.lang.BeamLangException;
 import beam.lang.BCL;
 import com.google.common.base.CaseFormat;
-import org.apache.commons.beanutils.BeanUtils;
 
-public abstract class BeamResource extends BeamConfig implements Comparable<BeamResource> {
+public abstract class BeamResource extends BeamValidatedConfig implements Comparable<BeamResource> {
 
     private String resourceIdentifier;
     private BeamCredentials resourceCredentials;
     private String path;
+    private List<BeamResource> dependsOn;
 
     private transient BeamResource parent;
     private transient List<BeamResource> children = new ArrayList<>();
@@ -40,6 +39,14 @@ public abstract class BeamResource extends BeamConfig implements Comparable<Beam
     private transient final Set<BeamResource> dependents = new TreeSet<>();
     private transient ResourceChange change;
     private transient BeamConfig root;
+
+    public List<BeamResource> getDependsOn() {
+        return dependsOn;
+    }
+
+    public void setDependsOn(List<BeamResource> dependsOn) {
+        this.dependsOn = dependsOn;
+    }
 
     public String getPath() {
         return path;
@@ -66,21 +73,7 @@ public abstract class BeamResource extends BeamConfig implements Comparable<Beam
         }
 
         boolean progress = super.resolve(context);
-        for (BeamContextKey key : listContextKeys()) {
-            if (key.getType() != null) {
-                continue;
-            }
-
-            BeamResolvable referable = getReferable(key);
-            Object value = referable.getValue();
-
-            try {
-                String keyId = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key.getId());
-                BeanUtils.setProperty(this, keyId, value);
-            } catch (IllegalArgumentException | InvocationTargetException | IllegalAccessException e) {
-
-            }
-        }
+        populate();
 
         return progress;
     }

@@ -43,6 +43,7 @@ public class BeamListener extends BeamParserBaseListener {
                 String id = pairContext.key().getText();
                 BeamContextKey key = new BeamContextKey(id);
                 BeamValue beamValue = parseValue(pairContext.value());
+                beamValue.setLine(pairContext.getStart().getLine());
                 config.addReferable(key, beamValue);
             }
         }

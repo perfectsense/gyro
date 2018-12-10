@@ -16,7 +16,9 @@ public class ConfigExtension implements BeamExtension {
         if (configBodyContext != null) {
             if (configBodyContext.keyValuePair() != null) {
                 for (BeamParser.KeyValuePairContext pairContext: configBodyContext.keyValuePair()) {
-                    config.addReferable(new BeamContextKey(pairContext.key().getText()), BeamListener.parseValue(pairContext.value()));
+                    BeamValue beamValue = BeamListener.parseValue(pairContext.value());
+                    beamValue.setLine(pairContext.getStart().getLine());
+                    config.addReferable(new BeamContextKey(pairContext.key().getText()), beamValue);
                 }
             }
 

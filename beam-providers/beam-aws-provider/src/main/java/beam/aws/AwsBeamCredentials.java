@@ -99,22 +99,7 @@ public class AwsBeamCredentials extends BeamCredentials {
     @Override
     public boolean resolve(BeamContext context) {
         boolean progress = super.resolve(context);
-
-        for (BeamContextKey key : listContextKeys()) {
-            if (key.getType() != null) {
-                continue;
-            }
-
-            BeamResolvable referable = getReferable(key);
-            Object value = referable.getValue();
-
-            try {
-                String keyId = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key.getId());
-                BeanUtils.setProperty(this, keyId, value);
-            } catch (IllegalArgumentException | InvocationTargetException | IllegalAccessException e) {
-
-            }
-        }
+        populate();
 
         return progress;
     }
