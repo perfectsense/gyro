@@ -23,6 +23,7 @@ dependencies {
 }
 
 task referenceDocs(type: Javadoc) {
+    title = null // Prevents -doctitle and -windowtitle from being passed to BeamDoclet
     source = sourceSets.main.allJava
     classpath = configurations.compile
     options.doclet = "beam.docs.BeamDoclet"
