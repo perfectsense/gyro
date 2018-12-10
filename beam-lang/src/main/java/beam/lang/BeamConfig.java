@@ -18,6 +18,13 @@ public class BeamConfig implements BeamReferable, BeamCollection, BeamContext {
 
     private Set<BeamReference> dependencies;
 
+    private List<BeamContextKey> scope = new ArrayList<>();
+
+    @Override
+    public List<BeamContextKey> getScope() {
+        return scope;
+    }
+
     public List<BeamResolvable> getParams() {
         if (params == null) {
             params = new ArrayList<>();
@@ -95,6 +102,11 @@ public class BeamConfig implements BeamReferable, BeamCollection, BeamContext {
         } else {
             parent.addReferable(key, this);
             progress = true;
+        }
+
+        if (getScope().isEmpty()) {
+            getScope().addAll(parent.getScope());
+            getScope().add(key);
         }
 
         return resolve(root) || progress;

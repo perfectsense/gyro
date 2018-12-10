@@ -15,4 +15,6 @@ public interface BeamContext {
     List<BeamContextKey> listContextKeys();
 
     void importContext(BeamContext context);
+
+    List<BeamContextKey> getScope();
 }

@@ -163,4 +163,38 @@ public class BeamReference extends BeamLiteral {
 
         return dependencies;
     }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+
+        if (other == null || getClass() != other.getClass()) {
+            return false;
+        }
+
+        BeamReference otherReference = (BeamReference) other;
+        if (getScopeChain().size() != otherReference.getScopeChain().size()) {
+            return false;
+        }
+
+        for (int i = 0; i < getScopeChain().size(); i ++) {
+            if (!getScopeChain().get(i).equals(otherReference.getScopeChain().get(i))) {
+                return false;
+            }
+        }
+
+        if (getReferenceChain().size() != otherReference.getReferenceChain().size()) {
+            return false;
+        }
+
+        for (int i = 0; i < getReferenceChain().size(); i ++) {
+            if (!getReferenceChain().get(i).equals(otherReference.getReferenceChain().get(i))) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }

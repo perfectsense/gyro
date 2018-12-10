@@ -1,10 +1,16 @@
 package beam.core;
 
+import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.Iterator;
+import java.util.Collection;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 
 import beam.core.diff.ResourceChange;
 
@@ -17,6 +23,8 @@ import beam.lang.BeamResolvable;
 import beam.lang.BeamList;
 import beam.lang.BeamLiteral;
 import beam.lang.BeamScalar;
+import beam.lang.BeamLangException;
+import beam.lang.BCL;
 import com.google.common.base.CaseFormat;
 import org.apache.commons.beanutils.BeanUtils;
 
@@ -75,6 +83,74 @@ public abstract class BeamResource extends BeamConfig implements Comparable<Beam
         }
 
         return progress;
+    }
+
+    @Override
+    public void applyExtension() {
+        List<BeamConfig> newConfigs = new ArrayList<>();
+        Iterator<BeamConfig> iterator = getSubConfigs().iterator();
+        while (iterator.hasNext()) {
+            BeamConfig config = iterator.next();
+            Class<? extends BeamConfig> extension = null;
+            if (BCL.getExtensions().containsKey(config.getType())) {
+                extension = BCL.getExtensions().get(config.getType());
+            } else {
+                try {
+                    String keyId = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, config.getType());
+                    PropertyDescriptor pd = new PropertyDescriptor(keyId, getClass());
+                    Method setter = pd.getWriteMethod();
+
+                    if (setter != null && setter.getParameterTypes().length == 1) {
+                        Class parameterType = setter.getParameterTypes()[0];
+                        Type[] types = setter.getGenericParameterTypes();
+                        Class type = parameterType;
+
+                        if (Collection.class.isAssignableFrom(parameterType)) {
+                            ParameterizedType pType = (ParameterizedType) types[0];
+                            type = (Class<?>) pType.getActualTypeArguments()[0];
+                            BeamContextKey key = new BeamContextKey(config.getType());
+                            if (hasKey(key) && !(getReferable(key) instanceof BeamList)) {
+                                throw new BeamException(String.format("Expect %s in %s to be a BeamList, found %s", key, getClass(), getReferable(key).getClass()));
+                            } else {
+                                BeamList beamList = new BeamList();
+                                addReferable(key, beamList);
+                            }
+                        }
+
+                        if (BCL.getExtensions().containsKey(type.getName())) {
+                            extension = BCL.getExtensions().get(type.getName());
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if (extension == null) {
+                continue;
+            }
+
+            if (config.getClass() != extension) {
+                try {
+                    BeamConfig newConfig = extension.newInstance();
+                    newConfig.setCtx(config.getCtx());
+                    newConfig.setType(config.getType());
+                    newConfig.importContext(config);
+                    newConfig.setParams(config.getParams());
+                    newConfig.setSubConfigs(config.getSubConfigs());
+                    newConfigs.add(newConfig);
+                    newConfig.applyExtension();
+                    iterator.remove();
+
+                } catch (InstantiationException | IllegalAccessException ie) {
+                    throw new BeamLangException("Unable to instantiate " + extension.getClass().getSimpleName());
+                }
+            } else {
+                config.applyExtension();
+            }
+        }
+
+        getSubConfigs().addAll(newConfigs);
     }
 
     @Override

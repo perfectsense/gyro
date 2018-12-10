@@ -156,14 +156,7 @@ public class MavenFetcher extends PluginFetcher {
                     BCL.addExtension(fullName, provider.get(fullName));
                 } else if (BeamObject.class.isAssignableFrom(c)) {
                     if (!Modifier.isAbstract(c.getModifiers())) {
-                        String resourceName = c.getSimpleName();
-
-                        if (c.isAnnotationPresent(ResourceName.class)) {
-                            ResourceName name = (ResourceName) c.getAnnotation(ResourceName.class);
-                            resourceName = name.value();
-                        }
-
-                        String fullName = resourceName;
+                        String fullName = c.getName();
                         if (!provider.containsKey(fullName)) {
                             provider.put(fullName, c);
                         }
