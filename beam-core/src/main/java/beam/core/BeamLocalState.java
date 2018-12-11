@@ -10,13 +10,11 @@ import java.io.IOException;
 public class BeamLocalState extends BeamState {
 
     @Override
-    public BeamConfig load(String name) {
+    public void load(String name, BeamCore core) {
 
         File stateFile = new File(name);
         if (stateFile.exists() && !stateFile.isDirectory()) {
-            return BeamCore.processConfig(name);
-        } else {
-            return new BeamConfig();
+            core.processConfig(name);
         }
     }
 

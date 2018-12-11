@@ -48,105 +48,99 @@ public class UpCommand extends AbstractCommand {
             throw new BeamException("Beam configuration file required.");
         }
 
-        try {
-            BCL.init();
-            BeamCore.processConfig(getArguments().get(0));
-            Set<BeamResource> resources = new TreeSet<>();
-            Set<BeamResource> current = new TreeSet<>();
-            Map<String, BeamConfig> configMap = new HashMap<>();
-            configMap.putAll(BCL.getConfigs());
-            pendingStates = new HashMap<>();
+        BeamCore core = new BeamCore();
+        core.processConfig(getArguments().get(0));
+        Set<BeamResource> resources = new TreeSet<>();
+        Set<BeamResource> current = new TreeSet<>();
+        Map<String, BeamConfig> configMap = new HashMap<>();
+        configMap.putAll(core.getConfigs());
+        pendingStates = new HashMap<>();
 
-            for (String fileName : configMap.keySet()) {
-                String stateName = fileName + ".state";
-                BeamConfig root = configMap.get(fileName);
+        for (String fileName : configMap.keySet()) {
+            String stateName = fileName + ".state";
+            BeamConfig root = configMap.get(fileName);
 
-                BeamConfig pendingState = new BeamConfig();
-                for (BeamContextKey key : root.listContextKeys()) {
-                    BeamReferable referable = root.getReferable(key);
-                    Object value = referable.getValue();
+            BeamConfig pendingState = new BeamConfig();
+            for (BeamContextKey key : root.listContextKeys()) {
+                BeamReferable referable = root.getReferable(key);
+                Object value = referable.getValue();
 
-                    if (value instanceof BeamResource) {
-                        BeamResource resource = (BeamResource) value;
-                        resource.setPath(stateName);
-                        resource.setRoot(root);
-                        resources.add(resource);
-                    } else if (value instanceof BeamState) {
-                        stateBackend = (BeamState) value;
-                    } else {
-                        pendingState.addReferable(key, referable);
-                    }
-                }
-
-                if (stateBackend == null) {
-                    stateBackend = new BeamLocalState();
-                }
-
-                pendingStates.put(stateName, pendingState);
-            }
-
-            BCL.getConfigs().clear();
-            stateBackend.load(getArguments().get(0) + ".state");
-            Map<String, BeamConfig> stateMap = new HashMap<>();
-            stateMap.putAll(BCL.getConfigs());
-
-            for (String fileName : stateMap.keySet()) {
-                BeamConfig state = stateMap.get(fileName);
-                for (BeamContextKey key : state.listContextKeys()) {
-                    BeamResolvable resolvable = state.getReferable(key);
-                    Object value = resolvable.getValue();
-
-                    if (value instanceof BeamResource) {
-                        BeamResource resource = (BeamResource) value;
-                        resource.setPath(fileName);
-                        resource.setRoot(state);
-                        current.add(resource);
-                        if (refresh) {
-                            resource.refresh();
-                        }
-                    }
+                if (value instanceof BeamResource) {
+                    BeamResource resource = (BeamResource) value;
+                    resource.setPath(stateName);
+                    resource.setRoot(root);
+                    resources.add(resource);
+                } else if (value instanceof BeamState) {
+                    stateBackend = (BeamState) value;
+                } else {
+                    pendingState.addReferable(key, referable);
                 }
             }
 
-            ResourceDiff diff = new ResourceDiff(current, resources);
-            diff.diff();
-
-            changeTypes.clear();
-
-            List<ResourceDiff> diffs = new ArrayList<>();
-            diffs.add(diff);
-
-            writeDiffs(diffs);
-
-            boolean hasChanges = false;
-            if (changeTypes.contains(ChangeType.CREATE) || changeTypes.contains(ChangeType.UPDATE)) {
-                hasChanges = true;
-
-                if (Beam.ui().readBoolean(Boolean.FALSE, "\nAre you sure you want to create and/or update resources?")) {
-                    Beam.ui().write("\n");
-                    setChangeable(diffs);
-                    createOrUpdate(diffs, stateMap);
-                }
+            if (stateBackend == null) {
+                stateBackend = new BeamLocalState();
             }
 
-            if (changeTypes.contains(ChangeType.DELETE)) {
-                hasChanges = true;
-
-                if (Beam.ui().readBoolean(Boolean.FALSE, "\nAre you sure you want to delete resources?")) {
-                    Beam.ui().write("\n");
-                    setChangeable(diffs);
-                    delete(diffs, stateMap);
-                }
-            }
-
-            if (!hasChanges) {
-                Beam.ui().write("\nNo changes.\n");
-            }
-
-
-        } finally {
-            BCL.shutdown();
+            pendingStates.put(stateName, pendingState);
         }
+
+        stateBackend.load(getArguments().get(0) + ".state", core);
+        Map<String, BeamConfig> stateMap = new HashMap<>();
+        stateMap.putAll(core.getConfigs());
+
+        for (String fileName : stateMap.keySet()) {
+            BeamConfig state = stateMap.get(fileName);
+            for (BeamContextKey key : state.listContextKeys()) {
+                BeamResolvable resolvable = state.getReferable(key);
+                Object value = resolvable.getValue();
+
+                if (value instanceof BeamResource) {
+                    BeamResource resource = (BeamResource) value;
+                    resource.setPath(fileName);
+                    resource.setRoot(state);
+                    current.add(resource);
+                    if (refresh) {
+                        resource.refresh();
+                    }
+                }
+            }
+        }
+
+        ResourceDiff diff = new ResourceDiff(current, resources);
+        diff.diff();
+
+        changeTypes.clear();
+
+        List<ResourceDiff> diffs = new ArrayList<>();
+        diffs.add(diff);
+
+        writeDiffs(diffs);
+
+        boolean hasChanges = false;
+        if (changeTypes.contains(ChangeType.CREATE) || changeTypes.contains(ChangeType.UPDATE)) {
+            hasChanges = true;
+
+            if (Beam.ui().readBoolean(Boolean.FALSE, "\nAre you sure you want to create and/or update resources?")) {
+                Beam.ui().write("\n");
+                setChangeable(diffs);
+                createOrUpdate(diffs, stateMap);
+            }
+        }
+
+        if (changeTypes.contains(ChangeType.DELETE)) {
+            hasChanges = true;
+
+            if (Beam.ui().readBoolean(Boolean.FALSE, "\nAre you sure you want to delete resources?")) {
+                Beam.ui().write("\n");
+                setChangeable(diffs);
+                delete(diffs, stateMap);
+            }
+        }
+
+        if (!hasChanges) {
+            Beam.ui().write("\nNo changes.\n");
+        }
+
     }
 
     public List<String> getArguments() {

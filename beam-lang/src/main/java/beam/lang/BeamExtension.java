@@ -1,10 +1,14 @@
 package beam.lang;
 
-import beam.parser.antlr4.BeamParser;
+public class BeamExtension extends BeamConfig {
 
-public interface BeamExtension {
+    private BCL lang;
 
-    String getName();
+    public BCL getLang() {
+        return lang;
+    }
 
-    BeamConfig applyExtension(BeamParser.ConfigContext ctx);
+    public void setLang(BCL lang) {
+        this.lang = lang;
+    }
 }

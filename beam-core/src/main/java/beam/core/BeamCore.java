@@ -2,31 +2,32 @@ package beam.core;
 
 import beam.lang.BCL;
 import beam.lang.BeamConfig;
-import beam.lang.ForConfig;
-import beam.lang.ImportConfig;
+
+import java.util.Map;
 
 public class BeamCore {
 
-    public static BeamConfig processConfig(String path) {
-        BCL.getExtensions().clear();
-        BCL.addExtension("for", ForConfig.class);
-        BCL.addExtension("import", ImportConfig.class);
+    private final BCL lang = new BCL();
 
-        BeamConfig root = BCL.parse(path);
-        BCL.applyExtension();
-        BCL.resolve();
+    public void processConfig(String path) {
+        lang.init();
 
-        BCL.addExtension("state", BeamLocalState.class);
-        BCL.applyExtension();
+        lang.parse(path);
+        lang.applyExtension();
+        lang.resolve();
 
-        BCL.addExtension("provider", BeamProvider.class);
-        BCL.applyExtension();
-        BCL.resolve();
+        lang.addExtension("state", BeamLocalState.class);
+        lang.addExtension("provider", BeamProvider.class);
+        lang.applyExtension();
+        lang.resolve();
 
-        BCL.applyExtension();
-        BCL.resolve();
+        lang.applyExtension();
+        lang.resolve();
 
-        BCL.getDependencies();
-        return root;
+        lang.getDependencies();
+    }
+
+    public Map<String, BeamConfig> getConfigs() {
+        return lang.getConfigs();
     }
 }

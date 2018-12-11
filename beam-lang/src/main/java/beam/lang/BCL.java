@@ -2,7 +2,6 @@ package beam.lang;
 
 import beam.parser.antlr4.BeamLexer;
 import beam.parser.antlr4.BeamParser;
-import com.psddev.dari.util.ThreadLocalStack;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
@@ -15,39 +14,40 @@ import java.util.ArrayList;
 
 public class BCL {
 
-    private static Map<String, Class<? extends BeamConfig>> extensions = new HashMap<>();
+    private final Map<String, Class<? extends BeamConfig>> extensions = new HashMap<>();
 
-    private static final ThreadLocalStack<Formatter> UI = new ThreadLocalStack<>();
+    private static final Formatter ui = new Formatter();
 
-    private static final Map<String, BeamConfig> configs = new HashMap<>();
-
-    public static Map<String, Class<? extends BeamConfig>> getExtensions() {
-        return extensions;
-    }
+    private final Map<String, BeamConfig> configs = new HashMap<>();
 
     public static Formatter ui() {
-        return UI.get();
+        return ui;
     }
 
-    public static void addExtension(String alias, Class<? extends BeamConfig> extension) {
-        getExtensions().put(alias, extension);
+    public void addExtension(String key, Class<? extends BeamConfig> extension) {
+        extensions.put(key, extension);
     }
 
-    public static Map<String, BeamConfig> getConfigs() {
+    public boolean hasExtension(String key) {
+        return extensions.containsKey(key);
+    }
+
+    public Class<? extends BeamConfig> getExtension(String key) {
+        return extensions.get(key);
+    }
+
+    public Map<String, BeamConfig> getConfigs() {
         return configs;
     }
 
-    public static void init() {
-        UI.push(new Formatter());
-        BCL.addExtension("for", ForConfig.class);
-        BCL.addExtension("import", ImportConfig.class);
+    public void init() {
+        extensions.clear();
+        configs.clear();
+        addExtension("for", ForExtension.class);
+        addExtension("import", ImportExtension.class);
     }
 
-    public static void shutdown() {
-        UI.pop();
-    }
-
-    public static BeamConfig parse(String filename) {
+    public BeamConfig parse(String filename) {
         try {
             if (getConfigs().containsKey(filename)) {
                 return getConfigs().get(filename);
@@ -74,7 +74,7 @@ public class BCL {
         return new BeamConfig();
     }
 
-    public static void resolve() {
+    public void resolve() {
         boolean progress = true;
         while (progress) {
             progress = false;
@@ -86,13 +86,13 @@ public class BCL {
         }
     }
 
-    public static void applyExtension() {
+    public void applyExtension() {
         for (BeamConfig config : getConfigs().values()) {
-            config.applyExtension();
+            config.applyExtension(this);
         }
     }
 
-    public static void getDependencies() {
+    public void getDependencies() {
         for (BeamConfig config : getConfigs().values()) {
             config.getDependencies(config);
         }

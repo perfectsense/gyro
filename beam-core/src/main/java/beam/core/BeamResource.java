@@ -23,6 +23,7 @@ import beam.lang.BeamList;
 import beam.lang.BeamLiteral;
 import beam.lang.BeamScalar;
 import beam.lang.BeamLangException;
+import beam.lang.BeamExtension;
 import beam.lang.BCL;
 import com.google.common.base.CaseFormat;
 
@@ -79,14 +80,14 @@ public abstract class BeamResource extends BeamValidatedConfig implements Compar
     }
 
     @Override
-    public void applyExtension() {
+    public void applyExtension(BCL lang) {
         List<BeamConfig> newConfigs = new ArrayList<>();
         Iterator<BeamConfig> iterator = getSubConfigs().iterator();
         while (iterator.hasNext()) {
             BeamConfig config = iterator.next();
             Class<? extends BeamConfig> extension = null;
-            if (BCL.getExtensions().containsKey(config.getType())) {
-                extension = BCL.getExtensions().get(config.getType());
+            if (lang.hasExtension(config.getType())) {
+                extension = lang.getExtension(config.getType());
             } else {
                 try {
                     String keyId = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, config.getType());
@@ -110,8 +111,8 @@ public abstract class BeamResource extends BeamValidatedConfig implements Compar
                             }
                         }
 
-                        if (BCL.getExtensions().containsKey(type.getName())) {
-                            extension = BCL.getExtensions().get(type.getName());
+                        if (lang.hasExtension(type.getName())) {
+                            extension = lang.getExtension(type.getName());
                         }
                     }
                 } catch (Exception e) {
@@ -132,14 +133,18 @@ public abstract class BeamResource extends BeamValidatedConfig implements Compar
                     newConfig.setParams(config.getParams());
                     newConfig.setSubConfigs(config.getSubConfigs());
                     newConfigs.add(newConfig);
-                    newConfig.applyExtension();
+                    newConfig.applyExtension(lang);
+                    if (newConfig instanceof BeamExtension) {
+                        ((BeamExtension) newConfig).setLang(lang);
+                    }
+
                     iterator.remove();
 
                 } catch (InstantiationException | IllegalAccessException ie) {
                     throw new BeamLangException("Unable to instantiate " + extension.getClass().getSimpleName());
                 }
             } else {
-                config.applyExtension();
+                config.applyExtension(lang);
             }
         }
 

@@ -2,7 +2,7 @@ package beam.lang;
 
 import com.psddev.dari.util.StringUtils;
 
-public class ImportConfig extends BeamConfig {
+public class ImportExtension extends BeamExtension {
 
     private boolean imported;
 
@@ -29,8 +29,8 @@ public class ImportConfig extends BeamConfig {
         }
 
         if (!imported) {
-            BeamConfig importConfig = BCL.parse(path);
-            importConfig.applyExtension();
+            BeamConfig importConfig = getLang().parse(path);
+            importConfig.applyExtension(getLang());
             root.addReferable(new BeamContextKey(id), importConfig);
             imported = true;
             progress = true;

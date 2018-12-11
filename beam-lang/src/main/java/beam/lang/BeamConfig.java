@@ -163,13 +163,13 @@ public class BeamConfig implements BeamReferable, BeamCollection, BeamContext {
         return getReferable(new BeamContextKey(key));
     }
 
-    public void applyExtension() {
+    public void applyExtension(BCL lang) {
         List<BeamConfig> newConfigs = new ArrayList<>();
         Iterator<BeamConfig> iterator = getSubConfigs().iterator();
         while (iterator.hasNext()) {
             BeamConfig config = iterator.next();
-            if (BCL.getExtensions().containsKey(config.getType())) {
-                Class<? extends BeamConfig> extension = BCL.getExtensions().get(config.getType());
+            if (lang.hasExtension(config.getType())) {
+                Class<? extends BeamConfig> extension = lang.getExtension(config.getType());
                 if (config.getClass() != extension) {
                     try {
                         BeamConfig newConfig = extension.newInstance();
@@ -179,14 +179,18 @@ public class BeamConfig implements BeamReferable, BeamCollection, BeamContext {
                         newConfig.setParams(config.getParams());
                         newConfig.setSubConfigs(config.getSubConfigs());
                         newConfigs.add(newConfig);
-                        newConfig.applyExtension();
+                        newConfig.applyExtension(lang);
+                        if (newConfig instanceof BeamExtension) {
+                            ((BeamExtension) newConfig).setLang(lang);
+                        }
+
                         iterator.remove();
 
                     } catch (InstantiationException | IllegalAccessException ie) {
                         throw new BeamLangException("Unable to instantiate " + extension.getClass().getSimpleName());
                     }
                 } else {
-                    config.applyExtension();
+                    config.applyExtension(lang);
                 }
             }
         }

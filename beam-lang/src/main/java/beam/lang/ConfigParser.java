@@ -2,7 +2,7 @@ package beam.lang;
 
 import beam.parser.antlr4.BeamParser;
 
-public class ConfigExtension implements BeamExtension {
+public class ConfigParser {
 
     public BeamConfig init() {
         return new BeamConfig();
@@ -23,9 +23,9 @@ public class ConfigExtension implements BeamExtension {
             }
 
             if (configBodyContext.config() != null) {
-                for (BeamParser.ConfigContext extensionContext : configBodyContext.config()) {
-                    BeamExtension extension = new ConfigExtension();
-                    BeamConfig subConfig = extension.applyExtension(extensionContext);
+                for (BeamParser.ConfigContext configContext : configBodyContext.config()) {
+                    ConfigParser parser = new ConfigParser();
+                    BeamConfig subConfig = parser.parse(configContext);
                     config.getSubConfigs().add(subConfig);
                 }
             }
@@ -43,13 +43,7 @@ public class ConfigExtension implements BeamExtension {
     public void customize(BeamConfig config) {
     }
 
-    @Override
-    public String getName() {
-        return "config";
-    }
-
-    @Override
-    public BeamConfig applyExtension(BeamParser.ConfigContext ctx) {
+    public BeamConfig parse(BeamParser.ConfigContext ctx) {
         BeamConfig config = init();
         parse(ctx, config);
         customize(config);

@@ -7,6 +7,7 @@ import beam.core.BeamResource;
 import beam.core.diff.ResourceName;
 import beam.lang.BCL;
 import beam.lang.BeamConfig;
+import beam.lang.BeamExtension;
 import com.psddev.dari.util.StringUtils;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;
@@ -43,7 +44,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Pattern;
 
-public class MavenFetcher extends PluginFetcher {
+public class MavenFetcher implements PluginFetcher {
 
     private static String MAVEN_KEY = "^(?<group>[^:]+):(?<artifactId>[^:]+):(?<version>[^:]+)";
     private static Pattern MAVEN_KEY_PAT = Pattern.compile(MAVEN_KEY);
@@ -51,7 +52,7 @@ public class MavenFetcher extends PluginFetcher {
     private static Map<String, Class<? extends BeamConfig>> provider = new HashMap<>();
 
     @Override
-    public boolean validate(BeamConfig fetcherContext) {
+    public boolean validate(BeamExtension fetcherContext) {
         if (fetcherContext.get("artifact") != null) {
             String key = (String) fetcherContext.get("artifact").getValue();
             if (key != null) {
@@ -63,8 +64,9 @@ public class MavenFetcher extends PluginFetcher {
     }
 
     @Override
-    public void fetch(BeamConfig fetcherContext) {
+    public void fetch(BeamExtension fetcherContext) {
         try {
+            BCL lang = fetcherContext.getLang();
             String key = (String) fetcherContext.get("artifact").getValue();
             DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
             locator.addService(RepositoryConnectorFactory.class, BasicRepositoryConnectorFactory.class);
@@ -136,7 +138,7 @@ public class MavenFetcher extends PluginFetcher {
                             provider.put(fullName, c);
                         }
 
-                        BCL.addExtension(fullName, provider.get(fullName));
+                        lang.addExtension(fullName, provider.get(fullName));
                     }
                 } else if (BeamCredentials.class.isAssignableFrom(c)) {
                     BeamCredentials credentials = (BeamCredentials) c.newInstance();
@@ -153,7 +155,7 @@ public class MavenFetcher extends PluginFetcher {
                         provider.put(fullName, c);
                     }
 
-                    BCL.addExtension(fullName, provider.get(fullName));
+                    lang.addExtension(fullName, provider.get(fullName));
                 } else if (BeamObject.class.isAssignableFrom(c)) {
                     if (!Modifier.isAbstract(c.getModifiers())) {
                         String fullName = c.getName();
@@ -161,7 +163,7 @@ public class MavenFetcher extends PluginFetcher {
                             provider.put(fullName, c);
                         }
 
-                        BCL.addExtension(fullName, provider.get(fullName));
+                        lang.addExtension(fullName, provider.get(fullName));
                     }
                 }
             }

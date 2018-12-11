@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ForConfig extends BeamConfig {
+public class ForExtension extends BeamExtension {
 
     private boolean expanded;
 
@@ -60,9 +60,9 @@ public class ForConfig extends BeamConfig {
             for (int i = 0; i < size; i++) {
                 for (BeamConfig unResolvedConfig : getSubConfigs()) {
                     // need to find extensions based on type
-                    BeamExtension extension = new ConfigExtension();
+                    ConfigParser parser = new ConfigParser();
 
-                    BeamConfig clone = extension.applyExtension(unResolvedConfig.getCtx());
+                    BeamConfig clone = parser.parse(unResolvedConfig.getCtx());
                     newList.add(clone);
                 }
             }

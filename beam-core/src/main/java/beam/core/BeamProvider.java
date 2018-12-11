@@ -5,7 +5,7 @@ import beam.lang.*;
 
 import org.reflections.Reflections;
 
-public class BeamProvider extends BeamConfig {
+public class BeamProvider extends BeamExtension {
 
     @Override
     public String getType() {

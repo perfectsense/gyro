@@ -50,8 +50,8 @@ public class BeamListener extends BeamParserBaseListener {
 
         if (ctx.config() != null) {
             for (BeamParser.ConfigContext configContext : ctx.config()) {
-                BeamExtension extension = new ConfigExtension();
-                BeamConfig subConfig = extension.applyExtension(configContext);
+                ConfigParser parser = new ConfigParser();
+                BeamConfig subConfig = parser.parse(configContext);
                 config.getSubConfigs().add(subConfig);
             }
         }
