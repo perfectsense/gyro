@@ -106,6 +106,10 @@ public class UpCommand extends AbstractCommand {
             }
         }
 
+        if (BeamCore.validationException().isThrowing()) {
+            throw BeamCore.validationException();
+        }
+
         ResourceDiff diff = new ResourceDiff(current, resources);
         diff.diff();
 

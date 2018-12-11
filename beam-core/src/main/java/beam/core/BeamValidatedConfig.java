@@ -27,7 +27,7 @@ public class BeamValidatedConfig extends BeamConfig {
                     if (referable instanceof BeamValue) {
                         BeamValue beamValue = (BeamValue) referable;
                         if (beamValue.getLine() != null) {
-                            throw new BeamException(String.format("%s '%s' at line %s => %s is not a valid field.", getType(), id, beamValue.getLine(), key.getId()));
+                            BeamCore.validationException().addValidationError(String.format("%s '%s' at line %s => %s is not a valid field.", getType(), id, beamValue.getLine(), key.getId()));
                         }
                     }
                 }

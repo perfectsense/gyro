@@ -9,6 +9,12 @@ public class BeamCore {
 
     private final BCL lang = new BCL();
 
+    private static final BeamValidationException validationException = new BeamValidationException("Invalid config!");
+
+    public static BeamValidationException validationException() {
+        return validationException;
+    }
+
     public void processConfig(String path) {
         lang.init();
 
