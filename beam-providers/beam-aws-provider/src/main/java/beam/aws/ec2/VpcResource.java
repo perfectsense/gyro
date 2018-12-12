@@ -22,6 +22,21 @@ import software.amazon.awssdk.services.ec2.model.VpcClassicLink;
 
 import java.util.Set;
 
+/**
+ * Creates a VPC with the specified IPv4 CIDR block.
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: beam
+ *
+ *     aws::vpc example-vpc
+ *         cidr-block: 10.0.0.0/16
+ *         enable-classic-link: false
+ *         enable-dns-hostnames: true
+ *         enable-dns-support: true
+ *     end
+ */
 @ResourceName("vpc")
 public class VpcResource extends Ec2TaggableResource<Vpc> {
 
@@ -50,6 +65,9 @@ public class VpcResource extends Ec2TaggableResource<Vpc> {
         this.vpcId = vpcId;
     }
 
+    /**
+     * The IPv4 network range for the VPC, in CIDR notation. (Required)
+     */
     @ResourceDiffProperty
     public String getCidrBlock() {
         return cidrBlock;
@@ -59,6 +77,9 @@ public class VpcResource extends Ec2TaggableResource<Vpc> {
         this.cidrBlock = cidrBlock;
     }
 
+    /**
+     * Launch instances with public hostnames. Defaults to false. See `DNS Support in your VPC <https://docs.aws.amazon.com/vpc/latest/userguide/vpc-dns.html#vpc-dns-support>`_.
+     */
     @ResourceDiffProperty(updatable = true)
     public Boolean getEnableDnsHostnames() {
         if (enableDnsHostnames == null) {
@@ -72,6 +93,9 @@ public class VpcResource extends Ec2TaggableResource<Vpc> {
         this.enableDnsHostnames = enableDnsHostnames;
     }
 
+    /**
+     * Enable Amazon provided DNS server at 169.254.169.253 or base of VPC network range plus two. Default is true. See `DNS Support in your VPC <https://docs.aws.amazon.com/vpc/latest/userguide/vpc-dns.html#vpc-dns-support>`_.
+     */
     @ResourceDiffProperty(updatable = true)
     public Boolean getEnableDnsSupport() {
         if (enableDnsSupport == null) {
@@ -85,6 +109,9 @@ public class VpcResource extends Ec2TaggableResource<Vpc> {
         this.enableDnsSupport = enableDnsSupport;
     }
 
+    /**
+     * The ID of a custom DHCP option set. See `DHCP Options Sets <https://docs.aws.amazon.com/vpc/latest/userguide/VPC_DHCP_Options.html/>`_.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getDhcpOptionsId() {
         return dhcpOptionsId;
@@ -94,6 +121,10 @@ public class VpcResource extends Ec2TaggableResource<Vpc> {
         this.dhcpOptionsId = dhcpOptionsId;
     }
 
+    /**
+     * Set whether instances are launched on shared hardware (``default``) or dedicated hardware (``dedicated``). See `Dedicated Instances <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/dedicated-instance.html/>`_.
+     */
+    @ResourceDiffProperty(updatable = true)
     public String getInstanceTenancy() {
         return instanceTenancy;
     }
@@ -122,6 +153,9 @@ public class VpcResource extends Ec2TaggableResource<Vpc> {
         this.ownerId = ownerId;
     }
 
+    /**
+     * Enable ClassLink to allow communication with EC2-Classic instances. Defaults to false. See `ClassicLink Basics <https://docs.aws.amazon.com/vpc/latest/userguide/vpc-classiclink.html/>`_.
+     */
     @ResourceDiffProperty(updatable = true)
     public Boolean getEnableClassicLink() {
         if (enableClassicLink == null) {
@@ -135,6 +169,9 @@ public class VpcResource extends Ec2TaggableResource<Vpc> {
         this.enableClassicLink = enableClassicLink;
     }
 
+    /**
+     * Enable linked EC2-Classic instance hostnames to resolve to private IP address. Defaults to false. See `Enabling ClassicLink DNS Support <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/vpc-classiclink.html?#classiclink-enable-dns-support/>`_.
+     */
     @ResourceDiffProperty(updatable = true)
     public Boolean getEnableClassicLinkDnsSupport() {
         if (enableClassicLinkDnsSupport == null) {
