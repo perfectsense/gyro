@@ -1,0 +1,24 @@
+provider aws
+    artifact: "beam:beam-aws-provider:0.5"
+    repositories:
+        - "http://repo1.maven.org/maven2/"
+        - "https://repo.gradle.org/gradle/libs-releases/"
+        - "https://artifactory.psdops.com/public"
+    end
+end
+
+aws::credentials default
+    profile-name: psd-sandbox
+    region: us-east-1
+end
+
+aws:bucket bucket
+    name: aaaaaa-bucket-example
+    enable-object-lock: true
+    tags:
+        Name: bucket-example
+    end
+    enable-accelerate-config: true
+    enable-version: true
+    enable-pay: true
+end
