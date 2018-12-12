@@ -8,7 +8,6 @@ import beam.core.BeamLocalState;
 import beam.core.diff.ChangeType;
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiff;
-import beam.lang.BCL;
 import beam.lang.BeamConfig;
 import beam.lang.BeamContext;
 import beam.lang.BeamContextKey;
@@ -48,12 +47,13 @@ public class UpCommand extends AbstractCommand {
             throw new BeamException("Beam configuration file required.");
         }
 
+        String configPath = getArguments().get(0);
         BeamCore core = new BeamCore();
-        core.processConfig(getArguments().get(0));
+        BeamConfig config = core.processConfig(configPath);
         Set<BeamResource> resources = new TreeSet<>();
         Set<BeamResource> current = new TreeSet<>();
         Map<String, BeamConfig> configMap = new HashMap<>();
-        configMap.putAll(core.getConfigs());
+        configMap.put(configPath, config);
         pendingStates = new HashMap<>();
 
         for (String fileName : configMap.keySet()) {
@@ -84,9 +84,10 @@ public class UpCommand extends AbstractCommand {
             pendingStates.put(stateName, pendingState);
         }
 
-        stateBackend.load(getArguments().get(0) + ".state", core);
+        String statePath = configPath + ".state";
+        BeamConfig stateConfig = stateBackend.load(statePath, core);
         Map<String, BeamConfig> stateMap = new HashMap<>();
-        stateMap.putAll(core.getConfigs());
+        stateMap.put(statePath, stateConfig);
 
         for (String fileName : stateMap.keySet()) {
             BeamConfig state = stateMap.get(fileName);
