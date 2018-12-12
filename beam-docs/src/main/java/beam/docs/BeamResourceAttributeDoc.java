@@ -31,8 +31,9 @@ public class BeamResourceAttributeDoc {
         StringBuilder sb = new StringBuilder();
 
         sb.append(attributeName);
-        sb.append(" - ");
+        sb.append("\n         ");
         sb.append(commentTree);
+        sb.append("\n");
 
         return sb.toString();
     }

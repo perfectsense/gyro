@@ -9,6 +9,9 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,9 +21,13 @@ public class BeamResourceDoc {
 
     private DocCommentTree commentTree;
 
+    private String outputDirectory;
+
     private List<BeamResourceAttributeDoc> attributes = new ArrayList<>();
 
-    public BeamResourceDoc(DocletEnvironment environment, TypeElement resourceElement) {
+    public BeamResourceDoc(DocletEnvironment environment, TypeElement resourceElement, String outputDirectory) {
+        this.outputDirectory = outputDirectory;
+
         DocTrees docTrees = environment.getDocTrees();
 
         DocCommentTree comment = docTrees.getDocCommentTree(resourceElement);
@@ -45,16 +52,22 @@ public class BeamResourceDoc {
         }
     }
 
-    public String generate() {
+    public void generate() {
         if (commentTree == null) {
-            return "";
+            return;
         }
 
         StringBuilder sb = new StringBuilder();
 
         sb.append(resourceName);
+        sb.append("\n");
+        sb.append(repeat("=", resourceName.length()));
         sb.append("\n\n");
         sb.append(commentTree);
+        sb.append("\n\n");
+
+        sb.append("Attributes\n");
+        sb.append(repeat("-", 10));
         sb.append("\n\n");
 
         for (BeamResourceAttributeDoc attributeDoc : attributes) {
@@ -66,6 +79,15 @@ public class BeamResourceDoc {
             }
         }
 
-        return sb.toString();
+        try (FileWriter writer = new FileWriter(outputDirectory + File.separator + resourceName + ".rst")) {
+            writer.write(sb.toString());
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
     }
+
+    private String repeat(String c, int r) {
+        return new String(new char[r]).replace("\0", c);
+    }
+
 }

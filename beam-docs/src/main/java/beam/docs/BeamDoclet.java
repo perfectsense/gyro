@@ -14,7 +14,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.TreeSet;
 
 public class BeamDoclet implements Doclet {
 
@@ -65,8 +64,8 @@ public class BeamDoclet implements Doclet {
         for (PackageElement packageElement : ElementFilter.packagesIn(environment.getIncludedElements())) {
             for (TypeElement classElement : ElementFilter.typesIn(packageElement.getEnclosedElements())) {
                 if (environment.getTypeUtils().isAssignable(classElement.asType(), beamResource)) {
-                    BeamResourceDoc doc = new BeamResourceDoc(environment, classElement);
-                    System.out.println(doc.generate());
+                    BeamResourceDoc doc = new BeamResourceDoc(environment, classElement, outputDirectory);
+                    doc.generate();
                 }
             }
         }
