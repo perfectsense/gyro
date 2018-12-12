@@ -3,7 +3,7 @@ package beam.core;
 import beam.lang.BCL;
 import beam.lang.BeamConfig;
 
-import java.util.Map;
+import java.io.IOException;
 
 public class BeamCore {
 
@@ -15,25 +15,22 @@ public class BeamCore {
         return validationException;
     }
 
-    public void processConfig(String path) {
+    public BeamConfig processConfig(String path) throws IOException {
         lang.init();
 
-        lang.parse(path);
-        lang.applyExtension();
-        lang.resolve();
+        BeamConfig config = lang.parse(path);
+        lang.applyExtension(config);
+        lang.resolve(config);
 
         lang.addExtension("state", BeamLocalState.class);
         lang.addExtension("provider", BeamProvider.class);
-        lang.applyExtension();
-        lang.resolve();
+        lang.applyExtension(config);
+        lang.resolve(config);
 
-        lang.applyExtension();
-        lang.resolve();
+        lang.applyExtension(config);
+        lang.resolve(config);
 
-        lang.getDependencies();
-    }
-
-    public Map<String, BeamConfig> getConfigs() {
-        return lang.getConfigs();
+        lang.getDependencies(config);
+        return config;
     }
 }
