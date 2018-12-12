@@ -37,24 +37,9 @@ public class BeamListener extends BeamParserBaseListener {
     }
 
     @Override
-    public void exitGlobalScope(BeamParser.GlobalScopeContext ctx) {
-        if (ctx.keyValuePair() != null) {
-            for (BeamParser.KeyValuePairContext pairContext : ctx.keyValuePair()) {
-                String id = pairContext.key().getText();
-                BeamContextKey key = new BeamContextKey(id);
-                BeamValue beamValue = parseValue(pairContext.value());
-                beamValue.setLine(pairContext.getStart().getLine());
-                config.addReferable(key, beamValue);
-            }
-        }
-
-        if (ctx.config() != null) {
-            for (BeamParser.ConfigContext configContext : ctx.config()) {
-                ConfigParser parser = new ConfigParser();
-                BeamConfig subConfig = parser.parse(configContext);
-                config.getSubConfigs().add(subConfig);
-            }
-        }
+    public void exitConfigBody(BeamParser.ConfigBodyContext ctx) {
+        ConfigParser parser = new ConfigParser();
+        parser.parseBody(ctx, config);
     }
 
     public static BeamValue parseValue(BeamParser.ValueContext valueContext) {

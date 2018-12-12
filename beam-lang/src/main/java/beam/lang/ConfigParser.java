@@ -12,7 +12,18 @@ public class ConfigParser {
         config.setCtx(ctx);
         String type = ctx.configType().getText();
         config.setType(type);
-        BeamParser.ConfigBodyContext configBodyContext = ctx.configBody();
+        parseBody(ctx.configBody(), config);
+
+        for (BeamParser.ParamContext paramContext : ctx.param()) {
+            if (paramContext.literal() != null) {
+                config.getParams().add(BeamListener.parseLiteral(paramContext.literal()));
+            } else if (paramContext.inlineList() != null) {
+                config.getParams().add(BeamListener.parseInlineList(paramContext.inlineList()));
+            }
+        }
+    }
+
+    public final void parseBody(BeamParser.ConfigBodyContext configBodyContext, BeamConfig config) {
         if (configBodyContext != null) {
             if (configBodyContext.keyValuePair() != null) {
                 for (BeamParser.KeyValuePairContext pairContext: configBodyContext.keyValuePair()) {
@@ -28,14 +39,6 @@ public class ConfigParser {
                     BeamConfig subConfig = parser.parse(configContext);
                     config.getSubConfigs().add(subConfig);
                 }
-            }
-        }
-
-        for (BeamParser.ParamContext paramContext : ctx.param()) {
-            if (paramContext.literal() != null) {
-                config.getParams().add(BeamListener.parseLiteral(paramContext.literal()));
-            } else if (paramContext.inlineList() != null) {
-                config.getParams().add(BeamListener.parseInlineList(paramContext.inlineList()));
             }
         }
     }
