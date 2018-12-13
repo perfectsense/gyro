@@ -4,14 +4,18 @@ import beam.core.BeamUI;
 import com.google.common.collect.ImmutableSet;
 import org.fusesource.jansi.AnsiRenderer;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class CLIBeamUI implements BeamUI {
+public class CliBeamUI implements BeamUI {
 
     private static final Pattern NEWLINES = Pattern.compile("([\r\n]+)");
 

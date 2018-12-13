@@ -31,11 +31,11 @@ public class Beam {
     static {
         Reflections.log = null;
         reflections = new Reflections(new org.reflections.util.ConfigurationBuilder()
-                .setUrls(ClasspathHelper.forPackage("beam")));
+            .setUrls(ClasspathHelper.forPackage("beam")));
     }
 
     public static void main(String[] arguments) throws Exception {
-        BeamCore.pushUi(new CLIBeamUI());
+        BeamCore.pushUi(new CliBeamUI());
 
         try {
             Beam beam = new Beam(Arrays.asList(arguments));
@@ -67,17 +67,17 @@ public class Beam {
             }
         }
 
-        Cli.CliBuilder<Object> builder = Cli.<Object>builder(appName).
-                withDescription("Beam.").
-                withDefaultCommand(Help.class).
-                withCommands(commands);
+        Cli.CliBuilder<Object> builder = Cli.<Object>builder(appName)
+            .withDescription("Beam.")
+            .withDefaultCommand(Help.class)
+            .withCommands(commands);
 
         Set<Class<?>> serviceCommands = new HashSet<Class<?>>();
 
-        builder.withGroup("service").
-                withDefaultCommand(Help.class).
-                withDescription("Beam service (client and server) commands.").
-                withCommands(serviceCommands);
+        builder.withGroup("service")
+            .withDefaultCommand(Help.class)
+            .withDescription("Beam service (client and server) commands.")
+            .withCommands(serviceCommands);
 
         this.cli = builder.build();
         this.arguments = arguments;
@@ -94,10 +94,10 @@ public class Beam {
                 ((AbstractCommand) command).doExecute();
             } else {
                 throw new IllegalStateException(String.format(
-                        "[%s] must be an instance of [%s] or [%s]!",
-                        command.getClass().getName(),
-                        Runnable.class.getName(),
-                        BeamCommand.class.getName()));
+                    "[%s] must be an instance of [%s] or [%s]!",
+                    command.getClass().getName(),
+                    Runnable.class.getName(),
+                    BeamCommand.class.getName()));
             }
 
         } catch (Throwable error) {
