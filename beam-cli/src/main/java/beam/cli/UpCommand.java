@@ -21,8 +21,8 @@ public class UpCommand extends AbstractCommand {
     @Arguments
     private List<String> arguments;
 
-    @Option(name = { "--refresh" })
-    public boolean refresh;
+    @Option(name = { "--skip-refresh" })
+    public boolean skipRefresh;
 
     @Override
     public void doExecute() throws Exception {
@@ -46,7 +46,7 @@ public class UpCommand extends AbstractCommand {
         }
 
         Set<BeamResource> resources = core.findBeamResources(config);
-        Set<BeamResource> current = core.findBeamResources(state, refresh);
+        Set<BeamResource> current = core.findBeamResources(state, !skipRefresh);
 
         List<ResourceDiff> diffs = core.diff(current, resources);
         Set<ChangeType> changeTypes = core.writeDiffs(diffs);
