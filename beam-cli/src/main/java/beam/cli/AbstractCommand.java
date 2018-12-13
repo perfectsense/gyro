@@ -1,16 +1,10 @@
 package beam.cli;
 
-import beam.parser.antlr4.BeamParser;
-import io.airlift.airline.Arguments;
-import io.airlift.airline.Option;
-import io.airlift.airline.OptionType;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
+import io.airlift.airline.Option;
+import io.airlift.airline.OptionType;
+import org.slf4j.LoggerFactory;
 
 /**
  * Basic {@link BeamCommand} implementation that adds the global {@code -debug} option for more detailed logging.
