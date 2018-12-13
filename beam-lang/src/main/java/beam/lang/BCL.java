@@ -7,18 +7,15 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.List;
-import java.util.ArrayList;
 
 public class BCL {
 
     private final Map<String, Class<? extends BeamConfig>> extensions = new HashMap<>();
 
     private static final Formatter ui = new Formatter();
-
-    private final Map<String, BeamConfig> configs = new HashMap<>();
 
     public static Formatter ui() {
         return ui;
@@ -36,65 +33,39 @@ public class BCL {
         return extensions.get(key);
     }
 
-    public Map<String, BeamConfig> getConfigs() {
-        return configs;
-    }
-
     public void init() {
         extensions.clear();
-        configs.clear();
         addExtension("for", ForExtension.class);
-        addExtension("import", ImportExtension.class);
+        //addExtension("import", ImportExtension.class);
     }
 
-    public BeamConfig parse(String filename) {
-        try {
-            if (getConfigs().containsKey(filename)) {
-                return getConfigs().get(filename);
-            }
+    public BeamConfig parse(String filename) throws IOException {
+        BeamLexer lexer = new BeamLexer(CharStreams.fromFileName(filename));
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
 
-            BeamLexer lexer = new BeamLexer(CharStreams.fromFileName(filename));
-            CommonTokenStream tokens = new CommonTokenStream(lexer);
+        BeamParser parser = new BeamParser(tokens);
+        BeamParser.BeamRootContext context = parser.beamRoot();
 
-            BeamParser parser = new BeamParser(tokens);
-            BeamParser.BeamRootContext context = parser.beamRoot();
+        File configFile = new File(filename);
+        BeamConfig passingContext = new BeamConfig();
 
-            File configFile = new File(filename);
-            BeamConfig passingContext = new BeamConfig();
-
-            BeamListener listener = new BeamListener(configFile.getCanonicalPath(), passingContext);
-            ParseTreeWalker.DEFAULT.walk(listener, context);
-            getConfigs().put(filename, listener.getConfig());
-            return listener.getConfig();
-
-        } catch (Exception error) {
-            error.printStackTrace();
-        }
-
-        return new BeamConfig();
+        BeamListener listener = new BeamListener(configFile.getCanonicalPath(), passingContext);
+        ParseTreeWalker.DEFAULT.walk(listener, context);
+        return listener.getConfig();
     }
 
-    public void resolve() {
+    public void resolve(BeamConfig config) {
         boolean progress = true;
         while (progress) {
-            progress = false;
-            List<BeamConfig> configs = new ArrayList<>();
-            configs.addAll(getConfigs().values());
-            for (BeamConfig root : configs) {
-                progress = root.resolve(root) || progress;
-            }
+            progress = config.resolve(config);
         }
     }
 
-    public void applyExtension() {
-        for (BeamConfig config : getConfigs().values()) {
-            config.applyExtension(this);
-        }
+    public void applyExtension(BeamConfig config) {
+        config.applyExtension(this);
     }
 
-    public void getDependencies() {
-        for (BeamConfig config : getConfigs().values()) {
-            config.getDependencies(config);
-        }
+    public void getDependencies(BeamConfig config) {
+        config.getDependencies(config);
     }
 }

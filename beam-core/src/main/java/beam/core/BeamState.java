@@ -4,7 +4,7 @@ import beam.lang.BeamConfig;
 
 public abstract class BeamState extends BeamConfig {
 
-    public abstract void load(String name, BeamCore core);
+    public abstract BeamConfig load(String name, BeamCore core) throws Exception;
 
     public abstract void save(String name, BeamConfig state);
 

@@ -7,11 +7,11 @@ options
  */
 
 beamRoot
-    : NEWLINE* globalScope EOF
+    : NEWLINE* configBody* EOF
     ;
 
-globalScope
-    : (keyValuePair | config)*
+configBody
+    :  (config | keyValuePair)+
     ;
 
 keyValuePair
@@ -95,7 +95,7 @@ lineSeparator
     ;
 
 config
-    : configType param+ tag* (lineSeparator configBody)? (lineSeparator | EOF)
+    : configType param+ tag* (lineSeparator configBody END)? (lineSeparator | EOF)
     ;
 
 configType
@@ -110,6 +110,3 @@ tag
     : HASH TOKEN
     ;
 
-configBody
-    :  (config | keyValuePair)+ END
-    ;

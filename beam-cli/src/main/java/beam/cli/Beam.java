@@ -1,10 +1,9 @@
 package beam.cli;
 
+import beam.core.BeamCore;
 import beam.core.BeamException;
-import beam.core.BeamUI;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
-import com.psddev.dari.util.ThreadLocalStack;
 import io.airlift.airline.Cli;
 import io.airlift.airline.Command;
 import io.airlift.airline.Help;
@@ -24,8 +23,6 @@ import java.util.regex.Pattern;
 
 public class Beam {
 
-    private static final ThreadLocalStack<BeamUI> UI = new ThreadLocalStack<>();
-
     private final Cli<Object> cli;
     private final List<String> arguments;
 
@@ -37,19 +34,15 @@ public class Beam {
                 .setUrls(ClasspathHelper.forPackage("beam")));
     }
 
-    public static BeamUI ui() {
-        return UI.get();
-    }
-
     public static void main(String[] arguments) throws Exception {
-        UI.push(new CLIBeamUI());
+        BeamCore.pushUi(new CLIBeamUI());
 
         try {
             Beam beam = new Beam(Arrays.asList(arguments));
             beam.run();
 
         } finally {
-            UI.pop();
+            BeamCore.popUi();
         }
     }
 
@@ -109,10 +102,10 @@ public class Beam {
 
         } catch (Throwable error) {
             if (error instanceof BeamException) {
-                Beam.ui().writeError(error.getCause(), "\n@|red Error: %s|@", error.getMessage());
+                BeamCore.ui().writeError(error.getCause(), "\n@|red Error: %s|@", error.getMessage());
 
             } else {
-                Beam.ui().writeError(error, "\n@|red Unexpected error! Stack trace follows:|@");
+                BeamCore.ui().writeError(error, "\n@|red Unexpected error! Stack trace follows:|@");
             }
         }
     }

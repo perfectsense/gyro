@@ -2,6 +2,8 @@ package beam.lang;
 
 import com.psddev.dari.util.StringUtils;
 
+import java.io.IOException;
+
 public class ImportExtension extends BeamExtension {
 
     private boolean imported;
@@ -29,11 +31,14 @@ public class ImportExtension extends BeamExtension {
         }
 
         if (!imported) {
-            BeamConfig importConfig = getLang().parse(path);
-            importConfig.applyExtension(getLang());
-            root.addReferable(new BeamContextKey(id), importConfig);
-            imported = true;
-            progress = true;
+            try {
+                BeamConfig importConfig = getLang().parse(path);
+                importConfig.applyExtension(getLang());
+                root.addReferable(new BeamContextKey(id), importConfig);
+                imported = true;
+                progress = true;
+            } catch (IOException ioe) {
+            }
         }
 
         return progress;
