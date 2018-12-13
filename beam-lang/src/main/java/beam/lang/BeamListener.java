@@ -76,6 +76,7 @@ public class BeamListener extends BeamParserBaseListener {
 
         return result;
     }
+
     public static BeamInlineList parseInlineList(BeamParser.InlineListContext listContext) {
         BeamInlineList result = new BeamInlineList();
         for (BeamParser.ScalarContext scalarContext : listContext.scalar()) {

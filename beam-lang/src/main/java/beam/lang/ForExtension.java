@@ -32,7 +32,8 @@ public class ForExtension extends BeamExtension {
         }
 
         if (variables.size() != values.size()) {
-            throw new BeamLangException(String.format("The number of variables (%s) does not match the number of value list (%s)", variables.size(), values.size()));
+            throw new BeamLangException(String.format("The number of variables (%s) does not match the number of value list (%s)",
+                variables.size(), values.size()));
         }
 
         Integer size = null;
@@ -41,7 +42,8 @@ public class ForExtension extends BeamExtension {
             if (size == null) {
                 size = beamList.getList().size();
             } else if (size != beamList.getList().size()) {
-                throw new BeamLangException(String.format("The sizes of value list does not match (%s vs %s)", size, beamList.getList().size()));
+                throw new BeamLangException(String.format("The sizes of value list does not match (%s vs %s)",
+                    size, beamList.getList().size()));
             }
         }
 

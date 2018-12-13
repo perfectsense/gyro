@@ -2,7 +2,13 @@ package beam.lang;
 
 import beam.parser.antlr4.BeamParser;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class BeamConfig implements BeamReferable, BeamCollection, BeamContext {
 
@@ -61,6 +67,30 @@ public class BeamConfig implements BeamReferable, BeamCollection, BeamContext {
         return dependencies;
     }
 
+    @Override
+    public Set<BeamReference> getDependencies(BeamConfig config) {
+        Set<BeamReference> dependencies = new HashSet<>();
+        for (BeamContextKey key : listContextKeys()) {
+            BeamResolvable referable = getReferable(key);
+            dependencies.addAll(referable.getDependencies(config));
+        }
+
+        this.dependencies = dependencies;
+        BeamList beamList = new BeamList();
+        for (BeamReference reference : dependencies) {
+            BeamScalar beamScalar = new BeamScalar();
+            beamScalar.getElements().add(reference);
+            beamList.getList().add(beamScalar);
+        }
+
+        if (!beamList.getList().isEmpty()) {
+            addReferable(new BeamContextKey("depends-on"), beamList);
+        }
+
+        return dependencies;
+    }
+
+
     public void setDependencies(Set<BeamReference> dependencies) {
         this.dependencies = dependencies;
     }
@@ -110,29 +140,6 @@ public class BeamConfig implements BeamReferable, BeamCollection, BeamContext {
         }
 
         return resolve(root) || progress;
-    }
-
-    @Override
-    public Set<BeamReference> getDependencies(BeamConfig config) {
-        Set<BeamReference> dependencies = new HashSet<>();
-        for (BeamContextKey key : listContextKeys()) {
-            BeamResolvable referable = getReferable(key);
-            dependencies.addAll(referable.getDependencies(config));
-        }
-
-        this.dependencies = dependencies;
-        BeamList beamList = new BeamList();
-        for (BeamReference reference : dependencies) {
-            BeamScalar beamScalar = new BeamScalar();
-            beamScalar.getElements().add(reference);
-            beamList.getList().add(beamScalar);
-        }
-
-        if (!beamList.getList().isEmpty()) {
-            addReferable(new BeamContextKey("depends-on"), beamList);
-        }
-
-        return dependencies;
     }
 
     @Override
