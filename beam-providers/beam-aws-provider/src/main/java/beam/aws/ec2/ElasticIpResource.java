@@ -9,7 +9,9 @@ import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.Address;
 import software.amazon.awssdk.services.ec2.model.AllocateAddressResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeAddressesResponse;
+import software.amazon.awssdk.services.ec2.model.DomainType;
 import software.amazon.awssdk.services.ec2.model.Ec2Exception;
+import software.amazon.awssdk.services.ec2.model.MoveAddressToVpcResponse;
 
 import java.text.MessageFormat;
 import java.util.Set;
@@ -31,6 +33,7 @@ public class ElasticIpResource extends AwsResource {
 
     private String allocationId;
     private String publicIp;
+    private Boolean isStandardDomain;
 
     /**
      * Requested public ip for acquirement. See `Elastic IP <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html/>`_.
@@ -52,11 +55,25 @@ public class ElasticIpResource extends AwsResource {
         if (allocationId == null) {
             allocationId = "";
         }
+
         return allocationId;
     }
 
     public void setAllocationId(String allocationId) {
         this.allocationId = allocationId;
+    }
+
+    @ResourceDiffProperty
+    public Boolean getIsStandardDomain() {
+        if (isStandardDomain == null) {
+            isStandardDomain = false;
+        }
+
+        return isStandardDomain;
+    }
+
+    public void setIsStandardDomain(Boolean isStandardDomain) {
+        this.isStandardDomain = isStandardDomain;
     }
 
     @Override
@@ -66,6 +83,7 @@ public class ElasticIpResource extends AwsResource {
             DescribeAddressesResponse response = client.describeAddresses(r -> r.publicIps(getPublicIp()));
             Address address = response.addresses().get(0);
             setAllocationId(address.allocationId());
+            setIsStandardDomain(address.domain().equals(DomainType.STANDARD));
         } catch (Ec2Exception eex) {
             if (eex.awsErrorDetails().errorCode().equals("InvalidAllocationID.NotFound")) {
                 throw new BeamException(MessageFormat.format("Elastic Ip - {0} not found.", getPublicIp()));
@@ -79,7 +97,10 @@ public class ElasticIpResource extends AwsResource {
     public void create() {
         Ec2Client client = createClient(Ec2Client.class);
         try {
-            AllocateAddressResponse response = client.allocateAddress(r -> r.address(getPublicIp()));
+            AllocateAddressResponse response = client.allocateAddress(
+                r -> r.address(getPublicIp())
+                    .domain(getIsStandardDomain() ? DomainType.STANDARD : DomainType.VPC)
+            );
             setAllocationId(response.allocationId());
         } catch (Ec2Exception eex) {
             if (eex.awsErrorDetails().errorCode().equals("InvalidAddress.NotFound")) {
@@ -92,7 +113,17 @@ public class ElasticIpResource extends AwsResource {
 
     @Override
     public void update(BeamResource current, Set<String> changedProperties) {
+        Ec2Client client = createClient(Ec2Client.class);
 
+        if (changedProperties.contains("isStandardDomain")) {
+            if (getIsStandardDomain()) {
+                MoveAddressToVpcResponse response = client.moveAddressToVpc(r -> r.publicIp("100.24.227.150"));
+                setAllocationId(response.allocationId());
+                setIsStandardDomain(false);
+            } else {
+                throw new BeamException(MessageFormat.format("Elastic Ip - {0}, VPC domain to Standard domain not feasible. ", getPublicIp()));
+            }
+        }
     }
 
     @Override
