@@ -1,13 +1,17 @@
 package beam.aws.ec2;
 
 import beam.aws.AwsResource;
+import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.CreateRouteTableResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeRouteTablesResponse;
 import software.amazon.awssdk.services.ec2.model.Filter;
 import software.amazon.awssdk.services.ec2.model.RouteTable;
+import software.amazon.awssdk.services.ec2.model.RouteTableAssociation;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -29,6 +33,7 @@ import java.util.Set;
 public class RouteTableResource extends Ec2TaggableResource<RouteTable> {
 
     private String vpcId;
+    private List<String> subnetIds;
     private String routeTableId;
     private String ownerId;
 
@@ -41,6 +46,22 @@ public class RouteTableResource extends Ec2TaggableResource<RouteTable> {
 
     public void setVpcId(String vpcId) {
         this.vpcId = vpcId;
+    }
+
+    /**
+     * Subnet IDs to associate with this route table.
+     */
+    @ResourceDiffProperty(updatable = true)
+    public List<String> getSubnetIds() {
+        if (subnetIds == null) {
+            subnetIds = new ArrayList<>();
+        }
+
+        return subnetIds;
+    }
+
+    public void setSubnetIds(List<String> subnetIds) {
+        this.subnetIds = subnetIds;
     }
 
     public String getRouteTableId() {
@@ -60,6 +81,11 @@ public class RouteTableResource extends Ec2TaggableResource<RouteTable> {
     }
 
     @Override
+    protected String getId() {
+        return getRouteTableId();
+    }
+
+    @Override
     public void doRefresh() {
         Ec2Client client = createClient(Ec2Client.class);
 
@@ -70,13 +96,15 @@ public class RouteTableResource extends Ec2TaggableResource<RouteTable> {
         for (RouteTable routeTable : response.routeTables()) {
             setVpcId(routeTable.vpcId());
             setOwnerId(routeTable.ownerId());
+
+            for (RouteTableAssociation rta : routeTable.associations()) {
+                if (!rta.main()) {
+                    getSubnetIds().add(rta.subnetId());
+                }
+            }
+
             return;
         }
-    }
-
-    @Override
-    protected String getId() {
-        return getRouteTableId();
     }
 
     @Override
@@ -87,6 +115,10 @@ public class RouteTableResource extends Ec2TaggableResource<RouteTable> {
 
         setRouteTableId(response.routeTable().routeTableId());
         setOwnerId(response.routeTable().ownerId());
+
+        for (String subnetId : getSubnetIds()) {
+            client.associateRouteTable(r -> r.routeTableId(getRouteTableId()).subnetId(subnetId).build());
+        }
     }
 
     @Override
