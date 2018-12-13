@@ -13,10 +13,40 @@ aws::credentials default
 end
 
 aws::vpc vpc-example
-    cidr-block: "10.0.0.0/16"
+    cidr-block: 10.0.0.0/16
 
     tags:
         Name: vpc-example
+    end
+end
+
+aws::subnet subnet-public-us-east-1a
+    vpc-id: $(aws::vpc vpc-example | vpc-id)
+    cidr-block: 10.0.0.0/26
+    availability-zone: us-east-1a
+
+    tags:
+        Name: subnet-public-us-east-1a
+    end
+end
+
+aws::subnet subnet-public-us-east-1b
+    vpc-id: $(aws::vpc vpc-example | vpc-id)
+    cidr-block: 10.0.1.0/26
+    availability-zone: us-east-1b
+
+    tags:
+        Name: subnet-public-us-east-1b
+    end
+end
+
+aws::subnet subnet-public-us-east-1c
+    vpc-id: $(aws::vpc vpc-example | vpc-id)
+    cidr-block: 10.0.2.0/26
+    availability-zone: us-east-1c
+
+    tags:
+        Name: subnet-public-us-east-1c
     end
 end
 
@@ -30,6 +60,11 @@ end
 
 aws::route-table route-table-example
     vpc-id: $(aws::vpc vpc-example | vpc-id)
+    subnet-ids:
+        - $(aws::subnet subnet-public-us-east-1a | subnet-id)
+        - $(aws::subnet subnet-public-us-east-1b | subnet-id)
+        - $(aws::subnet subnet-public-us-east-1c | subnet-id)
+    end
 
     tags:
         Name: route-table-example
