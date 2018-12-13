@@ -51,36 +51,30 @@ public abstract class AwsResource extends BeamResource {
     }
 
     public Object executeService(Service service) {
-       boolean available = false;
-       int counter = 10;
-       Object result = null;
-       while (!available) {
-           available = true;
-           try {
-               result = service.apply();
-           } catch (Exception error) {
-               available = false;
-               counter--;
+        boolean available = false;
+        int counter = 10;
+        Object result = null;
+        while (!available) {
+            available = true;
+            try {
+                result = service.apply();
+            } catch (Exception error) {
+                available = false;
+                counter--;
 
-               if (counter < 0) {
-                   /*if (Beam.ui().readBoolean(Boolean.TRUE, " Keep waiting?")) {
-                       counter = 10;
-                   } else {
-                       throw new BeamException("AWS service request failed!\n" + error.getMessage());
-                   }
-                   */
-                   throw new BeamException("AWS service request failed!\n" + error.getMessage());
-               }
+                if (counter < 0) {
+                    throw new BeamException("AWS service request failed!\n" + error.getMessage());
+                }
 
-               try {
-                   Thread.sleep(1000);
-               } catch (InterruptedException e) {
-                   return null;
-               }
-           }
-       }
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    return null;
+                }
+            }
+        }
 
-       return result;
+        return result;
     }
 
 }

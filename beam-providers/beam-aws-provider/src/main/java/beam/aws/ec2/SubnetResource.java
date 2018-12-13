@@ -112,12 +112,10 @@ public class SubnetResource extends Ec2TaggableResource<Subnet> {
                 .build();
 
         for (Subnet subnet : client.describeSubnets(request).subnets()) {
-            String subnetId = subnet.subnetId();
-
+            setSubnetId(subnet.subnetId());
             setAvailabilityZone(subnet.availabilityZone());
             setCidrBlock(subnet.cidrBlock());
             setMapPublicIpOnLaunch(subnet.mapPublicIpOnLaunch());
-            setSubnetId(subnetId);
             break;
         }
     }

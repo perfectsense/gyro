@@ -57,7 +57,7 @@ public class InternetGatewayResource extends Ec2TaggableResource<InternetGateway
         Ec2Client client = createClient(Ec2Client.class);
 
         DescribeInternetGatewaysResponse response = client.describeInternetGateways(
-                r -> r.internetGatewayIds(getInternetGatewayId())
+            r -> r.internetGatewayIds(getInternetGatewayId())
         );
 
         for (InternetGateway gateway : response.internetGateways()) {
@@ -93,13 +93,12 @@ public class InternetGatewayResource extends Ec2TaggableResource<InternetGateway
     public void delete() {
         Ec2Client client = createClient(Ec2Client.class);
 
-        for (InternetGateway gateway : client.describeInternetGateways(
-                r -> r.internetGatewayIds(getInternetGatewayId())).internetGateways()) {
-           for (InternetGatewayAttachment attachment : gateway.attachments()) {
-               client.detachInternetGateway(
-                       r -> r.internetGatewayId(getInternetGatewayId()).vpcId(attachment.vpcId())
-               );
-           }
+        for (InternetGateway gateway : client.describeInternetGateways(r -> r.internetGatewayIds(getInternetGatewayId())).internetGateways()) {
+            for (InternetGatewayAttachment attachment : gateway.attachments()) {
+                client.detachInternetGateway(
+                    r -> r.internetGatewayId(getInternetGatewayId()).vpcId(attachment.vpcId())
+                );
+            }
         }
 
         client.deleteInternetGateway(r -> r.internetGatewayId(getInternetGatewayId()));

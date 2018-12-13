@@ -8,6 +8,7 @@ import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.CreateTagsRequest;
 import software.amazon.awssdk.services.ec2.model.Tag;
 import software.amazon.awssdk.services.ec2.paginators.DescribeTagsIterable;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -60,15 +61,15 @@ public abstract class Ec2TaggableResource<T> extends AwsResource {
 
         Ec2Client client = createClient(Ec2Client.class);
         DescribeTagsIterable response = client.describeTagsPaginator(
-                r -> r.filters(
+            r -> r.filters(
                 f -> f.name("resource-id")
-                        .values(getId())
-                        .build())
+                    .values(getId())
+                    .build())
                 .build());
 
         response.stream().forEach(
-                r -> r.tags().forEach(
-                        t -> getTags().put(t.key(), t.value())));
+            r -> r.tags().forEach(
+                t -> getTags().put(t.key(), t.value())));
 
     }
 
@@ -100,9 +101,9 @@ public abstract class Ec2TaggableResource<T> extends AwsResource {
             }
 
             CreateTagsRequest request = CreateTagsRequest.builder()
-                    .resources(getId())
-                    .tags(tagObjects)
-                    .build();
+                .resources(getId())
+                .tags(tagObjects)
+                .build();
 
             executeService(() -> {
                 client.createTags(request);
