@@ -28,9 +28,20 @@ import java.util.Set;
 @ResourceName("route-table")
 public class RouteTableResource extends Ec2TaggableResource<RouteTable> {
 
+    private String vpcId;
     private String routeTableId;
     private String ownerId;
-    private String vpcId;
+
+    /**
+     * The id of the VPC to create a route table for.
+     */
+    public String getVpcId() {
+        return vpcId;
+    }
+
+    public void setVpcId(String vpcId) {
+        this.vpcId = vpcId;
+    }
 
     public String getRouteTableId() {
         return routeTableId;
@@ -46,17 +57,6 @@ public class RouteTableResource extends Ec2TaggableResource<RouteTable> {
 
     public void setOwnerId(String ownerId) {
         this.ownerId = ownerId;
-    }
-
-    /**
-     * The id of the VPC to create a route table for.
-     */
-    public String getVpcId() {
-        return vpcId;
-    }
-
-    public void setVpcId(String vpcId) {
-        this.vpcId = vpcId;
     }
 
     @Override
