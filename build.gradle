@@ -13,7 +13,7 @@ plugins {
     id 'maven-publish'
 }
 
-defaultTasks 'build', 'publish', 'publishToMavenLocal', 'distDir', 'dist'
+defaultTasks 'build', 'checkstyle', 'publish', 'publishToMavenLocal', 'distDir', 'dist'
 
 allprojects {
     version = '0.5'
@@ -23,10 +23,12 @@ ext {
     aspectjVersion = '1.9.0'
 }
 
+
 subprojects {
     apply plugin: "idea"
     apply plugin: 'java'
     apply plugin: 'maven-publish'
+    apply plugin: 'checkstyle'
 
     defaultTasks 'build', 'publish', 'publishToMavenLocal'
 
@@ -52,6 +54,7 @@ subprojects {
         compile group: 'org.lucee', name: 'dom4j', version: '1.6.1'
         compile "org.aspectj:aspectjrt:1.9.0"
         compile "org.aspectj:aspectjweaver:1.9.0"
+        checkstyle 'com.puppycrawl.tools:checkstyle:8.15'
     }
 
     publishing {
@@ -64,6 +67,23 @@ subprojects {
             }
         }
     }
+
+    checkstyle {
+        toolVersion = '6.13'
+        configFile rootProject.file('config/checkstyle.xml')
+        checkstyleMain.enabled = false
+        checkstyleTest.enabled = false
+    }
+
+    task checkstyle(type: Checkstyle) {
+        configFile rootProject.file('config/checkstyle.xml')
+        source 'src'
+        include '**/*.java'
+        exclude '**/generated-src/**'
+
+        classpath = files()
+    }
+
 }
 
 project(":beam-core") {
