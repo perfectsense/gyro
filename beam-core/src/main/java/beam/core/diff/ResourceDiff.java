@@ -1,5 +1,12 @@
 package beam.core.diff;
 
+import beam.core.BeamResource;
+import beam.lang.BeamContextKey;
+import com.google.common.base.CaseFormat;
+import com.google.common.base.Throwables;
+import com.psddev.dari.util.CompactMap;
+import com.psddev.dari.util.ObjectUtils;
+
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
@@ -11,15 +18,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import beam.core.BeamResource;
-
-import beam.lang.BeamContextKey;
-import beam.lang.BeamLiteral;
-import com.google.common.base.CaseFormat;
-import com.google.common.base.Throwables;
-import com.psddev.dari.util.CompactMap;
-import com.psddev.dari.util.ObjectUtils;
 
 public class ResourceDiff {
 
@@ -110,10 +108,10 @@ public class ResourceDiff {
                         Method writer = p.getWriteMethod();
 
                         Object pendingValue = reader.invoke(pendingResource);
-                        if (writer != null && !isNullable(reader) &&
-                                (pendingValue == null ||
-                                        (ObjectUtils.isBlank(pendingValue) && pendingValue instanceof NullArrayList) ||
-                                        (ObjectUtils.isBlank(pendingValue) && pendingValue instanceof NullSet))) {
+                        if (writer != null && !isNullable(reader)
+                            && (pendingValue == null
+                            || (ObjectUtils.isBlank(pendingValue) && pendingValue instanceof NullArrayList)
+                            || (ObjectUtils.isBlank(pendingValue) && pendingValue instanceof NullSet))) {
                             writer.invoke(pendingResource, reader.invoke(currentResource));
                             String keyId = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, p.getName());
                             BeamContextKey key = new BeamContextKey(keyId);
@@ -125,11 +123,8 @@ public class ResourceDiff {
                 }
             }
 
-        } catch (IllegalAccessException |
-                IntrospectionException error) {
-
+        } catch (IllegalAccessException | IntrospectionException error) {
             throw new IllegalStateException(error);
-
         } catch (InvocationTargetException error) {
             throw Throwables.propagate(error);
         }
@@ -161,8 +156,8 @@ public class ResourceDiff {
             @Override
             public String toString() {
                 return String.format(
-                        "Delete %s",
-                        currentResource.toDisplayString());
+                    "Delete %s",
+                    currentResource.toDisplayString());
             }
         };
 
@@ -185,7 +180,9 @@ public class ResourceDiff {
         }
     }
 
-    public <R extends BeamResource> void update(ResourceChange change, Collection<R> currentResources, Collection<R> pendingResources) throws Exception {
+    public <R extends BeamResource> void update(ResourceChange change,
+                                                Collection<R> currentResources,
+                                                Collection<R> pendingResources) throws Exception {
         ResourceDiff diff = new ResourceDiff(currentResources, pendingResources);
         diff.diff();
         change.getDiffs().add(diff);

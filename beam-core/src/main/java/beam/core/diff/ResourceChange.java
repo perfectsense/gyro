@@ -1,6 +1,5 @@
 package beam.core.diff;
 
-import beam.core.BeamCredentials;
 import beam.core.BeamResource;
 import com.google.common.base.Throwables;
 import com.google.common.collect.MapDifference;
@@ -17,7 +16,13 @@ import java.io.FileWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class ResourceChange {
 
@@ -153,9 +158,9 @@ public class ResourceChange {
                 ResourceDiffProperty propertyAnnotation = reader.getAnnotation(ResourceDiffProperty.class);
                 boolean nullable = propertyAnnotation != null && propertyAnnotation.nullable();
 
-                if (((ObjectUtils.isBlank(pendingValue) && pendingValue instanceof NullArrayList) ||
-                        (ObjectUtils.isBlank(pendingValue) && pendingValue instanceof NullSet)) ||
-                        (!ObjectUtils.isBlank(pendingValue) || nullable)) {
+                if (((ObjectUtils.isBlank(pendingValue) && pendingValue instanceof NullArrayList)
+                    || (ObjectUtils.isBlank(pendingValue) && pendingValue instanceof NullSet))
+                    || (!ObjectUtils.isBlank(pendingValue) || nullable)) {
 
                     if (propertyAnnotation != null) {
                         Set<String> changedProperties;
@@ -177,9 +182,7 @@ public class ResourceChange {
                                 Object pendingMapValue = entry.getValue();
                                 Object currentMapValue = currentMap.get(key);
 
-                                if (currentMapValue == null ||
-                                        !currentMapValue.equals(pendingMapValue)) {
-
+                                if (currentMapValue == null || !currentMapValue.equals(pendingMapValue)) {
                                     changedProperties.add(p.getName());
                                     changedPropertiesDisplay.append("tag: ");
                                     changedPropertiesDisplay.append(key);
@@ -249,12 +252,10 @@ public class ResourceChange {
                                         int exitCode = diffProcess.start().waitFor();
 
                                         if (exitCode == 1) {
-                                            String diffOutput = IoUtils.toString(diffFile, Charset.forName("UTF-8"));
-
                                             changedProperties.add(p.getName());
                                             changedPropertiesDisplay.append(p.getName());
                                             changedPropertiesDisplay.append(": ");
-                                            changedPropertiesDisplay.append(diffOutput);
+                                            changedPropertiesDisplay.append(IoUtils.toString(diffFile, Charset.forName("UTF-8")));
 
                                             showingDiff = true;
                                         }
@@ -302,10 +303,8 @@ public class ResourceChange {
                 replacedPropertiesDisplay.setLength(replacedPropertiesDisplay.length() - 2);
             }
 
-        } catch (IllegalAccessException |
-                IntrospectionException error) {
+        } catch (IllegalAccessException | IntrospectionException error) {
             throw new IllegalStateException(error);
-
         } catch (InvocationTargetException error) {
             throw Throwables.propagate(error);
         }

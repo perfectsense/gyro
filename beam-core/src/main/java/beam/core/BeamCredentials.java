@@ -37,8 +37,6 @@ public abstract class BeamCredentials extends BeamValidatedConfig {
 
     @Override
     public boolean equals(Object other) {
-        return this == other ||
-                (other != null &&
-                getClass().equals(other.getClass()));
+        return this == other || (other != null && getClass().equals(other.getClass()));
     }
 }

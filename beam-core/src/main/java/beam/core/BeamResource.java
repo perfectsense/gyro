@@ -1,31 +1,30 @@
 package beam.core;
 
-import java.beans.PropertyDescriptor;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.Iterator;
-import java.util.Collection;
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-
 import beam.core.diff.ResourceChange;
-
 import beam.core.diff.ResourceName;
+import beam.lang.BCL;
 import beam.lang.BeamConfig;
 import beam.lang.BeamContext;
 import beam.lang.BeamContextKey;
-import beam.lang.BeamReference;
-import beam.lang.BeamResolvable;
+import beam.lang.BeamExtension;
+import beam.lang.BeamLangException;
 import beam.lang.BeamList;
 import beam.lang.BeamLiteral;
+import beam.lang.BeamReference;
+import beam.lang.BeamResolvable;
 import beam.lang.BeamScalar;
-import beam.lang.BeamLangException;
-import beam.lang.BeamExtension;
-import beam.lang.BCL;
 import com.google.common.base.CaseFormat;
+
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 public abstract class BeamResource extends BeamValidatedConfig implements Comparable<BeamResource> {
 
@@ -36,8 +35,8 @@ public abstract class BeamResource extends BeamValidatedConfig implements Compar
 
     private transient BeamResource parent;
     private transient List<BeamResource> children = new ArrayList<>();
-    private transient final Set<BeamResource> dependencies = new TreeSet<>();
-    private transient final Set<BeamResource> dependents = new TreeSet<>();
+    private final transient Set<BeamResource> dependencies = new TreeSet<>();
+    private final transient Set<BeamResource> dependents = new TreeSet<>();
     private transient ResourceChange change;
     private transient BeamConfig root;
 
@@ -100,11 +99,12 @@ public abstract class BeamResource extends BeamValidatedConfig implements Compar
                         Class type = parameterType;
 
                         if (Collection.class.isAssignableFrom(parameterType)) {
-                            ParameterizedType pType = (ParameterizedType) types[0];
-                            type = (Class<?>) pType.getActualTypeArguments()[0];
+                            ParameterizedType paramType = (ParameterizedType) types[0];
+                            type = (Class<?>) paramType.getActualTypeArguments()[0];
                             BeamContextKey key = new BeamContextKey(config.getType());
                             if (hasKey(key) && !(getReferable(key) instanceof BeamList)) {
-                                throw new BeamException(String.format("Expect %s in %s to be a BeamList, found %s", key, getClass(), getReferable(key).getClass()));
+                                throw new BeamException(String.format("Expect %s in %s to be a BeamList, found %s",
+                                    key, getClass(), getReferable(key).getClass()));
                             } else {
                                 BeamList beamList = new BeamList();
                                 addReferable(key, beamList);
@@ -214,6 +214,7 @@ public abstract class BeamResource extends BeamValidatedConfig implements Compar
                 return String.format("%s::%s", resourceNamespace, resourceName);
             }
         } catch (Exception ex) {
+            throw new BeamException("Unable to determine credentials resource name.");
         }
 
         return c.getSimpleName();
@@ -269,7 +270,7 @@ public abstract class BeamResource extends BeamValidatedConfig implements Compar
 
     @SuppressWarnings("unchecked")
     public <T extends BeamResource> T findParent(Class<T> parentClass) {
-        for (BeamResource parent = this; (parent = parent.parent) != null;) {
+        for (BeamResource parent = this; (parent = parent.parent) != null; ) {
             if (parentClass.isInstance(parent)) {
                 return (T) parent;
             }

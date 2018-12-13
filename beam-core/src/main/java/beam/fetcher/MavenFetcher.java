@@ -37,8 +37,8 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.List;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -67,7 +67,6 @@ public class MavenFetcher implements PluginFetcher {
     public void fetch(BeamExtension fetcherContext) {
         try {
             BCL lang = fetcherContext.getLang();
-            String key = (String) fetcherContext.get("artifact").getValue();
             DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
             locator.addService(RepositoryConnectorFactory.class, BasicRepositoryConnectorFactory.class);
             locator.addService(TransporterFactory.class, FileTransporterFactory.class);
@@ -88,6 +87,7 @@ public class MavenFetcher implements PluginFetcher {
                 remoteRepositories.add(new RemoteRepository.Builder("central", "default", "http://repo1.maven.org/maven2/").build());
             }
 
+            String key = (String) fetcherContext.get("artifact").getValue();
             Artifact artifact = new DefaultArtifact(key);
 
             CollectRequest collectRequest = new CollectRequest(new Dependency(artifact, JavaScopes.COMPILE), remoteRepositories);
@@ -113,7 +113,7 @@ public class MavenFetcher implements PluginFetcher {
             Enumeration<JarEntry> entries = jarFile.entries();
             while (entries.hasMoreElements()) {
                 JarEntry entry = entries.nextElement();
-                if(entry.isDirectory() || !entry.getName().endsWith(".class")) {
+                if (entry.isDirectory() || !entry.getName().endsWith(".class")) {
                     continue;
                 }
 
