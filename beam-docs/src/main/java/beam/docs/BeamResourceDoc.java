@@ -3,6 +3,7 @@ package beam.docs;
 import com.sun.source.doctree.DocCommentTree;
 import com.sun.source.util.DocTrees;
 import jdk.javadoc.doclet.DocletEnvironment;
+import org.apache.commons.lang.StringUtils;
 
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
@@ -52,6 +53,21 @@ public class BeamResourceDoc {
         }
     }
 
+    public static String trim(String s) {
+        StringBuilder sb = new StringBuilder();
+
+        for (String line : s.split("\n")) {
+            if (line.startsWith(" ")) {
+                sb.append(line.substring(1));
+            } else {
+                sb.append(line);
+            }
+            sb.append("\n");
+        }
+
+        return sb.toString();
+    }
+
     public void generate() {
         if (commentTree == null) {
             return;
@@ -63,7 +79,7 @@ public class BeamResourceDoc {
         sb.append("\n");
         sb.append(repeat("=", resourceName.length()));
         sb.append("\n\n");
-        sb.append(commentTree);
+        sb.append(trim(commentTree.toString()));
         sb.append("\n\n");
 
         sb.append("Attributes\n");

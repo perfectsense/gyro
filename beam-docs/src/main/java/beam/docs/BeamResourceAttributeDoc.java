@@ -32,7 +32,7 @@ public class BeamResourceAttributeDoc {
 
         sb.append(attributeName);
         sb.append("\n         ");
-        sb.append(commentTree);
+        sb.append(BeamResourceDoc.trim(commentTree.toString()));
         sb.append("\n");
 
         return sb.toString();

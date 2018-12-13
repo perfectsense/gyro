@@ -10,6 +10,21 @@ import software.amazon.awssdk.services.ec2.model.RouteTable;
 
 import java.util.Set;
 
+/**
+ * Creates a VPC route table.
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: beam
+ *     aws::route-table route-table-example
+ *         vpc-id: $(aws::vpc vpc-example | vpc-id)
+ *
+ *         tags:
+ *             Name: route-table-example
+ *         end
+ *     end
+ */
 @ResourceName("route-table")
 public class RouteTableResource extends Ec2TaggableResource<RouteTable> {
 
@@ -33,6 +48,9 @@ public class RouteTableResource extends Ec2TaggableResource<RouteTable> {
         this.ownerId = ownerId;
     }
 
+    /**
+     * The id of the VPC to create a route table for.
+     */
     public String getVpcId() {
         return vpcId;
     }

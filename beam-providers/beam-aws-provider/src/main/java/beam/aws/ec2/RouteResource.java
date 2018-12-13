@@ -1,7 +1,6 @@
 package beam.aws.ec2;
 
 import beam.aws.AwsResource;
-import beam.core.BeamCredentials;
 import beam.core.BeamResource;
 import beam.core.diff.ResourceName;
 import software.amazon.awssdk.services.ec2.Ec2Client;
@@ -13,6 +12,20 @@ import software.amazon.awssdk.services.ec2.model.RouteTable;
 
 import java.util.Set;
 
+/**
+ * Add a route to a route table. `See Route Tables <https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Route_Tables.html/>`_.
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: beam
+ *
+ *     aws::route route-example
+ *         destination-cidr-block: 0.0.0.0/0
+ *         route-table-id: $(aws::route-table route-table-example | route-table-id)
+ *         gateway-id: $(aws::internet-gateway ig-example | internet-gateway-id)
+ *     end
+ */
 @ResourceName("route")
 public class RouteResource extends AwsResource {
 
@@ -29,6 +42,9 @@ public class RouteResource extends AwsResource {
     private String transitGatewayId;
     private String vpcPeeringConnectionId;
 
+    /**
+     * The ID of the route table to add this route to.
+     */
     public String getRouteTableId() {
         return routeTableId;
     }
@@ -37,6 +53,9 @@ public class RouteResource extends AwsResource {
         this.routeTableId = routeTableId;
     }
 
+    /**
+     * An IPv4 destination CIDR block.
+     */
     public String getDestinationCidrBlock() {
         return destinationCidrBlock;
     }
@@ -45,6 +64,9 @@ public class RouteResource extends AwsResource {
         this.destinationCidrBlock = destinationCidrBlock;
     }
 
+    /**
+     * An IPv6 destination CIDR block.
+     */
     public String getDestinationIpv6CidrBlock() {
         return destinationIpv6CidrBlock;
     }
@@ -61,6 +83,9 @@ public class RouteResource extends AwsResource {
         this.destinationPrefixListId = destinationPrefixListId;
     }
 
+    /**
+     * The ID of an egress only internet gateway. Only valid with IPv6 destination CIDR.
+     */
     public String getEgressOnlyInternetGatewayId() {
         return egressOnlyInternetGatewayId;
     }
@@ -69,6 +94,9 @@ public class RouteResource extends AwsResource {
         this.egressOnlyInternetGatewayId = egressOnlyInternetGatewayId;
     }
 
+    /**
+     * The ID of an internat gateway. Only valid with IPv4 destination CIDR.
+     */
     public String getGatewayId() {
         return gatewayId;
     }
@@ -77,6 +105,9 @@ public class RouteResource extends AwsResource {
         this.gatewayId = gatewayId;
     }
 
+    /**
+     * The ID of a NAT instance running in your VPC.
+     */
     public String getInstanceId() {
         return instanceId;
     }
@@ -93,6 +124,9 @@ public class RouteResource extends AwsResource {
         this.instanceOwnerId = instanceOwnerId;
     }
 
+    /**
+     * The ID of a NAT gateway. Only valid with IPv4 destination CIDR.
+     */
     public String getNatGatewayId() {
         return natGatewayId;
     }
@@ -101,6 +135,9 @@ public class RouteResource extends AwsResource {
         this.natGatewayId = natGatewayId;
     }
 
+    /**
+     * The ID of a network interface.
+     */
     public String getNetworkInterfaceId() {
         return networkInterfaceId;
     }
@@ -109,6 +146,9 @@ public class RouteResource extends AwsResource {
         this.networkInterfaceId = networkInterfaceId;
     }
 
+    /**
+     * The ID of a transit gateway.
+     */
     public String getTransitGatewayId() {
         return transitGatewayId;
     }
@@ -117,6 +157,9 @@ public class RouteResource extends AwsResource {
         this.transitGatewayId = transitGatewayId;
     }
 
+    /**
+     * The ID of a VPC peering connection.
+     */
     public String getVpcPeeringConnectionId() {
         return vpcPeeringConnectionId;
     }

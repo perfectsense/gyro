@@ -18,23 +18,54 @@ import software.amazon.awssdk.services.ec2.model.Subnet;
 
 import java.util.Set;
 
+/**
+ * Create a subnet in a VPC.
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: beam
+ *
+ *     aws::subnet example-subnet
+ *         vpc-id: $(aws::vpc example-vpc | vpc-id)
+ *         availability-zone: us-east-1a
+ *         cidr-block: 10.0.0.0/24
+ *     end
+ */
 @ResourceName("subnet")
 public class SubnetResource extends Ec2TaggableResource<Subnet> {
 
-    private String subnetId;
-    private String availabilityZone;
-    private String cidrBlock;
-    private Boolean mapPublicIpOnLaunch;
     private String vpcId;
+    private String cidrBlock;
+    private String availabilityZone;
+    private Boolean mapPublicIpOnLaunch;
+    private String subnetId;
 
-    public String getSubnetId() {
-        return subnetId;
+    /**
+     * The ID of the VPC to create the subnet in. (Required)
+     */
+    public String getVpcId() {
+        return vpcId;
     }
 
-    public void setSubnetId(String subnetId) {
-        this.subnetId = subnetId;
+    public void setVpcId(String vpcId) {
+        this.vpcId = vpcId;
     }
 
+    /**
+     * The IPv4 network range for the subnet, in CIDR notation. (Required)
+     */
+    public String getCidrBlock() {
+        return cidrBlock;
+    }
+
+    public void setCidrBlock(String cidrBlock) {
+        this.cidrBlock = cidrBlock;
+    }
+
+    /**
+     * The name of the availablity zone to create this subnet (ex. ``us-east-1a``).
+     */
     @ResourceDiffProperty
     public String getAvailabilityZone() {
         return availabilityZone;
@@ -44,14 +75,9 @@ public class SubnetResource extends Ec2TaggableResource<Subnet> {
         this.availabilityZone = availabilityZone;
     }
 
-    public String getCidrBlock() {
-        return cidrBlock;
-    }
-
-    public void setCidrBlock(String cidrBlock) {
-        this.cidrBlock = cidrBlock;
-    }
-
+    /**
+     * Assign a public IPv4 address to network interfaces created in this subnet.
+     */
     @ResourceDiffProperty(updatable = true)
     public Boolean getMapPublicIpOnLaunch() {
         return mapPublicIpOnLaunch;
@@ -61,12 +87,12 @@ public class SubnetResource extends Ec2TaggableResource<Subnet> {
         this.mapPublicIpOnLaunch = mapPublicIpOnLaunch;
     }
 
-    public String getVpcId() {
-        return vpcId;
+    public String getSubnetId() {
+        return subnetId;
     }
 
-    public void setVpcId(String vpcId) {
-        this.vpcId = vpcId;
+    public void setSubnetId(String subnetId) {
+        this.subnetId = subnetId;
     }
 
     public String getId() {

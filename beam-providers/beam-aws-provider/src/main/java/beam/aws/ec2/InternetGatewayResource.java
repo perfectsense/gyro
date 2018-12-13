@@ -10,6 +10,18 @@ import software.amazon.awssdk.services.ec2.model.InternetGatewayAttachment;
 
 import java.util.Set;
 
+/**
+ * Create an internet gateway.
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: beam
+ *
+ *     aws::internet-gateway example-gateway
+ *         vpc-id: $(aws::vpc vpc-example | vpc-id)
+ *     end
+ */
 @ResourceName("internet-gateway")
 public class InternetGatewayResource extends Ec2TaggableResource<InternetGateway> {
 
@@ -24,6 +36,9 @@ public class InternetGatewayResource extends Ec2TaggableResource<InternetGateway
         this.internetGatewayId = internetGatewayId;
     }
 
+    /**
+     * The ID of the VPC to create an internet gateway in.
+     */
     public String getVpcId() {
         return vpcId;
     }
