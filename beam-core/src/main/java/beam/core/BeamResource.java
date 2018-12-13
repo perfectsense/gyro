@@ -2,7 +2,7 @@ package beam.core;
 
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceName;
-import beam.lang.BCL;
+import beam.lang.BeamInterp;
 import beam.lang.BeamConfig;
 import beam.lang.BeamContext;
 import beam.lang.BeamContextKey;
@@ -79,7 +79,7 @@ public abstract class BeamResource extends BeamValidatedConfig implements Compar
     }
 
     @Override
-    public void applyExtension(BCL lang) {
+    public void applyExtension(BeamInterp lang) {
         List<BeamConfig> newConfigs = new ArrayList<>();
         Iterator<BeamConfig> iterator = getSubConfigs().iterator();
         while (iterator.hasNext()) {

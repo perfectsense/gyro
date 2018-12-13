@@ -5,7 +5,7 @@ import beam.core.BeamException;
 import beam.core.BeamObject;
 import beam.core.BeamResource;
 import beam.core.diff.ResourceName;
-import beam.lang.BCL;
+import beam.lang.BeamInterp;
 import beam.lang.BeamConfig;
 import beam.lang.BeamExtension;
 import com.psddev.dari.util.StringUtils;
@@ -66,7 +66,7 @@ public class MavenFetcher implements PluginFetcher {
     @Override
     public void fetch(BeamExtension fetcherContext) {
         try {
-            BCL lang = fetcherContext.getLang();
+            BeamInterp lang = fetcherContext.getLang();
             DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
             locator.addService(RepositoryConnectorFactory.class, BasicRepositoryConnectorFactory.class);
             locator.addService(TransporterFactory.class, FileTransporterFactory.class);

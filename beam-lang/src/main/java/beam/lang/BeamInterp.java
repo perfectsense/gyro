@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class BCL {
+public class BeamInterp {
 
     private final Map<String, Class<? extends BeamConfig>> extensions = new HashMap<>();
 

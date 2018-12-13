@@ -3,7 +3,7 @@ package beam.core;
 import beam.core.diff.ChangeType;
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiff;
-import beam.lang.BCL;
+import beam.lang.BeamInterp;
 import beam.lang.BeamConfig;
 import beam.lang.BeamContextKey;
 import beam.lang.BeamReferable;
@@ -22,7 +22,7 @@ public class BeamCore {
 
     private static final BeamValidationException validationException = new BeamValidationException("Invalid config!");
 
-    private final BCL lang = new BCL();
+    private final BeamInterp interp = new BeamInterp();
 
     public static BeamUI ui() {
         return UI.get();
@@ -41,21 +41,22 @@ public class BeamCore {
     }
 
     public BeamConfig processConfig(String path) throws IOException {
-        lang.init();
+        interp.init();
 
-        BeamConfig config = lang.parse(path);
-        lang.applyExtension(config);
-        lang.resolve(config);
+        BeamConfig config = interp.parse(path);
 
-        lang.addExtension("state", BeamLocalState.class);
-        lang.addExtension("provider", BeamProvider.class);
-        lang.applyExtension(config);
-        lang.resolve(config);
+        interp.applyExtension(config);
+        interp.resolve(config);
 
-        lang.applyExtension(config);
-        lang.resolve(config);
+        interp.addExtension("state", BeamLocalState.class);
+        interp.addExtension("provider", BeamProvider.class);
+        interp.applyExtension(config);
+        interp.resolve(config);
 
-        lang.getDependencies(config);
+        interp.applyExtension(config);
+        interp.resolve(config);
+
+        interp.getDependencies(config);
         return config;
     }
 

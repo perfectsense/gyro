@@ -77,7 +77,7 @@ public class BeamList extends BeamValue implements BeamCollection {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         for (BeamScalar beamScalar : getList()) {
-            sb.append(BCL.ui().dump("- "));
+            sb.append(BeamInterp.ui().dump("- "));
             sb.append(beamScalar);
             sb.append("\n");
         }

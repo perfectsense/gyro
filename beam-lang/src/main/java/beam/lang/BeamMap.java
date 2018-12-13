@@ -77,18 +77,18 @@ public class BeamMap extends BeamValue implements BeamCollection {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         for (String key : getMap().keySet()) {
-            sb.append(BCL.ui().dump(key));
+            sb.append(BeamInterp.ui().dump(key));
             sb.append(":");
             BeamValue beamValue = getMap().get(key);
 
             if (beamValue instanceof BeamCollection) {
                 sb.append("\n");
 
-                BCL.ui().indent();
+                BeamInterp.ui().indent();
                 sb.append(beamValue);
-                BCL.ui().unindent();
+                BeamInterp.ui().unindent();
 
-                sb.append(BCL.ui().dump("end\n"));
+                sb.append(BeamInterp.ui().dump("end\n"));
             } else {
                 sb.append(" ");
                 sb.append(beamValue);

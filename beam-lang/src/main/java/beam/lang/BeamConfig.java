@@ -170,7 +170,7 @@ public class BeamConfig implements BeamReferable, BeamCollection, BeamContext {
         return getReferable(new BeamContextKey(key));
     }
 
-    public void applyExtension(BCL lang) {
+    public void applyExtension(BeamInterp lang) {
         List<BeamConfig> newConfigs = new ArrayList<>();
         Iterator<BeamConfig> iterator = getSubConfigs().iterator();
         while (iterator.hasNext()) {
@@ -214,7 +214,7 @@ public class BeamConfig implements BeamReferable, BeamCollection, BeamContext {
                 continue;
             }
 
-            sb.append(BCL.ui().dump(key.toString()));
+            sb.append(BeamInterp.ui().dump(key.toString()));
             if (!(referable instanceof BeamConfig)) {
                 sb.append(":");
             }
@@ -231,11 +231,11 @@ public class BeamConfig implements BeamReferable, BeamCollection, BeamContext {
                 } else {
                     sb.append("\n");
 
-                    BCL.ui().indent();
+                    BeamInterp.ui().indent();
                     sb.append(referable);
-                    BCL.ui().unindent();
+                    BeamInterp.ui().unindent();
 
-                    sb.append(BCL.ui().dump("end\n"));
+                    sb.append(BeamInterp.ui().dump("end\n"));
                 }
             } else {
                 sb.append(" ");

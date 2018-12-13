@@ -5,7 +5,7 @@ public class BeamInlineList extends BeamList {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(BCL.ui().dump("["));
+        sb.append(BeamInterp.ui().dump("["));
         for (BeamScalar beamScalar : getList()) {
             sb.append(beamScalar);
             sb.append(", ");

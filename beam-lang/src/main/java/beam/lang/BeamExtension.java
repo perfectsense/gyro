@@ -2,13 +2,13 @@ package beam.lang;
 
 public class BeamExtension extends BeamConfig {
 
-    private BCL lang;
+    private BeamInterp lang;
 
-    public BCL getLang() {
+    public BeamInterp getLang() {
         return lang;
     }
 
-    public void setLang(BCL lang) {
+    public void setLang(BeamInterp lang) {
         this.lang = lang;
     }
 }
