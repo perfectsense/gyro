@@ -38,6 +38,7 @@ public class ImportExtension extends BeamExtension {
                 imported = true;
                 progress = true;
             } catch (IOException ioe) {
+                throw new BeamLangException("Unable to import '" + path + "'.");
             }
         }
 

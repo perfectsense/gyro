@@ -2,9 +2,9 @@ package beam.lang;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.HashSet;
 
 public class BeamReference extends BeamLiteral {
 
@@ -87,7 +87,8 @@ public class BeamReference extends BeamLiteral {
                 if (referable instanceof BeamContext) {
                     context = (BeamContext) referable;
                 } else {
-                    throw new BeamLangException(String.format("Unable to resolve %s, expecting %s to be an BeamContext found %s", this, scope, referable.getClass()));
+                    throw new BeamLangException(String.format("Unable to resolve %s, expecting %s to be an BeamContext found %s",
+                        this, scope, referable.getClass()));
                 }
             }
         }
@@ -135,7 +136,8 @@ public class BeamReference extends BeamLiteral {
                 if (resolvable instanceof BeamConfig) {
                     config = (BeamConfig) resolvable;
                 } else {
-                    throw new BeamLangException(String.format("Unable to resolve %s, expecting %s as BeamConfig found %s", this, scope, resolvable.getClass()));
+                    throw new BeamLangException(String.format("Unable to resolve %s, expecting %s as BeamConfig found %s",
+                        this, scope, resolvable.getClass()));
                 }
             }
         }
@@ -179,7 +181,7 @@ public class BeamReference extends BeamLiteral {
             return false;
         }
 
-        for (int i = 0; i < getScopeChain().size(); i ++) {
+        for (int i = 0; i < getScopeChain().size(); i++) {
             if (!getScopeChain().get(i).equals(otherReference.getScopeChain().get(i))) {
                 return false;
             }
@@ -189,7 +191,7 @@ public class BeamReference extends BeamLiteral {
             return false;
         }
 
-        for (int i = 0; i < getReferenceChain().size(); i ++) {
+        for (int i = 0; i < getReferenceChain().size(); i++) {
             if (!getReferenceChain().get(i).equals(otherReference.getReferenceChain().get(i))) {
                 return false;
             }

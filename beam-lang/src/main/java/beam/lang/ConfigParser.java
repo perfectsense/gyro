@@ -23,10 +23,17 @@ public class ConfigParser {
         }
     }
 
+    public BeamConfig parse(BeamParser.ConfigContext ctx) {
+        BeamConfig config = init();
+        parse(ctx, config);
+        customize(config);
+        return config;
+    }
+
     public final void parseBody(BeamParser.ConfigBodyContext configBodyContext, BeamConfig config) {
         if (configBodyContext != null) {
             if (configBodyContext.keyValuePair() != null) {
-                for (BeamParser.KeyValuePairContext pairContext: configBodyContext.keyValuePair()) {
+                for (BeamParser.KeyValuePairContext pairContext : configBodyContext.keyValuePair()) {
                     BeamValue beamValue = BeamListener.parseValue(pairContext.value());
                     beamValue.setLine(pairContext.getStart().getLine());
                     config.addReferable(new BeamContextKey(pairContext.key().getText()), beamValue);
@@ -44,12 +51,5 @@ public class ConfigParser {
     }
 
     public void customize(BeamConfig config) {
-    }
-
-    public BeamConfig parse(BeamParser.ConfigContext ctx) {
-        BeamConfig config = init();
-        parse(ctx, config);
-        customize(config);
-        return config;
     }
 }
