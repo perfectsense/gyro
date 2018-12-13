@@ -24,6 +24,25 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Creates an S3 bucket with enabled/disabled object lock.
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: beam
+ *
+ *     aws::bucket bucket
+ *         name: bucket-example
+ *         enable-object-lock: true
+ *         tags:
+ *             Name: bucket-example-update
+ *         end
+ *         enable-accelerate-config: true
+ *         enable-version: true
+ *         enable-pay: false
+ *     end
+ */
 @ResourceName("bucket")
 public class BucketResource extends AwsResource {
 
@@ -42,10 +61,15 @@ public class BucketResource extends AwsResource {
         this.name = name;
     }
 
+    /**
+     * Enable object lock property for the bucket which prevents objects from being deleted. Can only be set during creation. See `S3 Object Lock <https://docs.aws.amazon.com/AmazonS3/latest/dev/object-lock.html/>`_.
+     */
+    @ResourceDiffProperty
     public Boolean getEnableObjectLock() {
         if (enableObjectLock == null) {
             enableObjectLock = false;
         }
+
         return enableObjectLock;
     }
 
@@ -53,11 +77,12 @@ public class BucketResource extends AwsResource {
         this.enableObjectLock = enableObjectLock;
     }
 
-    @ResourceDiffProperty(updatable = true)
+    @ResourceDiffProperty(updatable = true, nullable = true)
     public Map<String, String> getTags() {
         if (tags == null) {
             tags = new CompactMap<>();
         }
+
         return tags;
     }
 
@@ -65,11 +90,15 @@ public class BucketResource extends AwsResource {
         this.tags = tags;
     }
 
+    /**
+     * Enable fast easy and secure transfers of files to and from the bucket. See `S3 Transfer Acceleration <https://docs.aws.amazon.com/AmazonS3/latest/dev/transfer-acceleration.html/>`_.
+     */
     @ResourceDiffProperty(updatable = true)
     public Boolean getEnableAccelerateConfig() {
         if (enableAccelerateConfig == null) {
             enableAccelerateConfig = false;
         }
+
         return enableAccelerateConfig;
     }
 
@@ -77,11 +106,15 @@ public class BucketResource extends AwsResource {
         this.enableAccelerateConfig = enableAccelerateConfig;
     }
 
+    /**
+     * Enable keeping multiple versions of an object in the same bucket. See `S3 Versioning <https://docs.aws.amazon.com/AmazonS3/latest/user-guide/enable-versioning.html/>`_.
+     */
     @ResourceDiffProperty(updatable = true)
     public Boolean getEnableVersion() {
         if (enableVersion == null) {
             enableVersion = false;
         }
+
         return enableVersion;
     }
 
@@ -89,11 +122,15 @@ public class BucketResource extends AwsResource {
         this.enableVersion = enableVersion;
     }
 
+    /**
+     * Enable the requester to pay for requests to the bucket than the owner. See `S3 Requester Pays Bucket <https://docs.aws.amazon.com/AmazonS3/latest/dev/RequesterPaysBuckets.html/>`_.
+     */
     @ResourceDiffProperty(updatable = true)
     public Boolean getEnablePay() {
         if (enablePay == null) {
             enablePay = false;
         }
+
         return enablePay;
     }
 
@@ -119,7 +156,6 @@ public class BucketResource extends AwsResource {
             loadAccelerateConfig(client);
             loadEnableVersion(client);
             loadEnablePay(client);
-
         } else {
             throw new BeamException(MessageFormat.format("Bucket - {0} not found.", getName()));
         }
@@ -226,17 +262,18 @@ public class BucketResource extends AwsResource {
                 r -> r.bucket(getName())
                     .tagging(
                         t -> t.tagSet(tagSet)
+                            .build()
                     )
             );
         }
     }
 
     private void loadAccelerateConfig(S3Client client) {
-        GetBucketAccelerateConfigurationResponse bucketAccelerateConfigurationResponse = client.getBucketAccelerateConfiguration(
-            r -> r.bucket(getName())
+        GetBucketAccelerateConfigurationResponse response = client.getBucketAccelerateConfiguration(
+            r -> r.bucket(getName()).build()
         );
 
-        setEnableAccelerateConfig(bucketAccelerateConfigurationResponse.status().equals(BucketAccelerateStatus.ENABLED));
+        setEnableAccelerateConfig(response.status() != null && response.status().equals(BucketAccelerateStatus.ENABLED));
     }
 
     private void saveAccelerateConfig(S3Client client) {
@@ -249,11 +286,10 @@ public class BucketResource extends AwsResource {
     }
 
     private void loadEnableVersion(S3Client client) {
-        GetBucketVersioningResponse bucketVersioningResponse = client.getBucketVersioning(
+        GetBucketVersioningResponse response = client.getBucketVersioning(
             r -> r.bucket(getName())
         );
-
-        setEnableVersion(bucketVersioningResponse.status().equals(BucketVersioningStatus.ENABLED));
+        setEnableVersion(response.status() != null && response.status().equals(BucketVersioningStatus.ENABLED));
     }
 
     private void saveEnableVersion(S3Client client) {
@@ -264,17 +300,14 @@ public class BucketResource extends AwsResource {
                 )
                 .build()
         );
-
-        // Todo
-        //mfa delete
     }
 
     private void loadEnablePay(S3Client client) {
-        GetBucketRequestPaymentResponse requestPaymentResponse = client.getBucketRequestPayment(
-            r -> r.bucket(getName())
+        GetBucketRequestPaymentResponse response = client.getBucketRequestPayment(
+            r -> r.bucket(getName()).build()
         );
 
-        setEnablePay(requestPaymentResponse.payer().equals(Payer.REQUESTER));
+        setEnablePay(response.payer().equals(Payer.REQUESTER));
     }
 
     private void saveEnablePay(S3Client client) {
@@ -283,6 +316,7 @@ public class BucketResource extends AwsResource {
                 .requestPaymentConfiguration(
                     p -> p.payer(getEnablePay() ? Payer.REQUESTER : Payer.BUCKET_OWNER)
                 )
+            .build()
         );
     }
 }
