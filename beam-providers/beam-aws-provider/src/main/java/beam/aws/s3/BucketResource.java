@@ -28,15 +28,10 @@ import java.util.Set;
 public class BucketResource extends AwsResource {
 
     private String name;
-
     private Boolean enableObjectLock;
-
     private Map<String, String> tags;
-
     private Boolean enableAccelerateConfig;
-
     private Boolean enableVersion;
-
     private Boolean enablePay;
 
     public String getName() {
@@ -110,12 +105,10 @@ public class BucketResource extends AwsResource {
     public void refresh() {
         S3Client client = createClient(S3Client.class);
 
-        ListBucketsResponse listBucketsResponse = client.listBuckets(
-                lbr -> lbr.build()
-        );
+        ListBucketsResponse listBucketsResponse = client.listBuckets();
 
         Bucket bucket = null;
-        for(Bucket bucketObj : listBucketsResponse.buckets()) {
+        for (Bucket bucketObj : listBucketsResponse.buckets()) {
             if (bucketObj.name().equals(getName())) {
                 bucket = bucketObj;
             }
@@ -123,11 +116,8 @@ public class BucketResource extends AwsResource {
 
         if (bucket != null) {
             loadTags(client);
-
             loadAccelerateConfig(client);
-
             loadEnableVersion(client);
-
             loadEnablePay(client);
 
         } else {
@@ -139,9 +129,8 @@ public class BucketResource extends AwsResource {
     public void create() {
         S3Client client = createClient(S3Client.class);
         client.createBucket(
-                cb->cb.bucket(getName())
-                        .objectLockEnabledForBucket(getEnableObjectLock())
-                        .build()
+            r -> r.bucket(getName())
+                .objectLockEnabledForBucket(getEnableObjectLock())
         );
 
         if (!getTags().isEmpty()) {
@@ -156,7 +145,7 @@ public class BucketResource extends AwsResource {
             saveEnableVersion(client);
         }
 
-        if(getEnablePay()) {
+        if (getEnablePay()) {
             saveEnablePay(client);
         }
     }
@@ -177,7 +166,7 @@ public class BucketResource extends AwsResource {
             saveEnableVersion(client);
         }
 
-        if(changedProperties.contains("enablePay")) {
+        if (changedProperties.contains("enablePay")) {
             saveEnablePay(client);
         }
     }
@@ -186,8 +175,7 @@ public class BucketResource extends AwsResource {
     public void delete() {
         S3Client client = createClient(S3Client.class);
         client.deleteBucket(
-                db->db.bucket(getName())
-                        .build()
+            r -> r.bucket(getName())
         );
     }
 
@@ -207,11 +195,11 @@ public class BucketResource extends AwsResource {
     private void loadTags(S3Client client) {
         try {
             GetBucketTaggingResponse bucketTagging = client.getBucketTagging(
-                    gbt -> gbt.bucket(getName())
+                r -> r.bucket(getName())
             );
 
-            for(Tag tag : bucketTagging.tagSet()) {
-                getTags().put(tag.key(),tag.value());
+            for (Tag tag : bucketTagging.tagSet()) {
+                getTags().put(tag.key(), tag.value());
             }
 
         } catch (S3Exception s3ex) {
@@ -226,8 +214,7 @@ public class BucketResource extends AwsResource {
     private void saveTags(S3Client client) {
         if (getTags().isEmpty()) {
             client.deleteBucketTagging(
-                    dbt->dbt.bucket(getName())
-                            .build()
+                r -> r.bucket(getName())
             );
         } else {
             Set<Tag> tagSet = new HashSet<>();
@@ -236,19 +223,17 @@ public class BucketResource extends AwsResource {
             }
 
             client.putBucketTagging(
-                    pbt -> pbt.bucket(getName())
-                            .tagging(
-                                    t -> t.tagSet(tagSet)
-                            )
-                            .build()
+                r -> r.bucket(getName())
+                    .tagging(
+                        t -> t.tagSet(tagSet)
+                    )
             );
         }
     }
 
     private void loadAccelerateConfig(S3Client client) {
         GetBucketAccelerateConfigurationResponse bucketAccelerateConfigurationResponse = client.getBucketAccelerateConfiguration(
-                bac -> bac.bucket(getName())
-                        .build()
+            r -> r.bucket(getName())
         );
 
         setEnableAccelerateConfig(bucketAccelerateConfigurationResponse.status().equals(BucketAccelerateStatus.ENABLED));
@@ -256,26 +241,16 @@ public class BucketResource extends AwsResource {
 
     private void saveAccelerateConfig(S3Client client) {
         client.putBucketAccelerateConfiguration(
-                bac->bac.bucket(getName())
-                        .accelerateConfiguration(
-                                ac->ac.status(getAccelerateStatus())
-                        )
-                        .build()
+            r -> r.bucket(getName())
+                .accelerateConfiguration(
+                    ac -> ac.status(getEnableAccelerateConfig() ? BucketAccelerateStatus.ENABLED : BucketAccelerateStatus.SUSPENDED)
+                )
         );
-    }
-
-    private BucketAccelerateStatus getAccelerateStatus() {
-        if (getEnableAccelerateConfig()) {
-            return BucketAccelerateStatus.ENABLED;
-        } else {
-            return BucketAccelerateStatus.SUSPENDED;
-        }
     }
 
     private void loadEnableVersion(S3Client client) {
         GetBucketVersioningResponse bucketVersioningResponse = client.getBucketVersioning(
-                bv -> bv.bucket(getName())
-                        .build()
+            r -> r.bucket(getName())
         );
 
         setEnableVersion(bucketVersioningResponse.status().equals(BucketVersioningStatus.ENABLED));
@@ -283,29 +258,20 @@ public class BucketResource extends AwsResource {
 
     private void saveEnableVersion(S3Client client) {
         client.putBucketVersioning(
-                bv->bv.bucket(getName())
-                        .versioningConfiguration(
-                                vc->vc.status(getVersionStatus())
-                        )
-                        .build()
+            r -> r.bucket(getName())
+                .versioningConfiguration(
+                    v -> v.status(getEnableVersion() ? BucketVersioningStatus.ENABLED : BucketVersioningStatus.SUSPENDED)
+                )
+                .build()
         );
 
         // Todo
         //mfa delete
     }
 
-    private BucketVersioningStatus getVersionStatus() {
-        if (getEnableVersion()) {
-            return BucketVersioningStatus.ENABLED;
-        } else {
-            return BucketVersioningStatus.SUSPENDED;
-        }
-    }
-
     private void loadEnablePay(S3Client client) {
         GetBucketRequestPaymentResponse requestPaymentResponse = client.getBucketRequestPayment(
-                brp -> brp.bucket(getName())
-                        .build()
+            r -> r.bucket(getName())
         );
 
         setEnablePay(requestPaymentResponse.payer().equals(Payer.REQUESTER));
@@ -313,19 +279,10 @@ public class BucketResource extends AwsResource {
 
     private void saveEnablePay(S3Client client) {
         client.putBucketRequestPayment(
-                brp->brp.bucket(getName())
-                        .requestPaymentConfiguration(
-                                pc->pc.payer(getPaymentStatus())
-                        )
-                        .build()
+            r -> r.bucket(getName())
+                .requestPaymentConfiguration(
+                    p -> p.payer(getEnablePay() ? Payer.REQUESTER : Payer.BUCKET_OWNER)
+                )
         );
-    }
-
-    private Payer getPaymentStatus() {
-        if (getEnablePay()) {
-            return Payer.REQUESTER;
-        } else {
-            return Payer.BUCKET_OWNER;
-        }
     }
 }

@@ -12,7 +12,7 @@ aws::credentials default
     region: us-east-1
 end
 
-aws:bucket bucket
+aws::bucket bucket
     name: aaaaaa-bucket-example
     enable-object-lock: true
     tags:
