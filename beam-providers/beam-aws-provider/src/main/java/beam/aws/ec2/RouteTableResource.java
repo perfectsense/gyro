@@ -117,7 +117,7 @@ public class RouteTableResource extends Ec2TaggableResource<RouteTable> {
         setOwnerId(response.routeTable().ownerId());
 
         for (String subnetId : getSubnetIds()) {
-            client.associateRouteTable(r -> r.routeTableId(getRouteTableId()).subnetId(subnetId).build());
+            client.associateRouteTable(r -> r.routeTableId(getRouteTableId()).subnetId(subnetId));
         }
     }
 
@@ -129,6 +129,16 @@ public class RouteTableResource extends Ec2TaggableResource<RouteTable> {
     @Override
     public void delete() {
         Ec2Client client = createClient(Ec2Client.class);
+
+        DescribeRouteTablesResponse response = client.describeRouteTables(r -> r.filters(
+            Filter.builder().name("route-table-id").values(getRouteTableId()).build()
+        ));
+
+        for (RouteTable routeTable : response.routeTables()) {
+            for (RouteTableAssociation rta : routeTable.associations()) {
+                client.disassociateRouteTable(r -> r.associationId(rta.routeTableAssociationId()));
+            }
+        }
 
         client.deleteRouteTable(r -> r.routeTableId(getRouteTableId()));
     }
