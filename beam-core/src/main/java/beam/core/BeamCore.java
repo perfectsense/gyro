@@ -10,11 +10,11 @@ import beam.lang.BeamReferable;
 import com.psddev.dari.util.ThreadLocalStack;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.HashSet;
 
 public class BeamCore {
 
@@ -199,8 +199,7 @@ public class BeamCore {
     public void execute(ResourceChange change, BeamConfig state, BeamState stateBackend, String path) {
         ChangeType type = change.getType();
 
-        if (type == ChangeType.KEEP || type == ChangeType.REPLACE ||
-                change.isChanged()) {
+        if (type == ChangeType.KEEP || type == ChangeType.REPLACE || change.isChanged()) {
             return;
         }
 

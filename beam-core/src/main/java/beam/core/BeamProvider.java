@@ -1,8 +1,8 @@
 package beam.core;
 
 import beam.fetcher.PluginFetcher;
-import beam.lang.*;
-
+import beam.lang.BeamContext;
+import beam.lang.BeamExtension;
 import org.reflections.Reflections;
 
 public class BeamProvider extends BeamExtension {
