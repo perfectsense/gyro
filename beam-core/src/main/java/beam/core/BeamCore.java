@@ -42,22 +42,10 @@ public class BeamCore {
 
     public BeamConfig processConfig(String path) throws IOException {
         interp.init();
-
-        BeamConfig config = interp.parse(path);
-
-        interp.applyExtension(config);
-        interp.resolve(config);
-
         interp.addExtension("state", BeamLocalState.class);
         interp.addExtension("provider", BeamProvider.class);
-        interp.applyExtension(config);
-        interp.resolve(config);
 
-        interp.applyExtension(config);
-        interp.resolve(config);
-
-        interp.getDependencies(config);
-        return config;
+        return interp.parse(path);
     }
 
     public BeamState getStateBackend(BeamConfig config) {

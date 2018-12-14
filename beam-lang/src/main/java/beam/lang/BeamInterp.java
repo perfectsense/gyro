@@ -8,10 +8,15 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 public class BeamInterp {
+
+    private BeamConfig root;
 
     private final Map<String, Class<? extends BeamConfig>> extensions = new HashMap<>();
 
@@ -33,6 +38,30 @@ public class BeamInterp {
         return extensions.get(key);
     }
 
+    public BeamConfig createConfig(String extensionType) {
+        Class klass = extensions.get(extensionType);
+
+        if (klass != null) {
+            try {
+                BeamConfig config = (BeamConfig) klass.newInstance();
+                config.setType(extensionType);
+
+                if (config instanceof BeamExtension) {
+                    ((BeamExtension) config).setInterp(this);
+                }
+
+                return config;
+            } catch (InstantiationException | IllegalAccessException ie) {
+                throw new BeamLangException("Unable to instantiate " + klass.getClass().getSimpleName());
+            }
+        }
+
+        BeamConfig config = new BeamConfig();
+        config.setType(extensionType);
+
+        return config;
+    }
+
     public void init() {
         extensions.clear();
     }
@@ -45,24 +74,56 @@ public class BeamInterp {
         BeamParser.BeamRootContext context = parser.beamRoot();
 
         File configFile = new File(filename);
-        BeamListener listener = new BeamListener(configFile.getCanonicalPath());
+        BeamListener listener = new BeamListener(this, configFile.getCanonicalPath());
         ParseTreeWalker.DEFAULT.walk(listener, context);
 
-        return listener.getConfig();
+        root = listener.getConfig();
+        resolve(root);
+        applyExtensions(root);
+        resolve(root);
+        calculateDependencies(root);
+
+        return root;
     }
 
-    public void resolve(BeamConfig config) {
+    private void resolve(BeamConfig config) {
         boolean progress = true;
         while (progress) {
             progress = config.resolve(config);
         }
     }
 
-    public void applyExtension(BeamConfig config) {
-        config.applyExtension(this);
+    private void applyExtensions(BeamConfig parent) {
+        List<BeamConfig> appliedConfigs = new ArrayList<>();
+
+        Iterator<BeamConfig> iterator = parent.getSubConfigs().iterator();
+        while (iterator.hasNext()) {
+            BeamConfig child = iterator.next();
+
+            if (child.getClass() != getExtension(child.getType())) {
+                // Replace `child` config block with the equivalent extension
+                // config block.
+
+                BeamConfig config = createConfig(child.getType());
+                config.setCtx(child.getCtx());
+                config.setType(child.getType());
+                config.setParams(child.getParams());
+                config.setSubConfigs(child.getSubConfigs());
+                config.importContext(child);
+                config.applyExtension(this);
+
+                appliedConfigs.add(config);
+
+                iterator.remove();
+            } else {
+                child.applyExtension(this);
+            }
+        }
+
+        parent.getSubConfigs().addAll(appliedConfigs);
     }
 
-    public void getDependencies(BeamConfig config) {
+    private void calculateDependencies(BeamConfig config) {
         config.getDependencies(config);
     }
 }

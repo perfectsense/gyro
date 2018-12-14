@@ -135,7 +135,7 @@ public abstract class BeamResource extends BeamValidatedConfig implements Compar
                     newConfigs.add(newConfig);
                     newConfig.applyExtension(lang);
                     if (newConfig instanceof BeamExtension) {
-                        ((BeamExtension) newConfig).setLang(lang);
+                        ((BeamExtension) newConfig).setInterp(lang);
                     }
 
                     iterator.remove();

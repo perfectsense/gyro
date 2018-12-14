@@ -32,8 +32,8 @@ public class ImportExtension extends BeamExtension {
 
         if (!imported) {
             try {
-                BeamConfig importConfig = getLang().parse(path);
-                importConfig.applyExtension(getLang());
+                BeamConfig importConfig = getInterp().parse(path);
+                importConfig.applyExtension(getInterp());
                 root.addReferable(new BeamContextKey(id), importConfig);
                 imported = true;
                 progress = true;

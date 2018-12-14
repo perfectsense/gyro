@@ -10,8 +10,10 @@ public class BeamListener extends BeamParserBaseListener {
     private String configName;
     private BeamConfig parent;
     private BeamConfig config;
+    private BeamInterp interp;
 
-    public BeamListener(String configName) {
+    public BeamListener(BeamInterp interp, String configName) {
+        this.interp = interp;
         this.configName = configName;
     }
 
@@ -40,10 +42,9 @@ public class BeamListener extends BeamParserBaseListener {
     @Override
     public void enterBlockBody(BeamParser.BlockBodyContext blockBody) {
         parent = config;
-        config = new BeamConfig();
 
         String type = blockBody.blockType().getText();
-        config.setType(type);
+        config = interp.createConfig(type);
         config.setCtx(blockBody);
 
         for (BeamParser.ParamContext paramContext : blockBody.param()) {

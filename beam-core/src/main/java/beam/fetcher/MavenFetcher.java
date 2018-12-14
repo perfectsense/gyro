@@ -66,7 +66,7 @@ public class MavenFetcher implements PluginFetcher {
     @Override
     public void fetch(BeamExtension fetcherContext) {
         try {
-            BeamInterp lang = fetcherContext.getLang();
+            BeamInterp lang = fetcherContext.getInterp();
             DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
             locator.addService(RepositoryConnectorFactory.class, BasicRepositoryConnectorFactory.class);
             locator.addService(TransporterFactory.class, FileTransporterFactory.class);

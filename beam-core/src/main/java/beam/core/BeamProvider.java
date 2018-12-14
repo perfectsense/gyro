@@ -14,8 +14,10 @@ public class BeamProvider extends BeamExtension {
 
     @Override
     protected boolean resolve(BeamContext parent, BeamContext root) {
+        boolean progress = super.resolve(parent, root);
         fetch();
-        return super.resolve(parent, root);
+
+        return progress;
     }
 
     private void fetch() {
@@ -34,6 +36,7 @@ public class BeamProvider extends BeamExtension {
         }
 
         if (!match) {
+            new Exception().printStackTrace();
             throw new BeamException(String.format("Unable to find fetcher matching:\n %s", this));
         }
     }

@@ -2,13 +2,14 @@ package beam.lang;
 
 public class BeamExtension extends BeamConfig {
 
-    private BeamInterp lang;
+    private BeamInterp interp;
 
-    public BeamInterp getLang() {
-        return lang;
+    public BeamInterp getInterp() {
+        return interp;
     }
 
-    public void setLang(BeamInterp lang) {
-        this.lang = lang;
+    public void setInterp(BeamInterp interp) {
+        this.interp = interp;
     }
+
 }

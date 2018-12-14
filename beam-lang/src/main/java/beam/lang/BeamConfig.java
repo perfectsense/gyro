@@ -171,38 +171,6 @@ public class BeamConfig implements BeamReferable, BeamCollection, BeamContext {
     }
 
     public void applyExtension(BeamInterp lang) {
-        List<BeamConfig> newConfigs = new ArrayList<>();
-        Iterator<BeamConfig> iterator = getSubConfigs().iterator();
-        while (iterator.hasNext()) {
-            BeamConfig config = iterator.next();
-            if (lang.hasExtension(config.getType())) {
-                Class<? extends BeamConfig> extension = lang.getExtension(config.getType());
-                if (config.getClass() != extension) {
-                    try {
-                        BeamConfig newConfig = extension.newInstance();
-                        newConfig.setCtx(config.getCtx());
-                        newConfig.setType(config.getType());
-                        newConfig.importContext(config);
-                        newConfig.setParams(config.getParams());
-                        newConfig.setSubConfigs(config.getSubConfigs());
-                        newConfigs.add(newConfig);
-                        newConfig.applyExtension(lang);
-                        if (newConfig instanceof BeamExtension) {
-                            ((BeamExtension) newConfig).setLang(lang);
-                        }
-
-                        iterator.remove();
-
-                    } catch (InstantiationException | IllegalAccessException ie) {
-                        throw new BeamLangException("Unable to instantiate " + extension.getClass().getSimpleName());
-                    }
-                } else {
-                    config.applyExtension(lang);
-                }
-            }
-        }
-
-        getSubConfigs().addAll(newConfigs);
     }
 
     @Override
