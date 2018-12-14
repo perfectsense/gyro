@@ -3,7 +3,7 @@ package beam.core;
 import beam.lang.BeamBlock;
 import beam.lang.BeamContextKey;
 import beam.lang.BeamResolvable;
-import beam.lang.BeamValue;
+import beam.lang.types.BeamValue;
 import com.google.common.base.CaseFormat;
 import org.apache.commons.beanutils.BeanUtils;
 

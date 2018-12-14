@@ -6,11 +6,11 @@ import beam.lang.BeamBlock;
 import beam.lang.BeamContext;
 import beam.lang.BeamContextKey;
 import beam.lang.BeamInterp;
-import beam.lang.BeamList;
+import beam.lang.types.BeamList;
 import beam.lang.BeamLiteral;
 import beam.lang.BeamReference;
 import beam.lang.BeamResolvable;
-import beam.lang.BeamScalar;
+import beam.lang.types.BeamScalar;
 import com.google.common.base.CaseFormat;
 
 import java.beans.PropertyDescriptor;

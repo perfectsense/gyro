@@ -1,4 +1,10 @@
-package beam.lang;
+package beam.lang.types;
+
+import beam.lang.BeamBlock;
+import beam.lang.BeamContext;
+import beam.lang.BeamLangException;
+import beam.lang.BeamLiteral;
+import beam.lang.BeamReference;
 
 import java.util.ArrayList;
 import java.util.HashSet;

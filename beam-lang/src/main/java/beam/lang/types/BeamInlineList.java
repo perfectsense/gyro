@@ -1,4 +1,6 @@
-package beam.lang;
+package beam.lang.types;
+
+import beam.lang.BeamInterp;
 
 public class BeamInlineList extends BeamList {
 

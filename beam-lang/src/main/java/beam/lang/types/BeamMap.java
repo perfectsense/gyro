@@ -1,4 +1,12 @@
-package beam.lang;
+package beam.lang.types;
+
+import beam.lang.BeamBlock;
+import beam.lang.BeamCollection;
+import beam.lang.BeamContext;
+import beam.lang.BeamInterp;
+import beam.lang.BeamReferable;
+import beam.lang.BeamReference;
+import beam.lang.BeamResolvable;
 
 import java.util.HashMap;
 import java.util.HashSet;

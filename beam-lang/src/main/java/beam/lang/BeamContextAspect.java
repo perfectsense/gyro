@@ -1,5 +1,7 @@
 package beam.lang;
 
+import beam.lang.types.BeamList;
+import beam.lang.types.BeamScalar;
 import com.google.common.base.CaseFormat;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;

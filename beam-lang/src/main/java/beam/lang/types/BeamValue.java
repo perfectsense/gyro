@@ -1,4 +1,6 @@
-package beam.lang;
+package beam.lang.types;
+
+import beam.lang.BeamReferable;
 
 public abstract class BeamValue implements BeamReferable {
 

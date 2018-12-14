@@ -1,5 +1,8 @@
 package beam.lang;
 
+import beam.lang.types.BeamInlineList;
+import beam.lang.types.BeamList;
+import beam.lang.types.BeamScalar;
 import beam.parser.antlr4.BeamParser;
 
 import java.util.ArrayList;

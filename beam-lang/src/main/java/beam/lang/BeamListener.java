@@ -1,5 +1,10 @@
 package beam.lang;
 
+import beam.lang.types.BeamInlineList;
+import beam.lang.types.BeamList;
+import beam.lang.types.BeamMap;
+import beam.lang.types.BeamScalar;
+import beam.lang.types.BeamValue;
 import beam.parser.antlr4.BeamParser;
 import beam.parser.antlr4.BeamParserBaseListener;
 
