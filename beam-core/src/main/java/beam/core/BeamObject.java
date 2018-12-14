@@ -28,17 +28,11 @@ public class BeamObject extends BeamValidatedBlock {
             progress = true;
         }
 
-        if (getScope().isEmpty()) {
-            getScope().addAll(parent.getScope());
-            getScope().add(key);
-        }
-
         if (!added) {
             BeamContextKey fieldKey = new BeamContextKey(getType());
             if (parent.containsKey(fieldKey) && parent.get(fieldKey) instanceof BeamList) {
                 BeamList beamList = (BeamList) parent.get(fieldKey);
                 BeamReference reference = new BeamReference();
-                reference.getScopeChain().addAll(getScope());
                 BeamScalar scalar = new BeamScalar();
                 scalar.getElements().add(reference);
 
@@ -54,11 +48,6 @@ public class BeamObject extends BeamValidatedBlock {
                 if (!found) {
                     beamList.getList().add(scalar);
                 }
-
-            } else {
-                BeamReference reference = new BeamReference();
-                reference.getScopeChain().addAll(getScope());
-                parent.add(fieldKey, reference);
             }
             added = true;
         }

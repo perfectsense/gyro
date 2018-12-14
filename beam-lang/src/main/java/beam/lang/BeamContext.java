@@ -14,6 +14,4 @@ public interface BeamContext {
 
     List<BeamContextKey> keys();
 
-    List<BeamContextKey> getScope();
-
 }

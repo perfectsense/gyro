@@ -23,8 +23,6 @@ public class BeamBlock implements BeamReferable, BeamCollection, BeamContext {
 
     private List<BeamBlock> children;
 
-    private List<BeamContextKey> scope = new ArrayList<>();
-
     private BeamParser.BlockBodyContext bodyContext;
 
     public String getType() {
@@ -102,11 +100,6 @@ public class BeamBlock implements BeamReferable, BeamCollection, BeamContext {
             progress = true;
         }
 
-        if (getScope().isEmpty()) {
-            getScope().addAll(parent.getScope());
-            getScope().add(key);
-        }
-
         return resolve(root) || progress;
     }
 
@@ -172,11 +165,6 @@ public class BeamBlock implements BeamReferable, BeamCollection, BeamContext {
     @Override
     public BeamReferable get(BeamContextKey key) {
         return context.get(key);
-    }
-
-    @Override
-    public List<BeamContextKey> getScope() {
-        return scope;
     }
 
     @Override
