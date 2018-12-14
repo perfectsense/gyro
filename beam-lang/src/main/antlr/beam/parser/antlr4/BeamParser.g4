@@ -16,7 +16,7 @@ block
     ;
 
 blockBody
-    : blockType param+ tag* (lineSeparator block END)? (lineSeparator | EOF)
+    : blockType parameter+ (lineSeparator block END)? (lineSeparator | EOF)
     ;
 
 blockType
@@ -32,35 +32,25 @@ key
     ;
 
 value
-    : scalar | lineSeparator list | inlineList | lineSeparator map | tagReference
+    : scalar | list | map
     ;
 
 scalar
-    : firstLiteral (restLiteral)*
+    : QUOTED_STRING
+    | unquotedString
+    | reference
     ;
 
-firstLiteral
-    : literal
-    ;
-
-restLiteral
-    : DASH | literal
-    ;
-
-literal
-    : tokenChain | QUOTED_STRING | reference
-    ;
-
-tagReference
-    : HASH LPAREN TOKEN RPAREN
-    ;
-
-reference
-    : DOLLAR LPAREN (referenceScope PIPE)* referenceName RPAREN
+unquotedString
+    : TOKEN (WHITESPACE* TOKEN)*
     ;
 
 tokenChain
     : TOKEN (DOT TOKEN)*
+    ;
+
+reference
+    : DOLLAR LPAREN (referenceScope PIPE)* referenceName RPAREN
     ;
 
 referenceScope
@@ -84,30 +74,21 @@ referenceChain
     ;
 
 list
-    : listEntry+ END
-    ;
-
-listEntry
-    : DASH scalar lineSeparator
-    ;
-
-inlineList
-    : LBRACET scalar (COMMA scalar)* RBRACET | RBRACET
+    : (LBRACET | LBRACET lineSeparator) scalar ((COMMA | lineSeparator) scalar)* (lineSeparator RBRACET | RBRACET)
     ;
 
 map
-    : keyValue+ END
+    : (LBLOCK lineSeparator | LBLOCK) mapKeyValue+ (lineSeparator RBLOCK | RBLOCK)
+    ;
+
+mapKeyValue
+    : key COLON value (lineSeparator | EOF)
+    ;
+
+parameter
+    : scalar | list
     ;
 
 lineSeparator
     : NEWLINE+
     ;
-
-param
-    : literal | inlineList
-    ;
-
-tag
-    : HASH TOKEN
-    ;
-

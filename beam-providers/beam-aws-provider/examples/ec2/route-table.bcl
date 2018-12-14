@@ -1,10 +1,10 @@
 provider aws
     artifact: "beam:beam-aws-provider:0.5"
-    repositories:
-        - "http://repo1.maven.org/maven2/"
-        - "https://repo.gradle.org/gradle/libs-releases/"
-        - "https://artifactory.psdops.com/public"
-    end
+    repositories: [
+        "http://repo1.maven.org/maven2/"
+        "https://repo.gradle.org/gradle/libs-releases/"
+        "https://artifactory.psdops.com/public"
+    ]
 end
 
 aws::credentials default
@@ -15,9 +15,9 @@ end
 aws::vpc vpc-example
     cidr-block: 10.0.0.0/16
 
-    tags:
+    tags: {
         Name: vpc-example
-    end
+    }
 end
 
 aws::subnet subnet-public-us-east-1a
@@ -25,9 +25,9 @@ aws::subnet subnet-public-us-east-1a
     cidr-block: 10.0.0.0/26
     availability-zone: us-east-1a
 
-    tags:
+    tags: {
         Name: subnet-public-us-east-1a
-    end
+    }
 end
 
 aws::subnet subnet-public-us-east-1b
@@ -35,9 +35,9 @@ aws::subnet subnet-public-us-east-1b
     cidr-block: 10.0.1.0/26
     availability-zone: us-east-1b
 
-    tags:
+    tags: {
         Name: subnet-public-us-east-1b
-    end
+    }
 end
 
 aws::subnet subnet-public-us-east-1c
@@ -45,30 +45,30 @@ aws::subnet subnet-public-us-east-1c
     cidr-block: 10.0.2.0/26
     availability-zone: us-east-1c
 
-    tags:
+    tags: {
         Name: subnet-public-us-east-1c
-    end
+    }
 end
 
 aws::internet-gateway ig-example
     vpc-id: $(aws::vpc vpc-example | vpc-id)
 
-    tags:
+    tags: {
         Name: ig-example
-    end
+    }
 end
 
 aws::route-table route-table-example
     vpc-id: $(aws::vpc vpc-example | vpc-id)
-    subnet-ids:
-        - $(aws::subnet subnet-public-us-east-1a | subnet-id)
-        - $(aws::subnet subnet-public-us-east-1b | subnet-id)
-        - $(aws::subnet subnet-public-us-east-1c | subnet-id)
-    end
+    subnet-ids: [
+        $(aws::subnet subnet-public-us-east-1a | subnet-id)
+        $(aws::subnet subnet-public-us-east-1b | subnet-id)
+        $(aws::subnet subnet-public-us-east-1c | subnet-id)
+    ]
 
-    tags:
+    tags: {
         Name: route-table-example
-    end
+    }
 end
 
 aws::route route-example

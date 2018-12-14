@@ -1,10 +1,10 @@
 provider aws
     artifact: "beam:beam-aws-provider:0.5"
-    repositories:
-        - "http://repo1.maven.org/maven2/"
-        - "https://repo.gradle.org/gradle/libs-releases/"
-        - "https://artifactory.psdops.com/public"
-    end
+    repositories: [
+        "http://repo1.maven.org/maven2/"
+        "https://repo.gradle.org/gradle/libs-releases/"
+        "https://artifactory.psdops.com/public"
+    ]
 end
 
 aws::credentials default
@@ -15,8 +15,8 @@ end
 aws::vpc vpc
     cidr-block: "10.0.0.0/16"
 
-    tags:
+    tags: {
         Name: vpc-example
-    end
+    }
 end
 

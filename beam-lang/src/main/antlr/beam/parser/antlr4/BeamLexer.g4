@@ -45,6 +45,8 @@ PIPE          : '|' ;
 DOT           : '.' ;
 SLASH         : '/' ;
 DASH          : '-' ;
+DOUBLE_QUOTE  : '"' ;
+SINGLE_QUOTE  : '\'';
 
 TOKEN
     : (NO_END+ (COMMON | NO_START)+)+ | COMMON+ (NO_START (NO_START | COMMON)*)* (NO_END+ (COMMON | NO_START)+)*

@@ -1,10 +1,10 @@
 provider aws
     artifact: "beam:beam-aws-provider:0.5"
-    repositories:
-        - "http://repo1.maven.org/maven2/"
-        - "https://repo.gradle.org/gradle/libs-releases/"
-        - "https://artifactory.psdops.com/public"
-    end
+    repositories: [
+        "http://repo1.maven.org/maven2/"
+        "https://repo.gradle.org/gradle/libs-releases/"
+        "https://artifactory.psdops.com/public"
+    ]
 end
 
 aws::credentials default
@@ -15,9 +15,9 @@ end
 aws::vpc vpc
     cidr-block: "10.0.0.0/16"
 
-    tags:
+    tags: {
         Name: vpc-example
-    end
+    }
 end
 
 aws::subnet subnet
@@ -25,7 +25,7 @@ aws::subnet subnet
     availability-zone: us-east-1a
     cidr-block: "10.0.0.0/24"
 
-    tags:
-        Name: subnet-example
-    end
+    tags: {
+        Name: vpc-example
+    }
 end
