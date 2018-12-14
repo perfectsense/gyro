@@ -3,8 +3,8 @@ package beam.core;
 import beam.lang.BeamBlock;
 import beam.lang.BeamContext;
 import beam.lang.BeamContextKey;
-import beam.lang.types.BeamList;
 import beam.lang.BeamReference;
+import beam.lang.types.BeamList;
 import beam.lang.types.BeamScalar;
 
 public class BeamObject extends BeamValidatedBlock {

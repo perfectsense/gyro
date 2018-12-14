@@ -6,7 +6,7 @@ import beam.core.BeamObject;
 import beam.core.BeamResource;
 import beam.core.diff.ResourceName;
 import beam.lang.BeamBlock;
-import beam.lang.BeamExtension;
+import beam.lang.BeamBlockMethod;
 import beam.lang.BeamInterp;
 import com.psddev.dari.util.StringUtils;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
@@ -52,7 +52,7 @@ public class MavenFetcher implements PluginFetcher {
     private static Map<String, Class<? extends BeamBlock>> provider = new HashMap<>();
 
     @Override
-    public boolean validate(BeamExtension fetcherContext) {
+    public boolean validate(BeamBlockMethod fetcherContext) {
         if (fetcherContext.get("artifact") != null) {
             String key = (String) fetcherContext.get("artifact").getValue();
             if (key != null) {
@@ -64,7 +64,7 @@ public class MavenFetcher implements PluginFetcher {
     }
 
     @Override
-    public void fetch(BeamExtension fetcherContext) {
+    public void fetch(BeamBlockMethod fetcherContext) {
         try {
             BeamInterp lang = fetcherContext.getInterp();
             DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();

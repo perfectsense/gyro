@@ -61,8 +61,8 @@ public class BeamInterp {
 
                 config.setType(extensionType);
 
-                if (config instanceof BeamExtension) {
-                    ((BeamExtension) config).setInterp(this);
+                if (config instanceof BeamBlockMethod) {
+                    ((BeamBlockMethod) config).setInterp(this);
                 }
 
                 return config;

@@ -4,7 +4,7 @@ import com.psddev.dari.util.StringUtils;
 
 import java.io.IOException;
 
-public class ImportExtension extends BeamExtension {
+public class ImportExtension extends BeamBlockMethod {
 
     private boolean imported;
 

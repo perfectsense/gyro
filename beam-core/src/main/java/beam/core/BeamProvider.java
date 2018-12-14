@@ -1,11 +1,11 @@
 package beam.core;
 
 import beam.fetcher.PluginFetcher;
+import beam.lang.BeamBlockMethod;
 import beam.lang.BeamContext;
-import beam.lang.BeamExtension;
 import org.reflections.Reflections;
 
-public class BeamProvider extends BeamExtension {
+public class BeamProvider extends BeamBlockMethod {
 
     @Override
     public String getType() {
