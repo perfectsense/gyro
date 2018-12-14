@@ -33,7 +33,7 @@ public class BeamLiteral implements BeamReferable {
     }
 
     @Override
-    public Set<BeamReference> getDependencies(BeamConfig config) {
+    public Set<BeamReference> getDependencies(BeamBlock config) {
         return new HashSet<>();
     }
 }

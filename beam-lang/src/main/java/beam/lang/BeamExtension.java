@@ -1,6 +1,6 @@
 package beam.lang;
 
-public class BeamExtension extends BeamConfig {
+public class BeamExtension extends BeamBlock {
 
     private BeamInterp interp;
 

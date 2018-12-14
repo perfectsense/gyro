@@ -1,13 +1,13 @@
 package beam.core;
 
-import beam.lang.BeamConfig;
+import beam.lang.BeamBlock;
 import beam.lang.BeamContext;
 import beam.lang.BeamContextKey;
 import beam.lang.BeamList;
 import beam.lang.BeamReference;
 import beam.lang.BeamScalar;
 
-public class BeamObject extends BeamValidatedConfig {
+public class BeamObject extends BeamValidatedBlock {
 
     private boolean added;
 
@@ -17,7 +17,7 @@ public class BeamObject extends BeamValidatedConfig {
         String id = getParams().get(0).getValue().toString();
         BeamContextKey key = new BeamContextKey(id, getType());
         if (parent.containsKey(key)) {
-            BeamConfig existingConfig = (BeamConfig) parent.get(key);
+            BeamBlock existingConfig = (BeamBlock) parent.get(key);
 
             if (existingConfig.getClass() != this.getClass()) {
                 parent.add(key, this);

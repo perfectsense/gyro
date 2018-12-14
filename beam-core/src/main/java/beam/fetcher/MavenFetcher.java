@@ -5,7 +5,7 @@ import beam.core.BeamException;
 import beam.core.BeamObject;
 import beam.core.BeamResource;
 import beam.core.diff.ResourceName;
-import beam.lang.BeamConfig;
+import beam.lang.BeamBlock;
 import beam.lang.BeamExtension;
 import beam.lang.BeamInterp;
 import com.psddev.dari.util.StringUtils;
@@ -49,7 +49,7 @@ public class MavenFetcher implements PluginFetcher {
     private static String MAVEN_KEY = "^(?<group>[^:]+):(?<artifactId>[^:]+):(?<version>[^:]+)";
     private static Pattern MAVEN_KEY_PAT = Pattern.compile(MAVEN_KEY);
 
-    private static Map<String, Class<? extends BeamConfig>> provider = new HashMap<>();
+    private static Map<String, Class<? extends BeamBlock>> provider = new HashMap<>();
 
     @Override
     public boolean validate(BeamExtension fetcherContext) {

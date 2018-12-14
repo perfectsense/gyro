@@ -1,6 +1,6 @@
 package beam.core;
 
-import beam.lang.BeamConfig;
+import beam.lang.BeamBlock;
 import beam.lang.BeamContextKey;
 import beam.lang.BeamResolvable;
 import beam.lang.BeamValue;
@@ -9,7 +9,7 @@ import org.apache.commons.beanutils.BeanUtils;
 
 import java.lang.reflect.InvocationTargetException;
 
-public class BeamValidatedConfig extends BeamConfig {
+public class BeamValidatedBlock extends BeamBlock {
 
     public void populate() {
         String id = getParams().get(0).getValue().toString();

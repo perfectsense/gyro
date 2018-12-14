@@ -4,7 +4,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-public abstract class BeamCredentials extends BeamValidatedConfig {
+public abstract class BeamCredentials extends BeamValidatedBlock {
 
     private BeamState stateBackend;
     private final Set<BeamResource> dependents = new TreeSet<>();

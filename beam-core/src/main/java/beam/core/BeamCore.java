@@ -3,7 +3,7 @@ package beam.core;
 import beam.core.diff.ChangeType;
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiff;
-import beam.lang.BeamConfig;
+import beam.lang.BeamBlock;
 import beam.lang.BeamContextKey;
 import beam.lang.BeamInterp;
 import beam.lang.BeamReferable;
@@ -40,7 +40,7 @@ public class BeamCore {
         return validationException;
     }
 
-    public BeamConfig parse(String path) throws IOException {
+    public BeamBlock parse(String path) throws IOException {
         interp.init();
         interp.addExtension("state", BeamLocalState.class);
         interp.addExtension("provider", BeamProvider.class);
@@ -48,7 +48,7 @@ public class BeamCore {
         return interp.parse(path);
     }
 
-    public BeamState getStateBackend(BeamConfig config) {
+    public BeamState getStateBackend(BeamBlock config) {
         BeamState stateBackend = new BeamLocalState();
         for (BeamContextKey key : config.keys()) {
             BeamReferable referable = config.get(key);
@@ -62,8 +62,8 @@ public class BeamCore {
         return stateBackend;
     }
 
-    public BeamConfig findNonResources(BeamConfig config) {
-        BeamConfig nonResourceConfig = new BeamConfig();
+    public BeamBlock findNonResources(BeamBlock config) {
+        BeamBlock nonResourceConfig = new BeamBlock();
         for (BeamContextKey key : config.keys()) {
             BeamReferable referable = config.get(key);
             Object value = referable.getValue();
@@ -76,11 +76,11 @@ public class BeamCore {
         return nonResourceConfig;
     }
 
-    public Set<BeamResource> findBeamResources(BeamConfig config) {
+    public Set<BeamResource> findBeamResources(BeamBlock config) {
         return findBeamResources(config, false);
     }
 
-    public Set<BeamResource> findBeamResources(BeamConfig config, boolean refresh) {
+    public Set<BeamResource> findBeamResources(BeamBlock config, boolean refresh) {
         Set<BeamResource> resources = new TreeSet<>();
         for (BeamContextKey key : config.keys()) {
             BeamReferable referable = config.get(key);
@@ -95,8 +95,8 @@ public class BeamCore {
                 }
             }
 
-            if (value instanceof BeamConfig) {
-                resources.addAll(findBeamResources((BeamConfig) value, refresh));
+            if (value instanceof BeamBlock) {
+                resources.addAll(findBeamResources((BeamBlock) value, refresh));
             }
         }
 
@@ -185,7 +185,7 @@ public class BeamCore {
         }
     }
 
-    public void execute(ResourceChange change, BeamConfig state, BeamState stateBackend, String path) {
+    public void execute(ResourceChange change, BeamBlock state, BeamState stateBackend, String path) {
         ChangeType type = change.getType();
 
         if (type == ChangeType.KEEP || type == ChangeType.REPLACE || change.isChanged()) {

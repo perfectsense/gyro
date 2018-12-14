@@ -16,9 +16,9 @@ import java.util.Map;
 
 public class BeamInterp {
 
-    private BeamConfig root;
+    private BeamBlock root;
 
-    private final Map<String, Class<? extends BeamConfig>> extensions = new HashMap<>();
+    private final Map<String, Class<? extends BeamBlock>> extensions = new HashMap<>();
 
     private static final Formatter ui = new Formatter();
 
@@ -26,7 +26,7 @@ public class BeamInterp {
         return ui;
     }
 
-    public void addExtension(String key, Class<? extends BeamConfig> extension) {
+    public void addExtension(String key, Class<? extends BeamBlock> extension) {
         extensions.put(key, extension);
     }
 
@@ -34,20 +34,20 @@ public class BeamInterp {
         return extensions.containsKey(key);
     }
 
-    public Class<? extends BeamConfig> getExtension(String key) {
+    public Class<? extends BeamBlock> getExtension(String key) {
         return extensions.get(key);
     }
 
-    public BeamConfig createConfig(String extensionType) {
+    public BeamBlock createConfig(String extensionType) {
         return createConfig(extensionType, null);
     }
 
-    public BeamConfig createConfig(String extensionType, BeamConfig original) {
+    public BeamBlock createConfig(String extensionType, BeamBlock original) {
         Class klass = extensions.get(extensionType);
 
         if (klass != null) {
             try {
-                BeamConfig config = (BeamConfig) klass.newInstance();
+                BeamBlock config = (BeamBlock) klass.newInstance();
                 if (original != null) {
                     config.setCtx(original.getCtx());
                     config.setType(original.getType());
@@ -71,7 +71,7 @@ public class BeamInterp {
             }
         }
 
-        BeamConfig config = new BeamConfig();
+        BeamBlock config = new BeamBlock();
         config.setType(extensionType);
 
         return config;
@@ -81,7 +81,7 @@ public class BeamInterp {
         extensions.clear();
     }
 
-    public BeamConfig parse(String filename) throws IOException {
+    public BeamBlock parse(String filename) throws IOException {
         BeamLexer lexer = new BeamLexer(CharStreams.fromFileName(filename));
         CommonTokenStream tokens = new CommonTokenStream(lexer);
 
@@ -101,25 +101,25 @@ public class BeamInterp {
         return root;
     }
 
-    private void resolve(BeamConfig config) {
+    private void resolve(BeamBlock config) {
         boolean progress = true;
         while (progress) {
             progress = config.resolve(config);
         }
     }
 
-    private void applyExtensions(BeamConfig parent) {
-        List<BeamConfig> appliedConfigs = new ArrayList<>();
+    private void applyExtensions(BeamBlock parent) {
+        List<BeamBlock> appliedConfigs = new ArrayList<>();
 
-        Iterator<BeamConfig> iterator = parent.getChildren().iterator();
+        Iterator<BeamBlock> iterator = parent.getChildren().iterator();
         while (iterator.hasNext()) {
-            BeamConfig child = iterator.next();
+            BeamBlock child = iterator.next();
 
             if (child.getClass() != getExtension(child.getType())) {
                 // Replace `child` config block with the equivalent extension
                 // config block.
 
-                BeamConfig config = createConfig(child.getType(), child);
+                BeamBlock config = createConfig(child.getType(), child);
                 config.applyExtension(this);
 
                 appliedConfigs.add(config);
@@ -133,7 +133,7 @@ public class BeamInterp {
         parent.getChildren().addAll(appliedConfigs);
     }
 
-    private void calculateDependencies(BeamConfig config) {
+    private void calculateDependencies(BeamBlock config) {
         config.getDependencies(config);
     }
 }

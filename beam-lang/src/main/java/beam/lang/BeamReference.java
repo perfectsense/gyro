@@ -123,7 +123,7 @@ public class BeamReference extends BeamLiteral {
     }
 
     @Override
-    public Set<BeamReference> getDependencies(BeamConfig config) {
+    public Set<BeamReference> getDependencies(BeamBlock config) {
         Set<BeamReference> dependencies = new HashSet<>();
         if (getValue() != null) {
             return dependencies;
@@ -133,17 +133,17 @@ public class BeamReference extends BeamLiteral {
         for (BeamContextKey scope : getScopeChain()) {
             if (config.containsKey(scope)) {
                 resolvable = config.get(scope);
-                if (resolvable instanceof BeamConfig) {
-                    config = (BeamConfig) resolvable;
+                if (resolvable instanceof BeamBlock) {
+                    config = (BeamBlock) resolvable;
                 } else {
-                    throw new BeamLangException(String.format("Unable to resolve %s, expecting %s as BeamConfig found %s",
+                    throw new BeamLangException(String.format("Unable to resolve %s, expecting %s as BeamBlock found %s",
                         this, scope, resolvable.getClass()));
                 }
             }
         }
 
         if (resolvable == null) {
-            throw new BeamLangException("Unable to find BeamConfig");
+            throw new BeamLangException("Unable to find BeamBlock");
         }
 
         BeamReference reference = new BeamReference();

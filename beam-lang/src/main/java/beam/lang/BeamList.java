@@ -41,7 +41,7 @@ public class BeamList extends BeamValue implements BeamCollection {
     }
 
     @Override
-    public Set<BeamReference> getDependencies(BeamConfig config) {
+    public Set<BeamReference> getDependencies(BeamBlock config) {
         Set<BeamReference> dependencies = new HashSet<>();
         if (getValue() != null) {
             return dependencies;

@@ -19,7 +19,7 @@ public class ImportExtension extends BeamExtension {
         String statePath = StringUtils.ensureEnd(path, ".state");
         BeamContextKey key = new BeamContextKey(String.format("%s %s %s", statePath, "as", id), getType());
         if (parent.containsKey(key)) {
-            BeamConfig existingConfig = (BeamConfig) parent.get(key);
+            BeamBlock existingConfig = (BeamBlock) parent.get(key);
 
             if (existingConfig.getClass() != this.getClass()) {
                 parent.add(key, this);
@@ -32,7 +32,7 @@ public class ImportExtension extends BeamExtension {
 
         if (!imported) {
             try {
-                BeamConfig importConfig = getInterp().parse(path);
+                BeamBlock importConfig = getInterp().parse(path);
                 importConfig.applyExtension(getInterp());
                 root.add(new BeamContextKey(id), importConfig);
                 imported = true;

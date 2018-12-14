@@ -2,7 +2,7 @@ package beam.core;
 
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceName;
-import beam.lang.BeamConfig;
+import beam.lang.BeamBlock;
 import beam.lang.BeamContext;
 import beam.lang.BeamContextKey;
 import beam.lang.BeamInterp;
@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-public abstract class BeamResource extends BeamValidatedConfig implements Comparable<BeamResource> {
+public abstract class BeamResource extends BeamValidatedBlock implements Comparable<BeamResource> {
 
     private String resourceIdentifier;
     private BeamCredentials resourceCredentials;
@@ -36,7 +36,7 @@ public abstract class BeamResource extends BeamValidatedConfig implements Compar
     private final transient Set<BeamResource> dependencies = new TreeSet<>();
     private final transient Set<BeamResource> dependents = new TreeSet<>();
     private transient ResourceChange change;
-    private transient BeamConfig root;
+    private transient BeamBlock root;
 
     public List<BeamResource> getDependsOn() {
         return dependsOn;
@@ -78,12 +78,12 @@ public abstract class BeamResource extends BeamValidatedConfig implements Compar
 
     @Override
     public void applyExtension(BeamInterp interp) {
-        List<BeamConfig> newConfigs = new ArrayList<>();
-        Iterator<BeamConfig> iterator = getChildren().iterator();
+        List<BeamBlock> newConfigs = new ArrayList<>();
+        Iterator<BeamBlock> iterator = getChildren().iterator();
         while (iterator.hasNext()) {
-            BeamConfig config = iterator.next();
+            BeamBlock config = iterator.next();
 
-            Class<? extends BeamConfig> extension = null;
+            Class<? extends BeamBlock> extension = null;
             if (interp.hasExtension(config.getType())) {
                 extension = interp.getExtension(config.getType());
             } else {
@@ -124,7 +124,7 @@ public abstract class BeamResource extends BeamValidatedConfig implements Compar
             }
 
             if (config.getClass() != extension) {
-                BeamConfig newConfig = interp.createConfig(config.getType(), config);
+                BeamBlock newConfig = interp.createConfig(config.getType(), config);
                 newConfig.applyExtension(interp);
 
                 newConfigs.add(newConfig);
@@ -139,7 +139,7 @@ public abstract class BeamResource extends BeamValidatedConfig implements Compar
     }
 
     @Override
-    public Set<BeamReference> getDependencies(BeamConfig config) {
+    public Set<BeamReference> getDependencies(BeamBlock config) {
         Set<BeamReference> dependencies = super.getDependencies(config);
         BeamResolvable resolvable = get("depends-on");
         if (resolvable instanceof BeamList) {
@@ -232,11 +232,11 @@ public abstract class BeamResource extends BeamValidatedConfig implements Compar
         return dependents;
     }
 
-    public BeamConfig getRoot() {
+    public BeamBlock getRoot() {
         return root;
     }
 
-    public void setRoot(BeamConfig root) {
+    public void setRoot(BeamBlock root) {
         this.root = root;
     }
 

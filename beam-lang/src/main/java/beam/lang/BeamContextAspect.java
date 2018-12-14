@@ -12,19 +12,19 @@ import java.util.List;
 public class BeamContextAspect {
 
     @Pointcut("this(config) && set(private String *) && args(value)")
-    void setString(BeamConfig config, Object value) {
+    void setString(BeamBlock config, Object value) {
     }
 
     @Pointcut("this(config) && set(private Boolean *) && args(value)")
-    void setBoolean(BeamConfig config, Object value) {
+    void setBoolean(BeamBlock config, Object value) {
     }
 
     @Pointcut("this(config) && set(private List *) && args(value)")
-    void setList(BeamConfig config, Object value) {
+    void setList(BeamBlock config, Object value) {
     }
 
     @AfterReturning("setString(config, value)")
-    public void afterSetString(BeamConfig config, Object value, JoinPoint joinPoint) {
+    public void afterSetString(BeamBlock config, Object value, JoinPoint joinPoint) {
         if (value != null) {
             String key = joinPoint.getSignature().getName();
             key = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, key);
@@ -33,12 +33,12 @@ public class BeamContextAspect {
     }
 
     @AfterReturning("setBoolean(config, value)")
-    public void afterSetBoolean(BeamConfig config, Object value, JoinPoint joinPoint) {
+    public void afterSetBoolean(BeamBlock config, Object value, JoinPoint joinPoint) {
         afterSetString(config, value, joinPoint);
     }
 
     @AfterReturning("setList(config, value)")
-    public void afterSetList(BeamConfig config, Object value, JoinPoint joinPoint) {
+    public void afterSetList(BeamBlock config, Object value, JoinPoint joinPoint) {
         if (value instanceof List) {
             List<Object> list = (List<Object>) value;
             BeamList beamList = new BeamList();

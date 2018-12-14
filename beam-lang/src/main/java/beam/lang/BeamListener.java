@@ -8,8 +8,8 @@ import java.util.List;
 public class BeamListener extends BeamParserBaseListener {
 
     private String configName;
-    private BeamConfig parent;
-    private BeamConfig config;
+    private BeamBlock parent;
+    private BeamBlock config;
     private BeamInterp interp;
 
     public BeamListener(BeamInterp interp, String configName) {
@@ -25,14 +25,14 @@ public class BeamListener extends BeamParserBaseListener {
         this.configName = configName;
     }
 
-    public BeamConfig getConfig() {
+    public BeamBlock getConfig() {
         return config;
     }
 
     @Override
     public void enterBeamRoot(BeamParser.BeamRootContext ctx) {
         parent = null;
-        config = new BeamConfig();
+        config = new BeamBlock();
     }
 
     @Override

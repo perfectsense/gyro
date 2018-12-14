@@ -7,7 +7,7 @@ import beam.core.BeamState;
 import beam.core.diff.ChangeType;
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiff;
-import beam.lang.BeamConfig;
+import beam.lang.BeamBlock;
 import beam.lang.BeamContextKey;
 import io.airlift.airline.Arguments;
 import io.airlift.airline.Command;
@@ -35,11 +35,11 @@ public class UpCommand extends AbstractCommand {
         String configPath = getArguments().get(0);
         String statePath = configPath + ".state";
         BeamCore core = new BeamCore();
-        BeamConfig config = core.parse(configPath);
+        BeamBlock config = core.parse(configPath);
 
         BeamState stateBackend = core.getStateBackend(config);
-        BeamConfig state = stateBackend.load(statePath, core);
-        BeamConfig nonResourceConfig = core.findNonResources(config);
+        BeamBlock state = stateBackend.load(statePath, core);
+        BeamBlock nonResourceConfig = core.findNonResources(config);
         for (BeamContextKey key : nonResourceConfig.keys()) {
             state.add(key, nonResourceConfig.get(key));
         }
@@ -85,7 +85,7 @@ public class UpCommand extends AbstractCommand {
         return arguments;
     }
 
-    private void createOrUpdate(BeamCore core, List<ResourceDiff> diffs, BeamConfig state, BeamState stateBackend, String path) {
+    private void createOrUpdate(BeamCore core, List<ResourceDiff> diffs, BeamBlock state, BeamState stateBackend, String path) {
         for (ResourceDiff diff : diffs) {
             for (ResourceChange change : diff.getChanges()) {
                 ChangeType type = change.getType();
@@ -99,7 +99,7 @@ public class UpCommand extends AbstractCommand {
         }
     }
 
-    private void delete(BeamCore core, List<ResourceDiff> diffs, BeamConfig state, BeamState stateBackend, String path) {
+    private void delete(BeamCore core, List<ResourceDiff> diffs, BeamBlock state, BeamState stateBackend, String path) {
         for (ResourceDiff diff : diffs) {
             for (ResourceChange change : diff.getChanges()) {
                 delete(core, change.getDiffs(), state, stateBackend, path);

@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class BeamConfig implements BeamReferable, BeamCollection, BeamContext {
+public class BeamBlock implements BeamReferable, BeamCollection, BeamContext {
 
     private String type;
 
@@ -18,7 +18,7 @@ public class BeamConfig implements BeamReferable, BeamCollection, BeamContext {
 
     private Map<BeamContextKey, BeamReferable> context = new HashMap<>();
 
-    private List<BeamConfig> children;
+    private List<BeamBlock> children;
 
     private List<BeamContextKey> scope = new ArrayList<>();
 
@@ -48,7 +48,7 @@ public class BeamConfig implements BeamReferable, BeamCollection, BeamContext {
         this.type = type;
     }
 
-    public List<BeamConfig> getChildren() {
+    public List<BeamBlock> getChildren() {
         if (children == null) {
             children = new ArrayList<>();
         }
@@ -56,7 +56,7 @@ public class BeamConfig implements BeamReferable, BeamCollection, BeamContext {
         return children;
     }
 
-    public void setChildren(List<BeamConfig> children) {
+    public void setChildren(List<BeamBlock> children) {
         this.children = children;
     }
 
@@ -88,7 +88,7 @@ public class BeamConfig implements BeamReferable, BeamCollection, BeamContext {
         String id = getParams().get(0).getValue().toString();
         BeamContextKey key = new BeamContextKey(id, getType());
         if (parent.containsKey(key)) {
-            BeamConfig existingConfig = (BeamConfig) parent.get(key);
+            BeamBlock existingConfig = (BeamBlock) parent.get(key);
 
             if (existingConfig.getClass() != this.getClass()) {
                 parent.add(key, this);
@@ -110,9 +110,9 @@ public class BeamConfig implements BeamReferable, BeamCollection, BeamContext {
     @Override
     public boolean resolve(BeamContext root) {
         boolean progress = false;
-        Iterator<BeamConfig> iterator = getChildren().iterator();
+        Iterator<BeamBlock> iterator = getChildren().iterator();
         while (iterator.hasNext()) {
-            BeamConfig unResolvedConfig = iterator.next();
+            BeamBlock unResolvedConfig = iterator.next();
             if (unResolvedConfig.resolveParams(root)) {
                 progress = unResolvedConfig.resolve(this, root) || progress;
             }
@@ -120,7 +120,7 @@ public class BeamConfig implements BeamReferable, BeamCollection, BeamContext {
 
         for (BeamContextKey key : keys()) {
             BeamResolvable referable = get(key);
-            if (referable instanceof BeamConfig) {
+            if (referable instanceof BeamBlock) {
                 continue;
             }
 
@@ -136,7 +136,7 @@ public class BeamConfig implements BeamReferable, BeamCollection, BeamContext {
     }
 
     @Override
-    public Set<BeamReference> getDependencies(BeamConfig config) {
+    public Set<BeamReference> getDependencies(BeamBlock config) {
         Set<BeamReference> dependencies = new HashSet<>();
         for (BeamContextKey key : keys()) {
             BeamResolvable referable = get(key);
@@ -201,17 +201,17 @@ public class BeamConfig implements BeamReferable, BeamCollection, BeamContext {
         StringBuilder sb = new StringBuilder();
         for (BeamContextKey key : keys()) {
             BeamResolvable referable = get(key);
-            if (key.getType() == null && referable instanceof BeamConfig) {
+            if (key.getType() == null && referable instanceof BeamBlock) {
                 continue;
             }
 
             sb.append(BeamInterp.ui().dump(key.toString()));
-            if (!(referable instanceof BeamConfig)) {
+            if (!(referable instanceof BeamBlock)) {
                 sb.append(":");
             }
 
             if (referable instanceof BeamCollection) {
-                if (referable instanceof BeamConfig) {
+                if (referable instanceof BeamBlock) {
                     // should also add params
                 }
 
