@@ -8,11 +8,11 @@ import java.util.List;
 public class BeamListener extends BeamParserBaseListener {
 
     private String configName;
+    private BeamConfig parent;
     private BeamConfig config;
 
-    public BeamListener(String configName, BeamConfig context) {
+    public BeamListener(String configName) {
         this.configName = configName;
-        this.config = context;
     }
 
     public String getConfigName() {
@@ -27,19 +27,46 @@ public class BeamListener extends BeamParserBaseListener {
         return config;
     }
 
-    public void setConfig(BeamConfig config) {
-        this.config = config;
-    }
-
     @Override
     public void enterBeamRoot(BeamParser.BeamRootContext ctx) {
+        parent = null;
         config = new BeamConfig();
     }
 
     @Override
-    public void exitConfigBody(BeamParser.ConfigBodyContext ctx) {
-        ConfigParser parser = new ConfigParser();
-        parser.parseBody(ctx, config);
+    public void exitBeamRoot(BeamParser.BeamRootContext ctx) {
+    }
+
+    @Override
+    public void enterBlockBody(BeamParser.BlockBodyContext blockBody) {
+        parent = config;
+        config = new BeamConfig();
+
+        String type = blockBody.blockType().getText();
+        config.setType(type);
+        config.setCtx(blockBody);
+
+        for (BeamParser.ParamContext paramContext : blockBody.param()) {
+            if (paramContext.literal() != null) {
+                config.getParams().add(BeamListener.parseLiteral(paramContext.literal()));
+            } else if (paramContext.inlineList() != null) {
+                config.getParams().add(BeamListener.parseInlineList(paramContext.inlineList()));
+            }
+        }
+    }
+
+    @Override
+    public void exitBlockBody(BeamParser.BlockBodyContext ctx) {
+        parent.getSubConfigs().add(config);
+        config = parent;
+    }
+
+    @Override
+    public void exitKeyValue(BeamParser.KeyValueContext keyValue) {
+        BeamValue beamValue = BeamListener.parseValue(keyValue.value());
+        beamValue.setLine(keyValue.getStart().getLine());
+
+        config.addReferable(new BeamContextKey(keyValue.key().getText()), beamValue);
     }
 
     public static BeamValue parseValue(BeamParser.ValueContext valueContext) {
@@ -58,7 +85,7 @@ public class BeamListener extends BeamParserBaseListener {
 
     public static BeamMap parseMap(BeamParser.MapContext mapContext) {
         BeamMap result = new BeamMap();
-        for (BeamParser.KeyValuePairContext pairContext : mapContext.keyValuePair()) {
+        for (BeamParser.KeyValueContext pairContext : mapContext.keyValue()) {
             String key = pairContext.key().getText();
             BeamParser.ValueContext value = pairContext.value();
             result.getMap().put(key, parseValue(value));

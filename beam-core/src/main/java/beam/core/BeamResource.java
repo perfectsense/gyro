@@ -2,11 +2,11 @@ package beam.core;
 
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceName;
-import beam.lang.BeamInterp;
 import beam.lang.BeamConfig;
 import beam.lang.BeamContext;
 import beam.lang.BeamContextKey;
 import beam.lang.BeamExtension;
+import beam.lang.BeamInterp;
 import beam.lang.BeamLangException;
 import beam.lang.BeamList;
 import beam.lang.BeamLiteral;

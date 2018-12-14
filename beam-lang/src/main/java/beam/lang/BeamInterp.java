@@ -35,8 +35,6 @@ public class BeamInterp {
 
     public void init() {
         extensions.clear();
-        addExtension("for", ForExtension.class);
-        //addExtension("import", ImportExtension.class);
     }
 
     public BeamConfig parse(String filename) throws IOException {
@@ -47,10 +45,9 @@ public class BeamInterp {
         BeamParser.BeamRootContext context = parser.beamRoot();
 
         File configFile = new File(filename);
-        BeamConfig passingContext = new BeamConfig();
-
-        BeamListener listener = new BeamListener(configFile.getCanonicalPath(), passingContext);
+        BeamListener listener = new BeamListener(configFile.getCanonicalPath());
         ParseTreeWalker.DEFAULT.walk(listener, context);
+
         return listener.getConfig();
     }
 

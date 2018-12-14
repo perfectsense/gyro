@@ -20,7 +20,7 @@ public class BeamConfig implements BeamReferable, BeamCollection, BeamContext {
 
     private String type = "config";
 
-    private BeamParser.ConfigContext ctx;
+    private BeamParser.BlockBodyContext bodyContext;
 
     private Set<BeamReference> dependencies;
 
@@ -55,12 +55,12 @@ public class BeamConfig implements BeamReferable, BeamCollection, BeamContext {
         this.subConfigs = subConfigs;
     }
 
-    public BeamParser.ConfigContext getCtx() {
-        return ctx;
+    public BeamParser.BlockBodyContext getCtx() {
+        return bodyContext;
     }
 
-    public void setCtx(BeamParser.ConfigContext ctx) {
-        this.ctx = ctx;
+    public void setCtx(BeamParser.BlockBodyContext bodyContext) {
+        this.bodyContext = bodyContext;
     }
 
     public Set<BeamReference> getDependencies() {

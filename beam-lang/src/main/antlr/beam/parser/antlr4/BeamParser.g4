@@ -2,19 +2,28 @@ parser grammar BeamParser;
 
 options
    { tokenVocab = BeamLexer; }
+
 /*
  * Parser Rules
  */
 
 beamRoot
-    : NEWLINE* configBody* EOF
+    : NEWLINE* block* EOF
     ;
 
-configBody
-    :  (config | keyValuePair)+
+block
+    :  (blockBody | keyValue)+
     ;
 
-keyValuePair
+blockBody
+    : blockType param+ tag* (lineSeparator block END)? (lineSeparator | EOF)
+    ;
+
+blockType
+    : TOKEN
+    ;
+
+keyValue
     : key COLON value (lineSeparator | EOF)
     ;
 
@@ -87,19 +96,11 @@ inlineList
     ;
 
 map
-    : keyValuePair+ END
+    : keyValue+ END
     ;
 
 lineSeparator
     : NEWLINE+
-    ;
-
-config
-    : configType param+ tag* (lineSeparator configBody END)? (lineSeparator | EOF)
-    ;
-
-configType
-    : TOKEN
     ;
 
 param
