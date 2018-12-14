@@ -3,11 +3,7 @@ package beam.aws;
 import beam.core.BeamCredentials;
 import beam.core.diff.ResourceName;
 import beam.lang.BeamContext;
-import beam.lang.BeamContextKey;
-import beam.lang.BeamResolvable;
-import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableMap;
-import org.apache.commons.beanutils.BeanUtils;
 import org.joda.time.DateTime;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -16,7 +12,6 @@ import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 @ResourceName("credentials")

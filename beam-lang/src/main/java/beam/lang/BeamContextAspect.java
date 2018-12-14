@@ -28,7 +28,7 @@ public class BeamContextAspect {
         if (value != null) {
             String key = joinPoint.getSignature().getName();
             key = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, key);
-            config.addReferable(new BeamContextKey(key), new BeamLiteral(value.toString()));
+            config.add(new BeamContextKey(key), new BeamLiteral(value.toString()));
         }
     }
 
@@ -51,7 +51,7 @@ public class BeamContextAspect {
 
             String key = joinPoint.getSignature().getName();
             key = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, key);
-            config.addReferable(new BeamContextKey(key), beamList);
+            config.add(new BeamContextKey(key), beamList);
         }
     }
 

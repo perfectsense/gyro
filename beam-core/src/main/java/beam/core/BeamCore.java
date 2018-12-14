@@ -3,9 +3,9 @@ package beam.core;
 import beam.core.diff.ChangeType;
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiff;
-import beam.lang.BeamInterp;
 import beam.lang.BeamConfig;
 import beam.lang.BeamContextKey;
+import beam.lang.BeamInterp;
 import beam.lang.BeamReferable;
 import com.psddev.dari.util.ThreadLocalStack;
 
@@ -50,8 +50,8 @@ public class BeamCore {
 
     public BeamState getStateBackend(BeamConfig config) {
         BeamState stateBackend = new BeamLocalState();
-        for (BeamContextKey key : config.listContextKeys()) {
-            BeamReferable referable = config.getReferable(key);
+        for (BeamContextKey key : config.keys()) {
+            BeamReferable referable = config.get(key);
             Object value = referable.getValue();
 
             if (value instanceof BeamState) {
@@ -64,12 +64,12 @@ public class BeamCore {
 
     public BeamConfig findNonResources(BeamConfig config) {
         BeamConfig nonResourceConfig = new BeamConfig();
-        for (BeamContextKey key : config.listContextKeys()) {
-            BeamReferable referable = config.getReferable(key);
+        for (BeamContextKey key : config.keys()) {
+            BeamReferable referable = config.get(key);
             Object value = referable.getValue();
 
             if (!(value instanceof BeamResource)) {
-                nonResourceConfig.addReferable(key, referable);
+                nonResourceConfig.add(key, referable);
             }
         }
 
@@ -82,8 +82,8 @@ public class BeamCore {
 
     public Set<BeamResource> findBeamResources(BeamConfig config, boolean refresh) {
         Set<BeamResource> resources = new TreeSet<>();
-        for (BeamContextKey key : config.listContextKeys()) {
-            BeamReferable referable = config.getReferable(key);
+        for (BeamContextKey key : config.keys()) {
+            BeamReferable referable = config.get(key);
             Object value = referable.getValue();
 
             if (value instanceof BeamResource) {
@@ -206,9 +206,9 @@ public class BeamCore {
         BeamContextKey key = new BeamContextKey(resource.getResourceIdentifier(), resource.getType());
 
         if (type == ChangeType.DELETE) {
-            state.removeReferable(key);
+            state.remove(key);
         } else {
-            state.addReferable(key, resource);
+            state.add(key, resource);
         }
 
         BeamCore.ui().write(" OK\n");

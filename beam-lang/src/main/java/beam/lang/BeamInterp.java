@@ -39,11 +39,26 @@ public class BeamInterp {
     }
 
     public BeamConfig createConfig(String extensionType) {
+        return createConfig(extensionType, null);
+    }
+
+    public BeamConfig createConfig(String extensionType, BeamConfig original) {
         Class klass = extensions.get(extensionType);
 
         if (klass != null) {
             try {
                 BeamConfig config = (BeamConfig) klass.newInstance();
+                if (original != null) {
+                    config.setCtx(original.getCtx());
+                    config.setType(original.getType());
+                    config.setParams(original.getParams());
+                    config.setChildren(original.getChildren());
+
+                    for (BeamContextKey key : original.keys()) {
+                        config.add(key, original.get(key));
+                    }
+                }
+
                 config.setType(extensionType);
 
                 if (config instanceof BeamExtension) {
@@ -51,7 +66,7 @@ public class BeamInterp {
                 }
 
                 return config;
-            } catch (InstantiationException | IllegalAccessException ie) {
+            } catch (InstantiationException | IllegalAccessException ex) {
                 throw new BeamLangException("Unable to instantiate " + klass.getClass().getSimpleName());
             }
         }
@@ -96,7 +111,7 @@ public class BeamInterp {
     private void applyExtensions(BeamConfig parent) {
         List<BeamConfig> appliedConfigs = new ArrayList<>();
 
-        Iterator<BeamConfig> iterator = parent.getSubConfigs().iterator();
+        Iterator<BeamConfig> iterator = parent.getChildren().iterator();
         while (iterator.hasNext()) {
             BeamConfig child = iterator.next();
 
@@ -104,12 +119,7 @@ public class BeamInterp {
                 // Replace `child` config block with the equivalent extension
                 // config block.
 
-                BeamConfig config = createConfig(child.getType());
-                config.setCtx(child.getCtx());
-                config.setType(child.getType());
-                config.setParams(child.getParams());
-                config.setSubConfigs(child.getSubConfigs());
-                config.importContext(child);
+                BeamConfig config = createConfig(child.getType(), child);
                 config.applyExtension(this);
 
                 appliedConfigs.add(config);
@@ -120,7 +130,7 @@ public class BeamInterp {
             }
         }
 
-        parent.getSubConfigs().addAll(appliedConfigs);
+        parent.getChildren().addAll(appliedConfigs);
     }
 
     private void calculateDependencies(BeamConfig config) {

@@ -13,12 +13,12 @@ public class BeamValidatedConfig extends BeamConfig {
 
     public void populate() {
         String id = getParams().get(0).getValue().toString();
-        for (BeamContextKey key : listContextKeys()) {
+        for (BeamContextKey key : keys()) {
             if (key.getType() != null) {
                 continue;
             }
 
-            BeamResolvable referable = getReferable(key);
+            BeamResolvable referable = get(key);
             Object value = referable.getValue();
 
             try {

@@ -58,7 +58,7 @@ public class BeamListener extends BeamParserBaseListener {
 
     @Override
     public void exitBlockBody(BeamParser.BlockBodyContext ctx) {
-        parent.getSubConfigs().add(config);
+        parent.getChildren().add(config);
         config = parent;
     }
 
@@ -67,7 +67,7 @@ public class BeamListener extends BeamParserBaseListener {
         BeamValue beamValue = BeamListener.parseValue(keyValue.value());
         beamValue.setLine(keyValue.getStart().getLine());
 
-        config.addReferable(new BeamContextKey(keyValue.key().getText()), beamValue);
+        config.add(new BeamContextKey(keyValue.key().getText()), beamValue);
     }
 
     public static BeamValue parseValue(BeamParser.ValueContext valueContext) {

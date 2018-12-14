@@ -4,17 +4,16 @@ import java.util.List;
 
 public interface BeamContext {
 
-    boolean hasKey(BeamContextKey key);
+    boolean containsKey(BeamContextKey key);
 
-    BeamReferable getReferable(BeamContextKey key);
+    BeamReferable get(BeamContextKey key);
 
-    void addReferable(BeamContextKey key, BeamReferable value);
+    void add(BeamContextKey key, BeamReferable value);
 
-    BeamReferable removeReferable(BeamContextKey key);
+    BeamReferable remove(BeamContextKey key);
 
-    List<BeamContextKey> listContextKeys();
-
-    void importContext(BeamContext context);
+    List<BeamContextKey> keys();
 
     List<BeamContextKey> getScope();
+
 }

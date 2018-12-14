@@ -18,15 +18,15 @@ public class ImportExtension extends BeamExtension {
 
         String statePath = StringUtils.ensureEnd(path, ".state");
         BeamContextKey key = new BeamContextKey(String.format("%s %s %s", statePath, "as", id), getType());
-        if (parent.hasKey(key)) {
-            BeamConfig existingConfig = (BeamConfig) parent.getReferable(key);
+        if (parent.containsKey(key)) {
+            BeamConfig existingConfig = (BeamConfig) parent.get(key);
 
             if (existingConfig.getClass() != this.getClass()) {
-                parent.addReferable(key, this);
+                parent.add(key, this);
                 progress = true;
             }
         } else {
-            parent.addReferable(key, this);
+            parent.add(key, this);
             progress = true;
         }
 
@@ -34,7 +34,7 @@ public class ImportExtension extends BeamExtension {
             try {
                 BeamConfig importConfig = getInterp().parse(path);
                 importConfig.applyExtension(getInterp());
-                root.addReferable(new BeamContextKey(id), importConfig);
+                root.add(new BeamContextKey(id), importConfig);
                 imported = true;
                 progress = true;
             } catch (IOException ioe) {

@@ -5,9 +5,7 @@ import beam.core.diff.ResourceName;
 import beam.lang.BeamConfig;
 import beam.lang.BeamContext;
 import beam.lang.BeamContextKey;
-import beam.lang.BeamExtension;
 import beam.lang.BeamInterp;
-import beam.lang.BeamLangException;
 import beam.lang.BeamList;
 import beam.lang.BeamLiteral;
 import beam.lang.BeamReference;
@@ -69,7 +67,7 @@ public abstract class BeamResource extends BeamValidatedConfig implements Compar
 
             // Add reference to current resource
             BeamContextKey resourceCredentialsKey = new BeamContextKey("resource-credentials");
-            addReferable(resourceCredentialsKey, credentialsReference);
+            add(resourceCredentialsKey, credentialsReference);
         }
 
         boolean progress = super.resolve(context);
@@ -79,14 +77,15 @@ public abstract class BeamResource extends BeamValidatedConfig implements Compar
     }
 
     @Override
-    public void applyExtension(BeamInterp lang) {
+    public void applyExtension(BeamInterp interp) {
         List<BeamConfig> newConfigs = new ArrayList<>();
-        Iterator<BeamConfig> iterator = getSubConfigs().iterator();
+        Iterator<BeamConfig> iterator = getChildren().iterator();
         while (iterator.hasNext()) {
             BeamConfig config = iterator.next();
+
             Class<? extends BeamConfig> extension = null;
-            if (lang.hasExtension(config.getType())) {
-                extension = lang.getExtension(config.getType());
+            if (interp.hasExtension(config.getType())) {
+                extension = interp.getExtension(config.getType());
             } else {
                 try {
                     String keyId = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, config.getType());
@@ -102,17 +101,17 @@ public abstract class BeamResource extends BeamValidatedConfig implements Compar
                             ParameterizedType paramType = (ParameterizedType) types[0];
                             type = (Class<?>) paramType.getActualTypeArguments()[0];
                             BeamContextKey key = new BeamContextKey(config.getType());
-                            if (hasKey(key) && !(getReferable(key) instanceof BeamList)) {
+                            if (containsKey(key) && !(get(key) instanceof BeamList)) {
                                 throw new BeamException(String.format("Expect %s in %s to be a BeamList, found %s",
-                                    key, getClass(), getReferable(key).getClass()));
+                                    key, getClass(), get(key).getClass()));
                             } else {
                                 BeamList beamList = new BeamList();
-                                addReferable(key, beamList);
+                                add(key, beamList);
                             }
                         }
 
-                        if (lang.hasExtension(type.getName())) {
-                            extension = lang.getExtension(type.getName());
+                        if (interp.hasExtension(type.getName())) {
+                            extension = interp.getExtension(type.getName());
                         }
                     }
                 } catch (Exception e) {
@@ -125,30 +124,18 @@ public abstract class BeamResource extends BeamValidatedConfig implements Compar
             }
 
             if (config.getClass() != extension) {
-                try {
-                    BeamConfig newConfig = extension.newInstance();
-                    newConfig.setCtx(config.getCtx());
-                    newConfig.setType(config.getType());
-                    newConfig.importContext(config);
-                    newConfig.setParams(config.getParams());
-                    newConfig.setSubConfigs(config.getSubConfigs());
-                    newConfigs.add(newConfig);
-                    newConfig.applyExtension(lang);
-                    if (newConfig instanceof BeamExtension) {
-                        ((BeamExtension) newConfig).setInterp(lang);
-                    }
+                BeamConfig newConfig = interp.createConfig(config.getType(), config);
+                newConfig.applyExtension(interp);
 
-                    iterator.remove();
+                newConfigs.add(newConfig);
 
-                } catch (InstantiationException | IllegalAccessException ie) {
-                    throw new BeamLangException("Unable to instantiate " + extension.getClass().getSimpleName());
-                }
+                iterator.remove();
             } else {
-                config.applyExtension(lang);
+                config.applyExtension(interp);
             }
         }
 
-        getSubConfigs().addAll(newConfigs);
+        getChildren().addAll(newConfigs);
     }
 
     @Override

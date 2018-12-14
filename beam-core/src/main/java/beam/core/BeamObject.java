@@ -16,15 +16,15 @@ public class BeamObject extends BeamValidatedConfig {
         boolean progress = false;
         String id = getParams().get(0).getValue().toString();
         BeamContextKey key = new BeamContextKey(id, getType());
-        if (parent.hasKey(key)) {
-            BeamConfig existingConfig = (BeamConfig) parent.getReferable(key);
+        if (parent.containsKey(key)) {
+            BeamConfig existingConfig = (BeamConfig) parent.get(key);
 
             if (existingConfig.getClass() != this.getClass()) {
-                parent.addReferable(key, this);
+                parent.add(key, this);
                 progress = true;
             }
         } else {
-            parent.addReferable(key, this);
+            parent.add(key, this);
             progress = true;
         }
 
@@ -35,8 +35,8 @@ public class BeamObject extends BeamValidatedConfig {
 
         if (!added) {
             BeamContextKey fieldKey = new BeamContextKey(getType());
-            if (parent.hasKey(fieldKey) && parent.getReferable(fieldKey) instanceof BeamList) {
-                BeamList beamList = (BeamList) parent.getReferable(fieldKey);
+            if (parent.containsKey(fieldKey) && parent.get(fieldKey) instanceof BeamList) {
+                BeamList beamList = (BeamList) parent.get(fieldKey);
                 BeamReference reference = new BeamReference();
                 reference.getScopeChain().addAll(getScope());
                 BeamScalar scalar = new BeamScalar();
@@ -58,7 +58,7 @@ public class BeamObject extends BeamValidatedConfig {
             } else {
                 BeamReference reference = new BeamReference();
                 reference.getScopeChain().addAll(getScope());
-                parent.addReferable(fieldKey, reference);
+                parent.add(fieldKey, reference);
             }
             added = true;
         }
