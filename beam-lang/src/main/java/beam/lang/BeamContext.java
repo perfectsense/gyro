@@ -1,6 +1,6 @@
 package beam.lang;
 
-import java.util.List;
+import java.util.Set;
 
 public interface BeamContext {
 
@@ -12,6 +12,6 @@ public interface BeamContext {
 
     BeamReferable remove(BeamContextKey key);
 
-    List<BeamContextKey> keys();
+    Set<BeamContextKey> keys();
 
 }

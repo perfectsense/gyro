@@ -16,12 +16,10 @@ import java.util.Set;
 public class BeamBlock implements BeamReferable, BeamCollection, BeamContext {
 
     private String type;
-
     private List<BeamResolvable> parameters;
+    private List<BeamBlock> children;
 
     private Map<BeamContextKey, BeamReferable> context = new HashMap<>();
-
-    private List<BeamBlock> children;
 
     private BeamParser.BlockBodyContext bodyContext;
 
@@ -31,6 +29,10 @@ public class BeamBlock implements BeamReferable, BeamCollection, BeamContext {
         }
 
         return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public List<BeamResolvable> getParameters() {
@@ -43,10 +45,6 @@ public class BeamBlock implements BeamReferable, BeamCollection, BeamContext {
 
     public void setParameters(List<BeamResolvable> parameters) {
         this.parameters = parameters;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     public List<BeamBlock> getChildren() {
@@ -183,8 +181,8 @@ public class BeamBlock implements BeamReferable, BeamCollection, BeamContext {
     }
 
     @Override
-    public List<BeamContextKey> keys() {
-        return new ArrayList<>(context.keySet());
+    public Set<BeamContextKey> keys() {
+        return new HashSet<>(context.keySet());
     }
 
     @Override
