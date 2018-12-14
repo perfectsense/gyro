@@ -34,7 +34,7 @@ public class UpCommand extends AbstractCommand {
         String configPath = getArguments().get(0);
         String statePath = configPath + ".state";
         BeamCore core = new BeamCore();
-        BeamConfig config = core.processConfig(configPath);
+        BeamConfig config = core.parse(configPath);
 
         BeamState stateBackend = core.getStateBackend(config);
         BeamConfig state = stateBackend.load(statePath, core);

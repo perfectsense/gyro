@@ -14,7 +14,7 @@ public class BeamLocalState extends BeamState {
 
         File stateFile = new File(name);
         if (stateFile.exists() && !stateFile.isDirectory()) {
-            return core.processConfig(name);
+            return core.parse(name);
         } else {
             return new BeamConfig();
         }

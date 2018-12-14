@@ -40,7 +40,7 @@ public class BeamCore {
         return validationException;
     }
 
-    public BeamConfig processConfig(String path) throws IOException {
+    public BeamConfig parse(String path) throws IOException {
         interp.init();
         interp.addExtension("state", BeamLocalState.class);
         interp.addExtension("provider", BeamProvider.class);
