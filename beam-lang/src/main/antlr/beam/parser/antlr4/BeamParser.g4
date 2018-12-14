@@ -7,7 +7,11 @@ options
  */
 
 beamRoot
-    : NEWLINE* configBody* EOF
+    : NEWLINE* globalConfig EOF
+    ;
+
+globalConfig
+    : configBody?
     ;
 
 configBody

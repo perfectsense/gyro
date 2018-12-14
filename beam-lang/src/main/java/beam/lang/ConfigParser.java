@@ -42,8 +42,7 @@ public class ConfigParser {
 
             if (configBodyContext.config() != null) {
                 for (BeamParser.ConfigContext configContext : configBodyContext.config()) {
-                    ConfigParser parser = new ConfigParser();
-                    BeamConfig subConfig = parser.parse(configContext);
+                    BeamConfig subConfig = parse(configContext);
                     config.getSubConfigs().add(subConfig);
                 }
             }

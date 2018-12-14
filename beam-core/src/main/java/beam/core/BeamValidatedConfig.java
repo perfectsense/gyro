@@ -23,18 +23,8 @@ public class BeamValidatedConfig extends BeamConfig {
 
             try {
                 String keyId = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key.getId());
-                if (!BeanUtils.describe(this).containsKey(keyId)) {
-                    if (referable instanceof BeamValue) {
-                        BeamValue beamValue = (BeamValue) referable;
-                        if (beamValue.getLine() != null) {
-                            BeamCore.validationException().addValidationError(
-                                String.format("%s '%s' at line %s => %s is not a valid field.", getType(), id, beamValue.getLine(), key.getId()));
-                        }
-                    }
-                }
-
                 BeanUtils.setProperty(this, keyId, value);
-            } catch (IllegalArgumentException | InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
+            } catch (IllegalArgumentException | InvocationTargetException | IllegalAccessException e) {
                 // Ignoring errors from setProperty
             }
         }

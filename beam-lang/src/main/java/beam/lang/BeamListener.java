@@ -37,9 +37,11 @@ public class BeamListener extends BeamParserBaseListener {
     }
 
     @Override
-    public void exitConfigBody(BeamParser.ConfigBodyContext ctx) {
-        ConfigParser parser = new ConfigParser();
-        parser.parseBody(ctx, config);
+    public void exitGlobalConfig(BeamParser.GlobalConfigContext ctx) {
+        if (ctx.configBody() != null) {
+            ConfigParser parser = new ConfigParser();
+            parser.parseBody(ctx.configBody(), config);
+        }
     }
 
     public static BeamValue parseValue(BeamParser.ValueContext valueContext) {
