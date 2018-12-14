@@ -50,7 +50,6 @@ public class BeamListener extends BeamParserBaseListener {
 
         String type = blockBody.blockType().getText();
         config = interp.createConfig(type);
-        config.setCtx(blockBody);
 
         for (BeamParser.ParamContext paramContext : blockBody.param()) {
             if (paramContext.literal() != null) {

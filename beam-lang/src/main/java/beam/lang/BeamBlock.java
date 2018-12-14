@@ -3,7 +3,6 @@ package beam.lang;
 import beam.lang.types.BeamInlineList;
 import beam.lang.types.BeamList;
 import beam.lang.types.BeamScalar;
-import beam.parser.antlr4.BeamParser;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,8 +19,6 @@ public class BeamBlock implements BeamReferable, BeamCollection, BeamContext {
     private List<BeamBlock> children;
 
     private Map<BeamContextKey, BeamReferable> context = new HashMap<>();
-
-    private BeamParser.BlockBodyContext bodyContext;
 
     public String getType() {
         if (type == null) {
@@ -57,14 +54,6 @@ public class BeamBlock implements BeamReferable, BeamCollection, BeamContext {
 
     public void setChildren(List<BeamBlock> children) {
         this.children = children;
-    }
-
-    public BeamParser.BlockBodyContext getCtx() {
-        return bodyContext;
-    }
-
-    public void setCtx(BeamParser.BlockBodyContext bodyContext) {
-        this.bodyContext = bodyContext;
     }
 
     public void applyExtension(BeamInterp lang) {

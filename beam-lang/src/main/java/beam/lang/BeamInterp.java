@@ -49,7 +49,6 @@ public class BeamInterp {
             try {
                 BeamBlock config = (BeamBlock) klass.newInstance();
                 if (original != null) {
-                    config.setCtx(original.getCtx());
                     config.setType(original.getType());
                     config.setParameters(original.getParameters());
                     config.setChildren(original.getChildren());
