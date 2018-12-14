@@ -2,7 +2,6 @@ package beam.aws.ec2;
 
 import beam.aws.AwsResource;
 import beam.core.BeamException;
-import beam.core.BeamResource;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 import software.amazon.awssdk.services.ec2.Ec2Client;
@@ -14,6 +13,7 @@ import software.amazon.awssdk.services.ec2.model.Ec2Exception;
 import software.amazon.awssdk.services.ec2.model.MoveAddressToVpcResponse;
 
 import java.text.MessageFormat;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -29,11 +29,12 @@ import java.util.Set;
  *     end
  */
 @ResourceName("elastic-ip")
-public class ElasticIpResource extends AwsResource {
+public class ElasticIpResource extends Ec2TaggableResource<Address> {
 
     private String allocationId;
     private String publicIp;
     private Boolean isStandardDomain;
+    private Map<String, String> tags;
 
     /**
      * Requested public ip for acquirement. See `Elastic IP <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html/>`_.
@@ -77,7 +78,13 @@ public class ElasticIpResource extends AwsResource {
     }
 
     @Override
-    public void refresh() {
+    protected String getId() {
+        doRefresh();
+        return getAllocationId();
+    }
+
+    @Override
+    public void doRefresh() {
         Ec2Client client = createClient(Ec2Client.class);
         try {
             DescribeAddressesResponse response = client.describeAddresses(r -> r.publicIps(getPublicIp()));
@@ -94,7 +101,7 @@ public class ElasticIpResource extends AwsResource {
     }
 
     @Override
-    public void create() {
+    public void doCreate() {
         Ec2Client client = createClient(Ec2Client.class);
         try {
             AllocateAddressResponse response = client.allocateAddress(
@@ -112,7 +119,7 @@ public class ElasticIpResource extends AwsResource {
     }
 
     @Override
-    public void update(BeamResource current, Set<String> changedProperties) {
+    public void doUpdate(AwsResource config, Set<String> changedProperties) {
         Ec2Client client = createClient(Ec2Client.class);
 
         if (changedProperties.contains("isStandardDomain")) {

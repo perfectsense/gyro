@@ -15,4 +15,8 @@ end
 aws::elastic-ip elastic-ip-example
     public-ip: 52.20.183.53
     is-standard-domain: true
+
+    tags:
+        Name: elastic-ip-examples
+    end
 end
