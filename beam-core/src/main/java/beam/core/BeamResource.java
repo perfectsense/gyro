@@ -56,7 +56,7 @@ public abstract class BeamResource extends BeamValidatedBlock implements Compara
 
     @Override
     public boolean resolve(BeamContext context) {
-        String id = getParams().get(0).getValue().toString();
+        String id = getParameters().get(0).getValue().toString();
         setResourceIdentifier(id);
 
         if (get("resource-credentials") == null) {

@@ -12,7 +12,7 @@ import java.lang.reflect.InvocationTargetException;
 public class BeamValidatedBlock extends BeamBlock {
 
     public void populate() {
-        String id = getParams().get(0).getValue().toString();
+        String id = getParameters().get(0).getValue().toString();
         for (BeamContextKey key : keys()) {
             if (key.getType() != null) {
                 continue;

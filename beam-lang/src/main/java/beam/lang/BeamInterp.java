@@ -51,7 +51,7 @@ public class BeamInterp {
                 if (original != null) {
                     config.setCtx(original.getCtx());
                     config.setType(original.getType());
-                    config.setParams(original.getParams());
+                    config.setParameters(original.getParameters());
                     config.setChildren(original.getChildren());
 
                     for (BeamContextKey key : original.keys()) {

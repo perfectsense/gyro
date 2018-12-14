@@ -54,9 +54,9 @@ public class BeamListener extends BeamParserBaseListener {
 
         for (BeamParser.ParamContext paramContext : blockBody.param()) {
             if (paramContext.literal() != null) {
-                config.getParams().add(BeamListener.parseLiteral(paramContext.literal()));
+                config.getParameters().add(BeamListener.parseLiteral(paramContext.literal()));
             } else if (paramContext.inlineList() != null) {
-                config.getParams().add(BeamListener.parseInlineList(paramContext.inlineList()));
+                config.getParameters().add(BeamListener.parseInlineList(paramContext.inlineList()));
             }
         }
     }

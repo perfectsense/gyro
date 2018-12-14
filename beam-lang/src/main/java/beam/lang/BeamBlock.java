@@ -17,7 +17,7 @@ public class BeamBlock implements BeamReferable, BeamCollection, BeamContext {
 
     private String type;
 
-    private List<BeamResolvable> params;
+    private List<BeamResolvable> parameters;
 
     private Map<BeamContextKey, BeamReferable> context = new HashMap<>();
 
@@ -35,16 +35,16 @@ public class BeamBlock implements BeamReferable, BeamCollection, BeamContext {
         return type;
     }
 
-    public List<BeamResolvable> getParams() {
-        if (params == null) {
-            params = new ArrayList<>();
+    public List<BeamResolvable> getParameters() {
+        if (parameters == null) {
+            parameters = new ArrayList<>();
         }
 
-        return params;
+        return parameters;
     }
 
-    public void setParams(List<BeamResolvable> params) {
-        this.params = params;
+    public void setParameters(List<BeamResolvable> parameters) {
+        this.parameters = parameters;
     }
 
     public void setType(String type) {
@@ -78,7 +78,7 @@ public class BeamBlock implements BeamReferable, BeamCollection, BeamContext {
 
     protected boolean resolveParams(BeamContext context) {
         boolean success = true;
-        for (BeamResolvable param : getParams()) {
+        for (BeamResolvable param : getParameters()) {
             param.resolve(context);
             success = success && param.getValue() != null;
         }
@@ -88,7 +88,7 @@ public class BeamBlock implements BeamReferable, BeamCollection, BeamContext {
 
     protected boolean resolve(BeamContext parent, BeamContext root) {
         boolean progress = false;
-        String id = getParams().get(0).getValue().toString();
+        String id = getParameters().get(0).getValue().toString();
         BeamContextKey key = new BeamContextKey(id, getType());
         if (parent.containsKey(key)) {
             BeamBlock existingConfig = (BeamBlock) parent.get(key);
@@ -215,7 +215,7 @@ public class BeamBlock implements BeamReferable, BeamCollection, BeamContext {
 
             if (referable instanceof BeamCollection) {
                 if (referable instanceof BeamBlock) {
-                    // should also add params
+                    // should also add parameters
                 }
 
                 if (referable instanceof BeamInlineList) {

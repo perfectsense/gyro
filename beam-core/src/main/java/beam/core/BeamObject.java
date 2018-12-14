@@ -14,7 +14,7 @@ public class BeamObject extends BeamValidatedBlock {
     @Override
     protected boolean resolve(BeamContext parent, BeamContext root) {
         boolean progress = false;
-        String id = getParams().get(0).getValue().toString();
+        String id = getParameters().get(0).getValue().toString();
         BeamContextKey key = new BeamContextKey(id, getType());
         if (parent.containsKey(key)) {
             BeamBlock existingConfig = (BeamBlock) parent.get(key);

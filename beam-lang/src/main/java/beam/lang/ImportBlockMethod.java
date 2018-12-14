@@ -11,8 +11,8 @@ public class ImportBlockMethod extends BeamBlockMethod {
     @Override
     protected boolean resolve(BeamContext parent, BeamContext root) {
         boolean progress = false;
-        BeamResolvable pathResolvable = getParams().get(0);
-        BeamResolvable idResolvable = getParams().get(2);
+        BeamResolvable pathResolvable = getParameters().get(0);
+        BeamResolvable idResolvable = getParameters().get(2);
         String path = pathResolvable.getValue().toString();
         String id = idResolvable.getValue().toString();
 
