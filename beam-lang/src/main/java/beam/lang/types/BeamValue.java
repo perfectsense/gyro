@@ -1,6 +1,6 @@
 package beam.lang.types;
 
-public abstract class BeamValue {
+public abstract class BeamValue<T> {
 
     private int line;
     private int column;
@@ -31,6 +31,6 @@ public abstract class BeamValue {
         this.path = path;
     }
 
-    public abstract String stringValue();
+    public abstract T getValue();
 
 }

@@ -5,7 +5,7 @@ import org.apache.commons.lang.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BeamList extends BeamValue {
+public class BeamList extends BeamValue<List> {
 
     private List<BeamValue> values;
 
@@ -18,7 +18,7 @@ public class BeamList extends BeamValue {
     }
 
     @Override
-    public String stringValue() {
+    public List getValue() {
         return null;
     }
 
@@ -38,4 +38,5 @@ public class BeamList extends BeamValue {
 
         return sb.toString();
     }
+
 }

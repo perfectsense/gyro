@@ -42,11 +42,6 @@ public class BeamReference extends BeamValue implements BeamReferable {
     }
 
     @Override
-    public String stringValue() {
-        return null;
-    }
-
-    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
 

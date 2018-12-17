@@ -61,7 +61,7 @@ public class MavenFetcher implements PluginFetcher {
 
             BeamBlock block = fetcherContext.get("artifact");
             if (block instanceof KeyValueBlock) {
-                key = ((KeyValueBlock) block).getValue().stringValue();
+                key = (String) ((KeyValueBlock) block).getValue().getValue();
             }
 
             if (key != null) {
@@ -94,7 +94,7 @@ public class MavenFetcher implements PluginFetcher {
                     BeamList listValue = (BeamList) ((KeyValueBlock) block).getValue();
 
                     for (BeamValue value : listValue.getValues()) {
-                        repos.add(value.stringValue());
+                        repos.add((String) value.getValue());
                     }
                 }
 
@@ -108,7 +108,7 @@ public class MavenFetcher implements PluginFetcher {
             String key = null;
             BeamBlock block = fetcherContext.get("artifact");
             if (block instanceof KeyValueBlock) {
-                key = ((KeyValueBlock) block).getValue().stringValue();
+                key = (String) ((KeyValueBlock) block).getValue().getValue();
             }
             Artifact artifact = new DefaultArtifact(key);
 

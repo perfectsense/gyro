@@ -4,8 +4,9 @@ import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-public class BeamMap extends BeamValue {
+public class BeamMap extends BeamValue<Map> {
 
     private List<KeyValueBlock> keyValues;
 
@@ -18,7 +19,7 @@ public class BeamMap extends BeamValue {
     }
 
     @Override
-    public String stringValue() {
+    public Map getValue() {
         return null;
     }
 

@@ -1,6 +1,6 @@
 package beam.lang.types;
 
-public class BeamBoolean extends BeamValue {
+public class BeamBoolean extends BeamValue<Boolean> {
 
     private boolean value;
 
@@ -8,17 +8,9 @@ public class BeamBoolean extends BeamValue {
         this.value = Boolean.valueOf(value);
     }
 
-    public boolean getValue() {
-        return value;
-    }
-
-    public void setValue(boolean value) {
-        this.value = value;
-    }
-
     @Override
-    public String stringValue() {
-        return toString();
+    public Boolean getValue() {
+        return value;
     }
 
     @Override

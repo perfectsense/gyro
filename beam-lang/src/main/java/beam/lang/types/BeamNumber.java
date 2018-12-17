@@ -2,7 +2,7 @@ package beam.lang.types;
 
 import org.apache.commons.lang.math.NumberUtils;
 
-public class BeamNumber extends BeamValue {
+public class BeamNumber extends BeamValue<Number> {
 
     private Number number;
 
@@ -11,13 +11,13 @@ public class BeamNumber extends BeamValue {
     }
 
     @Override
-    public String stringValue() {
-        return toString();
+    public String toString() {
+        return number.toString();
     }
 
     @Override
-    public String toString() {
-        return number.toString();
+    public Number getValue() {
+        return number;
     }
 
 }

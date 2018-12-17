@@ -16,11 +16,6 @@ public class BeamStringExpression extends BeamLiteral implements BeamReferable {
     }
 
     @Override
-    public Object getValue() {
-        return null;
-    }
-
-    @Override
     public Set<BeamReference> getDependencies(BeamBlock config) {
         return null;
     }

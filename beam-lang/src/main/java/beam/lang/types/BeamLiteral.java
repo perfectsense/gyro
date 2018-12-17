@@ -1,6 +1,6 @@
 package beam.lang.types;
 
-public abstract class BeamLiteral extends BeamValue {
+public abstract class BeamLiteral extends BeamValue<String> {
 
     private String literal;
 
@@ -13,12 +13,13 @@ public abstract class BeamLiteral extends BeamValue {
     }
 
     @Override
-    public String stringValue() {
+    public String toString() {
         return literal;
     }
 
     @Override
-    public String toString() {
+    public String getValue() {
         return literal;
     }
+
 }
