@@ -56,14 +56,12 @@ public class MavenFetcher implements PluginFetcher {
 
     @Override
     public boolean validate(BeamLanguageExtension fetcherContext) {
-        System.out.println(fetcherContext);
-
         if (fetcherContext.get("artifact") != null) {
             String key = null;
 
             BeamBlock block = fetcherContext.get("artifact");
             if (block instanceof KeyValueBlock) {
-                key = ((KeyValueBlock) block).getValue().toString();
+                key = ((KeyValueBlock) block).getValue().stringValue();
             }
 
             if (key != null) {
@@ -90,7 +88,7 @@ public class MavenFetcher implements PluginFetcher {
 
             List<RemoteRepository> remoteRepositories = new ArrayList<>();
             if (fetcherContext.get("repositories") != null) {
-                BeamBlock block = fetcherContext.get("respositories");
+                BeamBlock block = fetcherContext.get("repositories");
                 List<String> repos = new ArrayList<>();
                 if (block instanceof KeyValueBlock) {
                     BeamList listValue = (BeamList) ((KeyValueBlock) block).getValue();
@@ -110,7 +108,7 @@ public class MavenFetcher implements PluginFetcher {
             String key = null;
             BeamBlock block = fetcherContext.get("artifact");
             if (block instanceof KeyValueBlock) {
-                key = ((KeyValueBlock) block).getValue().toString();
+                key = ((KeyValueBlock) block).getValue().stringValue();
             }
             Artifact artifact = new DefaultArtifact(key);
 

@@ -2,15 +2,15 @@ package beam.core;
 
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceName;
+import beam.lang.BeamLanguageExtension;
 import beam.lang.types.BeamBlock;
-import beam.lang.types.ResourceBlock;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-public abstract class BeamResource extends ResourceBlock implements Comparable<BeamResource> {
+public abstract class BeamResource extends BeamLanguageExtension implements Comparable<BeamResource> {
 
     private String resourceIdentifier;
     private BeamCredentials resourceCredentials;
@@ -142,6 +142,11 @@ public abstract class BeamResource extends ResourceBlock implements Comparable<B
     public abstract void delete();
 
     public abstract String toDisplayString();
+
+    @Override
+    public void execute() {
+
+    }
 
     @Override
     public int compareTo(BeamResource o) {

@@ -49,6 +49,11 @@ public class BeamListener extends BeamParserBaseListener {
 
     @Override
     public void exitResource_block(BeamParser.Resource_blockContext ctx) {
+        if (currentBlock instanceof BeamLanguageExtension) {
+            BeamLanguageExtension extension = (BeamLanguageExtension) currentBlock;
+            extension.execute();
+        }
+
         currentBlock = parentBlock;
     }
 
@@ -137,7 +142,6 @@ public class BeamListener extends BeamParserBaseListener {
                 BeamLanguageExtension block = (BeamLanguageExtension) klass.newInstance();
                 block.setType(type);
                 block.setInterp(interp);
-                block.execute();
 
                 return block;
             } catch (InstantiationException | IllegalAccessException ex) {

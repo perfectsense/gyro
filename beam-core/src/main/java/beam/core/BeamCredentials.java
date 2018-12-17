@@ -1,12 +1,12 @@
 package beam.core;
 
-import beam.lang.types.BeamBlock;
+import beam.lang.BeamLanguageExtension;
 
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-public abstract class BeamCredentials extends BeamBlock {
+public abstract class BeamCredentials extends BeamLanguageExtension {
 
     private BeamState stateBackend;
     private final Set<BeamResource> dependents = new TreeSet<>();
@@ -30,6 +30,11 @@ public abstract class BeamCredentials extends BeamBlock {
 
     public Map<String, String> findCredentials(boolean refresh, boolean extended) {
         return findCredentials(refresh);
+    }
+
+    @Override
+    public void execute() {
+
     }
 
     @Override
