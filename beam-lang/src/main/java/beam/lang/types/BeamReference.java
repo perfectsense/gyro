@@ -35,12 +35,14 @@ public class BeamReference extends BeamValue {
     public boolean resolve() {
         BeamBlock parent = getParentBlock();
         while (parent != null) {
-
             if (parent instanceof ContainerBlock) {
                 ContainerBlock containerBlock = (ContainerBlock) parent;
+
                 referencedBlock = containerBlock.get(getName(), getType());
-                dependencies().add(getParentBlock());
-                return true;
+                if (referencedBlock != null) {
+                    dependencies().add(getParentBlock());
+                    return true;
+                }
             }
 
             parent = parent.getParentBlock();

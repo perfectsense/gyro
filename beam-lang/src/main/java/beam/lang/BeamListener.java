@@ -93,7 +93,12 @@ public class BeamListener extends BeamParserBaseListener {
         } else if (context.list_value() != null) {
             BeamList listValue = new BeamList();
             for (BeamParser.List_item_valueContext valueContext : context.list_value().list_item_value()) {
-                listValue.getValues().add(parseListItemValue(valueContext));
+                BeamValue listItemValue = parseListItemValue(valueContext);
+                listItemValue.setLine(valueContext.getStart().getLine());
+                listItemValue.setColumn(valueContext.getStart().getCharPositionInLine());
+                listItemValue.setParentBlock(parentBlock);
+
+                listValue.getValues().add(listItemValue);
             }
 
             value = listValue;
@@ -107,6 +112,8 @@ public class BeamListener extends BeamParserBaseListener {
         }
 
         value.setParentBlock(parentBlock);
+        value.setLine(context.start.getLine());
+        value.setColumn(context.start.getCharPositionInLine());
 
         return value;
     }
@@ -176,7 +183,7 @@ public class BeamListener extends BeamParserBaseListener {
 
                 return block;
             } catch (InstantiationException | IllegalAccessException ex) {
-                throw new BeamLangException("Unable to instantiate " + klass.getClass().getSimpleName());
+                throw new BeamLanguageException("Unable to instantiate " + klass.getClass().getSimpleName());
             }
         }
 

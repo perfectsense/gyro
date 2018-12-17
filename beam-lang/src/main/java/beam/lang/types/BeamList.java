@@ -1,10 +1,10 @@
 package beam.lang.types;
 
+import beam.lang.BeamLanguageException;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 public class BeamList extends BeamValue<List> {
 
@@ -28,7 +28,7 @@ public class BeamList extends BeamValue<List> {
         for (BeamValue value : getValues()) {
             boolean resolved = value.resolve();
             if (!resolved) {
-                return false;
+                throw new BeamLanguageException("Unabled to resolve configuration.", value);
             }
         }
 

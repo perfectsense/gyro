@@ -1,5 +1,6 @@
 package beam.lang.types;
 
+import beam.lang.BeamLanguageException;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
@@ -29,7 +30,7 @@ public class BeamMap extends BeamValue<Map> {
         for (KeyValueBlock keyValueBlock : getKeyValues()) {
             boolean resolved = keyValueBlock.resolve();
             if (!resolved) {
-                return false;
+                throw new BeamLanguageException("Unabled to resolve configuration.", keyValueBlock);
             }
         }
 
