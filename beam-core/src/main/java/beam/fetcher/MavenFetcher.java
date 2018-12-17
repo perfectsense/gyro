@@ -147,7 +147,7 @@ public class MavenFetcher implements PluginFetcher {
                         BeamResource resource = (BeamResource) c.newInstance();
                         BeamCredentials credentials = (BeamCredentials) resource.getResourceCredentialsClass().newInstance();
 
-                        String resourceNamespace = credentials.getName();
+                        String resourceNamespace = credentials.getCloudName();
                         String resourceName = c.getSimpleName();
 
                         if (c.isAnnotationPresent(ResourceName.class)) {
@@ -165,7 +165,7 @@ public class MavenFetcher implements PluginFetcher {
                 } else if (BeamCredentials.class.isAssignableFrom(c)) {
                     BeamCredentials credentials = (BeamCredentials) c.newInstance();
 
-                    String resourceNamespace = credentials.getName();
+                    String resourceNamespace = credentials.getCloudName();
                     String resourceName = c.getSimpleName();
                     if (c.isAnnotationPresent(ResourceName.class)) {
                         ResourceName name = (ResourceName) c.getAnnotation(ResourceName.class);

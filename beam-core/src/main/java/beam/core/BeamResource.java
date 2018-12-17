@@ -4,7 +4,12 @@ import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceName;
 import beam.lang.BeamLanguageExtension;
 import beam.lang.types.BeamBlock;
+import beam.lang.types.BeamReference;
+import beam.lang.types.KeyValueBlock;
+import com.google.common.base.CaseFormat;
+import org.apache.commons.beanutils.BeanUtils;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -12,7 +17,6 @@ import java.util.TreeSet;
 
 public abstract class BeamResource extends BeamLanguageExtension implements Comparable<BeamResource> {
 
-    private String resourceIdentifier;
     private BeamCredentials resourceCredentials;
     private String path;
     private List<BeamResource> dependsOn;
@@ -40,14 +44,6 @@ public abstract class BeamResource extends BeamLanguageExtension implements Comp
         this.path = path;
     }
 
-    public String getResourceIdentifier() {
-        return resourceIdentifier;
-    }
-
-    public void setResourceIdentifier(String resourceIdentifier) {
-        this.resourceIdentifier = resourceIdentifier;
-    }
-
     public abstract Class getResourceCredentialsClass();
 
     public String getResourceCredentialsName() {
@@ -56,7 +52,7 @@ public abstract class BeamResource extends BeamLanguageExtension implements Comp
         try {
             BeamCredentials credentials = (BeamCredentials) c.newInstance();
 
-            String resourceNamespace = credentials.getName();
+            String resourceNamespace = credentials.getCloudName();
             String resourceName = c.getSimpleName();
             if (c.isAnnotationPresent(ResourceName.class)) {
                 ResourceName name = (ResourceName) c.getAnnotation(ResourceName.class);
@@ -131,6 +127,20 @@ public abstract class BeamResource extends BeamLanguageExtension implements Comp
 
     public BeamResource findCurrent() {
         return null;
+    }
+
+    @Override
+    public void execute() {
+        if (get("resource-credentials") == null) {
+            BeamReference credentialsReference = new BeamReference(getResourceCredentialsName(), "default");
+            credentialsReference.setParentBlock(getParentBlock());
+
+            KeyValueBlock credentialsBlock = new KeyValueBlock();
+            credentialsBlock.setKey("resource-credentials");
+            credentialsBlock.setValue(credentialsReference);
+
+            getBlocks().add(credentialsBlock);
+        }
     }
 
     public abstract void refresh();

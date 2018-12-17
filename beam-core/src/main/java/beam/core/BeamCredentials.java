@@ -1,7 +1,12 @@
 package beam.core;
 
 import beam.lang.BeamLanguageExtension;
+import beam.lang.types.BeamBlock;
+import beam.lang.types.KeyValueBlock;
+import com.google.common.base.CaseFormat;
+import org.apache.commons.beanutils.BeanUtils;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -16,7 +21,7 @@ public abstract class BeamCredentials extends BeamLanguageExtension {
      *
      * @return Never {@code null}.
      */
-    public abstract String getName();
+    public abstract String getCloudName();
 
     public Set<BeamResource> dependents() {
         return dependents;

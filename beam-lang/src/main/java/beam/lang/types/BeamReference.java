@@ -1,5 +1,7 @@
 package beam.lang.types;
 
+import beam.lang.BeamLanguageException;
+
 public class BeamReference extends BeamValue {
 
     private String type;
@@ -7,6 +9,10 @@ public class BeamReference extends BeamValue {
     private String attribute;
     private Object value;
     private BeamBlock referencedBlock;
+
+    public BeamReference(String type, String name) {
+        this(type, name, null);
+    }
 
     public BeamReference(String type, String name, String attribute) {
         this.type = type;
@@ -26,8 +32,16 @@ public class BeamReference extends BeamValue {
         return attribute;
     }
 
+    public BeamBlock getReferencedBlock() {
+        return referencedBlock;
+    }
+
     @Override
     public Object getValue() {
+        if (getReferencedBlock() != null && getAttribute() == null) {
+            return getReferencedBlock();
+        }
+
         return null;
     }
 
@@ -39,10 +53,12 @@ public class BeamReference extends BeamValue {
                 ContainerBlock containerBlock = (ContainerBlock) parent;
 
                 referencedBlock = containerBlock.get(getName(), getType());
-                if (referencedBlock != null) {
-                    dependencies().add(getParentBlock());
-                    return true;
+                if (referencedBlock == null) {
+                    throw new BeamLanguageException("Unable to resolve reference.", this);
                 }
+
+                dependencies().add(getParentBlock());
+                return true;
             }
 
             parent = parent.getParentBlock();

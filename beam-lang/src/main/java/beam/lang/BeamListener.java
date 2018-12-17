@@ -46,6 +46,9 @@ public class BeamListener extends BeamParserBaseListener {
     @Override
     public void enterResource_block(BeamParser.Resource_blockContext context) {
         ResourceBlock resourceBlock = parseResourceBlock(context);
+        resourceBlock.setLine(context.getStart().getLine());
+        resourceBlock.setColumn(context.getStart().getCharPositionInLine());
+
         currentBlock.setParentBlock(currentBlock);
 
         if (currentBlock instanceof ContainerBlock) {
@@ -150,7 +153,7 @@ public class BeamListener extends BeamParserBaseListener {
 
     public ResourceBlock parseResourceBlock(BeamParser.Resource_blockContext context) {
         ResourceBlock resourceBlock = createResourceBlock(context.resource_type().getText());
-        resourceBlock.setName(context.resource_name().getText());
+        resourceBlock.setResourceIdentifier(context.resource_name().getText());
 
         return resourceBlock;
     }
@@ -160,6 +163,8 @@ public class BeamListener extends BeamParserBaseListener {
         keyValueBlock.setKey(StringUtils.stripEnd(context.key().getText(), ":"));
         keyValueBlock.setValue(parseValue(context.value(), parent));
         keyValueBlock.setParentBlock(parent);
+        keyValueBlock.setLine(context.getStart().getLine());
+        keyValueBlock.setColumn(context.getStart().getCharPositionInLine());
 
         return keyValueBlock;
     }
@@ -169,6 +174,8 @@ public class BeamListener extends BeamParserBaseListener {
         keyValueBlock.setKey(StringUtils.stripEnd(context.key().getText(), ":"));
         keyValueBlock.setValue(parseValue(context.value(), parent));
         keyValueBlock.setParentBlock(parent);
+        keyValueBlock.setLine(context.getStart().getLine());
+        keyValueBlock.setColumn(context.getStart().getCharPositionInLine());
 
         return keyValueBlock;
     }
@@ -178,7 +185,7 @@ public class BeamListener extends BeamParserBaseListener {
         if (klass != null) {
             try {
                 BeamLanguageExtension block = (BeamLanguageExtension) klass.newInstance();
-                block.setType(type);
+                block.setResourceType(type);
                 block.setInterp(interp);
 
                 return block;

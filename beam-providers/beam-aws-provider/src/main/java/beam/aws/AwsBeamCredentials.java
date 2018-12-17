@@ -33,7 +33,7 @@ public class AwsBeamCredentials extends BeamCredentials {
     }
 
     @Override
-    public String getName() {
+    public String getCloudName() {
         return "aws";
     }
 

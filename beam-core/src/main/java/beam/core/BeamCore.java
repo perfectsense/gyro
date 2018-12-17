@@ -44,7 +44,9 @@ public class BeamCore {
         interp.addExtension("state", BeamLocalState.class);
         interp.addExtension("provider", BeamProvider.class);
 
-        return interp.parse(path);
+        BeamBlock block = interp.parse(path);
+
+        return block;
     }
 
     public BeamState getStateBackend(BeamBlock config) {
@@ -83,27 +85,20 @@ public class BeamCore {
         return findBeamResources(config, false);
     }
 
-    public Set<BeamResource> findBeamResources(BeamBlock config, boolean refresh) {
+    public Set<BeamResource> findBeamResources(BeamBlock block, boolean refresh) {
         Set<BeamResource> resources = new TreeSet<>();
-        /*
-        for (BeamContextKey key : config.keys()) {
-            BeamReferable referable = config.get(key);
-            Object value = referable.getValue();
 
-            if (value instanceof BeamResource) {
-                BeamResource resource = (BeamResource) value;
-                resource.setRoot(config);
-                resources.add(resource);
-                if (refresh) {
-                    resource.refresh();
+        if (block instanceof ContainerBlock) {
+            ContainerBlock containerBlock = (ContainerBlock) block;
+
+            for (BeamBlock child : containerBlock.getBlocks()) {
+                if (child instanceof BeamResource) {
+                    resources.add((BeamResource) child);
                 }
-            }
 
-            if (value instanceof BeamBlock) {
-                resources.addAll(findBeamResources((BeamBlock) value, refresh));
+                resources.addAll(findBeamResources(child, refresh));
             }
         }
-        */
 
         return resources;
     }
@@ -210,7 +205,7 @@ public class BeamCore {
         BeamResource resource = change.executeChange();
 
         /*
-        BeamContextKey key = new BeamContextKey(resource.getResourceIdentifier(), resource.getType());
+        BeamContextKey key = new BeamContextKey(resource.getResourceIdentifier(), resource.getResourceType());
 
         if (type == ChangeType.DELETE) {
             state.remove(key);

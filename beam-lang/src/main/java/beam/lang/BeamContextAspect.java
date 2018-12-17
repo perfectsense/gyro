@@ -49,7 +49,7 @@ public class BeamContextAspect {
                 beamList.getList().add(scalar);
             }
 
-            String key = joinPoint.getSignature().getName();
+            String key = joinPoint.getSignature().getResourceIdentifier();
             key = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, key);
             config.add(new BeamContextKey(key), beamList);
         }

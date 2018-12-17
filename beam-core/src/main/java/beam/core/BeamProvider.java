@@ -7,7 +7,7 @@ import org.reflections.Reflections;
 public class BeamProvider extends BeamLanguageExtension {
 
     @Override
-    public String getType() {
+    public String getResourceType() {
         return "provider";
     }
 

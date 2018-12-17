@@ -12,7 +12,7 @@ public abstract class BeamState extends BeamLanguageExtension {
     public abstract void delete(String name);
 
     @Override
-    public String getType() {
+    public String getResourceType() {
         return "state";
     }
 

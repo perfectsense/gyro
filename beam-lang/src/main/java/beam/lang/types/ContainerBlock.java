@@ -1,5 +1,7 @@
 package beam.lang.types;
 
+import beam.lang.BeamLanguageException;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,7 +25,7 @@ public class ContainerBlock extends BeamBlock {
         for (BeamBlock block : getBlocks()) {
             if (block instanceof ResourceBlock) {
                 ResourceBlock resourceBlock = (ResourceBlock) block;
-                if (resourceBlock.getName().equals(key) && resourceBlock.getType().equals(type)) {
+                if (resourceBlock.getResourceIdentifier().equals(key) && resourceBlock.getResourceType().equals(type)) {
                     return true;
                 }
             } else if (block instanceof KeyValueBlock && type == null) {
@@ -45,7 +47,7 @@ public class ContainerBlock extends BeamBlock {
         for (BeamBlock block : getBlocks()) {
             if (block instanceof ResourceBlock) {
                 ResourceBlock resourceBlock = (ResourceBlock) block;
-                if (resourceBlock.getName().equals(key) && resourceBlock.getType().equals(type)) {
+                if (resourceBlock.getResourceIdentifier().equals(key) && resourceBlock.getResourceType().equals(type)) {
                     return resourceBlock;
                 }
             } else if (block instanceof KeyValueBlock && type == null) {
@@ -64,7 +66,7 @@ public class ContainerBlock extends BeamBlock {
         for (BeamBlock child : getBlocks())  {
             boolean resolved = child.resolve();
             if (!resolved) {
-                return false;
+                throw new BeamLanguageException("Unable to resolve configuration.", child);
             }
         }
 
