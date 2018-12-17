@@ -12,6 +12,11 @@ public class BeamNumber extends BeamValue {
 
     @Override
     public String stringValue() {
+        return toString();
+    }
+
+    @Override
+    public String toString() {
         return number.toString();
     }
 

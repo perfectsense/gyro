@@ -23,10 +23,12 @@ public class KeyValueBlock extends BeamBlock {
 
     @Override
     public String toString() {
-        return "KeyValueBlock{" +
-            "key='" + key + '\'' +
-            ", value=" + value +
-            '}';
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(getKey()).append(": ");
+        sb.append(getValue().toString());
+
+        return sb.toString();
     }
 
 }

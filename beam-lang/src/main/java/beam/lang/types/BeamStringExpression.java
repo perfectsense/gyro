@@ -25,4 +25,9 @@ public class BeamStringExpression extends BeamLiteral implements BeamReferable {
         return null;
     }
 
+    @Override
+    public String toString() {
+        return "\"" + getLiteral() + "\"";
+    }
+
 }

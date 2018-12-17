@@ -19,8 +19,6 @@ public abstract class BeamLiteral extends BeamValue {
 
     @Override
     public String toString() {
-        return "BeamLiteral{" +
-            "literal='" + literal + '\'' +
-            '}';
+        return literal;
     }
 }

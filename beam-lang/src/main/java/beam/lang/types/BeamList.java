@@ -1,5 +1,7 @@
 package beam.lang.types;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,8 +24,18 @@ public class BeamList extends BeamValue {
 
     @Override
     public String toString() {
-        return "BeamList{" +
-            "values=" + values +
-            '}';
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("[\n");
+
+        List<String> out = new ArrayList<>();
+        for (BeamValue value : getValues()) {
+            out.add("    " + value.toString());
+        }
+
+        sb.append(StringUtils.join(out, ",\n"));
+        sb.append("\n]\n");
+
+        return sb.toString();
     }
 }

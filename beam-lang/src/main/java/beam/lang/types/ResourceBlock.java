@@ -23,10 +23,19 @@ public class ResourceBlock extends ContainerBlock {
 
     @Override
     public String toString() {
-        return "ResourceBlock{" +
-            "type='" + type + '\'' +
-            ", name='" + name + '\'' +
-            ", blocks=" + getBlocks() +
-            '}';
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(getType()).append(" ");
+        sb.append(getName()).append("\n");
+
+        for (BeamBlock block : getBlocks()) {
+            for (String line : block.toString().split("\n")) {
+                sb.append("    " + line + "\n");
+            }
+        }
+
+        sb.append("end\n\n");
+
+        return sb.toString();
     }
 }

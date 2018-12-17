@@ -1,5 +1,7 @@
 package beam.lang.types;
 
+import org.apache.commons.lang.StringUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,9 +24,19 @@ public class BeamMap extends BeamValue {
 
     @Override
     public String toString() {
-        return "BeamMap{"
-            + "keyValues="
-            + keyValues + '}';
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("{\n");
+
+        List<String> out = new ArrayList<>();
+        for (KeyValueBlock block : getKeyValues()) {
+            out.add("    " + block.toString());
+        }
+
+        sb.append(StringUtils.join(out, ",\n"));
+        sb.append("\n}\n");
+
+        return sb.toString();
     }
 
 }

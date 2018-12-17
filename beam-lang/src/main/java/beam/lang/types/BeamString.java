@@ -8,4 +8,9 @@ public class BeamString extends BeamLiteral {
         super(StringUtils.strip("'", literal));
     }
 
+    @Override
+    public String toString() {
+        return "'" + getLiteral() + "'";
+    }
+
 }

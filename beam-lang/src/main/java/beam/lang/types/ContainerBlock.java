@@ -71,9 +71,13 @@ public class ContainerBlock extends BeamBlock {
 
     @Override
     public String toString() {
-        return "ContainerBlock{" +
-            "blocks=" + blocks +
-            '}';
+        StringBuilder sb = new StringBuilder();
+
+        for (BeamBlock block : getBlocks()) {
+            sb.append(block.toString());
+        }
+
+        return sb.toString();
     }
 
 }

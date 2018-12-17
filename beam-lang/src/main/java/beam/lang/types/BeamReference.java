@@ -48,11 +48,19 @@ public class BeamReference extends BeamValue implements BeamReferable {
 
     @Override
     public String toString() {
-        return "BeamReference{" +
-            "type='" + type + '\'' +
-            ", name='" + name + '\'' +
-            ", attribute='" + attribute + '\'' +
-            '}';
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("$(");
+        sb.append(getType()).append(" ");
+        sb.append(getName());
+
+        if (getAttribute() != null) {
+            sb.append("| ").append(getAttribute());
+        }
+
+        sb.append(")");
+
+        return sb.toString();
     }
 
 }

@@ -18,7 +18,11 @@ public class BeamBoolean extends BeamValue {
 
     @Override
     public String stringValue() {
-        return Boolean.toString(value);
+        return toString();
     }
 
+    @Override
+    public String toString() {
+        return Boolean.toString(getValue());
+    }
 }
