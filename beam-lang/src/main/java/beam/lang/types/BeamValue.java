@@ -1,9 +1,13 @@
 package beam.lang.types;
 
-public abstract class BeamValue<T> {
+import java.util.HashSet;
+import java.util.Set;
+
+public abstract class BeamValue<T> extends BeamReferable {
 
     private int line;
     private int column;
+    private Set<BeamBlock> dependencies;
 
     private String path;
 
@@ -29,6 +33,14 @@ public abstract class BeamValue<T> {
 
     public void setPath(String path) {
         this.path = path;
+    }
+
+    public Set<BeamBlock> dependencies() {
+        if (dependencies == null) {
+            dependencies = new HashSet<>();
+        }
+
+        return dependencies;
     }
 
     public abstract T getValue();

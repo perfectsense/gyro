@@ -2,12 +2,20 @@ package beam.lang.types;
 
 import java.util.Set;
 
-public interface BeamReferable {
+public abstract class BeamReferable {
 
-    boolean resolve(ContainerBlock context);
+    private BeamBlock parentBlock;
 
-    Object getValue();
+    public BeamBlock getParentBlock() {
+        return parentBlock;
+    }
 
-    Set<BeamReference> getDependencies(BeamBlock config);
+    public void setParentBlock(BeamBlock parentBlock) {
+        this.parentBlock = parentBlock;
+    }
+
+    public abstract boolean resolve();
+
+    public abstract Set<BeamBlock> dependencies();
 
 }

@@ -2,6 +2,9 @@ package beam.lang.types;
 
 import org.apache.commons.lang.math.NumberUtils;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class BeamNumber extends BeamValue<Number> {
 
     private Number number;
@@ -11,13 +14,18 @@ public class BeamNumber extends BeamValue<Number> {
     }
 
     @Override
-    public String toString() {
-        return number.toString();
+    public Number getValue() {
+        return number;
     }
 
     @Override
-    public Number getValue() {
-        return number;
+    public boolean resolve() {
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return number.toString();
     }
 
 }

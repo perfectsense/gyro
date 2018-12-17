@@ -5,6 +5,7 @@ import org.apache.commons.lang.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class BeamMap extends BeamValue<Map> {
 
@@ -21,6 +22,18 @@ public class BeamMap extends BeamValue<Map> {
     @Override
     public Map getValue() {
         return null;
+    }
+
+    @Override
+    public boolean resolve() {
+        for (KeyValueBlock keyValueBlock : getKeyValues()) {
+            boolean resolved = keyValueBlock.resolve();
+            if (!resolved) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     @Override

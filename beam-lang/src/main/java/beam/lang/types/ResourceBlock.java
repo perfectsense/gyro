@@ -38,4 +38,5 @@ public class ResourceBlock extends ContainerBlock {
 
         return sb.toString();
     }
+
 }

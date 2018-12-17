@@ -81,7 +81,7 @@ public class ResourceChange {
         Set<ResourceChange> dependencies = new HashSet<>();
 
         BeamResource resource = pendingResource != null ? pendingResource : currentResource;
-        for (BeamResource r : (getType() == ChangeType.DELETE ? resource.dependents() : resource.dependencies())) {
+        for (BeamResource r : (getType() == ChangeType.DELETE ? resource.resourceDependents() : resource.resourceDependencies())) {
             ResourceChange c = r.getChange();
 
             if (c != null) {

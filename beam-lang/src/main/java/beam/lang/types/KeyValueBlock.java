@@ -22,6 +22,11 @@ public class KeyValueBlock extends BeamBlock {
     }
 
     @Override
+    public boolean resolve() {
+        return getValue().resolve();
+    }
+
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
 

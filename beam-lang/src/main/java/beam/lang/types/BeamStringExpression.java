@@ -4,20 +4,15 @@ import org.apache.commons.lang.StringUtils;
 
 import java.util.Set;
 
-public class BeamStringExpression extends BeamLiteral implements BeamReferable {
+public class BeamStringExpression extends BeamLiteral {
 
     public BeamStringExpression(String literal) {
         super(StringUtils.strip(literal, "\""));
     }
 
     @Override
-    public boolean resolve(ContainerBlock context) {
+    public boolean resolve() {
         return false;
-    }
-
-    @Override
-    public Set<BeamReference> getDependencies(BeamBlock config) {
-        return null;
     }
 
     @Override

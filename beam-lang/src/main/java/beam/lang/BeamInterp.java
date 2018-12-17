@@ -49,7 +49,12 @@ public class BeamInterp {
         BeamListener listener = new BeamListener(this);
         ParseTreeWalker.DEFAULT.walk(listener, context);
 
-        return listener.getRootBlock();
+        root = listener.getRootBlock();
+        if (!root.resolve()) {
+            System.out.println("Unable to resolve config.");
+        }
+
+        return root;
     }
 
     public static void main(String[] arguments) throws Exception {

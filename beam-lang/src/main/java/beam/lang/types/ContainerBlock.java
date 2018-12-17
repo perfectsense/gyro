@@ -5,17 +5,7 @@ import java.util.List;
 
 public class ContainerBlock extends BeamBlock {
 
-    private BeamBlock parentBlock;
-
     private List<BeamBlock> blocks;
-
-    public BeamBlock getParentBlock() {
-        return parentBlock;
-    }
-
-    public void setParentBlock(BeamBlock parentBlock) {
-        this.parentBlock = parentBlock;
-    }
 
     public List<BeamBlock> getBlocks() {
         if (blocks == null) {
@@ -67,6 +57,18 @@ public class ContainerBlock extends BeamBlock {
         }
 
         return null;
+    }
+
+    @Override
+    public boolean resolve() {
+        for (BeamBlock child : getBlocks())  {
+            boolean resolved = child.resolve();
+            if (!resolved) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     @Override

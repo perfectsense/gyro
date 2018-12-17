@@ -4,6 +4,7 @@ import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class BeamList extends BeamValue<List> {
 
@@ -20,6 +21,18 @@ public class BeamList extends BeamValue<List> {
     @Override
     public List getValue() {
         return null;
+    }
+
+    @Override
+    public boolean resolve() {
+        for (BeamValue value : getValues()) {
+            boolean resolved = value.resolve();
+            if (!resolved) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     @Override

@@ -10,7 +10,9 @@ public abstract class BeamLanguageExtension extends ResourceBlock {
      * `execute()` is called during the parsing of the configuration. This
      * allows extensions to perform any necessary actions to load themselves.
      */
-    public abstract void execute();
+    public void execute() {
+
+    }
 
     public BeamInterp getInterp() {
         return interp;

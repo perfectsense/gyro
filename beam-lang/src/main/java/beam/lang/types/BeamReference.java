@@ -1,12 +1,12 @@
 package beam.lang.types;
 
-import java.util.Set;
-
-public class BeamReference extends BeamValue implements BeamReferable {
+public class BeamReference extends BeamValue {
 
     private String type;
     private String name;
     private String attribute;
+    private Object value;
+    private BeamBlock referencedBlock;
 
     public BeamReference(String type, String name, String attribute) {
         this.type = type;
@@ -27,18 +27,26 @@ public class BeamReference extends BeamValue implements BeamReferable {
     }
 
     @Override
-    public boolean resolve(ContainerBlock context) {
-        return false;
-    }
-
-    @Override
     public Object getValue() {
         return null;
     }
 
     @Override
-    public Set<BeamReference> getDependencies(BeamBlock config) {
-        return null;
+    public boolean resolve() {
+        BeamBlock parent = getParentBlock();
+        while (parent != null) {
+
+            if (parent instanceof ContainerBlock) {
+                ContainerBlock containerBlock = (ContainerBlock) parent;
+                referencedBlock = containerBlock.get(getName(), getType());
+                dependencies().add(getParentBlock());
+                return true;
+            }
+
+            parent = parent.getParentBlock();
+        }
+
+        return false;
     }
 
     @Override

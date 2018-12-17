@@ -4,13 +4,7 @@ import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceName;
 import beam.lang.BeamLanguageExtension;
 import beam.lang.types.BeamBlock;
-import beam.lang.types.BeamValue;
-import beam.lang.types.KeyValueBlock;
-import com.google.common.base.CaseFormat;
-import org.apache.commons.beanutils.BeanUtils;
 
-import java.lang.reflect.InvocationTargetException;
-import java.security.Key;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -93,11 +87,11 @@ public abstract class BeamResource extends BeamLanguageExtension implements Comp
         this.change = change;
     }
 
-    public Set<BeamResource> dependencies() {
+    public Set<BeamResource> resourceDependencies() {
         return dependencies;
     }
 
-    public Set<BeamResource> dependents() {
+    public Set<BeamResource> resourceDependents() {
         return dependents;
     }
 
@@ -148,23 +142,6 @@ public abstract class BeamResource extends BeamLanguageExtension implements Comp
     public abstract void delete();
 
     public abstract String toDisplayString();
-
-    @Override
-    public void execute() {
-        for (BeamBlock block : getBlocks()) {
-            if (block instanceof KeyValueBlock) {
-                KeyValueBlock keyValueBlock = (KeyValueBlock) block;
-
-                String keyId = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, keyValueBlock.getKey());
-                try {
-                    BeamValue value = keyValueBlock.getValue();
-                    BeanUtils.setProperty(this, keyId, value.getValue());
-                } catch (IllegalArgumentException | InvocationTargetException | IllegalAccessException e) {
-                    // Ignoring errors from setProperty
-                }
-            }
-        }
-    }
 
     @Override
     public int compareTo(BeamResource o) {

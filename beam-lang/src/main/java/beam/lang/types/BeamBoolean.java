@@ -1,5 +1,8 @@
 package beam.lang.types;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class BeamBoolean extends BeamValue<Boolean> {
 
     private boolean value;
@@ -11,6 +14,11 @@ public class BeamBoolean extends BeamValue<Boolean> {
     @Override
     public Boolean getValue() {
         return value;
+    }
+
+    @Override
+    public boolean resolve() {
+        return true;
     }
 
     @Override
