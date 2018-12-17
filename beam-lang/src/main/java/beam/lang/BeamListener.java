@@ -80,8 +80,8 @@ public class BeamListener extends BeamParserBaseListener {
             return listValue;
         } else if (context.map_value() != null) {
             BeamMap mapValue = new BeamMap();
-            for (BeamParser.Key_value_blockContext valueContext : context.map_value().key_value_block()) {
-                mapValue.getKeyValues().add(parseKeyValueBlock(valueContext));
+            for (BeamParser.Map_key_value_blockContext valueContext : context.map_value().map_key_value_block()) {
+                mapValue.getKeyValues().add(parseMapKeyValueBlock(valueContext));
             }
 
             return mapValue;
@@ -128,6 +128,14 @@ public class BeamListener extends BeamParserBaseListener {
     }
 
     public KeyValueBlock parseKeyValueBlock(BeamParser.Key_value_blockContext context) {
+        KeyValueBlock keyValueBlock = new KeyValueBlock();
+        keyValueBlock.setKey(StringUtils.stripEnd(context.key().getText(), ":"));
+        keyValueBlock.setValue(parseValue(context.value()));
+
+        return keyValueBlock;
+    }
+
+    public KeyValueBlock parseMapKeyValueBlock(BeamParser.Map_key_value_blockContext context) {
         KeyValueBlock keyValueBlock = new KeyValueBlock();
         keyValueBlock.setKey(StringUtils.stripEnd(context.key().getText(), ":"));
         keyValueBlock.setValue(parseValue(context.value()));

@@ -75,7 +75,11 @@ literal_value
     ;
 
 map_value
-    : LCURLY key_value_block? (COMMA key_value_block)* RCURLY
+    : LCURLY map_key_value_block? (COMMA map_key_value_block)* RCURLY
+    ;
+
+map_key_value_block
+    : key value
     ;
 
 list_value
