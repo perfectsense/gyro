@@ -1,6 +1,6 @@
-
 plugins {
     id 'maven-publish'
+//    id 'org.springframework.boot' version '2.1.0.RELEASE'
 }
 
 apply plugin: 'antlr'
@@ -36,3 +36,7 @@ generateGrammarSource {
         }
     }
 }
+
+//bootJar {
+//    mainClassName = 'beam.lang.BeamInterp'
+//}

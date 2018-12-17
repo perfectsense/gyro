@@ -1,7 +1,6 @@
 package beam.core.diff;
 
 import beam.core.BeamResource;
-import beam.lang.BeamContextKey;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Throwables;
 import com.psddev.dari.util.CompactMap;
@@ -67,7 +66,7 @@ public class ResourceDiff {
 
             @Override
             protected BeamResource change() {
-                pendingResource.resolve(pendingResource.getRoot());
+                //pendingResource.resolve(pendingResource.getRoot());
                 pendingResource.create();
                 return pendingResource;
             }
@@ -114,9 +113,8 @@ public class ResourceDiff {
                             || (ObjectUtils.isBlank(pendingValue) && pendingValue instanceof NullSet))) {
                             writer.invoke(pendingResource, reader.invoke(currentResource));
                             String keyId = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, p.getName());
-                            BeamContextKey key = new BeamContextKey(keyId);
-                            if (reader.invoke(currentResource) != null && !pendingResource.containsKey(key)) {
-                                pendingResource.add(key, currentResource.get(key));
+                            if (reader.invoke(currentResource) != null && !pendingResource.containsKey(keyId)) {
+                                //pendingResource.add(key, currentResource.get(keyId));
                             }
                         }
                     }

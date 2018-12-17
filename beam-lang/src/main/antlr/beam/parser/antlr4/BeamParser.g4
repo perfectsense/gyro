@@ -1,94 +1,100 @@
 parser grammar BeamParser;
 
-options
-   { tokenVocab = BeamLexer; }
+options { tokenVocab = BeamLexer; }
 
-/*
- * Parser Rules
- */
-
-beamRoot
-    : NEWLINE* block* EOF
+beam_root
+    : block* EOF
     ;
 
 block
-    :  (blockBody | keyValue)+
+    :  (key_value_block | resource_block | for_block)
     ;
 
-blockBody
-    : blockType parameter+ (lineSeparator block END)? (lineSeparator | EOF)
+block_end
+    : END
     ;
 
-blockType
-    : TOKEN
+resource_block
+    : resource_type resource_name block* block_end
     ;
 
-keyValue
-    : key COLON value (lineSeparator | EOF)
+resource_type
+    : IDENTIFIER
+    ;
+
+resource_name
+    : IDENTIFIER
+    | literal_value
+    ;
+
+for_block
+    : FOR for_list IN list_value block* block_end
+    ;
+
+for_list
+    : for_list_item (COMMA for_list_item)*
+    ;
+
+for_list_item
+    : IDENTIFIER
+    ;
+
+key_value_block
+    : key value
     ;
 
 key
-    : TOKEN | QUOTED_STRING
+    : (IDENTIFIER | STRING_LITERAL) key_delimiter
+    ;
+
+key_delimiter
+    : COLON
     ;
 
 value
-    : scalar | list | map
+    : list_value
+    | map_value
+    | literal_value
+    | boolean_value
+    | number_value
+    | reference_value
     ;
 
-scalar
-    : QUOTED_STRING
-    | unquotedString
-    | reference
+number_value
+    : DECIMAL_LITERAL
+    | FLOAT_LITERAL
     ;
 
-unquotedString
-    : TOKEN (WHITESPACE* TOKEN)*
+boolean_value
+    : TRUE | FALSE
     ;
 
-tokenChain
-    : TOKEN (DOT TOKEN)*
+literal_value
+    : STRING_INTEPRETED
+    | STRING_LITERAL
     ;
 
-reference
-    : DOLLAR LPAREN (referenceScope PIPE)* referenceName RPAREN
+map_value
+    : LCURLY key_value_block? (COMMA key_value_block)* RCURLY
     ;
 
-referenceScope
-    : referenceType? referenceId
+list_value
+    : LBRACKET list_item_value? (COMMA list_item_value)* RBRACKET
     ;
 
-referenceName
-    : referenceChain | referenceScope
+list_item_value
+    : literal_value
+    | reference_value
     ;
 
-referenceType
-    : TOKEN
+reference_value
+    : DOLLAR LPAREN reference_body RPAREN
     ;
 
-referenceId
-    : TOKEN
+reference_body
+    : (reference_type reference_name) | (reference_type reference_name PIPE reference_attribute)
     ;
 
-referenceChain
-    : tokenChain
-    ;
-
-list
-    : (LBRACET | LBRACET lineSeparator) scalar ((COMMA | lineSeparator) scalar)* (lineSeparator RBRACET | RBRACET)
-    ;
-
-map
-    : (LBLOCK lineSeparator | LBLOCK) mapKeyValue+ (lineSeparator RBLOCK | RBLOCK)
-    ;
-
-mapKeyValue
-    : key COLON value (lineSeparator | EOF)
-    ;
-
-parameter
-    : scalar | list
-    ;
-
-lineSeparator
-    : NEWLINE+
-    ;
+reference_type : IDENTIFIER ;
+reference_name : IDENTIFIER ;
+reference_attribute : IDENTIFIER ;

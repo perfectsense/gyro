@@ -3,10 +3,9 @@ package beam.core;
 import beam.core.diff.ChangeType;
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiff;
-import beam.lang.BeamBlock;
-import beam.lang.BeamContextKey;
 import beam.lang.BeamInterp;
-import beam.lang.BeamReferable;
+import beam.lang.types.BeamBlock;
+import beam.lang.types.ContainerBlock;
 import com.psddev.dari.util.ThreadLocalStack;
 
 import java.io.IOException;
@@ -50,6 +49,7 @@ public class BeamCore {
 
     public BeamState getStateBackend(BeamBlock config) {
         BeamState stateBackend = new BeamLocalState();
+        /*
         for (BeamContextKey key : config.keys()) {
             BeamReferable referable = config.get(key);
             Object value = referable.getValue();
@@ -58,12 +58,14 @@ public class BeamCore {
                 stateBackend = (BeamState) value;
             }
         }
+        */
 
         return stateBackend;
     }
 
     public BeamBlock findNonResources(BeamBlock config) {
-        BeamBlock nonResourceConfig = new BeamBlock();
+        BeamBlock nonResourceConfig = new ContainerBlock();
+        /*
         for (BeamContextKey key : config.keys()) {
             BeamReferable referable = config.get(key);
             Object value = referable.getValue();
@@ -72,6 +74,7 @@ public class BeamCore {
                 nonResourceConfig.add(key, referable);
             }
         }
+        */
 
         return nonResourceConfig;
     }
@@ -82,6 +85,7 @@ public class BeamCore {
 
     public Set<BeamResource> findBeamResources(BeamBlock config, boolean refresh) {
         Set<BeamResource> resources = new TreeSet<>();
+        /*
         for (BeamContextKey key : config.keys()) {
             BeamReferable referable = config.get(key);
             Object value = referable.getValue();
@@ -99,6 +103,7 @@ public class BeamCore {
                 resources.addAll(findBeamResources((BeamBlock) value, refresh));
             }
         }
+        */
 
         return resources;
     }
@@ -203,6 +208,8 @@ public class BeamCore {
         BeamCore.ui().write("Executing: ");
         writeChange(change);
         BeamResource resource = change.executeChange();
+
+        /*
         BeamContextKey key = new BeamContextKey(resource.getResourceIdentifier(), resource.getType());
 
         if (type == ChangeType.DELETE) {
@@ -210,6 +217,7 @@ public class BeamCore {
         } else {
             state.add(key, resource);
         }
+        */
 
         BeamCore.ui().write(" OK\n");
         stateBackend.save(path, state);

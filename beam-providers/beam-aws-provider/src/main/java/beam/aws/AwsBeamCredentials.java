@@ -2,7 +2,6 @@ package beam.aws;
 
 import beam.core.BeamCredentials;
 import beam.core.diff.ResourceName;
-import beam.lang.BeamContext;
 import com.google.common.collect.ImmutableMap;
 import org.joda.time.DateTime;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
@@ -89,14 +88,6 @@ public class AwsBeamCredentials extends BeamCredentials {
     @Override
     public Map<String, String> findCredentials(boolean refresh, boolean extended) {
         return findCredentials(refresh);
-    }
-
-    @Override
-    public boolean resolve(BeamContext context) {
-        boolean progress = super.resolve(context);
-        populate();
-
-        return progress;
     }
 
 }

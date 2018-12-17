@@ -1,58 +1,37 @@
 lexer grammar BeamLexer;
 
-/*
- * Lexer Rules
- */
+FOR   : 'for';
+IN    : 'in';
+END   : 'end';
+TRUE  : 'true';
+FALSE : 'false';
 
-fragment DIGIT  : [0-9] ;
-fragment LETTER : [A-Za-z] ;
-fragment UNDER_SCORE : [_] ;
-fragment STRING : ~('\''|'"')* ;
-fragment STAR : '*' ;
-fragment TILDE : '~' ;
-fragment COMMON : LETTER | DIGIT | DASH | UNDER_SCORE | SLASH | STAR | RBLOCK | LBLOCK | TILDE | DOUBLE_COLON ;
-fragment DOUBLE_COLON: COLON COLON ;
-fragment NO_START : LBRACET DOUBLE_COLON ;
-fragment NO_END : RBRACET DOUBLE_COLON ;
+DECIMAL_LITERAL   : ('0' | [1-9] (Digits? | '_'+ Digits)) [lL]?;
+FLOAT_LITERAL     : (Digits '.' Digits? | '.' Digits);
+STRING_INTEPRETED : '"' String '"';
+STRING_LITERAL    : '\'' String '\'' ;
 
-END
-    : 'end'
-    ;
+COLON         : ':';
+HASH          : '#';
+LCURLY        : '{';
+RCURLY        : '}';
+LBRACKET      : '[';
+RBRACKET      : ']';
+DOLLAR        : '$';
+COMMA         : ',';
+LPAREN        : '(';
+RPAREN        : ')';
+PIPE          : '|';
+SLASH         : '/';
+DOT           : '.';
 
-DONE
-    : 'done'
-    ;
+IDENTIFIER : (Common | COLON COLON)+;
 
-QUOTED_STRING
-    : '"' STRING '"' | '\'' STRING '\''
-    ;
+WS      : [ \u000C\t\r\n]+ -> channel(HIDDEN);
+COMMENT : HASH ~[\r\n]* '\r'? '\n' -> channel(HIDDEN) ;
 
-COLON
-    : ':'
-    ;
-
-HASH          : '#' ;
-LPAREN        : '(' ;
-RPAREN        : ')' ;
-LBLOCK        : '{' ;
-RBLOCK        : '}' ;
-LBRACET       : '[' ;
-RBRACET       : ']' ;
-DOLLAR        : '$' ;
-AT            : '@' ;
-COMMA         : ',' ;
-PIPE          : '|' ;
-DOT           : '.' ;
-SLASH         : '/' ;
-DASH          : '-' ;
-DOUBLE_QUOTE  : '"' ;
-SINGLE_QUOTE  : '\'';
-
-TOKEN
-    : (NO_END+ (COMMON | NO_START)+)+ | COMMON+ (NO_START (NO_START | COMMON)*)* (NO_END+ (COMMON | NO_START)+)*
-    ;
-
-// Whitespace
-NEWLINE       : [\r\n] ;
-WHITESPACE    : [ \u000C\t]+ -> channel(HIDDEN) ;
-COMMENT       : '//' ~[\r\n]* '\r'? '\n' -> channel(HIDDEN) ;
+fragment Digits : [0-9] ([0-9_]* [0-9])?;
+fragment Letter : [A-Za-z] ;
+fragment LetterOrDigits : Letter | [0-9];
+fragment Common : LetterOrDigits | '_' | '-';
+fragment String : ~('\''|'"')* ;

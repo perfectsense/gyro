@@ -2,12 +2,15 @@ package beam.fetcher;
 
 import beam.core.BeamCredentials;
 import beam.core.BeamException;
-import beam.core.BeamObject;
+import beam.core.BeamProvider;
 import beam.core.BeamResource;
 import beam.core.diff.ResourceName;
-import beam.lang.BeamBlock;
-import beam.lang.BeamBlockMethod;
 import beam.lang.BeamInterp;
+import beam.lang.BeamLanguageExtension;
+import beam.lang.types.BeamBlock;
+import beam.lang.types.BeamList;
+import beam.lang.types.BeamValue;
+import beam.lang.types.KeyValueBlock;
 import com.psddev.dari.util.StringUtils;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;
@@ -49,12 +52,20 @@ public class MavenFetcher implements PluginFetcher {
     private static String MAVEN_KEY = "^(?<group>[^:]+):(?<artifactId>[^:]+):(?<version>[^:]+)";
     private static Pattern MAVEN_KEY_PAT = Pattern.compile(MAVEN_KEY);
 
-    private static Map<String, Class<? extends BeamBlock>> provider = new HashMap<>();
+    private static Map<String, Class<? extends BeamProvider>> provider = new HashMap<>();
 
     @Override
-    public boolean validate(BeamBlockMethod fetcherContext) {
+    public boolean validate(BeamLanguageExtension fetcherContext) {
+        System.out.println(fetcherContext);
+
         if (fetcherContext.get("artifact") != null) {
-            String key = (String) fetcherContext.get("artifact").getValue();
+            String key = null;
+
+            BeamBlock block = fetcherContext.get("artifact");
+            if (block instanceof KeyValueBlock) {
+                key = ((KeyValueBlock) block).getValue().toString();
+            }
+
             if (key != null) {
                 return MAVEN_KEY_PAT.matcher(key).find();
             }
@@ -64,7 +75,7 @@ public class MavenFetcher implements PluginFetcher {
     }
 
     @Override
-    public void fetch(BeamBlockMethod fetcherContext) {
+    public void fetch(BeamLanguageExtension fetcherContext) {
         try {
             BeamInterp lang = fetcherContext.getInterp();
             DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
@@ -78,8 +89,17 @@ public class MavenFetcher implements PluginFetcher {
             session.setLocalRepositoryManager(system.newLocalRepositoryManager(session, localRepo));
 
             List<RemoteRepository> remoteRepositories = new ArrayList<>();
-            if (fetcherContext.get("repositories") != null && fetcherContext.get("repositories").getValue() != null) {
-                List<String> repos = (List<String>) fetcherContext.get("repositories").getValue();
+            if (fetcherContext.get("repositories") != null) {
+                BeamBlock block = fetcherContext.get("respositories");
+                List<String> repos = new ArrayList<>();
+                if (block instanceof KeyValueBlock) {
+                    BeamList listValue = (BeamList) ((KeyValueBlock) block).getValue();
+
+                    for (BeamValue value : listValue.getValues()) {
+                        repos.add(value.stringValue());
+                    }
+                }
+
                 for (String repo : repos) {
                     remoteRepositories.add(new RemoteRepository.Builder(repo, "default", repo).build());
                 }
@@ -87,7 +107,11 @@ public class MavenFetcher implements PluginFetcher {
                 remoteRepositories.add(new RemoteRepository.Builder("central", "default", "http://repo1.maven.org/maven2/").build());
             }
 
-            String key = (String) fetcherContext.get("artifact").getValue();
+            String key = null;
+            BeamBlock block = fetcherContext.get("artifact");
+            if (block instanceof KeyValueBlock) {
+                key = ((KeyValueBlock) block).getValue().toString();
+            }
             Artifact artifact = new DefaultArtifact(key);
 
             CollectRequest collectRequest = new CollectRequest(new Dependency(artifact, JavaScopes.COMPILE), remoteRepositories);
@@ -156,15 +180,6 @@ public class MavenFetcher implements PluginFetcher {
                     }
 
                     lang.addExtension(fullName, provider.get(fullName));
-                } else if (BeamObject.class.isAssignableFrom(c)) {
-                    if (!Modifier.isAbstract(c.getModifiers())) {
-                        String fullName = c.getName();
-                        if (!provider.containsKey(fullName)) {
-                            provider.put(fullName, c);
-                        }
-
-                        lang.addExtension(fullName, provider.get(fullName));
-                    }
                 }
             }
         } catch (Exception e) {

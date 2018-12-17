@@ -1,6 +1,7 @@
 package beam.core;
 
-import beam.lang.BeamBlock;
+import beam.lang.types.BeamBlock;
+import beam.lang.types.ContainerBlock;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -16,7 +17,7 @@ public class BeamLocalState extends BeamState {
         if (stateFile.exists() && !stateFile.isDirectory()) {
             return core.parse(name);
         } else {
-            return new BeamBlock();
+            return new ContainerBlock();
         }
     }
 
@@ -33,6 +34,11 @@ public class BeamLocalState extends BeamState {
 
     @Override
     public void delete(String name) {
+
+    }
+
+    @Override
+    public void execute() {
 
     }
 

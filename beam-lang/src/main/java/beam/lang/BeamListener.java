@@ -1,153 +1,151 @@
 package beam.lang;
 
-import beam.lang.types.BeamInlineList;
+import beam.lang.types.BeamBoolean;
 import beam.lang.types.BeamList;
+import beam.lang.types.BeamLiteral;
 import beam.lang.types.BeamMap;
-import beam.lang.types.BeamScalar;
+import beam.lang.types.BeamNumber;
+import beam.lang.types.BeamReference;
+import beam.lang.types.BeamString;
+import beam.lang.types.BeamStringExpression;
 import beam.lang.types.BeamValue;
+import beam.lang.types.ContainerBlock;
+import beam.lang.types.KeyValueBlock;
+import beam.lang.types.ResourceBlock;
 import beam.parser.antlr4.BeamParser;
 import beam.parser.antlr4.BeamParserBaseListener;
-
-import java.util.List;
+import org.apache.commons.lang.StringUtils;
 
 public class BeamListener extends BeamParserBaseListener {
 
-    private String configName;
-    private BeamBlock parent;
-    private BeamBlock config;
     private BeamInterp interp;
 
-    public BeamListener(BeamInterp interp, String configName) {
+    private ContainerBlock parentBlock;
+    private ContainerBlock currentBlock;
+
+    public ContainerBlock getRootBlock() {
+        return currentBlock;
+    }
+
+    public BeamListener(BeamInterp interp) {
         this.interp = interp;
-        this.configName = configName;
-    }
-
-    public String getConfigName() {
-        return configName;
-    }
-
-    public void setConfigName(String configName) {
-        this.configName = configName;
-    }
-
-    public BeamBlock getConfig() {
-        return config;
     }
 
     @Override
-    public void enterBeamRoot(BeamParser.BeamRootContext ctx) {
-        parent = null;
-        config = new BeamBlock();
+    public void enterBeam_root(BeamParser.Beam_rootContext ctx) {
+        parentBlock = null;
+        currentBlock = new ContainerBlock();
     }
 
     @Override
-    public void exitBeamRoot(BeamParser.BeamRootContext ctx) {
+    public void enterResource_block(BeamParser.Resource_blockContext context) {
+        ResourceBlock resourceBlock = parseResourceBlock(context);
+        currentBlock.setParentBlock(currentBlock);
+        currentBlock.getBlocks().add(resourceBlock);
+
+        parentBlock = currentBlock;
+        currentBlock = resourceBlock;
     }
 
     @Override
-    public void enterBlockBody(BeamParser.BlockBodyContext blockBody) {
-        parent = config;
+    public void exitResource_block(BeamParser.Resource_blockContext ctx) {
+        currentBlock = parentBlock;
+    }
 
-        String type = blockBody.blockType().getText();
-        config = interp.createConfig(type);
+    @Override
+    public void enterKey_value_block(BeamParser.Key_value_blockContext context) {
+        currentBlock.getBlocks().add(parseKeyValueBlock(context));
+    }
 
-        for (BeamParser.ParameterContext parameter : blockBody.parameter()) {
-            if (parameter.scalar() != null) {
-                config.getParameters().add(BeamListener.parseScalar(parameter.scalar()));
-            } else if (parameter.list() != null) {
-                config.getParameters().add(BeamListener.parseList(parameter.list()));
+    public BeamValue parseValue(BeamParser.ValueContext context) {
+        if (context.boolean_value() != null) {
+            return new BeamBoolean(context.boolean_value().getText());
+        } else if (context.number_value() != null) {
+            return new BeamNumber(context.number_value().getText());
+        } else if (context.reference_value() != null) {
+            return parseReferenceValue(context.reference_value());
+        } else if (context.literal_value() != null) {
+            return parseLiteralValue(context.literal_value());
+        } else if (context.list_value() != null) {
+            BeamList listValue = new BeamList();
+            for (BeamParser.List_item_valueContext valueContext : context.list_value().list_item_value()) {
+                listValue.getValues().add(parseListItemValue(valueContext));
+            }
+
+            return listValue;
+        } else if (context.map_value() != null) {
+            BeamMap mapValue = new BeamMap();
+            for (BeamParser.Key_value_blockContext valueContext : context.map_value().key_value_block()) {
+                mapValue.getKeyValues().add(parseKeyValueBlock(valueContext));
+            }
+
+            return mapValue;
+        }
+
+        return null;
+    }
+
+    public BeamValue parseListItemValue(BeamParser.List_item_valueContext context) {
+        if (context.literal_value() != null) {
+            return parseLiteralValue(context.literal_value());
+        } else {
+            return parseReferenceValue(context.reference_value());
+        }
+    }
+
+    public BeamReference parseReferenceValue(BeamParser.Reference_valueContext context) {
+        return new BeamReference(
+            context.reference_body().reference_type().getText(),
+            context.reference_body().reference_name().getText(),
+            context.reference_body().reference_attribute().getText()
+        );
+    }
+
+    public BeamLiteral parseLiteralValue(BeamParser.Literal_valueContext context) {
+        BeamLiteral literal;
+        if (context.STRING_INTEPRETED() != null) {
+            literal = new BeamStringExpression(context.getText());
+        } else {
+            literal = new BeamString(context.getText());
+        }
+
+        literal.setLine(context.start.getLine());
+        literal.setColumn(context.start.getCharPositionInLine());
+
+        return literal;
+    }
+
+    public ResourceBlock parseResourceBlock(BeamParser.Resource_blockContext context) {
+        ResourceBlock resourceBlock = createResourceBlock(context.resource_type().getText());
+        resourceBlock.setName(context.resource_name().getText());
+
+        return resourceBlock;
+    }
+
+    public KeyValueBlock parseKeyValueBlock(BeamParser.Key_value_blockContext context) {
+        KeyValueBlock keyValueBlock = new KeyValueBlock();
+        keyValueBlock.setKey(StringUtils.stripEnd(context.key().getText(), ":"));
+        keyValueBlock.setValue(parseValue(context.value()));
+
+        return keyValueBlock;
+    }
+
+    public ResourceBlock createResourceBlock(String type) {
+        Class klass = interp.getExtension(type);
+        if (klass != null) {
+            try {
+                BeamLanguageExtension block = (BeamLanguageExtension) klass.newInstance();
+                block.setType(type);
+                block.setInterp(interp);
+                block.execute();
+
+                return block;
+            } catch (InstantiationException | IllegalAccessException ex) {
+                throw new BeamLangException("Unable to instantiate " + klass.getClass().getSimpleName());
             }
         }
+
+        return new ResourceBlock();
     }
 
-    @Override
-    public void exitBlockBody(BeamParser.BlockBodyContext ctx) {
-        parent.getChildren().add(config);
-        config = parent;
-    }
-
-    @Override
-    public void exitKeyValue(BeamParser.KeyValueContext keyValue) {
-        BeamValue beamValue = BeamListener.parseValue(keyValue.value());
-        beamValue.setLine(keyValue.getStart().getLine());
-
-        config.add(new BeamContextKey(keyValue.key().getText()), beamValue);
-    }
-
-    public static BeamValue parseValue(BeamParser.ValueContext valueContext) {
-        if (valueContext.map() != null) {
-            return parseMap(valueContext.map());
-        } else if (valueContext.list() != null) {
-            return parseList(valueContext.list());
-        } else if (valueContext.scalar() != null) {
-            return parseScalar(valueContext.scalar());
-        } else {
-            throw new IllegalStateException();
-        }
-    }
-
-    public static BeamMap parseMap(BeamParser.MapContext mapContext) {
-        BeamMap result = new BeamMap();
-
-        for (BeamParser.MapKeyValueContext pairContext : mapContext.mapKeyValue()) {
-            String key = pairContext.key().getText();
-            BeamParser.ValueContext value = pairContext.value();
-            result.getMap().put(key, parseValue(value));
-        }
-
-        return result;
-    }
-
-    public static BeamList parseList(BeamParser.ListContext listContext) {
-        BeamList result = new BeamList();
-        for (BeamParser.ScalarContext item : listContext.scalar()) {
-            result.getList().add(parseScalar(item));
-        }
-
-        return result;
-    }
-
-    public static BeamScalar parseScalar(BeamParser.ScalarContext scalar) {
-        BeamScalar value = new BeamScalar();
-
-        if (scalar.reference() != null) {
-            BeamReference reference = parseReference(scalar.reference());
-            value.getElements().add(reference);
-        } else if (scalar.QUOTED_STRING() != null) {
-            BeamLiteral literal = new BeamLiteral(stripQuotes(scalar.QUOTED_STRING().getText()));
-            value.getElements().add(literal);
-        } else {
-            BeamLiteral literal = new BeamLiteral(scalar.getText());
-            value.getElements().add(literal);
-        }
-
-        return value;
-    }
-
-    public static BeamReference parseReference(BeamParser.ReferenceContext referenceContext) {
-        BeamReference reference = new BeamReference();
-        List<BeamParser.ReferenceScopeContext> scopeContexts = referenceContext.referenceScope();
-        if (scopeContexts != null) {
-            for (BeamParser.ReferenceScopeContext scopeContext : scopeContexts) {
-                String id = scopeContext.referenceId().getText();
-                String type = scopeContext.referenceType() != null ? scopeContext.referenceType().getText() : null;
-                reference.getScopeChain().add(new BeamContextKey(id, type));
-            }
-        }
-
-        BeamParser.ReferenceNameContext nameContext = referenceContext.referenceName();
-        if (nameContext.referenceScope() != null) {
-            String id = nameContext.referenceScope().referenceId().getText();
-            String type = nameContext.referenceScope().referenceType() != null ? nameContext.referenceScope().referenceType().getText() : null;
-            reference.getScopeChain().add(new BeamContextKey(id, type));
-        } else if (nameContext.referenceChain() != null) {
-            reference.setReferenceChain(reference.parseReferenceChain(nameContext.referenceChain().getText()));
-        }
-
-        return reference;
-    }
-
-    private static String stripQuotes(String string) {
-        return string.replaceAll("^[\"\']|[\"\']$", "");
-    }
 }

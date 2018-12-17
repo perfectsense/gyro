@@ -1,10 +1,12 @@
 package beam.core;
 
+import beam.lang.types.BeamBlock;
+
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-public abstract class BeamCredentials extends BeamValidatedBlock {
+public abstract class BeamCredentials extends BeamBlock {
 
     private BeamState stateBackend;
     private final Set<BeamResource> dependents = new TreeSet<>();
@@ -39,4 +41,5 @@ public abstract class BeamCredentials extends BeamValidatedBlock {
     public boolean equals(Object other) {
         return this == other || (other != null && getClass().equals(other.getClass()));
     }
+
 }

@@ -7,8 +7,7 @@ import beam.core.BeamState;
 import beam.core.diff.ChangeType;
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiff;
-import beam.lang.BeamBlock;
-import beam.lang.BeamContextKey;
+import beam.lang.types.BeamBlock;
 import io.airlift.airline.Arguments;
 import io.airlift.airline.Command;
 import io.airlift.airline.Option;
@@ -40,9 +39,9 @@ public class UpCommand extends AbstractCommand {
         BeamState stateBackend = core.getStateBackend(config);
         BeamBlock state = stateBackend.load(statePath, core);
         BeamBlock nonResourceConfig = core.findNonResources(config);
-        for (BeamContextKey key : nonResourceConfig.keys()) {
-            state.add(key, nonResourceConfig.get(key));
-        }
+        //for (BeamContextKey key : nonResourceConfig.keys()) {
+        //    state.add(key, nonResourceConfig.get(key));
+        //}
 
         if (BeamCore.validationException().isThrowing()) {
             throw BeamCore.validationException();

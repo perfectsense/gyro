@@ -1,78 +1,78 @@
 provider aws
     artifact: "beam:beam-aws-provider:0.5"
     repositories: [
-        "http://repo1.maven.org/maven2/"
-        "https://repo.gradle.org/gradle/libs-releases/"
+        "http://repo1.maven.org/maven2/",
+        "https://repo.gradle.org/gradle/libs-releases/",
         "https://artifactory.psdops.com/public"
     ]
 end
 
 aws::credentials default
-    profile-name: psd-sandbox
-    region: us-east-1
+    profile-name: "psd-sandbox"
+    region: "us-east-1"
 end
 
 aws::vpc vpc-example
-    cidr-block: 10.0.0.0/16
+    cidr-block: "10.0.0.0/16"
 
     tags: {
-        Name: vpc-example
+        Name: "vpc-example"
     }
 end
 
 aws::subnet subnet-public-us-east-1a
-    vpc-id: $(aws::vpc vpc-example | vpc-id)
-    cidr-block: 10.0.0.0/26
-    availability-zone: us-east-1a
+    vpc-id: "$(aws::vpc vpc-example | vpc-id)"
+    cidr-block: "10.0.0.0/26"
+    availability-zone: "us-east-1a"
 
     tags: {
-        Name: subnet-public-us-east-1a
+        Name: "subnet-public-us-east-1a"
     }
 end
 
 aws::subnet subnet-public-us-east-1b
-    vpc-id: $(aws::vpc vpc-example | vpc-id)
-    cidr-block: 10.0.1.0/26
-    availability-zone: us-east-1b
+    vpc-id: "$(aws::vpc vpc-example | vpc-id)"
+    cidr-block: "10.0.1.0/26"
+    availability-zone: "us-east-1b"
 
     tags: {
-        Name: subnet-public-us-east-1b
+        Name: "subnet-public-us-east-1b"
     }
 end
 
 aws::subnet subnet-public-us-east-1c
-    vpc-id: $(aws::vpc vpc-example | vpc-id)
-    cidr-block: 10.0.2.0/26
-    availability-zone: us-east-1c
+    vpc-id: "$(aws::vpc vpc-example | vpc-id)"
+    cidr-block: "10.0.2.0/26"
+    availability-zone: "us-east-1c"
 
     tags: {
-        Name: subnet-public-us-east-1c
+        Name: "subnet-public-us-east-1c"
     }
 end
 
 aws::internet-gateway ig-example
-    vpc-id: $(aws::vpc vpc-example | vpc-id)
+    vpc-id: "$(aws::vpc vpc-example | vpc-id)"
 
     tags: {
-        Name: ig-example
+        Name: "ig-example"
     }
 end
 
 aws::route-table route-table-example
-    vpc-id: $(aws::vpc vpc-example | vpc-id)
+    vpc-id: "$(aws::vpc vpc-example | vpc-id)"
     subnet-ids: [
-        $(aws::subnet subnet-public-us-east-1a | subnet-id)
-        $(aws::subnet subnet-public-us-east-1b | subnet-id)
+        $(aws::subnet subnet-public-us-east-1a | subnet-id),
+        $(aws::subnet subnet-public-us-east-1b | subnet-id),
         $(aws::subnet subnet-public-us-east-1c | subnet-id)
     ]
 
     tags: {
-        Name: route-table-example
+        Name: "route-table-example"
     }
 end
 
 aws::route route-example
-    route-table-id: $(aws::route-table route-table-example | route-table-id)
-    destination-cidr-block: 0.0.0.0/0
-    gateway-id: $(aws::internet-gateway ig-example | internet-gateway-id)
+    route-table-id: "$(aws::route-table route-table-example | route-table-id)"
+    destination-cidr-block: "0.0.0.0/0"
+    gateway-id: "$(aws::internet-gateway ig-example | internet-gateway-id)"
 end

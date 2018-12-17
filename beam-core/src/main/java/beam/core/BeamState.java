@@ -1,8 +1,9 @@
 package beam.core;
 
-import beam.lang.BeamBlock;
+import beam.lang.BeamLanguageExtension;
+import beam.lang.types.BeamBlock;
 
-public abstract class BeamState extends BeamBlock {
+public abstract class BeamState extends BeamLanguageExtension {
 
     public abstract BeamBlock load(String name, BeamCore core) throws Exception;
 

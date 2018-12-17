@@ -1,22 +1,21 @@
 provider aws
     artifact: "beam:beam-aws-provider:0.5"
     repositories: [
-        "http://repo1.maven.org/maven2/"
-        "https://repo.gradle.org/gradle/libs-releases/"
+        "http://repo1.maven.org/maven2/",
+        "https://repo.gradle.org/gradle/libs-releases/",
         "https://artifactory.psdops.com/public"
     ]
 end
 
 aws::credentials default
-    profile-name: psd-sandbox
-    region: us-east-1
+    profile-name: "psd-sandbox"
+    region: "us-east-1"
 end
 
 aws::vpc vpc
     cidr-block: "10.0.0.0/16"
 
     tags: {
-        Name: vpc-example
+        Name: "vpc-example"
     }
 end
-

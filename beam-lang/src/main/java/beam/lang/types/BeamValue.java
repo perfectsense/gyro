@@ -1,19 +1,26 @@
 package beam.lang.types;
 
-import beam.lang.BeamReferable;
+public abstract class BeamValue {
 
-public abstract class BeamValue implements BeamReferable {
-
-    private Integer line;
+    private int line;
+    private int column;
 
     private String path;
 
-    public Integer getLine() {
+    public int getLine() {
         return line;
     }
 
-    public void setLine(Integer line) {
+    public void setLine(int line) {
         this.line = line;
+    }
+
+    public int getColumn() {
+        return column;
+    }
+
+    public void setColumn(int column) {
+        this.column = column;
     }
 
     public String getPath() {
@@ -23,4 +30,7 @@ public abstract class BeamValue implements BeamReferable {
     public void setPath(String path) {
         this.path = path;
     }
+
+    public abstract String stringValue();
+
 }

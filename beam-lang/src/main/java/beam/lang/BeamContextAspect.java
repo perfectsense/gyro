@@ -1,14 +1,11 @@
 package beam.lang;
 
-import beam.lang.types.BeamList;
-import beam.lang.types.BeamScalar;
+import beam.lang.types.BeamBlock;
 import com.google.common.base.CaseFormat;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
-
-import java.util.List;
 
 @Aspect
 public class BeamContextAspect {
@@ -30,7 +27,7 @@ public class BeamContextAspect {
         if (value != null) {
             String key = joinPoint.getSignature().getName();
             key = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, key);
-            config.add(new BeamContextKey(key), new BeamLiteral(value.toString()));
+            //config.add(new BeamContextKey(key), new BeamLiteral(value.toString()));
         }
     }
 
@@ -41,6 +38,7 @@ public class BeamContextAspect {
 
     @AfterReturning("setList(config, value)")
     public void afterSetList(BeamBlock config, Object value, JoinPoint joinPoint) {
+        /*
         if (value instanceof List) {
             List<Object> list = (List<Object>) value;
             BeamList beamList = new BeamList();
@@ -55,6 +53,7 @@ public class BeamContextAspect {
             key = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, key);
             config.add(new BeamContextKey(key), beamList);
         }
+        */
     }
 
 }

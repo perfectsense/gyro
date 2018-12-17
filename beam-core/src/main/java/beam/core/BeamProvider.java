@@ -1,11 +1,10 @@
 package beam.core;
 
 import beam.fetcher.PluginFetcher;
-import beam.lang.BeamBlockMethod;
-import beam.lang.BeamContext;
+import beam.lang.BeamLanguageExtension;
 import org.reflections.Reflections;
 
-public class BeamProvider extends BeamBlockMethod {
+public class BeamProvider extends BeamLanguageExtension {
 
     @Override
     public String getType() {
@@ -13,14 +12,7 @@ public class BeamProvider extends BeamBlockMethod {
     }
 
     @Override
-    protected boolean resolve(BeamContext parent, BeamContext root) {
-        boolean progress = super.resolve(parent, root);
-        fetch();
-
-        return progress;
-    }
-
-    private void fetch() {
+    public void execute() {
         Reflections reflections = new Reflections("beam.fetcher");
         boolean match = false;
         for (Class<? extends PluginFetcher> fetcherClass : reflections.getSubTypesOf(PluginFetcher.class)) {
@@ -36,8 +28,8 @@ public class BeamProvider extends BeamBlockMethod {
         }
 
         if (!match) {
-            new Exception().printStackTrace();
             throw new BeamException(String.format("Unable to find fetcher matching:\n %s", this));
         }
     }
+
 }

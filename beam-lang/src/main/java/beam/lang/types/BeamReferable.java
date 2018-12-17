@@ -1,12 +1,13 @@
-package beam.lang;
+package beam.lang.types;
 
 import java.util.Set;
 
-public interface BeamResolvable {
+public interface BeamReferable {
 
-    boolean resolve(BeamContext context);
+    boolean resolve(ContainerBlock context);
 
     Object getValue();
 
     Set<BeamReference> getDependencies(BeamBlock config);
+
 }
