@@ -52,7 +52,9 @@ public class EgressOnlyInternetGatewayResource extends AwsResource {
     public void refresh() {
         Ec2Client client = createClient(Ec2Client.class);
 
-        DescribeEgressOnlyInternetGatewaysResponse response = client.describeEgressOnlyInternetGateways(r -> r.egressOnlyInternetGatewayIds(getGatewayId()));
+        DescribeEgressOnlyInternetGatewaysResponse response = client.describeEgressOnlyInternetGateways(
+            r -> r.egressOnlyInternetGatewayIds(getGatewayId())
+        );
 
         for (EgressOnlyInternetGateway gateway : response.egressOnlyInternetGateways()) {
             for (InternetGatewayAttachment attachment : gateway.attachments()) {
