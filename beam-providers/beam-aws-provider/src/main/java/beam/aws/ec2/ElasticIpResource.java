@@ -34,7 +34,6 @@ public class ElasticIpResource extends Ec2TaggableResource<Address> {
     private String allocationId;
     private String publicIp;
     private Boolean isStandardDomain;
-    private Map<String, String> tags;
 
     /**
      * Requested public ip for acquirement. See `Elastic IP <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html/>`_.
