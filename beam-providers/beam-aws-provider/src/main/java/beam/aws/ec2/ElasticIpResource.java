@@ -86,10 +86,12 @@ public class ElasticIpResource extends Ec2TaggableResource<Address> {
     public void doRefresh() {
         Ec2Client client = createClient(Ec2Client.class);
         try {
-            DescribeAddressesResponse response = client.describeAddresses(r -> r.publicIps(getPublicIp()));
+            DescribeAddressesResponse response = getPublicIp() == null
+                ? client.describeAddresses() : client.describeAddresses(r -> r.publicIps(getPublicIp()));
             Address address = response.addresses().get(0);
             setAllocationId(address.allocationId());
             setIsStandardDomain(address.domain().equals(DomainType.STANDARD));
+            setPublicIp(address.publicIp());
         } catch (Ec2Exception eex) {
             if (eex.awsErrorDetails().errorCode().equals("InvalidAllocationID.NotFound")) {
                 throw new BeamException(MessageFormat.format("Elastic Ip - {0} not found.", getPublicIp()));
@@ -150,7 +152,7 @@ public class ElasticIpResource extends Ec2TaggableResource<Address> {
     public String toDisplayString() {
         StringBuilder sb = new StringBuilder();
 
-        if (!getPublicIp().isEmpty()) {
+        if (getPublicIp() != null && !getPublicIp().isEmpty()) {
             sb.append(getPublicIp());
         } else {
             sb.append("Elastic Ip");
