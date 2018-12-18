@@ -1,20 +1,12 @@
 package beam.core;
 
 import beam.lang.BeamLanguageExtension;
-import beam.lang.types.BeamBlock;
-import beam.lang.types.KeyValueBlock;
-import com.google.common.base.CaseFormat;
-import org.apache.commons.beanutils.BeanUtils;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
 
-public abstract class BeamCredentials extends BeamLanguageExtension {
+public abstract class BeamCredentials extends BeamLanguageExtension implements Comparable<BeamCredentials> {
 
     private BeamState stateBackend;
-    private final Set<BeamResource> dependents = new TreeSet<>();
 
     /**
      * Return the name of this cloud.
@@ -22,10 +14,6 @@ public abstract class BeamCredentials extends BeamLanguageExtension {
      * @return Never {@code null}.
      */
     public abstract String getCloudName();
-
-    public Set<BeamResource> dependents() {
-        return dependents;
-    }
 
     public Map<String, String> findCredentials() {
         return findCredentials(false);
@@ -38,11 +26,6 @@ public abstract class BeamCredentials extends BeamLanguageExtension {
     }
 
     @Override
-    public void execute() {
-
-    }
-
-    @Override
     public int hashCode() {
         return getClass().hashCode();
     }
@@ -50,6 +33,18 @@ public abstract class BeamCredentials extends BeamLanguageExtension {
     @Override
     public boolean equals(Object other) {
         return this == other || (other != null && getClass().equals(other.getClass()));
+    }
+
+    @Override
+    public int compareTo(BeamCredentials o) {
+        if (o == null) {
+            return 1;
+        }
+
+        String compareKey = String.format("%s %s", getResourceType(), getResourceIdentifier());
+        String otherKey = String.format("%s %s", o.getResourceType(), o.getResourceIdentifier());
+
+        return compareKey.compareTo(otherKey);
     }
 
 }

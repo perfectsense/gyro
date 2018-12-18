@@ -1,6 +1,7 @@
 package beam.core.diff;
 
 import beam.core.BeamResource;
+import beam.lang.types.BeamBlock;
 import com.google.common.base.Throwables;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
@@ -44,6 +45,7 @@ public class ResourceChange {
         @Override
         public final BeamResource create() throws Exception {
             BeamResource resource = change();
+            resource.sync();
             changed = true;
 
             return resource;
@@ -81,11 +83,14 @@ public class ResourceChange {
         Set<ResourceChange> dependencies = new HashSet<>();
 
         BeamResource resource = pendingResource != null ? pendingResource : currentResource;
-        for (BeamResource r : (getType() == ChangeType.DELETE ? resource.resourceDependents() : resource.resourceDependencies())) {
-            ResourceChange c = r.getChange();
+        for (BeamBlock block : (getType() == ChangeType.DELETE ? resource.dependents() : resource.dependencies())) {
+            if (block instanceof BeamResource) {
+                BeamResource r = (BeamResource) block;
+                ResourceChange c = r.getChange();
 
-            if (c != null) {
-                dependencies.add(c);
+                if (c != null) {
+                    dependencies.add(c);
+                }
             }
         }
 
@@ -315,6 +320,7 @@ public class ResourceChange {
 
         if (type == ChangeType.UPDATE) {
             pendingResource.update(currentResource, updatedProperties);
+            pendingResource.sync();
             return pendingResource;
 
         } else if (type == ChangeType.REPLACE) {

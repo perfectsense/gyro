@@ -23,6 +23,10 @@ public class KeyValueBlock extends BeamBlock {
 
     @Override
     public boolean resolve() {
+        if (getParentBlock() instanceof ResourceBlock) {
+            return getValue().resolve((ResourceBlock) getParentBlock());
+        }
+
         return getValue().resolve();
     }
 

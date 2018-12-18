@@ -56,17 +56,11 @@ public class ResourceDiff {
      * @return May be {@code null} to indicate no change.
      */
     public ResourceChange newCreate(final BeamResource pendingResource) throws Exception {
-        BeamResource currentResource = pendingResource.findCurrent();
-
-        if (currentResource != null) {
-            return newUpdate(currentResource, pendingResource);
-        }
-
         ResourceChange create = new ResourceChange(this, null, pendingResource) {
 
             @Override
             protected BeamResource change() {
-                //pendingResource.resolve(pendingResource.getRoot());
+                pendingResource.resolve();
                 pendingResource.create();
                 return pendingResource;
             }

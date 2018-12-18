@@ -3,30 +3,36 @@ package beam.core;
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceName;
 import beam.lang.BeamLanguageExtension;
-import beam.lang.types.BeamBlock;
 import beam.lang.types.BeamReference;
 import beam.lang.types.KeyValueBlock;
 import com.google.common.base.CaseFormat;
+import com.psddev.dari.util.ObjectUtils;
 import org.apache.commons.beanutils.BeanUtils;
 
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
 
 public abstract class BeamResource extends BeamLanguageExtension implements Comparable<BeamResource> {
 
     private BeamCredentials resourceCredentials;
-    private String path;
     private List<BeamResource> dependsOn;
 
-    private transient BeamResource parent;
-    private transient List<BeamResource> children = new ArrayList<>();
-    private final transient Set<BeamResource> dependencies = new TreeSet<>();
-    private final transient Set<BeamResource> dependents = new TreeSet<>();
     private transient ResourceChange change;
-    private transient BeamBlock root;
+
+    public abstract void refresh();
+
+    public abstract void create();
+
+    public abstract void update(BeamResource current, Set<String> changedProperties);
+
+    public abstract void delete();
+
+    public abstract String toDisplayString();
 
     public List<BeamResource> getDependsOn() {
         return dependsOn;
@@ -34,14 +40,6 @@ public abstract class BeamResource extends BeamLanguageExtension implements Comp
 
     public void setDependsOn(List<BeamResource> dependsOn) {
         this.dependsOn = dependsOn;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
     }
 
     public abstract Class getResourceCredentialsClass();
@@ -83,50 +81,22 @@ public abstract class BeamResource extends BeamLanguageExtension implements Comp
         this.change = change;
     }
 
-    public Set<BeamResource> resourceDependencies() {
-        return dependencies;
-    }
+    public void sync() {
+        try {
+            for (PropertyDescriptor p : Introspector.getBeanInfo(getClass()).getPropertyDescriptors()) {
+                Method reader = p.getReadMethod();
 
-    public Set<BeamResource> resourceDependents() {
-        return dependents;
-    }
+                if (reader != null && reader.getReturnType() == String.class) {
+                    String key = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, reader.getName().substring(3));
+                    String value = (String) reader.invoke(this);
 
-    public BeamBlock getRoot() {
-        return root;
-    }
-
-    public void setRoot(BeamBlock root) {
-        this.root = root;
-    }
-
-    public BeamResource findTop() {
-        BeamResource top = this;
-
-        while (true) {
-            BeamResource parent = top.parent;
-
-            if (parent == null) {
-                return top;
-
-            } else {
-                top = parent;
+                    set(key, value);
+                }
             }
+
+        } catch (IntrospectionException | IllegalAccessException | InvocationTargetException ex) {
+            // Ignoring exceptions
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    public <T extends BeamResource> T findParent(Class<T> parentClass) {
-        for (BeamResource parent = this; (parent = parent.parent) != null; ) {
-            if (parentClass.isInstance(parent)) {
-                return (T) parent;
-            }
-        }
-
-        return null;
-    }
-
-    public BeamResource findCurrent() {
-        return null;
     }
 
     @Override
@@ -136,6 +106,7 @@ public abstract class BeamResource extends BeamLanguageExtension implements Comp
             credentialsReference.setParentBlock(getParentBlock());
 
             KeyValueBlock credentialsBlock = new KeyValueBlock();
+            credentialsBlock.setParentBlock(this);
             credentialsBlock.setKey("resource-credentials");
             credentialsBlock.setValue(credentialsReference);
 
@@ -143,23 +114,16 @@ public abstract class BeamResource extends BeamLanguageExtension implements Comp
         }
     }
 
-    public abstract void refresh();
-
-    public abstract void create();
-
-    public abstract void update(BeamResource current, Set<String> changedProperties);
-
-    public abstract void delete();
-
-    public abstract String toDisplayString();
-
     @Override
     public int compareTo(BeamResource o) {
-        if (getResourceIdentifier() != null) {
-            return getResourceIdentifier().compareTo(o.getResourceIdentifier());
+        if (o == null) {
+            return 1;
         }
 
-        return -1;
+        String compareKey = String.format("%s %s", getResourceType(), getResourceIdentifier());
+        String otherKey = String.format("%s %s", o.getResourceType(), o.getResourceIdentifier());
+
+        return compareKey.compareTo(otherKey);
     }
 
 }

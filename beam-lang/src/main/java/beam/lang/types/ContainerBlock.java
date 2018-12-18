@@ -3,7 +3,10 @@ package beam.lang.types;
 import beam.lang.BeamLanguageException;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 public class ContainerBlock extends BeamBlock {
 
@@ -59,6 +62,26 @@ public class ContainerBlock extends BeamBlock {
         }
 
         return null;
+    }
+
+    public void set(String key, String value) {
+        Iterator<BeamBlock> iterator = getBlocks().iterator();
+        while (iterator.hasNext()) {
+            BeamBlock block = iterator.next();
+
+            if (block instanceof KeyValueBlock) {
+                KeyValueBlock keyValueBlock = (KeyValueBlock) block;
+                if (keyValueBlock.getKey().equals(key)) {
+                    keyValueBlock.setValue(new BeamString(value));
+                    return;
+                }
+            }
+        }
+
+        KeyValueBlock keyValueBlock = new KeyValueBlock();
+        keyValueBlock.setKey(key);
+        keyValueBlock.setValue(new BeamString(value));
+        getBlocks().add(keyValueBlock);
     }
 
     @Override

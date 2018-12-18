@@ -4,11 +4,32 @@ import com.google.common.base.CaseFormat;
 import org.apache.commons.beanutils.BeanUtils;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class ResourceBlock extends ContainerBlock {
 
     private String type;
     private String name;
+
+    private Set<BeamBlock> dependencies;
+    private Set<BeamBlock> dependents;
+
+    public Set<BeamBlock> dependencies() {
+        if (dependencies == null) {
+            dependencies = new LinkedHashSet<>();
+        }
+
+        return dependencies;
+    }
+
+    public Set<BeamBlock> dependents() {
+        if (dependents == null) {
+            dependents = new LinkedHashSet<>();
+        }
+
+        return dependents;
+    }
 
     public String getResourceType() {
         return type;

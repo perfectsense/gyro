@@ -43,6 +43,4 @@ public abstract class BeamReferable {
         this.path = path;
     }
 
-    public abstract Set<BeamBlock> dependencies();
-
 }
