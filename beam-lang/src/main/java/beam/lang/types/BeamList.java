@@ -20,7 +20,15 @@ public class BeamList extends BeamValue<List> {
 
     @Override
     public List getValue() {
-        return null;
+        List<String> list = new ArrayList();
+        for (BeamValue value : getValues()) {
+            Object item = value.getValue();
+            if (item != null) {
+                list.add(item.toString());
+            }
+        }
+
+        return list;
     }
 
     @Override
