@@ -7,6 +7,7 @@ import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.CreateRouteTableResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeRouteTablesResponse;
 import software.amazon.awssdk.services.ec2.model.Filter;
+import software.amazon.awssdk.services.ec2.model.Route;
 import software.amazon.awssdk.services.ec2.model.RouteTable;
 import software.amazon.awssdk.services.ec2.model.RouteTableAssociation;
 
@@ -124,8 +125,36 @@ public class RouteTableResource extends Ec2TaggableResource<RouteTable> {
     }
 
     @Override
-    protected void doUpdate(AwsResource config, Set<String> changedProperties) {
+    protected void doUpdate(AwsResource current, Set<String> changedProperties) {
+        Ec2Client client = createClient(Ec2Client.class);
 
+        RouteTableResource currentResource = (RouteTableResource) current;
+
+        List<String> additions = new ArrayList<>(getSubnetIds());
+        additions.removeAll(currentResource.getSubnetIds());
+
+        List<String> subtractions = new ArrayList<>(currentResource.getSubnetIds());
+        subtractions.removeAll(getSubnetIds());
+
+        for (String subnetId : additions) {
+            client.associateRouteTable(r -> r.routeTableId(getRouteTableId()).subnetId(subnetId));
+        }
+
+        for (String subnetId : subtractions) {
+            DescribeRouteTablesResponse response = client.describeRouteTables(r -> r.filters(
+                Filter.builder().name("route-table-id").values(getRouteTableId()).build()
+            ));
+
+            for (RouteTable routeTable : response.routeTables()) {
+                for (RouteTableAssociation rta : routeTable.associations()) {
+                    if (!rta.main() && rta.subnetId().equals(subnetId)) {
+
+                        client.disassociateRouteTable(r -> r.associationId(rta.routeTableAssociationId()));
+                    }
+                }
+            }
+
+        }
     }
 
     @Override
