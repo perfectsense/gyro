@@ -197,69 +197,6 @@ public class ResourceChange {
 
                                     showingDiff = true;
 
-                                } else {
-                                    File currentFile = null;
-                                    File pendingFile = null;
-                                    File diffFile = null;
-
-                                    try {
-                                        currentFile = File.createTempFile("beam", ".json");
-                                        FileWriter currentWriter = new FileWriter(currentFile);
-                                        currentWriter.write(ObjectUtils.toJson(currentValue, true));
-                                        currentWriter.close();
-
-                                        pendingFile = File.createTempFile("beam", ".json");
-                                        FileWriter pendingWriter = new FileWriter(pendingFile);
-                                        pendingWriter.write(ObjectUtils.toJson(pendingValue, true));
-                                        pendingWriter.close();
-
-                                        List<String> arguments = new ArrayList<>();
-                                        arguments.add("wdiff");
-
-                                        arguments.add("-w"); // start delete
-                                        arguments.add("@|red -");
-                                        arguments.add("-x"); // end delete
-                                        arguments.add("|@");
-
-
-                                        arguments.add("-y"); // start insert
-                                        arguments.add("@|yellow +");
-                                        arguments.add("-z"); // end insert
-                                        arguments.add("|@");
-
-                                        arguments.add(currentFile.getCanonicalPath());
-                                        arguments.add(pendingFile.getCanonicalPath());
-
-                                        diffFile = File.createTempFile("beam", "diff");
-
-                                        ProcessBuilder diffProcess = new ProcessBuilder(arguments);
-                                        diffProcess.redirectOutput(diffFile);
-                                        diffProcess.redirectError(diffFile);
-                                        int exitCode = diffProcess.start().waitFor();
-
-                                        if (exitCode == 1) {
-                                            changedProperties.add(p.getName());
-                                            changedPropertiesDisplay.append(p.getName());
-                                            changedPropertiesDisplay.append(": ");
-                                            changedPropertiesDisplay.append(IoUtils.toString(diffFile, Charset.forName("UTF-8")));
-
-                                            showingDiff = true;
-                                        }
-                                    } catch (Exception ex) {
-                                        ex.printStackTrace();
-                                    } finally {
-                                        if (currentFile != null) {
-                                            currentFile.delete();
-                                        }
-
-                                        if (pendingFile != null) {
-                                            pendingFile.delete();
-                                        }
-
-                                        if (diffFile != null) {
-                                            diffFile.delete();
-                                        }
-                                    }
                                 }
                             }
 
