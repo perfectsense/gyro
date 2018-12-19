@@ -101,15 +101,22 @@ public class BeamReference extends BeamValue {
     public String toString() {
         StringBuilder sb = new StringBuilder();
 
-        sb.append("$(");
-        sb.append(getType()).append(" ");
-        sb.append(getName());
+        Object value = getValue();
+        if (value != null && value instanceof String) {
+            sb.append("'" + value + "'");
+        } else if (value != null && !(value instanceof BeamBlock)) {
+            sb.append(value);
+        } else {
+            sb.append("$(");
+            sb.append(getType()).append(" ");
+            sb.append(getName());
 
-        if (getAttribute() != null) {
-            sb.append(" | ").append(getAttribute());
+            if (getAttribute() != null) {
+                sb.append(" | ").append(getAttribute());
+            }
+
+            sb.append(")");
         }
-
-        sb.append(")");
 
         return sb.toString();
     }
