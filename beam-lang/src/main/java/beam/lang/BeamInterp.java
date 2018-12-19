@@ -1,6 +1,7 @@
 package beam.lang;
 
 import beam.lang.types.BeamBlock;
+import beam.lang.types.ContainerBlock;
 import beam.parser.antlr4.BeamLexer;
 import beam.parser.antlr4.BeamParser;
 import org.antlr.v4.runtime.CharStreams;
@@ -13,7 +14,7 @@ import java.util.Map;
 
 public class BeamInterp {
 
-    private BeamBlock root;
+    private ContainerBlock root;
 
     private final Map<String, Class<? extends BeamLanguageExtension>> extensions = new HashMap<>();
 
@@ -39,7 +40,7 @@ public class BeamInterp {
         extensions.clear();
     }
 
-    public BeamBlock parse(String filename) throws IOException {
+    public ContainerBlock parse(String filename) throws IOException {
         BeamLexer lexer = new BeamLexer(CharStreams.fromFileName(filename));
         CommonTokenStream tokens = new CommonTokenStream(lexer);
 

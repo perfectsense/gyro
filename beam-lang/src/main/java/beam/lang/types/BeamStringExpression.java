@@ -15,6 +15,10 @@ public class BeamStringExpression extends BeamLiteral {
 
     @Override
     public String toString() {
+        if (getLiteral() == null) {
+            return null;
+        }
+
         return "\"" + getLiteral() + "\"";
     }
 

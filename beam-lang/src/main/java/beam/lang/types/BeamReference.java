@@ -94,7 +94,7 @@ public class BeamReference extends BeamValue {
             parent = parent.getParentBlock();
         }
 
-        throw new BeamLanguageException("Unable to resolve reference.", getReferencedBlock());
+        throw new BeamLanguageException("Unable to resolve reference.", this);
     }
 
     @Override

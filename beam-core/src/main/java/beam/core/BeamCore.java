@@ -40,53 +40,45 @@ public class BeamCore {
         return validationException;
     }
 
-    public BeamBlock parse(String path) throws IOException {
+    public ContainerBlock parse(String path) throws IOException {
         interp.init();
         interp.addExtension("state", BeamLocalState.class);
         interp.addExtension("provider", BeamProvider.class);
 
-        BeamBlock block = interp.parse(path);
+        ContainerBlock block = interp.parse(path);
 
         return block;
     }
 
-    public BeamState getStateBackend(BeamBlock config) {
-        BeamState stateBackend = new BeamLocalState();
-        /*
-        for (BeamContextKey key : config.keys()) {
-            BeamReferable referable = config.get(key);
-            Object value = referable.getValue();
+    public BeamState getState(ContainerBlock block) {
+        BeamState backend = new BeamLocalState();
 
-            if (value instanceof BeamState) {
-                stateBackend = (BeamState) value;
+        for (ResourceBlock resourceBlock : block.resources()) {
+            if (resourceBlock instanceof BeamState) {
+                backend = (BeamState) resourceBlock;
             }
         }
-        */
 
-        return stateBackend;
+        return backend;
     }
 
-    public BeamBlock findNonResources(BeamBlock config) {
-        BeamBlock nonResourceConfig = new ContainerBlock();
-        /*
-        for (BeamContextKey key : config.keys()) {
-            BeamReferable referable = config.get(key);
-            Object value = referable.getValue();
+    public void copyNonResourceState(ContainerBlock source, ContainerBlock state) {
+        state.copyNonResourceState(source);
 
-            if (!(value instanceof BeamResource)) {
-                nonResourceConfig.add(key, referable);
+        for (ResourceBlock block : source.resources()) {
+            if (block instanceof BeamResource) {
+                continue;
             }
+
+            state.putResource(block);
         }
-        */
-
-        return nonResourceConfig;
     }
 
-    public Set<BeamResource> findBeamResources(BeamBlock config) {
-        return findBeamResources(config, false);
+    public Set<BeamResource> findBeamResources(ContainerBlock block) {
+        return findBeamResources(block, false);
     }
 
-    public Set<BeamResource> findBeamResources(BeamBlock block, boolean refresh) {
+    public Set<BeamResource> findBeamResources(ContainerBlock block, boolean refresh) {
         Set<BeamResource> resources = new TreeSet<>();
 
         if (block instanceof ContainerBlock) {
@@ -186,7 +178,7 @@ public class BeamCore {
         }
     }
 
-    public void execute(ResourceChange change, BeamBlock state, BeamState stateBackend, String path) {
+    public void execute(ResourceChange change, ContainerBlock state, BeamState backend, String path) {
         ChangeType type = change.getType();
 
         if (type == ChangeType.KEEP || type == ChangeType.REPLACE || change.isChanged()) {
@@ -197,7 +189,7 @@ public class BeamCore {
 
         if (dependencies != null && !dependencies.isEmpty()) {
             for (ResourceChange d : dependencies) {
-                execute(d, state, stateBackend, path);
+                execute(d, state, backend, path);
             }
         }
 
@@ -205,17 +197,14 @@ public class BeamCore {
         writeChange(change);
         BeamResource resource = change.executeChange();
 
-        /*
-        BeamContextKey key = new BeamContextKey(resource.getResourceIdentifier(), resource.getResourceType());
-
         if (type == ChangeType.DELETE) {
-            state.remove(key);
+            state.removeResource(resource);
         } else {
-            state.add(key, resource);
+            state.putResource(resource);
+
         }
-        */
 
         BeamCore.ui().write(" OK\n");
-        stateBackend.save(path, state);
+        backend.save(path, state);
     }
 }

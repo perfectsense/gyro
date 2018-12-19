@@ -9,8 +9,8 @@ import java.util.Set;
 
 public class ContainerBlock extends BeamBlock {
 
-    private Map<ResourceKey, ResourceBlock> resources = new HashMap<>();
-    private Map<String, BeamValue> keyValues = new HashMap<>();
+    Map<ResourceKey, ResourceBlock> resources = new HashMap<>();
+    Map<String, BeamValue> keyValues = new HashMap<>();
 
     public boolean containsKey(String key) {
         return keyValues.containsKey(key);
@@ -55,6 +55,10 @@ public class ContainerBlock extends BeamBlock {
         return resources.values();
     }
 
+    public ResourceBlock removeResource(ResourceBlock block) {
+        return resources.remove(block.resourceKey());
+    }
+
     public void putResource(ResourceBlock resourceBlock) {
         resourceBlock.setParentBlock(this);
 
@@ -64,6 +68,10 @@ public class ContainerBlock extends BeamBlock {
     public ResourceBlock getResource(String key, String type) {
         ResourceKey resourceKey = new ResourceKey(type, key);
         return resources.get(resourceKey);
+    }
+
+    public void copyNonResourceState(ContainerBlock source) {
+        keyValues.putAll(source.keyValues);
     }
 
     @Override

@@ -5,7 +5,7 @@ import org.apache.commons.lang.StringUtils;
 public class BeamString extends BeamLiteral {
 
     public BeamString(String literal) {
-        super(StringUtils.strip("'", literal));
+        super(StringUtils.strip(literal, "'"));
     }
 
     @Override
@@ -15,6 +15,10 @@ public class BeamString extends BeamLiteral {
 
     @Override
     public String toString() {
+        if (getLiteral() == null) {
+            return null;
+        }
+
         return "'" + getLiteral() + "'";
     }
 

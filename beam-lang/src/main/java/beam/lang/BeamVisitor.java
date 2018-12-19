@@ -35,7 +35,7 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         this.interp = interp;
     }
 
-    public BeamBlock visitBeam_root(Beam_rootContext context) {
+    public ContainerBlock visitBeam_root(Beam_rootContext context) {
         ContainerBlock containerBlock = new ContainerBlock();
 
         parseContainerBlockChildren(containerBlock, context.block());
@@ -120,11 +120,18 @@ public class BeamVisitor extends BeamParserBaseVisitor {
     }
 
     public BeamReference parseReferenceValue(Reference_valueContext context) {
-        return new BeamReference(
-            context.reference_body().reference_type().getText(),
-            context.reference_body().reference_name().getText(),
-            context.reference_body().reference_attribute().getText()
-        );
+        if (context.reference_body().reference_attribute() != null) {
+            return new BeamReference(
+                context.reference_body().reference_type().getText(),
+                context.reference_body().reference_name().getText(),
+                context.reference_body().reference_attribute().getText()
+            );
+        } else {
+            return new BeamReference(
+                context.reference_body().reference_type().getText(),
+                context.reference_body().reference_name().getText()
+            );
+        }
     }
 
     public BeamLiteral parseLiteralValue(Literal_valueContext context) {
