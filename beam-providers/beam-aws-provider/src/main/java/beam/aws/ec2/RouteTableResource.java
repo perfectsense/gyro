@@ -86,7 +86,7 @@ public class RouteTableResource extends Ec2TaggableResource<RouteTable> {
     }
 
     @Override
-    public void doRefresh() {
+    public boolean doRefresh() {
         Ec2Client client = createClient(Ec2Client.class);
 
         DescribeRouteTablesResponse response = client.describeRouteTables(r -> r.filters(
@@ -103,8 +103,10 @@ public class RouteTableResource extends Ec2TaggableResource<RouteTable> {
                 }
             }
 
-            return;
+            return true;
         }
+
+        return false;
     }
 
     @Override

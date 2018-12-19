@@ -52,12 +52,13 @@ public abstract class Ec2TaggableResource<T> extends AwsResource {
 
     protected abstract String getId();
 
-    protected void doRefresh() {
+    protected boolean doRefresh() {
+        return true;
     }
 
     @Override
-    public final void refresh() {
-        doRefresh();
+    public final boolean refresh() {
+        boolean refreshed = doRefresh();
 
         Ec2Client client = createClient(Ec2Client.class);
         DescribeTagsIterable response = client.describeTagsPaginator(
@@ -71,6 +72,7 @@ public abstract class Ec2TaggableResource<T> extends AwsResource {
             r -> r.tags().forEach(
                 t -> getTags().put(t.key(), t.value())));
 
+        return refreshed;
     }
 
     protected abstract void doCreate();

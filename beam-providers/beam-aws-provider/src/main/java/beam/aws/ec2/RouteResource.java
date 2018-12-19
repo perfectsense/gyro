@@ -169,7 +169,7 @@ public class RouteResource extends AwsResource {
     }
 
     @Override
-    public void refresh() {
+    public boolean refresh() {
         Ec2Client client = createClient(Ec2Client.class);
 
         DescribeRouteTablesResponse response = client.describeRouteTables(r -> r.filters(
@@ -202,8 +202,10 @@ public class RouteResource extends AwsResource {
                 setVpcPeeringConnectionId(route.vpcPeeringConnectionId());
             }
 
-            return;
+            return true;
         }
+
+        return false;
     }
 
     @Override

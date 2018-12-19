@@ -22,7 +22,7 @@ public abstract class BeamResource extends BeamLanguageExtension implements Comp
 
     private transient ResourceChange change;
 
-    public abstract void refresh();
+    public abstract boolean refresh();
 
     public abstract void create();
 

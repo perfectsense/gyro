@@ -86,7 +86,11 @@ public class BeamCore {
 
             for (ResourceBlock resource : containerBlock.resources()) {
                 if (resource instanceof BeamResource) {
-                    resources.add((BeamResource) resource);
+                    if (refresh && ((BeamResource) resource).refresh()) {
+                        resources.add((BeamResource) resource);
+                    } else if (!refresh) {
+                        resources.add((BeamResource) resource);
+                    }
                 }
 
                 resources.addAll(findBeamResources(resource, refresh));
