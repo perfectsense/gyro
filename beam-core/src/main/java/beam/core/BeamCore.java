@@ -81,20 +81,16 @@ public class BeamCore {
     public Set<BeamResource> findBeamResources(ContainerBlock block, boolean refresh) {
         Set<BeamResource> resources = new TreeSet<>();
 
-        if (block instanceof ContainerBlock) {
-            ContainerBlock containerBlock = (ContainerBlock) block;
-
-            for (ResourceBlock resource : containerBlock.resources()) {
-                if (resource instanceof BeamResource) {
-                    if (refresh && ((BeamResource) resource).refresh()) {
-                        resources.add((BeamResource) resource);
-                    } else if (!refresh) {
-                        resources.add((BeamResource) resource);
-                    }
+        for (ResourceBlock resource : block.resources()) {
+            if (resource instanceof BeamResource) {
+                if (refresh && ((BeamResource) resource).refresh()) {
+                    resources.add((BeamResource) resource);
+                } else if (!refresh) {
+                    resources.add((BeamResource) resource);
                 }
-
-                resources.addAll(findBeamResources(resource, refresh));
             }
+
+            resources.addAll(findBeamResources(resource, refresh));
         }
 
         return resources;
