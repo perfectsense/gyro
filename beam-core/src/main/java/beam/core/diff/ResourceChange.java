@@ -163,9 +163,7 @@ public class ResourceChange {
                 ResourceDiffProperty propertyAnnotation = reader.getAnnotation(ResourceDiffProperty.class);
                 boolean nullable = propertyAnnotation != null && propertyAnnotation.nullable();
 
-                if (((ObjectUtils.isBlank(pendingValue) && pendingValue instanceof NullArrayList)
-                    || (ObjectUtils.isBlank(pendingValue) && pendingValue instanceof NullSet))
-                    || (!ObjectUtils.isBlank(pendingValue) || nullable)) {
+                if (!ObjectUtils.isBlank(pendingValue) || nullable) {
 
                     if (propertyAnnotation != null) {
                         Set<String> changedProperties;

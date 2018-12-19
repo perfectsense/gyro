@@ -1,10 +1,8 @@
 package beam.core.diff;
 
 import beam.core.BeamResource;
-import com.google.common.base.CaseFormat;
 import com.google.common.base.Throwables;
 import com.psddev.dari.util.CompactMap;
-import com.psddev.dari.util.ObjectUtils;
 
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -100,16 +98,10 @@ public class ResourceDiff {
                     if (reader != null) {
                         Method writer = p.getWriteMethod();
 
+                        Object currentValue = reader.invoke(currentResource);
                         Object pendingValue = reader.invoke(pendingResource);
-                        if (writer != null && !isNullable(reader)
-                            && (pendingValue == null
-                            || (ObjectUtils.isBlank(pendingValue) && pendingValue instanceof NullArrayList)
-                            || (ObjectUtils.isBlank(pendingValue) && pendingValue instanceof NullSet))) {
+                        if (writer != null && (currentValue != null && pendingValue == null && !isNullable(reader))) {
                             writer.invoke(pendingResource, reader.invoke(currentResource));
-                            String keyId = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, p.getName());
-                            if (reader.invoke(currentResource) != null && !pendingResource.containsKey(keyId)) {
-                                //pendingResource.add(key, currentResource.get(keyId));
-                            }
                         }
                     }
                 }
@@ -120,6 +112,8 @@ public class ResourceDiff {
         } catch (InvocationTargetException error) {
             throw Throwables.propagate(error);
         }
+
+        pendingResource.sync();
 
         ResourceChange update = new ResourceChange(this, currentResource, pendingResource);
         update.tryToKeep();
