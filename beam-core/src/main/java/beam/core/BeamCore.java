@@ -6,6 +6,7 @@ import beam.core.diff.ResourceDiff;
 import beam.lang.BeamInterp;
 import beam.lang.types.BeamBlock;
 import beam.lang.types.ContainerBlock;
+import beam.lang.types.ResourceBlock;
 import com.psddev.dari.util.ThreadLocalStack;
 
 import java.io.IOException;
@@ -91,12 +92,12 @@ public class BeamCore {
         if (block instanceof ContainerBlock) {
             ContainerBlock containerBlock = (ContainerBlock) block;
 
-            for (BeamBlock child : containerBlock.getBlocks()) {
-                if (child instanceof BeamResource) {
-                    resources.add((BeamResource) child);
+            for (ResourceBlock resource : containerBlock.resources()) {
+                if (resource instanceof BeamResource) {
+                    resources.add((BeamResource) resource);
                 }
 
-                resources.addAll(findBeamResources(child, refresh));
+                resources.addAll(findBeamResources(resource, refresh));
             }
         }
 

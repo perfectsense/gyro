@@ -6,8 +6,6 @@ import beam.lang.BeamLanguageExtension;
 import beam.lang.types.BeamReference;
 import beam.lang.types.KeyValueBlock;
 import com.google.common.base.CaseFormat;
-import com.psddev.dari.util.ObjectUtils;
-import org.apache.commons.beanutils.BeanUtils;
 
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -90,7 +88,7 @@ public abstract class BeamResource extends BeamLanguageExtension implements Comp
                     String key = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, reader.getName().substring(3));
                     String value = (String) reader.invoke(this);
 
-                    set(key, value);
+                    put(key, value);
                 }
             }
 
@@ -110,7 +108,7 @@ public abstract class BeamResource extends BeamLanguageExtension implements Comp
             credentialsBlock.setKey("resource-credentials");
             credentialsBlock.setValue(credentialsReference);
 
-            getBlocks().add(credentialsBlock);
+            putKeyValue(credentialsBlock);
         }
     }
 

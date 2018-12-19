@@ -18,7 +18,7 @@ dependencies {
 final PARSER_PACKAGE_NAME = 'beam.parser.antlr4'
 generateGrammarSource {
     outputs.cacheIf { true }
-    arguments += ["-package", PARSER_PACKAGE_NAME, "-Xexact-output-dir"]
+    arguments += ["-package", PARSER_PACKAGE_NAME, "-Xexact-output-dir", "-visitor"]
 
     doLast {
         def parserFilePattern = 'Groovy*'

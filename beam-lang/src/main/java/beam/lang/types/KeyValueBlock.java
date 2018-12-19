@@ -21,12 +21,18 @@ public class KeyValueBlock extends BeamBlock {
         this.value = value;
     }
 
+
+    @Override
+    public void setParentBlock(BeamBlock parentBlock) {
+        super.setParentBlock(parentBlock);
+
+        if (getValue() != null) {
+            getValue().setParentBlock(parentBlock);
+        }
+    }
+
     @Override
     public boolean resolve() {
-        if (getParentBlock() instanceof ResourceBlock) {
-            return getValue().resolve((ResourceBlock) getParentBlock());
-        }
-
         return getValue().resolve();
     }
 

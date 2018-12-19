@@ -1,7 +1,5 @@
 package beam.lang.types;
 
-import java.util.Set;
-
 public abstract class BeamReferable {
 
     private BeamBlock parentBlock;
@@ -13,11 +11,11 @@ public abstract class BeamReferable {
         return parentBlock;
     }
 
+    public abstract boolean resolve();
+
     public void setParentBlock(BeamBlock parentBlock) {
         this.parentBlock = parentBlock;
     }
-
-    public abstract boolean resolve();
 
     public int getLine() {
         return line;

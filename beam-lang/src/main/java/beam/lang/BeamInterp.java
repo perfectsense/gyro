@@ -46,10 +46,9 @@ public class BeamInterp {
         BeamParser parser = new BeamParser(tokens);
         BeamParser.Beam_rootContext context = parser.beam_root();
 
-        BeamListener listener = new BeamListener(this);
-        ParseTreeWalker.DEFAULT.walk(listener, context);
+        BeamVisitor visitor = new BeamVisitor(this);
+        root = visitor.visitBeam_root(context);
 
-        root = listener.getRootBlock();
         if (!root.resolve()) {
             System.out.println("Unable to resolve config.");
         }

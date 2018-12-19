@@ -57,12 +57,7 @@ public class MavenFetcher implements PluginFetcher {
     @Override
     public boolean validate(BeamLanguageExtension fetcherContext) {
         if (fetcherContext.get("artifact") != null) {
-            String key = null;
-
-            BeamBlock block = fetcherContext.get("artifact");
-            if (block instanceof KeyValueBlock) {
-                key = (String) ((KeyValueBlock) block).getValue().getValue();
-            }
+            String key = (String) fetcherContext.getValue("artifact");
 
             if (key != null) {
                 return MAVEN_KEY_PAT.matcher(key).find();
@@ -88,16 +83,7 @@ public class MavenFetcher implements PluginFetcher {
 
             List<RemoteRepository> remoteRepositories = new ArrayList<>();
             if (fetcherContext.get("repositories") != null) {
-                BeamBlock block = fetcherContext.get("repositories");
-                List<String> repos = new ArrayList<>();
-                if (block instanceof KeyValueBlock) {
-                    BeamList listValue = (BeamList) ((KeyValueBlock) block).getValue();
-
-                    for (BeamValue value : listValue.getValues()) {
-                        repos.add((String) value.getValue());
-                    }
-                }
-
+                List<String> repos = (List<String>) fetcherContext.getValue("repositories");
                 for (String repo : repos) {
                     remoteRepositories.add(new RemoteRepository.Builder(repo, "default", repo).build());
                 }
@@ -105,11 +91,7 @@ public class MavenFetcher implements PluginFetcher {
                 remoteRepositories.add(new RemoteRepository.Builder("central", "default", "http://repo1.maven.org/maven2/").build());
             }
 
-            String key = null;
-            BeamBlock block = fetcherContext.get("artifact");
-            if (block instanceof KeyValueBlock) {
-                key = (String) ((KeyValueBlock) block).getValue().getValue();
-            }
+            String key = (String) fetcherContext.getValue("artifact");
             Artifact artifact = new DefaultArtifact(key);
 
             CollectRequest collectRequest = new CollectRequest(new Dependency(artifact, JavaScopes.COMPILE), remoteRepositories);

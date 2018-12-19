@@ -67,22 +67,25 @@ public class BeamReference extends BeamValue {
         return null;
     }
 
-    public boolean resolve(ResourceBlock parentBlock) {
-        BeamBlock parent = parentBlock;
+    @Override
+    public boolean resolve() {
+        BeamBlock parent = getParentBlock();
+
+        // Traverse up
         while (parent != null) {
             if (parent instanceof ContainerBlock) {
                 ContainerBlock containerBlock = (ContainerBlock) parent;
 
-                referencedBlock = containerBlock.get(getName(), getType());
-                if (referencedBlock != null  && referencedBlock instanceof ResourceBlock) {
-                    ResourceBlock ref = (ResourceBlock) referencedBlock;
+                referencedBlock = containerBlock.getResource(getName(), getType());
 
-                    ((ResourceBlock) referencedBlock).dependents().add(getParentBlock());
-                    //System.out.println(String.format("--- RESOLVED: %s %s => %s %s",
-                    //    parentBlock.getResourceType(), parentBlock.getResourceIdentifier(),
-                    //    ref.getResourceType(), ref.getResourceIdentifier()));
+                // Only ResourceBlocks have a dependency chain.
+                if (referencedBlock != null  && referencedBlock instanceof ResourceBlock
+                    && getParentBlock() != null && getParentBlock() instanceof ResourceBlock) {
 
-                    parentBlock.dependencies().add(referencedBlock);
+                    ResourceBlock parentRef = (ResourceBlock) getParentBlock();
+                    ResourceBlock resourceRef = (ResourceBlock) referencedBlock;
+                    resourceRef.dependents().add(parentRef);
+                    parentRef.dependencies().add(resourceRef);
 
                     return true;
                 }
@@ -91,12 +94,7 @@ public class BeamReference extends BeamValue {
             parent = parent.getParentBlock();
         }
 
-        throw new BeamLanguageException("Unable to resolve reference.", this);
-    }
-
-    @Override
-    public boolean resolve() {
-        return true;
+        throw new BeamLanguageException("Unable to resolve reference.", getReferencedBlock());
     }
 
     @Override
@@ -108,7 +106,7 @@ public class BeamReference extends BeamValue {
         sb.append(getName());
 
         if (getAttribute() != null) {
-            sb.append("| ").append(getAttribute());
+            sb.append(" | ").append(getAttribute());
         }
 
         sb.append(")");

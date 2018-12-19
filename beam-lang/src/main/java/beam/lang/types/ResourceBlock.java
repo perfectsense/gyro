@@ -12,10 +12,10 @@ public class ResourceBlock extends ContainerBlock {
     private String type;
     private String name;
 
-    private Set<BeamBlock> dependencies;
-    private Set<BeamBlock> dependents;
+    private Set<ResourceBlock> dependencies;
+    private Set<ResourceBlock> dependents;
 
-    public Set<BeamBlock> dependencies() {
+    public Set<ResourceBlock> dependencies() {
         if (dependencies == null) {
             dependencies = new LinkedHashSet<>();
         }
@@ -23,7 +23,7 @@ public class ResourceBlock extends ContainerBlock {
         return dependencies;
     }
 
-    public Set<BeamBlock> dependents() {
+    public Set<ResourceBlock> dependents() {
         if (dependents == null) {
             dependents = new LinkedHashSet<>();
         }
@@ -47,24 +47,23 @@ public class ResourceBlock extends ContainerBlock {
         this.name = name;
     }
 
+    public ResourceKey resourceKey() {
+        return new ResourceKey(getResourceType(), getResourceIdentifier());
+    }
+
     @Override
     public boolean resolve() {
         boolean resolved = super.resolve();
 
         if (resolved) {
-            for (BeamBlock child : getBlocks()) {
-                if (child instanceof KeyValueBlock) {
-                    KeyValueBlock keyValueBlock = (KeyValueBlock) child;
+            for (String key : keys()) {
+                Object value = get(key).getValue();
 
-                    String key = keyValueBlock.getKey();
-                    Object value = keyValueBlock.getValue().getValue();
-
-                    try {
-                        String convertedKey = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key);
-                        BeanUtils.setProperty(this, convertedKey, value);
-                    } catch (IllegalArgumentException | InvocationTargetException | IllegalAccessException e) {
-                        // Ignoring errors from setProperty
-                    }
+                try {
+                    String convertedKey = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key);
+                    BeanUtils.setProperty(this, convertedKey, value);
+                } catch (IllegalArgumentException | InvocationTargetException | IllegalAccessException e) {
+                    // Ignoring errors from setProperty
                 }
             }
         }
@@ -79,10 +78,15 @@ public class ResourceBlock extends ContainerBlock {
         sb.append(getResourceType()).append(" ");
         sb.append(getResourceIdentifier()).append("\n");
 
-        for (BeamBlock block : getBlocks()) {
-            for (String line : block.toString().split("\n")) {
+        for (ResourceBlock resourceBlock : resources()) {
+            for (String line : resourceBlock.toString().split("\n")) {
                 sb.append("    " + line + "\n");
             }
+        }
+
+        for (String key : keys()) {
+            sb.append("    " + key + ": ");
+            sb.append(get(key)).append("\n");
         }
 
         sb.append("end\n\n");

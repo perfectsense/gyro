@@ -19,6 +19,15 @@ public class BeamList extends BeamValue<List> {
     }
 
     @Override
+    public void setParentBlock(BeamBlock parentBlock) {
+        super.setParentBlock(parentBlock);
+
+        for (BeamValue value : getValues()) {
+            value.setParentBlock(parentBlock);
+        }
+    }
+
+    @Override
     public List getValue() {
         List<String> list = new ArrayList();
         for (BeamValue value : getValues()) {

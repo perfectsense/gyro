@@ -2,94 +2,83 @@ package beam.lang.types;
 
 import beam.lang.BeamLanguageException;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 public class ContainerBlock extends BeamBlock {
 
-    private List<BeamBlock> blocks;
-
-    public List<BeamBlock> getBlocks() {
-        if (blocks == null) {
-            blocks = new ArrayList<>();
-        }
-
-        return blocks;
-    }
+    private Map<ResourceKey, ResourceBlock> resources = new HashMap<>();
+    private Map<String, BeamValue> keyValues = new HashMap<>();
 
     public boolean containsKey(String key) {
-        return containsKey(key, null);
+        return keyValues.containsKey(key);
     }
 
-    public boolean containsKey(String key, String type) {
-        for (BeamBlock block : getBlocks()) {
-            if (block instanceof ResourceBlock) {
-                ResourceBlock resourceBlock = (ResourceBlock) block;
-                if (resourceBlock.getResourceIdentifier().equals(key) && resourceBlock.getResourceType().equals(type)) {
-                    return true;
-                }
-            } else if (block instanceof KeyValueBlock && type == null) {
-                KeyValueBlock keyValueBlock = (KeyValueBlock) block;
-                if (keyValueBlock.getKey().equals(key)) {
-                    return true;
-                }
-            }
+    public boolean containsResource(String key, String type) {
+        ResourceKey resourceKey = new ResourceKey(type, key);
+        if (resources.containsKey(resourceKey)) {
+            return true;
         }
 
         return false;
     }
 
-    public BeamBlock get(String key) {
-        return get(key, null);
+    public Set<String> keys() {
+        return keyValues.keySet();
     }
 
-    public BeamBlock get(String key, String type) {
-        for (BeamBlock block : getBlocks()) {
-            if (block instanceof ResourceBlock) {
-                ResourceBlock resourceBlock = (ResourceBlock) block;
-                if (resourceBlock.getResourceIdentifier().equals(key) && resourceBlock.getResourceType().equals(type)) {
-                    return resourceBlock;
-                }
-            } else if (block instanceof KeyValueBlock && type == null) {
-                KeyValueBlock keyValueBlock = (KeyValueBlock) block;
-                if (keyValueBlock.getKey().equals(key)) {
-                    return keyValueBlock;
-                }
-            }
+    public BeamValue get(String key) {
+        return keyValues.get(key);
+    }
+
+    public Object getValue(String key) {
+        BeamValue value = get(key);
+        if (value != null) {
+            return value.getValue();
         }
 
         return null;
     }
 
-    public void set(String key, String value) {
-        Iterator<BeamBlock> iterator = getBlocks().iterator();
-        while (iterator.hasNext()) {
-            BeamBlock block = iterator.next();
+    public void putKeyValue(KeyValueBlock keyValueBlock) {
+        keyValueBlock.setParentBlock(this);
+        keyValues.put(keyValueBlock.getKey(), keyValueBlock.getValue());
+    }
 
-            if (block instanceof KeyValueBlock) {
-                KeyValueBlock keyValueBlock = (KeyValueBlock) block;
-                if (keyValueBlock.getKey().equals(key)) {
-                    keyValueBlock.setValue(new BeamString(value));
-                    return;
-                }
-            }
-        }
+    public void put(String key, String value) {
+        keyValues.put(key, new BeamString(value));
+    }
 
-        KeyValueBlock keyValueBlock = new KeyValueBlock();
-        keyValueBlock.setKey(key);
-        keyValueBlock.setValue(new BeamString(value));
-        getBlocks().add(keyValueBlock);
+    public Collection<ResourceBlock> resources() {
+        return resources.values();
+    }
+
+    public void putResource(ResourceBlock resourceBlock) {
+        resourceBlock.setParentBlock(this);
+
+        resources.put(resourceBlock.resourceKey(), resourceBlock);
+    }
+
+    public ResourceBlock getResource(String key, String type) {
+        ResourceKey resourceKey = new ResourceKey(type, key);
+        return resources.get(resourceKey);
     }
 
     @Override
     public boolean resolve() {
-        for (BeamBlock child : getBlocks())  {
-            boolean resolved = child.resolve();
+        for (ResourceBlock resourceBlock : resources.values()) {
+            boolean resolved = resourceBlock.resolve();
             if (!resolved) {
-                throw new BeamLanguageException("Unable to resolve configuration.", child);
+                throw new BeamLanguageException("Unable to resolve configuration.", resourceBlock);
+            }
+        }
+
+        for (BeamValue value : keyValues.values()) {
+            boolean resolved = value.resolve();
+            if (!resolved) {
+                throw new BeamLanguageException("Unable to resolve configuration.", value);
             }
         }
 
@@ -100,8 +89,14 @@ public class ContainerBlock extends BeamBlock {
     public String toString() {
         StringBuilder sb = new StringBuilder();
 
-        for (BeamBlock block : getBlocks()) {
-            sb.append(block.toString());
+        for (ResourceBlock resourceBlock : resources.values()) {
+            sb.append(resourceBlock.toString());
+        }
+
+        for (String key : keyValues.keySet()) {
+            sb.append(key).append(": ");
+            sb.append(get(key).toString());
+            sb.append("\n");
         }
 
         return sb.toString();

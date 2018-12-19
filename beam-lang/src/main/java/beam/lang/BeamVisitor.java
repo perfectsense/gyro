@@ -13,76 +13,68 @@ import beam.lang.types.BeamValue;
 import beam.lang.types.ContainerBlock;
 import beam.lang.types.KeyValueBlock;
 import beam.lang.types.ResourceBlock;
-import beam.parser.antlr4.BeamParser;
-import beam.parser.antlr4.BeamParserBaseListener;
+import beam.parser.antlr4.BeamParser.Beam_rootContext;
+import beam.parser.antlr4.BeamParser.BlockContext;
+import beam.parser.antlr4.BeamParser.Key_value_blockContext;
+import beam.parser.antlr4.BeamParser.List_item_valueContext;
+import beam.parser.antlr4.BeamParser.Literal_valueContext;
+import beam.parser.antlr4.BeamParser.Map_key_value_blockContext;
+import beam.parser.antlr4.BeamParser.Reference_valueContext;
+import beam.parser.antlr4.BeamParser.Resource_blockContext;
+import beam.parser.antlr4.BeamParser.ValueContext;
+import beam.parser.antlr4.BeamParserBaseVisitor;
 import org.apache.commons.lang.StringUtils;
 
-public class BeamListener extends BeamParserBaseListener {
+import java.util.List;
+
+public class BeamVisitor extends BeamParserBaseVisitor {
 
     private BeamInterp interp;
 
-    private BeamBlock parentBlock;
-    private BeamBlock currentBlock;
-
-    public BeamBlock getRootBlock() {
-        return currentBlock;
-    }
-
-    public BeamListener(BeamInterp interp) {
+    public BeamVisitor(BeamInterp interp) {
         this.interp = interp;
     }
 
-    @Override
-    public void enterBeam_root(BeamParser.Beam_rootContext context) {
-        parentBlock = null;
-        currentBlock = new ContainerBlock();
+    public BeamBlock visitBeam_root(Beam_rootContext context) {
+        ContainerBlock containerBlock = new ContainerBlock();
+
+        parseContainerBlockChildren(containerBlock, context.block());
+
+        return containerBlock;
     }
 
-    @Override
-    public void exitBeam_root(BeamParser.Beam_rootContext context) {
-        currentBlock.setParentBlock(null);
-    }
+    public ResourceBlock visitResource_block(Resource_blockContext context, ContainerBlock parent) {
+        ResourceBlock resourceBlock = createResourceBlock(context.resource_type().getText());
+        resourceBlock.setResourceIdentifier(context.resource_name().getText());
+        resourceBlock.setResourceType(context.resource_type().getText());
+        resourceBlock.setParentBlock(parent);
 
-    @Override
-    public void enterResource_block(BeamParser.Resource_blockContext context) {
-        ResourceBlock resourceBlock = parseResourceBlock(context);
-        resourceBlock.setLine(context.getStart().getLine());
-        resourceBlock.setColumn(context.getStart().getCharPositionInLine());
+        parseContainerBlockChildren(resourceBlock, context.block());
 
-        currentBlock.setParentBlock(currentBlock);
-
-        if (currentBlock instanceof ContainerBlock) {
-            ((ContainerBlock) currentBlock).getBlocks().add(resourceBlock);
-        }
-
-        parentBlock = currentBlock;
-        currentBlock = resourceBlock;
-    }
-
-    @Override
-    public void exitResource_block(BeamParser.Resource_blockContext context) {
-        if (currentBlock instanceof BeamLanguageExtension) {
-            BeamLanguageExtension extension = (BeamLanguageExtension) currentBlock;
+        if (resourceBlock instanceof BeamLanguageExtension) {
+            BeamLanguageExtension extension = (BeamLanguageExtension) resourceBlock;
             extension.execute();
         }
 
-        BeamBlock parent = null;
-        if (parentBlock != null) {
-            parent = parentBlock.getParentBlock();
-        }
-        currentBlock = parentBlock;
-        parentBlock = parent;
+        return resourceBlock;
     }
 
-    @Override
-    public void enterKey_value_block(BeamParser.Key_value_blockContext context) {
-        currentBlock.setParentBlock(parentBlock);
-        if (currentBlock instanceof ContainerBlock) {
-            ((ContainerBlock) currentBlock).getBlocks().add(parseKeyValueBlock(context, currentBlock));
+    public void parseContainerBlockChildren(ContainerBlock containerBlock, List<BlockContext> blocks) {
+        for (BlockContext blockContext : blocks) {
+            if (blockContext.key_value_block() != null) {
+                KeyValueBlock block = parseKeyValueBlock(blockContext.key_value_block());
+
+                containerBlock.putKeyValue(block);
+            } else if (blockContext.resource_block() != null) {
+                ResourceBlock block = visitResource_block(blockContext.resource_block(), containerBlock);
+
+                containerBlock.putResource(block);
+            }
         }
+
     }
 
-    public BeamValue parseValue(BeamParser.ValueContext context, BeamBlock parent) {
+    public BeamValue parseValue(ValueContext context) {
         BeamValue value = null;
 
         if (context.boolean_value() != null) {
@@ -95,11 +87,10 @@ public class BeamListener extends BeamParserBaseListener {
             value = parseLiteralValue(context.literal_value());
         } else if (context.list_value() != null) {
             BeamList listValue = new BeamList();
-            for (BeamParser.List_item_valueContext valueContext : context.list_value().list_item_value()) {
+            for (List_item_valueContext valueContext : context.list_value().list_item_value()) {
                 BeamValue listItemValue = parseListItemValue(valueContext);
                 listItemValue.setLine(valueContext.getStart().getLine());
                 listItemValue.setColumn(valueContext.getStart().getCharPositionInLine());
-                listItemValue.setParentBlock(parentBlock);
 
                 listValue.getValues().add(listItemValue);
             }
@@ -107,21 +98,20 @@ public class BeamListener extends BeamParserBaseListener {
             value = listValue;
         } else if (context.map_value() != null) {
             BeamMap mapValue = new BeamMap();
-            for (BeamParser.Map_key_value_blockContext valueContext : context.map_value().map_key_value_block()) {
-                mapValue.getKeyValues().add(parseMapKeyValueBlock(valueContext, parent));
+            for (Map_key_value_blockContext valueContext : context.map_value().map_key_value_block()) {
+                mapValue.getKeyValues().add(parseMapKeyValueBlock(valueContext));
             }
 
             value = mapValue;
         }
 
-        value.setParentBlock(parentBlock);
         value.setLine(context.start.getLine());
         value.setColumn(context.start.getCharPositionInLine());
 
         return value;
     }
 
-    public BeamValue parseListItemValue(BeamParser.List_item_valueContext context) {
+    public BeamValue parseListItemValue(List_item_valueContext context) {
         if (context.literal_value() != null) {
             return parseLiteralValue(context.literal_value());
         } else {
@@ -129,7 +119,7 @@ public class BeamListener extends BeamParserBaseListener {
         }
     }
 
-    public BeamReference parseReferenceValue(BeamParser.Reference_valueContext context) {
+    public BeamReference parseReferenceValue(Reference_valueContext context) {
         return new BeamReference(
             context.reference_body().reference_type().getText(),
             context.reference_body().reference_name().getText(),
@@ -137,7 +127,7 @@ public class BeamListener extends BeamParserBaseListener {
         );
     }
 
-    public BeamLiteral parseLiteralValue(BeamParser.Literal_valueContext context) {
+    public BeamLiteral parseLiteralValue(Literal_valueContext context) {
         BeamLiteral literal;
         if (context.STRING_INTEPRETED() != null) {
             literal = new BeamStringExpression(context.getText());
@@ -151,29 +141,20 @@ public class BeamListener extends BeamParserBaseListener {
         return literal;
     }
 
-    public ResourceBlock parseResourceBlock(BeamParser.Resource_blockContext context) {
-        ResourceBlock resourceBlock = createResourceBlock(context.resource_type().getText());
-        resourceBlock.setResourceIdentifier(context.resource_name().getText());
-
-        return resourceBlock;
-    }
-
-    public KeyValueBlock parseKeyValueBlock(BeamParser.Key_value_blockContext context, BeamBlock parent) {
+    public KeyValueBlock parseKeyValueBlock(Key_value_blockContext context) {
         KeyValueBlock keyValueBlock = new KeyValueBlock();
         keyValueBlock.setKey(StringUtils.stripEnd(context.key().getText(), ":"));
-        keyValueBlock.setValue(parseValue(context.value(), parent));
-        keyValueBlock.setParentBlock(parent);
+        keyValueBlock.setValue(parseValue(context.value()));
         keyValueBlock.setLine(context.getStart().getLine());
         keyValueBlock.setColumn(context.getStart().getCharPositionInLine());
 
         return keyValueBlock;
     }
 
-    public KeyValueBlock parseMapKeyValueBlock(BeamParser.Map_key_value_blockContext context, BeamBlock parent) {
+    public KeyValueBlock parseMapKeyValueBlock(Map_key_value_blockContext context) {
         KeyValueBlock keyValueBlock = new KeyValueBlock();
         keyValueBlock.setKey(StringUtils.stripEnd(context.key().getText(), ":"));
-        keyValueBlock.setValue(parseValue(context.value(), parent));
-        keyValueBlock.setParentBlock(parent);
+        keyValueBlock.setValue(parseValue(context.value()));
         keyValueBlock.setLine(context.getStart().getLine());
         keyValueBlock.setColumn(context.getStart().getCharPositionInLine());
 
@@ -196,5 +177,4 @@ public class BeamListener extends BeamParserBaseListener {
 
         return new ResourceBlock();
     }
-
 }
