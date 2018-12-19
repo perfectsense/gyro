@@ -4,25 +4,23 @@ import beam.aws.AwsResource;
 import beam.core.BeamException;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
-import com.psddev.dari.util.ObjectUtils;
-import software.amazon.awssdk.services.ec2.model.AttributeValue;
-import software.amazon.awssdk.services.ec2.model.AssociateDhcpOptionsRequest;
 import software.amazon.awssdk.services.ec2.Ec2Client;
-import software.amazon.awssdk.services.ec2.model.Vpc;
-import software.amazon.awssdk.services.ec2.model.DhcpConfiguration;
-import software.amazon.awssdk.services.ec2.model.DhcpOptions;
+import software.amazon.awssdk.services.ec2.model.AssociateDhcpOptionsRequest;
+import software.amazon.awssdk.services.ec2.model.AttributeValue;
 import software.amazon.awssdk.services.ec2.model.CreateDhcpOptionsRequest;
 import software.amazon.awssdk.services.ec2.model.CreateDhcpOptionsResponse;
-import software.amazon.awssdk.services.ec2.model.DescribeDhcpOptionsRequest;
-import software.amazon.awssdk.services.ec2.model.DescribeDhcpOptionsResponse;
 import software.amazon.awssdk.services.ec2.model.DeleteDhcpOptionsRequest;
-import software.amazon.awssdk.services.ec2.model.NewDhcpConfiguration;
+import software.amazon.awssdk.services.ec2.model.DescribeDhcpOptionsRequest;
+import software.amazon.awssdk.services.ec2.model.DhcpConfiguration;
+import software.amazon.awssdk.services.ec2.model.DhcpOptions;
 import software.amazon.awssdk.services.ec2.model.Ec2Exception;
+import software.amazon.awssdk.services.ec2.model.NewDhcpConfiguration;
+import software.amazon.awssdk.services.ec2.model.Vpc;
 
-import java.util.Set;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 
 
@@ -44,7 +42,7 @@ import java.util.Collection;
  */
 
 @ResourceName("dhcp-option")
-public class DHCPOptionSet extends Ec2TaggableResource<Vpc> {
+public class DhcpOptionSet extends Ec2TaggableResource<Vpc> {
 
     private String vpcId;
     private String dhcpOptionsId;
@@ -148,21 +146,10 @@ public class DHCPOptionSet extends Ec2TaggableResource<Vpc> {
         return getDhcpOptionsId();
     }
 
-    public Collection<AttributeValue> convertAttributes(List<String> toConvert){
-        Collection<AttributeValue> convertedList = new ArrayList<AttributeValue>();
-        for(String str : toConvert){
-            AttributeValue val = AttributeValue.builder()
-                    .value(str)
-                    .build();
-            convertedList.add(val);
-        }
-        return convertedList;
-    }
-
-    public List<String> convertString(Collection<AttributeValue> toConvert){
-        List<String> convertedList = new ArrayList<String>();
-        for(AttributeValue str : toConvert){
-            convertedList.add(str.toString());
+    public List<String> convertString(Collection<AttributeValue> toConvert) {
+        List<String> convertedList = new ArrayList<>();
+        for (AttributeValue str : toConvert) {
+            convertedList.add(str.value());
         }
         return convertedList;
     }
@@ -171,7 +158,11 @@ public class DHCPOptionSet extends Ec2TaggableResource<Vpc> {
     public void doRefresh() {
         Ec2Client client = createClient(Ec2Client.class);
 
-        for (DhcpOptions options : client.describeDhcpOptions().dhcpOptions()) {
+        DescribeDhcpOptionsRequest request = DescribeDhcpOptionsRequest.builder()
+                .dhcpOptionsIds(getDhcpOptionsId())
+                .build();
+
+        for (DhcpOptions options : client.describeDhcpOptions(request).dhcpOptions()) {
             String optionsId = options.dhcpOptionsId();
             setDhcpOptionsId(optionsId);
 
@@ -193,14 +184,14 @@ public class DHCPOptionSet extends Ec2TaggableResource<Vpc> {
                 }
             }
         }
-
     }
 
     @Override
     protected void doCreate() {
         Ec2Client client = createClient(Ec2Client.class);
 
-        Collection<NewDhcpConfiguration> configs = new ArrayList<NewDhcpConfiguration>();
+        Collection<NewDhcpConfiguration> configs = new ArrayList<>();
+
         if (!getDomainName().isEmpty()) {
             NewDhcpConfiguration domainNameConfig = NewDhcpConfiguration.builder()
                     .key("domain-name")
@@ -208,28 +199,28 @@ public class DHCPOptionSet extends Ec2TaggableResource<Vpc> {
                     .build();
             configs.add(domainNameConfig);
         }
-        if(!getDomainNameServers().isEmpty()) {
+        if (!getDomainNameServers().isEmpty()) {
             NewDhcpConfiguration domainNameServersConfig = NewDhcpConfiguration.builder()
                     .key("domain-name-servers")
                     .values(getDomainNameServers())
                     .build();
             configs.add(domainNameServersConfig);
         }
-        if(!getNtpServers().isEmpty()) {
+        if (!getNtpServers().isEmpty()) {
             NewDhcpConfiguration ntpServersConfig = NewDhcpConfiguration.builder()
                     .key("ntp-servers")
                     .values(getNtpServers())
                     .build();
             configs.add(ntpServersConfig);
         }
-        if(!getNetbiosNameServers().isEmpty()) {
+        if (!getNetbiosNameServers().isEmpty()) {
             NewDhcpConfiguration netbiosNameServersConfig = NewDhcpConfiguration.builder()
                     .key("netbios-name-servers")
                     .values(getNetbiosNameServers())
                     .build();
             configs.add(netbiosNameServersConfig);
         }
-        if(!getNetbiosNodeType().isEmpty()) {
+        if (!getNetbiosNodeType().isEmpty()) {
             NewDhcpConfiguration netbiosNodeTypeConfig = NewDhcpConfiguration.builder()
                     .key("netbios-node-type")
                     .values(getNetbiosNodeType())
@@ -242,9 +233,48 @@ public class DHCPOptionSet extends Ec2TaggableResource<Vpc> {
                 .build();
 
         CreateDhcpOptionsResponse response = client.createDhcpOptions(optionsRequest);
-        dhcpOptionsId = response.dhcpOptions().dhcpOptionsId();
-        setDhcpOptionsId(dhcpOptionsId);
+        String optionsId = response.dhcpOptions().dhcpOptionsId();
+        setDhcpOptionsId(optionsId);
 
+        if (getVpcId() != null) {
+            associate(client);
+        }
+    }
+
+    @Override
+    protected void doUpdate(AwsResource current, Set<String> changedProperties) {
+        String pastOptionId = getDhcpOptionsId();
+        doCreate();
+        deleteOption(pastOptionId);
+    }
+
+    @Override
+    public void delete() {
+        Ec2Client client = createClient(Ec2Client.class);
+        try {
+
+            if (getVpcId() != null) {
+                dissociate(client);
+            }
+
+            DeleteDhcpOptionsRequest request = DeleteDhcpOptionsRequest.builder()
+                    .dhcpOptionsId(getDhcpOptionsId())
+                    .build();
+            client.deleteDhcpOptions(request);
+        } catch (Ec2Exception err) {
+            throw new BeamException("This option set has dependencies and cannot be deleted.");
+        }
+    }
+
+    public void deleteOption(String optionsId) {
+        Ec2Client client = createClient(Ec2Client.class);
+        DeleteDhcpOptionsRequest request = DeleteDhcpOptionsRequest.builder()
+                .dhcpOptionsId(optionsId)
+                .build();
+        client.deleteDhcpOptions(request);
+    }
+
+    public void associate(Ec2Client client) {
         AssociateDhcpOptionsRequest associateRequest = AssociateDhcpOptionsRequest.builder()
                 .dhcpOptionsId(getDhcpOptionsId())
                 .vpcId(getVpcId())
@@ -253,35 +283,14 @@ public class DHCPOptionSet extends Ec2TaggableResource<Vpc> {
         client.associateDhcpOptions(associateRequest);
     }
 
-    @Override
-    protected void doUpdate(AwsResource current, Set<String> changedProperties) {
-        String pastOptionId = getDhcpOptionsId();
-        doCreate();
-        deleteToo(pastOptionId);
-    }
-
-    @Override
-    public void delete() {
-        Ec2Client client = createClient(Ec2Client.class);
-
-        try {
-            DeleteDhcpOptionsRequest request = DeleteDhcpOptionsRequest.builder()
-                    .dhcpOptionsId(getDhcpOptionsId())
-                    .build();
-            client.deleteDhcpOptions(request);
-        } catch (Ec2Exception err) {
-                throw new BeamException("This option set has dependencies and cannot be deleted.");
-        }
-    }
-
-    public void deleteToo(String optionsId) {
-        Ec2Client client = createClient(Ec2Client.class);
-        DeleteDhcpOptionsRequest request = DeleteDhcpOptionsRequest.builder()
-                .dhcpOptionsId(optionsId)
+    public void dissociate(Ec2Client client) {
+        AssociateDhcpOptionsRequest associateRequest = AssociateDhcpOptionsRequest.builder()
+                .dhcpOptionsId("default")
+                .vpcId(getVpcId())
                 .build();
-        client.deleteDhcpOptions(request);
-    }
 
+        client.associateDhcpOptions(associateRequest);
+    }
 
     @Override
     public String toDisplayString() {
@@ -297,5 +306,4 @@ public class DHCPOptionSet extends Ec2TaggableResource<Vpc> {
 
         return sb.toString();
     }
-
 }
