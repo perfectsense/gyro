@@ -177,24 +177,7 @@ public class ResourceChange {
                             changedPropertiesDisplay = replacedPropertiesDisplay;
                         }
 
-                        if ("tags".equals(p.getName())) {
-                            Map<?, ?> currentMap = (Map<?, ?>) currentValue;
-
-                            for (Map.Entry<?, ?> entry : ((Map<?, ?>) pendingValue).entrySet()) {
-                                Object key = entry.getKey();
-                                Object pendingMapValue = entry.getValue();
-                                Object currentMapValue = currentMap.get(key);
-
-                                if (currentMapValue == null || !currentMapValue.equals(pendingMapValue)) {
-                                    changedProperties.add(p.getName());
-                                    changedPropertiesDisplay.append("tag: ");
-                                    changedPropertiesDisplay.append(key);
-                                    changedPropertiesDisplay.append(" -> ");
-                                    changedPropertiesDisplay.append(pendingMapValue);
-                                    changedPropertiesDisplay.append(", ");
-                                }
-                            }
-                        } else if (pendingValue == null) {
+                        if (pendingValue == null) {
                             if (!ObjectUtils.isBlank(currentValue)) {
                                 changedProperties.add(p.getName());
                                 changedPropertiesDisplay.append("unsetting ");
