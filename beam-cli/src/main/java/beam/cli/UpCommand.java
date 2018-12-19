@@ -7,7 +7,6 @@ import beam.core.BeamState;
 import beam.core.diff.ChangeType;
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiff;
-import beam.lang.types.BeamBlock;
 import beam.lang.types.ContainerBlock;
 import io.airlift.airline.Arguments;
 import io.airlift.airline.Command;

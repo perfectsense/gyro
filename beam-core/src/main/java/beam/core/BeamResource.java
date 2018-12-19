@@ -1,11 +1,13 @@
 package beam.core;
 
 import beam.core.diff.ResourceChange;
+import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 import beam.lang.BeamLanguageExtension;
 import beam.lang.types.BeamReference;
 import beam.lang.types.KeyValueBlock;
 import com.google.common.base.CaseFormat;
+import com.google.common.base.Throwables;
 
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -79,6 +81,10 @@ public abstract class BeamResource extends BeamLanguageExtension implements Comp
         this.change = change;
     }
 
+    /**
+     * Copy values from properties into internal values. This is used to ensure updates to resource
+     * properties from executing (i.e. creating/updating a resource) are in the internal state.
+     */
     public void sync() {
         try {
             for (PropertyDescriptor p : Introspector.getBeanInfo(getClass()).getPropertyDescriptors()) {
@@ -95,6 +101,46 @@ public abstract class BeamResource extends BeamLanguageExtension implements Comp
         } catch (IntrospectionException | IllegalAccessException | InvocationTargetException ex) {
             // Ignoring exceptions
         }
+    }
+
+    /**
+     * Copy internal values from source to current object. This is used to copy information
+     * from the current state (i.e. a resource loaded from a state file) into a pending
+     * state (i.e. a resource loaded from a config file).
+     */
+    public void syncState(BeamResource source) {
+        if (source == null) {
+            return;
+        }
+
+        try {
+            for (PropertyDescriptor p : Introspector.getBeanInfo(getClass()).getPropertyDescriptors()) {
+                Method reader = p.getReadMethod();
+
+                if (reader != null) {
+                    Method writer = p.getWriteMethod();
+
+                    ResourceDiffProperty propertyAnnotation = reader.getAnnotation(ResourceDiffProperty.class);
+                    boolean isNullable = false;
+                    if (propertyAnnotation != null) {
+                        isNullable = propertyAnnotation.nullable();
+                    }
+
+                    Object currentValue = reader.invoke(source);
+                    Object pendingValue = reader.invoke(this);
+                    if (writer != null && (currentValue != null && pendingValue == null && !isNullable)) {
+                        writer.invoke(this, reader.invoke(source));
+                    }
+                }
+            }
+
+        } catch (IllegalAccessException | IntrospectionException error) {
+            throw new IllegalStateException(error);
+        } catch (InvocationTargetException error) {
+            throw Throwables.propagate(error);
+        }
+
+        sync();
     }
 
     @Override

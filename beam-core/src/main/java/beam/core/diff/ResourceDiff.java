@@ -1,14 +1,8 @@
 package beam.core.diff;
 
 import beam.core.BeamResource;
-import com.google.common.base.Throwables;
 import com.psddev.dari.util.CompactMap;
 
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -83,37 +77,7 @@ public class ResourceDiff {
      * @return May be {@code null} to indicate no change.
      */
     public ResourceChange newUpdate(final BeamResource currentResource, final BeamResource pendingResource) throws Exception {
-
-        // Fill the empty properties in pending with the values from current.
-        try {
-            Class klass = pendingResource != null ? pendingResource.getClass() : null;
-            if (klass == null && currentResource != null) {
-                klass = currentResource.getClass();
-            }
-
-            if (klass != null) {
-                for (PropertyDescriptor p : Introspector.getBeanInfo(klass).getPropertyDescriptors()) {
-                    Method reader = p.getReadMethod();
-
-                    if (reader != null) {
-                        Method writer = p.getWriteMethod();
-
-                        Object currentValue = reader.invoke(currentResource);
-                        Object pendingValue = reader.invoke(pendingResource);
-                        if (writer != null && (currentValue != null && pendingValue == null && !isNullable(reader))) {
-                            writer.invoke(pendingResource, reader.invoke(currentResource));
-                        }
-                    }
-                }
-            }
-
-        } catch (IllegalAccessException | IntrospectionException error) {
-            throw new IllegalStateException(error);
-        } catch (InvocationTargetException error) {
-            throw Throwables.propagate(error);
-        }
-
-        pendingResource.sync();
+        pendingResource.syncState(currentResource);
 
         ResourceChange update = new ResourceChange(this, currentResource, pendingResource);
         update.tryToKeep();
@@ -204,20 +168,30 @@ public class ResourceDiff {
         }
     }
 
-    private boolean isNullable(Method reader) {
-        ResourceDiffProperty propertyAnnotation = reader.getAnnotation(ResourceDiffProperty.class);
-        if (propertyAnnotation != null) {
-            return propertyAnnotation.nullable();
-        }
-
-        return false;
-    }
-
     public List<ResourceChange> getChanges() {
         return changes;
     }
 
+    private void syncState() {
+        if (currentResources == null) {
+            return;
+        }
+
+        Map<String, BeamResource> currentResourcesByName = new CompactMap<>();
+        for (BeamResource resource : currentResources) {
+            currentResourcesByName.put(resource.getResourceIdentifier(), resource);
+        }
+
+        for (BeamResource pendingResource : getPendingResources()) {
+            BeamResource currentResource = currentResourcesByName.get(pendingResource.getResourceIdentifier());
+
+            pendingResource.syncState(currentResource);
+        }
+    }
+
     public void diff() throws Exception {
+        syncState();
+
         Map<String, BeamResource> currentResourcesByName = new CompactMap<>();
         Iterable<? extends BeamResource> currentResources = getCurrentResources();
 
