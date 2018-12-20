@@ -42,6 +42,9 @@ public class BeamErrorListener implements ANTLRErrorListener {
             if (!expected.isEmpty()) {
                 System.err.println(AnsiRenderer.render(String.format("@|red on line %d expected %s:|@", line, expected)));
                 System.err.println(AnsiRenderer.render(String.format("@|blue %s\n|@", error)));
+            } else {
+                System.err.println(AnsiRenderer.render(String.format("@|red on line %d:|@", line)));
+                System.err.println(AnsiRenderer.render(String.format("@|blue %s\n|@", error)));
             }
         } catch (Exception ex) {
             // TODO: Handle failed render errors.

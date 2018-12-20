@@ -76,10 +76,16 @@ literal_value
 
 map_value
     : LCURLY key_value_block? (COMMA key_value_block)* RCURLY
+    | LCURLY key_value_block? (COMMA key_value_block)* {
+          notifyErrorListeners("Extra ',' in map");
+      } COMMA RCURLY
     ;
 
 list_value
     : LBRACKET list_item_value? (COMMA list_item_value)* RBRACKET
+    | LBRACKET list_item_value? (COMMA list_item_value)* {
+        notifyErrorListeners("Extra ',' in list");
+      } COMMA RBRACKET
     ;
 
 list_item_value
