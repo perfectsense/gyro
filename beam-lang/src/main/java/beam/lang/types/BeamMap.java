@@ -24,7 +24,7 @@ public class BeamMap extends BeamValue<Map> {
     public void setParentBlock(BeamBlock parentBlock) {
         super.setParentBlock(parentBlock);
 
-        for (KeyValueBlock keyValueBlock : keyValues) {
+        for (KeyValueBlock keyValueBlock : getKeyValues()) {
             keyValueBlock.setParentBlock(parentBlock);
         }
     }

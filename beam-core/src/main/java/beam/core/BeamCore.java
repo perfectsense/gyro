@@ -84,6 +84,7 @@ public class BeamCore {
         for (ResourceBlock resource : block.resources()) {
             if (resource instanceof BeamResource) {
                 if (refresh && ((BeamResource) resource).refresh()) {
+                    ((BeamResource) resource).sync();
                     resources.add((BeamResource) resource);
                 } else if (!refresh) {
                     resources.add((BeamResource) resource);

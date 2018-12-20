@@ -34,6 +34,8 @@ public class BeamList extends BeamValue<List> {
             Object item = value.getValue();
             if (item != null) {
                 list.add(item.toString());
+            } else {
+                list.add(value.toString());
             }
         }
 

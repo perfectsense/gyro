@@ -1,6 +1,7 @@
 package beam.core.diff;
 
 import beam.core.BeamResource;
+import beam.lang.types.ResourceBlock;
 import com.psddev.dari.util.CompactMap;
 
 import java.util.ArrayList;
@@ -12,12 +13,12 @@ import java.util.Map;
 
 public class ResourceDiff {
 
-    private final Iterable<? extends BeamResource> currentResources;
-    private final Iterable<? extends BeamResource> pendingResources;
+    private Collection<BeamResource> currentResources;
+    private Collection<BeamResource> pendingResources;
     private final List<ResourceChange> changes = new ArrayList<>();
 
-    public ResourceDiff(Iterable<? extends BeamResource> currentResources,
-                        Iterable<? extends BeamResource> pendingResources) {
+    public ResourceDiff(Collection<BeamResource> currentResources,
+                        Collection<BeamResource> pendingResources) {
         this.currentResources = currentResources;
         this.pendingResources = pendingResources != null ? pendingResources : Collections.<BeamResource>emptySet();
     }
@@ -27,7 +28,7 @@ public class ResourceDiff {
      *
      * @return May be {@code null} to represent an empty iterable.
      */
-    public Iterable<? extends BeamResource> getCurrentResources() {
+    public Collection<BeamResource> getCurrentResources() {
         return currentResources;
     }
 
@@ -36,7 +37,7 @@ public class ResourceDiff {
      *
      * @return May be {@code null} to represent an empty iterable.
      */
-    public Iterable<? extends BeamResource> getPendingResources() {
+    public Collection<BeamResource> getPendingResources() {
         return pendingResources;
     }
 
@@ -80,7 +81,7 @@ public class ResourceDiff {
         pendingResource.syncState(currentResource);
 
         ResourceChange update = new ResourceChange(this, currentResource, pendingResource);
-        update.tryToKeep();
+        update.calculateFieldDiffs();
 
         currentResource.setChange(update);
         pendingResource.setChange(update);
@@ -116,7 +117,7 @@ public class ResourceDiff {
         return delete;
     }
 
-    public void create(ResourceChange change, Collection<? extends BeamResource> pendingResources) throws Exception {
+    public void create(ResourceChange change, Collection<BeamResource> pendingResources) throws Exception {
         ResourceDiff diff = new ResourceDiff(null, pendingResources);
         diff.diff();
         change.getDiffs().add(diff);
@@ -130,9 +131,7 @@ public class ResourceDiff {
         }
     }
 
-    public <R extends BeamResource> void update(ResourceChange change,
-                                                Collection<R> currentResources,
-                                                Collection<R> pendingResources) throws Exception {
+    public void update(ResourceChange change, Collection currentResources, Collection pendingResources) throws Exception {
         ResourceDiff diff = new ResourceDiff(currentResources, pendingResources);
         diff.diff();
         change.getDiffs().add(diff);
@@ -154,7 +153,7 @@ public class ResourceDiff {
         }
     }
 
-    public void delete(ResourceChange change, Collection<? extends BeamResource> currentResources) throws Exception {
+    public void delete(ResourceChange change, Collection<BeamResource> currentResources) throws Exception {
         ResourceDiff diff = new ResourceDiff(currentResources, null);
         diff.diff();
         change.getDiffs().add(diff);
@@ -172,24 +171,8 @@ public class ResourceDiff {
         return changes;
     }
 
-    private void syncState() {
-        if (currentResources == null) {
-            return;
-        }
-
-        Map<String, BeamResource> currentResourcesByName = new CompactMap<>();
-        for (BeamResource resource : currentResources) {
-            currentResourcesByName.put(resource.getResourceIdentifier(), resource);
-        }
-
-        for (BeamResource pendingResource : getPendingResources()) {
-            BeamResource currentResource = currentResourcesByName.get(pendingResource.getResourceIdentifier());
-
-            pendingResource.syncState(currentResource);
-        }
-    }
-
     public void diff() throws Exception {
+        sortResources();
         syncState();
 
         Map<String, BeamResource> currentResourcesByName = new CompactMap<>();
@@ -245,4 +228,54 @@ public class ResourceDiff {
 
         return false;
     }
+
+    private void syncState() {
+        if (currentResources == null) {
+            return;
+        }
+
+        Map<String, BeamResource> currentResourcesByName = new CompactMap<>();
+        for (BeamResource resource : currentResources) {
+            currentResourcesByName.put(resource.getResourceIdentifier(), resource);
+        }
+
+        for (BeamResource pendingResource : getPendingResources()) {
+            BeamResource currentResource = currentResourcesByName.get(pendingResource.getResourceIdentifier());
+
+            pendingResource.syncState(currentResource);
+            pendingResource.resolve();
+        }
+    }
+
+    private Collection<BeamResource> sortResources(Collection<? extends BeamResource> resources) {
+        List<BeamResource> sorted = new ArrayList<>();
+
+        for (BeamResource resource : resources) {
+            List<BeamResource> deps = new ArrayList<>();
+            for (ResourceBlock dependency : resource.dependencies()) {
+                if (dependency instanceof BeamResource) {
+                    deps.add((BeamResource) dependency);
+                }
+            }
+
+            for (BeamResource r : sortResources(deps)) {
+                if (!sorted.contains(r)) {
+                    sorted.add(r);
+                }
+            }
+
+            if (!sorted.contains(resource)) {
+                sorted.add(resource);
+            }
+        }
+
+        return sorted;
+    }
+
+    private void sortResources() {
+        if (pendingResources != null) {
+            pendingResources = sortResources(pendingResources);
+        }
+    }
+
 }

@@ -4,6 +4,7 @@ import beam.lang.BeamLanguageException;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -49,6 +50,44 @@ public class ContainerBlock extends BeamBlock {
 
     public void put(String key, String value) {
         keyValues.put(key, new BeamString(value));
+    }
+
+    public void putList(String key, List<String> listValue) {
+        BeamList list = new BeamList();
+        list.setParentBlock(this);
+
+        for (String item : listValue) {
+            if (item.startsWith("$")) {
+                list.getValues().add(new BeamReference(item));
+            } else {
+                list.getValues().add(new BeamString(item));
+            }
+        }
+
+        KeyValueBlock block = new KeyValueBlock();
+        block.setKey(key);
+        block.setValue(list);
+
+        putKeyValue(block);
+    }
+
+    public void putMap(String key, Map<String, Object> mapValue) {
+        BeamMap map = new BeamMap();
+        map.setParentBlock(this);
+
+        for (String mapKey : mapValue.keySet()) {
+            KeyValueBlock item = new KeyValueBlock();
+
+            item.setKey(mapKey);
+            item.setValue(new BeamString(mapValue.get(mapKey).toString()));
+
+            map.getKeyValues().add(item);
+        }
+
+        KeyValueBlock block = new KeyValueBlock();
+        block.setKey(key);
+        block.setValue(map);
+        putKeyValue(block);
     }
 
     public Collection<ResourceBlock> resources() {

@@ -2,21 +2,22 @@ package beam.core.diff;
 
 import beam.core.BeamResource;
 import beam.lang.types.BeamBlock;
-import com.google.common.base.Throwables;
+import beam.lang.types.BeamList;
+import beam.lang.types.BeamMap;
+import beam.lang.types.BeamReference;
+import beam.lang.types.BeamValue;
+import beam.lang.types.KeyValueBlock;
+import com.google.common.base.CaseFormat;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
-import com.psddev.dari.util.IoUtils;
 import com.psddev.dari.util.Lazy;
 import com.psddev.dari.util.ObjectUtils;
+import com.psddev.dari.util.StringUtils;
 
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
-import java.io.File;
-import java.io.FileWriter;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -67,15 +68,15 @@ public class ResourceChange {
         }
     }
 
-    public void create(Collection<? extends BeamResource> pendingResources) throws Exception {
+    public void create(Collection<BeamResource> pendingResources) throws Exception {
         diff.create(this, pendingResources);
     }
 
-    public <R extends BeamResource> void update(Collection<R> currentResources, Collection<R> pendingResources) throws Exception {
+    public void update(Collection currentResources, Collection pendingResources) throws Exception {
         diff.update(this, currentResources, pendingResources);
     }
 
-    public void delete(Collection<? extends BeamResource> pendingResources) throws Exception {
+    public void delete(Collection<BeamResource> pendingResources) throws Exception {
         diff.delete(this, pendingResources);
     }
 
@@ -135,101 +136,187 @@ public class ResourceChange {
         return changed;
     }
 
-    public void tryToKeep() {
+    private String fieldNameFromKey(String key) {
+        return CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key);
+    }
+
+    private Method readerMethodForKey(String key) {
+        if (getPendingResource() == null) {
+            return null;
+        }
+
+        String convertedKey = fieldNameFromKey(key);
         try {
-            if (currentResource == null || pendingResource == null) {
-                return;
-            }
-
-            Class klass = pendingResource != null ? pendingResource.getClass() : null;
-            if (klass == null && currentResource != null) {
-                klass = currentResource.getClass();
-            }
-
-            if (klass == null) {
-                return;
-            }
-
-            for (PropertyDescriptor p : Introspector.getBeanInfo(klass).getPropertyDescriptors()) {
-                Method reader = p.getReadMethod();
-
-                if (reader == null) {
-                    continue;
-                }
-
-                Object currentValue = reader.invoke(currentResource);
-                Object pendingValue = reader.invoke(pendingResource);
-
-                ResourceDiffProperty propertyAnnotation = reader.getAnnotation(ResourceDiffProperty.class);
-                boolean nullable = propertyAnnotation != null && propertyAnnotation.nullable();
-
-                if (!ObjectUtils.isBlank(pendingValue) || nullable) {
-
-                    if (propertyAnnotation != null) {
-                        Set<String> changedProperties;
-                        StringBuilder changedPropertiesDisplay;
-
-                        if (propertyAnnotation.updatable()) {
-                            changedProperties = updatedProperties;
-                            changedPropertiesDisplay = updatedPropertiesDisplay;
-                        } else {
-                            changedProperties = replacedProperties;
-                            changedPropertiesDisplay = replacedPropertiesDisplay;
-                        }
-
-                        if (pendingValue == null) {
-                            if (!ObjectUtils.isBlank(currentValue)) {
-                                changedProperties.add(p.getName());
-                                changedPropertiesDisplay.append("unsetting ");
-                                changedPropertiesDisplay.append(p.getName());
-                                changedPropertiesDisplay.append("[" + currentValue + "]");
-                                changedPropertiesDisplay.append(", ");
-                            }
-                        } else if (!pendingValue.equals(currentValue)) {
-                            boolean showingDiff = false;
-
-                            if (pendingValue instanceof Map) {
-                                if (propertyAnnotation.mapSummary()) {
-                                    changedProperties.add(p.getName());
-                                    changedPropertiesDisplay.append(p.getName());
-                                    changedPropertiesDisplay.append(": ");
-                                    changedPropertiesDisplay.append(mapSummaryDiff((Map) currentValue, (Map) pendingValue));
-
-                                    showingDiff = true;
-
-                                }
-                            }
-
-                            if (!showingDiff) {
-                                changedProperties.add(p.getName());
-                                changedPropertiesDisplay.append(p.getName());
-                                changedPropertiesDisplay.append(": ");
-                                if (ObjectUtils.isBlank(currentValue)) {
-                                    changedPropertiesDisplay.append(pendingValue);
-                                } else {
-                                    changedPropertiesDisplay.append(currentValue);
-                                    changedPropertiesDisplay.append(" -> ");
-                                    changedPropertiesDisplay.append(pendingValue);
-                                }
-                                changedPropertiesDisplay.append(", ");
-                            }
-                        }
-                    }
+            for (PropertyDescriptor p : Introspector.getBeanInfo(getPendingResource().getClass()).getPropertyDescriptors()) {
+                if (p.getDisplayName().equals(convertedKey)) {
+                    return p.getReadMethod();
                 }
             }
+        } catch (IntrospectionException ex) {
+            // Ignoring introspection exceptions
+        }
 
-            if (updatedPropertiesDisplay.length() > 0) {
-                updatedPropertiesDisplay.setLength(updatedPropertiesDisplay.length() - 2);
+        return null;
+    }
+
+    private void processAsScalarValue(String key, BeamValue currentValue, BeamValue pendingValue, StringBuilder changedPropertiesDisplay) {
+        Object current = currentValue != null ? currentValue.getValue() : null;
+        Object pending = pendingValue.getValue();
+
+        if (pending.equals(current)) {
+            return;
+        }
+
+        changedPropertiesDisplay.append(key);
+        changedPropertiesDisplay.append(": ");
+        if (ObjectUtils.isBlank(current)) {
+            changedPropertiesDisplay.append(pending);
+        } else {
+            changedPropertiesDisplay.append(current);
+            changedPropertiesDisplay.append(" -> ");
+            changedPropertiesDisplay.append(pending);
+        }
+        changedPropertiesDisplay.append(", ");
+    }
+
+    private void processAsMapValue(String key, BeamValue currentValue, BeamValue pendingValue, StringBuilder changedPropertiesDisplay) {
+        BeamMap pendingMapValue = (BeamMap) pendingValue;
+        Map<String, String> pendingResolvedMap = new HashMap<>();
+        for (KeyValueBlock keyValueBlock : pendingMapValue.getKeyValues()) {
+            String stringValue = (String) keyValueBlock.getValue().getValue();
+
+            if (stringValue != null) {
+                pendingResolvedMap.put(keyValueBlock.getKey(), stringValue);
+            } else if (keyValueBlock.getValue() instanceof BeamReference) {
+                String ref = String.format("%s %s",
+                    ((BeamReference) keyValueBlock.getValue()).getType(),
+                    ((BeamReference) keyValueBlock.getValue()).getName());
+                pendingResolvedMap.put(keyValueBlock.getKey(), "ref:" + ref);
+            }
+        }
+
+        BeamMap currentMapValue = (BeamMap) currentValue;
+        Map<String, String> currentResolvedMap = new HashMap<>();
+        for (KeyValueBlock keyValueBlock : currentMapValue.getKeyValues()) {
+            String stringValue = (String) keyValueBlock.getValue().getValue();
+
+            if (stringValue != null) {
+                currentResolvedMap.put(keyValueBlock.getKey(), stringValue);
+            }
+        }
+
+        String diff = mapSummaryDiff(currentResolvedMap, pendingResolvedMap);
+        if (!ObjectUtils.isBlank(diff)) {
+            changedPropertiesDisplay.append(key);
+            changedPropertiesDisplay.append(": ");
+            changedPropertiesDisplay.append(diff);
+            changedPropertiesDisplay.append(", ");
+        }
+    }
+
+    private void processAsListValue(String key, BeamValue currentValue, BeamValue pendingValue, StringBuilder changedPropertiesDisplay) {
+        BeamList pendingListValue = (BeamList) pendingValue;
+        List<String> pendingResolvedList = new ArrayList<>();
+        for (BeamValue value : pendingListValue.getValues()) {
+            String stringValue = (String) value.getValue();
+
+            if (stringValue != null) {
+                pendingResolvedList.add(stringValue);
+            } else if (value instanceof BeamReference) {
+                String ref = String.format("%s %s", ((BeamReference) value).getType(), ((BeamReference) value).getName());
+                pendingResolvedList.add("ref:" + ref);
+            }
+        }
+
+        BeamList currentListValue = (BeamList) currentValue;
+        List<String> currentResolvedList = new ArrayList<>();
+        for (BeamValue value : currentListValue.getValues()) {
+            String stringValue = (String) value.getValue();
+
+            if (stringValue != null) {
+                currentResolvedList.add(stringValue);
+            }
+        }
+
+        List<String> additions = new ArrayList<>(pendingResolvedList);
+        additions.removeAll(currentResolvedList);
+
+        List<String> subtractions = new ArrayList<>(currentResolvedList);
+        subtractions.removeAll(pendingResolvedList);
+
+        if (!additions.isEmpty()) {
+            changedPropertiesDisplay.append(key);
+            changedPropertiesDisplay.append(": ");
+            changedPropertiesDisplay.append("adding ");
+            changedPropertiesDisplay.append(StringUtils.join(additions, ","));
+        } else if (!subtractions.isEmpty()) {
+            changedPropertiesDisplay.append(key);
+            changedPropertiesDisplay.append(": ");
+            changedPropertiesDisplay.append("removing ");
+            changedPropertiesDisplay.append(StringUtils.join(subtractions, ","));
+        }
+        changedPropertiesDisplay.append(", ");
+    }
+
+    /**
+     * Calculate the difference between individual fields.
+     *
+     * If a field changed and that field is updatable, it's added to updatedProperties.
+     * If a field changed and that field is not updatable, it's added to replaceProperties.
+     */
+    public void calculateFieldDiffs() {
+        if (currentResource == null || pendingResource == null) {
+            return;
+        }
+
+        for (String key : pendingResource.keys()) {
+            // If there is no getter for this method then skip this field since there can
+            // be no ResourceDiffProperty annotation.
+            Method reader = readerMethodForKey(key);
+            if (reader == null) {
+                continue;
             }
 
-            if (replacedPropertiesDisplay.length() > 0) {
-                replacedPropertiesDisplay.setLength(replacedPropertiesDisplay.length() - 2);
+            // If no ResourceDiffProperty annotation then skip this field.
+            ResourceDiffProperty propertyAnnotation = reader.getAnnotation(ResourceDiffProperty.class);
+            if (propertyAnnotation == null) {
+                continue;
             }
+            boolean nullable = propertyAnnotation.nullable();
 
-        } catch (IllegalAccessException | IntrospectionException error) {
-            throw new IllegalStateException(error);
-        } catch (InvocationTargetException error) {
-            throw Throwables.propagate(error);
+            BeamValue currentValue = currentResource.get(key);
+            BeamValue pendingValue = pendingResource.get(key);
+
+            if (pendingValue != null || nullable) {
+                Set<String> changedProperties;
+                StringBuilder changedPropertiesDisplay;
+
+                if (propertyAnnotation.updatable()) {
+                    changedProperties = updatedProperties;
+                    changedPropertiesDisplay = updatedPropertiesDisplay;
+                } else {
+                    changedProperties = replacedProperties;
+                    changedPropertiesDisplay = replacedPropertiesDisplay;
+                }
+
+                changedProperties.add(key);
+
+                if (pendingValue instanceof BeamList) {
+                    processAsListValue(key, currentValue, pendingValue, changedPropertiesDisplay);
+                } else if (pendingValue instanceof BeamMap) {
+                    processAsMapValue(key, currentValue, pendingValue, changedPropertiesDisplay);
+                } else {
+                    processAsScalarValue(key, currentValue, pendingValue, changedPropertiesDisplay);
+                }
+            }
+        }
+
+        if (updatedPropertiesDisplay.length() > 0) {
+            updatedPropertiesDisplay.setLength(updatedPropertiesDisplay.length() - 2);
+        }
+
+        if (replacedPropertiesDisplay.length() > 0) {
+            replacedPropertiesDisplay.setLength(replacedPropertiesDisplay.length() - 2);
         }
     }
 
@@ -237,6 +324,7 @@ public class ResourceChange {
         ChangeType type = getType();
 
         if (type == ChangeType.UPDATE) {
+            pendingResource.resolve();
             pendingResource.update(currentResource, updatedProperties);
             pendingResource.sync();
             return pendingResource;

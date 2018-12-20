@@ -5,7 +5,9 @@ import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 import beam.lang.BeamLanguageExtension;
 import beam.lang.types.BeamReference;
+import beam.lang.types.BeamValue;
 import beam.lang.types.KeyValueBlock;
+import beam.lang.types.ResourceBlock;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Throwables;
 
@@ -15,6 +17,7 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public abstract class BeamResource extends BeamLanguageExtension implements Comparable<BeamResource> {
@@ -90,11 +93,18 @@ public abstract class BeamResource extends BeamLanguageExtension implements Comp
             for (PropertyDescriptor p : Introspector.getBeanInfo(getClass()).getPropertyDescriptors()) {
                 Method reader = p.getReadMethod();
 
-                if (reader != null && reader.getReturnType() == String.class) {
-                    String key = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, reader.getName().substring(3));
-                    String value = (String) reader.invoke(this);
+                if (reader != null
+                    && (reader.getReturnType() == String.class || reader.getReturnType() == List.class || reader.getReturnType() == Map.class)) {
+                    String key = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, p.getDisplayName());
+                    Object value = reader.invoke(this);
 
-                    put(key, value);
+                    if (value instanceof String) {
+                        put(key, (String) value);
+                    } else if (value instanceof List) {
+                        putList(key, (List) value);
+                    } else if (value instanceof Map) {
+                        putMap(key, (Map) value);
+                    }
                 }
             }
 
@@ -104,11 +114,11 @@ public abstract class BeamResource extends BeamLanguageExtension implements Comp
     }
 
     /**
-     * Copy internal values from source to current object. This is used to copy information
+     * Copy internal values from source to this object. This is used to copy information
      * from the current state (i.e. a resource loaded from a state file) into a pending
      * state (i.e. a resource loaded from a config file).
      */
-    public void syncState(BeamResource source) {
+    public void syncState(ResourceBlock source) {
         if (source == null) {
             return;
         }
@@ -128,6 +138,7 @@ public abstract class BeamResource extends BeamLanguageExtension implements Comp
 
                     Object currentValue = reader.invoke(source);
                     Object pendingValue = reader.invoke(this);
+
                     if (writer != null && (currentValue != null && pendingValue == null && !isNullable)) {
                         writer.invoke(this, reader.invoke(source));
                     }

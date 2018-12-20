@@ -8,6 +8,8 @@ import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class BeamReference extends BeamValue {
 
@@ -15,6 +17,22 @@ public class BeamReference extends BeamValue {
     private String name;
     private String attribute;
     private BeamBlock referencedBlock;
+
+    private Pattern partial = Pattern.compile("\\$\\((?<type>[^\\s]+) (?<name>[^\\s]+)\\)");
+    private Pattern full = Pattern.compile("\\$\\((?<type>[^\\s]+) (?<name>[^\\s]+) \\| (?<attribute>[^\\s]+)\\)");
+
+    public BeamReference(String fullRef) {
+        Matcher partialMatcher = partial.matcher(fullRef);
+        Matcher fullMatcher = full.matcher(fullRef);
+        if (fullMatcher.find()) {
+            this.type = fullMatcher.group("type");
+            this.name = fullMatcher.group("name");
+            this.attribute = fullMatcher.group("attribute");
+        } else if (partialMatcher.find()) {
+            this.type = partialMatcher.group("type");
+            this.name = partialMatcher.group("name");
+        }
+    }
 
     public BeamReference(String type, String name) {
         this(type, name, null);
