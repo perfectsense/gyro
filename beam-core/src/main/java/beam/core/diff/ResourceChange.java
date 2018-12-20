@@ -7,17 +7,12 @@ import beam.lang.types.BeamMap;
 import beam.lang.types.BeamReference;
 import beam.lang.types.BeamValue;
 import beam.lang.types.KeyValueBlock;
-import com.google.common.base.CaseFormat;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 import com.psddev.dari.util.Lazy;
 import com.psddev.dari.util.ObjectUtils;
 import com.psddev.dari.util.StringUtils;
 
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -110,14 +105,6 @@ public class ResourceChange {
         } else {
             return ChangeType.KEEP;
         }
-    }
-
-    public BeamResource getCurrentResource() {
-        return currentResource;
-    }
-
-    public BeamResource getPendingResource() {
-        return pendingResource;
     }
 
     public List<ResourceDiff> getDiffs() {

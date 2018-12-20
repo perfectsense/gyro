@@ -27,7 +27,6 @@ import java.util.Set;
 public abstract class BeamResource extends BeamLanguageExtension implements Comparable<BeamResource> {
 
     private BeamCredentials resourceCredentials;
-    private List<BeamResource> dependsOn;
 
     private transient ResourceChange change;
 
@@ -40,14 +39,6 @@ public abstract class BeamResource extends BeamLanguageExtension implements Comp
     public abstract void delete();
 
     public abstract String toDisplayString();
-
-    public List<BeamResource> getDependsOn() {
-        return dependsOn;
-    }
-
-    public void setDependsOn(List<BeamResource> dependsOn) {
-        this.dependsOn = dependsOn;
-    }
 
     public abstract Class getResourceCredentialsClass();
 
