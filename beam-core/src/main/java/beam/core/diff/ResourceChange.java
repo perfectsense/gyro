@@ -46,7 +46,7 @@ public class ResourceChange {
         @Override
         public final BeamResource create() throws Exception {
             BeamResource resource = change();
-            resource.sync();
+            resource.syncPropertiesToInternal();
             changed = true;
 
             return resource;
@@ -340,7 +340,7 @@ public class ResourceChange {
         if (type == ChangeType.UPDATE) {
             pendingResource.resolve();
             pendingResource.update(currentResource, updatedProperties);
-            pendingResource.sync();
+            pendingResource.syncPropertiesToInternal();
             return pendingResource;
 
         } else if (type == ChangeType.REPLACE) {

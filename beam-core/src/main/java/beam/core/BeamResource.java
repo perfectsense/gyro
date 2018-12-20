@@ -5,11 +5,11 @@ import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 import beam.lang.BeamLanguageExtension;
 import beam.lang.types.BeamReference;
-import beam.lang.types.BeamValue;
 import beam.lang.types.KeyValueBlock;
 import beam.lang.types.ResourceBlock;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Throwables;
+import org.apache.commons.beanutils.BeanUtils;
 
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -88,7 +88,7 @@ public abstract class BeamResource extends BeamLanguageExtension implements Comp
      * Copy values from properties into internal values. This is used to ensure updates to resource
      * properties from executing (i.e. creating/updating a resource) are in the internal state.
      */
-    public void sync() {
+    public void syncPropertiesToInternal() {
         try {
             for (PropertyDescriptor p : Introspector.getBeanInfo(getClass()).getPropertyDescriptors()) {
                 Method reader = p.getReadMethod();
@@ -118,7 +118,7 @@ public abstract class BeamResource extends BeamLanguageExtension implements Comp
      * from the current state (i.e. a resource loaded from a state file) into a pending
      * state (i.e. a resource loaded from a config file).
      */
-    public void syncState(ResourceBlock source) {
+    public void syncPropertiesFromResource(ResourceBlock source) {
         if (source == null) {
             return;
         }
@@ -151,7 +151,7 @@ public abstract class BeamResource extends BeamLanguageExtension implements Comp
             throw Throwables.propagate(error);
         }
 
-        sync();
+        syncPropertiesToInternal();
     }
 
     @Override

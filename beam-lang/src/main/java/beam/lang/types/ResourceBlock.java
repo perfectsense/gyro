@@ -3,8 +3,14 @@ package beam.lang.types;
 import com.google.common.base.CaseFormat;
 import org.apache.commons.beanutils.BeanUtils;
 
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class ResourceBlock extends ContainerBlock {
@@ -51,21 +57,25 @@ public class ResourceBlock extends ContainerBlock {
         return new ResourceKey(getResourceType(), getResourceIdentifier());
     }
 
+    public void syncInternalToProperies() {
+        for (String key : keys()) {
+            Object value = get(key).getValue();
+
+            try {
+                String convertedKey = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key);
+                BeanUtils.setProperty(this, convertedKey, value);
+            } catch (IllegalArgumentException | InvocationTargetException | IllegalAccessException e) {
+                // Ignoring errors from setProperty
+            }
+        }
+    }
+
     @Override
     public boolean resolve() {
         boolean resolved = super.resolve();
 
         if (resolved) {
-            for (String key : keys()) {
-                Object value = get(key).getValue();
-
-                try {
-                    String convertedKey = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key);
-                    BeanUtils.setProperty(this, convertedKey, value);
-                } catch (IllegalArgumentException | InvocationTargetException | IllegalAccessException e) {
-                    // Ignoring errors from setProperty
-                }
-            }
+            syncInternalToProperies();
         }
 
         return resolved;

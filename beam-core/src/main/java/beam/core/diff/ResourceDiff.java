@@ -78,7 +78,7 @@ public class ResourceDiff {
      * @return May be {@code null} to indicate no change.
      */
     public ResourceChange newUpdate(final BeamResource currentResource, final BeamResource pendingResource) throws Exception {
-        pendingResource.syncState(currentResource);
+        pendingResource.syncPropertiesFromResource(currentResource);
 
         ResourceChange update = new ResourceChange(this, currentResource, pendingResource);
         update.calculateFieldDiffs();
@@ -242,7 +242,7 @@ public class ResourceDiff {
         for (BeamResource pendingResource : getPendingResources()) {
             BeamResource currentResource = currentResourcesByName.get(pendingResource.getResourceIdentifier());
 
-            pendingResource.syncState(currentResource);
+            pendingResource.syncPropertiesFromResource(currentResource);
             pendingResource.resolve();
         }
     }

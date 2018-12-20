@@ -4,7 +4,6 @@ import beam.core.diff.ChangeType;
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiff;
 import beam.lang.BeamInterp;
-import beam.lang.types.BeamBlock;
 import beam.lang.types.ContainerBlock;
 import beam.lang.types.ResourceBlock;
 import com.psddev.dari.util.ThreadLocalStack;
@@ -84,7 +83,7 @@ public class BeamCore {
         for (ResourceBlock resource : block.resources()) {
             if (resource instanceof BeamResource) {
                 if (refresh && ((BeamResource) resource).refresh()) {
-                    ((BeamResource) resource).sync();
+                    ((BeamResource) resource).syncPropertiesToInternal();
                     resources.add((BeamResource) resource);
                 } else if (!refresh) {
                     resources.add((BeamResource) resource);
