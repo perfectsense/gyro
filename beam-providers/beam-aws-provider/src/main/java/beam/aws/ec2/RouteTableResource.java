@@ -98,6 +98,7 @@ public class RouteTableResource extends Ec2TaggableResource<RouteTable> {
             setVpcId(routeTable.vpcId());
             setOwnerId(routeTable.ownerId());
 
+            getSubnetIds().clear();
             for (RouteTableAssociation rta : routeTable.associations()) {
                 if (!rta.main()) {
                     getSubnetIds().add(rta.subnetId());
