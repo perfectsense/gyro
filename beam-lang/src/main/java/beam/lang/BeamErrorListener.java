@@ -81,6 +81,7 @@ public class BeamErrorListener implements ANTLRErrorListener {
         switch (stack.get(0)) {
             case "value"      : return "a string, reference, boolean, number, list, or map";
             case "list_value" : return "a string or reference";
+            case "map_value"  : return "a string, reference, boolean, number, list, or map";
             default           : return "";
         }
     }
