@@ -155,7 +155,7 @@ public class DhcpOptionSet extends Ec2TaggableResource<Vpc> {
     }
 
     @Override
-    public void doRefresh() {
+    public boolean doRefresh() {
         Ec2Client client = createClient(Ec2Client.class);
 
         DescribeDhcpOptionsRequest request = DescribeDhcpOptionsRequest.builder()
@@ -183,7 +183,11 @@ public class DhcpOptionSet extends Ec2TaggableResource<Vpc> {
                     setNetbiosNodeType(convertString(config.values()));
                 }
             }
+
+            return true;
         }
+
+        return false;
     }
 
     @Override

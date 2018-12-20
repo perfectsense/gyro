@@ -49,7 +49,7 @@ public class EgressOnlyInternetGatewayResource extends AwsResource {
     }
 
     @Override
-    public void refresh() {
+    public boolean refresh() {
         Ec2Client client = createClient(Ec2Client.class);
 
         DescribeEgressOnlyInternetGatewaysResponse response = client.describeEgressOnlyInternetGateways(
@@ -60,9 +60,11 @@ public class EgressOnlyInternetGatewayResource extends AwsResource {
             for (InternetGatewayAttachment attachment : gateway.attachments()) {
                 setVpcId(attachment.vpcId());
 
-                break;
+                return true;
             }
         }
+
+        return false;
     }
 
     @Override

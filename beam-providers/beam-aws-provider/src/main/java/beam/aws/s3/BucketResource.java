@@ -139,7 +139,7 @@ public class BucketResource extends AwsResource {
     }
 
     @Override
-    public void refresh() {
+    public boolean refresh() {
         S3Client client = createClient(S3Client.class);
 
         ListBucketsResponse listBucketsResponse = client.listBuckets();
@@ -159,6 +159,8 @@ public class BucketResource extends AwsResource {
         } else {
             throw new BeamException(MessageFormat.format("Bucket - {0} not found.", getName()));
         }
+
+        return true;
     }
 
     @Override

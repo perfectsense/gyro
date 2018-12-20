@@ -72,7 +72,7 @@ public class NatGatewayResource extends Ec2TaggableResource<NatGateway> {
     }
 
     @Override
-    public void doRefresh() {
+    public boolean doRefresh() {
         Ec2Client client = createClient(Ec2Client.class);
 
         DescribeNatGatewaysResponse response = client.describeNatGateways(
@@ -84,7 +84,11 @@ public class NatGatewayResource extends Ec2TaggableResource<NatGateway> {
             NatGateway natGateway = response.natGateways().get(0);
             setSubnetId(natGateway.subnetId());
             setElasticAllocationId(natGateway.natGatewayAddresses().get(0).allocationId());
+
+            return true;
         }
+
+        return false;
     }
 
     @Override
