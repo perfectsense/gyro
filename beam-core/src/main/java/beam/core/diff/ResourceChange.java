@@ -159,27 +159,32 @@ public class ResourceChange {
         return null;
     }
 
-    private void processAsScalarValue(String key, BeamValue currentValue, BeamValue pendingValue, StringBuilder changedPropertiesDisplay) {
+    private String processAsScalarValue(String key, BeamValue currentValue, BeamValue pendingValue) {
+        StringBuilder sb = new StringBuilder();
+
         Object current = currentValue != null ? currentValue.getValue() : null;
         Object pending = pendingValue.getValue();
 
         if (pending.equals(current)) {
-            return;
+            return sb.toString();
         }
 
-        changedPropertiesDisplay.append(key);
-        changedPropertiesDisplay.append(": ");
+        sb.append(key);
+        sb.append(": ");
         if (ObjectUtils.isBlank(current)) {
-            changedPropertiesDisplay.append(pending);
+            sb.append(pending);
         } else {
-            changedPropertiesDisplay.append(current);
-            changedPropertiesDisplay.append(" -> ");
-            changedPropertiesDisplay.append(pending);
+            sb.append(current);
+            sb.append(" -> ");
+            sb.append(pending);
         }
-        changedPropertiesDisplay.append(", ");
+
+        return sb.toString();
     }
 
-    private void processAsMapValue(String key, BeamValue currentValue, BeamValue pendingValue, StringBuilder changedPropertiesDisplay) {
+    private String processAsMapValue(String key, BeamValue currentValue, BeamValue pendingValue) {
+        StringBuilder sb = new StringBuilder();
+
         BeamMap pendingMapValue = (BeamMap) pendingValue;
         Map<String, String> pendingResolvedMap = new HashMap<>();
         for (KeyValueBlock keyValueBlock : pendingMapValue.getKeyValues()) {
@@ -207,14 +212,17 @@ public class ResourceChange {
 
         String diff = mapSummaryDiff(currentResolvedMap, pendingResolvedMap);
         if (!ObjectUtils.isBlank(diff)) {
-            changedPropertiesDisplay.append(key);
-            changedPropertiesDisplay.append(": ");
-            changedPropertiesDisplay.append(diff);
-            changedPropertiesDisplay.append(", ");
+            sb.append(key);
+            sb.append(": ");
+            sb.append(diff);
         }
+
+        return sb.toString();
     }
 
-    private void processAsListValue(String key, BeamValue currentValue, BeamValue pendingValue, StringBuilder changedPropertiesDisplay) {
+    private String processAsListValue(String key, BeamValue currentValue, BeamValue pendingValue) {
+        StringBuilder sb = new StringBuilder();
+
         BeamList pendingListValue = (BeamList) pendingValue;
         List<String> pendingResolvedList = new ArrayList<>();
         for (BeamValue value : pendingListValue.getValues()) {
@@ -245,17 +253,20 @@ public class ResourceChange {
         subtractions.removeAll(pendingResolvedList);
 
         if (!additions.isEmpty()) {
-            changedPropertiesDisplay.append(key);
-            changedPropertiesDisplay.append(": ");
-            changedPropertiesDisplay.append("adding ");
-            changedPropertiesDisplay.append(StringUtils.join(additions, ","));
+            sb.append(key);
+            sb.append(": ");
+            sb.append("+[");
+            sb.append(StringUtils.join(additions, ","));
+            sb.append("]");
         } else if (!subtractions.isEmpty()) {
-            changedPropertiesDisplay.append(key);
-            changedPropertiesDisplay.append(": ");
-            changedPropertiesDisplay.append("removing ");
-            changedPropertiesDisplay.append(StringUtils.join(subtractions, ","));
+            sb.append(key);
+            sb.append(": ");
+            sb.append("-[ ");
+            sb.append(StringUtils.join(subtractions, ","));
+            sb.append("]");
         }
-        changedPropertiesDisplay.append(", ");
+
+        return sb.toString();
     }
 
     /**
@@ -269,6 +280,7 @@ public class ResourceChange {
             return;
         }
 
+        boolean firstField = true;
         for (String key : pendingResource.keys()) {
             // If there is no getter for this method then skip this field since there can
             // be no ResourceDiffProperty annotation.
@@ -299,24 +311,26 @@ public class ResourceChange {
                     changedPropertiesDisplay = replacedPropertiesDisplay;
                 }
 
-                changedProperties.add(key);
-
+                String fieldChangeOutput = null;
                 if (pendingValue instanceof BeamList) {
-                    processAsListValue(key, currentValue, pendingValue, changedPropertiesDisplay);
+                    fieldChangeOutput = processAsListValue(key, currentValue, pendingValue);
                 } else if (pendingValue instanceof BeamMap) {
-                    processAsMapValue(key, currentValue, pendingValue, changedPropertiesDisplay);
+                    fieldChangeOutput = processAsMapValue(key, currentValue, pendingValue);
                 } else {
-                    processAsScalarValue(key, currentValue, pendingValue, changedPropertiesDisplay);
+                    fieldChangeOutput = processAsScalarValue(key, currentValue, pendingValue);
+                }
+
+                if (!ObjectUtils.isBlank(fieldChangeOutput)) {
+                    if (!firstField) {
+                        changedPropertiesDisplay.append(", ");
+                    }
+
+                    changedProperties.add(key);
+                    changedPropertiesDisplay.append(fieldChangeOutput);
+
+                    firstField = false;
                 }
             }
-        }
-
-        if (updatedPropertiesDisplay.length() > 0) {
-            updatedPropertiesDisplay.setLength(updatedPropertiesDisplay.length() - 2);
-        }
-
-        if (replacedPropertiesDisplay.length() > 0) {
-            replacedPropertiesDisplay.setLength(replacedPropertiesDisplay.length() - 2);
         }
     }
 
@@ -366,11 +380,11 @@ public class ResourceChange {
 
         final MapDifference diff = Maps.difference(current, pending);
         for (Object key : diff.entriesOnlyOnRight().keySet()) {
-            diffResult.append(String.format("+[%s => %s], ", key, pending.get(key)));
+            diffResult.append(String.format("+[%s => %s]", key, pending.get(key)));
         }
 
         for (Object key : diff.entriesOnlyOnLeft().keySet()) {
-            diffResult.append(String.format("-[%s => %s], ", key, current.get(key)));
+            diffResult.append(String.format("-[%s => %s]", key, current.get(key)));
         }
 
         if (diffResult.lastIndexOf(",") == diffResult.length()) {
