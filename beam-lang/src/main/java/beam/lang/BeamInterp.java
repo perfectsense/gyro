@@ -45,7 +45,14 @@ public class BeamInterp {
         CommonTokenStream tokens = new CommonTokenStream(lexer);
 
         BeamParser parser = new BeamParser(tokens);
+        BeamErrorListener errorListener = new BeamErrorListener();
+        parser.removeErrorListeners();
+        parser.addErrorListener(errorListener);
         BeamParser.Beam_rootContext context = parser.beam_root();
+
+        if (errorListener.getSyntaxErrors() > 0) {
+            throw new BeamLanguageException(errorListener.getSyntaxErrors() + " errors while parsing.");
+        }
 
         BeamVisitor visitor = new BeamVisitor(this);
         root = visitor.visitBeam_root(context);

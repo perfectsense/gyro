@@ -7,10 +7,12 @@ import beam.core.BeamState;
 import beam.core.diff.ChangeType;
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiff;
+import beam.lang.BeamLanguageException;
 import beam.lang.types.ContainerBlock;
 import io.airlift.airline.Arguments;
 import io.airlift.airline.Command;
 import io.airlift.airline.Option;
+import org.fusesource.jansi.AnsiRenderer;
 
 import java.util.List;
 import java.util.Set;
@@ -34,7 +36,13 @@ public class UpCommand extends AbstractCommand {
         String configPath = getArguments().get(0);
         String statePath = configPath + ".state";
         BeamCore core = new BeamCore();
-        ContainerBlock rootBlock = core.parse(configPath);
+        ContainerBlock rootBlock = null;
+        try {
+            rootBlock = core.parse(configPath);
+        } catch (BeamLanguageException ex) {
+            System.err.println(ex.getMessage());
+            System.exit(1);
+        }
 
         BeamState backend = core.getState(rootBlock);
         ContainerBlock state = backend.load(statePath, core);

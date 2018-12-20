@@ -12,6 +12,7 @@ defaultTasks 'build'
 dependencies {
     compile group: 'com.psddev', name: 'dari-util', version: '3.2-SNAPSHOT'
     compile 'commons-beanutils:commons-beanutils-core:1.8.3'
+    compile 'org.fusesource.jansi:jansi:1.16'
     antlr "org.antlr:antlr4:4.7.1"
 }
 
