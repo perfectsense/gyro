@@ -1,49 +1,48 @@
 provider aws
     artifact: "beam:beam-aws-provider:0.5"
-    repositories:
-        - "http://repo1.maven.org/maven2/"
-        - "https://repo.gradle.org/gradle/libs-releases/"
-        - "https://artifactory.psdops.com/public"
-    end
+    repositories: [
+        "http://repo1.maven.org/maven2/",
+        "https://repo.gradle.org/gradle/libs-releases/",
+        "https://artifactory.psdops.com/public"
+    ]
 end
 
 aws::credentials default
-    profile-name: psd-sandbox
-    region: us-east-1
+    profile-name: "psd-sandbox"
+    region: "us-east-1"
 end
 
 aws::vpc vpc-example-for-nat-gateway
     cidr-block: "10.0.0.0/16"
 
-    tags:
-        Name: vpc-example-for-nat-gateway
-    end
+    tags: {
+        Name: "vpc-example"
+    }
 end
 
 aws::subnet subnet-example-for-nat-gateway
     vpc-id: $(aws::vpc vpc-example-for-nat-gateway | vpc-id)
-    availability-zone: us-east-1a
+    availability-zone: "us-east-1a"
     cidr-block: "10.0.0.0/24"
 
-    tags:
-        Name: subnet-example-for-nat-gateway
-    end
+    tags: {
+        Name: "subnet-example-for-nat-gateway"
+    }
 end
 
 aws::elastic-ip elastic-ip-example-for-nat-gateway
-    public-ip: 54.88.174.247
     is-standard-domain: true
 
-    tags:
-        Name: elastic-ip-example-for-nat-gateway
-    end
+    tags: {
+        Name: "elastic-ip-example-for-nat-gateway"
+    }
 end
 
 aws::nat-gateway nat-gateway-example
-    elastic-allocation-id: $(aws::elastic-ip elastic-ip-example-for-nat-gateway | allocation-id)
     subnet-id: $(aws::subnet subnet-example-for-nat-gateway | subnet-id )
+    elastic-allocation-id: $(aws::elastic-ip elastic-ip-example-for-nat-gateway | allocation-id)
 
-    tags:
-        Name: elastic-ip-example-for-nat-gateway
-    end
+    tags: {
+        Name: "elastic-ip-example-for-nat-gateway"
+    }
 end
