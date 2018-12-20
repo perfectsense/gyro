@@ -1,0 +1,22 @@
+provider aws
+    artifact: "beam:beam-aws-provider:0.5"
+    repositories:
+        - "http://repo1.maven.org/maven2/"
+        - "https://repo.gradle.org/gradle/libs-releases/"
+        - "https://artifactory.psdops.com/public"
+    end
+end
+
+aws::credentials default
+    profile-name: psd-sandbox
+    region: us-east-1
+end
+
+aws::elastic-ip elastic-ip-example
+    public-ip: 52.20.183.53
+    is-standard-domain: true
+
+    tags:
+        Name: elastic-ip-examples
+    end
+end
