@@ -54,7 +54,7 @@ public class NetworkAclResource extends Ec2TaggableResource<NetworkAcl> {
 
     @Override
     protected String getId() {
-        return null;
+        return getNetworkAclId();
     }
 
     @Override
