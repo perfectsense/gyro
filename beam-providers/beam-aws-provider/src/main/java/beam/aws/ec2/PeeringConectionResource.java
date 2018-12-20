@@ -32,7 +32,7 @@ import java.util.Set;
  *     end
  */
 @ResourceName("peering-connection")
-public class PeeringConectionResource extends Ec2TaggableResource<S3AsyncClient> {
+public class PeeringConectionResource extends Ec2TaggableResource<VpcPeeringConnection> {
 
     private String vpcId;
     private String peerVpcId;
