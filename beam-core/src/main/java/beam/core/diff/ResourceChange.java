@@ -231,8 +231,7 @@ public class ResourceChange {
             if (stringValue != null) {
                 pendingResolvedList.add(stringValue);
             } else if (value instanceof BeamReference) {
-                String ref = String.format("%s %s", ((BeamReference) value).getType(), ((BeamReference) value).getName());
-                pendingResolvedList.add("ref:" + ref);
+                pendingResolvedList.add(value.toString());
             }
         }
 
@@ -256,13 +255,13 @@ public class ResourceChange {
             sb.append(key);
             sb.append(": ");
             sb.append("+[");
-            sb.append(StringUtils.join(additions, ","));
+            sb.append(StringUtils.join(additions, ", "));
             sb.append("]");
         } else if (!subtractions.isEmpty()) {
             sb.append(key);
             sb.append(": ");
-            sb.append("-[ ");
-            sb.append(StringUtils.join(subtractions, ","));
+            sb.append("-[");
+            sb.append(StringUtils.join(subtractions, ", "));
             sb.append("]");
         }
 
