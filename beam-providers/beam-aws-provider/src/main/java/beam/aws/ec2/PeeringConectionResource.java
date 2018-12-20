@@ -7,7 +7,6 @@ import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.CreateVpcPeeringConnectionResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeVpcPeeringConnectionsResponse;
 import software.amazon.awssdk.services.ec2.model.VpcPeeringConnection;
-import software.amazon.awssdk.services.s3.S3AsyncClient;
 
 import java.text.MessageFormat;
 import java.util.Set;
