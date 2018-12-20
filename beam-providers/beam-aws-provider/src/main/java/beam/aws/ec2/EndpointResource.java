@@ -32,6 +32,8 @@ import java.util.stream.Collectors;
  * Example
  * -------
  *
+ * .. code-block:: beam
+ *
  *     aws::endpoint endpoint-example-gateway
  *         vpc-id: $(aws::vpc vpc-example-for-endpoint | vpc-id)
  *         service-name: 'com.amazonaws.us-east-1.s3'
@@ -95,7 +97,7 @@ public class EndpointResource extends AwsResource {
     }
 
     /**
-     * The ID of the VPC to create the endpoint in. (Required)
+     * The ID of the VPC to create the endpoint in. See `VPC Endpoints <https://docs.aws.amazon.com/vpc/latest/userguide/vpc-endpoints.html/>`_. (Required)
      */
     public String getVpcId() {
         return vpcId;
@@ -214,6 +216,8 @@ public class EndpointResource extends AwsResource {
             setRouteTableIds(new ArrayList<>(endpoint.routeTableIds()));
             setSubnetIds(new ArrayList<>(endpoint.subnetIds()));
             setPolicy(endpoint.policyDocument());
+        } else {
+            throw new BeamException(MessageFormat.format("Endpoint for service - {0} and VPC - {1} not found.", getServiceName(), getVpcId()));
         }
     }
 
