@@ -55,6 +55,7 @@ public class BeamInterp {
         }
 
         BeamVisitor visitor = new BeamVisitor(this);
+        visitor.visitBeam_root(context);        // First pass ensures extensions are loaded and executed
         root = visitor.visitBeam_root(context);
 
         if (!root.resolve()) {
