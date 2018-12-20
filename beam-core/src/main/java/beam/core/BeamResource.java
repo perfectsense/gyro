@@ -2,14 +2,18 @@ package beam.core;
 
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiffProperty;
+import beam.core.diff.ResourceDisplayDiff;
 import beam.core.diff.ResourceName;
 import beam.lang.BeamLanguageExtension;
+import beam.lang.types.BeamList;
+import beam.lang.types.BeamMap;
 import beam.lang.types.BeamReference;
+import beam.lang.types.BeamValue;
 import beam.lang.types.KeyValueBlock;
 import beam.lang.types.ResourceBlock;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Throwables;
-import org.apache.commons.beanutils.BeanUtils;
+import com.psddev.dari.util.ObjectUtils;
 
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -152,6 +156,78 @@ public abstract class BeamResource extends BeamLanguageExtension implements Comp
         }
 
         syncPropertiesToInternal();
+    }
+
+    private String fieldNameFromKey(String key) {
+        return CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key);
+    }
+
+    private Method readerMethodForKey(String key) {
+        String convertedKey = fieldNameFromKey(key);
+        try {
+            for (PropertyDescriptor p : Introspector.getBeanInfo(getClass()).getPropertyDescriptors()) {
+                if (p.getDisplayName().equals(convertedKey)) {
+                    return p.getReadMethod();
+                }
+            }
+        } catch (IntrospectionException ex) {
+            // Ignoring introspection exceptions
+        }
+
+        return null;
+    }
+
+    public ResourceDisplayDiff calculateFieldDiffs(BeamResource current) {
+        boolean firstField = true;
+
+        ResourceDisplayDiff displayDiff = new ResourceDisplayDiff();
+
+        for (String key : keys()) {
+            // If there is no getter for this method then skip this field since there can
+            // be no ResourceDiffProperty annotation.
+            Method reader = readerMethodForKey(key);
+            if (reader == null) {
+                continue;
+            }
+
+            // If no ResourceDiffProperty annotation then skip this field.
+            ResourceDiffProperty propertyAnnotation = reader.getAnnotation(ResourceDiffProperty.class);
+            if (propertyAnnotation == null) {
+                continue;
+            }
+            boolean nullable = propertyAnnotation.nullable();
+
+            BeamValue currentValue = current.get(key);
+            BeamValue pendingValue = get(key);
+
+            if (pendingValue != null || nullable) {
+                String fieldChangeOutput = null;
+                if (pendingValue instanceof BeamList) {
+                    fieldChangeOutput = ResourceChange.processAsListValue(key, currentValue, pendingValue);
+                } else if (pendingValue instanceof BeamMap) {
+                    fieldChangeOutput = ResourceChange.processAsMapValue(key, currentValue, pendingValue);
+                } else {
+                    fieldChangeOutput = ResourceChange.processAsScalarValue(key, currentValue, pendingValue);
+                }
+
+                if (!ObjectUtils.isBlank(fieldChangeOutput)) {
+                    if (!firstField) {
+                        displayDiff.getChangedDisplay().append(", ");
+                    }
+
+                    displayDiff.addChangedProperty(key);
+                    displayDiff.getChangedDisplay().append(fieldChangeOutput);
+
+                    if (!propertyAnnotation.updatable()) {
+                        displayDiff.setReplace(true);
+                    }
+
+                    firstField = false;
+                }
+            }
+        }
+
+        return displayDiff;
     }
 
     @Override

@@ -136,30 +136,29 @@ public class ResourceChange {
         return changed;
     }
 
-    private String fieldNameFromKey(String key) {
-        return CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key);
-    }
-
-    private Method readerMethodForKey(String key) {
-        if (getPendingResource() == null) {
-            return null;
+    /**
+     * Calculate the difference between individual fields.
+     *
+     * If a field changed and that field is updatable, it's added to updatedProperties.
+     * If a field changed and that field is not updatable, it's added to replaceProperties.
+     */
+    public void calculateFieldDiffs() {
+        if (currentResource == null || pendingResource == null) {
+            return;
         }
 
-        String convertedKey = fieldNameFromKey(key);
-        try {
-            for (PropertyDescriptor p : Introspector.getBeanInfo(getPendingResource().getClass()).getPropertyDescriptors()) {
-                if (p.getDisplayName().equals(convertedKey)) {
-                    return p.getReadMethod();
-                }
-            }
-        } catch (IntrospectionException ex) {
-            // Ignoring introspection exceptions
-        }
+        ResourceDisplayDiff displayDiff = pendingResource.calculateFieldDiffs(currentResource);
 
-        return null;
+        if (displayDiff.isReplace()) {
+            replacedProperties.addAll(displayDiff.getChangedProperties());
+            replacedPropertiesDisplay.append(displayDiff.getChangedDisplay());
+        } else {
+            updatedProperties.addAll(displayDiff.getChangedProperties());
+            updatedPropertiesDisplay.append(displayDiff.getChangedDisplay());
+        }
     }
 
-    private String processAsScalarValue(String key, BeamValue currentValue, BeamValue pendingValue) {
+    public static String processAsScalarValue(String key, BeamValue currentValue, BeamValue pendingValue) {
         StringBuilder sb = new StringBuilder();
 
         Object current = currentValue != null ? currentValue.getValue() : null;
@@ -182,7 +181,7 @@ public class ResourceChange {
         return sb.toString();
     }
 
-    private String processAsMapValue(String key, BeamValue currentValue, BeamValue pendingValue) {
+    public static String processAsMapValue(String key, BeamValue currentValue, BeamValue pendingValue) {
         StringBuilder sb = new StringBuilder();
 
         BeamMap pendingMapValue = (BeamMap) pendingValue;
@@ -220,7 +219,7 @@ public class ResourceChange {
         return sb.toString();
     }
 
-    private String processAsListValue(String key, BeamValue currentValue, BeamValue pendingValue) {
+    public static String processAsListValue(String key, BeamValue currentValue, BeamValue pendingValue) {
         StringBuilder sb = new StringBuilder();
 
         BeamList pendingListValue = (BeamList) pendingValue;
@@ -268,110 +267,7 @@ public class ResourceChange {
         return sb.toString();
     }
 
-    /**
-     * Calculate the difference between individual fields.
-     *
-     * If a field changed and that field is updatable, it's added to updatedProperties.
-     * If a field changed and that field is not updatable, it's added to replaceProperties.
-     */
-    public void calculateFieldDiffs() {
-        if (currentResource == null || pendingResource == null) {
-            return;
-        }
-
-        boolean firstField = true;
-        for (String key : pendingResource.keys()) {
-            // If there is no getter for this method then skip this field since there can
-            // be no ResourceDiffProperty annotation.
-            Method reader = readerMethodForKey(key);
-            if (reader == null) {
-                continue;
-            }
-
-            // If no ResourceDiffProperty annotation then skip this field.
-            ResourceDiffProperty propertyAnnotation = reader.getAnnotation(ResourceDiffProperty.class);
-            if (propertyAnnotation == null) {
-                continue;
-            }
-            boolean nullable = propertyAnnotation.nullable();
-
-            BeamValue currentValue = currentResource.get(key);
-            BeamValue pendingValue = pendingResource.get(key);
-
-            if (pendingValue != null || nullable) {
-                Set<String> changedProperties;
-                StringBuilder changedPropertiesDisplay;
-
-                if (propertyAnnotation.updatable()) {
-                    changedProperties = updatedProperties;
-                    changedPropertiesDisplay = updatedPropertiesDisplay;
-                } else {
-                    changedProperties = replacedProperties;
-                    changedPropertiesDisplay = replacedPropertiesDisplay;
-                }
-
-                String fieldChangeOutput = null;
-                if (pendingValue instanceof BeamList) {
-                    fieldChangeOutput = processAsListValue(key, currentValue, pendingValue);
-                } else if (pendingValue instanceof BeamMap) {
-                    fieldChangeOutput = processAsMapValue(key, currentValue, pendingValue);
-                } else {
-                    fieldChangeOutput = processAsScalarValue(key, currentValue, pendingValue);
-                }
-
-                if (!ObjectUtils.isBlank(fieldChangeOutput)) {
-                    if (!firstField) {
-                        changedPropertiesDisplay.append(", ");
-                    }
-
-                    changedProperties.add(key);
-                    changedPropertiesDisplay.append(fieldChangeOutput);
-
-                    firstField = false;
-                }
-            }
-        }
-    }
-
-    protected BeamResource change() {
-        ChangeType type = getType();
-
-        if (type == ChangeType.UPDATE) {
-            pendingResource.resolve();
-            pendingResource.update(currentResource, updatedProperties);
-            pendingResource.syncPropertiesToInternal();
-            return pendingResource;
-
-        } else if (type == ChangeType.REPLACE) {
-            return currentResource;
-
-        } else {
-            return currentResource;
-        }
-    }
-
-    @Override
-    public String toString() {
-        ChangeType type = getType();
-
-        if (type == ChangeType.UPDATE) {
-            return String.format(
-                    "Update %s (%s)",
-                    currentResource.toDisplayString(),
-                    updatedPropertiesDisplay);
-
-        } else if (type == ChangeType.REPLACE) {
-            return String.format(
-                    "Replace %s (%s)",
-                    currentResource.toDisplayString(),
-                    replacedPropertiesDisplay);
-
-        } else {
-            return currentResource.toDisplayString();
-        }
-    }
-
-    private String mapSummaryDiff(Map current, Map pending) {
+    public static String mapSummaryDiff(Map current, Map pending) {
         StringBuilder diffResult = new StringBuilder();
         if (current == null) {
             current = new HashMap();
@@ -409,4 +305,43 @@ public class ResourceChange {
 
         return diffResult.toString();
     }
+
+    @Override
+    public String toString() {
+        ChangeType type = getType();
+
+        if (type == ChangeType.UPDATE) {
+            return String.format(
+                "Update %s (%s)",
+                currentResource.toDisplayString(),
+                updatedPropertiesDisplay);
+
+        } else if (type == ChangeType.REPLACE) {
+            return String.format(
+                "Replace %s (%s)",
+                currentResource.toDisplayString(),
+                replacedPropertiesDisplay);
+
+        } else {
+            return currentResource.toDisplayString();
+        }
+    }
+
+    protected BeamResource change() {
+        ChangeType type = getType();
+
+        if (type == ChangeType.UPDATE) {
+            pendingResource.resolve();
+            pendingResource.update(currentResource, updatedProperties);
+            pendingResource.syncPropertiesToInternal();
+            return pendingResource;
+
+        } else if (type == ChangeType.REPLACE) {
+            return currentResource;
+
+        } else {
+            return currentResource;
+        }
+    }
+
 }
