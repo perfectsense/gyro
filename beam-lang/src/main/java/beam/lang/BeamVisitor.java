@@ -1,6 +1,5 @@
 package beam.lang;
 
-import beam.lang.types.BeamBlock;
 import beam.lang.types.BeamBoolean;
 import beam.lang.types.BeamList;
 import beam.lang.types.BeamLiteral;
@@ -18,7 +17,6 @@ import beam.parser.antlr4.BeamParser.BlockContext;
 import beam.parser.antlr4.BeamParser.Key_value_blockContext;
 import beam.parser.antlr4.BeamParser.List_item_valueContext;
 import beam.parser.antlr4.BeamParser.Literal_valueContext;
-import beam.parser.antlr4.BeamParser.Map_key_value_blockContext;
 import beam.parser.antlr4.BeamParser.Reference_valueContext;
 import beam.parser.antlr4.BeamParser.Resource_blockContext;
 import beam.parser.antlr4.BeamParser.ValueContext;
@@ -98,8 +96,8 @@ public class BeamVisitor extends BeamParserBaseVisitor {
             value = listValue;
         } else if (context.map_value() != null) {
             BeamMap mapValue = new BeamMap();
-            for (Map_key_value_blockContext valueContext : context.map_value().map_key_value_block()) {
-                mapValue.getKeyValues().add(parseMapKeyValueBlock(valueContext));
+            for (Key_value_blockContext valueContext : context.map_value().key_value_block()) {
+                mapValue.getKeyValues().add(parseKeyValueBlock(valueContext));
             }
 
             value = mapValue;
@@ -149,16 +147,6 @@ public class BeamVisitor extends BeamParserBaseVisitor {
     }
 
     public KeyValueBlock parseKeyValueBlock(Key_value_blockContext context) {
-        KeyValueBlock keyValueBlock = new KeyValueBlock();
-        keyValueBlock.setKey(StringUtils.stripEnd(context.key().getText(), ":"));
-        keyValueBlock.setValue(parseValue(context.value()));
-        keyValueBlock.setLine(context.getStart().getLine());
-        keyValueBlock.setColumn(context.getStart().getCharPositionInLine());
-
-        return keyValueBlock;
-    }
-
-    public KeyValueBlock parseMapKeyValueBlock(Map_key_value_blockContext context) {
         KeyValueBlock keyValueBlock = new KeyValueBlock();
         keyValueBlock.setKey(StringUtils.stripEnd(context.key().getText(), ":"));
         keyValueBlock.setValue(parseValue(context.value()));
