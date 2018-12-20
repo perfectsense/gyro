@@ -55,7 +55,10 @@ public class UpCommand extends AbstractCommand {
         Set<BeamResource> resources = core.findBeamResources(rootBlock);
         Set<BeamResource> current = core.findBeamResources(state, !skipRefresh);
 
+        BeamCore.ui().write("@|bold,blue [beam]:|@ Looking for changes...");
         List<ResourceDiff> diffs = core.diff(current, resources);
+        BeamCore.ui().write("\n\n");
+
         Set<ChangeType> changeTypes = core.writeDiffs(diffs);
 
         boolean hasChanges = false;
@@ -80,7 +83,7 @@ public class UpCommand extends AbstractCommand {
         }
 
         if (!hasChanges) {
-            BeamCore.ui().write("\nNo changes.\n");
+            BeamCore.ui().write("@|bold,green No changes.|@\n");
         }
 
     }
