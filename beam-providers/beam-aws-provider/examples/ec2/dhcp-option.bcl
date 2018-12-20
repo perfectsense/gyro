@@ -1,29 +1,34 @@
 provider aws
     artifact: "beam:beam-aws-provider:0.5"
-    repositories:
-        - "http://repo1.maven.org/maven2/"
-        - "https://repo.gradle.org/gradle/libs-releases/"
-        - "https://artifactory.psdops.com/public"
-    end
+    repositories: [
+        "http://repo1.maven.org/maven2/",
+        "https://repo.gradle.org/gradle/libs-releases/",
+        "https://artifactory.psdops.com/public"
+    ]
 end
 
 aws::credentials default
-    profile-name: psd-sandbox
-    region: us-east-1
+    profile-name: "psd-sandbox"
+    region: "us-east-1"
 end
 
 aws::vpc vpc-example
     cidr-block: "10.0.0.0/16"
-    tags:
-        Name: vpc-example
-    end
+
+    tags: {
+        Name: "vpc-example"
+    }
 end
 
 aws::dhcp-option example-dhcp
     vpc-id: $(aws::vpc vpc-example | vpc-id)
-    domain-name-servers: [10.2.9.0, 10.2.9.3]
-    domain-name: [example.com]
-    ntp-servers: [10.2.5.1]
-    netbios-name-servers: [192.168.1.1, 192.168.1.2]
-    netbios-node-type: [2]
+    domain-name-servers: ["10.2.9.0", "10.2.9.3"]
+    domain-name: ["example.com"]
+    ntp-servers: ["10.2.5.1"]
+    netbios-name-servers: ["192.168.1.1", "192.168.1.2"]
+    netbios-node-type: ["3"]
+
+    tags: {
+        Name: "example-dhcp"
+    }
 end
