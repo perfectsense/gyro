@@ -1,6 +1,7 @@
 
 plugins {
     id 'maven-publish'
+    id 'antlr'
 }
 
 sourceCompatibility = 1.8
@@ -20,4 +21,27 @@ dependencies {
 
     compile 'com.psddev:dari-util:3.3.607-xe0f27a'
     compile "beam:beam-lang:${version}"
+
+    antlr "org.antlr:antlr4:4.7.1"
+}
+
+final PARSER_PACKAGE_NAME = 'beam.parser.antlr4'
+generateGrammarSource {
+    outputs.cacheIf { true }
+    arguments += ["-package", PARSER_PACKAGE_NAME, "-Xexact-output-dir", "-visitor"]
+
+    doLast {
+        def parserFilePattern = 'Groovy*'
+        def outputPath = generateGrammarSource.outputDirectory.canonicalPath
+        def parserPackagePath = "${outputPath}/${PARSER_PACKAGE_NAME.replace('.', '/')}"
+        file(parserPackagePath).mkdirs()
+        copy {
+            from outputPath
+            into parserPackagePath
+            include parserFilePattern
+        }
+        delete fileTree(outputPath) {
+            include parserFilePattern
+        }
+    }
 }

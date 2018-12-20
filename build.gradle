@@ -84,12 +84,6 @@ subprojects {
 
 }
 
-project(":beam-core") {
-    dependencies {
-        compile project(':beam-lang')
-    }
-}
-
 project(":beam-cli") {
 
     dependencies {
