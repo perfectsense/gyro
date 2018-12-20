@@ -16,6 +16,6 @@ aws::customer-gateway customer-gateway-example
     public-ip: 38.140.23.146
 
     tags:
-        Name: peering-connection-example
+        Name: customer-gateway-example
     end
 end

@@ -14,7 +14,7 @@ import java.text.MessageFormat;
 import java.util.Set;
 
 /**
- * Create Customer Gateway based on teh provided Public IP.
+ * Create Customer Gateway based on the provided Public IP.
  *
  * Example
  * -------
@@ -25,7 +25,7 @@ import java.util.Set;
  *         public-ip: 38.140.23.146
  *
  *         tags:
- *             Name: peering-connection-example
+ *             Name: customer-gateway-example
  *         end
  *     end
  */
