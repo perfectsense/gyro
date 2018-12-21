@@ -7,7 +7,6 @@ import beam.core.diff.ResourceName;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.AssociateDhcpOptionsRequest;
 import software.amazon.awssdk.services.ec2.model.AttributeValue;
-import software.amazon.awssdk.services.ec2.model.CreateDhcpOptionsRequest;
 import software.amazon.awssdk.services.ec2.model.CreateDhcpOptionsResponse;
 import software.amazon.awssdk.services.ec2.model.DeleteDhcpOptionsRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeDhcpOptionsRequest;
@@ -192,51 +191,18 @@ public class DhcpOptionSet extends Ec2TaggableResource<Vpc> {
 
     @Override
     protected void doCreate() {
-        Ec2Client client = createClient(Ec2Client.class);
-
         Collection<NewDhcpConfiguration> configs = new ArrayList<>();
+        addDhcpConfiguration(configs, "domain-name", getDomainName());
+        addDhcpConfiguration(configs, "domain-name-servers", getDomainNameServers());
+        addDhcpConfiguration(configs, "ntp-servers", getNtpServers());
+        addDhcpConfiguration(configs, "netbios-name-servers", getNetbiosNameServers());
+        addDhcpConfiguration(configs, "netbios-node-type", getNetbiosNodeType());
 
-        if (!getDomainName().isEmpty()) {
-            NewDhcpConfiguration domainNameConfig = NewDhcpConfiguration.builder()
-                    .key("domain-name")
-                    .values(getDomainName())
-                    .build();
-            configs.add(domainNameConfig);
-        }
-        if (!getDomainNameServers().isEmpty()) {
-            NewDhcpConfiguration domainNameServersConfig = NewDhcpConfiguration.builder()
-                    .key("domain-name-servers")
-                    .values(getDomainNameServers())
-                    .build();
-            configs.add(domainNameServersConfig);
-        }
-        if (!getNtpServers().isEmpty()) {
-            NewDhcpConfiguration ntpServersConfig = NewDhcpConfiguration.builder()
-                    .key("ntp-servers")
-                    .values(getNtpServers())
-                    .build();
-            configs.add(ntpServersConfig);
-        }
-        if (!getNetbiosNameServers().isEmpty()) {
-            NewDhcpConfiguration netbiosNameServersConfig = NewDhcpConfiguration.builder()
-                    .key("netbios-name-servers")
-                    .values(getNetbiosNameServers())
-                    .build();
-            configs.add(netbiosNameServersConfig);
-        }
-        if (!getNetbiosNodeType().isEmpty()) {
-            NewDhcpConfiguration netbiosNodeTypeConfig = NewDhcpConfiguration.builder()
-                    .key("netbios-node-type")
-                    .values(getNetbiosNodeType())
-                    .build();
-            configs.add(netbiosNodeTypeConfig);
-        }
+        Ec2Client client = createClient(Ec2Client.class);
+        CreateDhcpOptionsResponse response = client.createDhcpOptions(
+            r -> r.dhcpConfigurations(configs)
+        );
 
-        CreateDhcpOptionsRequest optionsRequest = CreateDhcpOptionsRequest.builder()
-                .dhcpConfigurations(configs)
-                .build();
-
-        CreateDhcpOptionsResponse response = client.createDhcpOptions(optionsRequest);
         String optionsId = response.dhcpOptions().dhcpOptionsId();
         setDhcpOptionsId(optionsId);
 
@@ -310,4 +276,16 @@ public class DhcpOptionSet extends Ec2TaggableResource<Vpc> {
 
         return sb.toString();
     }
+
+    private void addDhcpConfiguration(Collection<NewDhcpConfiguration> dhcpConfigurations, String configName, List<String> newConfiguration) {
+        if (!newConfiguration.isEmpty()) {
+            NewDhcpConfiguration dhcpConfiguration = NewDhcpConfiguration.builder()
+                .key(configName)
+                .values(newConfiguration)
+                .build();
+            dhcpConfigurations.add(dhcpConfiguration);
+        }
+
+    }
+
 }
