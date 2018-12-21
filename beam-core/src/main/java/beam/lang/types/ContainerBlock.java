@@ -47,17 +47,12 @@ public class ContainerBlock extends BeamBlock {
                         continue;
                     }
                 } catch (NoSuchFieldException ex) {
-                    // Ignore
                     continue;
                 }
 
                 if (reader != null) {
                     String key = keyFromFieldName(p.getDisplayName());
                     Object value = reader.invoke(this);
-
-                    if (value instanceof List && ((List) value).isEmpty() || value instanceof Map && ((Map) value).isEmpty()) {
-                        continue;
-                    }
 
                     values.put(key, value);
                 }
@@ -157,7 +152,7 @@ public class ContainerBlock extends BeamBlock {
                     sb.append(mapToString((Map) value));
                 } else if (value instanceof List) {
                     sb.append(listToString((List) value));
-                } else if (value instanceof ResourceBlock){
+                } else if (value instanceof ResourceBlock) {
                     sb.append(((ResourceBlock) value).resourceKey());
                 }
                 sb.append("\n");
