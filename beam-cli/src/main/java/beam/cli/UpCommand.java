@@ -39,8 +39,7 @@ public class UpCommand extends AbstractCommand {
         try {
             rootBlock = core.parse(configPath);
         } catch (BeamLanguageException ex) {
-            System.err.println(ex.getMessage());
-            System.exit(1);
+            throw new BeamException(ex.getMessage());
         }
 
         BeamState backend = core.getState(rootBlock);
