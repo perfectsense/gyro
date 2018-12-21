@@ -204,7 +204,7 @@ public class ContainerBlock extends BeamBlock {
         }
         sb.setLength(sb.length() - 2);
 
-        sb.append("\n    }\n");
+        sb.append("\n    }");
 
         return sb.toString();
     }
@@ -221,7 +221,7 @@ public class ContainerBlock extends BeamBlock {
         }
         sb.setLength(sb.length() - 2);
 
-        sb.append("\n    ]\n");
+        sb.append("\n    ]");
 
         return sb.toString();
     }
