@@ -1,8 +1,8 @@
 package beam.fetcher;
 
+import beam.core.BeamCore;
 import beam.core.BeamCredentials;
 import beam.core.BeamException;
-import beam.core.BeamProvider;
 import beam.core.BeamResource;
 import beam.core.diff.ResourceName;
 import beam.lang.BeamInterp;
@@ -48,7 +48,8 @@ public class MavenFetcher implements PluginFetcher {
     private static String MAVEN_KEY = "^(?<group>[^:]+):(?<artifactId>[^:]+):(?<version>[^:]+)";
     private static Pattern MAVEN_KEY_PAT = Pattern.compile(MAVEN_KEY);
 
-    private static Map<String, Class<? extends BeamProvider>> provider = new HashMap<>();
+    private static Map<String, Map<String, Class>> PROVIDER_CLASS_CACHE = new HashMap<>();
+    private static Map<String, List<Artifact>> ARTIFACTS = new HashMap<>();
 
     @Override
     public boolean validate(BeamLanguageExtension fetcherContext) {
@@ -64,102 +65,136 @@ public class MavenFetcher implements PluginFetcher {
     }
 
     @Override
-    public void fetch(BeamLanguageExtension fetcherContext) {
+    public void fetch(BeamLanguageExtension extension) {
         try {
-            BeamInterp lang = fetcherContext.getInterp();
-            DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
-            locator.addService(RepositoryConnectorFactory.class, BasicRepositoryConnectorFactory.class);
-            locator.addService(TransporterFactory.class, FileTransporterFactory.class);
-            locator.addService(TransporterFactory.class, HttpTransporterFactory.class);
+            Map<String, Object> resolvedKeyValues = extension.resolvedKeyValues();
 
-            RepositorySystem system = locator.getService(RepositorySystem.class);
-            DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();
-            LocalRepository localRepo = new LocalRepository(System.getProperty("user.home") + File.separator + ".m2" + File.separator + "repository");
-            session.setLocalRepositoryManager(system.newLocalRepositoryManager(session, localRepo));
+            String artifactKey = (String) resolvedKeyValues.get("artifact");
 
-            List<RemoteRepository> remoteRepositories = new ArrayList<>();
-            if (fetcherContext.get("repositories") != null) {
-                List<String> repos = (List<String>) fetcherContext.getValue("repositories");
-                for (String repo : repos) {
-                    remoteRepositories.add(new RemoteRepository.Builder(repo, "default", repo).build());
+            List<Artifact> artifacts = ARTIFACTS.get(artifactKey);
+            if (artifacts == null) {
+                BeamCore.ui().write("@|bold,blue Loading:|@ provider %s...\n", extension.getResourceIdentifier());
+
+                List<RemoteRepository> remoteRepositories = new ArrayList<>();
+                remoteRepositories.add(new RemoteRepository.Builder("central", "default", "http://repo1.maven.org/maven2/").build());
+
+                List<String> repos = (List<String>) resolvedKeyValues.get("repositories");
+                if (resolvedKeyValues.get("repositories") != null) {
+                    for (String repo : repos) {
+                        remoteRepositories.add(new RemoteRepository.Builder(repo, "default", repo).build());
+                    }
+                }
+
+                artifacts = fetchArtifacts(artifactKey, remoteRepositories);
+
+                ARTIFACTS.put(artifactKey, artifacts);
+
+                List<URL> artifactJars = new ArrayList<>();
+                for (Artifact artifact : artifacts) {
+                    artifactJars.add(new URL("file:///" + artifact.getFile()));
+                }
+                URL[] artifactJarUrls = artifactJars.toArray(new URL[0]);
+
+                for (Artifact artifact : artifacts) {
+                    String key = String.format("%s:%s:%s", artifact.getGroupId(), artifact.getArtifactId(), artifact.getVersion());
+                    if (artifactKey.equals(key)) {
+                        registerResources(extension.getInterp(), artifactJarUrls, artifact);
+                    }
                 }
             } else {
-                remoteRepositories.add(new RemoteRepository.Builder("central", "default", "http://repo1.maven.org/maven2/").build());
-            }
-
-            String key = (String) fetcherContext.getValue("artifact");
-            Artifact artifact = new DefaultArtifact(key);
-
-            CollectRequest collectRequest = new CollectRequest(new Dependency(artifact, JavaScopes.COMPILE), remoteRepositories);
-            DependencyFilter filter = DependencyFilterUtils.classpathFilter(JavaScopes.COMPILE);
-            DependencyRequest request = new DependencyRequest(collectRequest, filter);
-            DependencyResult result = system.resolveDependencies(session, request);
-
-            ClassLoader parent = getClass().getClassLoader();
-            List<URL> urls = new ArrayList<>();
-            File artifactFile = null;
-            for (ArtifactResult artifactResult : result.getArtifactResults()) {
-                if (artifactFile == null) {
-                    artifactFile = artifactResult.getArtifact().getFile();
-                }
-
-                urls.add(new URL("file:///" + artifactResult.getArtifact().getFile()));
-            }
-
-            URL[] url = urls.toArray(new URL[0]);
-            URLClassLoader loader = new URLClassLoader(url, parent);
-
-            JarFile jarFile = new JarFile(artifactFile);
-            Enumeration<JarEntry> entries = jarFile.entries();
-            while (entries.hasMoreElements()) {
-                JarEntry entry = entries.nextElement();
-                if (entry.isDirectory() || !entry.getName().endsWith(".class")) {
-                    continue;
-                }
-
-                String className = StringUtils.removeEnd(entry.getName(), ".class");
-                className = className.replace('/', '.');
-                Class c = loader.loadClass(className);
-                if (BeamResource.class.isAssignableFrom(c)) {
-                    if (!Modifier.isAbstract(c.getModifiers())) {
-                        BeamResource resource = (BeamResource) c.newInstance();
-                        BeamCredentials credentials = (BeamCredentials) resource.getResourceCredentialsClass().newInstance();
-
-                        String resourceNamespace = credentials.getCloudName();
-                        String resourceName = c.getSimpleName();
-
-                        if (c.isAnnotationPresent(ResourceName.class)) {
-                            ResourceName name = (ResourceName) c.getAnnotation(ResourceName.class);
-                            resourceName = name.value();
-                        }
-
-                        String fullName = String.format("%s::%s", resourceNamespace, resourceName);
-                        if (!provider.containsKey(fullName)) {
-                            provider.put(fullName, c);
-                        }
-
-                        lang.addExtension(fullName, provider.get(fullName));
-                    }
-                } else if (BeamCredentials.class.isAssignableFrom(c)) {
-                    BeamCredentials credentials = (BeamCredentials) c.newInstance();
-
-                    String resourceNamespace = credentials.getCloudName();
-                    String resourceName = c.getSimpleName();
-                    if (c.isAnnotationPresent(ResourceName.class)) {
-                        ResourceName name = (ResourceName) c.getAnnotation(ResourceName.class);
-                        resourceName = name.value();
-                    }
-
-                    String fullName = String.format("%s::%s", resourceNamespace, resourceName);
-                    if (!provider.containsKey(fullName)) {
-                        provider.put(fullName, c);
-                    }
-
-                    lang.addExtension(fullName, provider.get(fullName));
+                for (String resourceName : PROVIDER_CLASS_CACHE.get(artifactKey).keySet()) {
+                    extension.getInterp().addExtension(resourceName, PROVIDER_CLASS_CACHE.get(artifactKey).get(resourceName));
                 }
             }
         } catch (Exception e) {
             throw new BeamException("Maven fetch failed!", e);
         }
     }
+
+    private List<Artifact> fetchArtifacts(String artifactKey, List<RemoteRepository> repositories) throws Exception {
+        DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
+        locator.addService(RepositoryConnectorFactory.class, BasicRepositoryConnectorFactory.class);
+        locator.addService(TransporterFactory.class, FileTransporterFactory.class);
+        locator.addService(TransporterFactory.class, HttpTransporterFactory.class);
+
+        RepositorySystem system = locator.getService(RepositorySystem.class);
+        DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();
+        LocalRepository localRepo = new LocalRepository(System.getProperty("user.home") + File.separator + ".m2" + File.separator + "repository");
+        session.setLocalRepositoryManager(system.newLocalRepositoryManager(session, localRepo));
+
+        Artifact artifact = new DefaultArtifact(artifactKey);
+
+        CollectRequest collectRequest = new CollectRequest(new Dependency(artifact, JavaScopes.COMPILE), repositories);
+        DependencyFilter filter = DependencyFilterUtils.classpathFilter(JavaScopes.COMPILE);
+        DependencyRequest request = new DependencyRequest(collectRequest, filter);
+        DependencyResult result = system.resolveDependencies(session, request);
+
+        List<Artifact> artifacts = new ArrayList<>();
+        for (ArtifactResult  artifactResult: result.getArtifactResults()) {
+            artifacts.add(artifactResult.getArtifact());
+        }
+
+        return artifacts;
+    }
+
+    private void registerResources(BeamInterp interp, URL[] urls, Artifact artifact) throws Exception {
+        ClassLoader parent = getClass().getClassLoader();
+        URLClassLoader loader = new URLClassLoader(urls, parent);
+
+        String key = String.format("%s:%s:%s", artifact.getGroupId(), artifact.getArtifactId(), artifact.getVersion());
+        Map<String, Class> cache = PROVIDER_CLASS_CACHE.get(key);
+        if (cache == null) {
+            cache = new HashMap<>();
+            PROVIDER_CLASS_CACHE.put(key, cache);
+        }
+
+        JarFile jarFile = new JarFile(artifact.getFile());
+        Enumeration<JarEntry> entries = jarFile.entries();
+        while (entries.hasMoreElements()) {
+            JarEntry entry = entries.nextElement();
+            if (entry.isDirectory() || !entry.getName().endsWith(".class")) {
+                continue;
+            }
+
+            String className = StringUtils.removeEnd(entry.getName(), ".class");
+            className = className.replace('/', '.');
+
+            Class resourceClass;
+            try {
+                resourceClass = loader.loadClass(className);
+            } catch (Exception | Error ex) {
+                continue;
+            }
+
+            if (Modifier.isAbstract(resourceClass.getModifiers())) {
+                continue;
+            }
+
+            BeamCredentials credentials = null;
+            if (BeamResource.class.isAssignableFrom(resourceClass)) {
+                BeamResource resource = (BeamResource) resourceClass.newInstance();
+                credentials = (BeamCredentials) resource.getResourceCredentialsClass().newInstance();
+            } else if (BeamCredentials.class.isAssignableFrom(resourceClass)) {
+                credentials = (BeamCredentials) resourceClass.newInstance();
+            } else {
+                continue;
+            }
+
+            String resourceName = resourceClass.getSimpleName();
+            if (resourceClass.isAnnotationPresent(ResourceName.class)) {
+                ResourceName name = (ResourceName) resourceClass.getAnnotation(ResourceName.class);
+                resourceName = name.value();
+            }
+
+            String resourceNamespace = credentials.getCloudName();
+            String fullName = String.format("%s::%s", resourceNamespace, resourceName);
+
+            if (!cache.containsKey(fullName)) {
+                cache.put(fullName, resourceClass);
+            }
+
+            interp.addExtension(fullName, cache.get(fullName));
+        }
+    }
+
 }
