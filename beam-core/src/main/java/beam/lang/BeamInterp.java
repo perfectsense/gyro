@@ -6,7 +6,6 @@ import beam.parser.antlr4.BeamLexer;
 import beam.parser.antlr4.BeamParser;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.tree.ParseTreeWalker;
 
 import java.io.IOException;
 import java.util.HashMap;

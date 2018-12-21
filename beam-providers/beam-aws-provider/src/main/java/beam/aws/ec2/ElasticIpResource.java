@@ -13,7 +13,6 @@ import software.amazon.awssdk.services.ec2.model.Ec2Exception;
 import software.amazon.awssdk.services.ec2.model.MoveAddressToVpcResponse;
 
 import java.text.MessageFormat;
-import java.util.Map;
 import java.util.Set;
 
 /**

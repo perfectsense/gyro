@@ -1,6 +1,5 @@
 package beam.lang;
 
-import beam.lang.types.BeamBlock;
 import beam.lang.types.BeamReferable;
 
 public class BeamLanguageException extends RuntimeException {

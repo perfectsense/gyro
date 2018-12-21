@@ -5,7 +5,6 @@ import beam.lang.types.ResourceBlock;
 import com.psddev.dari.util.CompactMap;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;

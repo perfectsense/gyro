@@ -12,7 +12,6 @@ import beam.lang.types.ContainerBlock;
 import io.airlift.airline.Arguments;
 import io.airlift.airline.Command;
 import io.airlift.airline.Option;
-import org.fusesource.jansi.AnsiRenderer;
 
 import java.util.List;
 import java.util.Set;

@@ -1,13 +1,7 @@
 package beam.lang.types;
 
 import beam.lang.BeamLanguageException;
-import com.google.common.base.CaseFormat;
 
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

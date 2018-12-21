@@ -2,11 +2,6 @@ package beam.core.diff;
 
 import beam.core.BeamResource;
 import beam.lang.types.BeamBlock;
-import beam.lang.types.BeamList;
-import beam.lang.types.BeamMap;
-import beam.lang.types.BeamReference;
-import beam.lang.types.BeamValue;
-import beam.lang.types.KeyValueBlock;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 import com.psddev.dari.util.Lazy;
