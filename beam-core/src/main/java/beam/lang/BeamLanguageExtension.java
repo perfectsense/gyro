@@ -14,6 +14,11 @@ public abstract class BeamLanguageExtension extends ResourceBlock {
 
     }
 
+    final void executeInternal() {
+        syncInternalToProperties();
+        execute();
+    }
+
     public BeamInterp getInterp() {
         return interp;
     }

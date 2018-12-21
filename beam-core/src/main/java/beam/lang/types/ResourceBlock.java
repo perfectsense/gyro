@@ -76,7 +76,7 @@ public class ResourceBlock extends ContainerBlock {
         return sb.toString();
     }
 
-    private void syncInternalToProperties() {
+    protected final void syncInternalToProperties() {
         for (String key : keys()) {
             Object value = get(key).getValue();
 

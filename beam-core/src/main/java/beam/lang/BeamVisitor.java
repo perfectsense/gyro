@@ -53,7 +53,7 @@ public class BeamVisitor extends BeamParserBaseVisitor {
 
         if (resourceBlock instanceof BeamLanguageExtension) {
             BeamLanguageExtension extension = (BeamLanguageExtension) resourceBlock;
-            extension.execute();
+            extension.executeInternal();
         }
 
         return resourceBlock;
