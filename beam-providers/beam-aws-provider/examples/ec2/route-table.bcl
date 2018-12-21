@@ -20,33 +20,33 @@ aws::vpc vpc-example
     }
 end
 
-aws::subnet subnet-public-us-east-1a
+aws::subnet subnet-public-us-east-2a
     vpc-id: $(aws::vpc vpc-example | vpc-id)
     cidr-block: "10.0.0.0/26"
-    availability-zone: "us-east-1a"
+    availability-zone: "us-east-2a"
 
     tags: {
-        Name: "subnet-public-us-east-1a"
+        Name: "subnet-public-us-east-2a"
     }
 end
 
-aws::subnet subnet-public-us-east-1b
+aws::subnet subnet-public-us-east-2b
     vpc-id: $(aws::vpc vpc-example | vpc-id)
     cidr-block: "10.0.1.0/26"
-    availability-zone: "us-east-1b"
+    availability-zone: "us-east-2b"
 
     tags: {
-        Name: "subnet-public-us-east-1b"
+        Name: "subnet-public-us-east-2b"
     }
 end
 
-aws::subnet subnet-public-us-east-1c
+aws::subnet subnet-public-us-east-2c
     vpc-id: $(aws::vpc vpc-example | vpc-id)
     cidr-block: "10.0.2.0/26"
-    availability-zone: "us-east-1c"
+    availability-zone: "us-east-2c"
 
     tags: {
-        Name: "subnet-public-us-east-1c"
+        Name: "subnet-public-us-east-2c"
     }
 end
 
@@ -61,9 +61,9 @@ end
 aws::route-table route-table-example
     vpc-id: $(aws::vpc vpc-example | vpc-id)
     subnet-ids: [
-        $(aws::subnet subnet-public-us-east-1a | subnet-id),
-        $(aws::subnet subnet-public-us-east-1b | subnet-id),
-        $(aws::subnet subnet-public-us-east-1c | subnet-id)
+        $(aws::subnet subnet-public-us-east-2a | subnet-id),
+        $(aws::subnet subnet-public-us-east-2b | subnet-id),
+        $(aws::subnet subnet-public-us-east-2c | subnet-id)
     ]
 
     tags: {

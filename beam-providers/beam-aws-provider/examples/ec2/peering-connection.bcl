@@ -32,7 +32,7 @@ aws::peering-connection peering-connection-example
     vpc-id: $(aws::vpc vpc-example-for-peering-connection-1 | vpc-id)
     peer-vpc-id: $(aws::vpc vpc-example-for-peering-connection-2 | vpc-id)
     owner-id: '572681481110'
-    region: 'us-east-1'
+    region: 'us-east-2'
 
     tags: {
         Name: "peering-connection-example"

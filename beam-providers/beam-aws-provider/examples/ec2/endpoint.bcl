@@ -20,102 +20,102 @@ aws::vpc vpc-example-for-endpoint
     }
 end
 
-aws::subnet subnet-public-us-east-1a-example-for-endpoint-1
+aws::subnet subnet-public-us-east-2a-example-for-endpoint-1
     vpc-id: $(aws::vpc vpc-example-for-endpoint | vpc-id)
     cidr-block: "10.0.0.0/26"
-    availability-zone: "us-east-1a"
+    availability-zone: "us-east-2a"
 
     tags: {
-        Name: "subnet-public-us-east-1a-example-for-endpoint-1"
+        Name: "subnet-public-us-east-2a-example-for-endpoint-1"
     }
 end
 
-aws::subnet subnet-public-us-east-1a-example-for-endpoint-2
+aws::subnet subnet-public-us-east-2a-example-for-endpoint-2
     vpc-id: $(aws::vpc vpc-example-for-endpoint | vpc-id)
     cidr-block: "10.0.3.0/26"
-    availability-zone: "us-east-1a"
+    availability-zone: "us-east-2a"
 
     tags: {
-        Name: "subnet-public-us-east-1a-example-for-endpoint-2"
+        Name: "subnet-public-us-east-2a-example-for-endpoint-2"
     }
 end
 
-aws::subnet subnet-public-us-east-1a-example-for-endpoint-3
+aws::subnet subnet-public-us-east-2a-example-for-endpoint-3
     vpc-id: $(aws::vpc vpc-example-for-endpoint | vpc-id)
     cidr-block: "10.0.6.0/26"
-    availability-zone: "us-east-1a"
+    availability-zone: "us-east-2a"
 
     tags: {
-        Name: "subnet-public-us-east-1a-example-for-endpoint-3"
+        Name: "subnet-public-us-east-2a-example-for-endpoint-3"
     }
 end
 
-aws::subnet subnet-public-us-east-1b-example-for-endpoint-1
+aws::subnet subnet-public-us-east-2b-example-for-endpoint-1
     vpc-id: $(aws::vpc vpc-example-for-endpoint | vpc-id)
     cidr-block: "10.0.1.0/26"
-    availability-zone: "us-east-1b"
+    availability-zone: "us-east-2b"
 
     tags: {
-        Name: "subnet-public-us-east-1b-example-for-endpoint-1"
+        Name: "subnet-public-us-east-2b-example-for-endpoint-1"
     }
 end
 
-aws::subnet subnet-public-us-east-1b-example-for-endpoint-2
+aws::subnet subnet-public-us-east-2b-example-for-endpoint-2
     vpc-id: $(aws::vpc vpc-example-for-endpoint | vpc-id)
     cidr-block: "10.0.4.0/26"
-    availability-zone: "us-east-1b"
+    availability-zone: "us-east-2b"
 
     tags: {
-        Name: "subnet-public-us-east-1b-example-for-endpoint-2"
+        Name: "subnet-public-us-east-2b-example-for-endpoint-2"
     }
 end
 
-aws::subnet subnet-public-us-east-1b-example-for-endpoint-3
+aws::subnet subnet-public-us-east-2b-example-for-endpoint-3
     vpc-id: $(aws::vpc vpc-example-for-endpoint | vpc-id)
     cidr-block: "10.0.7.0/26"
-    availability-zone: "us-east-1b"
+    availability-zone: "us-east-2b"
 
     tags: {
-        Name: "subnet-public-us-east-1b-example-for-endpoint-3"
+        Name: "subnet-public-us-east-2b-example-for-endpoint-3"
     }
 end
 
-aws::subnet subnet-public-us-east-1c-example-for-endpoint-1
+aws::subnet subnet-public-us-east-2c-example-for-endpoint-1
     vpc-id: $(aws::vpc vpc-example-for-endpoint | vpc-id)
     cidr-block: "10.0.2.0/26"
-    availability-zone: "us-east-1c"
+    availability-zone: "us-east-2c"
 
     tags: {
-        Name: "subnet-public-us-east-1c-example-for-endpoint-1"
+        Name: "subnet-public-us-east-2c-example-for-endpoint-1"
     }
 end
 
-aws::subnet subnet-public-us-east-1c-example-for-endpoint-2
+aws::subnet subnet-public-us-east-2c-example-for-endpoint-2
     vpc-id: $(aws::vpc vpc-example-for-endpoint | vpc-id)
     cidr-block: "10.0.5.0/26"
-    availability-zone: "us-east-1c"
+    availability-zone: "us-east-2c"
 
     tags: {
-        Name: "subnet-public-us-east-1c-example-for-endpoint-2"
+        Name: "subnet-public-us-east-2c-example-for-endpoint-2"
     }
 end
 
-aws::subnet subnet-public-us-east-1c-example-for-endpoint-3
+aws::subnet subnet-public-us-east-2c-example-for-endpoint-3
     vpc-id: $(aws::vpc vpc-example-for-endpoint | vpc-id)
     cidr-block: "10.0.8.0/26"
-    availability-zone: "us-east-1c"
+    availability-zone: "us-east-2c"
 
     tags: {
-        Name: "subnet-public-us-east-1c-example-for-endpoint-3"
+        Name: "subnet-public-us-east-2c-example-for-endpoint-3"
     }
 end
 
 aws::route-table route-table-example-for-endpoint-1
     vpc-id: $(aws::vpc vpc-example-for-endpoint | vpc-id)
     subnet-ids: [
-        $(aws::subnet subnet-public-us-east-1a-example-for-endpoint-1 | subnet-id),
-        $(aws::subnet subnet-public-us-east-1b-example-for-endpoint-1 | subnet-id),
-        $(aws::subnet subnet-public-us-east-1c-example-for-endpoint-1 | subnet-id)
+        $(aws::subnet subnet-public-us-east-2a-example-for-endpoint-1 | subnet-id),
+        $(aws::subnet subnet-public-us-east-2b-example-for-endpoint-1 | subnet-id),
+        $(aws::subnet subnet-public-us-east-2c-example-for-endpoint-1 | subnet-id)
     ]
 
     tags: {
@@ -126,9 +126,9 @@ end
 aws::route-table route-table-example-for-endpoint-2
     vpc-id: $(aws::vpc vpc-example-for-endpoint | vpc-id)
     subnet-ids: [
-        $(aws::subnet subnet-public-us-east-1a-example-for-endpoint-2 | subnet-id),
-        $(aws::subnet subnet-public-us-east-1b-example-for-endpoint-2 | subnet-id),
-        $(aws::subnet subnet-public-us-east-1c-example-for-endpoint-2 | subnet-id)
+        $(aws::subnet subnet-public-us-east-2a-example-for-endpoint-2 | subnet-id),
+        $(aws::subnet subnet-public-us-east-2b-example-for-endpoint-2 | subnet-id),
+        $(aws::subnet subnet-public-us-east-2c-example-for-endpoint-2 | subnet-id)
     ]
 
     tags: {
@@ -139,9 +139,9 @@ end
 aws::route-table route-table-example-for-endpoint-3
     vpc-id: $(aws::vpc vpc-example-for-endpoint | vpc-id)
     subnet-ids: [
-        $(aws::subnet subnet-public-us-east-1a-example-for-endpoint-3 | subnet-id),
-        $(aws::subnet subnet-public-us-east-1b-example-for-endpoint-3 | subnet-id),
-        $(aws::subnet subnet-public-us-east-1c-example-for-endpoint-3 | subnet-id)
+        $(aws::subnet subnet-public-us-east-2a-example-for-endpoint-3 | subnet-id),
+        $(aws::subnet subnet-public-us-east-2b-example-for-endpoint-3 | subnet-id),
+        $(aws::subnet subnet-public-us-east-2c-example-for-endpoint-3 | subnet-id)
     ]
 
     tags: {
@@ -151,7 +151,7 @@ end
 
 aws::endpoint endpoint-example-gateway
     vpc-id: $(aws::vpc vpc-example-for-endpoint | vpc-id)
-    service-name: 'com.amazonaws.us-east-1.s3'
+    service-name: 'com.amazonaws.us-east-2.s3'
     policy-doc-path: 'policy.json'
     type-interface: false
     route-table-ids: [
@@ -163,13 +163,13 @@ end
 
 aws::endpoint endpoint-example-interface
     vpc-id: $(aws::vpc vpc-example-for-endpoint | vpc-id)
-    service-name: 'com.amazonaws.us-east-1.ec2'
+    service-name: 'com.amazonaws.us-east-2.ec2'
     policy-doc-path: 'policy.json'
     type-interface: true
     subnet-ids: [
-        $(aws::subnet subnet-public-us-east-1a-example-for-endpoint-1 | subnet-id),
-        $(aws::subnet subnet-public-us-east-1b-example-for-endpoint-1 | subnet-id),
-        $(aws::subnet subnet-public-us-east-1c-example-for-endpoint-1 | subnet-id)
+        $(aws::subnet subnet-public-us-east-2a-example-for-endpoint-1 | subnet-id),
+        $(aws::subnet subnet-public-us-east-2b-example-for-endpoint-1 | subnet-id),
+        $(aws::subnet subnet-public-us-east-2c-example-for-endpoint-1 | subnet-id)
     ]
     security-group-ids: [
         'sg-0c6a15d90a475071e',

@@ -22,7 +22,7 @@ end
 
 aws::subnet subnet-example-for-nat-gateway
     vpc-id: $(aws::vpc vpc-example-for-nat-gateway | vpc-id)
-    availability-zone: "us-east-1a"
+    availability-zone: "us-east-2a"
     cidr-block: "10.0.0.0/24"
 
     tags: {
