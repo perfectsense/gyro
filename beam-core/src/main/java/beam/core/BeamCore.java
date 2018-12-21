@@ -19,8 +19,6 @@ public class BeamCore {
 
     private static final ThreadLocalStack<BeamUI> UI = new ThreadLocalStack<>();
 
-    private static final BeamValidationException validationException = new BeamValidationException("Invalid config!");
-
     private final BeamInterp interp = new BeamInterp();
 
     public static BeamUI ui() {
@@ -33,10 +31,6 @@ public class BeamCore {
 
     public static BeamUI popUi() {
         return UI.pop();
-    }
-
-    public static BeamValidationException validationException() {
-        return validationException;
     }
 
     public ContainerBlock parse(String path) throws IOException {

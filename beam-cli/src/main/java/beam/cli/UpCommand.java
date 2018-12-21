@@ -46,10 +46,6 @@ public class UpCommand extends AbstractCommand {
         ContainerBlock state = backend.load(statePath, core);
         core.copyNonResourceState(rootBlock, state);
 
-        if (BeamCore.validationException().isThrowing()) {
-            throw BeamCore.validationException();
-        }
-
         Set<BeamResource> resources = core.findBeamResources(rootBlock);
         Set<BeamResource> current = core.findBeamResources(state, !skipRefresh);
 
