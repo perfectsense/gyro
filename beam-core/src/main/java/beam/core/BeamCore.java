@@ -3,10 +3,9 @@ package beam.core;
 import beam.core.diff.ChangeType;
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiff;
-import beam.lang.BCL;
-import beam.lang.BeamConfig;
-import beam.lang.BeamContextKey;
-import beam.lang.BeamReferable;
+import beam.lang.BeamInterp;
+import beam.lang.types.ContainerBlock;
+import beam.lang.types.ResourceBlock;
 import com.psddev.dari.util.ThreadLocalStack;
 
 import java.io.IOException;
@@ -22,7 +21,7 @@ public class BeamCore {
 
     private static final BeamValidationException validationException = new BeamValidationException("Invalid config!");
 
-    private final BCL lang = new BCL();
+    private final BeamInterp interp = new BeamInterp();
 
     public static BeamUI ui() {
         return UI.get();
@@ -40,75 +39,66 @@ public class BeamCore {
         return validationException;
     }
 
-    public BeamConfig processConfig(String path) throws IOException {
-        lang.init();
+    public ContainerBlock parse(String path) throws IOException {
+        interp.init();
+        interp.addExtension("state", BeamLocalState.class);
+        interp.addExtension("provider", BeamProvider.class);
 
-        BeamConfig config = lang.parse(path);
-        lang.applyExtension(config);
-        lang.resolve(config);
+        ContainerBlock block = interp.parse(path);
 
-        lang.addExtension("state", BeamLocalState.class);
-        lang.addExtension("provider", BeamProvider.class);
-        lang.applyExtension(config);
-        lang.resolve(config);
-
-        lang.applyExtension(config);
-        lang.resolve(config);
-
-        lang.getDependencies(config);
-        return config;
+        return block;
     }
 
-    public BeamState getStateBackend(BeamConfig config) {
-        BeamState stateBackend = new BeamLocalState();
-        for (BeamContextKey key : config.listContextKeys()) {
-            BeamReferable referable = config.getReferable(key);
-            Object value = referable.getValue();
+    public BeamState getState(ContainerBlock block) {
+        BeamState backend = new BeamLocalState();
 
-            if (value instanceof BeamState) {
-                stateBackend = (BeamState) value;
+        for (ResourceBlock resourceBlock : block.resources()) {
+            if (resourceBlock instanceof BeamState) {
+                backend = (BeamState) resourceBlock;
             }
         }
 
-        return stateBackend;
+        return backend;
     }
 
-    public BeamConfig findNonResources(BeamConfig config) {
-        BeamConfig nonResourceConfig = new BeamConfig();
-        for (BeamContextKey key : config.listContextKeys()) {
-            BeamReferable referable = config.getReferable(key);
-            Object value = referable.getValue();
+    public void copyNonResourceState(ContainerBlock source, ContainerBlock state) {
+        state.copyNonResourceState(source);
 
-            if (!(value instanceof BeamResource)) {
-                nonResourceConfig.addReferable(key, referable);
+        for (ResourceBlock block : source.resources()) {
+            if (block instanceof BeamResource) {
+                continue;
             }
+
+            state.putResource(block);
         }
-
-        return nonResourceConfig;
     }
 
-    public Set<BeamResource> findBeamResources(BeamConfig config) {
-        return findBeamResources(config, false);
+    public Set<BeamResource> findBeamResources(ContainerBlock block) {
+        return findBeamResources(block, false);
     }
 
-    public Set<BeamResource> findBeamResources(BeamConfig config, boolean refresh) {
+    public Set<BeamResource> findBeamResources(ContainerBlock block, boolean refresh) {
         Set<BeamResource> resources = new TreeSet<>();
-        for (BeamContextKey key : config.listContextKeys()) {
-            BeamReferable referable = config.getReferable(key);
-            Object value = referable.getValue();
 
-            if (value instanceof BeamResource) {
-                BeamResource resource = (BeamResource) value;
-                resource.setRoot(config);
-                resources.add(resource);
+        for (ResourceBlock resource : block.resources()) {
+            if (resource instanceof BeamResource) {
                 if (refresh) {
-                    resource.refresh();
+                    BeamCore.ui().write("@|bold,blue Refreshing|@: @|yellow %s|@ -> %s...",
+                        resource.getResourceType(), resource.getResourceIdentifier());
+                }
+
+                if (refresh && ((BeamResource) resource).refresh()) {
+                    resources.add((BeamResource) resource);
+
+                    BeamCore.ui().write("\n");
+                } else if (refresh) {
+                    BeamCore.ui().write("\n");
+                } else if (!refresh) {
+                    resources.add((BeamResource) resource);
                 }
             }
 
-            if (value instanceof BeamConfig) {
-                resources.addAll(findBeamResources((BeamConfig) value, refresh));
-            }
+            resources.addAll(findBeamResources(resource, refresh));
         }
 
         return resources;
@@ -196,7 +186,7 @@ public class BeamCore {
         }
     }
 
-    public void execute(ResourceChange change, BeamConfig state, BeamState stateBackend, String path) {
+    public void execute(ResourceChange change, ContainerBlock state, BeamState backend, String path) {
         ChangeType type = change.getType();
 
         if (type == ChangeType.KEEP || type == ChangeType.REPLACE || change.isChanged()) {
@@ -207,22 +197,22 @@ public class BeamCore {
 
         if (dependencies != null && !dependencies.isEmpty()) {
             for (ResourceChange d : dependencies) {
-                execute(d, state, stateBackend, path);
+                execute(d, state, backend, path);
             }
         }
 
         BeamCore.ui().write("Executing: ");
         writeChange(change);
         BeamResource resource = change.executeChange();
-        BeamContextKey key = new BeamContextKey(resource.getResourceIdentifier(), resource.getType());
 
         if (type == ChangeType.DELETE) {
-            state.removeReferable(key);
+            state.removeResource(resource);
         } else {
-            state.addReferable(key, resource);
+            state.putResource(resource);
+
         }
 
         BeamCore.ui().write(" OK\n");
-        stateBackend.save(path, state);
+        backend.save(path, state);
     }
 }

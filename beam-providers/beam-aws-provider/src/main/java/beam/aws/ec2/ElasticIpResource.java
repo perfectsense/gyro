@@ -13,7 +13,6 @@ import software.amazon.awssdk.services.ec2.model.Ec2Exception;
 import software.amazon.awssdk.services.ec2.model.MoveAddressToVpcResponse;
 
 import java.text.MessageFormat;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -83,7 +82,7 @@ public class ElasticIpResource extends Ec2TaggableResource<Address> {
     }
 
     @Override
-    public void doRefresh() {
+    public boolean doRefresh() {
         Ec2Client client = createClient(Ec2Client.class);
         try {
             DescribeAddressesResponse response = getPublicIp() == null
@@ -92,6 +91,8 @@ public class ElasticIpResource extends Ec2TaggableResource<Address> {
             setAllocationId(address.allocationId());
             setIsStandardDomain(address.domain().equals(DomainType.STANDARD));
             setPublicIp(address.publicIp());
+
+            return true;
         } catch (Ec2Exception eex) {
             if (eex.awsErrorDetails().errorCode().equals("InvalidAllocationID.NotFound")) {
                 throw new BeamException(MessageFormat.format("Elastic Ip - {0} not found.", getPublicIp()));
@@ -155,7 +156,7 @@ public class ElasticIpResource extends Ec2TaggableResource<Address> {
         if (getPublicIp() != null && !getPublicIp().isEmpty()) {
             sb.append(getPublicIp());
         } else {
-            sb.append("Elastic Ip");
+            sb.append("elastic ip");
         }
 
         return sb.toString();

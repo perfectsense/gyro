@@ -1,24 +1,18 @@
 package beam.core;
 
 import beam.fetcher.PluginFetcher;
-import beam.lang.BeamContext;
-import beam.lang.BeamExtension;
+import beam.lang.BeamLanguageExtension;
 import org.reflections.Reflections;
 
-public class BeamProvider extends BeamExtension {
+public class BeamProvider extends BeamLanguageExtension {
 
     @Override
-    public String getType() {
+    public String getResourceType() {
         return "provider";
     }
 
     @Override
-    protected boolean resolve(BeamContext parent, BeamContext root) {
-        fetch();
-        return super.resolve(parent, root);
-    }
-
-    private void fetch() {
+    public void execute() {
         Reflections reflections = new Reflections("beam.fetcher");
         boolean match = false;
         for (Class<? extends PluginFetcher> fetcherClass : reflections.getSubTypesOf(PluginFetcher.class)) {
@@ -37,4 +31,5 @@ public class BeamProvider extends BeamExtension {
             throw new BeamException(String.format("Unable to find fetcher matching:\n %s", this));
         }
     }
+
 }

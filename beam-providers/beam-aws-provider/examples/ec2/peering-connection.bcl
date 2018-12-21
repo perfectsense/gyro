@@ -1,31 +1,31 @@
 provider aws
     artifact: "beam:beam-aws-provider:0.5"
-    repositories:
-        - "http://repo1.maven.org/maven2/"
-        - "https://repo.gradle.org/gradle/libs-releases/"
-        - "https://artifactory.psdops.com/public"
-    end
+    repositories: [
+        "http://repo1.maven.org/maven2/",
+        "https://repo.gradle.org/gradle/libs-releases/",
+        "https://artifactory.psdops.com/public"
+    ]
 end
 
 aws::credentials default
-    profile-name: psd-sandbox
-    region: us-east-1
+    profile-name: "psd-sandbox"
+    region: "us-east-1"
 end
 
 aws::vpc vpc-example-for-peering-connection-1
-    cidr-block: 10.0.0.0/16
+    cidr-block: "10.0.0.0/16"
 
-    tags:
-        Name: vpc-example-for-peering-connection-1
-    end
+    tags: {
+        Name: "vpc-example-for-peering-connection-1"
+    }
 end
 
 aws::vpc vpc-example-for-peering-connection-2
-    cidr-block: 10.20.0.0/16
+    cidr-block: "10.20.0.0/16"
 
-    tags:
-        Name: vpc-example-for-peering-connection-2
-    end
+    tags: {
+        Name: "vpc-example-for-peering-connection-2"
+    }
 end
 
 aws::peering-connection peering-connection-example
@@ -34,7 +34,7 @@ aws::peering-connection peering-connection-example
     owner-id: '572681481110'
     region: 'us-east-1'
 
-    tags:
-        Name: peering-connection-example
-    end
+    tags: {
+        Name: "peering-connection-example"
+    }
 end

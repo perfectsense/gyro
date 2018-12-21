@@ -9,8 +9,6 @@ def aws_sdk2_version = '2.1.4'
 
 defaultTasks 'build'
 
-apply plugin: "aspectj.gradle"
-
 dependencies {
     compile "software.amazon.awssdk:apache-client:${aws_sdk2_version}"
     compile "software.amazon.awssdk:ec2:${aws_sdk2_version}"
@@ -19,8 +17,6 @@ dependencies {
     compile 'com.psddev:dari-util:3.3.607-xe0f27a'
     compile "com.google.guava:guava:23.0"
     compile "beam:beam-core:${version}"
-
-    aspectpath project(':beam-lang')
 }
 
 task referenceDocs(type: Javadoc) {

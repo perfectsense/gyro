@@ -1,201 +1,40 @@
 package beam.core;
 
 import beam.core.diff.ResourceChange;
+import beam.core.diff.ResourceDiffProperty;
+import beam.core.diff.ResourceDisplayDiff;
 import beam.core.diff.ResourceName;
-import beam.lang.BCL;
-import beam.lang.BeamConfig;
-import beam.lang.BeamContext;
-import beam.lang.BeamContextKey;
-import beam.lang.BeamExtension;
-import beam.lang.BeamLangException;
-import beam.lang.BeamList;
-import beam.lang.BeamLiteral;
-import beam.lang.BeamReference;
-import beam.lang.BeamResolvable;
-import beam.lang.BeamScalar;
-import com.google.common.base.CaseFormat;
+import beam.lang.BeamLanguageExtension;
+import beam.lang.types.BeamReference;
+import beam.lang.types.KeyValueBlock;
+import beam.lang.types.ResourceBlock;
+import com.google.common.base.Throwables;
+import com.psddev.dari.util.ObjectUtils;
 
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 
-public abstract class BeamResource extends BeamValidatedConfig implements Comparable<BeamResource> {
+public abstract class BeamResource extends BeamLanguageExtension implements Comparable<BeamResource> {
 
-    private String resourceIdentifier;
-    private BeamCredentials resourceCredentials;
-    private String path;
-    private List<BeamResource> dependsOn;
+    private transient BeamCredentials resourceCredentials;
 
-    private transient BeamResource parent;
-    private transient List<BeamResource> children = new ArrayList<>();
-    private final transient Set<BeamResource> dependencies = new TreeSet<>();
-    private final transient Set<BeamResource> dependents = new TreeSet<>();
     private transient ResourceChange change;
-    private transient BeamConfig root;
 
-    public List<BeamResource> getDependsOn() {
-        return dependsOn;
-    }
+    public abstract boolean refresh();
 
-    public void setDependsOn(List<BeamResource> dependsOn) {
-        this.dependsOn = dependsOn;
-    }
+    public abstract void create();
 
-    public String getPath() {
-        return path;
-    }
+    public abstract void update(BeamResource current, Set<String> changedProperties);
 
-    public void setPath(String path) {
-        this.path = path;
-    }
+    public abstract void delete();
 
-    @Override
-    public boolean resolve(BeamContext context) {
-        String id = getParams().get(0).getValue().toString();
-        setResourceIdentifier(id);
-
-        if (get("resource-credentials") == null) {
-            BeamContextKey credentialsKey = new BeamContextKey("default", getResourceCredentialsName());
-
-            BeamReference credentialsReference = new BeamReference();
-            credentialsReference.getScopeChain().add(credentialsKey);
-
-            // Add reference to current resource
-            BeamContextKey resourceCredentialsKey = new BeamContextKey("resource-credentials");
-            addReferable(resourceCredentialsKey, credentialsReference);
-        }
-
-        boolean progress = super.resolve(context);
-        populate();
-
-        return progress;
-    }
-
-    @Override
-    public void applyExtension(BCL lang) {
-        List<BeamConfig> newConfigs = new ArrayList<>();
-        Iterator<BeamConfig> iterator = getSubConfigs().iterator();
-        while (iterator.hasNext()) {
-            BeamConfig config = iterator.next();
-            Class<? extends BeamConfig> extension = null;
-            if (lang.hasExtension(config.getType())) {
-                extension = lang.getExtension(config.getType());
-            } else {
-                try {
-                    String keyId = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, config.getType());
-                    PropertyDescriptor pd = new PropertyDescriptor(keyId, getClass());
-                    Method setter = pd.getWriteMethod();
-
-                    if (setter != null && setter.getParameterTypes().length == 1) {
-                        Class parameterType = setter.getParameterTypes()[0];
-                        Type[] types = setter.getGenericParameterTypes();
-                        Class type = parameterType;
-
-                        if (Collection.class.isAssignableFrom(parameterType)) {
-                            ParameterizedType paramType = (ParameterizedType) types[0];
-                            type = (Class<?>) paramType.getActualTypeArguments()[0];
-                            BeamContextKey key = new BeamContextKey(config.getType());
-                            if (hasKey(key) && !(getReferable(key) instanceof BeamList)) {
-                                throw new BeamException(String.format("Expect %s in %s to be a BeamList, found %s",
-                                    key, getClass(), getReferable(key).getClass()));
-                            } else {
-                                BeamList beamList = new BeamList();
-                                addReferable(key, beamList);
-                            }
-                        }
-
-                        if (lang.hasExtension(type.getName())) {
-                            extension = lang.getExtension(type.getName());
-                        }
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-            if (extension == null) {
-                continue;
-            }
-
-            if (config.getClass() != extension) {
-                try {
-                    BeamConfig newConfig = extension.newInstance();
-                    newConfig.setCtx(config.getCtx());
-                    newConfig.setType(config.getType());
-                    newConfig.importContext(config);
-                    newConfig.setParams(config.getParams());
-                    newConfig.setSubConfigs(config.getSubConfigs());
-                    newConfigs.add(newConfig);
-                    newConfig.applyExtension(lang);
-                    if (newConfig instanceof BeamExtension) {
-                        ((BeamExtension) newConfig).setLang(lang);
-                    }
-
-                    iterator.remove();
-
-                } catch (InstantiationException | IllegalAccessException ie) {
-                    throw new BeamLangException("Unable to instantiate " + extension.getClass().getSimpleName());
-                }
-            } else {
-                config.applyExtension(lang);
-            }
-        }
-
-        getSubConfigs().addAll(newConfigs);
-    }
-
-    @Override
-    public Set<BeamReference> getDependencies(BeamConfig config) {
-        Set<BeamReference> dependencies = super.getDependencies(config);
-        BeamResolvable resolvable = get("depends-on");
-        if (resolvable instanceof BeamList) {
-            BeamList beamList = (BeamList) resolvable;
-            for (BeamScalar beamScalar : beamList.getList()) {
-                if (beamScalar.getElements().size() != 1) {
-                    throw new IllegalStateException();
-                }
-
-                BeamLiteral beamLiteral = beamScalar.getElements().get(0);
-                if (beamLiteral instanceof BeamReference) {
-                    dependencies.add((BeamReference) beamLiteral);
-                } else {
-                    throw new IllegalArgumentException("depends-on contains non reference value");
-                }
-            }
-        } else if (resolvable != null) {
-            throw new IllegalArgumentException("depends-on has to be a list");
-        }
-
-        this.dependencies.clear();
-        for (BeamReference reference : dependencies) {
-            Object dependency = reference.getValue();
-            if (dependency instanceof BeamResource) {
-                BeamResource resource = (BeamResource) dependency;
-                this.dependencies.add(resource);
-                resource.dependents.add(this);
-
-            } else {
-                throw new BeamException("Dependency has to be BeamResource");
-            }
-        }
-
-        return dependencies;
-    }
-
-    public String getResourceIdentifier() {
-        return resourceIdentifier;
-    }
-
-    public void setResourceIdentifier(String resourceIdentifier) {
-        this.resourceIdentifier = resourceIdentifier;
-    }
+    public abstract String toDisplayString();
 
     public abstract Class getResourceCredentialsClass();
 
@@ -205,7 +44,7 @@ public abstract class BeamResource extends BeamValidatedConfig implements Compar
         try {
             BeamCredentials credentials = (BeamCredentials) c.newInstance();
 
-            String resourceNamespace = credentials.getName();
+            String resourceNamespace = credentials.getCloudName();
             String resourceName = c.getSimpleName();
             if (c.isAnnotationPresent(ResourceName.class)) {
                 ResourceName name = (ResourceName) c.getAnnotation(ResourceName.class);
@@ -219,7 +58,6 @@ public abstract class BeamResource extends BeamValidatedConfig implements Compar
 
         return c.getSimpleName();
     }
-
 
     public BeamCredentials getResourceCredentials() {
         return resourceCredentials;
@@ -237,69 +75,141 @@ public abstract class BeamResource extends BeamValidatedConfig implements Compar
         this.change = change;
     }
 
-    public Set<BeamResource> dependencies() {
-        return dependencies;
-    }
+    /**
+     * Copy internal values from source to this object. This is used to copy information
+     * from the current state (i.e. a resource loaded from a state file) into a pending
+     * state (i.e. a resource loaded from a config file).
+     */
+    public void syncPropertiesFromResource(ResourceBlock source) {
+        if (source == null) {
+            return;
+        }
 
-    public Set<BeamResource> dependents() {
-        return dependents;
-    }
+        try {
+            for (PropertyDescriptor p : Introspector.getBeanInfo(getClass()).getPropertyDescriptors()) {
+                Method reader = p.getReadMethod();
 
-    public BeamConfig getRoot() {
-        return root;
-    }
+                if (reader != null) {
+                    Method writer = p.getWriteMethod();
 
-    public void setRoot(BeamConfig root) {
-        this.root = root;
-    }
+                    ResourceDiffProperty propertyAnnotation = reader.getAnnotation(ResourceDiffProperty.class);
+                    boolean isNullable = false;
+                    if (propertyAnnotation != null) {
+                        isNullable = propertyAnnotation.nullable();
+                    }
 
-    public BeamResource findTop() {
-        BeamResource top = this;
+                    Object currentValue = reader.invoke(source);
+                    Object pendingValue = reader.invoke(this);
 
-        while (true) {
-            BeamResource parent = top.parent;
-
-            if (parent == null) {
-                return top;
-
-            } else {
-                top = parent;
+                    if (writer != null && (currentValue != null && pendingValue == null && !isNullable)) {
+                        writer.invoke(this, reader.invoke(source));
+                    }
+                }
             }
+
+        } catch (IllegalAccessException | IntrospectionException error) {
+            throw new IllegalStateException(error);
+        } catch (InvocationTargetException error) {
+            throw Throwables.propagate(error);
         }
     }
 
-    @SuppressWarnings("unchecked")
-    public <T extends BeamResource> T findParent(Class<T> parentClass) {
-        for (BeamResource parent = this; (parent = parent.parent) != null; ) {
-            if (parentClass.isInstance(parent)) {
-                return (T) parent;
+    private Method readerMethodForKey(String key) {
+        String convertedKey = fieldNameFromKey(key);
+        try {
+            for (PropertyDescriptor p : Introspector.getBeanInfo(getClass()).getPropertyDescriptors()) {
+                if (p.getDisplayName().equals(convertedKey)) {
+                    return p.getReadMethod();
+                }
             }
+        } catch (IntrospectionException ex) {
+            // Ignoring introspection exceptions
         }
 
         return null;
     }
 
-    public abstract void refresh();
+    public ResourceDisplayDiff calculateFieldDiffs(BeamResource current) {
+        boolean firstField = true;
 
-    public BeamResource findCurrent() {
-        return null;
+        ResourceDisplayDiff displayDiff = new ResourceDisplayDiff();
+
+        Map<String, Object> currentValues = current.resolvedKeyValues();
+        Map<String, Object> pendingValues = resolvedKeyValues();
+
+        for (String key : pendingValues.keySet()) {
+            // If there is no getter for this method then skip this field since there can
+            // be no ResourceDiffProperty annotation.
+            Method reader = readerMethodForKey(key);
+            if (reader == null) {
+                continue;
+            }
+
+            // If no ResourceDiffProperty annotation then skip this field.
+            ResourceDiffProperty propertyAnnotation = reader.getAnnotation(ResourceDiffProperty.class);
+            if (propertyAnnotation == null) {
+                continue;
+            }
+            boolean nullable = propertyAnnotation.nullable();
+
+            Object currentValue = currentValues.get(key);
+            Object pendingValue = pendingValues.get(key);
+
+            if (pendingValue != null || nullable) {
+                String fieldChangeOutput = null;
+                if (pendingValue instanceof List) {
+                    fieldChangeOutput = ResourceChange.processAsListValue(key, (List) currentValue, (List) pendingValue);
+                } else if (pendingValue instanceof Map) {
+                    fieldChangeOutput = ResourceChange.processAsMapValue(key, (Map) currentValue, (Map) pendingValue);
+                } else {
+                    fieldChangeOutput = ResourceChange.processAsScalarValue(key, currentValue, pendingValue);
+                }
+
+                if (!ObjectUtils.isBlank(fieldChangeOutput)) {
+                    if (!firstField) {
+                        displayDiff.getChangedDisplay().append(", ");
+                    }
+
+                    displayDiff.addChangedProperty(key);
+                    displayDiff.getChangedDisplay().append(fieldChangeOutput);
+
+                    if (!propertyAnnotation.updatable()) {
+                        displayDiff.setReplace(true);
+                    }
+
+                    firstField = false;
+                }
+            }
+        }
+
+        return displayDiff;
     }
 
-    public abstract void create();
+    @Override
+    public void execute() {
+        if (get("resource-credentials") == null) {
+            BeamReference credentialsReference = new BeamReference(getResourceCredentialsName(), "default");
+            credentialsReference.setParentBlock(getParentBlock());
 
-    public abstract void update(BeamResource current, Set<String> changedProperties);
+            KeyValueBlock credentialsBlock = new KeyValueBlock();
+            credentialsBlock.setParentBlock(this);
+            credentialsBlock.setKey("resource-credentials");
+            credentialsBlock.setValue(credentialsReference);
 
-    public abstract void delete();
-
-    public abstract String toDisplayString();
+            putKeyValue(credentialsBlock);
+        }
+    }
 
     @Override
     public int compareTo(BeamResource o) {
-        if (getResourceIdentifier() != null) {
-            return getResourceIdentifier().compareTo(o.getResourceIdentifier());
+        if (o == null) {
+            return 1;
         }
 
-        return -1;
+        String compareKey = String.format("%s %s", getResourceType(), getResourceIdentifier());
+        String otherKey = String.format("%s %s", o.getResourceType(), o.getResourceIdentifier());
+
+        return compareKey.compareTo(otherKey);
     }
 
 }

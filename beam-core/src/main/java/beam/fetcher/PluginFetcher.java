@@ -1,10 +1,11 @@
 package beam.fetcher;
 
-import beam.lang.BeamExtension;
+import beam.lang.BeamLanguageExtension;
 
 public interface PluginFetcher {
 
-    boolean validate(BeamExtension fetcherContext);
+    boolean validate(BeamLanguageExtension fetcherContext);
 
-    void fetch(BeamExtension fetcherContext);
+    void fetch(BeamLanguageExtension fetcherContext);
+
 }

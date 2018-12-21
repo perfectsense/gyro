@@ -1,14 +1,12 @@
 package beam.aws.ec2;
 
 import beam.aws.AwsResource;
-import beam.core.BeamException;
 import beam.core.diff.ResourceName;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.CreateVpcPeeringConnectionResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeVpcPeeringConnectionsResponse;
 import software.amazon.awssdk.services.ec2.model.VpcPeeringConnection;
 
-import java.text.MessageFormat;
 import java.util.Set;
 
 /**
@@ -25,9 +23,9 @@ import java.util.Set;
  *         owner-id: '572681481110'
  *         region: 'us-east-1'
  *
- *         tags:
- *             Name: peering-connection-example
- *         end
+ *         tags: {
+ *             Name: "peering-connection-example"
+ *         }
  *     end
  */
 @ResourceName("peering-connection")
@@ -97,7 +95,7 @@ public class PeeringConectionResource extends Ec2TaggableResource<VpcPeeringConn
     }
 
     @Override
-    protected void doRefresh() {
+    protected boolean doRefresh() {
         Ec2Client client = createClient(Ec2Client.class);
 
         DescribeVpcPeeringConnectionsResponse response = client.describeVpcPeeringConnections(r -> r.vpcPeeringConnectionIds(getId()));
@@ -107,9 +105,11 @@ public class PeeringConectionResource extends Ec2TaggableResource<VpcPeeringConn
             setPeeringConnectionId(vpcPeeringConnection.vpcPeeringConnectionId());
             setOwnerId(vpcPeeringConnection.accepterVpcInfo().ownerId());
             setVpcId(vpcPeeringConnection.accepterVpcInfo().vpcId());
-        } else {
-            throw new BeamException(MessageFormat.format("VPC Peering Connection - {0} not found.", getPeeringConnectionId()));
+
+            return true;
         }
+
+        return false;
     }
 
     @Override
@@ -151,7 +151,7 @@ public class PeeringConectionResource extends Ec2TaggableResource<VpcPeeringConn
             sb.append(getPeeringConnectionId());
 
         } else {
-            sb.append("Peering Connection");
+            sb.append("peering connection");
         }
 
         return sb.toString();

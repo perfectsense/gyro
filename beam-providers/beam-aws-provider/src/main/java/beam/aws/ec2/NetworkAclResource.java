@@ -1,14 +1,12 @@
 package beam.aws.ec2;
 
 import beam.aws.AwsResource;
-import beam.core.BeamException;
 import beam.core.diff.ResourceName;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.CreateNetworkAclResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeNetworkAclsResponse;
 import software.amazon.awssdk.services.ec2.model.NetworkAcl;
 
-import java.text.MessageFormat;
 import java.util.Set;
 
 /**
@@ -22,9 +20,9 @@ import java.util.Set;
  *     aws::network-acl network-acl-example
  *         vpc-id: $(aws::vpc vpc-example-for-network-acl | vpc-id)
  *
- *         tags:
- *             Name: network-acl-example
- *         end
+ *         tags: {
+ *             Name: "network-acl-example"
+ *         }
  *     end
  */
 @ResourceName("network-acl")
@@ -58,7 +56,7 @@ public class NetworkAclResource extends Ec2TaggableResource<NetworkAcl> {
     }
 
     @Override
-    protected void doRefresh() {
+    protected boolean doRefresh() {
         Ec2Client client = createClient(Ec2Client.class);
 
         DescribeNetworkAclsResponse response = client.describeNetworkAcls(r -> r.networkAclIds(getNetworkAclId()));
@@ -66,9 +64,11 @@ public class NetworkAclResource extends Ec2TaggableResource<NetworkAcl> {
         if (!response.networkAcls().isEmpty()) {
             NetworkAcl networkAcl = response.networkAcls().get(0);
             setVpcId(networkAcl.vpcId());
-        } else {
-            throw new BeamException(MessageFormat.format("Network ACL - {0} not found.", getNetworkAclId()));
+
+            return true;
         }
+
+        return false;
     }
 
     @Override
@@ -102,7 +102,7 @@ public class NetworkAclResource extends Ec2TaggableResource<NetworkAcl> {
             sb.append(getNetworkAclId());
 
         } else {
-            sb.append("Network ACL");
+            sb.append("network acl");
         }
 
         return sb.toString();

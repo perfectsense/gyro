@@ -1,21 +1,13 @@
 package beam.core.diff;
 
 import beam.core.BeamResource;
-import com.google.common.base.Throwables;
+import beam.lang.types.BeamBlock;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
-import com.psddev.dari.util.IoUtils;
 import com.psddev.dari.util.Lazy;
 import com.psddev.dari.util.ObjectUtils;
+import com.psddev.dari.util.StringUtils;
 
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
-import java.io.File;
-import java.io.FileWriter;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -65,15 +57,15 @@ public class ResourceChange {
         }
     }
 
-    public void create(Collection<? extends BeamResource> pendingResources) throws Exception {
+    public void create(Collection<BeamResource> pendingResources) throws Exception {
         diff.create(this, pendingResources);
     }
 
-    public <R extends BeamResource> void update(Collection<R> currentResources, Collection<R> pendingResources) throws Exception {
+    public void update(Collection currentResources, Collection pendingResources) throws Exception {
         diff.update(this, currentResources, pendingResources);
     }
 
-    public void delete(Collection<? extends BeamResource> pendingResources) throws Exception {
+    public void delete(Collection<BeamResource> pendingResources) throws Exception {
         diff.delete(this, pendingResources);
     }
 
@@ -81,11 +73,14 @@ public class ResourceChange {
         Set<ResourceChange> dependencies = new HashSet<>();
 
         BeamResource resource = pendingResource != null ? pendingResource : currentResource;
-        for (BeamResource r : (getType() == ChangeType.DELETE ? resource.dependents() : resource.dependencies())) {
-            ResourceChange c = r.getChange();
+        for (BeamBlock block : (getType() == ChangeType.DELETE ? resource.dependents() : resource.dependencies())) {
+            if (block instanceof BeamResource) {
+                BeamResource r = (BeamResource) block;
+                ResourceChange c = r.getChange();
 
-            if (c != null) {
-                dependencies.add(c);
+                if (c != null) {
+                    dependencies.add(c);
+                }
             }
         }
 
@@ -106,14 +101,6 @@ public class ResourceChange {
         }
     }
 
-    public BeamResource getCurrentResource() {
-        return currentResource;
-    }
-
-    public BeamResource getPendingResource() {
-        return pendingResource;
-    }
-
     public List<ResourceDiff> getDiffs() {
         return diffs;
     }
@@ -130,206 +117,88 @@ public class ResourceChange {
         return changed;
     }
 
-    public void tryToKeep() {
-        try {
-            if (currentResource == null || pendingResource == null) {
-                return;
-            }
-
-            Class klass = pendingResource != null ? pendingResource.getClass() : null;
-            if (klass == null && currentResource != null) {
-                klass = currentResource.getClass();
-            }
-
-            if (klass == null) {
-                return;
-            }
-
-            for (PropertyDescriptor p : Introspector.getBeanInfo(klass).getPropertyDescriptors()) {
-                Method reader = p.getReadMethod();
-
-                if (reader == null) {
-                    continue;
-                }
-
-                Object currentValue = reader.invoke(currentResource);
-                Object pendingValue = reader.invoke(pendingResource);
-
-                ResourceDiffProperty propertyAnnotation = reader.getAnnotation(ResourceDiffProperty.class);
-                boolean nullable = propertyAnnotation != null && propertyAnnotation.nullable();
-
-                if (((ObjectUtils.isBlank(pendingValue) && pendingValue instanceof NullArrayList)
-                    || (ObjectUtils.isBlank(pendingValue) && pendingValue instanceof NullSet))
-                    || (!ObjectUtils.isBlank(pendingValue) || nullable)) {
-
-                    if (propertyAnnotation != null) {
-                        Set<String> changedProperties;
-                        StringBuilder changedPropertiesDisplay;
-
-                        if (propertyAnnotation.updatable()) {
-                            changedProperties = updatedProperties;
-                            changedPropertiesDisplay = updatedPropertiesDisplay;
-                        } else {
-                            changedProperties = replacedProperties;
-                            changedPropertiesDisplay = replacedPropertiesDisplay;
-                        }
-
-                        if (pendingValue == null) {
-                            if (!ObjectUtils.isBlank(currentValue)) {
-                                changedProperties.add(p.getName());
-                                changedPropertiesDisplay.append("unsetting ");
-                                changedPropertiesDisplay.append(p.getName());
-                                changedPropertiesDisplay.append("[" + currentValue + "]");
-                                changedPropertiesDisplay.append(", ");
-                            }
-                        } else if (!pendingValue.equals(currentValue)) {
-                            boolean showingDiff = false;
-
-                            if (pendingValue instanceof Map) {
-                                if (propertyAnnotation.mapSummary()) {
-                                    changedProperties.add(p.getName());
-                                    changedPropertiesDisplay.append(p.getName());
-                                    changedPropertiesDisplay.append(": ");
-                                    changedPropertiesDisplay.append(mapSummaryDiff((Map) currentValue, (Map) pendingValue));
-
-                                    showingDiff = true;
-
-                                } else {
-                                    File currentFile = null;
-                                    File pendingFile = null;
-                                    File diffFile = null;
-
-                                    try {
-                                        currentFile = File.createTempFile("beam", ".json");
-                                        FileWriter currentWriter = new FileWriter(currentFile);
-                                        currentWriter.write(ObjectUtils.toJson(currentValue, true));
-                                        currentWriter.close();
-
-                                        pendingFile = File.createTempFile("beam", ".json");
-                                        FileWriter pendingWriter = new FileWriter(pendingFile);
-                                        pendingWriter.write(ObjectUtils.toJson(pendingValue, true));
-                                        pendingWriter.close();
-
-                                        List<String> arguments = new ArrayList<>();
-                                        arguments.add("wdiff");
-
-                                        arguments.add("-w"); // start delete
-                                        arguments.add("@|red -");
-                                        arguments.add("-x"); // end delete
-                                        arguments.add("|@");
-
-
-                                        arguments.add("-y"); // start insert
-                                        arguments.add("@|yellow +");
-                                        arguments.add("-z"); // end insert
-                                        arguments.add("|@");
-
-                                        arguments.add(currentFile.getCanonicalPath());
-                                        arguments.add(pendingFile.getCanonicalPath());
-
-                                        diffFile = File.createTempFile("beam", "diff");
-
-                                        ProcessBuilder diffProcess = new ProcessBuilder(arguments);
-                                        diffProcess.redirectOutput(diffFile);
-                                        diffProcess.redirectError(diffFile);
-                                        int exitCode = diffProcess.start().waitFor();
-
-                                        if (exitCode == 1) {
-                                            changedProperties.add(p.getName());
-                                            changedPropertiesDisplay.append(p.getName());
-                                            changedPropertiesDisplay.append(": ");
-                                            changedPropertiesDisplay.append(IoUtils.toString(diffFile, Charset.forName("UTF-8")));
-
-                                            showingDiff = true;
-                                        }
-                                    } catch (Exception ex) {
-                                        ex.printStackTrace();
-                                    } finally {
-                                        if (currentFile != null) {
-                                            currentFile.delete();
-                                        }
-
-                                        if (pendingFile != null) {
-                                            pendingFile.delete();
-                                        }
-
-                                        if (diffFile != null) {
-                                            diffFile.delete();
-                                        }
-                                    }
-                                }
-                            }
-
-                            if (!showingDiff) {
-                                changedProperties.add(p.getName());
-                                changedPropertiesDisplay.append(p.getName());
-                                changedPropertiesDisplay.append(": ");
-                                if (ObjectUtils.isBlank(currentValue)) {
-                                    changedPropertiesDisplay.append(pendingValue);
-                                } else {
-                                    changedPropertiesDisplay.append(currentValue);
-                                    changedPropertiesDisplay.append(" -> ");
-                                    changedPropertiesDisplay.append(pendingValue);
-                                }
-                                changedPropertiesDisplay.append(", ");
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (updatedPropertiesDisplay.length() > 0) {
-                updatedPropertiesDisplay.setLength(updatedPropertiesDisplay.length() - 2);
-            }
-
-            if (replacedPropertiesDisplay.length() > 0) {
-                replacedPropertiesDisplay.setLength(replacedPropertiesDisplay.length() - 2);
-            }
-
-        } catch (IllegalAccessException | IntrospectionException error) {
-            throw new IllegalStateException(error);
-        } catch (InvocationTargetException error) {
-            throw Throwables.propagate(error);
+    /**
+     * Calculate the difference between individual fields.
+     *
+     * If a field changed and that field is updatable, it's added to updatedProperties.
+     * If a field changed and that field is not updatable, it's added to replaceProperties.
+     */
+    public void calculateFieldDiffs() {
+        if (currentResource == null || pendingResource == null) {
+            return;
         }
-    }
 
-    protected BeamResource change() {
-        ChangeType type = getType();
+        ResourceDisplayDiff displayDiff = pendingResource.calculateFieldDiffs(currentResource);
 
-        if (type == ChangeType.UPDATE) {
-            pendingResource.update(currentResource, updatedProperties);
-            return pendingResource;
-
-        } else if (type == ChangeType.REPLACE) {
-            return currentResource;
-
+        if (displayDiff.isReplace()) {
+            replacedProperties.addAll(displayDiff.getChangedProperties());
+            replacedPropertiesDisplay.append(displayDiff.getChangedDisplay());
         } else {
-            return currentResource;
+            updatedProperties.addAll(displayDiff.getChangedProperties());
+            updatedPropertiesDisplay.append(displayDiff.getChangedDisplay());
         }
     }
 
-    @Override
-    public String toString() {
-        ChangeType type = getType();
+    public static String processAsScalarValue(String key, Object currentValue, Object pendingValue) {
+        StringBuilder sb = new StringBuilder();
 
-        if (type == ChangeType.UPDATE) {
-            return String.format(
-                    "Update %s (%s)",
-                    currentResource.toDisplayString(),
-                    updatedPropertiesDisplay);
+        if (pendingValue.equals(currentValue)) {
+            return sb.toString();
+        }
 
-        } else if (type == ChangeType.REPLACE) {
-            return String.format(
-                    "Replace %s (%s)",
-                    currentResource.toDisplayString(),
-                    replacedPropertiesDisplay);
-
+        sb.append(key);
+        sb.append(": ");
+        if (ObjectUtils.isBlank(currentValue)) {
+            sb.append(pendingValue);
         } else {
-            return currentResource.toDisplayString();
+            sb.append(currentValue);
+            sb.append(" -> ");
+            sb.append(pendingValue);
         }
+
+        return sb.toString();
     }
 
-    private String mapSummaryDiff(Map current, Map pending) {
+    public static String processAsMapValue(String key, Map currentValue, Map pendingValue) {
+        StringBuilder sb = new StringBuilder();
+
+        String diff = mapSummaryDiff(currentValue, pendingValue);
+        if (!ObjectUtils.isBlank(diff)) {
+            sb.append(key);
+            sb.append(": ");
+            sb.append(diff);
+        }
+
+        return sb.toString();
+    }
+
+    public static String processAsListValue(String key, List currentValue, List pendingValue) {
+        StringBuilder sb = new StringBuilder();
+
+        List<String> additions = new ArrayList<>(pendingValue);
+        additions.removeAll(currentValue);
+
+        List<String> subtractions = new ArrayList<>(currentValue);
+        subtractions.removeAll(pendingValue);
+
+        if (!additions.isEmpty()) {
+            sb.append(key);
+            sb.append(": ");
+            sb.append("+[");
+            sb.append(StringUtils.join(additions, ", "));
+            sb.append("]");
+        } else if (!subtractions.isEmpty()) {
+            sb.append(key);
+            sb.append(": ");
+            sb.append("-[");
+            sb.append(StringUtils.join(subtractions, ", "));
+            sb.append("]");
+        }
+
+        return sb.toString();
+    }
+
+    public static String mapSummaryDiff(Map current, Map pending) {
         StringBuilder diffResult = new StringBuilder();
         if (current == null) {
             current = new HashMap();
@@ -337,11 +206,11 @@ public class ResourceChange {
 
         final MapDifference diff = Maps.difference(current, pending);
         for (Object key : diff.entriesOnlyOnRight().keySet()) {
-            diffResult.append(String.format("+[%s => %s], ", key, pending.get(key)));
+            diffResult.append(String.format("+[%s => %s]", key, pending.get(key)));
         }
 
         for (Object key : diff.entriesOnlyOnLeft().keySet()) {
-            diffResult.append(String.format("-[%s => %s], ", key, current.get(key)));
+            diffResult.append(String.format("-[%s => %s]", key, current.get(key)));
         }
 
         if (diffResult.lastIndexOf(",") == diffResult.length()) {
@@ -367,4 +236,42 @@ public class ResourceChange {
 
         return diffResult.toString();
     }
+
+    @Override
+    public String toString() {
+        ChangeType type = getType();
+
+        if (type == ChangeType.UPDATE) {
+            return String.format(
+                "Update %s (%s)",
+                currentResource.toDisplayString(),
+                updatedPropertiesDisplay);
+
+        } else if (type == ChangeType.REPLACE) {
+            return String.format(
+                "Replace %s (%s)",
+                currentResource.toDisplayString(),
+                replacedPropertiesDisplay);
+
+        } else {
+            return currentResource.toDisplayString();
+        }
+    }
+
+    protected BeamResource change() {
+        ChangeType type = getType();
+
+        if (type == ChangeType.UPDATE) {
+            pendingResource.resolve();
+            pendingResource.update(currentResource, updatedProperties);
+            return pendingResource;
+
+        } else if (type == ChangeType.REPLACE) {
+            return currentResource;
+
+        } else {
+            return currentResource;
+        }
+    }
+
 }

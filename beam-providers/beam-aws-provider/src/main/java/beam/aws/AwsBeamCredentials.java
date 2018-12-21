@@ -2,12 +2,7 @@ package beam.aws;
 
 import beam.core.BeamCredentials;
 import beam.core.diff.ResourceName;
-import beam.lang.BeamContext;
-import beam.lang.BeamContextKey;
-import beam.lang.BeamResolvable;
-import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableMap;
-import org.apache.commons.beanutils.BeanUtils;
 import org.joda.time.DateTime;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -16,13 +11,12 @@ import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
 @ResourceName("credentials")
 public class AwsBeamCredentials extends BeamCredentials {
 
-    private AwsCredentialsProvider provider;
+    private transient AwsCredentialsProvider provider;
 
     private String profileName;
 
@@ -39,7 +33,7 @@ public class AwsBeamCredentials extends BeamCredentials {
     }
 
     @Override
-    public String getName() {
+    public String getCloudName() {
         return "aws";
     }
 
@@ -94,14 +88,6 @@ public class AwsBeamCredentials extends BeamCredentials {
     @Override
     public Map<String, String> findCredentials(boolean refresh, boolean extended) {
         return findCredentials(refresh);
-    }
-
-    @Override
-    public boolean resolve(BeamContext context) {
-        boolean progress = super.resolve(context);
-        populate();
-
-        return progress;
     }
 
 }

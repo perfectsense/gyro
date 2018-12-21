@@ -12,6 +12,7 @@ import software.amazon.awssdk.services.ec2.model.CreateSubnetResponse;
 import software.amazon.awssdk.services.ec2.model.DeleteSubnetRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeNetworkInterfacesRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeSubnetsRequest;
+import software.amazon.awssdk.services.ec2.model.Ec2Exception;
 import software.amazon.awssdk.services.ec2.model.Filter;
 import software.amazon.awssdk.services.ec2.model.ModifySubnetAttributeRequest;
 import software.amazon.awssdk.services.ec2.model.Subnet;
@@ -100,24 +101,33 @@ public class SubnetResource extends Ec2TaggableResource<Subnet> {
     }
 
     @Override
-    public void doRefresh() {
+    public boolean doRefresh() {
         Ec2Client client = createClient(Ec2Client.class);
 
         if (ObjectUtils.isBlank(getSubnetId())) {
             throw new BeamException("subnet-id is missing, unable to load subnet.");
         }
 
-        DescribeSubnetsRequest request = DescribeSubnetsRequest.builder()
+        try {
+            DescribeSubnetsRequest request = DescribeSubnetsRequest.builder()
                 .subnetIds(getSubnetId())
                 .build();
 
-        for (Subnet subnet : client.describeSubnets(request).subnets()) {
-            setSubnetId(subnet.subnetId());
-            setAvailabilityZone(subnet.availabilityZone());
-            setCidrBlock(subnet.cidrBlock());
-            setMapPublicIpOnLaunch(subnet.mapPublicIpOnLaunch());
-            break;
+            for (Subnet subnet : client.describeSubnets(request).subnets()) {
+                setSubnetId(subnet.subnetId());
+                setAvailabilityZone(subnet.availabilityZone());
+                setCidrBlock(subnet.cidrBlock());
+                setMapPublicIpOnLaunch(subnet.mapPublicIpOnLaunch());
+            }
+        } catch (Ec2Exception ex) {
+            if (ex.getLocalizedMessage().contains("does not exist")) {
+                return false;
+            }
+
+            throw ex;
         }
+
+        return true;
     }
 
     @Override

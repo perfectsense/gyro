@@ -1,21 +1,21 @@
 provider aws
     artifact: "beam:beam-aws-provider:0.5"
-    repositories:
-        - "http://repo1.maven.org/maven2/"
-        - "https://repo.gradle.org/gradle/libs-releases/"
-        - "https://artifactory.psdops.com/public"
-    end
+    repositories: [
+        "http://repo1.maven.org/maven2/",
+        "https://repo.gradle.org/gradle/libs-releases/",
+        "https://artifactory.psdops.com/public"
+    ]
 end
 
 aws::credentials default
-    profile-name: psd-sandbox
-    region: us-east-1
+    profile-name: "psd-sandbox"
+    region: "us-east-1"
 end
 
 aws::customer-gateway customer-gateway-example
-    public-ip: 38.140.23.146
+    public-ip: "38.140.23.146"
 
-    tags:
-        Name: customer-gateway-example
-    end
+    tags: {
+        Name: "customer-gateway-example"
+    }
 end

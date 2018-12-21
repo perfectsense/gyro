@@ -1,19 +1,10 @@
 package beam.core.diff;
 
 import beam.core.BeamResource;
-import beam.lang.BeamContextKey;
-import com.google.common.base.CaseFormat;
-import com.google.common.base.Throwables;
+import beam.lang.types.ResourceBlock;
 import com.psddev.dari.util.CompactMap;
-import com.psddev.dari.util.ObjectUtils;
 
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -21,12 +12,12 @@ import java.util.Map;
 
 public class ResourceDiff {
 
-    private final Iterable<? extends BeamResource> currentResources;
-    private final Iterable<? extends BeamResource> pendingResources;
+    private Collection<BeamResource> currentResources;
+    private Collection<BeamResource> pendingResources;
     private final List<ResourceChange> changes = new ArrayList<>();
 
-    public ResourceDiff(Iterable<? extends BeamResource> currentResources,
-                        Iterable<? extends BeamResource> pendingResources) {
+    public ResourceDiff(Collection<BeamResource> currentResources,
+                        Collection<BeamResource> pendingResources) {
         this.currentResources = currentResources;
         this.pendingResources = pendingResources != null ? pendingResources : Collections.<BeamResource>emptySet();
     }
@@ -36,7 +27,7 @@ public class ResourceDiff {
      *
      * @return May be {@code null} to represent an empty iterable.
      */
-    public Iterable<? extends BeamResource> getCurrentResources() {
+    public Collection<BeamResource> getCurrentResources() {
         return currentResources;
     }
 
@@ -45,7 +36,7 @@ public class ResourceDiff {
      *
      * @return May be {@code null} to represent an empty iterable.
      */
-    public Iterable<? extends BeamResource> getPendingResources() {
+    public Collection<BeamResource> getPendingResources() {
         return pendingResources;
     }
 
@@ -57,17 +48,11 @@ public class ResourceDiff {
      * @return May be {@code null} to indicate no change.
      */
     public ResourceChange newCreate(final BeamResource pendingResource) throws Exception {
-        BeamResource currentResource = pendingResource.findCurrent();
-
-        if (currentResource != null) {
-            return newUpdate(currentResource, pendingResource);
-        }
-
         ResourceChange create = new ResourceChange(this, null, pendingResource) {
 
             @Override
             protected BeamResource change() {
-                pendingResource.resolve(pendingResource.getRoot());
+                pendingResource.resolve();
                 pendingResource.create();
                 return pendingResource;
             }
@@ -92,45 +77,10 @@ public class ResourceDiff {
      * @return May be {@code null} to indicate no change.
      */
     public ResourceChange newUpdate(final BeamResource currentResource, final BeamResource pendingResource) throws Exception {
-
-        // Fill the empty properties in pending with the values from current.
-        try {
-            Class klass = pendingResource != null ? pendingResource.getClass() : null;
-            if (klass == null && currentResource != null) {
-                klass = currentResource.getClass();
-            }
-
-            if (klass != null) {
-                for (PropertyDescriptor p : Introspector.getBeanInfo(klass).getPropertyDescriptors()) {
-                    Method reader = p.getReadMethod();
-
-                    if (reader != null) {
-                        Method writer = p.getWriteMethod();
-
-                        Object pendingValue = reader.invoke(pendingResource);
-                        if (writer != null && !isNullable(reader)
-                            && (pendingValue == null
-                            || (ObjectUtils.isBlank(pendingValue) && pendingValue instanceof NullArrayList)
-                            || (ObjectUtils.isBlank(pendingValue) && pendingValue instanceof NullSet))) {
-                            writer.invoke(pendingResource, reader.invoke(currentResource));
-                            String keyId = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, p.getName());
-                            BeamContextKey key = new BeamContextKey(keyId);
-                            if (reader.invoke(currentResource) != null && !pendingResource.hasKey(key)) {
-                                pendingResource.addReferable(key, currentResource.getReferable(key));
-                            }
-                        }
-                    }
-                }
-            }
-
-        } catch (IllegalAccessException | IntrospectionException error) {
-            throw new IllegalStateException(error);
-        } catch (InvocationTargetException error) {
-            throw Throwables.propagate(error);
-        }
+        pendingResource.syncPropertiesFromResource(currentResource);
 
         ResourceChange update = new ResourceChange(this, currentResource, pendingResource);
-        update.tryToKeep();
+        update.calculateFieldDiffs();
 
         currentResource.setChange(update);
         pendingResource.setChange(update);
@@ -166,65 +116,22 @@ public class ResourceDiff {
         return delete;
     }
 
-    public void create(ResourceChange change, Collection<? extends BeamResource> pendingResources) throws Exception {
+    public void create(ResourceChange change, Collection<BeamResource> pendingResources) throws Exception {
         ResourceDiff diff = new ResourceDiff(null, pendingResources);
         diff.diff();
         change.getDiffs().add(diff);
     }
 
-    public void createOne(ResourceChange change, BeamResource pendingResource) throws Exception {
-        if (pendingResource != null) {
-            ResourceDiff diff = new ResourceDiff(null, Arrays.asList(pendingResource));
-            diff.diff();
-            change.getDiffs().add(diff);
-        }
-    }
-
-    public <R extends BeamResource> void update(ResourceChange change,
-                                                Collection<R> currentResources,
-                                                Collection<R> pendingResources) throws Exception {
+    public void update(ResourceChange change, Collection currentResources, Collection pendingResources) throws Exception {
         ResourceDiff diff = new ResourceDiff(currentResources, pendingResources);
         diff.diff();
         change.getDiffs().add(diff);
     }
 
-    public <R extends BeamResource> void updateOne(ResourceChange change, R currentResource, R pendingResource) throws Exception {
-        if (currentResource != null) {
-            if (pendingResource != null) {
-                ResourceDiff diff = new ResourceDiff(Arrays.asList(currentResource), Arrays.asList(pendingResource));
-                diff.diff();
-                change.getDiffs().add(diff);
-
-            } else {
-                deleteOne(change, currentResource);
-            }
-
-        } else if (pendingResource != null) {
-            createOne(change, pendingResource);
-        }
-    }
-
-    public void delete(ResourceChange change, Collection<? extends BeamResource> currentResources) throws Exception {
+    public void delete(ResourceChange change, Collection<BeamResource> currentResources) throws Exception {
         ResourceDiff diff = new ResourceDiff(currentResources, null);
         diff.diff();
         change.getDiffs().add(diff);
-    }
-
-    public void deleteOne(ResourceChange change, BeamResource currentResource) throws Exception {
-        if (currentResource != null) {
-            ResourceDiff diff = new ResourceDiff(Arrays.asList(currentResource), null);
-            diff.diff();
-            change.getDiffs().add(diff);
-        }
-    }
-
-    private boolean isNullable(Method reader) {
-        ResourceDiffProperty propertyAnnotation = reader.getAnnotation(ResourceDiffProperty.class);
-        if (propertyAnnotation != null) {
-            return propertyAnnotation.nullable();
-        }
-
-        return false;
     }
 
     public List<ResourceChange> getChanges() {
@@ -232,6 +139,9 @@ public class ResourceDiff {
     }
 
     public void diff() throws Exception {
+        sortResources();
+        syncState();
+
         Map<String, BeamResource> currentResourcesByName = new CompactMap<>();
         Iterable<? extends BeamResource> currentResources = getCurrentResources();
 
@@ -285,4 +195,54 @@ public class ResourceDiff {
 
         return false;
     }
+
+    private void syncState() {
+        if (currentResources == null) {
+            return;
+        }
+
+        Map<String, BeamResource> currentResourcesByName = new CompactMap<>();
+        for (BeamResource resource : currentResources) {
+            currentResourcesByName.put(resource.getResourceIdentifier(), resource);
+        }
+
+        for (BeamResource pendingResource : getPendingResources()) {
+            BeamResource currentResource = currentResourcesByName.get(pendingResource.getResourceIdentifier());
+
+            pendingResource.syncPropertiesFromResource(currentResource);
+            pendingResource.resolve();
+        }
+    }
+
+    private Collection<BeamResource> sortResources(Collection<? extends BeamResource> resources) {
+        List<BeamResource> sorted = new ArrayList<>();
+
+        for (BeamResource resource : resources) {
+            List<BeamResource> deps = new ArrayList<>();
+            for (ResourceBlock dependency : resource.dependencies()) {
+                if (dependency instanceof BeamResource) {
+                    deps.add((BeamResource) dependency);
+                }
+            }
+
+            for (BeamResource r : sortResources(deps)) {
+                if (!sorted.contains(r)) {
+                    sorted.add(r);
+                }
+            }
+
+            if (!sorted.contains(resource)) {
+                sorted.add(resource);
+            }
+        }
+
+        return sorted;
+    }
+
+    private void sortResources() {
+        if (pendingResources != null) {
+            pendingResources = sortResources(pendingResources);
+        }
+    }
+
 }

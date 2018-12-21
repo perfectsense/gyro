@@ -7,7 +7,8 @@ import beam.core.BeamState;
 import beam.core.diff.ChangeType;
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiff;
-import beam.lang.BeamConfig;
+import beam.lang.BeamLanguageException;
+import beam.lang.types.ContainerBlock;
 import io.airlift.airline.Arguments;
 import io.airlift.airline.Command;
 import io.airlift.airline.Option;
@@ -34,21 +35,29 @@ public class UpCommand extends AbstractCommand {
         String configPath = getArguments().get(0);
         String statePath = configPath + ".state";
         BeamCore core = new BeamCore();
-        BeamConfig config = core.processConfig(configPath);
+        ContainerBlock rootBlock = null;
+        try {
+            rootBlock = core.parse(configPath);
+        } catch (BeamLanguageException ex) {
+            System.err.println(ex.getMessage());
+            System.exit(1);
+        }
 
-        BeamState stateBackend = core.getStateBackend(config);
-        BeamConfig state = stateBackend.load(statePath, core);
-        BeamConfig nonResourceConfig = core.findNonResources(config);
-        state.importContext(nonResourceConfig);
+        BeamState backend = core.getState(rootBlock);
+        ContainerBlock state = backend.load(statePath, core);
+        core.copyNonResourceState(rootBlock, state);
 
         if (BeamCore.validationException().isThrowing()) {
             throw BeamCore.validationException();
         }
 
-        Set<BeamResource> resources = core.findBeamResources(config);
+        Set<BeamResource> resources = core.findBeamResources(rootBlock);
         Set<BeamResource> current = core.findBeamResources(state, !skipRefresh);
 
+        BeamCore.ui().write("\n@|bold,white Looking for changes...|@");
         List<ResourceDiff> diffs = core.diff(current, resources);
+        BeamCore.ui().write("\n\n");
+
         Set<ChangeType> changeTypes = core.writeDiffs(diffs);
 
         boolean hasChanges = false;
@@ -58,7 +67,7 @@ public class UpCommand extends AbstractCommand {
             if (BeamCore.ui().readBoolean(Boolean.FALSE, "\nAre you sure you want to create and/or update resources?")) {
                 BeamCore.ui().write("\n");
                 core.setChangeable(diffs);
-                createOrUpdate(core, diffs, state, stateBackend, statePath);
+                createOrUpdate(core, diffs, state, backend, statePath);
             }
         }
 
@@ -68,12 +77,12 @@ public class UpCommand extends AbstractCommand {
             if (BeamCore.ui().readBoolean(Boolean.FALSE, "\nAre you sure you want to delete resources?")) {
                 BeamCore.ui().write("\n");
                 core.setChangeable(diffs);
-                delete(core, diffs, state, stateBackend, statePath);
+                delete(core, diffs, state, backend, statePath);
             }
         }
 
         if (!hasChanges) {
-            BeamCore.ui().write("\nNo changes.\n");
+            BeamCore.ui().write("@|bold,green No changes.|@\n\n");
         }
 
     }
@@ -82,7 +91,7 @@ public class UpCommand extends AbstractCommand {
         return arguments;
     }
 
-    private void createOrUpdate(BeamCore core, List<ResourceDiff> diffs, BeamConfig state, BeamState stateBackend, String path) {
+    private void createOrUpdate(BeamCore core, List<ResourceDiff> diffs, ContainerBlock state, BeamState stateBackend, String path) {
         for (ResourceDiff diff : diffs) {
             for (ResourceChange change : diff.getChanges()) {
                 ChangeType type = change.getType();
@@ -96,7 +105,7 @@ public class UpCommand extends AbstractCommand {
         }
     }
 
-    private void delete(BeamCore core, List<ResourceDiff> diffs, BeamConfig state, BeamState stateBackend, String path) {
+    private void delete(BeamCore core, List<ResourceDiff> diffs, ContainerBlock state, BeamState stateBackend, String path) {
         for (ResourceDiff diff : diffs) {
             for (ResourceChange change : diff.getChanges()) {
                 delete(core, change.getDiffs(), state, stateBackend, path);

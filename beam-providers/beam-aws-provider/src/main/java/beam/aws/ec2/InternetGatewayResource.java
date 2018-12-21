@@ -5,6 +5,7 @@ import beam.core.diff.ResourceName;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.CreateInternetGatewayResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeInternetGatewaysResponse;
+import software.amazon.awssdk.services.ec2.model.Ec2Exception;
 import software.amazon.awssdk.services.ec2.model.InternetGateway;
 import software.amazon.awssdk.services.ec2.model.InternetGatewayAttachment;
 
@@ -53,20 +54,30 @@ public class InternetGatewayResource extends Ec2TaggableResource<InternetGateway
     }
 
     @Override
-    public void doRefresh() {
+    public boolean doRefresh() {
         Ec2Client client = createClient(Ec2Client.class);
 
-        DescribeInternetGatewaysResponse response = client.describeInternetGateways(
-            r -> r.internetGatewayIds(getInternetGatewayId())
-        );
+        try {
+            DescribeInternetGatewaysResponse response = client.describeInternetGateways(
+                r -> r.internetGatewayIds(getInternetGatewayId())
+            );
 
-        for (InternetGateway gateway : response.internetGateways()) {
-            for (InternetGatewayAttachment attachment : gateway.attachments()) {
-                setVpcId(attachment.vpcId());
+            for (InternetGateway gateway : response.internetGateways()) {
+                for (InternetGatewayAttachment attachment : gateway.attachments()) {
+                    setVpcId(attachment.vpcId());
 
-                break;
+                    break;
+                }
             }
+        } catch (Ec2Exception ex) {
+            if (ex.getLocalizedMessage().contains("does not exist")) {
+                return false;
+            }
+
+            throw ex;
         }
+
+        return true;
     }
 
     @Override

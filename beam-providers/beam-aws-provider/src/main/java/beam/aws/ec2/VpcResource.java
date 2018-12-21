@@ -15,6 +15,7 @@ import software.amazon.awssdk.services.ec2.model.DescribeVpcAttributeRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeVpcClassicLinkDnsSupportResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeVpcClassicLinkResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeVpcsRequest;
+import software.amazon.awssdk.services.ec2.model.Ec2Exception;
 import software.amazon.awssdk.services.ec2.model.ModifyVpcAttributeRequest;
 import software.amazon.awssdk.services.ec2.model.Vpc;
 import software.amazon.awssdk.services.ec2.model.VpcAttributeName;
@@ -186,30 +187,41 @@ public class VpcResource extends Ec2TaggableResource<Vpc> {
     }
 
     @Override
-    public void doRefresh() {
+    public boolean doRefresh() {
         Ec2Client client = createClient(Ec2Client.class);
 
         if (ObjectUtils.isBlank(getVpcId())) {
             throw new BeamException("vpc-id is missing, unable to load vpc.");
         }
 
-        DescribeVpcsRequest request = DescribeVpcsRequest.builder()
+        try {
+            DescribeVpcsRequest request = DescribeVpcsRequest.builder()
                 .vpcIds(getVpcId())
                 .build();
 
-        for (Vpc vpc : client.describeVpcs(request).vpcs()) {
-            String vpcId = vpc.vpcId();
+            for (Vpc vpc : client.describeVpcs(request).vpcs()) {
+                String vpcId = vpc.vpcId();
 
-            setVpcId(vpcId);
-            setCidrBlock(vpc.cidrBlock());
-            setInstanceTenancy(vpc.instanceTenancyAsString());
-            setDhcpOptionsId(vpc.dhcpOptionsId());
-            setOwnerId(vpc.ownerId());
-            setDefaultVpc(vpc.isDefault());
+                setVpcId(vpcId);
+                setCidrBlock(vpc.cidrBlock());
+                setInstanceTenancy(vpc.instanceTenancyAsString());
+                setDhcpOptionsId(vpc.dhcpOptionsId());
+                setOwnerId(vpc.ownerId());
+                setDefaultVpc(vpc.isDefault());
 
-            loadSettings(client);
-            break;
+                loadSettings(client);
+
+                break;
+            }
+        } catch (Ec2Exception ex) {
+            if (ex.getLocalizedMessage().contains("does not exist")) {
+                return false;
+            }
+
+            throw ex;
         }
+
+        return true;
     }
 
     @Override
@@ -258,7 +270,7 @@ public class VpcResource extends Ec2TaggableResource<Vpc> {
             sb.append(vpcId);
 
         } else {
-            sb.append("VPC");
+            sb.append("vpc");
         }
 
         String cidrBlock = getCidrBlock();

@@ -1,36 +1,36 @@
 provider aws
     artifact: "beam:beam-aws-provider:0.5"
-    repositories:
-        - "http://repo1.maven.org/maven2/"
-        - "https://repo.gradle.org/gradle/libs-releases/"
-        - "https://artifactory.psdops.com/public"
-    end
+    repositories: [
+        "http://repo1.maven.org/maven2/",
+        "https://repo.gradle.org/gradle/libs-releases/",
+        "https://artifactory.psdops.com/public"
+    ]
 end
 
 aws::credentials default
-    profile-name: psd-sandbox
-    region: us-east-1
+    profile-name: "psd-sandbox"
+    region: "us-east-1"
 end
 
 aws::vpc vpc-example-for-vpn-gateway-1
     cidr-block: "10.0.0.0/16"
 
-    tags:
-        Name: vpc-example-for-vpn-gateway-1
-    end
+    tags: {
+        Name: "vpc-example-for-vpn-gateway-1"
+    }
 end
 
 aws::vpc vpc-example-for-vpn-gateway-2
     cidr-block: "10.0.0.0/16"
 
-    tags:
-        Name: vpc-example-for-vpn-gateway-2
-    end
+    tags: {
+        Name: "vpc-example-for-vpn-gateway-2"
+    }
 end
 
 aws::vpn-gateway vpn-gateway-example
     vpc-id: $(aws::vpc vpc-example-for-vpn-gateway-1 | vpc-id)
-    tags:
-        Name: vpn-gateway-example
-    end
+    tags: {
+        Name: "vpn-gateway-example"
+    }
 end
