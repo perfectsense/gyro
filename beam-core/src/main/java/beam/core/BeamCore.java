@@ -87,10 +87,14 @@ public class BeamCore {
                 }
 
                 if (refresh && ((BeamResource) resource).refresh()) {
-                    BeamCore.ui().write("\n");
-                }
+                    resources.add((BeamResource) resource);
 
-                resources.add((BeamResource) resource);
+                    BeamCore.ui().write("\n");
+                } else if (refresh) {
+                    BeamCore.ui().write("\n");
+                } else if (!refresh) {
+                    resources.add((BeamResource) resource);
+                }
             }
 
             resources.addAll(findBeamResources(resource, refresh));
