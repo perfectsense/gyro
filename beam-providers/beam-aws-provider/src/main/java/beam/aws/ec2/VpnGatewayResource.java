@@ -1,7 +1,6 @@
 package beam.aws.ec2;
 
 import beam.aws.AwsResource;
-import beam.core.BeamException;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 import org.apache.commons.lang.StringUtils;
@@ -11,7 +10,6 @@ import software.amazon.awssdk.services.ec2.model.DescribeVpnGatewaysResponse;
 import software.amazon.awssdk.services.ec2.model.GatewayType;
 import software.amazon.awssdk.services.ec2.model.VpnGateway;
 
-import java.text.MessageFormat;
 import java.util.Set;
 
 /**
@@ -23,9 +21,9 @@ import java.util.Set;
  * .. code-block:: beam
  *
  *     aws::vpn-gateway vpn-gateway-example
- *         tags:
- *             Name: vpn-gateway-example
- *         end
+ *         tags: {
+ *             Name: "vpn-gateway-example"
+ *         }
  *     end
  */
 @ResourceName("vpn-gateway")
@@ -69,7 +67,7 @@ public class VpnGatewayResource extends Ec2TaggableResource<VpnGateway> {
     }
 
     @Override
-    protected void doRefresh() {
+    protected boolean doRefresh() {
         Ec2Client client = createClient(Ec2Client.class);
 
         DescribeVpnGatewaysResponse response = client.describeVpnGateways(r -> r.vpnGatewayIds(getVpnGatewayId()));
@@ -79,9 +77,10 @@ public class VpnGatewayResource extends Ec2TaggableResource<VpnGateway> {
             setAmazonSideAsn(vpnGateway.amazonSideAsn());
             setVpcId(vpnGateway.vpcAttachments().isEmpty() ? "" : vpnGateway.vpcAttachments().get(0).vpcId());
 
-        } else {
-            throw new BeamException(MessageFormat.format("Virtual Private Gateway - {0} not found.", getVpnGatewayId()));
+            return true;
         }
+
+        return false;
     }
 
     @Override
@@ -144,7 +143,7 @@ public class VpnGatewayResource extends Ec2TaggableResource<VpnGateway> {
         if (getVpnGatewayId() != null) {
             sb.append(getVpnGatewayId());
         } else {
-            sb.append("Virtual Private Gateway");
+            sb.append("virtual private gateway");
         }
 
         return sb.toString();

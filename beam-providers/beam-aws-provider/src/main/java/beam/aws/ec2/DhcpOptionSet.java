@@ -305,7 +305,7 @@ public class DhcpOptionSet extends Ec2TaggableResource<Vpc> {
             sb.append(dhcpOptionsId);
 
         } else {
-            sb.append("DHCP options");
+            sb.append("dhcp options");
         }
 
         return sb.toString();

@@ -1,7 +1,6 @@
 package beam.aws.ec2;
 
 import beam.aws.AwsResource;
-import beam.core.BeamException;
 import beam.core.diff.ResourceName;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.CreateCustomerGatewayRequest;
@@ -10,7 +9,6 @@ import software.amazon.awssdk.services.ec2.model.CustomerGateway;
 import software.amazon.awssdk.services.ec2.model.DescribeCustomerGatewaysResponse;
 import software.amazon.awssdk.services.ec2.model.GatewayType;
 
-import java.text.MessageFormat;
 import java.util.Set;
 
 /**
@@ -22,11 +20,11 @@ import java.util.Set;
  * .. code-block:: beam
  *
  *     aws::customer-gateway customer-gateway-example
- *         public-ip: 38.140.23.146
+ *         public-ip: "38.140.23.146"
  *
- *         tags:
- *             Name: customer-gateway-example
- *         end
+ *         tags: {
+ *             Name: "customer-gateway-example"
+ *         }
  *     end
  */
 @ResourceName("customer-gateway")
@@ -72,7 +70,7 @@ public class CustomerGatewayResource extends Ec2TaggableResource<CustomerGateway
     }
 
     @Override
-    protected void doRefresh() {
+    protected boolean doRefresh() {
         Ec2Client client = createClient(Ec2Client.class);
 
         DescribeCustomerGatewaysResponse response = client.describeCustomerGateways(r -> r.customerGatewayIds(getCustomerGatewayId()));
@@ -80,9 +78,11 @@ public class CustomerGatewayResource extends Ec2TaggableResource<CustomerGateway
         if (!response.customerGateways().isEmpty()) {
             CustomerGateway customerGateway = response.customerGateways().get(0);
             setPublicIp(customerGateway.ipAddress());
-        } else {
-            throw new BeamException(MessageFormat.format("Customer Gateway - {0} not found.", getCustomerGatewayId()));
+
+            return true;
         }
+
+        return false;
     }
 
     @Override
@@ -124,7 +124,7 @@ public class CustomerGatewayResource extends Ec2TaggableResource<CustomerGateway
             sb.append(getCustomerGatewayId());
 
         } else {
-            sb.append("Customer Gateway");
+            sb.append("customer gateway");
         }
 
         return sb.toString();

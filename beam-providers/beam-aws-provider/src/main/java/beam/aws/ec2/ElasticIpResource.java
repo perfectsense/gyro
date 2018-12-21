@@ -157,7 +157,7 @@ public class ElasticIpResource extends Ec2TaggableResource<Address> {
         if (getPublicIp() != null && !getPublicIp().isEmpty()) {
             sb.append(getPublicIp());
         } else {
-            sb.append("Elastic Ip");
+            sb.append("elastic ip");
         }
 
         return sb.toString();

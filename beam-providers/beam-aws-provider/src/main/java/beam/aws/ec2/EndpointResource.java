@@ -39,11 +39,11 @@ import java.util.stream.Collectors;
  *         service-name: 'com.amazonaws.us-east-1.s3'
  *         policy-doc-path: 'policy.json'
  *         type-interface: false
- *         route-table-ids:
- *             - $(aws::route-table route-table-example-for-endpoint-1 | route-table-id)
- *             - $(aws::route-table route-table-example-for-endpoint-2 | route-table-id)
- *             - $(aws::route-table route-table-example-for-endpoint-3 | route-table-id)
- *         end
+ *         route-table-ids: [
+ *             $(aws::route-table route-table-example-for-endpoint-1 | route-table-id),
+ *             $(aws::route-table route-table-example-for-endpoint-2 | route-table-id),
+ *             $(aws::route-table route-table-example-for-endpoint-3 | route-table-id)
+*          ]
  *     end
  *
  *     aws::endpoint endpoint-example-interface
@@ -51,16 +51,16 @@ import java.util.stream.Collectors;
  *         service-name: 'com.amazonaws.us-east-1.ec2'
  *         policy-doc-path: 'policy.json'
  *         type-interface: true
- *         subnet-ids:
- *             - $(aws::subnet subnet-public-us-east-1a-example-for-endpoint-1 | subnet-id)
- *             - $(aws::subnet subnet-public-us-east-1b-example-for-endpoint-1 | subnet-id)
- *             - $(aws::subnet subnet-public-us-east-1c-example-for-endpoint-1 | subnet-id)
- *         end
- *         security-group-ids:
- *             - 'sg-0c6a15d90a475071e'
- *             - 'sg-0454a5fb5ea3a7a62'
- *             - 'sg-0da8f2491baf7f0c4'
- *         end
+ *         subnet-ids: [
+ *             $(aws::subnet subnet-public-us-east-1a-example-for-endpoint-1 | subnet-id),
+ *             $(aws::subnet subnet-public-us-east-1b-example-for-endpoint-1 | subnet-id),
+ *             $(aws::subnet subnet-public-us-east-1c-example-for-endpoint-1 | subnet-id)
+ *         ]
+ *         security-group-ids: [
+ *             'sg-0c6a15d90a475071e',
+ *             'sg-0454a5fb5ea3a7a62',
+ *             'sg-0da8f2491baf7f0c4'
+ *         ]
  *     end
  */
 @ResourceName("endpoint")
@@ -200,7 +200,7 @@ public class EndpointResource extends AwsResource {
     }
 
     @Override
-    public void refresh() {
+    public boolean refresh() {
         Ec2Client client = createClient(Ec2Client.class);
 
         Filter serviceNameFilter = Filter.builder().name("service-name").values(getServiceName()).build();
@@ -216,9 +216,11 @@ public class EndpointResource extends AwsResource {
             setRouteTableIds(new ArrayList<>(endpoint.routeTableIds()));
             setSubnetIds(new ArrayList<>(endpoint.subnetIds()));
             setPolicy(endpoint.policyDocument());
-        } else {
-            throw new BeamException(MessageFormat.format("Endpoint for service - {0} and VPC - {1} not found.", getServiceName(), getVpcId()));
+
+            return true;
         }
+
+        return false;
     }
 
     @Override
@@ -331,7 +333,7 @@ public class EndpointResource extends AwsResource {
         if (!StringUtils.isEmpty(getEndpointId())) {
             sb.append(getEndpointId());
         } else {
-            sb.append("Endpoint");
+            sb.append("endpoint");
         }
 
         return sb.toString();

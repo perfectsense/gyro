@@ -270,7 +270,7 @@ public class VpcResource extends Ec2TaggableResource<Vpc> {
             sb.append(vpcId);
 
         } else {
-            sb.append("VPC");
+            sb.append("vpc");
         }
 
         String cidrBlock = getCidrBlock();

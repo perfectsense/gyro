@@ -126,7 +126,7 @@ public class NatGatewayResource extends Ec2TaggableResource<NatGateway> {
             sb.append(getNatGatewayId());
 
         } else {
-            sb.append("Nat Gateway");
+            sb.append("nat gateway");
         }
 
         return sb.toString();
