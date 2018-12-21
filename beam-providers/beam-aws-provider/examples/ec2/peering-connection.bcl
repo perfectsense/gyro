@@ -8,8 +8,8 @@ provider aws
 end
 
 aws::credentials default
-    profile-name: "psd-sandbox"
-    region: "us-east-1"
+    profile-name: "psd-beam-sandbox"
+    region: "us-east-2"
 end
 
 aws::vpc vpc-example-for-peering-connection-1
