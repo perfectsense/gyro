@@ -16,7 +16,7 @@ public class BeamReference extends BeamValue {
     private String type;
     private String name;
     private String attribute;
-    private BeamBlock referencedBlock;
+    private ContainerBlock referencedBlock;
 
     private Pattern partial = Pattern.compile("\\$\\((?<type>[^\\s]+) (?<name>[^\\s]+)\\)");
     private Pattern full = Pattern.compile("\\$\\((?<type>[^\\s]+) (?<name>[^\\s]+) \\| (?<attribute>[^\\s]+)\\)");
@@ -56,7 +56,7 @@ public class BeamReference extends BeamValue {
         return attribute;
     }
 
-    public BeamBlock getReferencedBlock() {
+    public ContainerBlock getReferencedBlock() {
         return referencedBlock;
     }
 
@@ -65,21 +65,7 @@ public class BeamReference extends BeamValue {
         if (getReferencedBlock() != null && getAttribute() == null) {
             return getReferencedBlock();
         } else if (getReferencedBlock() != null && getAttribute() != null) {
-            try {
-                for (PropertyDescriptor p : Introspector.getBeanInfo(getReferencedBlock().getClass()).getPropertyDescriptors()) {
-                    Method reader = p.getReadMethod();
-
-                    if (reader != null) {
-                        String key = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, reader.getName().substring(3));
-                        if (key.equals(getAttribute())) {
-                            return reader.invoke(getReferencedBlock());
-                        }
-                    }
-                }
-
-            } catch (IntrospectionException | IllegalAccessException | InvocationTargetException ex) {
-                return null;
-            }
+            return getReferencedBlock().resolvedKeyValues().get(getAttribute());
         }
 
         return null;

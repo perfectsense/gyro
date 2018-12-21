@@ -31,4 +31,8 @@ public class ResourceKey {
         return Objects.hash(type, identifier);
     }
 
+    @Override
+    public String toString() {
+        return String.format("$(%s %s)", type, identifier);
+    }
 }

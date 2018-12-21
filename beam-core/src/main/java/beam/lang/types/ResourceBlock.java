@@ -69,20 +69,7 @@ public class ResourceBlock extends ContainerBlock {
         sb.append(getResourceType()).append(" ");
         sb.append(getResourceIdentifier()).append("\n");
 
-        for (ResourceBlock resourceBlock : resources()) {
-            for (String line : resourceBlock.toString().split("\n")) {
-                sb.append("    " + line + "\n");
-            }
-        }
-
-        for (String key : keys()) {
-            String value = get(key).toString();
-
-            if (value != null) {
-                sb.append("    " + key + ": ");
-                sb.append(get(key)).append("\n");
-            }
-        }
+        sb.append(super.toString());
 
         sb.append("end\n\n");
 

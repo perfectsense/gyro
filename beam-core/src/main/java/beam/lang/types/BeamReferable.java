@@ -2,10 +2,10 @@ package beam.lang.types;
 
 public abstract class BeamReferable {
 
-    private BeamBlock parentBlock;
-    private int line;
-    private int column;
-    private String path;
+    private transient BeamBlock parentBlock;
+    private transient int line;
+    private transient int column;
+    private transient String path;
 
     public BeamBlock getParentBlock() {
         return parentBlock;

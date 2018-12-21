@@ -16,7 +16,7 @@ import java.util.Map;
 @ResourceName("credentials")
 public class AwsBeamCredentials extends BeamCredentials {
 
-    private AwsCredentialsProvider provider;
+    private transient AwsCredentialsProvider provider;
 
     private String profileName;
 

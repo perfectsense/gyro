@@ -41,7 +41,6 @@ public class ResourceChange {
         @Override
         public final BeamResource create() throws Exception {
             BeamResource resource = change();
-            resource.syncPropertiesToInternal();
             changed = true;
 
             return resource;
@@ -145,58 +144,30 @@ public class ResourceChange {
         }
     }
 
-    public static String processAsScalarValue(String key, BeamValue currentValue, BeamValue pendingValue) {
+    public static String processAsScalarValue(String key, Object currentValue, Object pendingValue) {
         StringBuilder sb = new StringBuilder();
 
-        Object current = currentValue != null ? currentValue.getValue() : null;
-        Object pending = pendingValue.getValue();
-
-        if (pending.equals(current)) {
+        if (pendingValue.equals(currentValue)) {
             return sb.toString();
         }
 
         sb.append(key);
         sb.append(": ");
-        if (ObjectUtils.isBlank(current)) {
-            sb.append(pending);
+        if (ObjectUtils.isBlank(currentValue)) {
+            sb.append(pendingValue);
         } else {
-            sb.append(current);
+            sb.append(currentValue);
             sb.append(" -> ");
-            sb.append(pending);
+            sb.append(pendingValue);
         }
 
         return sb.toString();
     }
 
-    public static String processAsMapValue(String key, BeamValue currentValue, BeamValue pendingValue) {
+    public static String processAsMapValue(String key, Map currentValue, Map pendingValue) {
         StringBuilder sb = new StringBuilder();
 
-        BeamMap pendingMapValue = (BeamMap) pendingValue;
-        Map<String, String> pendingResolvedMap = new HashMap<>();
-        for (KeyValueBlock keyValueBlock : pendingMapValue.getKeyValues()) {
-            String stringValue = (String) keyValueBlock.getValue().getValue();
-
-            if (stringValue != null) {
-                pendingResolvedMap.put(keyValueBlock.getKey(), stringValue);
-            } else if (keyValueBlock.getValue() instanceof BeamReference) {
-                String ref = String.format("%s %s",
-                    ((BeamReference) keyValueBlock.getValue()).getType(),
-                    ((BeamReference) keyValueBlock.getValue()).getName());
-                pendingResolvedMap.put(keyValueBlock.getKey(), "ref:" + ref);
-            }
-        }
-
-        BeamMap currentMapValue = (BeamMap) currentValue;
-        Map<String, String> currentResolvedMap = new HashMap<>();
-        for (KeyValueBlock keyValueBlock : currentMapValue.getKeyValues()) {
-            String stringValue = (String) keyValueBlock.getValue().getValue();
-
-            if (stringValue != null) {
-                currentResolvedMap.put(keyValueBlock.getKey(), stringValue);
-            }
-        }
-
-        String diff = mapSummaryDiff(currentResolvedMap, pendingResolvedMap);
+        String diff = mapSummaryDiff(currentValue, pendingValue);
         if (!ObjectUtils.isBlank(diff)) {
             sb.append(key);
             sb.append(": ");
@@ -206,36 +177,14 @@ public class ResourceChange {
         return sb.toString();
     }
 
-    public static String processAsListValue(String key, BeamValue currentValue, BeamValue pendingValue) {
+    public static String processAsListValue(String key, List currentValue, List pendingValue) {
         StringBuilder sb = new StringBuilder();
 
-        BeamList pendingListValue = (BeamList) pendingValue;
-        List<String> pendingResolvedList = new ArrayList<>();
-        for (BeamValue value : pendingListValue.getValues()) {
-            String stringValue = (String) value.getValue();
+        List<String> additions = new ArrayList<>(pendingValue);
+        additions.removeAll(currentValue);
 
-            if (stringValue != null) {
-                pendingResolvedList.add(stringValue);
-            } else if (value instanceof BeamReference) {
-                pendingResolvedList.add(value.toString());
-            }
-        }
-
-        BeamList currentListValue = (BeamList) currentValue;
-        List<String> currentResolvedList = new ArrayList<>();
-        for (BeamValue value : currentListValue.getValues()) {
-            String stringValue = (String) value.getValue();
-
-            if (stringValue != null) {
-                currentResolvedList.add(stringValue);
-            }
-        }
-
-        List<String> additions = new ArrayList<>(pendingResolvedList);
-        additions.removeAll(currentResolvedList);
-
-        List<String> subtractions = new ArrayList<>(currentResolvedList);
-        subtractions.removeAll(pendingResolvedList);
+        List<String> subtractions = new ArrayList<>(currentValue);
+        subtractions.removeAll(pendingValue);
 
         if (!additions.isEmpty()) {
             sb.append(key);
@@ -320,7 +269,6 @@ public class ResourceChange {
         if (type == ChangeType.UPDATE) {
             pendingResource.resolve();
             pendingResource.update(currentResource, updatedProperties);
-            pendingResource.syncPropertiesToInternal();
             return pendingResource;
 
         } else if (type == ChangeType.REPLACE) {

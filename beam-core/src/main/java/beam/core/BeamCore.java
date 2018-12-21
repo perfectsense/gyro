@@ -87,8 +87,6 @@ public class BeamCore {
                 }
 
                 if (refresh && ((BeamResource) resource).refresh()) {
-                    ((BeamResource) resource).syncPropertiesToInternal();
-
                     BeamCore.ui().write("\n");
                 }
 

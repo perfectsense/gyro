@@ -11,7 +11,6 @@ import beam.lang.types.BeamReference;
 import beam.lang.types.BeamValue;
 import beam.lang.types.KeyValueBlock;
 import beam.lang.types.ResourceBlock;
-import com.google.common.base.CaseFormat;
 import com.google.common.base.Throwables;
 import com.psddev.dari.util.ObjectUtils;
 
@@ -26,7 +25,7 @@ import java.util.Set;
 
 public abstract class BeamResource extends BeamLanguageExtension implements Comparable<BeamResource> {
 
-    private BeamCredentials resourceCredentials;
+    private transient BeamCredentials resourceCredentials;
 
     private transient ResourceChange change;
 
@@ -80,35 +79,6 @@ public abstract class BeamResource extends BeamLanguageExtension implements Comp
     }
 
     /**
-     * Copy values from properties into internal values. This is used to ensure updates to resource
-     * properties from executing (i.e. creating/updating a resource) are in the internal state.
-     */
-    public void syncPropertiesToInternal() {
-        try {
-            for (PropertyDescriptor p : Introspector.getBeanInfo(getClass()).getPropertyDescriptors()) {
-                Method reader = p.getReadMethod();
-
-                if (reader != null
-                    && (reader.getReturnType() == String.class || reader.getReturnType() == List.class || reader.getReturnType() == Map.class)) {
-                    String key = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, p.getDisplayName());
-                    Object value = reader.invoke(this);
-
-                    if (value instanceof String) {
-                        put(key, (String) value);
-                    } else if (value instanceof List) {
-                        putList(key, (List) value);
-                    } else if (value instanceof Map) {
-                        putMap(key, (Map) value);
-                    }
-                }
-            }
-
-        } catch (IntrospectionException | IllegalAccessException | InvocationTargetException ex) {
-            // Ignoring exceptions
-        }
-    }
-
-    /**
      * Copy internal values from source to this object. This is used to copy information
      * from the current state (i.e. a resource loaded from a state file) into a pending
      * state (i.e. a resource loaded from a config file).
@@ -145,12 +115,6 @@ public abstract class BeamResource extends BeamLanguageExtension implements Comp
         } catch (InvocationTargetException error) {
             throw Throwables.propagate(error);
         }
-
-        syncPropertiesToInternal();
-    }
-
-    private String fieldNameFromKey(String key) {
-        return CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key);
     }
 
     private Method readerMethodForKey(String key) {
@@ -173,7 +137,10 @@ public abstract class BeamResource extends BeamLanguageExtension implements Comp
 
         ResourceDisplayDiff displayDiff = new ResourceDisplayDiff();
 
-        for (String key : keys()) {
+        Map<String, Object> currentValues = current.resolvedKeyValues();
+        Map<String, Object> pendingValues = resolvedKeyValues();
+
+        for (String key : pendingValues.keySet()) {
             // If there is no getter for this method then skip this field since there can
             // be no ResourceDiffProperty annotation.
             Method reader = readerMethodForKey(key);
@@ -188,15 +155,15 @@ public abstract class BeamResource extends BeamLanguageExtension implements Comp
             }
             boolean nullable = propertyAnnotation.nullable();
 
-            BeamValue currentValue = current.get(key);
-            BeamValue pendingValue = get(key);
+            Object currentValue = currentValues.get(key);
+            Object pendingValue = pendingValues.get(key);
 
             if (pendingValue != null || nullable) {
                 String fieldChangeOutput = null;
-                if (pendingValue instanceof BeamList) {
-                    fieldChangeOutput = ResourceChange.processAsListValue(key, currentValue, pendingValue);
-                } else if (pendingValue instanceof BeamMap) {
-                    fieldChangeOutput = ResourceChange.processAsMapValue(key, currentValue, pendingValue);
+                if (pendingValue instanceof List) {
+                    fieldChangeOutput = ResourceChange.processAsListValue(key, (List) currentValue, (List) pendingValue);
+                } else if (pendingValue instanceof Map) {
+                    fieldChangeOutput = ResourceChange.processAsMapValue(key, (Map) currentValue, (Map) pendingValue);
                 } else {
                     fieldChangeOutput = ResourceChange.processAsScalarValue(key, currentValue, pendingValue);
                 }
