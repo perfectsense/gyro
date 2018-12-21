@@ -13,19 +13,6 @@ public class ContainerBlock extends BeamBlock {
     Map<ResourceKey, ResourceBlock> resources = new HashMap<>();
     Map<String, BeamValue> keyValues = new HashMap<>();
 
-    public boolean containsKey(String key) {
-        return keyValues.containsKey(key);
-    }
-
-    public boolean containsResource(String key, String type) {
-        ResourceKey resourceKey = new ResourceKey(type, key);
-        if (resources.containsKey(resourceKey)) {
-            return true;
-        }
-
-        return false;
-    }
-
     public Set<String> keys() {
         return keyValues.keySet();
     }
