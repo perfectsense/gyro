@@ -1,5 +1,6 @@
 package beam.lang.types;
 
+import beam.core.BeamException;
 import com.google.common.base.CaseFormat;
 import org.apache.commons.beanutils.BeanUtils;
 
@@ -82,8 +83,16 @@ public class ResourceBlock extends ContainerBlock {
 
             try {
                 String convertedKey = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key);
+
+                if (!BeanUtils.describe(this).containsKey(convertedKey)) {
+                    BeamValue beamValue = get(key);
+                    String message = String.format("invalid attribute '%s' found on line %s", key, beamValue.getLine());
+
+                    throw new BeamException(message);
+                }
+
                 BeanUtils.setProperty(this, convertedKey, value);
-            } catch (IllegalArgumentException | InvocationTargetException | IllegalAccessException e) {
+            } catch (IllegalArgumentException | InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
                 // Ignoring errors from setProperty
             }
         }
