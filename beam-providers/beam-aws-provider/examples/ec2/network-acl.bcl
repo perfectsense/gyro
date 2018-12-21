@@ -1,0 +1,29 @@
+provider aws
+    artifact: "beam:beam-aws-provider:0.5"
+    repositories:
+        - "http://repo1.maven.org/maven2/"
+        - "https://repo.gradle.org/gradle/libs-releases/"
+        - "https://artifactory.psdops.com/public"
+    end
+end
+
+aws::credentials default
+    profile-name: psd-sandbox
+    region: us-east-1
+end
+
+aws::vpc vpc-example-for-network-acl
+    cidr-block: 10.0.0.0/16
+
+    tags:
+        Name: vpc-example-for-network-acl
+    end
+end
+
+aws::network-acl network-acl-example
+    vpc-id: $(aws::vpc vpc-example-for-network-acl | vpc-id)
+
+    tags:
+        Name: network-acl-example
+    end
+end
