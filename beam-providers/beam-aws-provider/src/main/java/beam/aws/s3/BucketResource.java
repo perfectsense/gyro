@@ -1,7 +1,6 @@
 package beam.aws.s3;
 
 import beam.aws.AwsResource;
-import beam.core.BeamException;
 import beam.core.BeamResource;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
@@ -19,7 +18,6 @@ import software.amazon.awssdk.services.s3.model.Payer;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.model.Tag;
 
-import java.text.MessageFormat;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
