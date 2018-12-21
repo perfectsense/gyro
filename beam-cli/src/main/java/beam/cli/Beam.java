@@ -102,10 +102,10 @@ public class Beam {
 
         } catch (Throwable error) {
             if (error instanceof BeamException) {
-                BeamCore.ui().writeError(error.getCause(), "\n@|red Error: %s|@", error.getMessage());
+                BeamCore.ui().writeError(error.getCause(), "\n\n@|red Error: %s|@", error.getMessage());
 
             } else {
-                BeamCore.ui().writeError(error, "\n@|red Unexpected error! Stack trace follows:|@");
+                BeamCore.ui().writeError(error, "\n\n@|red Unexpected error! Stack trace follows:|@\n");
             }
         }
     }
