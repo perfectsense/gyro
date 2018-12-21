@@ -298,16 +298,22 @@ public class VpcResource extends Ec2TaggableResource<Vpc> {
         setEnableDnsSupport(client.describeVpcAttribute(request).enableDnsSupport().value());
 
         // ClassicLink
-        DescribeVpcClassicLinkResponse clResponse =  client.describeVpcClassicLink(r -> r.vpcIds(getVpcId()));
-        for (VpcClassicLink classicLink : clResponse.vpcs()) {
-            setEnableClassicLink(classicLink.classicLinkEnabled());
-            break;
-        }
+        try {
+            DescribeVpcClassicLinkResponse clResponse = client.describeVpcClassicLink(r -> r.vpcIds(getVpcId()));
+            for (VpcClassicLink classicLink : clResponse.vpcs()) {
+                setEnableClassicLink(classicLink.classicLinkEnabled());
+                break;
+            }
 
-        DescribeVpcClassicLinkDnsSupportResponse cldResponse =  client.describeVpcClassicLinkDnsSupport(r -> r.vpcIds(getVpcId()));
-        for (ClassicLinkDnsSupport classicLink : cldResponse.vpcs()) {
-            setEnableClassicLink(classicLink.classicLinkDnsSupported());
-            break;
+            DescribeVpcClassicLinkDnsSupportResponse cldResponse = client.describeVpcClassicLinkDnsSupport(r -> r.vpcIds(getVpcId()));
+            for (ClassicLinkDnsSupport classicLink : cldResponse.vpcs()) {
+                setEnableClassicLink(classicLink.classicLinkDnsSupported());
+                break;
+            }
+        } catch (Ec2Exception ex) {
+            if (!ex.getLocalizedMessage().contains("not available in this region")) {
+                throw ex;
+            }
         }
     }
 
@@ -344,16 +350,22 @@ public class VpcResource extends Ec2TaggableResource<Vpc> {
         }
 
         // ClassicLink
-        if (getEnableClassicLink()) {
-            client.enableVpcClassicLink(r -> r.vpcId(getVpcId()));
-        } else {
-            client.disableVpcClassicLink(r -> r.vpcId(getVpcId()));
-        }
+        try {
+            if (getEnableClassicLink()) {
+                client.enableVpcClassicLink(r -> r.vpcId(getVpcId()));
+            } else {
+                client.disableVpcClassicLink(r -> r.vpcId(getVpcId()));
+            }
 
-        if (getEnableClassicLinkDnsSupport()) {
-            client.enableVpcClassicLinkDnsSupport(r -> r.vpcId(getVpcId()));
-        } else {
-            client.disableVpcClassicLinkDnsSupport(r -> r.vpcId(getVpcId()));
+            if (getEnableClassicLinkDnsSupport()) {
+                client.enableVpcClassicLinkDnsSupport(r -> r.vpcId(getVpcId()));
+            } else {
+                client.disableVpcClassicLinkDnsSupport(r -> r.vpcId(getVpcId()));
+            }
+        } catch (Ec2Exception ex) {
+            if (!ex.getLocalizedMessage().contains("not available in this region")) {
+                throw ex;
+            }
         }
 
         // Tenancy
