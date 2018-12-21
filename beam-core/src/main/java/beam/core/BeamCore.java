@@ -83,7 +83,8 @@ public class BeamCore {
         for (ResourceBlock resource : block.resources()) {
             if (resource instanceof BeamResource) {
                 if (refresh) {
-                    BeamCore.ui().write("@|bold,blue [beam]:|@ Refreshing @|yellow %s|@(%s)...", resource.getResourceType(), resource.getResourceIdentifier());
+                    BeamCore.ui().write("@|bold,blue Refreshing|@: @|yellow %s|@(%s)...",
+                        resource.getResourceType(), resource.getResourceIdentifier());
                 }
 
                 if (refresh && ((BeamResource) resource).refresh()) {
