@@ -156,11 +156,11 @@ public class BucketResource extends AwsResource {
             loadAccelerateConfig(client);
             loadEnableVersion(client);
             loadEnablePay(client);
-        } else {
-            throw new BeamException(MessageFormat.format("Bucket - {0} not found.", getName()));
+
+            return true;
         }
 
-        return true;
+        return false;
     }
 
     @Override
