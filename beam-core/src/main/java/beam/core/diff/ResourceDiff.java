@@ -123,48 +123,16 @@ public class ResourceDiff {
         change.getDiffs().add(diff);
     }
 
-    public void createOne(ResourceChange change, BeamResource pendingResource) throws Exception {
-        if (pendingResource != null) {
-            ResourceDiff diff = new ResourceDiff(null, Arrays.asList(pendingResource));
-            diff.diff();
-            change.getDiffs().add(diff);
-        }
-    }
-
     public void update(ResourceChange change, Collection currentResources, Collection pendingResources) throws Exception {
         ResourceDiff diff = new ResourceDiff(currentResources, pendingResources);
         diff.diff();
         change.getDiffs().add(diff);
     }
 
-    public <R extends BeamResource> void updateOne(ResourceChange change, R currentResource, R pendingResource) throws Exception {
-        if (currentResource != null) {
-            if (pendingResource != null) {
-                ResourceDiff diff = new ResourceDiff(Arrays.asList(currentResource), Arrays.asList(pendingResource));
-                diff.diff();
-                change.getDiffs().add(diff);
-
-            } else {
-                deleteOne(change, currentResource);
-            }
-
-        } else if (pendingResource != null) {
-            createOne(change, pendingResource);
-        }
-    }
-
     public void delete(ResourceChange change, Collection<BeamResource> currentResources) throws Exception {
         ResourceDiff diff = new ResourceDiff(currentResources, null);
         diff.diff();
         change.getDiffs().add(diff);
-    }
-
-    public void deleteOne(ResourceChange change, BeamResource currentResource) throws Exception {
-        if (currentResource != null) {
-            ResourceDiff diff = new ResourceDiff(Arrays.asList(currentResource), null);
-            diff.diff();
-            change.getDiffs().add(diff);
-        }
     }
 
     public List<ResourceChange> getChanges() {
