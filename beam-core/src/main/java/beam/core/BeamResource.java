@@ -190,11 +190,15 @@ public abstract class BeamResource extends BeamLanguageExtension implements Comp
         if (get("resource-credentials") == null) {
             BeamReference credentialsReference = new BeamReference(getResourceCredentialsName(), "default");
             credentialsReference.setParentBlock(getParentBlock());
+            credentialsReference.setLine(getLine());
+            credentialsReference.setColumn(getColumn());
 
             KeyValueBlock credentialsBlock = new KeyValueBlock();
             credentialsBlock.setParentBlock(this);
             credentialsBlock.setKey("resource-credentials");
             credentialsBlock.setValue(credentialsReference);
+            credentialsBlock.setLine(getLine());
+            credentialsBlock.setColumn(getColumn());
 
             putKeyValue(credentialsBlock);
         }

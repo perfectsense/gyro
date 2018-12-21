@@ -46,6 +46,8 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         resourceBlock.setResourceIdentifier(context.resource_name().getText());
         resourceBlock.setResourceType(context.resource_type().getText());
         resourceBlock.setParentBlock(parent);
+        resourceBlock.setLine(context.getStart().getLine());
+        resourceBlock.setColumn(context.getStart().getCharPositionInLine());
 
         parseContainerBlockChildren(resourceBlock, context.block());
 
