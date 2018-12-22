@@ -5,7 +5,6 @@ import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceDisplayDiff;
 import beam.core.diff.ResourceName;
 import beam.lang.BeamLanguageExtension;
-import beam.lang.types.KeyValueBlock;
 import beam.lang.types.ReferenceNode;
 import beam.lang.types.ResourceNode;
 import com.google.common.base.Throwables;
@@ -189,18 +188,10 @@ public abstract class BeamResource extends BeamLanguageExtension implements Comp
     public void execute() {
         if (get("resource-credentials") == null) {
             ReferenceNode credentialsReference = new ReferenceNode(getResourceCredentialsName(), "default");
-            credentialsReference.setParentBlock(getParentBlock());
             credentialsReference.setLine(getLine());
             credentialsReference.setColumn(getColumn());
 
-            KeyValueBlock credentialsBlock = new KeyValueBlock();
-            credentialsBlock.setParentBlock(this);
-            credentialsBlock.setKey("resource-credentials");
-            credentialsBlock.setValue(credentialsReference);
-            credentialsBlock.setLine(getLine());
-            credentialsBlock.setColumn(getColumn());
-
-            putKeyValue(credentialsBlock);
+            put("resource-credentials", credentialsReference);
         }
     }
 

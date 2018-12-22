@@ -34,7 +34,7 @@ public class ContainerNode extends Node {
         Map<String, Object> values = new HashMap<>();
 
         for (String key : keys()) {
-            values.put(key, getValue(key));
+            values.put(key, get(key).getValue());
         }
 
         try {
@@ -74,18 +74,10 @@ public class ContainerNode extends Node {
         return keyValues.get(key);
     }
 
-    public Object getValue(String key) {
-        ValueNode value = get(key);
-        if (value != null) {
-            return value.getValue();
-        }
+    public void put(String key, ValueNode valueNode) {
+        valueNode.setParentBlock(this);
 
-        return null;
-    }
-
-    public void putKeyValue(KeyValueBlock keyValueBlock) {
-        keyValueBlock.setParentBlock(this);
-        keyValues.put(keyValueBlock.getKey(), keyValueBlock.getValue());
+        keyValues.put(key, valueNode);
     }
 
     public Collection<ResourceNode> resources() {

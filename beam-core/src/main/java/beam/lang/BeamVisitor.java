@@ -3,7 +3,6 @@ package beam.lang;
 import beam.core.BeamCore;
 import beam.lang.types.BooleanNode;
 import beam.lang.types.ContainerNode;
-import beam.lang.types.KeyValueBlock;
 import beam.lang.types.ListNode;
 import beam.lang.types.LiteralNode;
 import beam.lang.types.MapNode;
@@ -63,9 +62,12 @@ public class BeamVisitor extends BeamParserBaseVisitor {
     public void parseContainerBlockChildren(ContainerNode containerNode, List<BlockContext> blocks) {
         for (BlockContext blockContext : blocks) {
             if (blockContext.key_value_block() != null) {
-                KeyValueBlock block = parseKeyValueBlock(blockContext.key_value_block());
+                String key = StringUtils.stripEnd(blockContext.key_value_block().key().getText(), ":");
+                ValueNode valueNode = parseValue(blockContext.key_value_block().value());
+                valueNode.setLine(blockContext.key_value_block().getStart().getLine());
+                valueNode.setColumn(blockContext.key_value_block().getStart().getCharPositionInLine());
 
-                containerNode.putKeyValue(block);
+                containerNode.put(key, valueNode);
             } else if (blockContext.resource_block() != null) {
                 ResourceNode block = visitResource_block(blockContext.resource_block(), containerNode);
 
@@ -100,7 +102,12 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         } else if (context.map_value() != null) {
             MapNode mapValue = new MapNode();
             for (Key_value_blockContext valueContext : context.map_value().key_value_block()) {
-                mapValue.getKeyValues().add(parseKeyValueBlock(valueContext));
+                String key = StringUtils.stripEnd(valueContext.key().getText(), ":");
+                ValueNode valueNode = parseValue(valueContext.value());
+                valueNode.setLine(valueContext.getStart().getLine());
+                valueNode.setColumn(valueContext.getStart().getCharPositionInLine());
+
+                mapValue.getKeyValues().put(key, valueNode);
             }
 
             value = mapValue;
@@ -147,16 +154,6 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         literal.setColumn(context.start.getCharPositionInLine());
 
         return literal;
-    }
-
-    public KeyValueBlock parseKeyValueBlock(Key_value_blockContext context) {
-        KeyValueBlock keyValueBlock = new KeyValueBlock();
-        keyValueBlock.setKey(StringUtils.stripEnd(context.key().getText(), ":"));
-        keyValueBlock.setValue(parseValue(context.value()));
-        keyValueBlock.setLine(context.getStart().getLine());
-        keyValueBlock.setColumn(context.getStart().getCharPositionInLine());
-
-        return keyValueBlock;
     }
 
     public ResourceNode createResourceBlock(String type) {

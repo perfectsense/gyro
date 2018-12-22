@@ -10,30 +10,36 @@ import java.util.Map;
 
 public class MapNode extends ValueNode<Map> {
 
-    private List<KeyValueBlock> keyValues;
+    private Map<String, ValueNode> keyValues;
 
-    public List<KeyValueBlock> getKeyValues() {
+    public Map<String, ValueNode> getKeyValues() {
         if (keyValues == null) {
-            keyValues = new ArrayList<>();
+            keyValues = new HashMap<>();
         }
 
         return keyValues;
+    }
+
+    public void put(String key, ValueNode valueNode) {
+        valueNode.setParentBlock(this);
+
+        getKeyValues().put(key, valueNode);
     }
 
     @Override
     public void setParentBlock(Node parentBlock) {
         super.setParentBlock(parentBlock);
 
-        for (KeyValueBlock keyValueBlock : getKeyValues()) {
-            keyValueBlock.setParentBlock(parentBlock);
+        for (ValueNode valueNode : getKeyValues().values()) {
+            valueNode.setParentBlock(parentBlock);
         }
     }
 
     @Override
     public Map getValue() {
         Map<String, Object> map = new HashMap<>();
-        for (KeyValueBlock keyValueBlock : getKeyValues()) {
-            map.put(keyValueBlock.getKey(), keyValueBlock.getValue().getValue());
+        for (String key : getKeyValues().keySet()) {
+            map.put(key, getKeyValues().get(key).getValue());
         }
 
         return map;
@@ -41,10 +47,10 @@ public class MapNode extends ValueNode<Map> {
 
     @Override
     public boolean resolve() {
-        for (KeyValueBlock keyValueBlock : getKeyValues()) {
-            boolean resolved = keyValueBlock.resolve();
+        for (ValueNode valueNode : getKeyValues().values()) {
+            boolean resolved = valueNode.resolve();
             if (!resolved) {
-                throw new BeamLanguageException("Unabled to resolve configuration.", keyValueBlock);
+                throw new BeamLanguageException("Unabled to resolve configuration.", valueNode);
             }
         }
 
@@ -58,8 +64,8 @@ public class MapNode extends ValueNode<Map> {
         sb.append("{\n");
 
         List<String> out = new ArrayList<>();
-        for (KeyValueBlock block : getKeyValues()) {
-            out.add("    " + block.toString());
+        for (String key : getKeyValues().keySet()) {
+            out.add(String.format("    %s: %s", key, getKeyValues().get(key).getValue()));
         }
 
         sb.append(StringUtils.join(out, ",\n"));
