@@ -8,7 +8,7 @@ import beam.core.diff.ChangeType;
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiff;
 import beam.lang.BeamLanguageException;
-import beam.lang.types.ContainerNode;
+import beam.lang.nodes.ContainerNode;
 import io.airlift.airline.Arguments;
 import io.airlift.airline.Command;
 import io.airlift.airline.Option;

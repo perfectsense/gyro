@@ -5,8 +5,8 @@ import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceDisplayDiff;
 import beam.core.diff.ResourceName;
 import beam.lang.BeamLanguageExtension;
-import beam.lang.types.ReferenceNode;
-import beam.lang.types.ResourceNode;
+import beam.lang.nodes.ReferenceNode;
+import beam.lang.nodes.ResourceNode;
 import com.google.common.base.Throwables;
 import com.psddev.dari.util.ObjectUtils;
 

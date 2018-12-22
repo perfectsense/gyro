@@ -1,4 +1,4 @@
-package beam.lang.types;
+package beam.lang.nodes;
 
 import org.apache.commons.lang.math.NumberUtils;
 

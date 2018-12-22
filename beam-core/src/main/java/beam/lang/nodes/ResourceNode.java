@@ -1,4 +1,4 @@
-package beam.lang.types;
+package beam.lang.nodes;
 
 import beam.core.BeamException;
 import com.google.common.base.CaseFormat;

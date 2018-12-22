@@ -1,11 +1,11 @@
-package beam.lang.types;
+package beam.lang.nodes;
 
 import org.apache.commons.lang.StringUtils;
 
-public class StringExpressionNode extends LiteralNode {
+public class StringNode extends LiteralNode {
 
-    public StringExpressionNode(String literal) {
-        super(StringUtils.strip(literal, "\""));
+    public StringNode(String literal) {
+        super(StringUtils.strip(literal, "'"));
     }
 
     @Override
@@ -19,7 +19,7 @@ public class StringExpressionNode extends LiteralNode {
             return null;
         }
 
-        return "\"" + getLiteral() + "\"";
+        return "'" + getLiteral() + "'";
     }
 
 }

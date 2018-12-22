@@ -1,7 +1,7 @@
 package beam.core;
 
 import beam.lang.BeamLanguageExtension;
-import beam.lang.types.ContainerNode;
+import beam.lang.nodes.ContainerNode;
 
 public abstract class BeamState extends BeamLanguageExtension {
 

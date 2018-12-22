@@ -1,4 +1,4 @@
-package beam.lang.types;
+package beam.lang.nodes;
 
 public abstract class LiteralNode extends ValueNode<String> {
 

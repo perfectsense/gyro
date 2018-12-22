@@ -1,7 +1,7 @@
 package beam.lang;
 
 import beam.core.BeamCore;
-import beam.lang.types.ResourceNode;
+import beam.lang.nodes.ResourceNode;
 
 public abstract class BeamLanguageExtension extends ResourceNode {
 

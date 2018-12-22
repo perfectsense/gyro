@@ -1,6 +1,6 @@
 package beam.core;
 
-import beam.lang.types.ContainerNode;
+import beam.lang.nodes.ContainerNode;
 
 import java.io.BufferedWriter;
 import java.io.File;
