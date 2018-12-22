@@ -5,8 +5,8 @@ import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceDisplayDiff;
 import beam.core.diff.ResourceName;
 import beam.lang.BeamLanguageExtension;
-import beam.lang.types.BeamReference;
 import beam.lang.types.KeyValueBlock;
+import beam.lang.types.ReferenceNode;
 import beam.lang.types.ResourceBlock;
 import com.google.common.base.Throwables;
 import com.psddev.dari.util.ObjectUtils;
@@ -188,7 +188,7 @@ public abstract class BeamResource extends BeamLanguageExtension implements Comp
     @Override
     public void execute() {
         if (get("resource-credentials") == null) {
-            BeamReference credentialsReference = new BeamReference(getResourceCredentialsName(), "default");
+            ReferenceNode credentialsReference = new ReferenceNode(getResourceCredentialsName(), "default");
             credentialsReference.setParentBlock(getParentBlock());
             credentialsReference.setLine(getLine());
             credentialsReference.setColumn(getColumn());

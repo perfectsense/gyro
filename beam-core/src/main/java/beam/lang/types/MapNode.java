@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class BeamMap extends BeamValue<Map> {
+public class MapNode extends ValueNode<Map> {
 
     private List<KeyValueBlock> keyValues;
 

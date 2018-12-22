@@ -6,11 +6,11 @@ import org.apache.commons.lang.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BeamList extends BeamValue<List> {
+public class ListNode extends ValueNode<List> {
 
-    private List<BeamValue> values;
+    private List<ValueNode> values;
 
-    public List<BeamValue> getValues() {
+    public List<ValueNode> getValues() {
         if (values == null) {
             values = new ArrayList<>();
         }
@@ -22,7 +22,7 @@ public class BeamList extends BeamValue<List> {
     public void setParentBlock(Node parentBlock) {
         super.setParentBlock(parentBlock);
 
-        for (BeamValue value : getValues()) {
+        for (ValueNode value : getValues()) {
             value.setParentBlock(parentBlock);
         }
     }
@@ -30,7 +30,7 @@ public class BeamList extends BeamValue<List> {
     @Override
     public List getValue() {
         List<String> list = new ArrayList();
-        for (BeamValue value : getValues()) {
+        for (ValueNode value : getValues()) {
             Object item = value.getValue();
             if (item != null) {
                 list.add(item.toString());
@@ -44,7 +44,7 @@ public class BeamList extends BeamValue<List> {
 
     @Override
     public boolean resolve() {
-        for (BeamValue value : getValues()) {
+        for (ValueNode value : getValues()) {
             boolean resolved = value.resolve();
             if (!resolved) {
                 throw new BeamLanguageException("Unabled to resolve configuration.", value);
@@ -61,7 +61,7 @@ public class BeamList extends BeamValue<List> {
         sb.append("[\n");
 
         List<String> out = new ArrayList<>();
-        for (BeamValue value : getValues()) {
+        for (ValueNode value : getValues()) {
             out.add("    " + value.toString());
         }
 

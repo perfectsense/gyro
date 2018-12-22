@@ -2,11 +2,11 @@ package beam.lang.types;
 
 import org.apache.commons.lang.math.NumberUtils;
 
-public class BeamNumber extends BeamValue<Number> {
+public class NumberNode extends ValueNode<Number> {
 
     private Number number;
 
-    public BeamNumber(String number) {
+    public NumberNode(String number) {
         this.number = NumberUtils.createNumber(number);
     }
 

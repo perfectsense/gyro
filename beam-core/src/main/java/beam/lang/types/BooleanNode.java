@@ -1,10 +1,10 @@
 package beam.lang.types;
 
-public class BeamBoolean extends BeamValue<Boolean> {
+public class BooleanNode extends ValueNode<Boolean> {
 
     private boolean value;
 
-    public BeamBoolean(String value) {
+    public BooleanNode(String value) {
         this.value = Boolean.valueOf(value);
     }
 

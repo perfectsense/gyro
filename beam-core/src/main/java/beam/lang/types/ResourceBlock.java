@@ -85,8 +85,8 @@ public class ResourceBlock extends ContainerBlock {
                 String convertedKey = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key);
 
                 if (!BeanUtils.describe(this).containsKey(convertedKey)) {
-                    BeamValue beamValue = get(key);
-                    String message = String.format("invalid attribute '%s' found on line %s", key, beamValue.getLine());
+                    ValueNode valueNode = get(key);
+                    String message = String.format("invalid attribute '%s' found on line %s", key, valueNode.getLine());
 
                     throw new BeamException(message);
                 }

@@ -5,7 +5,7 @@ import beam.lang.BeamLanguageException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class BeamReference extends BeamValue {
+public class ReferenceNode extends ValueNode {
 
     private String type;
     private String name;
@@ -15,7 +15,7 @@ public class BeamReference extends BeamValue {
     private Pattern partial = Pattern.compile("\\$\\((?<type>[^\\s]+) (?<name>[^\\s]+)\\)");
     private Pattern full = Pattern.compile("\\$\\((?<type>[^\\s]+) (?<name>[^\\s]+) \\| (?<attribute>[^\\s]+)\\)");
 
-    public BeamReference(String fullRef) {
+    public ReferenceNode(String fullRef) {
         Matcher partialMatcher = partial.matcher(fullRef);
         Matcher fullMatcher = full.matcher(fullRef);
         if (fullMatcher.find()) {
@@ -28,11 +28,11 @@ public class BeamReference extends BeamValue {
         }
     }
 
-    public BeamReference(String type, String name) {
+    public ReferenceNode(String type, String name) {
         this(type, name, null);
     }
 
-    public BeamReference(String type, String name, String attribute) {
+    public ReferenceNode(String type, String name, String attribute) {
         this.type = type;
         this.name = name;
         this.attribute = attribute;

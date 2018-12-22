@@ -2,10 +2,10 @@ package beam.lang.types;
 
 import org.apache.commons.lang.StringUtils;
 
-public class BeamStringExpression extends BeamLiteral {
+public class StringNode extends LiteralNode {
 
-    public BeamStringExpression(String literal) {
-        super(StringUtils.strip(literal, "\""));
+    public StringNode(String literal) {
+        super(StringUtils.strip(literal, "'"));
     }
 
     @Override
@@ -19,7 +19,7 @@ public class BeamStringExpression extends BeamLiteral {
             return null;
         }
 
-        return "\"" + getLiteral() + "\"";
+        return "'" + getLiteral() + "'";
     }
 
 }

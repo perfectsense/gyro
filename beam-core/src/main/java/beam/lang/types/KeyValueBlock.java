@@ -3,7 +3,7 @@ package beam.lang.types;
 public class KeyValueBlock extends Node {
 
     private String key;
-    private BeamValue value;
+    private ValueNode value;
 
     public String getKey() {
         return key;
@@ -13,11 +13,11 @@ public class KeyValueBlock extends Node {
         this.key = key;
     }
 
-    public BeamValue getValue() {
+    public ValueNode getValue() {
         return value;
     }
 
-    public void setValue(BeamValue value) {
+    public void setValue(ValueNode value) {
         this.value = value;
     }
 

@@ -1,18 +1,18 @@
 package beam.lang;
 
 import beam.core.BeamCore;
-import beam.lang.types.BeamBoolean;
-import beam.lang.types.BeamList;
-import beam.lang.types.BeamLiteral;
-import beam.lang.types.BeamMap;
-import beam.lang.types.BeamNumber;
-import beam.lang.types.BeamReference;
-import beam.lang.types.BeamString;
-import beam.lang.types.BeamStringExpression;
-import beam.lang.types.BeamValue;
+import beam.lang.types.BooleanNode;
 import beam.lang.types.ContainerBlock;
 import beam.lang.types.KeyValueBlock;
+import beam.lang.types.ListNode;
+import beam.lang.types.LiteralNode;
+import beam.lang.types.MapNode;
+import beam.lang.types.NumberNode;
+import beam.lang.types.ReferenceNode;
 import beam.lang.types.ResourceBlock;
+import beam.lang.types.StringExpressionNode;
+import beam.lang.types.StringNode;
+import beam.lang.types.ValueNode;
 import beam.parser.antlr4.BeamParser.Beam_rootContext;
 import beam.parser.antlr4.BeamParser.BlockContext;
 import beam.parser.antlr4.BeamParser.Key_value_blockContext;
@@ -75,21 +75,21 @@ public class BeamVisitor extends BeamParserBaseVisitor {
 
     }
 
-    public BeamValue parseValue(ValueContext context) {
-        BeamValue value = null;
+    public ValueNode parseValue(ValueContext context) {
+        ValueNode value = null;
 
         if (context.boolean_value() != null) {
-            value = new BeamBoolean(context.boolean_value().getText());
+            value = new BooleanNode(context.boolean_value().getText());
         } else if (context.number_value() != null) {
-            value = new BeamNumber(context.number_value().getText());
+            value = new NumberNode(context.number_value().getText());
         } else if (context.reference_value() != null) {
             value = parseReferenceValue(context.reference_value());
         } else if (context.literal_value() != null) {
             value = parseLiteralValue(context.literal_value());
         } else if (context.list_value() != null) {
-            BeamList listValue = new BeamList();
+            ListNode listValue = new ListNode();
             for (List_item_valueContext valueContext : context.list_value().list_item_value()) {
-                BeamValue listItemValue = parseListItemValue(valueContext);
+                ValueNode listItemValue = parseListItemValue(valueContext);
                 listItemValue.setLine(valueContext.getStart().getLine());
                 listItemValue.setColumn(valueContext.getStart().getCharPositionInLine());
 
@@ -98,7 +98,7 @@ public class BeamVisitor extends BeamParserBaseVisitor {
 
             value = listValue;
         } else if (context.map_value() != null) {
-            BeamMap mapValue = new BeamMap();
+            MapNode mapValue = new MapNode();
             for (Key_value_blockContext valueContext : context.map_value().key_value_block()) {
                 mapValue.getKeyValues().add(parseKeyValueBlock(valueContext));
             }
@@ -112,7 +112,7 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         return value;
     }
 
-    public BeamValue parseListItemValue(List_item_valueContext context) {
+    public ValueNode parseListItemValue(List_item_valueContext context) {
         if (context.literal_value() != null) {
             return parseLiteralValue(context.literal_value());
         } else {
@@ -120,27 +120,27 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         }
     }
 
-    public BeamReference parseReferenceValue(Reference_valueContext context) {
+    public ReferenceNode parseReferenceValue(Reference_valueContext context) {
         if (context.reference_body().reference_attribute() != null) {
-            return new BeamReference(
+            return new ReferenceNode(
                 context.reference_body().reference_type().getText(),
                 context.reference_body().reference_name().getText(),
                 context.reference_body().reference_attribute().getText()
             );
         } else {
-            return new BeamReference(
+            return new ReferenceNode(
                 context.reference_body().reference_type().getText(),
                 context.reference_body().reference_name().getText()
             );
         }
     }
 
-    public BeamLiteral parseLiteralValue(Literal_valueContext context) {
-        BeamLiteral literal;
+    public LiteralNode parseLiteralValue(Literal_valueContext context) {
+        LiteralNode literal;
         if (context.STRING_INTEPRETED() != null) {
-            literal = new BeamStringExpression(context.getText());
+            literal = new StringExpressionNode(context.getText());
         } else {
-            literal = new BeamString(context.getText());
+            literal = new StringNode(context.getText());
         }
 
         literal.setLine(context.start.getLine());

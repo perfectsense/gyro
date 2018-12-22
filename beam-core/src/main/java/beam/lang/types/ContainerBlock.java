@@ -20,7 +20,7 @@ import java.util.Set;
 public class ContainerBlock extends Node {
 
     transient Map<ResourceKey, ResourceBlock> resources = new HashMap<>();
-    transient Map<String, BeamValue> keyValues = new HashMap<>();
+    transient Map<String, ValueNode> keyValues = new HashMap<>();
 
     /**
      * Returns a map of key/value pairs for this block.
@@ -70,12 +70,12 @@ public class ContainerBlock extends Node {
         return keyValues.keySet();
     }
 
-    public BeamValue get(String key) {
+    public ValueNode get(String key) {
         return keyValues.get(key);
     }
 
     public Object getValue(String key) {
-        BeamValue value = get(key);
+        ValueNode value = get(key);
         if (value != null) {
             return value.getValue();
         }
@@ -120,7 +120,7 @@ public class ContainerBlock extends Node {
             }
         }
 
-        for (BeamValue value : keyValues.values()) {
+        for (ValueNode value : keyValues.values()) {
             boolean resolved = value.resolve();
             if (!resolved) {
                 throw new BeamLanguageException("Unable to resolve configuration.", value);
