@@ -3,23 +3,35 @@ package beam.core;
 import beam.core.diff.ChangeType;
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiff;
-import beam.lang.BeamInterp;
+import beam.lang.BeamErrorListener;
+import beam.lang.BeamLanguageException;
+import beam.lang.BeamLanguageExtension;
+import beam.lang.BeamVisitor;
+import beam.lang.types.BeamBlock;
 import beam.lang.types.ContainerBlock;
 import beam.lang.types.ResourceBlock;
+import beam.parser.antlr4.BeamLexer;
+import beam.parser.antlr4.BeamParser;
 import com.psddev.dari.util.ThreadLocalStack;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
 public class BeamCore {
 
-    private static final ThreadLocalStack<BeamUI> UI = new ThreadLocalStack<>();
+    private ContainerBlock root;
 
-    private final BeamInterp interp = new BeamInterp();
+    private final Map<String, Class<? extends BeamLanguageExtension>> extensions = new HashMap<>();
+
+    private static final ThreadLocalStack<BeamUI> UI = new ThreadLocalStack<>();
 
     public static BeamUI ui() {
         return UI.get();
@@ -33,14 +45,49 @@ public class BeamCore {
         return UI.pop();
     }
 
+    public void addExtension(String key, Class<? extends BeamLanguageExtension> extension) {
+        extensions.put(key, extension);
+    }
+
+    public boolean hasExtension(String key) {
+        return extensions.containsKey(key);
+    }
+
+    public Class<? extends BeamBlock> getExtension(String key) {
+        return extensions.get(key);
+    }
+
+    public void init() {
+        extensions.clear();
+    }
+
     public ContainerBlock parse(String path) throws IOException {
-        interp.init();
-        interp.addExtension("state", BeamLocalState.class);
-        interp.addExtension("provider", BeamProvider.class);
+        init();
+        addExtension("state", BeamLocalState.class);
+        addExtension("provider", BeamProvider.class);
 
-        ContainerBlock block = interp.parse(path);
+        BeamLexer lexer = new BeamLexer(CharStreams.fromFileName(path));
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
 
-        return block;
+        BeamParser parser = new BeamParser(tokens);
+        BeamErrorListener errorListener = new BeamErrorListener();
+        parser.removeErrorListeners();
+        parser.addErrorListener(errorListener);
+        BeamParser.Beam_rootContext context = parser.beam_root();
+
+        if (errorListener.getSyntaxErrors() > 0) {
+            throw new BeamLanguageException(errorListener.getSyntaxErrors() + " errors while parsing.");
+        }
+
+        BeamVisitor visitor = new BeamVisitor(this);
+        visitor.visitBeam_root(context);        // First pass ensures extensions are loaded and executed
+        root = visitor.visitBeam_root(context);
+
+        if (!root.resolve()) {
+            System.out.println("Unable to resolve config.");
+        }
+
+        return root;
     }
 
     public BeamState getState(ContainerBlock block) {

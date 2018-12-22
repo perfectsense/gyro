@@ -1,7 +1,6 @@
 package beam.core;
 
 import beam.core.diff.ResourceName;
-import beam.lang.BeamInterp;
 import beam.lang.BeamLanguageExtension;
 import com.psddev.dari.util.StringUtils;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
@@ -107,12 +106,12 @@ public class BeamProvider extends BeamLanguageExtension {
                         dependencyArtifact.getVersion());
 
                     if (getArtifact().equals(key)) {
-                        registerResources(getInterp(), artifactJarUrls, dependencyArtifact);
+                        registerResources(getCore(), artifactJarUrls, dependencyArtifact);
                     }
                 }
             } else {
                 for (String resourceName : PROVIDER_CLASS_CACHE.get(getArtifact()).keySet()) {
-                    getInterp().addExtension(resourceName, PROVIDER_CLASS_CACHE.get(getArtifact()).get(resourceName));
+                    getCore().addExtension(resourceName, PROVIDER_CLASS_CACHE.get(getArtifact()).get(resourceName));
                 }
             }
         } catch (Exception e) {
@@ -146,7 +145,7 @@ public class BeamProvider extends BeamLanguageExtension {
         return artifacts;
     }
 
-    private void registerResources(BeamInterp interp, URL[] urls, Artifact artifact) throws Exception {
+    private void registerResources(BeamCore core, URL[] urls, Artifact artifact) throws Exception {
         ClassLoader parent = getClass().getClassLoader();
         URLClassLoader loader = new URLClassLoader(urls, parent);
 
@@ -202,7 +201,7 @@ public class BeamProvider extends BeamLanguageExtension {
                 cache.put(fullName, resourceClass);
             }
 
-            interp.addExtension(fullName, cache.get(fullName));
+            core.addExtension(fullName, cache.get(fullName));
         }
     }
 

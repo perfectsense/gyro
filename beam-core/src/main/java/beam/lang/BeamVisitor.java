@@ -1,5 +1,6 @@
 package beam.lang;
 
+import beam.core.BeamCore;
 import beam.lang.types.BeamBoolean;
 import beam.lang.types.BeamList;
 import beam.lang.types.BeamLiteral;
@@ -27,10 +28,10 @@ import java.util.List;
 
 public class BeamVisitor extends BeamParserBaseVisitor {
 
-    private BeamInterp interp;
+    private BeamCore core;
 
-    public BeamVisitor(BeamInterp interp) {
-        this.interp = interp;
+    public BeamVisitor(BeamCore core) {
+        this.core = core;
     }
 
     public ContainerBlock visitBeam_root(Beam_rootContext context) {
@@ -159,12 +160,12 @@ public class BeamVisitor extends BeamParserBaseVisitor {
     }
 
     public ResourceBlock createResourceBlock(String type) {
-        Class klass = interp.getExtension(type);
+        Class klass = core.getExtension(type);
         if (klass != null) {
             try {
                 BeamLanguageExtension block = (BeamLanguageExtension) klass.newInstance();
                 block.setResourceType(type);
-                block.setInterp(interp);
+                block.setCore(core);
 
                 return block;
             } catch (InstantiationException | IllegalAccessException ex) {

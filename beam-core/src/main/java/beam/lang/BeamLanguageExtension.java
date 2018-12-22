@@ -1,10 +1,11 @@
 package beam.lang;
 
+import beam.core.BeamCore;
 import beam.lang.types.ResourceBlock;
 
 public abstract class BeamLanguageExtension extends ResourceBlock {
 
-    private BeamInterp interp;
+    private BeamCore core;
 
     /**
      * `execute()` is called during the parsing of the configuration. This
@@ -19,12 +20,12 @@ public abstract class BeamLanguageExtension extends ResourceBlock {
         execute();
     }
 
-    public BeamInterp getInterp() {
-        return interp;
+    public BeamCore getCore() {
+        return core;
     }
 
-    public void setInterp(BeamInterp interp) {
-        this.interp = interp;
+    public void setCore(BeamCore core) {
+        this.core = core;
     }
 
 }
