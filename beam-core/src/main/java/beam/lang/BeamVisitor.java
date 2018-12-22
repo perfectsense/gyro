@@ -2,14 +2,14 @@ package beam.lang;
 
 import beam.core.BeamCore;
 import beam.lang.types.BooleanNode;
-import beam.lang.types.ContainerBlock;
+import beam.lang.types.ContainerNode;
 import beam.lang.types.KeyValueBlock;
 import beam.lang.types.ListNode;
 import beam.lang.types.LiteralNode;
 import beam.lang.types.MapNode;
 import beam.lang.types.NumberNode;
 import beam.lang.types.ReferenceNode;
-import beam.lang.types.ResourceBlock;
+import beam.lang.types.ResourceNode;
 import beam.lang.types.StringExpressionNode;
 import beam.lang.types.StringNode;
 import beam.lang.types.ValueNode;
@@ -34,16 +34,16 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         this.core = core;
     }
 
-    public ContainerBlock visitBeam_root(Beam_rootContext context) {
-        ContainerBlock containerBlock = new ContainerBlock();
+    public ContainerNode visitBeam_root(Beam_rootContext context) {
+        ContainerNode containerNode = new ContainerNode();
 
-        parseContainerBlockChildren(containerBlock, context.block());
+        parseContainerBlockChildren(containerNode, context.block());
 
-        return containerBlock;
+        return containerNode;
     }
 
-    public ResourceBlock visitResource_block(Resource_blockContext context, ContainerBlock parent) {
-        ResourceBlock resourceBlock = createResourceBlock(context.resource_type().getText());
+    public ResourceNode visitResource_block(Resource_blockContext context, ContainerNode parent) {
+        ResourceNode resourceBlock = createResourceBlock(context.resource_type().getText());
         resourceBlock.setResourceIdentifier(context.resource_name().getText());
         resourceBlock.setResourceType(context.resource_type().getText());
         resourceBlock.setParentBlock(parent);
@@ -60,16 +60,16 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         return resourceBlock;
     }
 
-    public void parseContainerBlockChildren(ContainerBlock containerBlock, List<BlockContext> blocks) {
+    public void parseContainerBlockChildren(ContainerNode containerNode, List<BlockContext> blocks) {
         for (BlockContext blockContext : blocks) {
             if (blockContext.key_value_block() != null) {
                 KeyValueBlock block = parseKeyValueBlock(blockContext.key_value_block());
 
-                containerBlock.putKeyValue(block);
+                containerNode.putKeyValue(block);
             } else if (blockContext.resource_block() != null) {
-                ResourceBlock block = visitResource_block(blockContext.resource_block(), containerBlock);
+                ResourceNode block = visitResource_block(blockContext.resource_block(), containerNode);
 
-                containerBlock.putResource(block);
+                containerNode.putResource(block);
             }
         }
 
@@ -159,7 +159,7 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         return keyValueBlock;
     }
 
-    public ResourceBlock createResourceBlock(String type) {
+    public ResourceNode createResourceBlock(String type) {
         Class klass = core.getExtension(type);
         if (klass != null) {
             try {
@@ -173,6 +173,6 @@ public class BeamVisitor extends BeamParserBaseVisitor {
             }
         }
 
-        return new ResourceBlock();
+        return new ResourceNode();
     }
 }

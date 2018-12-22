@@ -8,7 +8,7 @@ import beam.core.diff.ChangeType;
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiff;
 import beam.lang.BeamLanguageException;
-import beam.lang.types.ContainerBlock;
+import beam.lang.types.ContainerNode;
 import io.airlift.airline.Arguments;
 import io.airlift.airline.Command;
 import io.airlift.airline.Option;
@@ -35,7 +35,7 @@ public class UpCommand extends AbstractCommand {
         String configPath = getArguments().get(0);
         String statePath = configPath + ".state";
         BeamCore core = new BeamCore();
-        ContainerBlock rootBlock = null;
+        ContainerNode rootBlock = null;
         try {
             rootBlock = core.parse(configPath);
         } catch (BeamLanguageException ex) {
@@ -43,7 +43,7 @@ public class UpCommand extends AbstractCommand {
         }
 
         BeamState backend = core.getState(rootBlock);
-        ContainerBlock state = backend.load(statePath, core);
+        ContainerNode state = backend.load(statePath, core);
         core.copyNonResourceState(rootBlock, state);
 
         Set<BeamResource> resources = core.findBeamResources(rootBlock);
@@ -86,7 +86,7 @@ public class UpCommand extends AbstractCommand {
         return arguments;
     }
 
-    private void createOrUpdate(BeamCore core, List<ResourceDiff> diffs, ContainerBlock state, BeamState stateBackend, String path) {
+    private void createOrUpdate(BeamCore core, List<ResourceDiff> diffs, ContainerNode state, BeamState stateBackend, String path) {
         for (ResourceDiff diff : diffs) {
             for (ResourceChange change : diff.getChanges()) {
                 ChangeType type = change.getType();
@@ -100,7 +100,7 @@ public class UpCommand extends AbstractCommand {
         }
     }
 
-    private void delete(BeamCore core, List<ResourceDiff> diffs, ContainerBlock state, BeamState stateBackend, String path) {
+    private void delete(BeamCore core, List<ResourceDiff> diffs, ContainerNode state, BeamState stateBackend, String path) {
         for (ResourceDiff diff : diffs) {
             for (ResourceChange change : diff.getChanges()) {
                 delete(core, change.getDiffs(), state, stateBackend, path);

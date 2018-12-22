@@ -1,9 +1,9 @@
 package beam.lang;
 
 import beam.core.BeamCore;
-import beam.lang.types.ResourceBlock;
+import beam.lang.types.ResourceNode;
 
-public abstract class BeamLanguageExtension extends ResourceBlock {
+public abstract class BeamLanguageExtension extends ResourceNode {
 
     private BeamCore core;
 

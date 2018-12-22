@@ -10,7 +10,7 @@ public class ReferenceNode extends ValueNode {
     private String type;
     private String name;
     private String attribute;
-    private ContainerBlock referencedBlock;
+    private ContainerNode referencedBlock;
 
     private Pattern partial = Pattern.compile("\\$\\((?<type>[^\\s]+) (?<name>[^\\s]+)\\)");
     private Pattern full = Pattern.compile("\\$\\((?<type>[^\\s]+) (?<name>[^\\s]+) \\| (?<attribute>[^\\s]+)\\)");
@@ -50,7 +50,7 @@ public class ReferenceNode extends ValueNode {
         return attribute;
     }
 
-    public ContainerBlock getReferencedBlock() {
+    public ContainerNode getReferencedBlock() {
         return referencedBlock;
     }
 
@@ -71,17 +71,17 @@ public class ReferenceNode extends ValueNode {
 
         // Traverse up
         while (parent != null) {
-            if (parent instanceof ContainerBlock) {
-                ContainerBlock containerBlock = (ContainerBlock) parent;
+            if (parent instanceof ContainerNode) {
+                ContainerNode containerNode = (ContainerNode) parent;
 
-                referencedBlock = containerBlock.getResource(getName(), getType());
+                referencedBlock = containerNode.getResource(getName(), getType());
 
                 // Only ResourceBlocks have a dependency chain.
-                if (referencedBlock != null  && referencedBlock instanceof ResourceBlock
-                    && getParentBlock() != null && getParentBlock() instanceof ResourceBlock) {
+                if (referencedBlock != null  && referencedBlock instanceof ResourceNode
+                    && getParentBlock() != null && getParentBlock() instanceof ResourceNode) {
 
-                    ResourceBlock parentRef = (ResourceBlock) getParentBlock();
-                    ResourceBlock resourceRef = (ResourceBlock) referencedBlock;
+                    ResourceNode parentRef = (ResourceNode) getParentBlock();
+                    ResourceNode resourceRef = (ResourceNode) referencedBlock;
                     resourceRef.dependents().add(parentRef);
                     parentRef.dependencies().add(resourceRef);
 

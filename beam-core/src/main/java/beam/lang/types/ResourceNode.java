@@ -8,15 +8,15 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class ResourceBlock extends ContainerBlock {
+public class ResourceNode extends ContainerNode {
 
     private String type;
     private String name;
 
-    private Set<ResourceBlock> dependencies;
-    private Set<ResourceBlock> dependents;
+    private Set<ResourceNode> dependencies;
+    private Set<ResourceNode> dependents;
 
-    public Set<ResourceBlock> dependencies() {
+    public Set<ResourceNode> dependencies() {
         if (dependencies == null) {
             dependencies = new LinkedHashSet<>();
         }
@@ -24,7 +24,7 @@ public class ResourceBlock extends ContainerBlock {
         return dependencies;
     }
 
-    public Set<ResourceBlock> dependents() {
+    public Set<ResourceNode> dependents() {
         if (dependents == null) {
             dependents = new LinkedHashSet<>();
         }

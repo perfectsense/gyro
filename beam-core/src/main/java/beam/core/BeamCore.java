@@ -7,9 +7,9 @@ import beam.lang.BeamErrorListener;
 import beam.lang.BeamLanguageException;
 import beam.lang.BeamLanguageExtension;
 import beam.lang.BeamVisitor;
-import beam.lang.types.ContainerBlock;
+import beam.lang.types.ContainerNode;
 import beam.lang.types.Node;
-import beam.lang.types.ResourceBlock;
+import beam.lang.types.ResourceNode;
 import beam.parser.antlr4.BeamLexer;
 import beam.parser.antlr4.BeamParser;
 import com.psddev.dari.util.ThreadLocalStack;
@@ -27,7 +27,7 @@ import java.util.TreeSet;
 
 public class BeamCore {
 
-    private ContainerBlock root;
+    private ContainerNode root;
 
     private final Map<String, Class<? extends BeamLanguageExtension>> extensions = new HashMap<>();
 
@@ -61,7 +61,7 @@ public class BeamCore {
         extensions.clear();
     }
 
-    public ContainerBlock parse(String path) throws IOException {
+    public ContainerNode parse(String path) throws IOException {
         init();
         addExtension("state", BeamLocalState.class);
         addExtension("provider", BeamProvider.class);
@@ -90,10 +90,10 @@ public class BeamCore {
         return root;
     }
 
-    public BeamState getState(ContainerBlock block) {
+    public BeamState getState(ContainerNode block) {
         BeamState backend = new BeamLocalState();
 
-        for (ResourceBlock resourceBlock : block.resources()) {
+        for (ResourceNode resourceBlock : block.resources()) {
             if (resourceBlock instanceof BeamState) {
                 backend = (BeamState) resourceBlock;
             }
@@ -102,10 +102,10 @@ public class BeamCore {
         return backend;
     }
 
-    public void copyNonResourceState(ContainerBlock source, ContainerBlock state) {
+    public void copyNonResourceState(ContainerNode source, ContainerNode state) {
         state.copyNonResourceState(source);
 
-        for (ResourceBlock block : source.resources()) {
+        for (ResourceNode block : source.resources()) {
             if (block instanceof BeamResource) {
                 continue;
             }
@@ -114,14 +114,14 @@ public class BeamCore {
         }
     }
 
-    public Set<BeamResource> findBeamResources(ContainerBlock block) {
+    public Set<BeamResource> findBeamResources(ContainerNode block) {
         return findBeamResources(block, false);
     }
 
-    public Set<BeamResource> findBeamResources(ContainerBlock block, boolean refresh) {
+    public Set<BeamResource> findBeamResources(ContainerNode block, boolean refresh) {
         Set<BeamResource> resources = new TreeSet<>();
 
-        for (ResourceBlock resource : block.resources()) {
+        for (ResourceNode resource : block.resources()) {
             if (resource instanceof BeamResource) {
                 if (refresh) {
                     BeamCore.ui().write("@|bold,blue Refreshing|@: @|yellow %s|@ -> %s...",
@@ -227,7 +227,7 @@ public class BeamCore {
         }
     }
 
-    public void execute(ResourceChange change, ContainerBlock state, BeamState backend, String path) {
+    public void execute(ResourceChange change, ContainerNode state, BeamState backend, String path) {
         ChangeType type = change.getType();
 
         if (type == ChangeType.KEEP || type == ChangeType.REPLACE || change.isChanged()) {

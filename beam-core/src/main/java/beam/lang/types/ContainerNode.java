@@ -17,9 +17,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class ContainerBlock extends Node {
+public class ContainerNode extends Node {
 
-    transient Map<ResourceKey, ResourceBlock> resources = new HashMap<>();
+    transient Map<ResourceKey, ResourceNode> resources = new HashMap<>();
     transient Map<String, ValueNode> keyValues = new HashMap<>();
 
     /**
@@ -88,32 +88,32 @@ public class ContainerBlock extends Node {
         keyValues.put(keyValueBlock.getKey(), keyValueBlock.getValue());
     }
 
-    public Collection<ResourceBlock> resources() {
+    public Collection<ResourceNode> resources() {
         return resources.values();
     }
 
-    public ResourceBlock removeResource(ResourceBlock block) {
+    public ResourceNode removeResource(ResourceNode block) {
         return resources.remove(block.resourceKey());
     }
 
-    public void putResource(ResourceBlock resourceBlock) {
+    public void putResource(ResourceNode resourceBlock) {
         resourceBlock.setParentBlock(this);
 
         resources.put(resourceBlock.resourceKey(), resourceBlock);
     }
 
-    public ResourceBlock getResource(String key, String type) {
+    public ResourceNode getResource(String key, String type) {
         ResourceKey resourceKey = new ResourceKey(type, key);
         return resources.get(resourceKey);
     }
 
-    public void copyNonResourceState(ContainerBlock source) {
+    public void copyNonResourceState(ContainerNode source) {
         keyValues.putAll(source.keyValues);
     }
 
     @Override
     public boolean resolve() {
-        for (ResourceBlock resourceBlock : resources.values()) {
+        for (ResourceNode resourceBlock : resources.values()) {
             boolean resolved = resourceBlock.resolve();
             if (!resolved) {
                 throw new BeamLanguageException("Unable to resolve configuration.", resourceBlock);
@@ -134,7 +134,7 @@ public class ContainerBlock extends Node {
     public String toString() {
         StringBuilder sb = new StringBuilder();
 
-        for (ResourceBlock resourceBlock : resources.values()) {
+        for (ResourceNode resourceBlock : resources.values()) {
             sb.append(resourceBlock.toString());
         }
 
@@ -152,8 +152,8 @@ public class ContainerBlock extends Node {
                     sb.append(mapToString((Map) value));
                 } else if (value instanceof List) {
                     sb.append(listToString((List) value));
-                } else if (value instanceof ResourceBlock) {
-                    sb.append(((ResourceBlock) value).resourceKey());
+                } else if (value instanceof ResourceNode) {
+                    sb.append(((ResourceNode) value).resourceKey());
                 }
                 sb.append("\n");
             }

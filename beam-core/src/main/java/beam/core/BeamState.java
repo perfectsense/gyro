@@ -1,13 +1,13 @@
 package beam.core;
 
 import beam.lang.BeamLanguageExtension;
-import beam.lang.types.ContainerBlock;
+import beam.lang.types.ContainerNode;
 
 public abstract class BeamState extends BeamLanguageExtension {
 
-    public abstract ContainerBlock load(String name, BeamCore core) throws Exception;
+    public abstract ContainerNode load(String name, BeamCore core) throws Exception;
 
-    public abstract void save(String name, ContainerBlock state);
+    public abstract void save(String name, ContainerNode state);
 
     public abstract void delete(String name);
 

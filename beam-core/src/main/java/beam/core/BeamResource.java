@@ -7,7 +7,7 @@ import beam.core.diff.ResourceName;
 import beam.lang.BeamLanguageExtension;
 import beam.lang.types.KeyValueBlock;
 import beam.lang.types.ReferenceNode;
-import beam.lang.types.ResourceBlock;
+import beam.lang.types.ResourceNode;
 import com.google.common.base.Throwables;
 import com.psddev.dari.util.ObjectUtils;
 
@@ -80,7 +80,7 @@ public abstract class BeamResource extends BeamLanguageExtension implements Comp
      * from the current state (i.e. a resource loaded from a state file) into a pending
      * state (i.e. a resource loaded from a config file).
      */
-    public void syncPropertiesFromResource(ResourceBlock source) {
+    public void syncPropertiesFromResource(ResourceNode source) {
         if (source == null) {
             return;
         }

@@ -1,6 +1,6 @@
 package beam.core;
 
-import beam.lang.types.ContainerBlock;
+import beam.lang.types.ContainerNode;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -10,18 +10,18 @@ import java.io.IOException;
 public class BeamLocalState extends BeamState {
 
     @Override
-    public ContainerBlock load(String name, BeamCore core) throws IOException {
+    public ContainerNode load(String name, BeamCore core) throws IOException {
 
         File stateFile = new File(name);
         if (stateFile.exists() && !stateFile.isDirectory()) {
             return core.parse(name);
         } else {
-            return new ContainerBlock();
+            return new ContainerNode();
         }
     }
 
     @Override
-    public void save(String name, ContainerBlock block) {
+    public void save(String name, ContainerNode block) {
         try {
             BufferedWriter out = new BufferedWriter(new FileWriter(name));
             out.write(block.toString());

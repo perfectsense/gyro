@@ -1,7 +1,7 @@
 package beam.core.diff;
 
 import beam.core.BeamResource;
-import beam.lang.types.ResourceBlock;
+import beam.lang.types.ResourceNode;
 import com.psddev.dari.util.CompactMap;
 
 import java.util.ArrayList;
@@ -219,7 +219,7 @@ public class ResourceDiff {
 
         for (BeamResource resource : resources) {
             List<BeamResource> deps = new ArrayList<>();
-            for (ResourceBlock dependency : resource.dependencies()) {
+            for (ResourceNode dependency : resource.dependencies()) {
                 if (dependency instanceof BeamResource) {
                     deps.add((BeamResource) dependency);
                 }
