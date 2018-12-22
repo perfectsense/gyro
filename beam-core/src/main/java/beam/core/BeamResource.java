@@ -4,7 +4,6 @@ import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceDisplayDiff;
 import beam.core.diff.ResourceName;
-import beam.lang.BeamLanguageExtension;
 import beam.lang.nodes.ReferenceNode;
 import beam.lang.nodes.ResourceNode;
 import com.google.common.base.Throwables;
@@ -19,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public abstract class BeamResource extends BeamLanguageExtension implements Comparable<BeamResource> {
+public abstract class BeamResource extends ResourceNode implements Comparable<BeamResource> {
 
     private transient BeamCredentials resourceCredentials;
 

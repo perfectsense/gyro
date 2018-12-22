@@ -5,8 +5,7 @@ import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiff;
 import beam.lang.BeamErrorListener;
 import beam.lang.BeamLanguageException;
-import beam.lang.BeamLanguageExtension;
-import beam.lang.BeamVisitor;
+import beam.lang.nodes.BeamVisitor;
 import beam.lang.nodes.ContainerNode;
 import beam.lang.nodes.Node;
 import beam.lang.nodes.ResourceNode;
@@ -29,7 +28,7 @@ public class BeamCore {
 
     private ContainerNode root;
 
-    private final Map<String, Class<? extends BeamLanguageExtension>> extensions = new HashMap<>();
+    private final Map<String, Class<? extends ResourceNode>> extensions = new HashMap<>();
 
     private static final ThreadLocalStack<BeamUI> UI = new ThreadLocalStack<>();
 
@@ -45,7 +44,7 @@ public class BeamCore {
         return UI.pop();
     }
 
-    public void addExtension(String key, Class<? extends BeamLanguageExtension> extension) {
+    public void addExtension(String key, Class<? extends ResourceNode> extension) {
         extensions.put(key, extension);
     }
 

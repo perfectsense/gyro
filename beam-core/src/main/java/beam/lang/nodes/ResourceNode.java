@@ -1,5 +1,6 @@
 package beam.lang.nodes;
 
+import beam.core.BeamCore;
 import beam.core.BeamException;
 import com.google.common.base.CaseFormat;
 import org.apache.commons.beanutils.BeanUtils;
@@ -15,6 +16,7 @@ public class ResourceNode extends ContainerNode {
 
     private Set<ResourceNode> dependencies;
     private Set<ResourceNode> dependents;
+    private BeamCore core;
 
     public Set<ResourceNode> dependencies() {
         if (dependencies == null) {
@@ -96,6 +98,27 @@ public class ResourceNode extends ContainerNode {
                 // Ignoring errors from setProperty
             }
         }
+    }
+
+    /**
+     * `execute()` is called during the parsing of the configuration. This
+     * allows extensions to perform any necessary actions to load themselves.
+     */
+    public void execute() {
+
+    }
+
+    final void executeInternal() {
+        syncInternalToProperties();
+        execute();
+    }
+
+    public BeamCore getCore() {
+        return core;
+    }
+
+    public void setCore(BeamCore core) {
+        this.core = core;
     }
 
 }

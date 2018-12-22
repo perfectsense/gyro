@@ -1,17 +1,7 @@
-package beam.lang;
+package beam.lang.nodes;
 
 import beam.core.BeamCore;
-import beam.lang.nodes.BooleanNode;
-import beam.lang.nodes.ContainerNode;
-import beam.lang.nodes.ListNode;
-import beam.lang.nodes.LiteralNode;
-import beam.lang.nodes.MapNode;
-import beam.lang.nodes.NumberNode;
-import beam.lang.nodes.ReferenceNode;
-import beam.lang.nodes.ResourceNode;
-import beam.lang.nodes.StringExpressionNode;
-import beam.lang.nodes.StringNode;
-import beam.lang.nodes.ValueNode;
+import beam.lang.BeamLanguageException;
 import beam.parser.antlr4.BeamParser.Beam_rootContext;
 import beam.parser.antlr4.BeamParser.BlockContext;
 import beam.parser.antlr4.BeamParser.Key_value_blockContext;
@@ -51,10 +41,7 @@ public class BeamVisitor extends BeamParserBaseVisitor {
 
         parseContainerBlockChildren(resourceBlock, context.block());
 
-        if (resourceBlock instanceof BeamLanguageExtension) {
-            BeamLanguageExtension extension = (BeamLanguageExtension) resourceBlock;
-            extension.executeInternal();
-        }
+        resourceBlock.executeInternal();
 
         return resourceBlock;
     }
@@ -160,11 +147,11 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         Class klass = core.getExtension(type);
         if (klass != null) {
             try {
-                BeamLanguageExtension block = (BeamLanguageExtension) klass.newInstance();
-                block.setResourceType(type);
-                block.setCore(core);
+                ResourceNode node = (ResourceNode) klass.newInstance();
+                node.setResourceType(type);
+                node.setCore(core);
 
-                return block;
+                return node;
             } catch (InstantiationException | IllegalAccessException ex) {
                 throw new BeamLanguageException("Unable to instantiate " + klass.getClass().getSimpleName());
             }

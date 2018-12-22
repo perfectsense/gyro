@@ -1,9 +1,9 @@
 package beam.core;
 
-import beam.lang.BeamLanguageExtension;
 import beam.lang.nodes.ContainerNode;
+import beam.lang.nodes.ResourceNode;
 
-public abstract class BeamState extends BeamLanguageExtension {
+public abstract class BeamState extends ResourceNode {
 
     public abstract ContainerNode load(String name, BeamCore core) throws Exception;
 
