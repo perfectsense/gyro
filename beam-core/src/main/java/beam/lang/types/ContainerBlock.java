@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class ContainerBlock extends BeamBlock {
+public class ContainerBlock extends Node {
 
     transient Map<ResourceKey, ResourceBlock> resources = new HashMap<>();
     transient Map<String, BeamValue> keyValues = new HashMap<>();

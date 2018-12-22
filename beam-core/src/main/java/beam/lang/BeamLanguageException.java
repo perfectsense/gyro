@@ -1,17 +1,17 @@
 package beam.lang;
 
-import beam.lang.types.BeamReferable;
+import beam.lang.types.Node;
 
 public class BeamLanguageException extends RuntimeException {
     private static final long serialVersionUID = 1L;
 
-    private BeamReferable referable;
+    private Node referable;
 
     public BeamLanguageException(String message) {
         super(message);
     }
 
-    public BeamLanguageException(String message, BeamReferable referable) {
+    public BeamLanguageException(String message, Node referable) {
         super(message);
         this.referable = referable;
     }
@@ -20,7 +20,7 @@ public class BeamLanguageException extends RuntimeException {
         super(message, cause);
     }
 
-    public BeamLanguageException(String message, Throwable cause, BeamReferable referable) {
+    public BeamLanguageException(String message, Throwable cause, Node referable) {
         super(message, cause);
         this.referable = referable;
     }
@@ -41,7 +41,7 @@ public class BeamLanguageException extends RuntimeException {
         return sb.toString();
     }
 
-    public BeamReferable getReferable() {
+    public Node getReferable() {
         return referable;
     }
 

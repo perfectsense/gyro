@@ -67,7 +67,7 @@ public class BeamReference extends BeamValue {
 
     @Override
     public boolean resolve() {
-        BeamBlock parent = getParentBlock();
+        Node parent = getParentBlock();
 
         // Traverse up
         while (parent != null) {
@@ -102,7 +102,7 @@ public class BeamReference extends BeamValue {
         Object value = getValue();
         if (value != null && value instanceof String) {
             sb.append("'" + value + "'");
-        } else if (value != null && !(value instanceof BeamBlock)) {
+        } else if (value != null && !(value instanceof Node)) {
             sb.append(value);
         } else {
             sb.append("$(");

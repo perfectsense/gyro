@@ -1,7 +1,7 @@
 package beam.core.diff;
 
 import beam.core.BeamResource;
-import beam.lang.types.BeamBlock;
+import beam.lang.types.Node;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 import com.psddev.dari.util.Lazy;
@@ -73,7 +73,7 @@ public class ResourceChange {
         Set<ResourceChange> dependencies = new HashSet<>();
 
         BeamResource resource = pendingResource != null ? pendingResource : currentResource;
-        for (BeamBlock block : (getType() == ChangeType.DELETE ? resource.dependents() : resource.dependencies())) {
+        for (Node block : (getType() == ChangeType.DELETE ? resource.dependents() : resource.dependencies())) {
             if (block instanceof BeamResource) {
                 BeamResource r = (BeamResource) block;
                 ResourceChange c = r.getChange();

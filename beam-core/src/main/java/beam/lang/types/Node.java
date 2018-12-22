@@ -1,19 +1,19 @@
 package beam.lang.types;
 
-public abstract class BeamReferable {
+public abstract class Node {
 
-    private transient BeamBlock parentBlock;
+    private transient Node parentBlock;
     private transient int line;
     private transient int column;
     private transient String path;
 
-    public BeamBlock getParentBlock() {
+    public Node getParentBlock() {
         return parentBlock;
     }
 
     public abstract boolean resolve();
 
-    public void setParentBlock(BeamBlock parentBlock) {
+    public void setParentBlock(Node parentBlock) {
         this.parentBlock = parentBlock;
     }
 

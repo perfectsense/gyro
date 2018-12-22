@@ -1,6 +1,6 @@
 package beam.lang.types;
 
-public class KeyValueBlock extends BeamBlock {
+public class KeyValueBlock extends Node {
 
     private String key;
     private BeamValue value;
@@ -23,7 +23,7 @@ public class KeyValueBlock extends BeamBlock {
 
 
     @Override
-    public void setParentBlock(BeamBlock parentBlock) {
+    public void setParentBlock(Node parentBlock) {
         super.setParentBlock(parentBlock);
 
         if (getValue() != null) {

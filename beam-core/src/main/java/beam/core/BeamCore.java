@@ -7,8 +7,8 @@ import beam.lang.BeamErrorListener;
 import beam.lang.BeamLanguageException;
 import beam.lang.BeamLanguageExtension;
 import beam.lang.BeamVisitor;
-import beam.lang.types.BeamBlock;
 import beam.lang.types.ContainerBlock;
+import beam.lang.types.Node;
 import beam.lang.types.ResourceBlock;
 import beam.parser.antlr4.BeamLexer;
 import beam.parser.antlr4.BeamParser;
@@ -53,7 +53,7 @@ public class BeamCore {
         return extensions.containsKey(key);
     }
 
-    public Class<? extends BeamBlock> getExtension(String key) {
+    public Class<? extends Node> getExtension(String key) {
         return extensions.get(key);
     }
 
