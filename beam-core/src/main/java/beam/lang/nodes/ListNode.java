@@ -19,11 +19,11 @@ public class ListNode extends ValueNode<List> {
     }
 
     @Override
-    public void setParentBlock(Node parentBlock) {
-        super.setParentBlock(parentBlock);
+    public void setParentNode(Node parentNode) {
+        super.setParentNode(parentNode);
 
         for (ValueNode value : getValues()) {
-            value.setParentBlock(parentBlock);
+            value.setParentNode(parentNode);
         }
     }
 

@@ -2,19 +2,19 @@ package beam.lang.nodes;
 
 public abstract class Node {
 
-    private transient Node parentBlock;
+    private transient Node parentNode;
     private transient int line;
     private transient int column;
     private transient String path;
 
-    public Node getParentBlock() {
-        return parentBlock;
-    }
-
     public abstract boolean resolve();
 
-    public void setParentBlock(Node parentBlock) {
-        this.parentBlock = parentBlock;
+    public Node getParentNode() {
+        return parentNode;
+    }
+
+    public void setParentNode(Node parentNode) {
+        this.parentNode = parentNode;
     }
 
     public int getLine() {

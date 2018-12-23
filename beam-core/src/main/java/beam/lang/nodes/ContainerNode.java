@@ -75,7 +75,7 @@ public class ContainerNode extends Node {
     }
 
     public void put(String key, ValueNode valueNode) {
-        valueNode.setParentBlock(this);
+        valueNode.setParentNode(this);
 
         keyValues.put(key, valueNode);
     }
@@ -89,7 +89,7 @@ public class ContainerNode extends Node {
     }
 
     public void putResource(ResourceNode resourceBlock) {
-        resourceBlock.setParentBlock(this);
+        resourceBlock.setParentNode(this);
 
         resources.put(resourceBlock.resourceKey(), resourceBlock);
     }

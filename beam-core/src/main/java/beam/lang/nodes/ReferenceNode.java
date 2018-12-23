@@ -67,7 +67,7 @@ public class ReferenceNode extends ValueNode {
 
     @Override
     public boolean resolve() {
-        Node parent = getParentBlock();
+        Node parent = getParentNode();
 
         // Traverse up
         while (parent != null) {
@@ -78,9 +78,9 @@ public class ReferenceNode extends ValueNode {
 
                 // Only ResourceBlocks have a dependency chain.
                 if (referencedBlock != null  && referencedBlock instanceof ResourceNode
-                    && getParentBlock() != null && getParentBlock() instanceof ResourceNode) {
+                    && getParentNode() != null && getParentNode() instanceof ResourceNode) {
 
-                    ResourceNode parentRef = (ResourceNode) getParentBlock();
+                    ResourceNode parentRef = (ResourceNode) getParentNode();
                     ResourceNode resourceRef = (ResourceNode) referencedBlock;
                     resourceRef.dependents().add(parentRef);
                     parentRef.dependencies().add(resourceRef);
@@ -89,7 +89,7 @@ public class ReferenceNode extends ValueNode {
                 }
             }
 
-            parent = parent.getParentBlock();
+            parent = parent.getParentNode();
         }
 
         throw new BeamLanguageException("Unable to resolve reference.", this);
