@@ -13,8 +13,6 @@ import beam.parser.antlr4.BeamParser.ValueContext;
 import beam.parser.antlr4.BeamParserBaseVisitor;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.List;
-
 public class BeamVisitor extends BeamParserBaseVisitor {
 
     private BeamCore core;
@@ -23,31 +21,10 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         this.core = core;
     }
 
-    public ContainerNode visitBeam_root(Beam_rootContext context) {
-        ContainerNode containerNode = new ContainerNode();
+    public RootNode visitBeam_root(Beam_rootContext context) {
+        RootNode containerNode = new RootNode();
 
-        parseContainerBlockChildren(containerNode, context.block());
-
-        return containerNode;
-    }
-
-    public ResourceNode visitResource_block(Resource_blockContext context, ContainerNode parent) {
-        ResourceNode resourceBlock = createResourceBlock(context.resource_type().getText());
-        resourceBlock.setResourceIdentifier(context.resource_name().getText());
-        resourceBlock.setResourceType(context.resource_type().getText());
-        resourceBlock.setParentNode(parent);
-        resourceBlock.setLine(context.getStart().getLine());
-        resourceBlock.setColumn(context.getStart().getCharPositionInLine());
-
-        parseContainerBlockChildren(resourceBlock, context.block());
-
-        resourceBlock.executeInternal();
-
-        return resourceBlock;
-    }
-
-    public void parseContainerBlockChildren(ContainerNode containerNode, List<BlockContext> blocks) {
-        for (BlockContext blockContext : blocks) {
+        for (BlockContext blockContext : context.block()) {
             if (blockContext.key_value_block() != null) {
                 String key = StringUtils.stripEnd(blockContext.key_value_block().key().getText(), ":");
                 ValueNode valueNode = parseValue(blockContext.key_value_block().value());
@@ -62,6 +39,31 @@ public class BeamVisitor extends BeamParserBaseVisitor {
             }
         }
 
+        return containerNode;
+    }
+
+    public ResourceNode visitResource_block(Resource_blockContext context, ContainerNode parent) {
+        ResourceNode resourceBlock = createResourceBlock(context.resource_type().getText());
+        resourceBlock.setResourceIdentifier(context.resource_name().getText());
+        resourceBlock.setResourceType(context.resource_type().getText());
+        resourceBlock.setParentNode(parent);
+        resourceBlock.setLine(context.getStart().getLine());
+        resourceBlock.setColumn(context.getStart().getCharPositionInLine());
+
+        for (BlockContext blockContext : context.block()) {
+            if (blockContext.key_value_block() != null) {
+                String key = StringUtils.stripEnd(blockContext.key_value_block().key().getText(), ":");
+                ValueNode valueNode = parseValue(blockContext.key_value_block().value());
+                valueNode.setLine(blockContext.key_value_block().getStart().getLine());
+                valueNode.setColumn(blockContext.key_value_block().getStart().getCharPositionInLine());
+
+                resourceBlock.put(key, valueNode);
+            }
+        }
+
+        resourceBlock.executeInternal();
+
+        return resourceBlock;
     }
 
     public ValueNode parseValue(ValueContext context) {

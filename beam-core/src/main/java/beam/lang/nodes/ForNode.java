@@ -1,4 +1,4 @@
 package beam.lang.nodes;
 
-public class ForNode extends ContainerNode {
+public class ForNode extends RootNode {
 }

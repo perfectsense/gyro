@@ -1,6 +1,7 @@
 package beam.core;
 
 import beam.lang.nodes.ContainerNode;
+import beam.lang.nodes.RootNode;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -10,13 +11,13 @@ import java.io.IOException;
 public class BeamLocalState extends BeamState {
 
     @Override
-    public ContainerNode load(String name, BeamCore core) throws IOException {
+    public RootNode load(String name, BeamCore core) throws IOException {
 
         File stateFile = new File(name);
         if (stateFile.exists() && !stateFile.isDirectory()) {
             return core.parse(name);
         } else {
-            return new ContainerNode();
+            return new RootNode();
         }
     }
 

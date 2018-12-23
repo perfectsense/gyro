@@ -6,9 +6,9 @@ import beam.core.diff.ResourceDiff;
 import beam.lang.BeamErrorListener;
 import beam.lang.BeamLanguageException;
 import beam.lang.nodes.BeamVisitor;
-import beam.lang.nodes.ContainerNode;
 import beam.lang.nodes.Node;
 import beam.lang.nodes.ResourceNode;
+import beam.lang.nodes.RootNode;
 import beam.parser.antlr4.BeamLexer;
 import beam.parser.antlr4.BeamParser;
 import com.psddev.dari.util.ThreadLocalStack;
@@ -26,7 +26,7 @@ import java.util.TreeSet;
 
 public class BeamCore {
 
-    private ContainerNode root;
+    private RootNode root;
 
     private final Map<String, Class<? extends ResourceNode>> extensions = new HashMap<>();
 
@@ -60,7 +60,7 @@ public class BeamCore {
         extensions.clear();
     }
 
-    public ContainerNode parse(String path) throws IOException {
+    public RootNode parse(String path) throws IOException {
         init();
         addExtension("state", BeamLocalState.class);
         addExtension("provider", BeamProvider.class);
@@ -89,7 +89,7 @@ public class BeamCore {
         return root;
     }
 
-    public BeamState getState(ContainerNode block) {
+    public BeamState getState(RootNode block) {
         BeamState backend = new BeamLocalState();
 
         for (ResourceNode resourceBlock : block.resources()) {
@@ -101,7 +101,7 @@ public class BeamCore {
         return backend;
     }
 
-    public void copyNonResourceState(ContainerNode source, ContainerNode state) {
+    public void copyNonResourceState(RootNode source, RootNode state) {
         state.copyNonResourceState(source);
 
         for (ResourceNode block : source.resources()) {
@@ -113,11 +113,11 @@ public class BeamCore {
         }
     }
 
-    public Set<BeamResource> findBeamResources(ContainerNode block) {
+    public Set<BeamResource> findBeamResources(RootNode block) {
         return findBeamResources(block, false);
     }
 
-    public Set<BeamResource> findBeamResources(ContainerNode block, boolean refresh) {
+    public Set<BeamResource> findBeamResources(RootNode block, boolean refresh) {
         Set<BeamResource> resources = new TreeSet<>();
 
         for (ResourceNode resource : block.resources()) {
@@ -137,8 +137,6 @@ public class BeamCore {
                     resources.add((BeamResource) resource);
                 }
             }
-
-            resources.addAll(findBeamResources(resource, refresh));
         }
 
         return resources;
@@ -226,7 +224,7 @@ public class BeamCore {
         }
     }
 
-    public void execute(ResourceChange change, ContainerNode state, BeamState backend, String path) {
+    public void execute(ResourceChange change, RootNode state, BeamState backend, String path) {
         ChangeType type = change.getType();
 
         if (type == ChangeType.KEEP || type == ChangeType.REPLACE || change.isChanged()) {

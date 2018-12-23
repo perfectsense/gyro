@@ -11,7 +11,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +18,6 @@ import java.util.Set;
 
 public class ContainerNode extends Node {
 
-    transient Map<ResourceKey, ResourceNode> resources = new HashMap<>();
     transient Map<String, ValueNode> keyValues = new HashMap<>();
 
     /**
@@ -80,38 +78,8 @@ public class ContainerNode extends Node {
         keyValues.put(key, valueNode);
     }
 
-    public Collection<ResourceNode> resources() {
-        return resources.values();
-    }
-
-    public ResourceNode removeResource(ResourceNode block) {
-        return resources.remove(block.resourceKey());
-    }
-
-    public void putResource(ResourceNode resourceBlock) {
-        resourceBlock.setParentNode(this);
-
-        resources.put(resourceBlock.resourceKey(), resourceBlock);
-    }
-
-    public ResourceNode getResource(String key, String type) {
-        ResourceKey resourceKey = new ResourceKey(type, key);
-        return resources.get(resourceKey);
-    }
-
-    public void copyNonResourceState(ContainerNode source) {
-        keyValues.putAll(source.keyValues);
-    }
-
     @Override
     public boolean resolve() {
-        for (ResourceNode resourceBlock : resources.values()) {
-            boolean resolved = resourceBlock.resolve();
-            if (!resolved) {
-                throw new BeamLanguageException("Unable to resolve configuration.", resourceBlock);
-            }
-        }
-
         for (ValueNode value : keyValues.values()) {
             boolean resolved = value.resolve();
             if (!resolved) {
@@ -120,46 +88,6 @@ public class ContainerNode extends Node {
         }
 
         return true;
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-
-        for (ResourceNode resourceBlock : resources.values()) {
-            sb.append(resourceBlock.toString());
-        }
-
-        for (Map.Entry<String, Object> entry : resolvedKeyValues().entrySet()) {
-            Object value = entry.getValue();
-
-            if (value != null) {
-                sb.append("    ").append(entry.getKey()).append(": ");
-
-                if (value instanceof String) {
-                    sb.append("'" + entry.getValue() + "'");
-                } else if (value instanceof Number || value instanceof Boolean) {
-                    sb.append(entry.getValue());
-                } else if (value instanceof Map) {
-                    sb.append(mapToString((Map) value));
-                } else if (value instanceof List) {
-                    sb.append(listToString((List) value));
-                } else if (value instanceof ResourceNode) {
-                    sb.append(((ResourceNode) value).resourceKey());
-                }
-                sb.append("\n");
-            }
-        }
-
-        return sb.toString();
-    }
-
-    protected String fieldNameFromKey(String key) {
-        return CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key);
-    }
-
-    protected String keyFromFieldName(String field) {
-        return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN, field).replaceFirst("get-", "");
     }
 
     protected String valueToString(Object value) {
@@ -211,6 +139,14 @@ public class ContainerNode extends Node {
         sb.append("\n    ]");
 
         return sb.toString();
+    }
+
+    protected String fieldNameFromKey(String key) {
+        return CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key);
+    }
+
+    protected String keyFromFieldName(String field) {
+        return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN, field).replaceFirst("get-", "");
     }
 
 }

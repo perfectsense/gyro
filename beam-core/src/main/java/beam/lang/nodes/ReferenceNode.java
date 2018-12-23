@@ -71,8 +71,8 @@ public class ReferenceNode extends ValueNode {
 
         // Traverse up
         while (parent != null) {
-            if (parent instanceof ContainerNode) {
-                ContainerNode containerNode = (ContainerNode) parent;
+            if (parent instanceof RootNode) {
+                RootNode containerNode = (RootNode) parent;
 
                 referencedBlock = containerNode.getResource(getName(), getType());
 
