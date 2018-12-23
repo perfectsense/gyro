@@ -3,10 +3,10 @@ parser grammar BeamParser;
 options { tokenVocab = BeamLexer; }
 
 beam_root
-    : block* EOF
+    : root_block* EOF
     ;
 
-block
+root_block
     :  (key_value_block | resource_block | for_block)
     ;
 
@@ -15,7 +15,11 @@ block_end
     ;
 
 resource_block
-    : resource_type resource_name block* block_end
+    : resource_type resource_name resource_block_body* block_end
+    ;
+
+resource_block_body
+    : key_value_block
     ;
 
 resource_type
@@ -28,7 +32,12 @@ resource_name
     ;
 
 for_block
-    : FOR for_list IN list_value block* block_end
+    : FOR for_list IN list_value for_block_body* block_end
+    ;
+
+for_block_body
+    : key_value_block
+    | resource_block
     ;
 
 for_list

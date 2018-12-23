@@ -2,8 +2,8 @@ package beam.lang.nodes;
 
 import beam.core.BeamCore;
 import beam.lang.BeamLanguageException;
+import beam.parser.antlr4.BeamParser;
 import beam.parser.antlr4.BeamParser.Beam_rootContext;
-import beam.parser.antlr4.BeamParser.BlockContext;
 import beam.parser.antlr4.BeamParser.Key_value_blockContext;
 import beam.parser.antlr4.BeamParser.List_item_valueContext;
 import beam.parser.antlr4.BeamParser.Literal_valueContext;
@@ -24,7 +24,7 @@ public class BeamVisitor extends BeamParserBaseVisitor {
     public RootNode visitBeam_root(Beam_rootContext context) {
         RootNode containerNode = new RootNode();
 
-        for (BlockContext blockContext : context.block()) {
+        for (BeamParser.Root_blockContext blockContext : context.root_block()) {
             if (blockContext.key_value_block() != null) {
                 String key = StringUtils.stripEnd(blockContext.key_value_block().key().getText(), ":");
                 ValueNode valueNode = parseValue(blockContext.key_value_block().value());
@@ -50,7 +50,7 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         resourceBlock.setLine(context.getStart().getLine());
         resourceBlock.setColumn(context.getStart().getCharPositionInLine());
 
-        for (BlockContext blockContext : context.block()) {
+        for (BeamParser.Resource_block_bodyContext blockContext : context.resource_block_body()) {
             if (blockContext.key_value_block() != null) {
                 String key = StringUtils.stripEnd(blockContext.key_value_block().key().getText(), ":");
                 ValueNode valueNode = parseValue(blockContext.key_value_block().value());
