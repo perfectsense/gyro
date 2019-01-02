@@ -114,5 +114,3 @@ task dist(type: Copy) {
 
     rename "beam-cli-0.5.jar", 'beam'
 }
-
-
