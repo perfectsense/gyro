@@ -136,15 +136,17 @@ public class ContainerNode extends Node {
 
         sb.append("{").append("\n");
 
-        for (Object key : map.keySet()) {
-            Object value = map.get(key);
+        if (!map.isEmpty()) {
+            for (Object key : map.keySet()) {
+                Object value = map.get(key);
 
-            sb.append("        ");
-            sb.append(key).append(": ");
-            sb.append(valueToString(value));
-            sb.append(",\n");
+                sb.append("        ");
+                sb.append(key).append(": ");
+                sb.append(valueToString(value));
+                sb.append(",\n");
+            }
+            sb.setLength(sb.length() - 2);
         }
-        sb.setLength(sb.length() - 2);
 
         sb.append("\n    }");
 
@@ -156,12 +158,14 @@ public class ContainerNode extends Node {
 
         sb.append("[").append("\n");
 
-        for (Object value : list) {
-            sb.append("        ");
-            sb.append(valueToString(value));
-            sb.append(",\n");
+        if (!list.isEmpty()) {
+            for (Object value : list) {
+                sb.append("        ");
+                sb.append(valueToString(value));
+                sb.append(",\n");
+            }
+            sb.setLength(sb.length() - 2);
         }
-        sb.setLength(sb.length() - 2);
 
         sb.append("\n    ]");
 
