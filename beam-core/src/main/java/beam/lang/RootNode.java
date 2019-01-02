@@ -54,26 +54,7 @@ public class RootNode extends ContainerNode {
             sb.append(resourceBlock.toString());
         }
 
-        for (Map.Entry<String, Object> entry : resolvedKeyValues().entrySet()) {
-            Object value = entry.getValue();
-
-            if (value != null) {
-                sb.append("    ").append(entry.getKey()).append(": ");
-
-                if (value instanceof String) {
-                    sb.append("'" + entry.getValue() + "'");
-                } else if (value instanceof Number || value instanceof Boolean) {
-                    sb.append(entry.getValue());
-                } else if (value instanceof Map) {
-                    sb.append(mapToString((Map) value));
-                } else if (value instanceof List) {
-                    sb.append(listToString((List) value));
-                } else if (value instanceof ResourceNode) {
-                    sb.append(((ResourceNode) value).resourceKey());
-                }
-                sb.append("\n");
-            }
-        }
+        sb.append(super.toString());
 
         return sb.toString();
     }
