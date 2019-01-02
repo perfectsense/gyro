@@ -1,7 +1,7 @@
 package beam.core.diff;
 
 import beam.core.BeamResource;
-import beam.lang.nodes.Node;
+import beam.lang.Node;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 import com.psddev.dari.util.Lazy;

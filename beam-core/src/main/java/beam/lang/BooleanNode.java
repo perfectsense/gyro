@@ -1,4 +1,4 @@
-package beam.lang.nodes;
+package beam.lang;
 
 public class BooleanNode extends ValueNode<Boolean> {
 

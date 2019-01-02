@@ -1,7 +1,7 @@
 package beam.core;
 
-import beam.lang.nodes.ContainerNode;
-import beam.lang.nodes.RootNode;
+import beam.lang.ContainerNode;
+import beam.lang.RootNode;
 
 import java.io.BufferedWriter;
 import java.io.File;

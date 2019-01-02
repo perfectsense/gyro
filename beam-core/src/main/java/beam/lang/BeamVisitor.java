@@ -1,7 +1,6 @@
-package beam.lang.nodes;
+package beam.lang;
 
 import beam.core.BeamCore;
-import beam.lang.BeamLanguageException;
 import beam.parser.antlr4.BeamParser;
 import beam.parser.antlr4.BeamParser.Beam_rootContext;
 import beam.parser.antlr4.BeamParser.Key_value_blockContext;

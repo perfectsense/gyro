@@ -1,6 +1,4 @@
-package beam.lang.nodes;
-
-import beam.lang.BeamLanguageException;
+package beam.lang;
 
 import java.util.Collection;
 import java.util.HashMap;

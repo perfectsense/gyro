@@ -1,6 +1,6 @@
 package beam.core;
 
-import beam.lang.nodes.ResourceNode;
+import beam.lang.ResourceNode;
 
 import java.util.Map;
 

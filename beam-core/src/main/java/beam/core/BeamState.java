@@ -1,8 +1,8 @@
 package beam.core;
 
-import beam.lang.nodes.ContainerNode;
-import beam.lang.nodes.ResourceNode;
-import beam.lang.nodes.RootNode;
+import beam.lang.ContainerNode;
+import beam.lang.ResourceNode;
+import beam.lang.RootNode;
 
 public abstract class BeamState extends ResourceNode {
 

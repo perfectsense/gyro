@@ -1,7 +1,7 @@
 package beam.core;
 
 import beam.core.diff.ResourceName;
-import beam.lang.nodes.ResourceNode;
+import beam.lang.ResourceNode;
 import com.psddev.dari.util.StringUtils;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;

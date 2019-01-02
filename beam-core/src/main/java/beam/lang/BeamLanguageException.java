@@ -1,7 +1,5 @@
 package beam.lang;
 
-import beam.lang.nodes.Node;
-
 public class BeamLanguageException extends RuntimeException {
     private static final long serialVersionUID = 1L;
 

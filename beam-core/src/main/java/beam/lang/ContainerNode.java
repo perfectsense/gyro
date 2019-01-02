@@ -1,6 +1,5 @@
-package beam.lang.nodes;
+package beam.lang;
 
-import beam.lang.BeamLanguageException;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Throwables;
 

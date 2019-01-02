@@ -1,6 +1,5 @@
-package beam.lang.nodes;
+package beam.lang;
 
-import beam.lang.BeamLanguageException;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;

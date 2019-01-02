@@ -1,4 +1,4 @@
-package beam.lang.nodes;
+package beam.lang;
 
 import beam.core.BeamCore;
 import beam.core.BeamException;

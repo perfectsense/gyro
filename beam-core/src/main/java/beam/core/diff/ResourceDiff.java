@@ -1,7 +1,7 @@
 package beam.core.diff;
 
 import beam.core.BeamResource;
-import beam.lang.nodes.ResourceNode;
+import beam.lang.ResourceNode;
 import com.psddev.dari.util.CompactMap;
 
 import java.util.ArrayList;
