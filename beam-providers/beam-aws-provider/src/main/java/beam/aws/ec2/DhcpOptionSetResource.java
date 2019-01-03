@@ -5,10 +5,8 @@ import beam.core.BeamException;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 import software.amazon.awssdk.services.ec2.Ec2Client;
-import software.amazon.awssdk.services.ec2.model.AssociateDhcpOptionsRequest;
 import software.amazon.awssdk.services.ec2.model.AttributeValue;
 import software.amazon.awssdk.services.ec2.model.CreateDhcpOptionsResponse;
-import software.amazon.awssdk.services.ec2.model.DeleteDhcpOptionsRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeDhcpOptionsRequest;
 import software.amazon.awssdk.services.ec2.model.DhcpConfiguration;
 import software.amazon.awssdk.services.ec2.model.DhcpOptions;
@@ -21,8 +19,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-
-
 /**
  * Creates a DHCP option set with the specified options.
  *
@@ -31,7 +27,7 @@ import java.util.Set;
  *
  * .. code-block:: beam
  *
- *     aws::dhcpOption example-dhcp
+ *     aws::dhcp-option example-dhcp
  *         domain-name: [example.com]
  *         domain-name-servers: [192.168.1.1, 192.168.1.2]
  *         ntp-servers: [10.2.5.1]
@@ -41,7 +37,7 @@ import java.util.Set;
  */
 
 @ResourceName("dhcp-option")
-public class DhcpOptionSet extends Ec2TaggableResource<Vpc> {
+public class DhcpOptionSetResource extends Ec2TaggableResource<Vpc> {
 
     private String vpcId;
     private String dhcpOptionsId;
@@ -199,16 +195,13 @@ public class DhcpOptionSet extends Ec2TaggableResource<Vpc> {
         addDhcpConfiguration(configs, "netbios-node-type", getNetbiosNodeType());
 
         Ec2Client client = createClient(Ec2Client.class);
+
         CreateDhcpOptionsResponse response = client.createDhcpOptions(
             r -> r.dhcpConfigurations(configs)
         );
 
         String optionsId = response.dhcpOptions().dhcpOptionsId();
         setDhcpOptionsId(optionsId);
-
-        if (getVpcId() != null) {
-            associate(client);
-        }
     }
 
     @Override
@@ -222,15 +215,8 @@ public class DhcpOptionSet extends Ec2TaggableResource<Vpc> {
     public void delete() {
         Ec2Client client = createClient(Ec2Client.class);
         try {
+            client.deleteDhcpOptions(r -> r.dhcpOptionsId(getDhcpOptionsId()));
 
-            if (getVpcId() != null) {
-                dissociate(client);
-            }
-
-            DeleteDhcpOptionsRequest request = DeleteDhcpOptionsRequest.builder()
-                    .dhcpOptionsId(getDhcpOptionsId())
-                    .build();
-            client.deleteDhcpOptions(request);
         } catch (Ec2Exception err) {
             throw new BeamException("This option set has dependencies and cannot be deleted.");
         }
@@ -238,37 +224,15 @@ public class DhcpOptionSet extends Ec2TaggableResource<Vpc> {
 
     public void deleteOption(String optionsId) {
         Ec2Client client = createClient(Ec2Client.class);
-        DeleteDhcpOptionsRequest request = DeleteDhcpOptionsRequest.builder()
-                .dhcpOptionsId(optionsId)
-                .build();
-        client.deleteDhcpOptions(request);
-    }
-
-    public void associate(Ec2Client client) {
-        AssociateDhcpOptionsRequest associateRequest = AssociateDhcpOptionsRequest.builder()
-                .dhcpOptionsId(getDhcpOptionsId())
-                .vpcId(getVpcId())
-                .build();
-
-        client.associateDhcpOptions(associateRequest);
-    }
-
-    public void dissociate(Ec2Client client) {
-        AssociateDhcpOptionsRequest associateRequest = AssociateDhcpOptionsRequest.builder()
-                .dhcpOptionsId("default")
-                .vpcId(getVpcId())
-                .build();
-
-        client.associateDhcpOptions(associateRequest);
+        client.deleteDhcpOptions(r -> r.dhcpOptionsId(getDhcpOptionsId()));
     }
 
     @Override
     public String toDisplayString() {
         StringBuilder sb = new StringBuilder();
-        String dhcpOptionsId = getDhcpOptionsId();
 
-        if (dhcpOptionsId != null) {
-            sb.append(dhcpOptionsId);
+        if (getDhcpOptionsId() != null) {
+            sb.append(getDhcpOptionsId());
 
         } else {
             sb.append("dhcp options");
