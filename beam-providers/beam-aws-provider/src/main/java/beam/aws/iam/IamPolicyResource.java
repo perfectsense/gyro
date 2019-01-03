@@ -1,0 +1,178 @@
+package beam.aws.iam;
+
+import beam.aws.AwsResource;
+import beam.core.BeamResource;
+import beam.core.diff.ResourceDiffProperty;
+import beam.core.diff.ResourceName;
+
+import com.google.common.base.Charsets;
+import com.google.common.base.Throwables;
+import com.psddev.dari.util.IoUtils;
+import com.psddev.dari.util.ObjectUtils;
+
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.iam.IamClient;
+import software.amazon.awssdk.services.iam.model.CreatePolicyResponse;
+import software.amazon.awssdk.services.iam.model.GetPolicyResponse;
+import software.amazon.awssdk.services.iam.model.Policy;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * Creates a Policy with the specified options.
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: beam
+ *
+ *     aws::policyResource example-role
+ *         roleName: $(aws::roleResource example-role | roleName)
+ *         description: testing the policy functionality
+ *         policyName: rta-test-policy
+ *         policyDocumentFile: policyFile.json
+ *
+ *     end
+ */
+
+@ResourceName("policy-resource")
+public class IamPolicyResource extends AwsResource {
+    private String policyName;
+    private String roleName;
+    private String description;
+    private String policyArn;
+    private Map<String, Object> policyDocument;
+    private File policyDocumentFile;
+
+    public String getPolicyName() {
+        return this.policyName;
+    }
+
+    public void setPolicyName(String policyName) {
+        this.policyName = policyName;
+    }
+
+    public String getRoleName() {
+        return this.roleName;
+    }
+
+    public void setRoleName(String roleName) {
+        this.roleName = roleName;
+    }
+
+    @ResourceDiffProperty(updatable = true)
+    public String getDescription() {
+        return this.description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getPolicyArn() {
+        return this.policyArn;
+    }
+
+    public void setPolicyArn(String policyArn) {
+        this.policyArn = policyArn;
+    }
+
+    @ResourceDiffProperty(updatable = true)
+    public Map<String, Object> getPolicyDocument() {
+        if (this.policyDocument != null) {
+            return this.policyDocument;
+        } else {
+            File var1 = this.getPolicyDocumentFile();
+            if (var1 != null) {
+                try {
+                    return (Map)ObjectUtils.fromJson(IoUtils.toString(var1, Charsets.UTF_8));
+                } catch (IOException var3) {
+                    throw Throwables.propagate(var3);
+                }
+            } else {
+                return null;
+            }
+        }
+    }
+
+    public void setPolicyDocument(Map<String, Object> policyDocument) {
+        this.policyDocument = policyDocument;
+    }
+
+    public File getPolicyDocumentFile() {
+        return this.policyDocumentFile;
+    }
+
+    public void setPolicyDocumentFile(File policyDocumentFile) {
+        this.policyDocumentFile = policyDocumentFile;
+    }
+
+    @Override
+    public boolean refresh() {
+        IamClient client = IamClient.builder()
+                .region(Region.AWS_GLOBAL)
+                .build();
+
+        GetPolicyResponse response = client.getPolicy(
+            r -> r.policyArn(getPolicyArn())
+        );
+
+        if (response.policy() != null) {
+            Policy policy = response.policy();
+            setPolicyName(policy.policyName());
+            setDescription(policy.description());
+            return true;
+        }
+
+        return false;
+    }
+
+    @Override
+    public void create() {
+        IamClient client = IamClient.builder()
+                .region(Region.AWS_GLOBAL)
+                .build();
+
+        CreatePolicyResponse response = client.createPolicy(
+            r -> r.policyName(this.getPolicyName())
+            .policyDocument(ObjectUtils.toJson(this.getPolicyDocument()))
+            .description(this.getDescription())
+
+        );
+
+        setPolicyArn(response.policy().arn());
+    }
+
+    @Override
+    public void update(BeamResource current, Set<String> changedProperties) {
+        delete();
+        create();
+    }
+
+    @Override
+    public void delete() {
+        IamClient client = IamClient.builder()
+                .region(Region.AWS_GLOBAL)
+                .build();
+
+        client.deletePolicy(r -> r.policyArn(this.getPolicyArn()));
+    }
+
+    @Override
+    public String toDisplayString() {
+        StringBuilder sb = new StringBuilder();
+
+        if (getPolicyName() != null) {
+            sb.append("Policy Name " + getPolicyName());
+
+        } else {
+            sb.append("Policy Name ");
+        }
+
+        return sb.toString();
+    }
+
+}
