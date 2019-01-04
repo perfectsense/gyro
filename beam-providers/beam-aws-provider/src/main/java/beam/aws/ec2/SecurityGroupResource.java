@@ -14,6 +14,26 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Create a security group with specified rules.
+ *
+ * Example
+ * -------
+ *
+ * aws::security-group security-group-example
+ *     group-name: "security-group-example"
+ *     vpc-id: $(aws::vpc vpc-security-group-example | vpc-id)
+ *     description: "security group example"
+ *
+ *     ingress
+ *         description: "allow inbound http traffic"
+ *         cidr-blocks: ["0.0.0.0/0"]
+ *         protocol: "TCP"
+ *         from-port: 80
+ *         to-port: 80
+ *     end
+ * end
+ */
 @ResourceName("security-group")
 public class SecurityGroupResource extends Ec2TaggableResource<SecurityGroup> {
 
@@ -26,6 +46,9 @@ public class SecurityGroupResource extends Ec2TaggableResource<SecurityGroup> {
     private String groupId;
     private String ownerId;
 
+    /**
+     * The name of the security group.
+     */
     public String getGroupName() {
         return groupName;
     }
@@ -34,6 +57,10 @@ public class SecurityGroupResource extends Ec2TaggableResource<SecurityGroup> {
         this.groupName = groupName;
     }
 
+
+    /**
+     * The ID of the VPC to associate this security group with.
+     */
     public String getVpcId() {
         return vpcId;
     }
@@ -42,6 +69,9 @@ public class SecurityGroupResource extends Ec2TaggableResource<SecurityGroup> {
         this.vpcId = vpcId;
     }
 
+    /**
+     * The description of this security group.
+     */
     public String getDescription() {
         return description;
     }
@@ -50,6 +80,9 @@ public class SecurityGroupResource extends Ec2TaggableResource<SecurityGroup> {
         this.description = description;
     }
 
+    /**
+     * A list of ingress rules to block inbound traffic.
+     */
     @ResourceDiffProperty(nullable = true, delegate = true, subresource = true)
     public List<SecurityGroupIngressRuleResource> getIngress() {
         if (ingress == null) {
@@ -63,6 +96,9 @@ public class SecurityGroupResource extends Ec2TaggableResource<SecurityGroup> {
         this.ingress = ingress;
     }
 
+    /**
+     * A list of egress rules to block outbound traffic.
+     */
     @ResourceDiffProperty(nullable = true, delegate = true, subresource = true)
     public List<SecurityGroupEgressRuleResource> getEgress() {
         if (egress == null) {
@@ -76,6 +112,9 @@ public class SecurityGroupResource extends Ec2TaggableResource<SecurityGroup> {
         this.egress = egress;
     }
 
+    /**
+     * Whether to keep the default egress rule. If false, the rule will be deleted.
+     */
     @ResourceDiffProperty(updatable = true)
     public boolean isKeepDefaultEgressRules() {
         if (keepDefaultEgressRules == null) {
