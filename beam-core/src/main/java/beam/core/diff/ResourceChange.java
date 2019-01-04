@@ -61,12 +61,24 @@ public class ResourceChange {
         diff.create(this, pendingResources);
     }
 
+    public void createOne(BeamResource pendingResource) throws Exception {
+        diff.createOne(this, pendingResource);
+    }
+
     public void update(Collection currentResources, Collection pendingResources) throws Exception {
         diff.update(this, currentResources, pendingResources);
     }
 
+    public void updateOne(BeamResource currentResource, BeamResource pendingResource) throws Exception {
+        diff.updateOne(this, currentResource, pendingResource);
+    }
+
     public void delete(Collection<BeamResource> pendingResources) throws Exception {
         diff.delete(this, pendingResources);
+    }
+
+    public void deleteOne(BeamResource pendingResource) throws Exception {
+        diff.deleteOne(this, pendingResource);
     }
 
     public Set<ResourceChange> dependencies() {
@@ -76,7 +88,7 @@ public class ResourceChange {
         for (Node block : (getType() == ChangeType.DELETE ? resource.dependents() : resource.dependencies())) {
             if (block instanceof BeamResource) {
                 BeamResource r = (BeamResource) block;
-                ResourceChange c = r.getChange();
+                ResourceChange c = r.change();
 
                 if (c != null) {
                     dependencies.add(c);

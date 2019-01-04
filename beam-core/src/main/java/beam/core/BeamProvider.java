@@ -2,6 +2,7 @@ package beam.core;
 
 import beam.core.diff.ResourceName;
 import beam.lang.ResourceNode;
+import com.psddev.dari.util.ObjectUtils;
 import com.psddev.dari.util.StringUtils;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;
@@ -66,7 +67,7 @@ public class BeamProvider extends ResourceNode {
     }
 
     @Override
-    public String getResourceType() {
+    public String resourceType() {
         return "provider";
     }
 
@@ -77,7 +78,7 @@ public class BeamProvider extends ResourceNode {
 
             List<Artifact> artifacts = ARTIFACTS.get(getArtifact());
             if (artifacts == null) {
-                BeamCore.ui().write("@|bold,blue Loading:|@ provider %s...\n", getResourceIdentifier());
+                BeamCore.ui().write("@|bold,blue Loading:|@ provider %s...\n", resourceIdentifier());
 
                 List<RemoteRepository> remoteRepositories = new ArrayList<>();
                 remoteRepositories.add(new RemoteRepository.Builder("central", "default", "http://repo1.maven.org/maven2/").build());
@@ -106,12 +107,12 @@ public class BeamProvider extends ResourceNode {
                         dependencyArtifact.getVersion());
 
                     if (getArtifact().equals(key)) {
-                        registerResources(getCore(), artifactJarUrls, dependencyArtifact);
+                        registerResources(core(), artifactJarUrls, dependencyArtifact);
                     }
                 }
             } else {
                 for (String resourceName : PROVIDER_CLASS_CACHE.get(getArtifact()).keySet()) {
-                    getCore().addExtension(resourceName, PROVIDER_CLASS_CACHE.get(getArtifact()).get(resourceName));
+                    core().addResourceType(resourceName, PROVIDER_CLASS_CACHE.get(getArtifact()).get(resourceName));
                 }
             }
         } catch (Exception e) {
@@ -149,13 +150,6 @@ public class BeamProvider extends ResourceNode {
         ClassLoader parent = getClass().getClassLoader();
         URLClassLoader loader = new URLClassLoader(urls, parent);
 
-        String key = String.format("%s:%s:%s", artifact.getGroupId(), artifact.getArtifactId(), artifact.getVersion());
-        Map<String, Class> cache = PROVIDER_CLASS_CACHE.get(key);
-        if (cache == null) {
-            cache = new HashMap<>();
-            PROVIDER_CLASS_CACHE.put(key, cache);
-        }
-
         JarFile jarFile = new JarFile(artifact.getFile());
         Enumeration<JarEntry> entries = jarFile.entries();
         while (entries.hasMoreElements()) {
@@ -167,7 +161,7 @@ public class BeamProvider extends ResourceNode {
             String className = StringUtils.removeEnd(entry.getName(), ".class");
             className = className.replace('/', '.');
 
-            Class resourceClass;
+            Class<?> resourceClass;
             try {
                 resourceClass = loader.loadClass(className);
             } catch (Exception | Error ex) {
@@ -181,28 +175,40 @@ public class BeamProvider extends ResourceNode {
             BeamCredentials credentials = null;
             if (BeamResource.class.isAssignableFrom(resourceClass)) {
                 BeamResource resource = (BeamResource) resourceClass.newInstance();
-                credentials = (BeamCredentials) resource.getResourceCredentialsClass().newInstance();
+                credentials = (BeamCredentials) resource.resourceCredentialsClass().newInstance();
             } else if (BeamCredentials.class.isAssignableFrom(resourceClass)) {
                 credentials = (BeamCredentials) resourceClass.newInstance();
             } else {
                 continue;
             }
 
-            String resourceName = resourceClass.getSimpleName();
-            if (resourceClass.isAnnotationPresent(ResourceName.class)) {
-                ResourceName name = (ResourceName) resourceClass.getAnnotation(ResourceName.class);
-                resourceName = name.value();
-            }
-
             String resourceNamespace = credentials.getCloudName();
-            String fullName = String.format("%s::%s", resourceNamespace, resourceName);
-
-            if (!cache.containsKey(fullName)) {
-                cache.put(fullName, resourceClass);
+            for (ResourceName name : resourceClass.getAnnotationsByType(ResourceName.class)) {
+                registerResource(core, artifact, resourceClass, resourceNamespace, name.value(), name.parent());
             }
-
-            core.addExtension(fullName, cache.get(fullName));
         }
+    }
+
+    private void registerResource(BeamCore core, Artifact artifact,
+                                  Class resourceClass, String resourceNamespace, String resourceName, String parentName) {
+        String key = String.format("%s:%s:%s", artifact.getGroupId(), artifact.getArtifactId(), artifact.getVersion());
+
+        Map<String, Class> cache = PROVIDER_CLASS_CACHE.get(key);
+        if (cache == null) {
+            cache = new HashMap<>();
+            PROVIDER_CLASS_CACHE.put(key, cache);
+        }
+
+        String fullName = String.format("%s::%s", resourceNamespace, resourceName);
+        if (!ObjectUtils.isBlank(parentName)) {
+            fullName = String.format("%s::%s::%s", resourceNamespace, parentName, resourceName);
+        }
+
+        if (!cache.containsKey(fullName)) {
+            cache.put(fullName, resourceClass);
+        }
+
+        core.addResourceType(fullName, cache.get(fullName));
     }
 
 }

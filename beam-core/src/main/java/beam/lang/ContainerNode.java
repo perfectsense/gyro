@@ -1,23 +1,27 @@
 package beam.lang;
 
+import beam.core.BeamResource;
+import beam.core.diff.ResourceDiffProperty;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Throwables;
 
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ContainerNode extends Node {
 
     transient Map<String, ValueNode> keyValues = new HashMap<>();
+
+    private static final Pattern NEWLINES = Pattern.compile("([\r\n]+)");
 
     /**
      * Returns a map of key/value pairs for this block.
@@ -35,17 +39,8 @@ public class ContainerNode extends Node {
         }
 
         try {
-            for (PropertyDescriptor p : Introspector.getBeanInfo(getClass()).getPropertyDescriptors()) {
+            for (PropertyDescriptor p : Introspector.getBeanInfo(getClass(), ContainerNode.class).getPropertyDescriptors()) {
                 Method reader = p.getReadMethod();
-
-                try {
-                    Field propertyField = getClass().getDeclaredField(p.getName());
-                    if (Modifier.isTransient(propertyField.getModifiers())) {
-                        continue;
-                    }
-                } catch (NoSuchFieldException ex) {
-                    continue;
-                }
 
                 if (reader != null) {
                     String key = keyFromFieldName(p.getDisplayName());
@@ -95,8 +90,28 @@ public class ContainerNode extends Node {
 
         for (Map.Entry<String, Object> entry : resolvedKeyValues().entrySet()) {
             Object value = entry.getValue();
+            if (value == null) {
+                continue;
+            }
 
-            if (value != null) {
+            // If there is no getter for this method then skip this field since there can
+            // be no ResourceDiffProperty annotation.
+            Method reader = readerMethodForKey(entry.getKey());
+            if (reader == null) {
+                continue;
+            }
+
+            // If no ResourceDiffProperty annotation or if this field is not subresources then skip this field.
+            ResourceDiffProperty propertyAnnotation = reader.getAnnotation(ResourceDiffProperty.class);
+            if (propertyAnnotation != null && propertyAnnotation.subresource()) {
+                if (value instanceof List) {
+                    for (Object resource : (List) value) {
+                        sb.append(subresourceToString((BeamResource) resource));
+                    }
+                } else if (value instanceof BeamResource) {
+                    sb.append(subresourceToString((BeamResource) value));
+                }
+            } else {
                 sb.append("    ").append(entry.getKey()).append(": ");
 
                 if (value instanceof String) {
@@ -112,6 +127,23 @@ public class ContainerNode extends Node {
                 }
                 sb.append("\n");
             }
+
+        }
+
+        return sb.toString();
+    }
+
+    protected String subresourceToString(BeamResource resource) {
+        StringBuilder sb = new StringBuilder();
+        int offset = 0;
+
+        String output = resource.toString();
+        for (Matcher m = NEWLINES.matcher(output); m.find();) {
+            sb.append("    ");
+            sb.append(output.substring(offset, m.start()));
+            sb.append(m.group(1));
+
+            offset = m.end();
         }
 
         return sb.toString();
@@ -178,6 +210,21 @@ public class ContainerNode extends Node {
 
     protected String keyFromFieldName(String field) {
         return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN, field).replaceFirst("get-", "");
+    }
+
+    protected Method readerMethodForKey(String key) {
+        String convertedKey = fieldNameFromKey(key);
+        try {
+            for (PropertyDescriptor p : Introspector.getBeanInfo(getClass()).getPropertyDescriptors()) {
+                if (p.getDisplayName().equals(convertedKey)) {
+                    return p.getReadMethod();
+                }
+            }
+        } catch (IntrospectionException ex) {
+            // Ignoring introspection exceptions
+        }
+
+        return null;
     }
 
 }

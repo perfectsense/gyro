@@ -25,7 +25,7 @@ public abstract class AwsResource extends BeamResource {
                 throw new BeamException("No credentials associated with the resource.");
             }
 
-            AwsCredentialsProvider provider = credentials.getProvider();
+            AwsCredentialsProvider provider = credentials.provider();
 
             Method method = clientClass.getMethod("builder");
             AwsDefaultClientBuilder builder = (AwsDefaultClientBuilder) method.invoke(null);
@@ -41,7 +41,7 @@ public abstract class AwsResource extends BeamResource {
         return (T) client;
     }
 
-    public Class getResourceCredentialsClass() {
+    public Class resourceCredentialsClass() {
         return AwsBeamCredentials.class;
     }
 

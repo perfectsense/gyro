@@ -12,6 +12,9 @@ import beam.parser.antlr4.BeamParser.ValueContext;
 import beam.parser.antlr4.BeamParserBaseVisitor;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class BeamVisitor extends BeamParserBaseVisitor {
 
     private BeamCore core;
@@ -50,6 +53,45 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         resourceBlock.setColumn(context.getStart().getCharPositionInLine());
 
         for (BeamParser.Resource_block_bodyContext blockContext : context.resource_block_body()) {
+            if (blockContext.key_value_block() != null) {
+                String key = StringUtils.stripEnd(blockContext.key_value_block().key().getText(), ":");
+                ValueNode valueNode = parseValue(blockContext.key_value_block().value());
+                valueNode.setLine(blockContext.key_value_block().getStart().getLine());
+                valueNode.setColumn(blockContext.key_value_block().getStart().getCharPositionInLine());
+
+                resourceBlock.put(key, valueNode);
+            } else if (blockContext.subresource_block() != null) {
+                ResourceNode node = visitSubresource_block(blockContext.subresource_block(), resourceBlock);
+
+                String type = blockContext.subresource_block().resource_type().getText();
+                List<ResourceNode> subresources = resourceBlock.subResources().get(type);
+                if (subresources == null) {
+                    subresources = new ArrayList<>();
+
+                    resourceBlock.subResources().put(type, subresources);
+                }
+
+                subresources.add(node);
+            }
+        }
+
+        resourceBlock.executeInternal();
+
+        return resourceBlock;
+    }
+
+    public ResourceNode visitSubresource_block(BeamParser.Subresource_blockContext context, ResourceNode parent) {
+        ResourceNode resourceBlock = createSubResourceBlock(parent, context.resource_type().getText());
+        resourceBlock.setResourceType(context.resource_type().getText());
+        resourceBlock.setParentNode(parent);
+        resourceBlock.setLine(context.getStart().getLine());
+        resourceBlock.setColumn(context.getStart().getCharPositionInLine());
+
+        if (context.resource_name() != null) {
+            resourceBlock.setResourceIdentifier(context.resource_name().getText());
+        }
+
+        for (BeamParser.Subresource_block_bodyContext blockContext : context.subresource_block_body()) {
             if (blockContext.key_value_block() != null) {
                 String key = StringUtils.stripEnd(blockContext.key_value_block().key().getText(), ":");
                 ValueNode valueNode = parseValue(blockContext.key_value_block().value());
@@ -145,7 +187,7 @@ public class BeamVisitor extends BeamParserBaseVisitor {
     }
 
     public ResourceNode createResourceBlock(String type) {
-        Class klass = core.getExtension(type);
+        Class klass = core.getResourceType(type);
         if (klass != null) {
             try {
                 ResourceNode node = (ResourceNode) klass.newInstance();
@@ -160,4 +202,10 @@ public class BeamVisitor extends BeamParserBaseVisitor {
 
         return new ResourceNode();
     }
+
+    public ResourceNode createSubResourceBlock(ResourceNode parent, String type) {
+        String key = String.format("%s::%s", parent.resourceType(), type);
+        return createResourceBlock(key);
+    }
+
 }

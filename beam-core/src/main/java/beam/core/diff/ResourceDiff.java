@@ -5,6 +5,7 @@ import beam.lang.ResourceNode;
 import com.psddev.dari.util.CompactMap;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -64,6 +65,7 @@ public class ResourceDiff {
         };
 
         pendingResource.setChange(create);
+        pendingResource.diffOnCreate(create);
 
         return create;
     }
@@ -84,6 +86,7 @@ public class ResourceDiff {
 
         currentResource.setChange(update);
         pendingResource.setChange(update);
+        pendingResource.diffOnUpdate(update, currentResource);
 
         return update;
     }
@@ -112,6 +115,7 @@ public class ResourceDiff {
         };
 
         currentResource.setChange(delete);
+        currentResource.diffOnDelete(delete);
 
         return delete;
     }
@@ -122,16 +126,47 @@ public class ResourceDiff {
         change.getDiffs().add(diff);
     }
 
+    public void createOne(ResourceChange change, BeamResource pendingResource) throws Exception {
+        if (pendingResource != null) {
+            ResourceDiff diff = new ResourceDiff(null, Arrays.asList(pendingResource));
+            diff.diff();
+            change.getDiffs().add(diff);
+        }
+    }
+
     public void update(ResourceChange change, Collection currentResources, Collection pendingResources) throws Exception {
         ResourceDiff diff = new ResourceDiff(currentResources, pendingResources);
         diff.diff();
         change.getDiffs().add(diff);
     }
 
+    public void updateOne(ResourceChange change, BeamResource currentResource, BeamResource pendingResource) throws Exception {
+        if (currentResource != null) {
+            if (pendingResource != null) {
+                ResourceDiff diff = new ResourceDiff(Arrays.asList(currentResource), Arrays.asList(pendingResource));
+                diff.diff();
+                change.getDiffs().add(diff);
+            } else {
+                deleteOne(change, currentResource);
+            }
+
+        } else if (pendingResource != null) {
+            createOne(change, pendingResource);
+        }
+    }
+
     public void delete(ResourceChange change, Collection<BeamResource> currentResources) throws Exception {
         ResourceDiff diff = new ResourceDiff(currentResources, null);
         diff.diff();
         change.getDiffs().add(diff);
+    }
+
+    public void deleteOne(ResourceChange change, BeamResource currentResource) throws Exception {
+        if (currentResource != null) {
+            ResourceDiff diff = new ResourceDiff(Arrays.asList(currentResource), null);
+            diff.diff();
+            change.getDiffs().add(diff);
+        }
     }
 
     public List<ResourceChange> getChanges() {
@@ -147,7 +182,7 @@ public class ResourceDiff {
 
         if (currentResources != null) {
             for (BeamResource resource : currentResources) {
-                currentResourcesByName.put(resource.getResourceIdentifier(), resource);
+                currentResourcesByName.put(resource.primaryKey(), resource);
             }
         }
 
@@ -155,7 +190,7 @@ public class ResourceDiff {
 
         if (pendingConfigs != null) {
             for (BeamResource config : pendingConfigs) {
-                String name = config.getResourceIdentifier();
+                String name = config.primaryKey();
                 BeamResource asset = currentResourcesByName.remove(name);
                 ResourceChange change = asset != null ? newUpdate(asset, config) : newCreate(config);
 
@@ -203,11 +238,11 @@ public class ResourceDiff {
 
         Map<String, BeamResource> currentResourcesByName = new CompactMap<>();
         for (BeamResource resource : currentResources) {
-            currentResourcesByName.put(resource.getResourceIdentifier(), resource);
+            currentResourcesByName.put(resource.resourceIdentifier(), resource);
         }
 
         for (BeamResource pendingResource : getPendingResources()) {
-            BeamResource currentResource = currentResourcesByName.get(pendingResource.getResourceIdentifier());
+            BeamResource currentResource = currentResourcesByName.get(pendingResource.resourceIdentifier());
 
             pendingResource.syncPropertiesFromResource(currentResource);
             pendingResource.resolve();

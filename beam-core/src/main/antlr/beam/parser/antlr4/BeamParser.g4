@@ -20,6 +20,15 @@ resource_block
 
 resource_block_body
     : key_value_block
+    | subresource_block
+    ;
+
+subresource_block
+    : resource_type resource_name? subresource_block_body* block_end
+    ;
+
+subresource_block_body
+    : key_value_block
     ;
 
 resource_type

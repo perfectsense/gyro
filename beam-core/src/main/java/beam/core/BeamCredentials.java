@@ -41,8 +41,8 @@ public abstract class BeamCredentials extends ResourceNode implements Comparable
             return 1;
         }
 
-        String compareKey = String.format("%s %s", getResourceType(), getResourceIdentifier());
-        String otherKey = String.format("%s %s", o.getResourceType(), o.getResourceIdentifier());
+        String compareKey = String.format("%s %s", resourceType(), resourceIdentifier());
+        String otherKey = String.format("%s %s", o.resourceType(), o.resourceIdentifier());
 
         return compareKey.compareTo(otherKey);
     }
