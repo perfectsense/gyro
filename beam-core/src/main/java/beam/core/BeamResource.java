@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 public abstract class BeamResource extends ResourceNode implements Comparable<BeamResource> {
@@ -60,7 +61,7 @@ public abstract class BeamResource extends ResourceNode implements Comparable<Be
     }
 
     public String primaryKey() {
-        return resourceIdentifier();
+        return String.format("%s %s", resourceType(), resourceIdentifier());
     }
 
     public BeamCredentials getResourceCredentials() {
@@ -276,6 +277,26 @@ public abstract class BeamResource extends ResourceNode implements Comparable<Be
         }
 
         return keys;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        BeamResource that = (BeamResource) o;
+
+        return Objects.equals(primaryKey(), that.primaryKey());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(primaryKey());
     }
 
 }
