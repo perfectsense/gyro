@@ -20,6 +20,7 @@ import software.amazon.awssdk.services.ec2.model.ModifyVpcAttributeRequest;
 import software.amazon.awssdk.services.ec2.model.Vpc;
 import software.amazon.awssdk.services.ec2.model.VpcAttributeName;
 import software.amazon.awssdk.services.ec2.model.VpcClassicLink;
+import software.amazon.awssdk.services.ec2.model.VpcIpv6CidrBlockAssociation;
 
 import java.util.Set;
 
@@ -49,6 +50,7 @@ public class VpcResource extends Ec2TaggableResource<Vpc> {
     private String instanceTenancy;
     private Boolean enableClassicLink;
     private Boolean enableClassicLinkDnsSupport;
+    private Boolean provideIpv6CidrBlock;
 
     // Read-only
     private String ownerId;
@@ -182,8 +184,17 @@ public class VpcResource extends Ec2TaggableResource<Vpc> {
         return enableClassicLinkDnsSupport;
     }
 
-    public void setEnablelassicLinkDnsSupport(Boolean enableClassicLinkDnsSupport) {
+    @ResourceDiffProperty(updatable = true)
+    public void setEnableClassicLinkDnsSupport(Boolean enableClassicLinkDnsSupport) {
         this.enableClassicLinkDnsSupport = enableClassicLinkDnsSupport;
+    }
+
+    public Boolean getProvideIpv6CidrBlock() {
+        return provideIpv6CidrBlock;
+    }
+
+    public void setProvideIpv6CidrBlock(Boolean provideIpv6CidrBlock) {
+        this.provideIpv6CidrBlock = provideIpv6CidrBlock;
     }
 
     @Override
@@ -209,6 +220,11 @@ public class VpcResource extends Ec2TaggableResource<Vpc> {
                 setOwnerId(vpc.ownerId());
                 setDefaultVpc(vpc.isDefault());
 
+                for (VpcIpv6CidrBlockAssociation association : vpc.ipv6CidrBlockAssociationSet()) {
+                    setProvideIpv6CidrBlock(true);
+                    break;
+                }
+
                 loadSettings(client);
 
                 break;
@@ -230,6 +246,7 @@ public class VpcResource extends Ec2TaggableResource<Vpc> {
 
         CreateVpcRequest request = CreateVpcRequest.builder()
                 .cidrBlock(getCidrBlock())
+                .amazonProvidedIpv6CidrBlock(getProvideIpv6CidrBlock())
                 .instanceTenancy(getInstanceTenancy())
                 .build();
 
