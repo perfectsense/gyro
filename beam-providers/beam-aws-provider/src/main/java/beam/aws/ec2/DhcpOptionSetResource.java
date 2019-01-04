@@ -206,9 +206,6 @@ public class DhcpOptionSetResource extends Ec2TaggableResource<Vpc> {
 
     @Override
     protected void doUpdate(AwsResource current, Set<String> changedProperties) {
-        String pastOptionId = getDhcpOptionsId();
-        doCreate();
-        deleteOption(pastOptionId);
     }
 
     @Override
