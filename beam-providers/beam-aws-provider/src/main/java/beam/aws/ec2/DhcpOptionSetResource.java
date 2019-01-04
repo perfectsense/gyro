@@ -207,11 +207,6 @@ public class DhcpOptionSetResource extends Ec2TaggableResource<Vpc> {
         }
     }
 
-    public void deleteOption(String optionsId) {
-        Ec2Client client = createClient(Ec2Client.class);
-        client.deleteDhcpOptions(r -> r.dhcpOptionsId(getDhcpOptionsId()));
-    }
-
     @Override
     public String toDisplayString() {
         StringBuilder sb = new StringBuilder();
