@@ -15,8 +15,6 @@ public @interface ResourceDiffProperty {
 
     public boolean nullable() default false;
 
-    public boolean delegate() default false;
-
     public boolean subresource() default false;
 
 }

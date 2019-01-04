@@ -83,7 +83,7 @@ public class SecurityGroupResource extends Ec2TaggableResource<SecurityGroup> {
     /**
      * A list of ingress rules to block inbound traffic.
      */
-    @ResourceDiffProperty(nullable = true, delegate = true, subresource = true)
+    @ResourceDiffProperty(nullable = true, subresource = true)
     public List<SecurityGroupIngressRuleResource> getIngress() {
         if (ingress == null) {
             ingress = new ArrayList<>();
@@ -99,7 +99,7 @@ public class SecurityGroupResource extends Ec2TaggableResource<SecurityGroup> {
     /**
      * A list of egress rules to block outbound traffic.
      */
-    @ResourceDiffProperty(nullable = true, delegate = true, subresource = true)
+    @ResourceDiffProperty(nullable = true, subresource = true)
     public List<SecurityGroupEgressRuleResource> getEgress() {
         if (egress == null) {
             egress = new ArrayList<>();
