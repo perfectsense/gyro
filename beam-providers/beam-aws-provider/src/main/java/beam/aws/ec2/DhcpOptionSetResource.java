@@ -45,11 +45,11 @@ public class DhcpOptionSetResource extends Ec2TaggableResource<Vpc> {
     private List<String> ntpServers;
     private List<String> netbiosNameServers;
     private List<String> netbiosNodeType;
-    
+
     /**
      * The ID of a custom DHCP option set. See `DHCP Options Sets <https://docs.aws.amazon.com/vpc/latest/userguide/VPC_DHCP_Options.html/>`_.
      */
-    @ResourceDiffProperty(updatable = true)
+    @ResourceDiffProperty
     public String getDhcpOptionsId() {
         return dhcpOptionsId;
     }
@@ -58,7 +58,7 @@ public class DhcpOptionSetResource extends Ec2TaggableResource<Vpc> {
         this.dhcpOptionsId = dhcpOptionsId;
     }
 
-    @ResourceDiffProperty(updatable = true)
+    @ResourceDiffProperty
     public List<String> getDomainName() {
         if (domainName == null) {
             domainName = new ArrayList<>();
@@ -71,7 +71,7 @@ public class DhcpOptionSetResource extends Ec2TaggableResource<Vpc> {
         this.domainName = domainName;
     }
 
-    @ResourceDiffProperty(updatable = true)
+    @ResourceDiffProperty
     public List<String> getDomainNameServers() {
         if (domainNameServers == null) {
             domainNameServers = new ArrayList<>();
@@ -84,7 +84,7 @@ public class DhcpOptionSetResource extends Ec2TaggableResource<Vpc> {
         this.domainNameServers = domainNameServers;
     }
 
-    @ResourceDiffProperty(updatable = true)
+    @ResourceDiffProperty
     public List<String> getNtpServers() {
         if (ntpServers == null) {
             ntpServers = new ArrayList<>();
@@ -97,7 +97,7 @@ public class DhcpOptionSetResource extends Ec2TaggableResource<Vpc> {
         this.ntpServers = ntpServers;
     }
 
-    @ResourceDiffProperty(updatable = true)
+    @ResourceDiffProperty
     public List<String> getNetbiosNameServers() {
         if (netbiosNameServers == null) {
             netbiosNameServers = new ArrayList<>();
@@ -110,7 +110,7 @@ public class DhcpOptionSetResource extends Ec2TaggableResource<Vpc> {
         this.netbiosNameServers = netbiosNameServers;
     }
 
-    @ResourceDiffProperty(updatable = true)
+    @ResourceDiffProperty
     public List<String> getNetbiosNodeType() {
         if (netbiosNodeType == null) {
             netbiosNodeType = new ArrayList<>();
@@ -119,7 +119,7 @@ public class DhcpOptionSetResource extends Ec2TaggableResource<Vpc> {
         return netbiosNodeType;
     }
 
-    @ResourceDiffProperty(updatable = true)
+    @ResourceDiffProperty
     public void setNetbiosNodeType(List<String> netbiosNodeType) {
         this.netbiosNodeType = netbiosNodeType;
     }
