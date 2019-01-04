@@ -39,25 +39,13 @@ import java.util.Set;
 @ResourceName("dhcp-option")
 public class DhcpOptionSetResource extends Ec2TaggableResource<Vpc> {
 
-    private String vpcId;
     private String dhcpOptionsId;
     private List<String> domainName;
     private List<String> domainNameServers;
     private List<String> ntpServers;
     private List<String> netbiosNameServers;
     private List<String> netbiosNodeType;
-
-    /**
-     * The id of the VPC to create a dhcp option for.
-     */
-    public String getVpcId() {
-        return vpcId;
-    }
-
-    public void setVpcId(String vpcId) {
-        this.vpcId = vpcId;
-    }
-
+    
     /**
      * The ID of a custom DHCP option set. See `DHCP Options Sets <https://docs.aws.amazon.com/vpc/latest/userguide/VPC_DHCP_Options.html/>`_.
      */
