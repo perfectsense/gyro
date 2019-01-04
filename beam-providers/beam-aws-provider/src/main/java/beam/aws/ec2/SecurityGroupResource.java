@@ -5,6 +5,7 @@ import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.CreateSecurityGroupResponse;
+import software.amazon.awssdk.services.ec2.model.DescribeSecurityGroupsRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeSecurityGroupsResponse;
 import software.amazon.awssdk.services.ec2.model.Filter;
 import software.amazon.awssdk.services.ec2.model.IpPermission;
@@ -153,11 +154,17 @@ public class SecurityGroupResource extends Ec2TaggableResource<SecurityGroup> {
     protected boolean doRefresh() {
         Ec2Client client = createClient(Ec2Client.class);
 
+        List<Filter> filters = new ArrayList<>();
         Filter nameFilter = Filter.builder().name("group-name").values(getGroupName()).build();
-        Filter vpcFilter = Filter.builder().name("vpc-id").values(getVpcId()).build();
+        filters.add(nameFilter);
+
+        if (getVpcId() != null) {
+            Filter vpcFilter = Filter.builder().name("vpc-id").values(getVpcId()).build();
+            filters.add(vpcFilter);
+        }
 
         DescribeSecurityGroupsResponse response = client.describeSecurityGroups(
-            r -> r.filters(nameFilter, vpcFilter)
+            r -> r.filters(filters)
         );
 
         for (SecurityGroup group : response.securityGroups()) {
