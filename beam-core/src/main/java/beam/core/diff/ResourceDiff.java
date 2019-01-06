@@ -186,10 +186,10 @@ public class ResourceDiff {
             }
         }
 
-        Iterable<? extends BeamResource> pendingConfigs = getPendingResources();
+        Iterable<? extends BeamResource> pendingResources = getPendingResources();
 
-        if (pendingConfigs != null) {
-            for (BeamResource config : pendingConfigs) {
+        if (pendingResources != null) {
+            for (BeamResource config : pendingResources) {
                 String name = config.primaryKey();
                 BeamResource asset = currentResourcesByName.remove(name);
                 ResourceChange change = asset != null ? newUpdate(asset, config) : newCreate(config);
