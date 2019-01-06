@@ -1,6 +1,7 @@
 package beam.lang;
 
 import beam.core.diff.ResourceName;
+import beam.parser.antlr4.BeamParser;
 
 public class ReferenceNode extends ValueNode {
 
@@ -8,6 +9,32 @@ public class ReferenceNode extends ValueNode {
     private String name;
     private String attribute;
     private ContainerNode referencedBlock;
+    private ValueNode valueNode;
+
+    ReferenceNode(BeamParser.Reference_bodyContext context) {
+        // $(reference_type reference_name | reference_attribute)
+        if (context.reference_type() != null) {
+            this.type = context.reference_type().getText();
+        }
+
+        if (context.reference_name() != null) {
+            this.name = context.reference_name().getText();
+        }
+
+        if (context.reference_attribute() != null) {
+            this.attribute = context.reference_attribute().getText();
+        }
+
+        // $(reference_name)
+        if (context.reference_type() != null && context.reference_name() == null) {
+            this.name = context.reference_type().getText();
+            this.type = null;
+        }
+    }
+
+    public ReferenceNode(String name) {
+        this(null, name, null);
+    }
 
     public ReferenceNode(String type, String name) {
         this(type, name, null);
@@ -35,12 +62,24 @@ public class ReferenceNode extends ValueNode {
         return referencedBlock;
     }
 
+    public ValueNode getValueNode() {
+        return valueNode;
+    }
+
+    public boolean isSimpleValue() {
+        return getName() != null && getType() == null;
+    }
+
     @Override
     public Object getValue() {
         if (getReferencedBlock() != null && getAttribute() == null) {
             return getReferencedBlock();
         } else if (getReferencedBlock() != null && getAttribute() != null) {
             return getReferencedBlock().resolvedKeyValues().get(getAttribute());
+        }
+
+        if (getValueNode() != null) {
+            return getValueNode().getValue();
         }
 
         return null;
@@ -74,11 +113,11 @@ public class ReferenceNode extends ValueNode {
             if (parent instanceof RootNode) {
                 RootNode containerNode = (RootNode) parent;
 
-                referencedBlock = containerNode.getResource(getName(), getType());
+                // Look for resources.
+                referencedBlock = containerNode.getResource(getType(), getName());
 
                 // Only ResourceBlocks have a dependency chain.
-                if (referencedBlock != null  && referencedBlock instanceof ResourceNode && getParentResourceNode() != null) {
-
+                if (referencedBlock != null  && getParentResourceNode() != null) {
                     ResourceNode parentRef = getParentResourceNode();
                     ResourceNode resourceRef = (ResourceNode) referencedBlock;
 
@@ -88,6 +127,14 @@ public class ReferenceNode extends ValueNode {
                     }
 
                     return true;
+                }
+
+                // Look for key/value pairs.
+                if (isSimpleValue()) {
+                    valueNode = containerNode.get(getName());
+                    if (valueNode != null) {
+                        return true;
+                    }
                 }
             }
 
@@ -108,7 +155,9 @@ public class ReferenceNode extends ValueNode {
             sb.append(value);
         } else {
             sb.append("$(");
-            sb.append(getType()).append(" ");
+            if (getType() != null) {
+                sb.append(getType()).append(" ");
+            }
             sb.append(getName());
 
             if (getAttribute() != null) {

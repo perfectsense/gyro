@@ -157,18 +157,7 @@ public class BeamVisitor extends BeamParserBaseVisitor {
     }
 
     public ReferenceNode parseReferenceValue(Reference_valueContext context) {
-        if (context.reference_body().reference_attribute() != null) {
-            return new ReferenceNode(
-                context.reference_body().reference_type().getText(),
-                context.reference_body().reference_name().getText(),
-                context.reference_body().reference_attribute().getText()
-            );
-        } else {
-            return new ReferenceNode(
-                context.reference_body().reference_type().getText(),
-                context.reference_body().reference_name().getText()
-            );
-        }
+        return new ReferenceNode(context.reference_body());
     }
 
     public ValueNode parseStringValue(BeamParser.String_valueContext context) {
@@ -195,12 +184,7 @@ public class BeamVisitor extends BeamParserBaseVisitor {
                         ((StringExpressionNode) value).getValueNodes().add(string);
                     }
 
-                    ReferenceNode reference = new ReferenceNode(
-                        contentsContext.reference_body().reference_type().getText(),
-                        contentsContext.reference_body().reference_name().getText(),
-                        contentsContext.reference_body().reference_attribute().getText()
-                    );
-
+                    ReferenceNode reference = new ReferenceNode(contentsContext.reference_body());
                     reference.setLine(contentsContext.reference_body().getStart().getLine());
                     reference.setColumn(contentsContext.reference_body().getStart().getCharPositionInLine());
                     reference.setParentNode(value);
