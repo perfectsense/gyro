@@ -42,6 +42,7 @@ S_QUOTE      : '"' -> type(QUOTE), popMode;
 S_DOLLAR     : '$' -> type(DOLLAR);
 S_DOLLAR_L   : '$(' -> skip, pushMode(IN_REFERENCE);
 S_LPAREN     : '(' -> type(LPAREN);
+S_RPAREN     : ')' -> type(RPAREN);
 TEXT         : ~[$("]+;
 
 mode IN_REFERENCE;
@@ -51,5 +52,6 @@ R_DOLLAR     : '$' -> type(DOLLAR);
 R_PIPE       : '|' -> type(PIPE);
 R_LPAREN     : '(' -> type(LPAREN);
 R_RPAREN     : ')' -> skip, popMode;
+R_QUOTE      : '"' -> type(QUOTE), pushMode(IN_STRING_EXPRESSION);
 R_IDENTIFIER : (Common | COLON COLON)+ -> type(IDENTIFIER);
 R_WS         : [ \u000C\t\r\n]+ -> channel(HIDDEN);

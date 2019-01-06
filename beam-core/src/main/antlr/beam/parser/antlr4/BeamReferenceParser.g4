@@ -11,7 +11,7 @@ reference_body
     ;
 
 reference_type : IDENTIFIER ;
-reference_name : IDENTIFIER (DOT IDENTIFIER)*;
+reference_name : (string_expression | IDENTIFIER (DOT IDENTIFIER)*)? ;
 reference_attribute : IDENTIFIER (DOT IDENTIFIER)*;
 
 string_expression
@@ -21,6 +21,6 @@ string_expression
 string_contents
     : reference_body
     | DOLLAR
-    | LPAREN
+    | LPAREN | RPAREN
     | TEXT
     ;
