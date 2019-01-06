@@ -41,6 +41,7 @@ mode IN_STRING_EXPRESSION;
 S_QUOTE      : '"' -> type(QUOTE), popMode;
 S_DOLLAR     : '$' -> type(DOLLAR);
 S_DOLLAR_L   : '$(' -> skip, pushMode(IN_REFERENCE);
+S_LPAREN     : '(' -> type(LPAREN);
 TEXT         : ~[$("]+;
 
 mode IN_REFERENCE;

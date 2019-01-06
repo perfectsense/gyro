@@ -21,5 +21,6 @@ string_expression
 string_contents
     : reference_body
     | DOLLAR
+    | LPAREN
     | TEXT
     ;

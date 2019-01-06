@@ -180,6 +180,8 @@ public class BeamVisitor extends BeamParserBaseVisitor {
             for (BeamParser.String_contentsContext contentsContext : context.string_expression().string_contents()) {
                 if (contentsContext.DOLLAR() != null) {
                     sb.append(contentsContext.getText());
+                } else if (contentsContext.LPAREN() != null) {
+                    sb.append(contentsContext.getText());
                 } else if (contentsContext.TEXT() != null) {
                     sb.append(contentsContext.getText());
                 } else if (contentsContext.reference_body() != null) {
