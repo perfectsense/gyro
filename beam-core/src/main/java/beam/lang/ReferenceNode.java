@@ -1,5 +1,7 @@
 package beam.lang;
 
+import beam.core.diff.ResourceName;
+
 public class ReferenceNode extends ValueNode {
 
     private String type;
@@ -44,9 +46,28 @@ public class ReferenceNode extends ValueNode {
         return null;
     }
 
+    public ResourceNode getParentResourceNode() {
+        Node parent = getParentNode();
+
+        // Traverse up
+        while (parent != null) {
+            if (parent instanceof ResourceNode) {
+                // Skip subresources
+                ResourceName name = parent.getClass().getAnnotation(ResourceName.class);
+                if (name != null && name.parent().equals("")) {
+                    return (ResourceNode) parent;
+                }
+            }
+
+            parent = parent.getParentNode();
+        }
+
+        return null;
+    }
+
     @Override
     public boolean resolve() {
-        Node parent = getParentNode();
+        Node parent = getParentResourceNode();
 
         // Traverse up
         while (parent != null) {
@@ -56,13 +77,15 @@ public class ReferenceNode extends ValueNode {
                 referencedBlock = containerNode.getResource(getName(), getType());
 
                 // Only ResourceBlocks have a dependency chain.
-                if (referencedBlock != null  && referencedBlock instanceof ResourceNode
-                    && getParentNode() != null && getParentNode() instanceof ResourceNode) {
+                if (referencedBlock != null  && referencedBlock instanceof ResourceNode && getParentResourceNode() != null) {
 
-                    ResourceNode parentRef = (ResourceNode) getParentNode();
+                    ResourceNode parentRef = getParentResourceNode();
                     ResourceNode resourceRef = (ResourceNode) referencedBlock;
-                    resourceRef.dependents().add(parentRef);
-                    parentRef.dependencies().add(resourceRef);
+
+                    if (parentRef != resourceRef) {
+                        resourceRef.dependents().add(parentRef);
+                        parentRef.dependencies().add(resourceRef);
+                    }
 
                     return true;
                 }

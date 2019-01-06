@@ -39,7 +39,7 @@ resource_type
 
 resource_name
     : IDENTIFIER
-    | literal_value
+    | string_value
     ;
 
 for_block
@@ -74,7 +74,7 @@ key_delimiter
 value
     : list_value
     | map_value
-    | literal_value
+    | string_value
     | boolean_value
     | number_value
     | reference_value
@@ -89,8 +89,8 @@ boolean_value
     : TRUE | FALSE
     ;
 
-literal_value
-    : STRING_INTEPRETED
+string_value
+    : string_expression
     | STRING_LITERAL
     ;
 
@@ -109,6 +109,6 @@ list_value
     ;
 
 list_item_value
-    : literal_value
+    : string_value
     | reference_value
     ;
