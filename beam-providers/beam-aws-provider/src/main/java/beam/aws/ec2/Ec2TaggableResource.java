@@ -8,6 +8,7 @@ import com.google.common.collect.Maps;
 import com.psddev.dari.util.CompactMap;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.Tag;
+import software.amazon.awssdk.services.ec2.model.TagDescription;
 import software.amazon.awssdk.services.ec2.paginators.DescribeTagsIterable;
 
 import java.util.ArrayList;
@@ -70,9 +71,9 @@ public abstract class Ec2TaggableResource<T> extends AwsResource {
                     .build())
                 .build());
 
-        response.stream().forEach(
-            r -> r.tags().forEach(
-                t -> tags.put(t.key(), t.value())));
+        for (TagDescription tagDescription : response.tags()) {
+            tags.put(tagDescription.key(), tagDescription.value());
+        }
 
         return tags;
     }
@@ -81,17 +82,8 @@ public abstract class Ec2TaggableResource<T> extends AwsResource {
     public final boolean refresh() {
         boolean refreshed = doRefresh();
 
-        Ec2Client client = createClient(Ec2Client.class);
-        DescribeTagsIterable response = client.describeTagsPaginator(
-            r -> r.filters(
-                f -> f.name("resource-id")
-                    .values(getId())
-                    .build())
-                .build());
-
-        response.stream().forEach(
-            r -> r.tags().forEach(
-                t -> getTags().put(t.key(), t.value())));
+        getTags().clear();
+        getTags().putAll(loadTags());
 
         return refreshed;
     }
@@ -139,6 +131,20 @@ public abstract class Ec2TaggableResource<T> extends AwsResource {
             List<Tag> tagObjects = new ArrayList<>();
             for (Map.Entry<String, String> entry : diff.entriesOnlyOnRight().entrySet()) {
                 tagObjects.add(Tag.builder().key(entry.getKey()).value(entry.getValue()).build());
+            }
+
+            executeService(() -> {
+                client.createTags(r -> r.resources(getId()).tags(tagObjects));
+                return null;
+            });
+        }
+
+        // Changed tags
+        if (!diff.entriesDiffering().isEmpty()) {
+            List<Tag> tagObjects = new ArrayList<>();
+
+            for (Map.Entry<String, MapDifference.ValueDifference<String>> entry : diff.entriesDiffering().entrySet()) {
+                tagObjects.add(Tag.builder().key(entry.getKey()).value(entry.getValue().rightValue()).build());
             }
 
             executeService(() -> {
