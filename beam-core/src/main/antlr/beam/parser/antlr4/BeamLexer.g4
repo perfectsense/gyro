@@ -34,7 +34,7 @@ fragment Digits : [0-9] ([0-9_]* [0-9])?;
 fragment Letter : [A-Za-z] ;
 fragment LetterOrDigits : Letter | [0-9];
 fragment Common : LetterOrDigits | '_' | '-';
-fragment String : ~('\''|'"')* ;
+fragment String : ~('\'')* ;
 
 mode IN_STRING_EXPRESSION;
 
