@@ -174,6 +174,11 @@ public class IamRoleResource extends AwsResource {
                 .build();
 
         client.createRole(request);
+
+        for(IamPolicyResource policy: getPolicies()){
+            client.attachRolePolicy(r -> r.roleName(getRoleName())
+                                        .policyArn(policy.getPolicyArn()));
+        }
     }
 
     @Override
