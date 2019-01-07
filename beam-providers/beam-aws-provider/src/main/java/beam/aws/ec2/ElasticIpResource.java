@@ -62,7 +62,7 @@ public class ElasticIpResource extends Ec2TaggableResource<Address> {
         this.allocationId = allocationId;
     }
 
-    @ResourceDiffProperty
+    @ResourceDiffProperty(updatable = true)
     public Boolean getIsStandardDomain() {
         if (isStandardDomain == null) {
             isStandardDomain = false;
