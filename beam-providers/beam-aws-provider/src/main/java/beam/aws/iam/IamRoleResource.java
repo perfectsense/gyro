@@ -14,11 +14,7 @@ import com.psddev.dari.util.StringUtils;
 
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.iam.IamClient;
-import software.amazon.awssdk.services.iam.model.CreateRoleRequest;
-import software.amazon.awssdk.services.iam.model.DeleteRoleRequest;
-import software.amazon.awssdk.services.iam.model.Role;
-import software.amazon.awssdk.services.iam.model.UpdateAssumeRolePolicyRequest;
-import software.amazon.awssdk.services.iam.model.UpdateRoleRequest;
+import software.amazon.awssdk.services.iam.model.*;
 
 import java.io.File;
 import java.util.Collections;
@@ -36,7 +32,7 @@ import java.util.Set;
  *
  * .. code-block:: beam
  *
- *     aws::roleResource example-role
+ *     aws::role-resource example-role
  *         description: testing the role functionality
  *         assumeRolePolicyDocumentFile:
  *         roleName: rta-test-role
@@ -47,12 +43,12 @@ import java.util.Set;
 @ResourceName("role-resource")
 public class IamRoleResource extends AwsResource {
 
+    private String roleName;
+    private String description;
     private Map<String, Object> assumeRolePolicyContents;
     private String assumeRolePolicyDocument;
     private String assumeRolePolicyDocumentFilename;
-    private String description;
     private Set<IamPolicyResource> policies;
-    private String roleName;
 
     @ResourceDiffProperty(updatable = true)
     @SuppressWarnings("unchecked")
@@ -98,6 +94,7 @@ public class IamRoleResource extends AwsResource {
         this.assumeRolePolicyDocument = assumeRolePolicyDocument;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public String getAssumeRolePolicyDocumentFilename() {
         return this.assumeRolePolicyDocumentFilename;
     }
@@ -106,6 +103,7 @@ public class IamRoleResource extends AwsResource {
         this.assumeRolePolicyDocumentFilename = assumeRolePolicyDocumentFilename;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public String getDescription() {
         return this.description;
     }
@@ -126,6 +124,7 @@ public class IamRoleResource extends AwsResource {
         this.policies = policies;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public String getRoleName() {
         return this.roleName;
     }
@@ -133,7 +132,6 @@ public class IamRoleResource extends AwsResource {
     public void setRoleName(String roleName) {
         this.roleName = roleName;
     }
-
 
 
     @Override
@@ -164,6 +162,10 @@ public class IamRoleResource extends AwsResource {
         } catch (Exception err) {
             err.getMessage();
         }
+
+        System.out.println("\nwhat is the role name "+getRoleName());
+        System.out.println("\nwhat is the description name "+getDescription());
+
 
         CreateRoleRequest request = CreateRoleRequest.builder()
                 .assumeRolePolicyDocument(ObjectUtils.toJson(getAssumeRolePolicyDocument()))
