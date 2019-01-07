@@ -125,8 +125,8 @@ public class ElasticIpResource extends Ec2TaggableResource<Address> {
         Ec2Client client = createClient(Ec2Client.class);
 
         if (changedProperties.contains("isStandardDomain")) {
-            if (getIsStandardDomain()) {
-                MoveAddressToVpcResponse response = client.moveAddressToVpc(r -> r.publicIp("100.24.227.150"));
+            if (!getIsStandardDomain()) {
+                MoveAddressToVpcResponse response = client.moveAddressToVpc(r -> r.publicIp(getPublicIp()));
                 setAllocationId(response.allocationId());
                 setIsStandardDomain(false);
             } else {
