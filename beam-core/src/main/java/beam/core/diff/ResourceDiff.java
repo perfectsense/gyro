@@ -315,7 +315,7 @@ public class ResourceDiff {
         }
 
         for (RootNode importedNode : rootNode.imports().values()) {
-            if (loadState) {
+            if (loadState && importedNode.state() != null) {
                 resources.addAll(findResources(importedNode.state(), loadState));
             } else {
                 resources.addAll(findResources(importedNode, loadState));
