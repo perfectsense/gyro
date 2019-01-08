@@ -51,6 +51,23 @@ public class IamRoleResource extends AwsResource {
     private File assumeRolePolicyDocumentFile;
     private Set<String> policies;
 
+    public Map<String, Object> getAssumeRolePolicyContents() {
+        if (this.assumeRolePolicyContents != null) {
+            return this.assumeRolePolicyContents;
+        } else {
+            File var1 = this.getAssumeRolePolicyDocumentFile();
+            if (var1 != null) {
+                try {
+                    return (Map)ObjectUtils.fromJson(IoUtils.toString(var1, Charsets.UTF_8));
+                } catch (IOException var3) {
+                    throw Throwables.propagate(var3);
+                }
+            } else {
+                return null;
+            }
+        }
+    }
+
     private void setAssumeRolePolicyContents(Map<String, Object> assumeRolePolicyContents) {
         this.assumeRolePolicyContents = assumeRolePolicyContents;
     }
@@ -101,7 +118,7 @@ public class IamRoleResource extends AwsResource {
     public void setRoleName(String roleName) {
         this.roleName = roleName;
     }
-    
+
     @Override
     public boolean refresh() {
         IamClient client = IamClient.builder()
