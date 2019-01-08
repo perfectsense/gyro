@@ -113,10 +113,22 @@ public class IamPolicyResource extends AwsResource {
                 r -> r.policyArn(getPolicyArn())
         );
 
+        GetPolicyVersionResponse versionResponse = client.getPolicyVersion(
+                r -> r.policyArn(getPolicyArn())
+                        .versionId("v1")
+        );
+
         if (response.policy() != null) {
-            Policy policy = response.policy();
-            setPolicyName(policy.policyName());
-            setDescription(policy.description());
+            IamPolicyResource newPolicy = new IamPolicyResource();
+            newPolicy.setPolicyName(response.policy().policyName());
+            setPolicyName(response.policy().policyName());
+            newPolicy.setDescription(response.policy().description());
+            setDescription(response.policy().description());
+
+            for(PolicyVersion versions : client.listPolicyVersions(r -> r.policyArn(getPolicyArn())).versions()){
+                newPolicy.setPolicyDocument((Map)ObjectUtils.fromJson(StringUtils.decodeUri(versions.document())));
+                setPolicyDocument((Map)ObjectUtils.fromJson(StringUtils.decodeUri(versions.document())));
+            }
             return true;
         }
 
