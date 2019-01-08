@@ -23,11 +23,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 
 public class BeamCore {
-
-    private RootNode root;
 
     private final Map<String, Class<? extends ResourceNode>> resourceTypes = new HashMap<>();
 
@@ -79,15 +76,68 @@ public class BeamCore {
             throw new BeamLanguageException(errorListener.getSyntaxErrors() + " errors while parsing.");
         }
 
-        BeamVisitor visitor = new BeamVisitor(this);
+        // Load configuration
+        BeamVisitor visitor = new BeamVisitor(this, path);
         visitor.visitBeam_root(context);        // First pass ensures resourceTypes are loaded and executed
-        root = visitor.visitBeam_root(context);
+        RootNode rootNode = visitor.visitBeam_root(context);
 
-        if (!root.resolve()) {
+        if (!rootNode.resolve()) {
             System.out.println("Unable to resolve config.");
         }
 
-        return root;
+        // Load state, assuming this isn't a state file itself.
+        if (!path.endsWith(".state")) {
+            BeamState backend = getState(rootNode);
+            try {
+                RootNode stateNode = backend.load(rootNode, this);
+                stateNode.copyNonResourceState(rootNode);
+
+                rootNode.setState(stateNode);
+            } catch (Exception ex) {
+                throw new BeamLanguageException("Unable to load state.", ex);
+            }
+        }
+
+        return rootNode;
+    }
+
+    public RootNode parseImport(String path) throws IOException {
+        BeamLexer lexer = new BeamLexer(CharStreams.fromFileName(path));
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+
+        BeamParser parser = new BeamParser(tokens);
+        BeamErrorListener errorListener = new BeamErrorListener();
+        parser.removeErrorListeners();
+        parser.addErrorListener(errorListener);
+        BeamParser.Beam_rootContext context = parser.beam_root();
+
+        if (errorListener.getSyntaxErrors() > 0) {
+            throw new BeamLanguageException(errorListener.getSyntaxErrors() + " errors while parsing.");
+        }
+
+        // Load configuration
+        BeamVisitor visitor = new BeamVisitor(this, path);
+
+        RootNode rootNode = visitor.visitBeam_root(context);
+
+        if (!rootNode.resolve()) {
+            System.out.println("Unable to resolve config.");
+        }
+
+        // Load state, assuming this isn't a state file itself.
+        if (!path.endsWith(".state")) {
+            BeamState backend = getState(rootNode);
+            try {
+                RootNode stateNode = backend.load(rootNode, this);
+                stateNode.copyNonResourceState(rootNode);
+
+                rootNode.setState(stateNode);
+            } catch (Exception ex) {
+                throw new BeamLanguageException("Unable to load state.", ex);
+            }
+        }
+
+        return rootNode;
     }
 
     public BeamState getState(RootNode block) {
@@ -102,49 +152,9 @@ public class BeamCore {
         return backend;
     }
 
-    public void copyNonResourceState(RootNode source, RootNode state) {
-        state.copyNonResourceState(source);
-
-        for (ResourceNode block : source.resources()) {
-            if (block instanceof BeamResource) {
-                continue;
-            }
-
-            state.putResource(block);
-        }
-    }
-
-    public Set<BeamResource> findBeamResources(RootNode block) {
-        return findBeamResources(block, false);
-    }
-
-    public Set<BeamResource> findBeamResources(RootNode block, boolean refresh) {
-        Set<BeamResource> resources = new TreeSet<>();
-
-        for (ResourceNode resource : block.resources()) {
-            if (resource instanceof BeamResource) {
-                if (refresh) {
-                    BeamCore.ui().write("@|bold,blue Refreshing|@: @|yellow %s|@ -> %s...",
-                        resource.resourceType(), resource.resourceIdentifier());
-                }
-
-                if (refresh && ((BeamResource) resource).refreshInternal()) {
-                    resources.add((BeamResource) resource);
-
-                    BeamCore.ui().write("\n");
-                } else if (refresh) {
-                    BeamCore.ui().write("\n");
-                } else if (!refresh) {
-                    resources.add((BeamResource) resource);
-                }
-            }
-        }
-
-        return resources;
-    }
-
-    public List<ResourceDiff> diff(Set<BeamResource> current, Set<BeamResource> pending) throws Exception {
-        ResourceDiff diff = new ResourceDiff(current, pending);
+    public List<ResourceDiff> diff(RootNode pending, boolean refresh) throws Exception {
+        ResourceDiff diff = new ResourceDiff(pending.state(), pending);
+        diff.setRefresh(refresh);
         diff.diff();
 
         List<ResourceDiff> diffs = new ArrayList<>();
@@ -189,6 +199,60 @@ public class BeamCore {
         return changeTypes;
     }
 
+    public void setChangeable(List<ResourceDiff> diffs) {
+        for (ResourceDiff diff : diffs) {
+            for (ResourceChange change : diff.getChanges()) {
+                change.setChangeable(true);
+                setChangeable(change.getDiffs());
+            }
+        }
+    }
+
+    public void execute(ResourceChange change) {
+        ChangeType type = change.getType();
+
+        if (type == ChangeType.KEEP || type == ChangeType.REPLACE || change.isChanged()) {
+            return;
+        }
+
+        Set<ResourceChange> dependencies = change.dependencies();
+
+        if (dependencies != null && !dependencies.isEmpty()) {
+            for (ResourceChange d : dependencies) {
+                execute(d);
+            }
+        }
+
+        BeamCore.ui().write("Executing: ");
+        writeChange(change);
+        BeamResource resource = change.executeChange();
+
+        RootNode stateNode = resource.rootNode().state();
+        BeamState backend = getState(resource.rootNode());
+
+        if (type == ChangeType.DELETE) {
+            stateNode.removeResource(resource);
+        } else {
+            ResourceName nameAnnotation = resource.getClass().getAnnotation(ResourceName.class);
+            if (nameAnnotation != null && !nameAnnotation.parent().equals("")) {
+                // Save parent resource when current resource is a subresource.
+                Node parent = resource.parentNode();
+                if (parent instanceof BeamResource) {
+                    stateNode.putResource(((BeamResource) parent).copy());
+                }
+            } else {
+                stateNode.putResource(resource.copy());
+            }
+        }
+
+        BeamCore.ui().write(" OK\n");
+        backend.save(stateNode);
+
+        for (RootNode importNode : stateNode.imports().values()) {
+            backend.save(importNode);
+        }
+    }
+
     private void writeChange(ResourceChange change) {
         switch (change.getType()) {
             case CREATE :
@@ -216,51 +280,16 @@ public class BeamCore {
         }
     }
 
-    public void setChangeable(List<ResourceDiff> diffs) {
-        for (ResourceDiff diff : diffs) {
-            for (ResourceChange change : diff.getChanges()) {
-                change.setChangeable(true);
-                setChangeable(change.getDiffs());
+    /*
+    private void initState(RootNode source, RootNode state) {
+        for (ResourceNode block : source.resources()) {
+            if (block instanceof BeamResource) {
+                continue;
             }
+
+            state.putResource(block);
         }
     }
+    */
 
-    public void execute(ResourceChange change, RootNode state, BeamState backend, String path) {
-        ChangeType type = change.getType();
-
-        if (type == ChangeType.KEEP || type == ChangeType.REPLACE || change.isChanged()) {
-            return;
-        }
-
-        Set<ResourceChange> dependencies = change.dependencies();
-
-        if (dependencies != null && !dependencies.isEmpty()) {
-            for (ResourceChange d : dependencies) {
-                execute(d, state, backend, path);
-            }
-        }
-
-        BeamCore.ui().write("Executing: ");
-        writeChange(change);
-        BeamResource resource = change.executeChange();
-
-        if (type == ChangeType.DELETE) {
-            state.removeResource(resource);
-        } else {
-            ResourceName nameAnnotation = resource.getClass().getAnnotation(ResourceName.class);
-            if (nameAnnotation != null && !nameAnnotation.parent().equals("")) {
-                // Save parent resource when current resource is a subresource.
-                Node parent = resource.getParentNode();
-                if (parent instanceof ResourceNode) {
-                    state.putResource((ResourceNode) parent);
-                Node parent = resource.parentNode();
-                }
-            } else {
-                state.putResource(resource);
-            }
-        }
-
-        BeamCore.ui().write(" OK\n");
-        backend.save(path, state);
-    }
 }

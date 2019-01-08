@@ -13,11 +13,13 @@ public class ResourceNode extends ContainerNode {
 
     private String type;
     private String name;
+    private StringExpressionNode nameExpression;
 
     private Set<ResourceNode> dependencies;
     private Set<ResourceNode> dependents;
     private Map<String, List<ResourceNode>> subResources;
     private BeamCore core;
+    private RootNode rootNode;
 
     public Set<ResourceNode> dependencies() {
         if (dependencies == null) {
@@ -52,6 +54,10 @@ public class ResourceNode extends ContainerNode {
     }
 
     public String resourceIdentifier() {
+        if (nameExpression != null) {
+            return nameExpression.getValue();
+        }
+
         return name;
     }
 
@@ -59,13 +65,37 @@ public class ResourceNode extends ContainerNode {
         this.name = name;
     }
 
+    public void setResourceIdentifierExpression(StringExpressionNode nameExpression) {
+        this.nameExpression = nameExpression;
+    }
+
     public ResourceKey resourceKey() {
         return new ResourceKey(resourceType(), resourceIdentifier());
+    }
+
+    public RootNode rootNode() {
+        if (rootNode == null) {
+            Node parent = parentNode();
+
+            while (parent != null && !(parent instanceof RootNode)) {
+                parent = parent.parentNode();
+            }
+
+            if (parent instanceof RootNode) {
+                rootNode = (RootNode) parent;
+            }
+        }
+
+        return rootNode;
     }
 
     @Override
     public boolean resolve() {
         boolean resolved = super.resolve();
+
+        if (nameExpression != null) {
+            nameExpression.resolve();
+        }
 
         for (List<ResourceNode> resources : subResources().values()) {
             for (ResourceNode resource : resources) {
@@ -89,11 +119,12 @@ public class ResourceNode extends ContainerNode {
         sb.append(resourceType()).append(" ");
 
         if (resourceIdentifier() != null) {
-            sb.append(resourceIdentifier()).append("\n");
-        } else {
-            sb.append("\n");
+            sb.append('\'');
+            sb.append(resourceIdentifier());
+            sb.append('\'');
         }
 
+        sb.append("\n");
         sb.append(super.toString());
 
         sb.append("end\n\n");

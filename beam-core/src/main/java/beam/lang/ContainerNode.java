@@ -72,6 +72,10 @@ public class ContainerNode extends Node {
         keyValues.put(key, valueNode);
     }
 
+    public void copyNonResourceState(ContainerNode source) {
+        keyValues.putAll(source.keyValues);
+    }
+
     @Override
     public boolean resolve() {
         for (ValueNode value : keyValues.values()) {
@@ -97,12 +101,9 @@ public class ContainerNode extends Node {
             // If there is no getter for this method then skip this field since there can
             // be no ResourceDiffProperty annotation.
             Method reader = readerMethodForKey(entry.getKey());
-            if (reader == null) {
-                continue;
-            }
 
             // If no ResourceDiffProperty annotation or if this field is not subresources then skip this field.
-            ResourceDiffProperty propertyAnnotation = reader.getAnnotation(ResourceDiffProperty.class);
+            ResourceDiffProperty propertyAnnotation = reader != null ? reader.getAnnotation(ResourceDiffProperty.class) : null;
             if (propertyAnnotation != null && propertyAnnotation.subresource()) {
                 if (value instanceof List) {
                     for (Object resource : (List) value) {
@@ -127,7 +128,6 @@ public class ContainerNode extends Node {
                 }
                 sb.append("\n");
             }
-
         }
 
         return sb.toString();

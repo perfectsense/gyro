@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-public abstract class BeamResource extends BeamBaseResource implements Comparable<BeamResource> {
+public abstract class BeamResource extends BeamBaseResource implements Comparable<BeamResource>, Cloneable {
 
     private transient BeamCredentials resourceCredentials;
 
@@ -39,6 +39,21 @@ public abstract class BeamResource extends BeamBaseResource implements Comparabl
     public abstract String toDisplayString();
 
     public abstract Class resourceCredentialsClass();
+
+    public BeamResource copy() {
+        try {
+            BeamResource resource = getClass().newInstance();
+
+            resource.setResourceType(resourceType());
+            resource.setResourceIdentifier(resourceIdentifier());
+            resource.setResourceCredentials(getResourceCredentials());
+            resource.syncPropertiesFromResource(this);
+
+            return resource;
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new BeamException("");
+        }
+    }
 
     public String resourceCredentialsName() {
         Class c = resourceCredentialsClass();
@@ -242,15 +257,6 @@ public abstract class BeamResource extends BeamBaseResource implements Comparabl
         String otherKey = String.format("%s %s", o.resourceType(), o.resourceIdentifier());
 
         return compareKey.compareTo(otherKey);
-    }
-
-    boolean refreshInternal() {
-        if (refresh()) {
-            syncInternalToProperties();
-            return true;
-        }
-
-        return false;
     }
 
     /**

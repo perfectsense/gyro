@@ -1,6 +1,7 @@
 package beam.lang;
 
 import beam.core.BeamCore;
+import beam.core.BeamException;
 import beam.parser.antlr4.BeamParser;
 import beam.parser.antlr4.BeamParser.Beam_rootContext;
 import beam.parser.antlr4.BeamParser.Key_value_blockContext;
@@ -11,19 +12,29 @@ import beam.parser.antlr4.BeamParser.ValueContext;
 import beam.parser.antlr4.BeamParserBaseVisitor;
 import org.apache.commons.lang.StringUtils;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
 public class BeamVisitor extends BeamParserBaseVisitor {
 
     private BeamCore core;
+    private String path;
 
-    public BeamVisitor(BeamCore core) {
+    public BeamVisitor(BeamCore core, String path) {
         this.core = core;
+        this.path = path;
+    }
+
+    public String getPath() {
+        return path;
     }
 
     public RootNode visitBeam_root(Beam_rootContext context) {
         RootNode containerNode = new RootNode();
+        containerNode.setPath(getPath());
 
         for (BeamParser.Root_blockContext blockContext : context.root_block()) {
             if (blockContext.key_value_block() != null) {
@@ -37,6 +48,31 @@ public class BeamVisitor extends BeamParserBaseVisitor {
                 ResourceNode block = visitResource_block(blockContext.resource_block(), containerNode);
 
                 containerNode.putResource(block);
+            } else if (blockContext.import_block() != null) {
+                String path = blockContext.import_block().import_path().getText();
+
+                Path currentPath = new File(getPath()).getParentFile().toPath();
+                Path importPath = new File(path).toPath();
+
+                String resolvedPath = currentPath.resolve(importPath).toString();
+                String importFileName = new File(path).getName().replace(".bcl", "");
+
+                if (!resolvedPath.endsWith(".bcl") && !resolvedPath.endsWith(".bcl.state")) {
+                    resolvedPath += ".bcl";
+                }
+
+                try {
+                    String importName = blockContext.import_block().import_name() != null
+                        ? blockContext.import_block().import_name().getText()
+                        : importFileName;
+
+                    RootNode importedRootNode = core.parseImport(resolvedPath);
+                    importedRootNode.setPath(resolvedPath);
+
+                    containerNode.putImport(importName, importedRootNode);
+                } catch (IOException ioe) {
+                    throw new BeamException("Failed to import", ioe);
+                }
             }
         }
 
@@ -45,11 +81,21 @@ public class BeamVisitor extends BeamParserBaseVisitor {
 
     public ResourceNode visitResource_block(Resource_blockContext context, ContainerNode parent) {
         ResourceNode resourceBlock = createResourceBlock(context.resource_type().getText());
-        resourceBlock.setResourceIdentifier(context.resource_name().getText());
         resourceBlock.setResourceType(context.resource_type().getText());
         resourceBlock.setParentNode(parent);
         resourceBlock.setLine(context.getStart().getLine());
         resourceBlock.setColumn(context.getStart().getCharPositionInLine());
+
+        if (context.resource_name().string_value() != null) {
+            ValueNode idValue = parseStringValue(context.resource_name().string_value());
+            if (idValue instanceof StringExpressionNode) {
+                resourceBlock.setResourceIdentifierExpression((StringExpressionNode) idValue);
+            } else if (idValue instanceof StringNode) {
+                resourceBlock.setResourceIdentifier(((StringNode) idValue).getValue());
+            }
+        } else {
+            resourceBlock.setResourceIdentifier(context.resource_name().getText());
+        }
 
         for (BeamParser.Resource_block_bodyContext blockContext : context.resource_block_body()) {
             if (blockContext.key_value_block() != null) {
@@ -160,44 +206,50 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         return new ReferenceNode(context.reference_body());
     }
 
-    public ValueNode parseStringValue(BeamParser.String_valueContext context) {
+    public static StringExpressionNode parseStringExpressionValue(BeamParser.String_expressionContext context) {
+        StringExpressionNode value = new StringExpressionNode();
+
+        StringBuilder sb = new StringBuilder();
+        for (BeamParser.String_contentsContext contentsContext : context.string_contents()) {
+            if (contentsContext.DOLLAR() != null) {
+                sb.append(contentsContext.getText());
+            } else if (contentsContext.LPAREN() != null) {
+                sb.append(contentsContext.getText());
+            } else if (contentsContext.TEXT() != null) {
+                sb.append(contentsContext.getText());
+            } else if (contentsContext.reference_body() != null) {
+                if (sb.length() > 0) {
+                    StringNode string = new StringNode(sb.toString());
+                    string.setLine(contentsContext.reference_body().getStart().getLine());
+                    string.setColumn(contentsContext.reference_body().getStart().getCharPositionInLine());
+                    string.setParentNode(value);
+                    sb.setLength(0);
+
+                    value.getValueNodes().add(string);
+                }
+
+                ReferenceNode reference = new ReferenceNode(contentsContext.reference_body());
+                reference.setLine(contentsContext.reference_body().getStart().getLine());
+                reference.setColumn(contentsContext.reference_body().getStart().getCharPositionInLine());
+                reference.setParentNode(value);
+
+                value.getValueNodes().add(reference);
+            }
+        }
+
+        if (sb.length() > 0) {
+            StringNode string = new StringNode(sb.toString());
+            string.setParentNode(value);
+            value.getValueNodes().add(string);
+        }
+
+        return value;
+    }
+
+    public static ValueNode parseStringValue(BeamParser.String_valueContext context) {
         ValueNode value;
         if (context.string_expression() != null) {
-            value = new StringExpressionNode();
-
-            StringBuilder sb = new StringBuilder();
-            for (BeamParser.String_contentsContext contentsContext : context.string_expression().string_contents()) {
-                if (contentsContext.DOLLAR() != null) {
-                    sb.append(contentsContext.getText());
-                } else if (contentsContext.LPAREN() != null) {
-                    sb.append(contentsContext.getText());
-                } else if (contentsContext.TEXT() != null) {
-                    sb.append(contentsContext.getText());
-                } else if (contentsContext.reference_body() != null) {
-                    if (sb.length() > 0) {
-                        StringNode string = new StringNode(sb.toString());
-                        string.setLine(contentsContext.reference_body().getStart().getLine());
-                        string.setColumn(contentsContext.reference_body().getStart().getCharPositionInLine());
-                        string.setParentNode(value);
-                        sb.setLength(0);
-
-                        ((StringExpressionNode) value).getValueNodes().add(string);
-                    }
-
-                    ReferenceNode reference = new ReferenceNode(contentsContext.reference_body());
-                    reference.setLine(contentsContext.reference_body().getStart().getLine());
-                    reference.setColumn(contentsContext.reference_body().getStart().getCharPositionInLine());
-                    reference.setParentNode(value);
-
-                    ((StringExpressionNode) value).getValueNodes().add(reference);
-                }
-            }
-
-            if (sb.length() > 0) {
-                StringNode string = new StringNode(sb.toString());
-                string.setParentNode(value);
-                ((StringExpressionNode) value).getValueNodes().add(string);
-            }
+            value = parseStringExpressionValue(context.string_expression());
         } else {
             value = new StringNode(context.getText());
         }
