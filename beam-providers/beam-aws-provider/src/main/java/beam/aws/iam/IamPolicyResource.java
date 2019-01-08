@@ -41,7 +41,6 @@ import java.util.Set;
 @ResourceName("policy-resource")
 public class IamPolicyResource extends AwsResource {
     private String policyName;
-    private String roleName;
     private String description;
     private String policyArn;
     private Map<String, Object> policyDocument;
@@ -53,14 +52,6 @@ public class IamPolicyResource extends AwsResource {
 
     public void setPolicyName(String policyName) {
         this.policyName = policyName;
-    }
-
-    public String getRoleName() {
-        return this.roleName;
-    }
-
-    public void setRoleName(String roleName) {
-        this.roleName = roleName;
     }
 
     @ResourceDiffProperty(updatable = true)
@@ -117,7 +108,7 @@ public class IamPolicyResource extends AwsResource {
                 .build();
 
         GetPolicyResponse response = client.getPolicy(
-            r -> r.policyArn(getPolicyArn())
+                r -> r.policyArn(getPolicyArn())
         );
 
         if (response.policy() != null) {
@@ -137,9 +128,9 @@ public class IamPolicyResource extends AwsResource {
                 .build();
 
         CreatePolicyResponse response = client.createPolicy(
-            r -> r.policyName(this.getPolicyName())
-            .policyDocument(ObjectUtils.toJson(this.getPolicyDocument()))
-            .description(this.getDescription())
+                r -> r.policyName(this.getPolicyName())
+                        .policyDocument(ObjectUtils.toJson(this.getPolicyDocument()))
+                        .description(this.getDescription())
 
         );
 
