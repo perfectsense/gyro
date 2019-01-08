@@ -15,6 +15,8 @@ import software.amazon.awssdk.services.iam.IamClient;
 import software.amazon.awssdk.services.iam.model.CreatePolicyResponse;
 import software.amazon.awssdk.services.iam.model.CreatePolicyVersionResponse;
 import software.amazon.awssdk.services.iam.model.GetPolicyResponse;
+import software.amazon.awssdk.services.iam.model.GetPolicyVersionResponse;
+import software.amazon.awssdk.services.iam.model.PolicyVersion;
 import software.amazon.awssdk.services.iam.model.Policy;
 import software.amazon.awssdk.services.iam.model.SetDefaultPolicyVersionResponse;
 
