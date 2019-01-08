@@ -154,7 +154,7 @@ public class SecurityGroupResource extends Ec2TaggableResource<SecurityGroup> {
         Ec2Client client = createClient(Ec2Client.class);
 
         List<Filter> filters = new ArrayList<>();
-        Filter nameFilter = Filter.builder().name("group-name").values(getGroupName()).build();
+        Filter nameFilter = Filter.builder().name("group-id").values(getGroupId()).build();
         filters.add(nameFilter);
 
         if (getVpcId() != null) {
