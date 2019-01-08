@@ -71,7 +71,7 @@ public class BeamVisitor extends BeamParserBaseVisitor {
 
                     containerNode.putImport(importName, importedRootNode);
                 } catch (IOException ioe) {
-                    throw new BeamException("Failed to import", ioe);
+                    throw new BeamException("Failed to import '" + resolvedPath + "'");
                 }
             }
         }
