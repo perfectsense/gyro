@@ -11,6 +11,28 @@ import software.amazon.awssdk.services.iam.model.Role;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Creates a Instance Profile.
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: beam
+ *
+ *     aws::instance-profile-resource ex-inst-profile
+ *         instance-profile-name: "ex-inst-profile"
+ *         role-name: $(aws::role-resource example-role | role-name)
+ *         roles: [$(aws::role-resource example-role)]
+ *
+ *     end
+ *
+ *     aws::role-resource example-role
+ *         role-name: "example-role"
+ *         description: "description"
+ *         assume-role-policy-document-file: "role_example.json"
+ *
+ *     end
+ */
 
 @ResourceName("instance-profile-resource")
 public class IamInstanceProfileResource extends AwsResource {
