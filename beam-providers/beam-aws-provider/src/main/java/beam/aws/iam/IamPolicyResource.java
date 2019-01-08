@@ -33,11 +33,10 @@ import java.util.Set;
  *
  * .. code-block:: beam
  *
- *     aws::policyResource example-role
- *         roleName: $(aws::roleResource example-role | roleName)
+ *     aws::policy-resource example-role
  *         description: testing the policy functionality
- *         policyName: rta-test-policy
- *         policyDocumentFile: policyFile.json
+ *         policy-name: rta-test-policy
+ *         policy-document-file: policyFile.json
  *
  *     end
  */
