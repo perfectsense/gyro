@@ -5,7 +5,6 @@ import beam.parser.antlr4.BeamParser;
 import beam.parser.antlr4.BeamParser.Beam_rootContext;
 import beam.parser.antlr4.BeamParser.Key_value_blockContext;
 import beam.parser.antlr4.BeamParser.List_item_valueContext;
-import beam.parser.antlr4.BeamParser.Literal_valueContext;
 import beam.parser.antlr4.BeamParser.Reference_valueContext;
 import beam.parser.antlr4.BeamParser.Resource_blockContext;
 import beam.parser.antlr4.BeamParser.ValueContext;
@@ -116,8 +115,8 @@ public class BeamVisitor extends BeamParserBaseVisitor {
             value = new NumberNode(context.number_value().getText());
         } else if (context.reference_value() != null) {
             value = parseReferenceValue(context.reference_value());
-        } else if (context.literal_value() != null) {
-            value = parseLiteralValue(context.literal_value());
+        } else if (context.string_value() != null) {
+            value = parseStringValue(context.string_value());
         } else if (context.list_value() != null) {
             ListNode listValue = new ListNode();
             for (List_item_valueContext valueContext : context.list_value().list_item_value()) {
@@ -150,40 +149,63 @@ public class BeamVisitor extends BeamParserBaseVisitor {
     }
 
     public ValueNode parseListItemValue(List_item_valueContext context) {
-        if (context.literal_value() != null) {
-            return parseLiteralValue(context.literal_value());
+        if (context.string_value() != null) {
+            return parseStringValue(context.string_value());
         } else {
             return parseReferenceValue(context.reference_value());
         }
     }
 
     public ReferenceNode parseReferenceValue(Reference_valueContext context) {
-        if (context.reference_body().reference_attribute() != null) {
-            return new ReferenceNode(
-                context.reference_body().reference_type().getText(),
-                context.reference_body().reference_name().getText(),
-                context.reference_body().reference_attribute().getText()
-            );
-        } else {
-            return new ReferenceNode(
-                context.reference_body().reference_type().getText(),
-                context.reference_body().reference_name().getText()
-            );
-        }
+        return new ReferenceNode(context.reference_body());
     }
 
-    public LiteralNode parseLiteralValue(Literal_valueContext context) {
-        LiteralNode literal;
-        if (context.STRING_INTEPRETED() != null) {
-            literal = new StringExpressionNode(context.getText());
+    public ValueNode parseStringValue(BeamParser.String_valueContext context) {
+        ValueNode value;
+        if (context.string_expression() != null) {
+            value = new StringExpressionNode();
+
+            StringBuilder sb = new StringBuilder();
+            for (BeamParser.String_contentsContext contentsContext : context.string_expression().string_contents()) {
+                if (contentsContext.DOLLAR() != null) {
+                    sb.append(contentsContext.getText());
+                } else if (contentsContext.LPAREN() != null) {
+                    sb.append(contentsContext.getText());
+                } else if (contentsContext.TEXT() != null) {
+                    sb.append(contentsContext.getText());
+                } else if (contentsContext.reference_body() != null) {
+                    if (sb.length() > 0) {
+                        StringNode string = new StringNode(sb.toString());
+                        string.setLine(contentsContext.reference_body().getStart().getLine());
+                        string.setColumn(contentsContext.reference_body().getStart().getCharPositionInLine());
+                        string.setParentNode(value);
+                        sb.setLength(0);
+
+                        ((StringExpressionNode) value).getValueNodes().add(string);
+                    }
+
+                    ReferenceNode reference = new ReferenceNode(contentsContext.reference_body());
+                    reference.setLine(contentsContext.reference_body().getStart().getLine());
+                    reference.setColumn(contentsContext.reference_body().getStart().getCharPositionInLine());
+                    reference.setParentNode(value);
+
+                    ((StringExpressionNode) value).getValueNodes().add(reference);
+                }
+            }
+
+            if (sb.length() > 0) {
+                StringNode string = new StringNode(sb.toString());
+                string.setParentNode(value);
+                ((StringExpressionNode) value).getValueNodes().add(string);
+            }
         } else {
-            literal = new StringNode(context.getText());
+            value = new StringNode(context.getText());
         }
 
-        literal.setLine(context.start.getLine());
-        literal.setColumn(context.start.getCharPositionInLine());
+        value.setLine(context.start.getLine());
+        value.setColumn(context.start.getCharPositionInLine());
 
-        return literal;
+        return value;
     }
 
     public ResourceNode createResourceBlock(String type) {

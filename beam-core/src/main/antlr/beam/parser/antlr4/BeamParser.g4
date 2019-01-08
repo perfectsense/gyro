@@ -1,5 +1,7 @@
 parser grammar BeamParser;
 
+import BeamReferenceParser;
+
 options { tokenVocab = BeamLexer; }
 
 beam_root
@@ -37,7 +39,7 @@ resource_type
 
 resource_name
     : IDENTIFIER
-    | literal_value
+    | string_value
     ;
 
 for_block
@@ -72,7 +74,7 @@ key_delimiter
 value
     : list_value
     | map_value
-    | literal_value
+    | string_value
     | boolean_value
     | number_value
     | reference_value
@@ -87,8 +89,8 @@ boolean_value
     : TRUE | FALSE
     ;
 
-literal_value
-    : STRING_INTEPRETED
+string_value
+    : string_expression
     | STRING_LITERAL
     ;
 
@@ -107,18 +109,6 @@ list_value
     ;
 
 list_item_value
-    : literal_value
+    : string_value
     | reference_value
     ;
-
-reference_value
-    : DOLLAR LPAREN reference_body RPAREN
-    ;
-
-reference_body
-    : (reference_type reference_name) | (reference_type reference_name PIPE reference_attribute)
-    ;
-
-reference_type : IDENTIFIER ;
-reference_name : IDENTIFIER ;
-reference_attribute : IDENTIFIER ;

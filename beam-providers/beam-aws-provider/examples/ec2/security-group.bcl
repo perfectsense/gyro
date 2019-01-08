@@ -28,7 +28,7 @@ aws::security-group security-group-example
     keep-default-egress-rules: true
 
     ingress
-        description: "allow inbound http traffic, both ipv4/ipv6"
+        description: "allow inbound http traffic, ipv4 only"
         cidr-blocks: ["0.0.0.0/0"]
         protocol: "TCP"
         from-port: 80

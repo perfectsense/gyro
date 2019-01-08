@@ -22,7 +22,7 @@ public class RootNode extends ContainerNode {
         resources.put(resourceBlock.resourceKey(), resourceBlock);
     }
 
-    public ResourceNode getResource(String key, String type) {
+    public ResourceNode getResource(String type, String key) {
         ResourceKey resourceKey = new ResourceKey(type, key);
         return resources.get(resourceKey);
     }

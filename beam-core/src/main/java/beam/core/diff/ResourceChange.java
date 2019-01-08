@@ -211,42 +211,41 @@ public class ResourceChange {
     }
 
     public static String mapSummaryDiff(Map current, Map pending) {
-        StringBuilder diffResult = new StringBuilder();
         if (current == null) {
             current = new HashMap();
         }
 
         final MapDifference diff = Maps.difference(current, pending);
+
+        List<String> diffs = new ArrayList<>();
+
         for (Object key : diff.entriesOnlyOnRight().keySet()) {
-            diffResult.append(String.format("+[%s => %s]", key, pending.get(key)));
+            diffs.add(String.format("+[%s => %s]", key, pending.get(key)));
         }
 
         for (Object key : diff.entriesOnlyOnLeft().keySet()) {
-            diffResult.append(String.format("-[%s => %s]", key, current.get(key)));
-        }
-
-        if (diffResult.lastIndexOf(",") == diffResult.length()) {
-            diffResult.setLength(diffResult.length() - 2);
+            diffs.add(String.format("-[%s => %s]", key, current.get(key)));
         }
 
         for (Object key : diff.entriesDiffering().keySet()) {
-            diffResult.append(String.format("*%s ", key));
+            StringBuilder diffResult = new StringBuilder();
+            diffResult.append(String.format("*[%s: ", key));
             MapDifference.ValueDifference value = (MapDifference.ValueDifference)diff.entriesDiffering().get(key);
             Object currentValue = value.leftValue();
             Object pendingValue = value.rightValue();
 
             if (currentValue instanceof Map && pendingValue instanceof Map) {
-                diffResult.append("(");
                 diffResult.append(mapSummaryDiff((Map) currentValue, (Map) pendingValue));
-                diffResult.append(") ");
             } else {
-                diffResult.append("(");
-                diffResult.append(String.format("[%s => %s]", currentValue, pendingValue));
-                diffResult.append(") ");
+                diffResult.append(String.format("%s => %s", currentValue, pendingValue));
             }
+
+            diffResult.append("]");
+
+            diffs.add(diffResult.toString());
         }
 
-        return diffResult.toString();
+        return StringUtils.join(diffs, ", ");
     }
 
     @Override

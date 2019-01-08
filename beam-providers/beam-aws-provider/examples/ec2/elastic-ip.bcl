@@ -11,3 +11,11 @@ aws::credentials default
     profile-name: "psd-beam-sandbox"
     region: "us-east-2"
 end
+
+aws::elastic-ip elastic-ip-example
+    is-standard-domain: true
+
+    tags: {
+        Name: "elastic-ip-example-modify"
+    }
+end
