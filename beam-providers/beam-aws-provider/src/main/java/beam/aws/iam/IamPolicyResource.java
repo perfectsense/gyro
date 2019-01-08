@@ -9,6 +9,7 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Throwables;
 import com.psddev.dari.util.IoUtils;
 import com.psddev.dari.util.ObjectUtils;
+import com.psddev.dari.util.StringUtils;
 
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.iam.IamClient;
@@ -17,7 +18,6 @@ import software.amazon.awssdk.services.iam.model.CreatePolicyVersionResponse;
 import software.amazon.awssdk.services.iam.model.GetPolicyResponse;
 import software.amazon.awssdk.services.iam.model.GetPolicyVersionResponse;
 import software.amazon.awssdk.services.iam.model.PolicyVersion;
-import software.amazon.awssdk.services.iam.model.Policy;
 import software.amazon.awssdk.services.iam.model.SetDefaultPolicyVersionResponse;
 
 import java.io.File;
