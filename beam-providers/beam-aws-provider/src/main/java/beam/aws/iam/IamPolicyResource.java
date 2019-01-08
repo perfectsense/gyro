@@ -127,14 +127,33 @@ public class IamPolicyResource extends AwsResource {
                 .region(Region.AWS_GLOBAL)
                 .build();
 
+        System.out.println("\nShow the policy name "+this.getPolicyName());
+        System.out.println("Show the description name "+this.getDescription());
+        System.out.println("Show the policy file name "+this.getPolicyDocumentFile());
+        System.out.println("Show the policy document "+this.getPolicyDocument());
+
+
         CreatePolicyResponse response = client.createPolicy(
                 r -> r.policyName(this.getPolicyName())
                         .policyDocument(ObjectUtils.toJson(this.getPolicyDocument()))
                         .description(this.getDescription())
 
         );
-
         setPolicyArn(response.policy().arn());
+
+        CreatePolicyVersionResponse versionResponse = client.createPolicyVersion(
+                r -> r.policyArn(getPolicyArn())
+                        .policyDocument(ObjectUtils.toJson(this.getPolicyDocument()))
+                        .setAsDefault(true)
+
+        );
+
+        SetDefaultPolicyVersionResponse defaultResponse = client.setDefaultPolicyVersion(
+                r -> r.policyArn(getPolicyArn())
+                        .versionId("v1"));
+
+        System.out.println("Show the policy arn "+this.getPolicyArn());
+        System.out.println("Created a new policy with "+getPolicyName());
     }
 
     @Override
