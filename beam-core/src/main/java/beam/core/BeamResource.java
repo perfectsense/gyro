@@ -47,7 +47,21 @@ public abstract class BeamResource extends BeamBaseResource implements Comparabl
             resource.setResourceType(resourceType());
             resource.setResourceIdentifier(resourceIdentifier());
             resource.setResourceCredentials(getResourceCredentials());
-            resource.syncPropertiesFromResource(this);
+            resource.syncPropertiesFromResource(this, true);
+
+            // Copy subresources
+            for (String fieldName : subResources().keySet()) {
+                List<ResourceNode> subresources = new ArrayList<>();
+
+                for (ResourceNode resourceNode : subResources().get(fieldName)) {
+                    if (resourceNode instanceof BeamResource) {
+                        BeamResource beamResource = (BeamResource) resourceNode;
+                        subresources.add(beamResource.copy());
+                    }
+                }
+
+                resource.subResources().put(fieldName, subresources);
+            }
 
             return resource;
         } catch (InstantiationException | IllegalAccessException e) {
@@ -102,12 +116,17 @@ public abstract class BeamResource extends BeamBaseResource implements Comparabl
      * state (i.e. a resource loaded from a config file).
      */
     public void syncPropertiesFromResource(ResourceNode source) {
+        syncPropertiesFromResource(source, false);
+    }
+
+    public void syncPropertiesFromResource(ResourceNode source, boolean force) {
         if (source == null) {
             return;
         }
 
         try {
             for (PropertyDescriptor p : Introspector.getBeanInfo(getClass()).getPropertyDescriptors()) {
+
                 Method reader = p.getReadMethod();
 
                 if (reader != null) {
@@ -122,7 +141,10 @@ public abstract class BeamResource extends BeamBaseResource implements Comparabl
                     Object currentValue = reader.invoke(source);
                     Object pendingValue = reader.invoke(this);
 
-                    if (writer != null && (currentValue != null && pendingValue == null && !isNullable)) {
+                    boolean isNullOrEmpty = pendingValue == null;
+                    isNullOrEmpty = pendingValue instanceof Collection && ((Collection) pendingValue).isEmpty() ? true : isNullOrEmpty;
+
+                    if (writer != null && (currentValue != null && isNullOrEmpty && (!isNullable || force))) {
                         writer.invoke(this, reader.invoke(source));
                     }
                 }
