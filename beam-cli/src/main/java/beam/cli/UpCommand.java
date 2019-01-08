@@ -66,6 +66,12 @@ public class UpCommand extends AbstractCommand {
             }
         }
 
+        if (changeTypes.contains(ChangeType.REPLACE)) {
+            BeamCore.ui().write("\n");
+
+            hasChanges = true;
+        }
+
         if (!hasChanges) {
             BeamCore.ui().write("@|bold,green No changes.|@\n\n");
         }
