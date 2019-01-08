@@ -6,7 +6,11 @@ import com.google.common.base.CaseFormat;
 import org.apache.commons.beanutils.BeanUtils;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 public class ResourceNode extends ContainerNode {
@@ -16,6 +20,7 @@ public class ResourceNode extends ContainerNode {
 
     private Set<ResourceNode> dependencies;
     private Set<ResourceNode> dependents;
+    private Map<String, List<ResourceNode>> subResources;
     private BeamCore core;
 
     public Set<ResourceNode> dependencies() {
@@ -34,7 +39,15 @@ public class ResourceNode extends ContainerNode {
         return dependents;
     }
 
-    public String getResourceType() {
+    public Map<String, List<ResourceNode>> subResources() {
+        if (subResources == null) {
+            subResources = new HashMap<>();
+        }
+
+        return subResources;
+    }
+
+    public String resourceType() {
         return type;
     }
 
@@ -42,7 +55,7 @@ public class ResourceNode extends ContainerNode {
         this.type = type;
     }
 
-    public String getResourceIdentifier() {
+    public String resourceIdentifier() {
         return name;
     }
 
@@ -51,12 +64,20 @@ public class ResourceNode extends ContainerNode {
     }
 
     public ResourceKey resourceKey() {
-        return new ResourceKey(getResourceType(), getResourceIdentifier());
+        return new ResourceKey(resourceType(), resourceIdentifier());
     }
 
     @Override
     public boolean resolve() {
         boolean resolved = super.resolve();
+
+        for (List<ResourceNode> resources : subResources().values()) {
+            for (ResourceNode resource : resources) {
+                if (!resource.resolve()) {
+                    throw new BeamLanguageException("Unable to resolve configuration.", resource);
+                }
+            }
+        }
 
         if (resolved) {
             syncInternalToProperties();
@@ -69,8 +90,13 @@ public class ResourceNode extends ContainerNode {
     public String toString() {
         StringBuilder sb = new StringBuilder();
 
-        sb.append(getResourceType()).append(" ");
-        sb.append(getResourceIdentifier()).append("\n");
+        sb.append(resourceType()).append(" ");
+
+        if (resourceIdentifier() != null) {
+            sb.append(resourceIdentifier()).append("\n");
+        } else {
+            sb.append("\n");
+        }
 
         sb.append(super.toString());
 
@@ -98,6 +124,17 @@ public class ResourceNode extends ContainerNode {
                 // Ignoring errors from setProperty
             }
         }
+
+        for (String subResourceField : subResources().keySet()) {
+            List<ResourceNode> subResources = subResources().get(subResourceField);
+
+            try {
+                BeanUtils.setProperty(this, subResourceField, subResources);
+            } catch (IllegalArgumentException | InvocationTargetException | IllegalAccessException e) {
+                // Ignoring errors from setProperty
+                e.printStackTrace();
+            }
+        }
     }
 
     /**
@@ -113,12 +150,32 @@ public class ResourceNode extends ContainerNode {
         execute();
     }
 
-    public BeamCore getCore() {
+    public BeamCore core() {
         return core;
     }
 
     public void setCore(BeamCore core) {
         this.core = core;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ResourceNode that = (ResourceNode) o;
+
+        return Objects.equals(type, that.type) && Objects.equals(name, that.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(type, name);
     }
 
 }

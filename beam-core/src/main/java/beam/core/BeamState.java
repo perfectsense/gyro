@@ -13,7 +13,7 @@ public abstract class BeamState extends ResourceNode {
     public abstract void delete(String name);
 
     @Override
-    public String getResourceType() {
+    public String resourceType() {
         return "state";
     }
 

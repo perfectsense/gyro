@@ -1,30 +1,11 @@
 package beam.lang;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 public class ReferenceNode extends ValueNode {
 
     private String type;
     private String name;
     private String attribute;
     private ContainerNode referencedBlock;
-
-    private Pattern partial = Pattern.compile("\\$\\((?<type>[^\\s]+) (?<name>[^\\s]+)\\)");
-    private Pattern full = Pattern.compile("\\$\\((?<type>[^\\s]+) (?<name>[^\\s]+) \\| (?<attribute>[^\\s]+)\\)");
-
-    public ReferenceNode(String fullRef) {
-        Matcher partialMatcher = partial.matcher(fullRef);
-        Matcher fullMatcher = full.matcher(fullRef);
-        if (fullMatcher.find()) {
-            this.type = fullMatcher.group("type");
-            this.name = fullMatcher.group("name");
-            this.attribute = fullMatcher.group("attribute");
-        } else if (partialMatcher.find()) {
-            this.type = partialMatcher.group("type");
-            this.name = partialMatcher.group("name");
-        }
-    }
 
     public ReferenceNode(String type, String name) {
         this(type, name, null);

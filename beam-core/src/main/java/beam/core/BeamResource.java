@@ -14,8 +14,11 @@ import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 public abstract class BeamResource extends ResourceNode implements Comparable<BeamResource> {
@@ -34,10 +37,10 @@ public abstract class BeamResource extends ResourceNode implements Comparable<Be
 
     public abstract String toDisplayString();
 
-    public abstract Class getResourceCredentialsClass();
+    public abstract Class resourceCredentialsClass();
 
-    public String getResourceCredentialsName() {
-        Class c = getResourceCredentialsClass();
+    public String resourceCredentialsName() {
+        Class c = resourceCredentialsClass();
 
         try {
             BeamCredentials credentials = (BeamCredentials) c.newInstance();
@@ -57,6 +60,10 @@ public abstract class BeamResource extends ResourceNode implements Comparable<Be
         return c.getSimpleName();
     }
 
+    public String primaryKey() {
+        return String.format("%s %s", resourceType(), resourceIdentifier());
+    }
+
     public BeamCredentials getResourceCredentials() {
         return resourceCredentials;
     }
@@ -65,7 +72,7 @@ public abstract class BeamResource extends ResourceNode implements Comparable<Be
         this.resourceCredentials = resourceCredentials;
     }
 
-    public ResourceChange getChange() {
+    public ResourceChange change() {
         return change;
     }
 
@@ -112,19 +119,49 @@ public abstract class BeamResource extends ResourceNode implements Comparable<Be
         }
     }
 
-    private Method readerMethodForKey(String key) {
-        String convertedKey = fieldNameFromKey(key);
-        try {
-            for (PropertyDescriptor p : Introspector.getBeanInfo(getClass()).getPropertyDescriptors()) {
-                if (p.getDisplayName().equals(convertedKey)) {
-                    return p.getReadMethod();
-                }
-            }
-        } catch (IntrospectionException ex) {
-            // Ignoring introspection exceptions
-        }
+    public void diffOnCreate(ResourceChange change) throws Exception {
+        Map<String, Object> pendingValues = resolvedKeyValues();
 
-        return null;
+        for (String key : subresourceFields()) {
+            Object pendingValue = pendingValues.get(key);
+
+            if (pendingValue instanceof Collection) {
+                change.create((Collection) pendingValue);
+            } else {
+                change.createOne((BeamResource) pendingValue);
+            }
+        }
+    }
+
+    public void diffOnUpdate(ResourceChange change, BeamResource current) throws Exception {
+        Map<String, Object> currentValues = current.resolvedKeyValues();
+        Map<String, Object> pendingValues = resolvedKeyValues();
+
+        for (String key : subresourceFields()) {
+
+            Object currentValue = currentValues.get(key);
+            Object pendingValue = pendingValues.get(key);
+
+            if (pendingValue instanceof Collection) {
+                change.update((Collection) currentValue, (Collection) pendingValue);
+            } else {
+                change.updateOne((BeamResource) currentValue, (BeamResource) pendingValue);
+            }
+        }
+    }
+
+    public void diffOnDelete(ResourceChange change) throws Exception {
+        Map<String, Object> pendingValues = resolvedKeyValues();
+
+        for (String key : subresourceFields()) {
+            Object pendingValue = pendingValues.get(key);
+
+            if (pendingValue instanceof Collection) {
+                change.delete((Collection) pendingValue);
+            } else {
+                change.deleteOne((BeamResource) pendingValue);
+            }
+        }
     }
 
     public ResourceDisplayDiff calculateFieldDiffs(BeamResource current) {
@@ -143,9 +180,9 @@ public abstract class BeamResource extends ResourceNode implements Comparable<Be
                 continue;
             }
 
-            // If no ResourceDiffProperty annotation then skip this field.
+            // If no ResourceDiffProperty annotation or if this field has subresources then skip this field.
             ResourceDiffProperty propertyAnnotation = reader.getAnnotation(ResourceDiffProperty.class);
-            if (propertyAnnotation == null) {
+            if (propertyAnnotation == null || propertyAnnotation.subresource()) {
                 continue;
             }
             boolean nullable = propertyAnnotation.nullable();
@@ -186,7 +223,7 @@ public abstract class BeamResource extends ResourceNode implements Comparable<Be
     @Override
     public void execute() {
         if (get("resource-credentials") == null) {
-            ReferenceNode credentialsReference = new ReferenceNode(getResourceCredentialsName(), "default");
+            ReferenceNode credentialsReference = new ReferenceNode(resourceCredentialsName(), "default");
             credentialsReference.setLine(getLine());
             credentialsReference.setColumn(getColumn());
 
@@ -200,10 +237,66 @@ public abstract class BeamResource extends ResourceNode implements Comparable<Be
             return 1;
         }
 
-        String compareKey = String.format("%s %s", getResourceType(), getResourceIdentifier());
-        String otherKey = String.format("%s %s", o.getResourceType(), o.getResourceIdentifier());
+        String compareKey = String.format("%s %s", resourceType(), resourceIdentifier());
+        String otherKey = String.format("%s %s", o.resourceType(), o.resourceIdentifier());
 
         return compareKey.compareTo(otherKey);
+    }
+
+    boolean refreshInternal() {
+        if (refresh()) {
+            syncInternalToProperties();
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Return a list of fields that contain subresources (ResourceDiffProperty(subresource = true)).
+     */
+    private List<String> subresourceFields() {
+        List<String> keys = new ArrayList<>();
+        Map<String, Object> pendingValues = resolvedKeyValues();
+
+        for (String key : pendingValues.keySet()) {
+            // If there is no getter for this method then skip this field since there can
+            // be no ResourceDiffProperty annotation.
+            Method reader = readerMethodForKey(key);
+            if (reader == null) {
+                continue;
+            }
+
+            // If no ResourceDiffProperty annotation or if this field is not subresources then skip this field.
+            ResourceDiffProperty propertyAnnotation = reader.getAnnotation(ResourceDiffProperty.class);
+            if (propertyAnnotation == null || !propertyAnnotation.subresource()) {
+                continue;
+            }
+
+            keys.add(key);
+        }
+
+        return keys;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        BeamResource that = (BeamResource) o;
+
+        return Objects.equals(primaryKey(), that.primaryKey());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(primaryKey());
     }
 
 }

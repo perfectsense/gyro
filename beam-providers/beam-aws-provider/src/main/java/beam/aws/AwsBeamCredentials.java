@@ -28,7 +28,7 @@ public class AwsBeamCredentials extends BeamCredentials {
                 .build();
     }
 
-    public AwsCredentialsProvider getProvider() {
+    public AwsCredentialsProvider provider() {
         return provider;
     }
 
@@ -69,7 +69,7 @@ public class AwsBeamCredentials extends BeamCredentials {
         ImmutableMap.Builder<String, String> mapBuilder = new ImmutableMap.Builder<>();
         AwsCredentials creds;
 
-        AwsCredentialsProvider provider = getProvider();
+        AwsCredentialsProvider provider = provider();
         creds = provider.resolveCredentials();
 
         mapBuilder.put("accessKeyId", creds.accessKeyId());

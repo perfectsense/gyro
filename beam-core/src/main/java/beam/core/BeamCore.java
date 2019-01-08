@@ -3,6 +3,7 @@ package beam.core;
 import beam.core.diff.ChangeType;
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiff;
+import beam.core.diff.ResourceName;
 import beam.lang.BeamErrorListener;
 import beam.lang.BeamLanguageException;
 import beam.lang.BeamVisitor;
@@ -28,7 +29,7 @@ public class BeamCore {
 
     private RootNode root;
 
-    private final Map<String, Class<? extends ResourceNode>> extensions = new HashMap<>();
+    private final Map<String, Class<? extends ResourceNode>> resourceTypes = new HashMap<>();
 
     private static final ThreadLocalStack<BeamUI> UI = new ThreadLocalStack<>();
 
@@ -44,26 +45,26 @@ public class BeamCore {
         return UI.pop();
     }
 
-    public void addExtension(String key, Class<? extends ResourceNode> extension) {
-        extensions.put(key, extension);
+    public void addResourceType(String key, Class<? extends ResourceNode> extension) {
+        resourceTypes.put(key, extension);
     }
 
-    public boolean hasExtension(String key) {
-        return extensions.containsKey(key);
+    public boolean hasResourceType(String key) {
+        return resourceTypes.containsKey(key);
     }
 
-    public Class<? extends Node> getExtension(String key) {
-        return extensions.get(key);
+    public Class<? extends Node> getResourceType(String key) {
+        return resourceTypes.get(key);
     }
 
     public void init() {
-        extensions.clear();
+        resourceTypes.clear();
     }
 
     public RootNode parse(String path) throws IOException {
         init();
-        addExtension("state", BeamLocalState.class);
-        addExtension("provider", BeamProvider.class);
+        addResourceType("state", BeamLocalState.class);
+        addResourceType("provider", BeamProvider.class);
 
         BeamLexer lexer = new BeamLexer(CharStreams.fromFileName(path));
         CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -79,7 +80,7 @@ public class BeamCore {
         }
 
         BeamVisitor visitor = new BeamVisitor(this);
-        visitor.visitBeam_root(context);        // First pass ensures extensions are loaded and executed
+        visitor.visitBeam_root(context);        // First pass ensures resourceTypes are loaded and executed
         root = visitor.visitBeam_root(context);
 
         if (!root.resolve()) {
@@ -124,10 +125,10 @@ public class BeamCore {
             if (resource instanceof BeamResource) {
                 if (refresh) {
                     BeamCore.ui().write("@|bold,blue Refreshing|@: @|yellow %s|@ -> %s...",
-                        resource.getResourceType(), resource.getResourceIdentifier());
+                        resource.resourceType(), resource.resourceIdentifier());
                 }
 
-                if (refresh && ((BeamResource) resource).refresh()) {
+                if (refresh && ((BeamResource) resource).refreshInternal()) {
                     resources.add((BeamResource) resource);
 
                     BeamCore.ui().write("\n");
@@ -246,8 +247,16 @@ public class BeamCore {
         if (type == ChangeType.DELETE) {
             state.removeResource(resource);
         } else {
-            state.putResource(resource);
-
+            ResourceName nameAnnotation = resource.getClass().getAnnotation(ResourceName.class);
+            if (nameAnnotation != null && !nameAnnotation.parent().equals("")) {
+                // Save parent resource when current resource is a subresource.
+                Node parent = resource.getParentNode();
+                if (parent instanceof ResourceNode) {
+                    state.putResource((ResourceNode) parent);
+                }
+            } else {
+                state.putResource(resource);
+            }
         }
 
         BeamCore.ui().write(" OK\n");
