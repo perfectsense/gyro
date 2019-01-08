@@ -13,8 +13,10 @@ import com.psddev.dari.util.ObjectUtils;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.iam.IamClient;
 import software.amazon.awssdk.services.iam.model.CreatePolicyResponse;
+import software.amazon.awssdk.services.iam.model.CreatePolicyVersionResponse;
 import software.amazon.awssdk.services.iam.model.GetPolicyResponse;
 import software.amazon.awssdk.services.iam.model.Policy;
+import software.amazon.awssdk.services.iam.model.SetDefaultPolicyVersionResponse;
 
 import java.io.File;
 import java.io.IOException;
