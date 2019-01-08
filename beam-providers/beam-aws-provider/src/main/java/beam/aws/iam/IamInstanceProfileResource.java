@@ -12,18 +12,18 @@ import java.util.HashSet;
 import java.util.Set;
 
 
-@ResourceName("instance-profile")
+@ResourceName("instance-profile-resource")
 public class IamInstanceProfileResource extends AwsResource {
 
     private String instanceProfileName;
     private String roleName;
     private Set<IamRoleResource> roles;
 
-    public String getinstanceProfileName() {
+    public String getInstanceProfileName() {
         return this.instanceProfileName;
     }
 
-    public void setinstanceProfileName(String instanceProfileName) {
+    public void setInstanceProfileName(String instanceProfileName) {
         this.instanceProfileName = instanceProfileName;
     }
 
@@ -53,8 +53,8 @@ public class IamInstanceProfileResource extends AwsResource {
                 .region(Region.AWS_GLOBAL)
                 .build();
 
-        GetInstanceProfileResponse response = client.getInstanceProfile(r -> r.instanceProfileName(getinstanceProfileName()));
-
+        GetInstanceProfileResponse response = client.getInstanceProfile(r -> r.instanceProfileName(getInstanceProfileName()));
+        System.out.println("Am I even in here ");
         if (response != null) {
             Set<IamRoleResource> roles = new HashSet<>();
             for (Role role : response.instanceProfile().roles()) {
@@ -77,12 +77,16 @@ public class IamInstanceProfileResource extends AwsResource {
                 .region(Region.AWS_GLOBAL)
                 .build();
 
-        client.createInstanceProfile(r -> r.instanceProfileName(getRoleName()));
+        client.createInstanceProfile(r -> r.instanceProfileName(getInstanceProfileName()));
+
+        System.out.println("What is the instance profile name "+getInstanceProfileName());
+        System.out.println("What is role name "+getRoleName());
+        System.out.println("What are roles "+getRoles());
 
         for (IamRoleResource role : getRoles()) {
             client.addRoleToInstanceProfile(
                 r -> r.roleName(role.getRoleName())
-                .instanceProfileName(getinstanceProfileName()));
+                .instanceProfileName(getInstanceProfileName()));
         }
     }
 
@@ -102,8 +106,8 @@ public class IamInstanceProfileResource extends AwsResource {
     public String toDisplayString() {
         StringBuilder sb = new StringBuilder();
 
-        if (getinstanceProfileName() != null) {
-            sb.append("instance profile " + getinstanceProfileName());
+        if (getInstanceProfileName() != null) {
+            sb.append("instance profile " + getInstanceProfileName());
 
         } else {
             sb.append("instance profile ");
