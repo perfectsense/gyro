@@ -49,6 +49,7 @@ public class SecurityGroupResource extends Ec2TaggableResource<SecurityGroup> {
     /**
      * The name of the security group.
      */
+    @ResourceDiffProperty
     public String getGroupName() {
         return groupName;
     }
@@ -72,6 +73,7 @@ public class SecurityGroupResource extends Ec2TaggableResource<SecurityGroup> {
     /**
      * The description of this security group.
      */
+    @ResourceDiffProperty
     public String getDescription() {
         return description;
     }
