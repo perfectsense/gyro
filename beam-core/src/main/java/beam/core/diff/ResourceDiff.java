@@ -251,8 +251,9 @@ public class ResourceDiff {
     }
 
     private void sortResources() {
-        if (pendingResources != null) {
-            pendingResources = sortResources(pendingResources);
+        Collection<BeamResource> pending = getPendingResources();
+        if (pending != null) {
+            pendingResources = sortResources(pending);
         }
     }
 
