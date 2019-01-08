@@ -235,7 +235,7 @@ public class SecurityGroupResource extends Ec2TaggableResource<SecurityGroup> {
         String groupName = getGroupName();
 
         if (groupName != null) {
-            sb.append(' ');
+            sb.append(" - ");
             sb.append(groupName);
         }
 
