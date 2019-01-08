@@ -1,16 +1,4 @@
-provider aws
-    artifact: "beam:beam-aws-provider:0.5"
-    repositories: [
-        "http://repo1.maven.org/maven2/",
-        "https://repo.gradle.org/gradle/libs-releases/",
-        "https://artifactory.psdops.com/public"
-    ]
-end
-
-aws::credentials default
-    profile-name: "psd-beam-sandbox"
-    region: "us-east-2"
-end
+import init as _
 
 aws::vpc vpc-security-group-example
     cidr-block: "10.0.0.0/16"
@@ -22,9 +10,9 @@ aws::vpc vpc-security-group-example
 end
 
 aws::security-group security-group-example
-    group-name: "security-group-example"
+    group-name: "$(project) $(environment) - Allow web traffic only"
     vpc-id: $(aws::vpc vpc-security-group-example | vpc-id)
-    description: "security group example"
+    description: "Allow web traffic only"
     keep-default-egress-rules: true
 
     ingress
