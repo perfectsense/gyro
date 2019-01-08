@@ -280,16 +280,4 @@ public class BeamCore {
         }
     }
 
-    /*
-    private void initState(RootNode source, RootNode state) {
-        for (ResourceNode block : source.resources()) {
-            if (block instanceof BeamResource) {
-                continue;
-            }
-
-            state.putResource(block);
-        }
-    }
-    */
-
 }
