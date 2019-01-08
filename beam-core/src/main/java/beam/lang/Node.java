@@ -9,7 +9,7 @@ public abstract class Node {
 
     public abstract boolean resolve();
 
-    public Node getParentNode() {
+    public Node parentNode() {
         return parentNode;
     }
 

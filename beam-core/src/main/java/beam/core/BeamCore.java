@@ -253,6 +253,7 @@ public class BeamCore {
                 Node parent = resource.getParentNode();
                 if (parent instanceof ResourceNode) {
                     state.putResource((ResourceNode) parent);
+                Node parent = resource.parentNode();
                 }
             } else {
                 state.putResource(resource);

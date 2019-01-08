@@ -86,7 +86,7 @@ public class ReferenceNode extends ValueNode {
     }
 
     public ResourceNode getParentResourceNode() {
-        Node parent = getParentNode();
+        Node parent = parentNode();
 
         // Traverse up
         while (parent != null) {
@@ -98,7 +98,7 @@ public class ReferenceNode extends ValueNode {
                 }
             }
 
-            parent = parent.getParentNode();
+            parent = parent.parentNode();
         }
 
         return null;
