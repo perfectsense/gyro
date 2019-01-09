@@ -73,7 +73,7 @@ public class IamPolicyResource extends AwsResource {
         else {
             if(getPolicyDocumentFile() != null) {
                 try {
-                    return new String(Files.readAllBytes(Paths.get(getPolicyDocumentFile())), "UTF-8");
+                    return formatPolicy(new String(Files.readAllBytes(Paths.get(getPolicyDocumentFile())), "UTF-8"));
                 } catch (Exception err) {
                     throw new BeamException(err.getMessage());
                 }
@@ -136,7 +136,7 @@ public class IamPolicyResource extends AwsResource {
 
         CreatePolicyResponse response = client.createPolicy(
                 r -> r.policyName(this.getPolicyName())
-                        .policyDocument(this.getPolicyDocumentContents())
+                        .policyDocument(formatPolicy(this.getPolicyDocumentContents()))
                         .description(this.getDescription())
 
         );
@@ -148,7 +148,7 @@ public class IamPolicyResource extends AwsResource {
 
     @Override
     public void update(BeamResource current, Set<String> changedProperties) {
-        create();
+
     }
 
     @Override
@@ -172,6 +172,10 @@ public class IamPolicyResource extends AwsResource {
         }
 
         return sb.toString();
+    }
+
+    public String formatPolicy(String policy) {
+        return policy != null ? policy.replaceAll(System.lineSeparator(), " ").replaceAll("\t", " ").trim().replaceAll(" ", "") : policy;
     }
 
 }
