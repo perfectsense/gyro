@@ -261,8 +261,7 @@ public class SqsResource extends AwsResource {
     @Override
     public boolean refresh() {
         SqsClient client = createClient(SqsClient.class);
-
-
+        
         ListQueuesResponse response1 = client.listQueues(r -> r.queueNamePrefix(getName()));
         if (!response1.queueUrls().isEmpty()) {
             setQueueUrl(response1.queueUrls() != null ? response1.queueUrls().get(0) : null);
@@ -371,7 +370,6 @@ public class SqsResource extends AwsResource {
         client.createQueue(r -> r.queueName(getName()).attributes(attributeMap));
         setQueueUrl(client.createQueue(r -> r.queueName(getName()).attributes(attributeMap)).queueUrl());
     }
-
 
     @Override
     public void update(BeamResource current, Set<String> changedProperties) {
