@@ -55,7 +55,8 @@ public class IamRoleResource extends AwsResource {
         else {
             if(getAssumeRolePolicyDocumentFile() != null) {
                 try {
-                    return new String(Files.readAllBytes(Paths.get(getAssumeRolePolicyDocumentFile())), "UTF-8");
+                    String encode = new String(Files.readAllBytes(Paths.get(getAssumeRolePolicyDocumentFile())), "UTF-8");
+                    return formatPolicy(encode);
                 } catch (Exception err) {
                     throw new BeamException(err.getMessage());
                 }
@@ -120,7 +121,7 @@ public class IamRoleResource extends AwsResource {
             setDescription(response.description());
             String encode = URLDecoder.decode(response.assumeRolePolicyDocument());
             System.out.println("Show encoded "+encode);
-            setAssumeRolePolicyContents(URLDecoder.decode(response.assumeRolePolicyDocument()));
+            setAssumeRolePolicyContents(formatPolicy(encode));
             System.out.println("Past contents "+response.assumeRolePolicyDocument());
 
             ListAttachedRolePoliciesResponse policyResponse = client.listAttachedRolePolicies(r -> r.roleName(getRoleName()));
@@ -141,7 +142,7 @@ public class IamRoleResource extends AwsResource {
 
         System.out.println("What is role policy document filename"+getAssumeRolePolicyDocumentFile());
 
-        client.createRole(r -> r.assumeRolePolicyDocument(getAssumeRolePolicyContents())
+        client.createRole(r -> r.assumeRolePolicyDocument(formatPolicy(getAssumeRolePolicyContents()))
                                 .description(getDescription())
                                 .roleName(getRoleName()));
 
@@ -161,7 +162,7 @@ public class IamRoleResource extends AwsResource {
                 .region(Region.AWS_GLOBAL)
                 .build();
 
-        client.updateAssumeRolePolicy(r -> r.policyDocument(getAssumeRolePolicyContents())
+        client.updateAssumeRolePolicy(r -> r.policyDocument(formatPolicy(getAssumeRolePolicyContents()))
                                             .roleName(getRoleName()));
 
         client.updateRole(r -> r.description(getDescription())
@@ -197,5 +198,9 @@ public class IamRoleResource extends AwsResource {
         }
 
         return sb.toString();
+    }
+
+    public String formatPolicy(String policy) {
+        return policy != null ? policy.replaceAll(System.lineSeparator(), " ").replaceAll("\t", " ").trim().replaceAll(" ", "") : policy;
     }
 }
