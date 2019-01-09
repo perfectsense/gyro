@@ -4,16 +4,14 @@ import beam.core.BeamResource;
 
 import java.io.File;
 import java.nio.file.Path;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-public class FileNode extends ContainerNode {
+public class FileNode extends ResourceContainerNode {
 
     private transient String path;
     private transient FileNode state;
 
-    transient Map<ResourceKey, ResourceNode> resources = new HashMap<>();
     transient Map<String, FileNode> imports = new HashMap<>();
 
     public String path() {
@@ -30,33 +28,6 @@ public class FileNode extends ContainerNode {
 
     public void setState(FileNode state) {
         this.state = state;
-    }
-
-    public Collection<ResourceNode> resources() {
-        return resources.values();
-    }
-
-    public ResourceNode removeResource(ResourceNode block) {
-        return resources.remove(block.resourceKey());
-    }
-
-    public void putResource(ResourceNode resourceBlock) {
-        resourceBlock.setParentNode(this);
-
-        resources.put(resourceBlock.resourceKey(), resourceBlock);
-    }
-
-    public ResourceNode getResource(String type, String key) {
-        ResourceKey resourceKey = new ResourceKey(type, key);
-
-        ResourceNode resourceNode = resources.get(resourceKey);
-        if (resourceNode == null && imports().containsKey("_")) {
-            // Check in "global" import
-            FileNode importNode = imports().get("_");
-            resourceNode = importNode.resources.get(resourceKey);
-        }
-
-        return resourceNode;
     }
 
     public Map<String, FileNode> imports() {
@@ -78,6 +49,18 @@ public class FileNode extends ContainerNode {
         Path otherPath  = new File(currentPath).getParentFile().toPath();
 
         return otherPath.relativize(importPath).toString().replace(".bcl", "");
+    }
+
+    @Override
+    public ResourceNode getResource(String type, String key) {
+        ResourceNode resourceNode = super.getResource(type, key);
+        if (resourceNode == null && imports().containsKey("_")) {
+            // Check in "global" import
+            FileNode importNode = imports().get("_");
+            resourceNode = importNode.getResource(type, key);
+        }
+
+        return resourceNode;
     }
 
     @Override
@@ -113,7 +96,7 @@ public class FileNode extends ContainerNode {
     public boolean resolve() {
         super.resolve();
 
-        for (ResourceNode resourceBlock : resources.values()) {
+        for (ResourceNode resourceBlock : resources()) {
             boolean resolved = resourceBlock.resolve();
             if (!resolved) {
                 throw new BeamLanguageException("Unable to resolve configuration.", resourceBlock);
@@ -144,11 +127,6 @@ public class FileNode extends ContainerNode {
         }
 
         sb.append("\n");
-
-        for (ResourceNode resourceBlock : resources.values()) {
-            sb.append(resourceBlock.toString());
-        }
-
         sb.append(super.toString());
 
         return sb.toString();
