@@ -89,6 +89,15 @@ public class ResourceNode extends ContainerNode {
         return fileNode;
     }
 
+    public ResourceNode parentResourceNode() {
+        Node parent = parentNode();
+
+        while (parent != null && !(parent instanceof ResourceNode)) {
+            parent = parent.parentNode();
+        }
+
+        return (ResourceNode) parent;
+    }
     @Override
     public boolean resolve() {
         boolean resolved = super.resolve();

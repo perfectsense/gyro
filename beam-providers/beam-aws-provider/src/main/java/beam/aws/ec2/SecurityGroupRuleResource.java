@@ -42,7 +42,7 @@ public abstract class SecurityGroupRuleResource extends AwsResource {
     }
 
     public String getGroupId() {
-        SecurityGroupResource parent = (SecurityGroupResource) parentNode();
+        SecurityGroupResource parent = (SecurityGroupResource) parentResourceNode();
         if (parent != null) {
             return parent.getGroupId();
         }
