@@ -90,7 +90,7 @@ public class ForNode extends ControlNode {
                     ResourceNode copy = resourceNode.copy();
                     copy.setParentNode(scope);
 
-                    resourceContainerNode.putResource2(copy);
+                    resourceContainerNode.putResourceKeepParent(copy);
 
                     System.out.println("Adding resource: " + copy);
                 }

@@ -22,7 +22,7 @@ public class ResourceContainerNode extends ContainerNode {
         resources.put(resourceBlock.resourceKey(), resourceBlock);
     }
 
-    public void putResource2(ResourceNode resourceNode) {
+    public void putResourceKeepParent(ResourceNode resourceNode) {
         resources.put(resourceNode.resourceKey(), resourceNode);
     }
 
