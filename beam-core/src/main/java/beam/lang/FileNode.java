@@ -23,6 +23,10 @@ public class FileNode extends ResourceContainerNode {
     }
 
     public FileNode state() {
+        if (state == null) {
+            return this;
+        }
+
         return state;
     }
 
