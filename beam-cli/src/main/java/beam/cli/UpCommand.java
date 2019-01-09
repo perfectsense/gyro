@@ -2,8 +2,6 @@ package beam.cli;
 
 import beam.core.BeamCore;
 import beam.core.BeamException;
-import beam.core.BeamResource;
-import beam.core.BeamState;
 import beam.core.diff.ChangeType;
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiff;
@@ -33,25 +31,17 @@ public class UpCommand extends AbstractCommand {
         }
 
         String configPath = getArguments().get(0);
-        String statePath = configPath + ".state";
         BeamCore core = new BeamCore();
-        RootNode rootBlock = null;
+        RootNode pending;
         try {
-            rootBlock = core.parse(configPath);
+            pending = core.parse(configPath);
         } catch (BeamLanguageException ex) {
             throw new BeamException(ex.getMessage());
         }
 
-        BeamState backend = core.getState(rootBlock);
-        RootNode state = backend.load(statePath, core);
-        core.copyNonResourceState(rootBlock, state);
-
-        Set<BeamResource> resources = core.findBeamResources(rootBlock);
-        Set<BeamResource> current = core.findBeamResources(state, !skipRefresh);
-
-        BeamCore.ui().write("\n@|bold,white Looking for changes...|@");
-        List<ResourceDiff> diffs = core.diff(current, resources);
-        BeamCore.ui().write("\n\n");
+        BeamCore.ui().write("\n@|bold,white Looking for changes...\n\n|@");
+        List<ResourceDiff> diffs = core.diff(pending, !skipRefresh);
+        BeamCore.ui().write("\n");
 
         Set<ChangeType> changeTypes = core.writeDiffs(diffs);
 
@@ -62,7 +52,7 @@ public class UpCommand extends AbstractCommand {
             if (BeamCore.ui().readBoolean(Boolean.FALSE, "\nAre you sure you want to create and/or update resources?")) {
                 BeamCore.ui().write("\n");
                 core.setChangeable(diffs);
-                createOrUpdate(core, diffs, state, backend, statePath);
+                createOrUpdate(core, diffs);
             }
         }
 
@@ -72,8 +62,14 @@ public class UpCommand extends AbstractCommand {
             if (BeamCore.ui().readBoolean(Boolean.FALSE, "\nAre you sure you want to delete resources?")) {
                 BeamCore.ui().write("\n");
                 core.setChangeable(diffs);
-                delete(core, diffs, state, backend, statePath);
+                delete(core, diffs);
             }
+        }
+
+        if (changeTypes.contains(ChangeType.REPLACE)) {
+            BeamCore.ui().write("\n");
+
+            hasChanges = true;
         }
 
         if (!hasChanges) {
@@ -86,27 +82,27 @@ public class UpCommand extends AbstractCommand {
         return arguments;
     }
 
-    private void createOrUpdate(BeamCore core, List<ResourceDiff> diffs, RootNode state, BeamState stateBackend, String path) {
+    private void createOrUpdate(BeamCore core, List<ResourceDiff> diffs) {
         for (ResourceDiff diff : diffs) {
             for (ResourceChange change : diff.getChanges()) {
                 ChangeType type = change.getType();
 
                 if (type == ChangeType.CREATE || type == ChangeType.UPDATE) {
-                    core.execute(change, state, stateBackend, path);
+                    core.execute(change);
                 }
 
-                createOrUpdate(core, change.getDiffs(), state, stateBackend, path);
+                createOrUpdate(core, change.getDiffs());
             }
         }
     }
 
-    private void delete(BeamCore core, List<ResourceDiff> diffs, RootNode state, BeamState stateBackend, String path) {
+    private void delete(BeamCore core, List<ResourceDiff> diffs) {
         for (ResourceDiff diff : diffs) {
             for (ResourceChange change : diff.getChanges()) {
-                delete(core, change.getDiffs(), state, stateBackend, path);
+                delete(core, change.getDiffs());
 
                 if (change.getType() == ChangeType.DELETE) {
-                    core.execute(change, state, stateBackend, path);
+                    core.execute(change);
                 }
             }
         }

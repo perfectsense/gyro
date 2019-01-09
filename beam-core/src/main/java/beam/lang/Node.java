@@ -5,11 +5,10 @@ public abstract class Node {
     private transient Node parentNode;
     private transient int line;
     private transient int column;
-    private transient String path;
 
     public abstract boolean resolve();
 
-    public Node getParentNode() {
+    public Node parentNode() {
         return parentNode;
     }
 
@@ -31,14 +30,6 @@ public abstract class Node {
 
     public void setColumn(int column) {
         this.column = column;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
     }
 
 }

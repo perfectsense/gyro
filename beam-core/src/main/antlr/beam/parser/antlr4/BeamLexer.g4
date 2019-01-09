@@ -1,5 +1,7 @@
 lexer grammar BeamLexer;
 
+IMPORT : 'import' -> pushMode(IN_IMPORT);
+AS    : 'as';
 FOR   : 'for';
 IN    : 'in';
 END   : 'end';
@@ -55,3 +57,12 @@ R_RPAREN     : ')' -> skip, popMode;
 R_QUOTE      : '"' -> type(QUOTE), pushMode(IN_STRING_EXPRESSION);
 R_IDENTIFIER : (Common | COLON COLON)+ -> type(IDENTIFIER);
 R_WS         : [ \u000C\t\r\n]+ -> channel(HIDDEN);
+
+mode IN_IMPORT;
+
+I_AS         : 'as' -> type(AS);
+I_DOT        : '.' -> type(DOT);
+I_SLASH      : '/' -> type(SLASH);
+I_IDENTIFIER : (SLASH | DOT | Common)+ -> type(IDENTIFIER);
+I_NEWLINE    : [\r\n] -> skip, popMode;
+I_WS         : [ \u000C\t]+ -> channel(HIDDEN);

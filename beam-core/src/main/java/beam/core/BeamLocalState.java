@@ -1,6 +1,5 @@
 package beam.core;
 
-import beam.lang.ContainerNode;
 import beam.lang.RootNode;
 
 import java.io.BufferedWriter;
@@ -11,21 +10,30 @@ import java.io.IOException;
 public class BeamLocalState extends BeamState {
 
     @Override
-    public RootNode load(String name, BeamCore core) throws IOException {
+    public RootNode load(RootNode rootNode, BeamCore core) throws IOException {
+        String path = rootNode.path().endsWith(".state") ? rootNode.path() : rootNode.path() + ".state";
 
-        File stateFile = new File(name);
+        RootNode state;
+
+        File stateFile = new File(path);
         if (stateFile.exists() && !stateFile.isDirectory()) {
-            return core.parse(name);
+            state = core.parse(path);
         } else {
-            return new RootNode();
+            state = new RootNode();
+            state.setPath(path);
+            state.copyNonResourceState(rootNode);
         }
+
+        return state;
     }
 
     @Override
-    public void save(String name, ContainerNode block) {
+    public void save(RootNode rootNode) {
         try {
-            BufferedWriter out = new BufferedWriter(new FileWriter(name));
-            out.write(block.toString());
+            String path = rootNode.path().endsWith(".state") ? rootNode.path() : rootNode.path() + ".state";
+
+            BufferedWriter out = new BufferedWriter(new FileWriter(path));
+            out.write(rootNode.toString());
             out.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -33,7 +41,7 @@ public class BeamLocalState extends BeamState {
     }
 
     @Override
-    public void delete(String name) {
+    public void delete(String path) {
 
     }
 

@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-public abstract class BeamResource extends BeamBaseResource implements Comparable<BeamResource> {
+public abstract class BeamResource extends BeamBaseResource implements Comparable<BeamResource>, Cloneable {
 
     private transient BeamCredentials resourceCredentials;
 
@@ -39,6 +39,35 @@ public abstract class BeamResource extends BeamBaseResource implements Comparabl
     public abstract String toDisplayString();
 
     public abstract Class resourceCredentialsClass();
+
+    public BeamResource copy() {
+        try {
+            BeamResource resource = getClass().newInstance();
+
+            resource.setResourceType(resourceType());
+            resource.setResourceIdentifier(resourceIdentifier());
+            resource.setResourceCredentials(getResourceCredentials());
+            resource.syncPropertiesFromResource(this, true);
+
+            // Copy subresources
+            for (String fieldName : subResources().keySet()) {
+                List<ResourceNode> subresources = new ArrayList<>();
+
+                for (ResourceNode resourceNode : subResources().get(fieldName)) {
+                    if (resourceNode instanceof BeamResource) {
+                        BeamResource beamResource = (BeamResource) resourceNode;
+                        subresources.add(beamResource.copy());
+                    }
+                }
+
+                resource.subResources().put(fieldName, subresources);
+            }
+
+            return resource;
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new BeamException("");
+        }
+    }
 
     public String resourceCredentialsName() {
         Class c = resourceCredentialsClass();
@@ -87,12 +116,17 @@ public abstract class BeamResource extends BeamBaseResource implements Comparabl
      * state (i.e. a resource loaded from a config file).
      */
     public void syncPropertiesFromResource(ResourceNode source) {
+        syncPropertiesFromResource(source, false);
+    }
+
+    public void syncPropertiesFromResource(ResourceNode source, boolean force) {
         if (source == null) {
             return;
         }
 
         try {
             for (PropertyDescriptor p : Introspector.getBeanInfo(getClass()).getPropertyDescriptors()) {
+
                 Method reader = p.getReadMethod();
 
                 if (reader != null) {
@@ -107,7 +141,10 @@ public abstract class BeamResource extends BeamBaseResource implements Comparabl
                     Object currentValue = reader.invoke(source);
                     Object pendingValue = reader.invoke(this);
 
-                    if (writer != null && (currentValue != null && pendingValue == null && !isNullable)) {
+                    boolean isNullOrEmpty = pendingValue == null;
+                    isNullOrEmpty = pendingValue instanceof Collection && ((Collection) pendingValue).isEmpty() ? true : isNullOrEmpty;
+
+                    if (writer != null && (currentValue != null && isNullOrEmpty && (!isNullable || force))) {
                         writer.invoke(this, reader.invoke(source));
                     }
                 }
@@ -242,15 +279,6 @@ public abstract class BeamResource extends BeamBaseResource implements Comparabl
         String otherKey = String.format("%s %s", o.resourceType(), o.resourceIdentifier());
 
         return compareKey.compareTo(otherKey);
-    }
-
-    boolean refreshInternal() {
-        if (refresh()) {
-            syncInternalToProperties();
-            return true;
-        }
-
-        return false;
     }
 
     /**

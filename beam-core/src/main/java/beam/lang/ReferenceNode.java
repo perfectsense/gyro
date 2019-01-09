@@ -3,10 +3,15 @@ package beam.lang;
 import beam.core.diff.ResourceName;
 import beam.parser.antlr4.BeamParser;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 public class ReferenceNode extends ValueNode {
 
     private String type;
     private String name;
+    private StringExpressionNode nameExpression;
     private String attribute;
     private ContainerNode referencedBlock;
     private ValueNode valueNode;
@@ -18,7 +23,12 @@ public class ReferenceNode extends ValueNode {
         }
 
         if (context.reference_name() != null) {
-            this.name = context.reference_name().getText();
+            if (context.reference_name().string_expression() != null) {
+                this.nameExpression = BeamVisitor.parseStringExpressionValue(context.reference_name().string_expression());
+                this.nameExpression.setParentNode(this);
+            } else {
+                this.name = context.reference_name().getText();
+            }
         }
 
         if (context.reference_attribute() != null) {
@@ -51,7 +61,19 @@ public class ReferenceNode extends ValueNode {
     }
 
     public String getName() {
+        if (nameExpression != null) {
+            return nameExpression.getValue();
+        }
+
         return name;
+    }
+
+    public List<String> getScopes() {
+        if (getName() == null) {
+            return new ArrayList<>();
+        }
+
+        return Arrays.asList(getName().split("\\."));
     }
 
     public String getAttribute() {
@@ -86,7 +108,7 @@ public class ReferenceNode extends ValueNode {
     }
 
     public ResourceNode getParentResourceNode() {
-        Node parent = getParentNode();
+        Node parent = parentNode();
 
         // Traverse up
         while (parent != null) {
@@ -98,7 +120,7 @@ public class ReferenceNode extends ValueNode {
                 }
             }
 
-            parent = parent.getParentNode();
+            parent = parent.parentNode();
         }
 
         return null;
@@ -108,13 +130,31 @@ public class ReferenceNode extends ValueNode {
     public boolean resolve() {
         Node parent = getParentResourceNode();
 
+        if (nameExpression != null) {
+            nameExpression.resolve();
+        }
+
         // Traverse up
         while (parent != null) {
             if (parent instanceof RootNode) {
                 RootNode containerNode = (RootNode) parent;
+                String name = getName();
+
+                // Resolve scopes
+                if (getScopes().size() > 1) {
+                    name = "";
+                    for (String key : getScopes()) {
+                        RootNode scope = containerNode.getImport(key);
+                        if (scope != null) {
+                            containerNode = scope;
+                        } else {
+                            name += key;
+                        }
+                    }
+                }
 
                 // Look for resources.
-                referencedBlock = containerNode.getResource(getType(), getName());
+                referencedBlock = containerNode.getResource(getType(), name);
 
                 // Only ResourceBlocks have a dependency chain.
                 if (referencedBlock != null  && getParentResourceNode() != null) {
@@ -131,14 +171,14 @@ public class ReferenceNode extends ValueNode {
 
                 // Look for key/value pairs.
                 if (isSimpleValue()) {
-                    valueNode = containerNode.get(getName());
+                    valueNode = containerNode.get(name);
                     if (valueNode != null) {
                         return true;
                     }
                 }
             }
 
-            parent = parent.getParentNode();
+            parent = parent.parentNode();
         }
 
         throw new BeamLanguageException("Unable to resolve reference.", this);

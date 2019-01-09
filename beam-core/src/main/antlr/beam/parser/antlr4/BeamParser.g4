@@ -9,7 +9,7 @@ beam_root
     ;
 
 root_block
-    :  (key_value_block | resource_block | for_block)
+    :  (key_value_block | resource_block | for_block | import_block)
     ;
 
 block_end
@@ -40,6 +40,18 @@ resource_type
 resource_name
     : IDENTIFIER
     | string_value
+    ;
+
+import_block
+    : IMPORT import_path AS? import_name?
+    ;
+
+import_path
+    : IDENTIFIER
+    ;
+
+import_name
+    : IDENTIFIER
     ;
 
 for_block

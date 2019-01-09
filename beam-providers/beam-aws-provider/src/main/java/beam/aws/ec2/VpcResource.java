@@ -297,6 +297,9 @@ public class VpcResource extends Ec2TaggableResource<Vpc> {
             sb.append(cidrBlock);
         }
 
+        sb.append(" - ");
+        sb.append(resourceIdentifier());
+
         return sb.toString();
     }
 
