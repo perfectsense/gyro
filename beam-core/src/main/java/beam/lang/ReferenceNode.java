@@ -107,6 +107,15 @@ public class ReferenceNode extends ValueNode {
         return null;
     }
 
+    @Override
+    public ValueNode copy() {
+        ReferenceNode referenceNode = new ReferenceNode(getType(), getName(), getAttribute());
+        referenceNode.nameExpression = nameExpression != null ? nameExpression.copy() : null;
+        referenceNode.referencedBlock = referencedBlock;
+
+        return referenceNode;
+    }
+
     public ResourceNode getParentResourceNode() {
         Node parent = parentNode();
 

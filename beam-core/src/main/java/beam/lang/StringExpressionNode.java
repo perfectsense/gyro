@@ -33,6 +33,20 @@ public class StringExpressionNode extends ValueNode<String> {
     }
 
     @Override
+    public StringExpressionNode copy() {
+        StringExpressionNode expressionNode = new StringExpressionNode();
+
+        for (ValueNode valueNode : getValueNodes()) {
+            ValueNode copy = valueNode.copy();
+            copy.setParentNode(expressionNode);
+
+            expressionNode.getValueNodes().add(copy);
+        }
+
+        return expressionNode;
+    }
+
+    @Override
     public boolean resolve() {
         for (Node node : getValueNodes()) {
             if (!node.resolve()) {

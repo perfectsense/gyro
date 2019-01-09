@@ -22,4 +22,9 @@ public class StringNode extends LiteralNode {
         return "'" + getLiteral() + "'";
     }
 
+    @Override
+    public StringNode copy() {
+        return new StringNode(getLiteral());
+    }
+
 }

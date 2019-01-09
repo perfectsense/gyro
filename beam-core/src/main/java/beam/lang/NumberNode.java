@@ -16,6 +16,11 @@ public class NumberNode extends ValueNode<Number> {
     }
 
     @Override
+    public NumberNode copy() {
+        return new NumberNode(number.toString());
+    }
+
+    @Override
     public boolean resolve() {
         return true;
     }

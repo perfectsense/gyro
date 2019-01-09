@@ -45,6 +45,18 @@ public class MapNode extends ValueNode<Map> {
     }
 
     @Override
+    public MapNode copy() {
+        MapNode mapNode = new MapNode();
+
+        for (String key : getKeyValues().keySet()) {
+            ValueNode valueNode = getKeyValues().get(key).copy();
+            mapNode.put(key, valueNode);
+        }
+
+        return mapNode;
+    }
+
+    @Override
     public boolean resolve() {
         for (ValueNode valueNode : getKeyValues().values()) {
             boolean resolved = valueNode.resolve();

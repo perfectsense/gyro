@@ -14,6 +14,11 @@ public class BooleanNode extends ValueNode<Boolean> {
     }
 
     @Override
+    public BooleanNode copy() {
+        return new BooleanNode(Boolean.toString(value));
+    }
+
+    @Override
     public boolean resolve() {
         return true;
     }

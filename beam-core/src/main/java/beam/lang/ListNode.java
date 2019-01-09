@@ -42,6 +42,17 @@ public class ListNode extends ValueNode<List> {
     }
 
     @Override
+    public ListNode copy() {
+        ListNode listNode = new ListNode();
+
+        for (ValueNode valueNode : getValues()) {
+            listNode.getValues().add(valueNode.copy());
+        }
+
+        return listNode;
+    }
+
+    @Override
     public boolean resolve() {
         for (ValueNode value : getValues()) {
             boolean resolved = value.resolve();
