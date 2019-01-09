@@ -1,13 +1,15 @@
 package beam.aws.iam;
 
 import beam.aws.AwsResource;
+import beam.core.BeamException;
 import beam.core.BeamResource;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.iam.IamClient;
-import software.amazon.awssdk.services.iam.model.*;
+import software.amazon.awssdk.services.iam.model.CreatePolicyResponse;
+import software.amazon.awssdk.services.iam.model.GetPolicyResponse;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -21,7 +23,7 @@ import java.util.Set;
  *
  * .. code-block:: beam
  *
- *     aws::policy-resource example-role
+ *     aws::iam-policy example-role
  *         description: testing the policy functionality
  *         policy-name: rta-test-policy
  *         policy-document-file: policyFile.json
@@ -29,7 +31,7 @@ import java.util.Set;
  *     end
  */
 
-@ResourceName("policy-resource")
+@ResourceName("iam-policy")
 public class IamPolicyResource extends AwsResource {
     private String policyName;
     private String description;
@@ -65,7 +67,20 @@ public class IamPolicyResource extends AwsResource {
 
     @ResourceDiffProperty(updatable = true)
     public String getPolicyDocumentContents() {
-        return this.policyDocumentContents;
+        if(policyDocumentContents != null){
+            return policyDocumentContents;
+        }
+        else {
+            if(getPolicyDocumentFile() != null) {
+                try {
+                    return new String(Files.readAllBytes(Paths.get(getPolicyDocumentFile())), "UTF-8");
+                } catch (Exception err) {
+                    throw new BeamException(err.getMessage());
+                }
+            } else {
+                return null;
+            }
+        }
     }
 
     public void setPolicyDocumentContents(String policyDocumentContents) {
@@ -91,11 +106,6 @@ public class IamPolicyResource extends AwsResource {
                 r -> r.policyArn(getPolicyArn())
         );
 
-        GetPolicyVersionResponse versionResponse = client.getPolicyVersion(
-                r -> r.policyArn(getPolicyArn())
-                        .versionId("v1")
-        );
-
         if (response.policy() != null) {
             IamPolicyResource newPolicy = new IamPolicyResource();
             newPolicy.setPolicyName(response.policy().policyName());
@@ -104,13 +114,8 @@ public class IamPolicyResource extends AwsResource {
             newPolicy.setDescription(response.policy().description());
             setDescription(response.policy().description());
             System.out.println("Show description " + response.policy().description());
+            setPolicyArn(response.policy().arn());
 
-
-            for(PolicyVersion versions : client.listPolicyVersions(r -> r.policyArn(getPolicyArn())).versions()){
-                newPolicy.setPolicyDocumentContents(versions.document());
-                setPolicyDocumentContents(versions.document());
-                System.out.println("Show document" + versions.document());
-            }
             return true;
         }
 
@@ -127,16 +132,6 @@ public class IamPolicyResource extends AwsResource {
         System.out.println("Show the description name "+this.getDescription());
         System.out.println("Show the policy file name "+this.getPolicyDocumentFile());
 
-        String contents = "";
-        try {
-            contents = new String(Files.readAllBytes(Paths.get(this.getPolicyDocumentFile())), "UTF-8");
-        } catch(Exception err){
-
-        }
-        System.out.println("\nwhat are the policy contents "+contents);
-
-        setPolicyDocumentContents(contents);
-
         System.out.println("What are the contents "+this.getPolicyDocumentContents());
 
         CreatePolicyResponse response = client.createPolicy(
@@ -147,44 +142,13 @@ public class IamPolicyResource extends AwsResource {
         );
         setPolicyArn(response.policy().arn());
 
-        client.createPolicyVersion(
-                r -> r.policyArn(getPolicyArn())
-                        .policyDocument(this.getPolicyDocumentContents())
-                        .setAsDefault(true)
-        );
-
-        client.setDefaultPolicyVersion(
-                r -> r.policyArn(getPolicyArn())
-                        .versionId("v1"));
-
-        ListPolicyVersionsResponse resp = client.listPolicyVersions(r -> r.policyArn(getPolicyArn()));
-        for(PolicyVersion pol : resp.versions()){
-            System.out.println("Documents "+pol.document());
-            System.out.println("Version id is "+pol.versionId());
-        }
-        //System.out.println(resp.versions());
         System.out.println("Show the policy arn "+this.getPolicyArn());
         System.out.println("Created a new policy with "+getPolicyName());
     }
 
     @Override
     public void update(BeamResource current, Set<String> changedProperties) {
-        IamClient client = IamClient.builder()
-                .region(Region.AWS_GLOBAL)
-                .build();
-
-        GetPolicyResponse response = client.getPolicy(r -> r.policyArn(getPolicyArn()));
-
-        CreatePolicyVersionResponse versionResponse = client.createPolicyVersion(
-                r -> r.policyArn(getPolicyArn())
-                        .policyDocument(this.getPolicyDocumentContents())
-                        .setAsDefault(true)
-        );
-
-        /*
-        SetDefaultPolicyVersionResponse defaultResponse = client.setDefaultPolicyVersion(
-                r -> r.policyArn(getPolicyArn())
-                        .versionId("v1"));*/
+        create();
     }
 
     @Override
@@ -201,10 +165,10 @@ public class IamPolicyResource extends AwsResource {
         StringBuilder sb = new StringBuilder();
 
         if (getPolicyName() != null) {
-            sb.append("Policy Name " + getPolicyName());
+            sb.append("policy Name " + getPolicyName());
 
         } else {
-            sb.append("Policy Name ");
+            sb.append("policy Name ");
         }
 
         return sb.toString();
