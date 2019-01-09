@@ -8,12 +8,18 @@ import beam.core.diff.ResourceName;
 
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.iam.IamClient;
-import software.amazon.awssdk.services.iam.model.*;
+import software.amazon.awssdk.services.iam.model.AttachedPolicy;
+import software.amazon.awssdk.services.iam.model.ListAttachedRolePoliciesResponse;
+import software.amazon.awssdk.services.iam.model.Role;
+
+import java.net.URLDecoder;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
-import java.net.URLDecoder;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Creates a Role Resource with the specified options.
@@ -31,7 +37,7 @@ import java.net.URLDecoder;
  *     end
  */
 
-@ResourceName("role-resource")
+@ResourceName("iam-role")
 public class IamRoleResource extends AwsResource {
 
     private String roleName;
@@ -39,15 +45,6 @@ public class IamRoleResource extends AwsResource {
     private String assumeRolePolicyContents;
     private String assumeRolePolicyDocumentFile;
     private List<String> policyArns;
-
-    @ResourceDiffProperty(updatable = true)
-    public String getAssumeRolePolicyDocumentFile() {
-        return this.assumeRolePolicyDocumentFile;
-    }
-
-    public void setAssumeRolePolicyDocumentFile(String assumeRolePolicyDocumentFile) {
-        this.assumeRolePolicyDocumentFile = assumeRolePolicyDocumentFile;
-    }
 
     @ResourceDiffProperty(updatable = true)
     public String getAssumeRolePolicyContents() {
@@ -70,6 +67,15 @@ public class IamRoleResource extends AwsResource {
 
     public void setAssumeRolePolicyContents(String assumeRolePolicyContents) {
         this.assumeRolePolicyContents = assumeRolePolicyContents;
+    }
+
+    @ResourceDiffProperty(updatable = true)
+    public String getAssumeRolePolicyDocumentFile() {
+        return this.assumeRolePolicyDocumentFile;
+    }
+
+    public void setAssumeRolePolicyDocumentFile(String assumeRolePolicyDocumentFile) {
+        this.assumeRolePolicyDocumentFile = assumeRolePolicyDocumentFile;
     }
 
     @ResourceDiffProperty(updatable = true)
@@ -192,5 +198,4 @@ public class IamRoleResource extends AwsResource {
 
         return sb.toString();
     }
-
 }
