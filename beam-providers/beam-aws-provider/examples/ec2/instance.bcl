@@ -1,0 +1,102 @@
+provider aws
+    artifact: "beam:beam-aws-provider:0.5"
+    repositories: [
+        "http://repo1.maven.org/maven2/",
+        "https://repo.gradle.org/gradle/libs-releases/",
+        "https://artifactory.psdops.com/public"
+    ]
+end
+
+aws::credentials default
+    profile-name: "psd-beam-sandbox"
+    region: "us-east-2"
+end
+
+aws::vpc vpc-instance-example
+    cidr-block: "10.0.0.0/16"
+    provide-ipv6-cidr-block: true
+
+    tags: {
+        Name: "vpc-instance-example"
+         }
+end
+
+aws::subnet subnet-instance-example
+    vpc-id: $(aws::vpc vpc-instance-example | vpc-id)
+    availability-zone: "us-west-2b"
+    cidr-block: "10.0.0.0/16"
+
+    tags: {
+        Name: "subnet-instance-example"
+    }
+end
+
+aws::security-group security-group-instance-example-1
+    group-name: "security-group-instance-example-1"
+    vpc-id: $(aws::vpc vpc-instance-example | vpc-id)
+    description: "security group instance example 1"
+    keep-default-egress-rules: true
+
+    ingress
+        description: "allow inbound http traffic, ipv4 only"
+        cidr-blocks: ["0.0.0.0/0"]
+        protocol: "TCP"
+        from-port: 22
+        to-port: 22
+    end
+
+    egress
+        description: "allow outbound http traffic, ipv6 only"
+        ipv6-cidr-blocks: ["::/0"]
+        protocol: "TCP"
+        from-port: 22
+        to-port: 22
+    end
+
+    tags: {
+        Name: "security-group-instance-example-1"
+    }
+end
+
+aws::security-group security-group-instance-example-2
+    group-name: "security-group-instance-example-2"
+    vpc-id: $(aws::vpc vpc-instance-example | vpc-id)
+    description: "security group instance example 2"
+    keep-default-egress-rules: true
+
+    ingress
+        description: "allow inbound http traffic, ipv4 only"
+        cidr-blocks: ["0.0.0.0/0"]
+        protocol: "TCP"
+        from-port: 22
+        to-port: 22
+    end
+
+    egress
+        description: "allow outbound http traffic, ipv6 only"
+        ipv6-cidr-blocks: ["::/0"]
+        protocol: "TCP"
+        from-port: 22
+        to-port: 22
+    end
+
+    tags: {
+        Name: "security-group-instance-example-2"
+    }
+end
+
+aws::instance instance
+    ami-name: "amzn-ami-hvm-2018.03.0.20181129-x86_64-gp2"
+    shutdown-behavior: "STOP"
+    instance-type: "t2.micro"
+    key-name: "instance-static"
+    subnet-id: $(aws::subnet subnet-instance-example | subnet-id)
+    security-group-ids: [
+        $(aws::security-group security-group-instance-example-1 | group-id),
+        $(aws::security-group security-group-instance-example-2 | group-id)
+    ]
+
+    tags: {
+        Name: "instance-example"
+    }
+end
