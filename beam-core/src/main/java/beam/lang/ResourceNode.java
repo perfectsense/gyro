@@ -1,7 +1,18 @@
 package beam.lang;
 
-import beam.core.BeamCore;
+import beam.core.BeamException;
+import beam.core.diff.ResourceDiffProperty;
+import com.google.common.base.CaseFormat;
+import com.google.common.base.Throwables;
+import org.apache.commons.beanutils.BeanUtils;
 
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -18,7 +29,6 @@ public class ResourceNode extends ContainerNode {
     private Set<ResourceNode> dependencies;
     private Set<ResourceNode> dependents;
     private Map<String, List<ResourceNode>> subResources;
-    private BeamCore core;
     private FileNode fileNode;
 
     public Set<ResourceNode> dependencies() {
@@ -43,6 +53,11 @@ public class ResourceNode extends ContainerNode {
         }
 
         return subResources;
+    }
+
+    public void putSubresource(String fieldName, ResourceNode subresource) {
+        List<ResourceNode> resources = subResources().computeIfAbsent(fieldName, r -> new ArrayList<>());
+        resources.add(subresource);
     }
 
     public String resourceType() {
@@ -98,6 +113,107 @@ public class ResourceNode extends ContainerNode {
 
         return (ResourceNode) parent;
     }
+
+    public ResourceNode copy() {
+        ResourceNode resource = (ResourceNode) super.copy();
+
+        resource.setResourceType(resourceType());
+        resource.setResourceIdentifier(resourceIdentifier());
+        resource.syncPropertiesFromResource(this, true);
+
+        // Copy subresources
+        for (String fieldName : subResources().keySet()) {
+            List<ResourceNode> subresources = new ArrayList<>();
+
+            for (ResourceNode resourceNode : subResources().get(fieldName)) {
+                subresources.add(resourceNode.copy());
+            }
+
+            resource.subResources().put(fieldName, subresources);
+        }
+
+        return resource;
+    }
+
+    protected final void syncInternalToProperties() {
+        for (String key : keys()) {
+            Object value = get(key).getValue();
+
+            try {
+                String convertedKey = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key);
+
+                if (!BeanUtils.describe(this).containsKey(convertedKey)) {
+                    ValueNode valueNode = get(key);
+                    String message = String.format("invalid attribute '%s' found on line %s", key, valueNode.getLine());
+
+                    throw new BeamException(message);
+                }
+
+                BeanUtils.setProperty(this, convertedKey, value);
+            } catch (IllegalArgumentException | InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
+                // Ignoring errors from setProperty
+            }
+        }
+
+        for (String subResourceField : subResources().keySet()) {
+            List<ResourceNode> subResources = subResources().get(subResourceField);
+
+            try {
+                BeanUtils.setProperty(this, subResourceField, subResources);
+            } catch (IllegalArgumentException | InvocationTargetException | IllegalAccessException e) {
+                // Ignoring errors from setProperty
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Copy internal values from source to this object. This is used to copy information
+     * from the current state (i.e. a resource loaded from a state file) into a pending
+     * state (i.e. a resource loaded from a config file).
+     */
+    public void syncPropertiesFromResource(ResourceNode source) {
+        syncPropertiesFromResource(source, false);
+    }
+
+    public void syncPropertiesFromResource(ResourceNode source, boolean force) {
+        if (source == null) {
+            return;
+        }
+
+        try {
+            for (PropertyDescriptor p : Introspector.getBeanInfo(getClass()).getPropertyDescriptors()) {
+
+                Method reader = p.getReadMethod();
+
+                if (reader != null) {
+                    Method writer = p.getWriteMethod();
+
+                    ResourceDiffProperty propertyAnnotation = reader.getAnnotation(ResourceDiffProperty.class);
+                    boolean isNullable = false;
+                    if (propertyAnnotation != null) {
+                        isNullable = propertyAnnotation.nullable();
+                    }
+
+                    Object currentValue = reader.invoke(source);
+                    Object pendingValue = reader.invoke(this);
+
+                    boolean isNullOrEmpty = pendingValue == null;
+                    isNullOrEmpty = pendingValue instanceof Collection && ((Collection) pendingValue).isEmpty() ? true : isNullOrEmpty;
+
+                    if (writer != null && (currentValue != null && isNullOrEmpty && (!isNullable || force))) {
+                        writer.invoke(this, reader.invoke(source));
+                    }
+                }
+            }
+
+        } catch (IllegalAccessException | IntrospectionException error) {
+            throw new IllegalStateException(error);
+        } catch (InvocationTargetException error) {
+            throw Throwables.propagate(error);
+        }
+    }
+
     @Override
     public boolean resolve() {
         boolean resolved = super.resolve();
@@ -141,9 +257,6 @@ public class ResourceNode extends ContainerNode {
         return sb.toString();
     }
 
-    protected void syncInternalToProperties() {
-    }
-
     /**
      * `execute()` is called during the parsing of the configuration. This
      * allows extensions to perform any necessary actions to load themselves.
@@ -155,14 +268,6 @@ public class ResourceNode extends ContainerNode {
     final void executeInternal() {
         syncInternalToProperties();
         execute();
-    }
-
-    public BeamCore core() {
-        return core;
-    }
-
-    public void setCore(BeamCore core) {
-        this.core = core;
     }
 
     @Override

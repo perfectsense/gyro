@@ -1,5 +1,6 @@
 package beam.lang;
 
+import beam.core.BeamException;
 import beam.core.BeamResource;
 import beam.core.diff.ResourceDiffProperty;
 import com.google.common.base.CaseFormat;
@@ -10,6 +11,7 @@ import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +22,7 @@ import java.util.regex.Pattern;
 public class ContainerNode extends Node {
 
     transient Map<String, ValueNode> keyValues = new HashMap<>();
+    transient List<ControlNode> controlNodes = new ArrayList<>();
 
     private static final Pattern NEWLINES = Pattern.compile("([\r\n]+)");
 
@@ -72,8 +75,39 @@ public class ContainerNode extends Node {
         keyValues.put(key, valueNode);
     }
 
+    public void putControlNode(ControlNode node) {
+        controlNodes.add(node);
+    }
+
+    public List<ControlNode> controlNodes() {
+        return controlNodes;
+    }
+
     public void copyNonResourceState(ContainerNode source) {
         keyValues.putAll(source.keyValues);
+    }
+
+    public void evaluateControlNodes() {
+        for (ControlNode controlNode : controlNodes()) {
+            controlNode.evaluate();
+        }
+    }
+
+    public ContainerNode copy() {
+        try {
+            ContainerNode node = getClass().newInstance();
+
+            for (String key : keys()) {
+                ValueNode valueNode = get(key).copy();
+                valueNode.setParentNode(node);
+
+                node.put(key, valueNode);
+            }
+
+            return node;
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new BeamException("");
+        }
     }
 
     @Override
@@ -82,6 +116,13 @@ public class ContainerNode extends Node {
             boolean resolved = value.resolve();
             if (!resolved) {
                 throw new BeamLanguageException("Unable to resolve configuration.", value);
+            }
+        }
+
+        for (ControlNode controlNode : controlNodes()) {
+            boolean resolved = controlNode.resolve();
+            if (!resolved) {
+                throw new BeamLanguageException("Unable to resolve configuration.", controlNode);
             }
         }
 

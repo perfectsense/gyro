@@ -1,10 +1,13 @@
 package beam.lang;
 
+import beam.core.BeamCore;
+
 public abstract class Node {
 
     private transient Node parentNode;
     private transient int line;
     private transient int column;
+    private BeamCore core;
 
     public abstract boolean resolve();
 
@@ -32,4 +35,11 @@ public abstract class Node {
         this.column = column;
     }
 
+    public BeamCore core() {
+        return core;
+    }
+
+    public void setCore(BeamCore core) {
+        this.core = core;
+    }
 }

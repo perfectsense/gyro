@@ -23,6 +23,7 @@ resource_block
 resource_block_body
     : key_value_block
     | subresource_block
+    | for_block
     ;
 
 subresource_block
@@ -61,6 +62,7 @@ for_block
 for_block_body
     : key_value_block
     | resource_block
+    | subresource_block
     ;
 
 for_list
@@ -122,5 +124,7 @@ list_value
 
 list_item_value
     : string_value
+    | boolean_value
+    | number_value
     | reference_value
     ;

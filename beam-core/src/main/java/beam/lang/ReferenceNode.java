@@ -137,7 +137,7 @@ public class ReferenceNode extends ValueNode {
 
     @Override
     public boolean resolve() {
-        Node parent = getParentResourceNode();
+        Node parent = parentNode();
 
         if (nameExpression != null) {
             nameExpression.resolve();
@@ -145,6 +145,18 @@ public class ReferenceNode extends ValueNode {
 
         // Traverse up
         while (parent != null) {
+            if (parent instanceof ContainerNode) {
+                ContainerNode containerNode = (ContainerNode) parent;
+
+                // Look for key/value pairs.
+                if (isSimpleValue()) {
+                    valueNode = containerNode.get(name);
+                    if (valueNode != null) {
+                        return true;
+                    }
+                }
+            }
+
             if (parent instanceof FileNode) {
                 FileNode containerNode = (FileNode) parent;
                 String name = getName();

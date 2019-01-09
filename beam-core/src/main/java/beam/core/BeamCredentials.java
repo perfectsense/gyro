@@ -1,10 +1,10 @@
 package beam.core;
 
-import beam.lang.BeamBaseResource;
+import beam.lang.ResourceNode;
 
 import java.util.Map;
 
-public abstract class BeamCredentials extends BeamBaseResource implements Comparable<BeamCredentials> {
+public abstract class BeamCredentials extends ResourceNode implements Comparable<BeamCredentials> {
 
     private BeamState stateBackend;
 

@@ -22,10 +22,23 @@ public class ResourceContainerNode extends ContainerNode {
         resources.put(resourceBlock.resourceKey(), resourceBlock);
     }
 
+    public void putResource2(ResourceNode resourceNode) {
+        resources.put(resourceNode.resourceKey(), resourceNode);
+    }
+
     public ResourceNode getResource(String type, String key) {
         ResourceKey resourceKey = new ResourceKey(type, key);
 
         return resources.get(resourceKey);
+    }
+
+    @Override
+    public void evaluateControlNodes() {
+        super.evaluateControlNodes();
+
+        for (ResourceNode resourceNode : resources()) {
+            resourceNode.evaluateControlNodes();
+        }
     }
 
     @Override

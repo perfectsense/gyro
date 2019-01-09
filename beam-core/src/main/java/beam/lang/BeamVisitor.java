@@ -15,8 +15,6 @@ import org.apache.commons.lang.StringUtils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 
 public class BeamVisitor extends BeamParserBaseVisitor {
 
@@ -73,6 +71,9 @@ public class BeamVisitor extends BeamParserBaseVisitor {
                 } catch (IOException ioe) {
                     throw new BeamException("Failed to import '" + resolvedPath + "'");
                 }
+            } else if (blockContext.for_block() != null) {
+                ForNode forNode = visitFor_block(blockContext.for_block(), containerNode);
+                containerNode.putControlNode(forNode);
             }
         }
 
@@ -107,16 +108,11 @@ public class BeamVisitor extends BeamParserBaseVisitor {
                 resourceBlock.put(key, valueNode);
             } else if (blockContext.subresource_block() != null) {
                 ResourceNode node = visitSubresource_block(blockContext.subresource_block(), resourceBlock);
-
                 String type = blockContext.subresource_block().resource_type().getText();
-                List<ResourceNode> subresources = resourceBlock.subResources().get(type);
-                if (subresources == null) {
-                    subresources = new ArrayList<>();
-
-                    resourceBlock.subResources().put(type, subresources);
-                }
-
-                subresources.add(node);
+                resourceBlock.putSubresource(type, node);
+            } else if (blockContext.for_block() != null) {
+                ForNode forNode = visitFor_block(blockContext.for_block(), resourceBlock);
+                resourceBlock.putControlNode(forNode);
             }
         }
 
@@ -150,6 +146,66 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         resourceBlock.executeInternal();
 
         return resourceBlock;
+    }
+
+    public ForNode visitFor_block(BeamParser.For_blockContext context, Node parent) {
+        ForNode forNode = new ForNode();
+        forNode.setLine(context.getStart().getLine());
+        forNode.setColumn(context.getStart().getCharPositionInLine());
+        forNode.setParentNode(parent);
+
+        for (BeamParser.For_list_itemContext itemContext : context.for_list().for_list_item()) {
+            forNode.variables().add(itemContext.IDENTIFIER().getText());
+        }
+
+        for (BeamParser.List_item_valueContext valueContext : context.list_value().list_item_value()) {
+            ValueNode valueNode = null;
+
+            if (valueContext.string_value() != null) {
+                valueNode = parseStringValue(valueContext.string_value());
+            } else if (valueContext.reference_value() != null) {
+                valueNode = parseReferenceValue(valueContext.reference_value());
+            } else if (valueContext.number_value() != null) {
+                valueNode = new NumberNode(valueContext.number_value().getText());
+            } else if (valueContext.boolean_value() != null) {
+                valueNode = new BooleanNode(valueContext.boolean_value().getText());
+            }
+
+            if (valueNode != null) {
+                valueNode.setLine(valueContext.getStart().getLine());
+                valueNode.setColumn(valueContext.getStart().getCharPositionInLine());
+                valueNode.setParentNode(forNode);
+
+                forNode.listValues().add(valueNode);
+            }
+        }
+
+        for (BeamParser.For_block_bodyContext blockContext : context.for_block_body()) {
+            if (blockContext.key_value_block() != null) {
+                String key = StringUtils.stripEnd(blockContext.key_value_block().key().getText(), ":");
+                ValueNode valueNode = parseValue(blockContext.key_value_block().value());
+                valueNode.setLine(blockContext.key_value_block().getStart().getLine());
+                valueNode.setColumn(blockContext.key_value_block().getStart().getCharPositionInLine());
+
+                forNode.put(key, valueNode);
+            } else if (blockContext.resource_block() != null) {
+                if (!(parent instanceof ResourceContainerNode)) {
+                    throw new BeamLanguageException("Resource is not valid.");
+                }
+
+                ResourceNode block = visitResource_block(blockContext.resource_block(), forNode);
+                forNode.putResource(block);
+            } else if (blockContext.subresource_block() != null) {
+                if (!(parent instanceof ResourceNode)) {
+                    throw new BeamLanguageException("Subresource is not valid.");
+                }
+
+                ResourceNode subresourceNode = visitSubresource_block(blockContext.subresource_block(), (ResourceNode) parent);
+                forNode.putSubResource(subresourceNode);
+            }
+        }
+
+        return forNode;
     }
 
     public ValueNode parseValue(ValueContext context) {

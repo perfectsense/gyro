@@ -4,16 +4,10 @@ import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceDisplayDiff;
 import beam.core.diff.ResourceName;
-import beam.lang.BeamBaseResource;
 import beam.lang.ReferenceNode;
 import beam.lang.ResourceNode;
-import com.google.common.base.Throwables;
 import com.psddev.dari.util.ObjectUtils;
 
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,7 +16,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-public abstract class BeamResource extends BeamBaseResource implements Comparable<BeamResource>, Cloneable {
+public abstract class BeamResource extends ResourceNode implements Comparable<BeamResource> {
 
     private transient BeamCredentials resourceCredentials;
 
@@ -40,33 +34,12 @@ public abstract class BeamResource extends BeamBaseResource implements Comparabl
 
     public abstract Class resourceCredentialsClass();
 
+    @Override
     public BeamResource copy() {
-        try {
-            BeamResource resource = getClass().newInstance();
+        BeamResource resource = (BeamResource) super.copy();
+        resource.setResourceCredentials(getResourceCredentials());
 
-            resource.setResourceType(resourceType());
-            resource.setResourceIdentifier(resourceIdentifier());
-            resource.setResourceCredentials(getResourceCredentials());
-            resource.syncPropertiesFromResource(this, true);
-
-            // Copy subresources
-            for (String fieldName : subResources().keySet()) {
-                List<ResourceNode> subresources = new ArrayList<>();
-
-                for (ResourceNode resourceNode : subResources().get(fieldName)) {
-                    if (resourceNode instanceof BeamResource) {
-                        BeamResource beamResource = (BeamResource) resourceNode;
-                        subresources.add(beamResource.copy());
-                    }
-                }
-
-                resource.subResources().put(fieldName, subresources);
-            }
-
-            return resource;
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new BeamException("");
-        }
+        return resource;
     }
 
     public String resourceCredentialsName() {
@@ -108,53 +81,6 @@ public abstract class BeamResource extends BeamBaseResource implements Comparabl
 
     public void setChange(ResourceChange change) {
         this.change = change;
-    }
-
-    /**
-     * Copy internal values from source to this object. This is used to copy information
-     * from the current state (i.e. a resource loaded from a state file) into a pending
-     * state (i.e. a resource loaded from a config file).
-     */
-    public void syncPropertiesFromResource(ResourceNode source) {
-        syncPropertiesFromResource(source, false);
-    }
-
-    public void syncPropertiesFromResource(ResourceNode source, boolean force) {
-        if (source == null) {
-            return;
-        }
-
-        try {
-            for (PropertyDescriptor p : Introspector.getBeanInfo(getClass()).getPropertyDescriptors()) {
-
-                Method reader = p.getReadMethod();
-
-                if (reader != null) {
-                    Method writer = p.getWriteMethod();
-
-                    ResourceDiffProperty propertyAnnotation = reader.getAnnotation(ResourceDiffProperty.class);
-                    boolean isNullable = false;
-                    if (propertyAnnotation != null) {
-                        isNullable = propertyAnnotation.nullable();
-                    }
-
-                    Object currentValue = reader.invoke(source);
-                    Object pendingValue = reader.invoke(this);
-
-                    boolean isNullOrEmpty = pendingValue == null;
-                    isNullOrEmpty = pendingValue instanceof Collection && ((Collection) pendingValue).isEmpty() ? true : isNullOrEmpty;
-
-                    if (writer != null && (currentValue != null && isNullOrEmpty && (!isNullable || force))) {
-                        writer.invoke(this, reader.invoke(source));
-                    }
-                }
-            }
-
-        } catch (IllegalAccessException | IntrospectionException error) {
-            throw new IllegalStateException(error);
-        } catch (InvocationTargetException error) {
-            throw Throwables.propagate(error);
-        }
     }
 
     public void diffOnCreate(ResourceChange change) throws Exception {

@@ -1,7 +1,7 @@
 package beam.core;
 
 import beam.core.diff.ResourceName;
-import beam.lang.BeamBaseResource;
+import beam.lang.ResourceNode;
 import com.psddev.dari.util.ObjectUtils;
 import com.psddev.dari.util.StringUtils;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
@@ -38,7 +38,7 @@ import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-public class BeamProvider extends BeamBaseResource {
+public class BeamProvider extends ResourceNode {
 
     private String artifact;
     private List<String> repositories;
