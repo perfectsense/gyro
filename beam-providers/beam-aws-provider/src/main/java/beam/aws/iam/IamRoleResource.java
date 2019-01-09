@@ -6,24 +6,13 @@ import beam.core.BeamResource;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Throwables;
-import com.psddev.dari.util.IoUtils;
-import com.psddev.dari.util.ObjectUtils;
-import com.psddev.dari.util.StringUtils;
-
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.iam.IamClient;
 import software.amazon.awssdk.services.iam.model.*;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
 
 /**
  * Creates a Role Resource with the specified options.
@@ -35,8 +24,8 @@ import java.util.Set;
  *
  *     aws::role-resource example-role
  *         description: testing the role functionality
- *         assumeRolePolicyDocumentFile: role_example
- *         roleName: rta-test-role
+ *         assume-role-policy-document-file: role_example
+ *         role-name: rta-test-role
  *
  *     end
  */
@@ -46,46 +35,34 @@ public class IamRoleResource extends AwsResource {
 
     private String roleName;
     private String description;
-    private Map<String, Object> assumeRolePolicyContents;
-    private String assumeRolePolicyDocument;
-    private File assumeRolePolicyDocumentFile;
-    private Set<String> policies;
+    private String assumeRolePolicyContents;
+    private String assumeRolePolicyDocumentFile;
+    private List<String> policyArns;
 
-    public Map<String, Object> getAssumeRolePolicyContents() {
-        if (this.assumeRolePolicyContents != null) {
-            return this.assumeRolePolicyContents;
-        } else {
-            File var1 = this.getAssumeRolePolicyDocumentFile();
-            if (var1 != null) {
-                try {
-                    return (Map)ObjectUtils.fromJson(IoUtils.toString(var1, Charsets.UTF_8));
-                } catch (IOException var3) {
-                    throw Throwables.propagate(var3);
-                }
-            } else {
-                return null;
-            }
+    @ResourceDiffProperty(updatable = true)
+    public String getAssumeRolePolicyContents() {
+        /*
+        String contents = "";
+        try {
+            contents = new String(Files.readAllBytes(Paths.get(getAssumeRolePolicyDocumentFile())), "UTF-8");
+        } catch(Exception err){
+            throw new BeamException(err.getMessage());
         }
+        return contents;
+        */
+        return getDocument();
     }
 
-    private void setAssumeRolePolicyContents(Map<String, Object> assumeRolePolicyContents) {
+    public void setAssumeRolePolicyContents(String assumeRolePolicyContents) {
         this.assumeRolePolicyContents = assumeRolePolicyContents;
     }
 
-    public String getAssumeRolePolicyDocument() {
-        return this.assumeRolePolicyDocument;
-    }
-
-    public void setAssumeRolePolicyDocument(String assumeRolePolicyDocument) {
-        this.assumeRolePolicyDocument = assumeRolePolicyDocument;
-    }
-
     @ResourceDiffProperty(updatable = true)
-    public File getAssumeRolePolicyDocumentFile() {
+    public String getAssumeRolePolicyDocumentFile() {
         return this.assumeRolePolicyDocumentFile;
     }
 
-    public void setAssumeRolePolicyDocumentFile(File assumeRolePolicyDocumentFile) {
+    public void setAssumeRolePolicyDocumentFile(String assumeRolePolicyDocumentFile) {
         this.assumeRolePolicyDocumentFile = assumeRolePolicyDocumentFile;
     }
 
@@ -98,19 +75,19 @@ public class IamRoleResource extends AwsResource {
         this.description = description;
     }
 
-    public Set<String> getPolicies() {
-        if (this.policies == null) {
-            this.policies = new HashSet();
+    @ResourceDiffProperty(updatable = true)
+    public List<String> getPolicyArns() {
+        if (this.policyArns == null) {
+            this.policyArns = new ArrayList<>();
         }
 
-        return this.policies;
+        return this.policyArns;
     }
 
-    public void setPolicies(Set<String> policies) {
-        this.policies = policies;
+    public void setPolicyArns(List<String> policyArns) {
+        this.policyArns = policyArns;
     }
 
-    @ResourceDiffProperty(updatable = true)
     public String getRoleName() {
         return this.roleName;
     }
@@ -129,7 +106,12 @@ public class IamRoleResource extends AwsResource {
         if (response != null) {
             setRoleName(response.roleName());
             setDescription(response.description());
-            setAssumeRolePolicyContents((Map) ObjectUtils.fromJson(StringUtils.decodeUri(response.assumeRolePolicyDocument())));
+            setAssumeRolePolicyContents(response.assumeRolePolicyDocument());
+
+            ListAttachedRolePoliciesResponse policyResponse = client.listAttachedRolePolicies(r -> r.roleName(getRoleName()));
+            for (AttachedPolicy attachedPolicy: policyResponse.attachedPolicies()) {
+                getPolicyArns().add(attachedPolicy.policyArn());
+            }
             return true;
         }
 
@@ -141,20 +123,26 @@ public class IamRoleResource extends AwsResource {
         IamClient client = IamClient.builder()
                 .region(Region.AWS_GLOBAL)
                 .build();
-        /*
-        try {
-            preparePolicy();
-        } catch (Exception err) {
-            err.getMessage();
-        }
-        */
-        //System.out.println("\nwhat is the role name "+getRoleName());
-        //System.out.println("\nwhat is the description "+getDescription());
-        //System.out.println("What is role policy document name"+getAssumeRolePolicyDocumentFile());
+
+        System.out.println("What is role policy document filename"+getAssumeRolePolicyDocumentFile());
         //System.out.println("What is the policy document as a whole"+ ObjectUtils.toJson(this.getAssumeRolePolicyContents()));
+        /*
+        String contents = "";
+        try {
+            contents = new String(Files.readAllBytes(Paths.get(this.getAssumeRolePolicyDocumentFile())), "UTF-8");
+        } catch(Exception err){
+
+        }
+        System.out.println("\nwhat are the policy contents "+contents);
+
+        setAssumeRolePolicyContents(contents);
+        */
+        //System.out.println("\nwhat are the policy contents "+getAssumeRolePolicyContents());
+        //System.out.println("\nwhat are the policy contents "+this.getAssumeRolePolicyContents());
+
 
         CreateRoleRequest request = CreateRoleRequest.builder()
-                .assumeRolePolicyDocument(ObjectUtils.toJson(this.getAssumeRolePolicyContents()))
+                .assumeRolePolicyDocument(getAssumeRolePolicyContents())
                 .description(getDescription())
                 .roleName(getRoleName())
                 .build();
@@ -162,10 +150,15 @@ public class IamRoleResource extends AwsResource {
         client.createRole(request);
 
 
+
+        //System.out.println("What is stored in content "+contents);
+
         //System.out.println("MADE IT HERE IN CREATE ROLE");
         //System.out.println("Get policies "+getPolicies());
-        for(String policyArn: getPolicies()){
-            System.out.println("POLICY ARN OF POLICY TO ATTACH IS "+policyArn);
+        //System.out.println("Get policies SIZE "+getPolicies().size());
+
+        for(String policyArn: getPolicyArns()){
+            //System.out.println("POLICY ARN OF POLICY TO ATTACH IS "+policyArn);
             client.attachRolePolicy(r -> r.roleName(getRoleName())
                     .policyArn(policyArn));
         }
@@ -173,12 +166,16 @@ public class IamRoleResource extends AwsResource {
 
     @Override
     public void update(BeamResource current, Set<String> changedProperties) {
+        System.out.println("Changed properties are: "+changedProperties);
+        IamRoleResource currentResource = (IamRoleResource) current;
+        System.out.println("policy contents "+((IamRoleResource) current).getAssumeRolePolicyContents());
+        System.out.println("get new policy contents "+getAssumeRolePolicyContents());
         IamClient client = IamClient.builder()
                 .region(Region.AWS_GLOBAL)
                 .build();
 
         UpdateAssumeRolePolicyRequest updatePolicyRequest = UpdateAssumeRolePolicyRequest.builder()
-                .policyDocument(ObjectUtils.toJson(this.getAssumeRolePolicyDocument()))
+                .policyDocument(getAssumeRolePolicyContents())
                 .roleName(getRoleName())
                 .build();
 
@@ -219,6 +216,17 @@ public class IamRoleResource extends AwsResource {
         }
 
         return sb.toString();
+    }
+
+    public String getDocument(){
+
+        String contents = "";
+        try {
+            contents = new String(Files.readAllBytes(Paths.get(getAssumeRolePolicyDocumentFile())), "UTF-8");
+        } catch(Exception err){
+            throw new BeamException(err.getMessage());
+        }
+        return contents;
     }
 
 }
