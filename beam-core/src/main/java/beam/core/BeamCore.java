@@ -231,7 +231,6 @@ public class BeamCore {
         BeamState backend = getState(resource.rootNode());
 
         if (type == ChangeType.DELETE) {
-            stateNode = resource.rootNode();
             stateNode.removeResource(resource);
         } else {
             ResourceName nameAnnotation = resource.getClass().getAnnotation(ResourceName.class);
