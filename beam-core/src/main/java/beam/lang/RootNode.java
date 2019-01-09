@@ -25,6 +25,10 @@ public class RootNode extends ContainerNode {
     }
 
     public RootNode state() {
+        if (state == null) {
+            return this;
+        }
+
         return state;
     }
 
