@@ -9,7 +9,6 @@ import software.amazon.awssdk.services.iam.model.GetInstanceProfileResponse;
 import software.amazon.awssdk.services.iam.model.Role;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -21,14 +20,14 @@ import java.util.Set;
  *
  * .. code-block:: beam
  *
- *     aws::instance-profile-resource ex-inst-profile
+ *     aws::iam-instance-profile ex-inst-profile
  *         instance-profile-name: "ex-inst-profile"
  *         role-name: $(aws::role-resource example-role | role-name)
  *         roles: [$(aws::role-resource example-role | role-name)]
  *
  *     end
  *
- *     aws::role-resource example-role
+ *     aws::iam-role example-role
  *         role-name: "example-role"
  *         description: "description"
  *         assume-role-policy-document-file: "role_example.json"
@@ -36,7 +35,7 @@ import java.util.Set;
  *     end
  */
 
-@ResourceName("instance-profile-resource")
+@ResourceName("iam-instance-profile")
 public class IamInstanceProfileResource extends AwsResource {
 
     private String instanceProfileName;
@@ -134,6 +133,4 @@ public class IamInstanceProfileResource extends AwsResource {
 
         return sb.toString();
     }
-
-
 }
