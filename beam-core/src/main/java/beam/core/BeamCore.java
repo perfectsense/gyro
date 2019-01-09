@@ -7,9 +7,9 @@ import beam.core.diff.ResourceName;
 import beam.lang.BeamErrorListener;
 import beam.lang.BeamLanguageException;
 import beam.lang.BeamVisitor;
+import beam.lang.FileNode;
 import beam.lang.Node;
 import beam.lang.ResourceNode;
-import beam.lang.RootNode;
 import beam.parser.antlr4.BeamLexer;
 import beam.parser.antlr4.BeamParser;
 import com.psddev.dari.util.ThreadLocalStack;
@@ -58,7 +58,7 @@ public class BeamCore {
         resourceTypes.clear();
     }
 
-    public RootNode parse(String path) throws IOException {
+    public FileNode parse(String path) throws IOException {
         init();
         addResourceType("state", BeamLocalState.class);
         addResourceType("provider", BeamProvider.class);
@@ -79,29 +79,29 @@ public class BeamCore {
         // Load configuration
         BeamVisitor visitor = new BeamVisitor(this, path);
         visitor.visitBeam_root(context);        // First pass ensures resourceTypes are loaded and executed
-        RootNode rootNode = visitor.visitBeam_root(context);
+        FileNode fileNode = visitor.visitBeam_root(context);
 
-        if (!rootNode.resolve()) {
+        if (!fileNode.resolve()) {
             System.out.println("Unable to resolve config.");
         }
 
         // Load state, assuming this isn't a state file itself.
         if (!path.endsWith(".state")) {
-            BeamState backend = getState(rootNode);
+            BeamState backend = getState(fileNode);
             try {
-                RootNode stateNode = backend.load(rootNode, this);
-                stateNode.copyNonResourceState(rootNode);
+                FileNode stateNode = backend.load(fileNode, this);
+                stateNode.copyNonResourceState(fileNode);
 
-                rootNode.setState(stateNode);
+                fileNode.setState(stateNode);
             } catch (Exception ex) {
                 throw new BeamLanguageException("Unable to load state.", ex);
             }
         }
 
-        return rootNode;
+        return fileNode;
     }
 
-    public RootNode parseImport(String path) throws IOException {
+    public FileNode parseImport(String path) throws IOException {
         BeamLexer lexer = new BeamLexer(CharStreams.fromFileName(path));
         CommonTokenStream tokens = new CommonTokenStream(lexer);
 
@@ -118,29 +118,29 @@ public class BeamCore {
         // Load configuration
         BeamVisitor visitor = new BeamVisitor(this, path);
 
-        RootNode rootNode = visitor.visitBeam_root(context);
+        FileNode fileNode = visitor.visitBeam_root(context);
 
-        if (!rootNode.resolve()) {
+        if (!fileNode.resolve()) {
             System.out.println("Unable to resolve config.");
         }
 
         // Load state, assuming this isn't a state file itself.
         if (!path.endsWith(".state")) {
-            BeamState backend = getState(rootNode);
+            BeamState backend = getState(fileNode);
             try {
-                RootNode stateNode = backend.load(rootNode, this);
-                stateNode.copyNonResourceState(rootNode);
+                FileNode stateNode = backend.load(fileNode, this);
+                stateNode.copyNonResourceState(fileNode);
 
-                rootNode.setState(stateNode);
+                fileNode.setState(stateNode);
             } catch (Exception ex) {
                 throw new BeamLanguageException("Unable to load state.", ex);
             }
         }
 
-        return rootNode;
+        return fileNode;
     }
 
-    public BeamState getState(RootNode block) {
+    public BeamState getState(FileNode block) {
         BeamState backend = new BeamLocalState();
 
         for (ResourceNode resourceBlock : block.resources()) {
@@ -152,7 +152,7 @@ public class BeamCore {
         return backend;
     }
 
-    public List<ResourceDiff> diff(RootNode pending, boolean refresh) throws Exception {
+    public List<ResourceDiff> diff(FileNode pending, boolean refresh) throws Exception {
         ResourceDiff diff = new ResourceDiff(pending.state(), pending);
         diff.setRefresh(refresh);
         diff.diff();
@@ -227,8 +227,8 @@ public class BeamCore {
         writeChange(change);
         BeamResource resource = change.executeChange();
 
-        RootNode stateNode = resource.rootNode().state();
-        BeamState backend = getState(resource.rootNode());
+        FileNode stateNode = resource.fileNode().state();
+        BeamState backend = getState(resource.fileNode());
 
         if (type == ChangeType.DELETE) {
             stateNode.removeResource(resource);
@@ -248,7 +248,7 @@ public class BeamCore {
         BeamCore.ui().write(" OK\n");
         backend.save(stateNode);
 
-        for (RootNode importNode : stateNode.imports().values()) {
+        for (FileNode importNode : stateNode.imports().values()) {
             backend.save(importNode);
         }
     }

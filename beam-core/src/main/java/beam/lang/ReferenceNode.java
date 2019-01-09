@@ -136,15 +136,15 @@ public class ReferenceNode extends ValueNode {
 
         // Traverse up
         while (parent != null) {
-            if (parent instanceof RootNode) {
-                RootNode containerNode = (RootNode) parent;
+            if (parent instanceof FileNode) {
+                FileNode containerNode = (FileNode) parent;
                 String name = getName();
 
                 // Resolve scopes
                 if (getScopes().size() > 1) {
                     name = "";
                     for (String key : getScopes()) {
-                        RootNode scope = containerNode.getImport(key);
+                        FileNode scope = containerNode.getImport(key);
                         if (scope != null) {
                             containerNode = scope;
                         } else {

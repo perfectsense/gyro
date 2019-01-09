@@ -8,13 +8,13 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-public class RootNode extends ContainerNode {
+public class FileNode extends ContainerNode {
 
     private transient String path;
-    private transient RootNode state;
+    private transient FileNode state;
 
     transient Map<ResourceKey, ResourceNode> resources = new HashMap<>();
-    transient Map<String, RootNode> imports = new HashMap<>();
+    transient Map<String, FileNode> imports = new HashMap<>();
 
     public String path() {
         return path;
@@ -24,11 +24,11 @@ public class RootNode extends ContainerNode {
         this.path = path;
     }
 
-    public RootNode state() {
+    public FileNode state() {
         return state;
     }
 
-    public void setState(RootNode state) {
+    public void setState(FileNode state) {
         this.state = state;
     }
 
@@ -52,24 +52,24 @@ public class RootNode extends ContainerNode {
         ResourceNode resourceNode = resources.get(resourceKey);
         if (resourceNode == null && imports().containsKey("_")) {
             // Check in "global" import
-            RootNode importNode = imports().get("_");
+            FileNode importNode = imports().get("_");
             resourceNode = importNode.resources.get(resourceKey);
         }
 
         return resourceNode;
     }
 
-    public Map<String, RootNode> imports() {
+    public Map<String, FileNode> imports() {
         return imports;
     }
 
-    public void putImport(String key, RootNode rootNode) {
-        rootNode.setParentNode(this);
+    public void putImport(String key, FileNode fileNode) {
+        fileNode.setParentNode(this);
 
-        imports.put(key, rootNode);
+        imports.put(key, fileNode);
     }
 
-    public RootNode getImport(String key) {
+    public FileNode getImport(String key) {
         return imports.get(key);
     }
 
@@ -84,12 +84,12 @@ public class RootNode extends ContainerNode {
     public void copyNonResourceState(ContainerNode source) {
         super.copyNonResourceState(source);
 
-        if (source instanceof RootNode) {
-            RootNode rootNode = (RootNode) source;
+        if (source instanceof FileNode) {
+            FileNode fileNode = (FileNode) source;
 
-            imports.putAll(rootNode.imports);
+            imports.putAll(fileNode.imports);
 
-            for (ResourceNode resourceNode : rootNode.resources()) {
+            for (ResourceNode resourceNode : fileNode.resources()) {
                 if (!(resourceNode instanceof BeamResource)) {
                     putResource(resourceNode);
                 }
@@ -102,7 +102,7 @@ public class RootNode extends ContainerNode {
         ValueNode value = super.get(key);
         if (value == null && imports().containsKey("_")) {
             // Check in "global" import
-            RootNode importNode = imports().get("_");
+            FileNode importNode = imports().get("_");
             value = importNode.get(key);
         }
 
@@ -128,7 +128,7 @@ public class RootNode extends ContainerNode {
         StringBuilder sb = new StringBuilder();
 
         for (String importName : imports.keySet()) {
-            RootNode importNode = imports.get(importName);
+            FileNode importNode = imports.get(importName);
 
             String importPath = importNode.importPath(path) + ".bcl.state";
 

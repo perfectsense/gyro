@@ -32,11 +32,11 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         return path;
     }
 
-    public RootNode visitBeam_root(Beam_rootContext context) {
-        RootNode containerNode = new RootNode();
+    public FileNode visitBeam_root(Beam_rootContext context) {
+        FileNode containerNode = new FileNode();
         containerNode.setPath(getPath());
 
-        for (BeamParser.Root_blockContext blockContext : context.root_block()) {
+        for (BeamParser.File_blockContext blockContext : context.file_block()) {
             if (blockContext.key_value_block() != null) {
                 String key = StringUtils.stripEnd(blockContext.key_value_block().key().getText(), ":");
                 ValueNode valueNode = parseValue(blockContext.key_value_block().value());
@@ -66,10 +66,10 @@ public class BeamVisitor extends BeamParserBaseVisitor {
                         ? blockContext.import_block().import_name().getText()
                         : importFileName;
 
-                    RootNode importedRootNode = core.parseImport(resolvedPath);
-                    importedRootNode.setPath(resolvedPath);
+                    FileNode importedFileNode = core.parseImport(resolvedPath);
+                    importedFileNode.setPath(resolvedPath);
 
-                    containerNode.putImport(importName, importedRootNode);
+                    containerNode.putImport(importName, importedFileNode);
                 } catch (IOException ioe) {
                     throw new BeamException("Failed to import '" + resolvedPath + "'");
                 }

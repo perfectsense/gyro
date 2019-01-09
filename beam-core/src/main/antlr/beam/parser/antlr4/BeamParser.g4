@@ -5,10 +5,10 @@ import BeamReferenceParser;
 options { tokenVocab = BeamLexer; }
 
 beam_root
-    : root_block* EOF
+    : file_block* EOF
     ;
 
-root_block
+file_block
     :  (key_value_block | resource_block | for_block | import_block)
     ;
 

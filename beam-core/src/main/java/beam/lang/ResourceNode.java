@@ -19,7 +19,7 @@ public class ResourceNode extends ContainerNode {
     private Set<ResourceNode> dependents;
     private Map<String, List<ResourceNode>> subResources;
     private BeamCore core;
-    private RootNode rootNode;
+    private FileNode fileNode;
 
     public Set<ResourceNode> dependencies() {
         if (dependencies == null) {
@@ -73,20 +73,20 @@ public class ResourceNode extends ContainerNode {
         return new ResourceKey(resourceType(), resourceIdentifier());
     }
 
-    public RootNode rootNode() {
-        if (rootNode == null) {
+    public FileNode fileNode() {
+        if (fileNode == null) {
             Node parent = parentNode();
 
-            while (parent != null && !(parent instanceof RootNode)) {
+            while (parent != null && !(parent instanceof FileNode)) {
                 parent = parent.parentNode();
             }
 
-            if (parent instanceof RootNode) {
-                rootNode = (RootNode) parent;
+            if (parent instanceof FileNode) {
+                fileNode = (FileNode) parent;
             }
         }
 
-        return rootNode;
+        return fileNode;
     }
 
     @Override
