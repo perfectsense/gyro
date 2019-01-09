@@ -142,7 +142,7 @@ public class IamRoleResource extends AwsResource {
 
         System.out.println("What is role policy document filename"+getAssumeRolePolicyDocumentFile());
 
-        client.createRole(r -> r.assumeRolePolicyDocument(formatPolicy(getAssumeRolePolicyContents()))
+        client.createRole(r -> r.assumeRolePolicyDocument(getAssumeRolePolicyContents())
                                 .description(getDescription())
                                 .roleName(getRoleName()));
 
