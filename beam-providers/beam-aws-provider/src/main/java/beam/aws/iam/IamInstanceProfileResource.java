@@ -8,7 +8,9 @@ import software.amazon.awssdk.services.iam.IamClient;
 import software.amazon.awssdk.services.iam.model.GetInstanceProfileResponse;
 import software.amazon.awssdk.services.iam.model.Role;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -22,7 +24,7 @@ import java.util.Set;
  *     aws::instance-profile-resource ex-inst-profile
  *         instance-profile-name: "ex-inst-profile"
  *         role-name: $(aws::role-resource example-role | role-name)
- *         roles: [$(aws::role-resource example-role)]
+ *         roles: [$(aws::role-resource example-role | role-name)]
  *
  *     end
  *
@@ -39,7 +41,7 @@ public class IamInstanceProfileResource extends AwsResource {
 
     private String instanceProfileName;
     private String roleName;
-    private Set<IamRoleResource> roles;
+    private List<String> roles;
 
     public String getInstanceProfileName() {
         return this.instanceProfileName;
@@ -57,14 +59,14 @@ public class IamInstanceProfileResource extends AwsResource {
         this.roleName = roleName;
     }
 
-    public Set<IamRoleResource> getRoles() {
+    public List<String> getRoles() {
         if (roles == null) {
-            roles = new HashSet<>();
+            roles = new ArrayList<>();
         }
         return roles;
     }
 
-    public void setRoles(Set<IamRoleResource> roles) {
+    public void setRoles(List<String> roles) {
         this.roles = roles;
     }
 
@@ -78,15 +80,10 @@ public class IamInstanceProfileResource extends AwsResource {
         GetInstanceProfileResponse response = client.getInstanceProfile(r -> r.instanceProfileName(getInstanceProfileName()));
         System.out.println("Am I even in here ");
         if (response != null) {
-            Set<IamRoleResource> roles = new HashSet<>();
+            getRoles().clear();
             for (Role role : response.instanceProfile().roles()) {
-                IamRoleResource newRole = new IamRoleResource();
-                newRole.setAssumeRolePolicyDocument(role.assumeRolePolicyDocument());
-                newRole.setDescription(role.description());
-                newRole.setRoleName(role.roleName());
-                roles.add(newRole);
+                getRoles().add(role.roleName());
             }
-            setRoles(roles);
             return true;
         }
 
@@ -105,9 +102,9 @@ public class IamInstanceProfileResource extends AwsResource {
         System.out.println("What is role name "+getRoleName());
         System.out.println("What are roles "+getRoles());
 
-        for (IamRoleResource role : getRoles()) {
+        for (String role : getRoles()) {
             client.addRoleToInstanceProfile(
-                r -> r.roleName(role.getRoleName())
+                r -> r.roleName(role)
                 .instanceProfileName(getInstanceProfileName()));
         }
     }
