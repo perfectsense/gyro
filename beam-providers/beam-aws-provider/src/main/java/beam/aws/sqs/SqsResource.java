@@ -95,8 +95,7 @@ public class SqsResource extends AwsResource {
     public void setName(String name) {
         this.name = name;
     }
-
-
+    
     /**
      * Enable setting up the attributes for the queue. See `<https://docs.aws.amazon.com/AWSSimpleQueueService/latest/APIReference/API_GetQueueAttributes.html>`_.
      * Check default values for the attributes of the queue here `<https://docs.aws.amazon.com/AWSSimpleQueueService/latest/APIReference/API_SetQueueAttributes.html>`_.
@@ -261,7 +260,7 @@ public class SqsResource extends AwsResource {
     @Override
     public boolean refresh() {
         SqsClient client = createClient(SqsClient.class);
-        
+
         ListQueuesResponse response1 = client.listQueues(r -> r.queueNamePrefix(getName()));
         if (!response1.queueUrls().isEmpty()) {
             setQueueUrl(response1.queueUrls() != null ? response1.queueUrls().get(0) : null);
@@ -432,5 +431,4 @@ public class SqsResource extends AwsResource {
             request.put(name, value.toString());
         }
     }
-
 }
