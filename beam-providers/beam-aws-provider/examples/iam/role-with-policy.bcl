@@ -1,0 +1,26 @@
+provider aws
+    artifact: "beam:beam-aws-provider:0.5"
+    repositories: [
+        "http://repo1.maven.org/maven2/",
+        "https://repo.gradle.org/gradle/libs-releases/",
+        "https://artifactory.psdops.com/public"
+    ]
+end
+
+aws::credentials default
+    profile-name: "psd-beam-sandbox"
+    region: "us-east-2"
+end
+
+aws::role-resource ex-role-test
+    role-name: "ex-role-test"
+    description: "description - new"
+    assume-role-policy-document-file: "role_example.json"
+    policies: [$(aws::policy-resource example-policy-b | policy-arn)]
+end
+
+aws::policy-resource ex-pol-test
+    policy-name: "ex-pol-test"
+    description: "example policy"
+    policy-document-file: "policy_file.json"
+end
