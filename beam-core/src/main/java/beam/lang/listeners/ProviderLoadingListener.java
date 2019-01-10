@@ -1,5 +1,7 @@
-package beam.lang;
+package beam.lang.listeners;
 
+import beam.lang.BeamVisitor;
+import beam.lang.Provider;
 import beam.parser.antlr4.BeamParser;
 import beam.parser.antlr4.BeamParserBaseListener;
 

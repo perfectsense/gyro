@@ -1,7 +1,9 @@
-package beam.lang;
+package beam.lang.listeners;
 
 import beam.core.BeamCore;
 import beam.core.LocalStateBackend;
+import beam.lang.BeamVisitor;
+import beam.lang.StateBackend;
 import beam.parser.antlr4.BeamParser;
 import beam.parser.antlr4.BeamParserBaseListener;
 

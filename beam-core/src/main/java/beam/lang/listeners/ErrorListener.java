@@ -1,4 +1,4 @@
-package beam.lang;
+package beam.lang.listeners;
 
 import org.antlr.v4.runtime.ANTLRErrorListener;
 import org.antlr.v4.runtime.CommonTokenStream;
