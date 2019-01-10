@@ -5,6 +5,7 @@ import beam.core.BeamResource;
 import beam.core.diff.ResourceDiffProperty;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Throwables;
+import org.apache.commons.beanutils.BeanUtils;
 
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -109,6 +110,28 @@ public class ContainerNode extends Node {
             throw new BeamException("");
         }
     }
+
+    protected void syncInternalToProperties() {
+        for (String key : keys()) {
+            Object value = get(key).getValue();
+
+            try {
+                String convertedKey = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key);
+
+                if (!BeanUtils.describe(this).containsKey(convertedKey)) {
+                    ValueNode valueNode = get(key);
+                    String message = String.format("invalid attribute '%s' found on line %s", key, valueNode.getLine());
+
+                    throw new BeamException(message);
+                }
+
+                BeanUtils.setProperty(this, convertedKey, value);
+            } catch (IllegalArgumentException | InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
+                // Ignoring errors from setProperty
+            }
+        }
+    }
+
 
     @Override
     public boolean resolve() {

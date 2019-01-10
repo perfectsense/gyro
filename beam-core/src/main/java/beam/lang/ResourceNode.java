@@ -119,24 +119,7 @@ public class ResourceNode extends ContainerNode {
     }
 
     protected final void syncInternalToProperties() {
-        for (String key : keys()) {
-            Object value = get(key).getValue();
-
-            try {
-                String convertedKey = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key);
-
-                if (!BeanUtils.describe(this).containsKey(convertedKey)) {
-                    ValueNode valueNode = get(key);
-                    String message = String.format("invalid attribute '%s' found on line %s", key, valueNode.getLine());
-
-                    throw new BeamException(message);
-                }
-
-                BeanUtils.setProperty(this, convertedKey, value);
-            } catch (IllegalArgumentException | InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
-                // Ignoring errors from setProperty
-            }
-        }
+        super.syncInternalToProperties();
 
         for (String subResourceField : subResources().keySet()) {
             List<ResourceNode> subResources = subResources().get(subResourceField);
