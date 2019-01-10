@@ -1,7 +1,7 @@
 package beam.aws;
 
-import beam.lang.Credentials;
 import beam.core.diff.ResourceName;
+import beam.lang.Credentials;
 import com.google.common.collect.ImmutableMap;
 import org.joda.time.DateTime;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;

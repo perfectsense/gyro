@@ -22,7 +22,7 @@ public class BeamFile extends ResourceContainer {
         return path;
     }
 
-    public void setPath(String path) {
+    public void path(String path) {
         this.path = path;
     }
 
@@ -34,7 +34,7 @@ public class BeamFile extends ResourceContainer {
         return state;
     }
 
-    public void setState(BeamFile state) {
+    public void state(BeamFile state) {
         this.state = state;
     }
 
@@ -63,12 +63,12 @@ public class BeamFile extends ResourceContainer {
     }
 
     public void putImport(String key, BeamFile fileNode) {
-        fileNode.setParentNode(this);
+        fileNode.parentNode(this);
 
         imports.put(key, fileNode);
     }
 
-    public BeamFile getImport(String key) {
+    public BeamFile importFile(String key) {
         return imports.get(key);
     }
 
@@ -80,12 +80,12 @@ public class BeamFile extends ResourceContainer {
     }
 
     @Override
-    public Resource getResource(String type, String key) {
-        Resource resource = super.getResource(type, key);
+    public Resource resource(String type, String key) {
+        Resource resource = super.resource(type, key);
         if (resource == null && imports().containsKey("_")) {
             // Check in "global" import
             BeamFile importNode = imports().get("_");
-            resource = importNode.getResource(type, key);
+            resource = importNode.resource(type, key);
         }
 
         return resource;

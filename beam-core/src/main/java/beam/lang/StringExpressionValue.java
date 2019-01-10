@@ -38,7 +38,7 @@ public class StringExpressionValue extends Value<String> {
 
         for (Value value : getValues()) {
             Value copy = value.copy();
-            copy.setParentNode(expressionNode);
+            copy.parentNode(expressionNode);
 
             expressionNode.getValues().add(copy);
         }

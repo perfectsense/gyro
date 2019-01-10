@@ -26,7 +26,7 @@ public class LocalStateBackend extends StateBackend {
             state = core.parse(path);
         } else {
             state = new BeamFile();
-            state.setPath(path);
+            state.path(path);
             state.copyNonResourceState(fileNode);
         }
 

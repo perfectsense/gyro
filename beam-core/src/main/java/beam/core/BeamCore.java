@@ -109,7 +109,7 @@ public class BeamCore {
                 BeamFile stateNode = backend.load(fileNode, this);
                 stateNode.copyNonResourceState(fileNode);
 
-                fileNode.setState(stateNode);
+                fileNode.state(stateNode);
             } catch (Exception ex) {
                 throw new BeamLanguageException("Unable to load state.", ex);
             }
@@ -157,7 +157,7 @@ public class BeamCore {
                 BeamFile stateNode = backend.load(fileNode, this);
                 stateNode.copyNonResourceState(fileNode);
 
-                fileNode.setState(stateNode);
+                fileNode.state(stateNode);
             } catch (Exception ex) {
                 throw new BeamLanguageException("Unable to load state.", ex);
             }

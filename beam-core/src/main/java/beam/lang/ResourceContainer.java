@@ -17,7 +17,7 @@ public class ResourceContainer extends Container {
     }
 
     public void putResource(Resource resourceBlock) {
-        resourceBlock.setParentNode(this);
+        resourceBlock.parentNode(this);
 
         resources.put(resourceBlock.resourceKey(), resourceBlock);
     }
@@ -26,7 +26,7 @@ public class ResourceContainer extends Container {
         resources.put(resourceNode.resourceKey(), resourceNode);
     }
 
-    public Resource getResource(String type, String key) {
+    public Resource resource(String type, String key) {
         ResourceKey resourceKey = new ResourceKey(type, key);
 
         return resources.get(resourceKey);

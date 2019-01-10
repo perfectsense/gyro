@@ -182,7 +182,7 @@ public class SecurityGroupResource extends Ec2TaggableResource<SecurityGroup> {
                 }
 
                 SecurityGroupEgressRuleResource rule = new SecurityGroupEgressRuleResource(permission);
-                rule.setParentNode(this);
+                rule.parentNode(this);
                 rule.setResourceCredentials(getResourceCredentials());
                 getEgress().add(rule);
             }
@@ -190,7 +190,7 @@ public class SecurityGroupResource extends Ec2TaggableResource<SecurityGroup> {
             getIngress().clear();
             for (IpPermission permission : group.ipPermissions()) {
                 SecurityGroupIngressRuleResource rule = new SecurityGroupIngressRuleResource(permission);
-                rule.setParentNode(this);
+                rule.parentNode(this);
                 rule.setResourceCredentials(getResourceCredentials());
                 getIngress().add(rule);
             }

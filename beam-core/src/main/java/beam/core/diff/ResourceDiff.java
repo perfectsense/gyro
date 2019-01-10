@@ -1,8 +1,8 @@
 package beam.core.diff;
 
 import beam.core.BeamCore;
-import beam.lang.Credentials;
 import beam.lang.BeamFile;
+import beam.lang.Credentials;
 import beam.lang.Resource;
 import com.psddev.dari.util.CompactMap;
 
@@ -94,7 +94,7 @@ public class ResourceDiff {
             }
         };
 
-        pendingResource.setChange(create);
+        pendingResource.change(create);
         pendingResource.diffOnCreate(create);
 
         return create;
@@ -114,8 +114,8 @@ public class ResourceDiff {
         ResourceChange update = new ResourceChange(this, currentResource, pendingResource);
         update.calculateFieldDiffs();
 
-        currentResource.setChange(update);
-        pendingResource.setChange(update);
+        currentResource.change(update);
+        pendingResource.change(update);
         pendingResource.diffOnUpdate(update, currentResource);
 
         return update;
@@ -144,7 +144,7 @@ public class ResourceDiff {
             }
         };
 
-        currentResource.setChange(delete);
+        currentResource.change(delete);
         currentResource.diffOnDelete(delete);
 
         return delete;

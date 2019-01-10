@@ -25,7 +25,7 @@ public class ReferenceValue extends Value {
         if (context.reference_name() != null) {
             if (context.reference_name().string_expression() != null) {
                 this.nameExpression = BeamVisitor.parseStringExpressionValue(context.reference_name().string_expression());
-                this.nameExpression.setParentNode(this);
+                this.nameExpression.parentNode(this);
             } else {
                 this.name = context.reference_name().getText();
             }
@@ -165,7 +165,7 @@ public class ReferenceValue extends Value {
                 if (getScopes().size() > 1) {
                     name = "";
                     for (String key : getScopes()) {
-                        BeamFile scope = containerNode.getImport(key);
+                        BeamFile scope = containerNode.importFile(key);
                         if (scope != null) {
                             containerNode = scope;
                         } else {
@@ -175,7 +175,7 @@ public class ReferenceValue extends Value {
                 }
 
                 // Look for resources.
-                referencedBlock = containerNode.getResource(getType(), name);
+                referencedBlock = containerNode.resource(getType(), name);
 
                 // Only ResourceBlocks have a dependency chain.
                 if (referencedBlock != null  && getParentResourceNode() != null) {

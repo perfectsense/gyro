@@ -18,11 +18,11 @@ public class ListValue extends Value<List> {
     }
 
     @Override
-    public void setParentNode(Node parentNode) {
-        super.setParentNode(parentNode);
+    public void parentNode(Node parentNode) {
+        super.parentNode(parentNode);
 
         for (Value value : getValues()) {
-            value.setParentNode(parentNode);
+            value.parentNode(parentNode);
         }
     }
 

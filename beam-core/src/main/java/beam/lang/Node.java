@@ -16,23 +16,23 @@ public abstract class Node {
         return parentNode;
     }
 
-    public void setParentNode(Node parentNode) {
+    public void parentNode(Node parentNode) {
         this.parentNode = parentNode;
     }
 
-    public int getLine() {
+    public int line() {
         return line;
     }
 
-    public void setLine(int line) {
+    public void line(int line) {
         this.line = line;
     }
 
-    public int getColumn() {
+    public int column() {
         return column;
     }
 
-    public void setColumn(int column) {
+    public void column(int column) {
         this.column = column;
     }
 
@@ -40,7 +40,7 @@ public abstract class Node {
         return core;
     }
 
-    public void setCore(BeamCore core) {
+    public void core(BeamCore core) {
         this.core = core;
     }
 

@@ -70,7 +70,7 @@ public class Container extends Node {
     }
 
     public void put(String key, Value value) {
-        value.setParentNode(this);
+        value.parentNode(this);
 
         keyValues.put(key, value);
     }
@@ -99,7 +99,7 @@ public class Container extends Node {
 
             for (String key : keys()) {
                 Value value = get(key).copy();
-                value.setParentNode(node);
+                value.parentNode(node);
 
                 node.put(key, value);
             }
@@ -119,7 +119,7 @@ public class Container extends Node {
 
                 if (!BeanUtils.describe(this).containsKey(convertedKey)) {
                     Value valueNode = get(key);
-                    String message = String.format("invalid attribute '%s' found on line %s", key, valueNode.getLine());
+                    String message = String.format("invalid attribute '%s' found on line %s", key, valueNode.line());
 
                     throw new BeamException(message);
                 }

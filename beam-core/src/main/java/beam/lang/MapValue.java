@@ -20,17 +20,17 @@ public class MapValue extends Value<Map> {
     }
 
     public void put(String key, Value value) {
-        value.setParentNode(this);
+        value.parentNode(this);
 
         getKeyValues().put(key, value);
     }
 
     @Override
-    public void setParentNode(Node parentNode) {
-        super.setParentNode(parentNode);
+    public void parentNode(Node parentNode) {
+        super.parentNode(parentNode);
 
         for (Value value : getKeyValues().values()) {
-            value.setParentNode(parentNode);
+            value.parentNode(parentNode);
         }
     }
 

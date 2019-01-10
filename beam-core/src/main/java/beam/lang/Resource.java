@@ -51,8 +51,8 @@ public abstract class Resource extends Container implements Comparable<Resource>
     public Resource copy() {
         Resource resource = (Resource) super.copy();
         resource.setResourceCredentials(getResourceCredentials());
-        resource.setResourceType(resourceType());
-        resource.setResourceIdentifier(resourceIdentifier());
+        resource.resourceType(resourceType());
+        resource.resourceIdentifier(resourceIdentifier());
         resource.syncPropertiesFromResource(this, true);
 
         // Copy subresources
@@ -106,7 +106,7 @@ public abstract class Resource extends Container implements Comparable<Resource>
         return change;
     }
 
-    public void setChange(ResourceChange change) {
+    public void change(ResourceChange change) {
         this.change = change;
     }
 
@@ -214,8 +214,8 @@ public abstract class Resource extends Container implements Comparable<Resource>
     public void execute() {
         if (get("resource-credentials") == null) {
             ReferenceValue credentialsReference = new ReferenceValue(resourceCredentialsName(), "default");
-            credentialsReference.setLine(getLine());
-            credentialsReference.setColumn(getColumn());
+            credentialsReference.line(line());
+            credentialsReference.column(column());
 
             put("resource-credentials", credentialsReference);
         }
@@ -318,7 +318,7 @@ public abstract class Resource extends Container implements Comparable<Resource>
         return type;
     }
 
-    public void setResourceType(String type) {
+    public void resourceType(String type) {
         this.type = type;
     }
 
@@ -330,11 +330,11 @@ public abstract class Resource extends Container implements Comparable<Resource>
         return name;
     }
 
-    public void setResourceIdentifier(String name) {
+    public void resourceIdentifier(String name) {
         this.name = name;
     }
 
-    public void setResourceIdentifierExpression(StringExpressionValue nameExpression) {
+    public void resourceIdentifierExpression(StringExpressionValue nameExpression) {
         this.nameExpression = nameExpression;
     }
 
