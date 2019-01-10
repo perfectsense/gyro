@@ -3,7 +3,7 @@ package beam.aws.sqs;
 import beam.aws.AwsCredentials;
 import beam.aws.AwsResource;
 import beam.core.BeamException;
-import beam.core.Credentials;
+import beam.lang.Credentials;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 import beam.lang.Resource;

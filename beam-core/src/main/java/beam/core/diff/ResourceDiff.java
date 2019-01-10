@@ -1,7 +1,7 @@
 package beam.core.diff;
 
 import beam.core.BeamCore;
-import beam.core.Credentials;
+import beam.lang.Credentials;
 import beam.lang.BeamFile;
 import beam.lang.Resource;
 import com.psddev.dari.util.CompactMap;

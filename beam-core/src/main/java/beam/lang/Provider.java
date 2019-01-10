@@ -2,7 +2,6 @@ package beam.lang;
 
 import beam.core.BeamCore;
 import beam.core.BeamException;
-import beam.core.Credentials;
 import beam.core.diff.ResourceName;
 import com.psddev.dari.util.ObjectUtils;
 import com.psddev.dari.util.StringUtils;

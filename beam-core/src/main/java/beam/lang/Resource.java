@@ -1,7 +1,6 @@
 package beam.lang;
 
 import beam.core.BeamException;
-import beam.core.Credentials;
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceDisplayDiff;

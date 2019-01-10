@@ -1,6 +1,6 @@
 package beam.aws;
 
-import beam.core.Credentials;
+import beam.lang.Credentials;
 import beam.core.diff.ResourceName;
 import com.google.common.collect.ImmutableMap;
 import org.joda.time.DateTime;
