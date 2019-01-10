@@ -77,8 +77,6 @@ public class ForNode extends ControlNode {
                     valueNode.setParentNode(scope);
 
                     containerNode.put(key, valueNode);
-
-                    System.out.println("Adding " + key + " => " + valueNode.getValue());
                 }
             }
 
@@ -91,8 +89,6 @@ public class ForNode extends ControlNode {
                     copy.setParentNode(scope);
 
                     resourceContainerNode.putResourceKeepParent(copy);
-
-                    System.out.println("Adding resource: " + copy);
                 }
             }
 
