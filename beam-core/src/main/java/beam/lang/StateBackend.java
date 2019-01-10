@@ -1,8 +1,8 @@
-package beam.core;
+package beam.lang;
 
-import beam.lang.BeamFile;
+import beam.core.BeamCore;
 
-public abstract class BeamState {
+public abstract class StateBackend {
 
     public abstract String name();
 

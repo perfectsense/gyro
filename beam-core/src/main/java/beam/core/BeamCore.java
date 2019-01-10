@@ -7,12 +7,13 @@ import beam.core.diff.ResourceName;
 import beam.lang.BeamErrorListener;
 import beam.lang.BeamFile;
 import beam.lang.BeamLanguageException;
-import beam.lang.ProviderLoadingListener;
-import beam.lang.BeamStateLoadingListener;
 import beam.lang.BeamVisitor;
 import beam.lang.Node;
 import beam.lang.Provider;
+import beam.lang.ProviderLoadingListener;
 import beam.lang.Resource;
+import beam.lang.StateBackend;
+import beam.lang.StateBackendLoadingListener;
 import beam.parser.antlr4.BeamLexer;
 import beam.parser.antlr4.BeamParser;
 import com.psddev.dari.util.ThreadLocalStack;
@@ -32,7 +33,7 @@ public class BeamCore {
     private final Map<String, Class<? extends Resource>> resourceTypes = new HashMap<>();
 
     private ProviderLoadingListener providerListener;
-    private BeamStateLoadingListener stateListener;
+    private StateBackendLoadingListener stateListener;
 
     private static final ThreadLocalStack<BeamUI> UI = new ThreadLocalStack<>();
 
@@ -78,7 +79,7 @@ public class BeamCore {
 
         BeamVisitor visitor = new BeamVisitor(this, path);
 
-        stateListener = new BeamStateLoadingListener(this, visitor);
+        stateListener = new StateBackendLoadingListener(this, visitor);
         parser.addParseListener(stateListener);
 
         providerListener = new ProviderLoadingListener(visitor);
@@ -103,7 +104,7 @@ public class BeamCore {
 
         // Load state, assuming this isn't a state file itself.
         if (!path.endsWith(".state")) {
-            BeamState backend = stateListener.getState();
+            StateBackend backend = stateListener.getStateBackend();
             try {
                 BeamFile stateNode = backend.load(fileNode, this);
                 stateNode.copyNonResourceState(fileNode);
@@ -151,7 +152,7 @@ public class BeamCore {
 
         // Load state, assuming this isn't a state file itself.
         if (!path.endsWith(".state")) {
-            BeamState backend = fileNode.stateBackend();
+            StateBackend backend = fileNode.stateBackend();
             try {
                 BeamFile stateNode = backend.load(fileNode, this);
                 stateNode.copyNonResourceState(fileNode);
@@ -241,7 +242,7 @@ public class BeamCore {
         Resource resource = change.executeChange();
 
         BeamFile stateNode = resource.fileNode().state();
-        BeamState backend = resource.fileNode().stateBackend();
+        StateBackend backend = resource.fileNode().stateBackend();
 
         if (type == ChangeType.DELETE) {
             stateNode.removeResource(resource);

@@ -1,7 +1,6 @@
 package beam.lang;
 
-import beam.core.BeamLocalState;
-import beam.core.BeamState;
+import beam.core.LocalStateBackend;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -14,7 +13,7 @@ public class BeamFile extends ResourceContainer {
 
     private transient String path;
     private transient BeamFile state;
-    private BeamState stateBackend;
+    private StateBackend stateBackend;
     private List<Provider> providers;
 
     transient Map<String, BeamFile> imports = new HashMap<>();
@@ -39,15 +38,15 @@ public class BeamFile extends ResourceContainer {
         this.state = state;
     }
 
-    public BeamState stateBackend() {
+    public StateBackend stateBackend() {
         if (stateBackend == null) {
-            return new BeamLocalState();
+            return new LocalStateBackend();
         }
 
         return stateBackend;
     }
 
-    public void stateBackend(BeamState stateBackend) {
+    public void stateBackend(StateBackend stateBackend) {
         this.stateBackend = stateBackend;
     }
 

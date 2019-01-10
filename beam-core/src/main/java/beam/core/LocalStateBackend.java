@@ -1,13 +1,14 @@
 package beam.core;
 
 import beam.lang.BeamFile;
+import beam.lang.StateBackend;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-public class BeamLocalState extends BeamState {
+public class LocalStateBackend extends StateBackend {
 
     @Override
     public String name() {
