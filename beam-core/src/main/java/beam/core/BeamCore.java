@@ -4,7 +4,7 @@ import beam.core.diff.ChangeType;
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiff;
 import beam.core.diff.ResourceName;
-import beam.lang.BeamErrorListener;
+import beam.lang.ErrorListener;
 import beam.lang.BeamFile;
 import beam.lang.BeamLanguageException;
 import beam.lang.BeamVisitor;
@@ -73,7 +73,7 @@ public class BeamCore {
         CommonTokenStream tokens = new CommonTokenStream(lexer);
 
         BeamParser parser = new BeamParser(tokens);
-        BeamErrorListener errorListener = new BeamErrorListener();
+        ErrorListener errorListener = new ErrorListener();
         parser.removeErrorListeners();
         parser.addErrorListener(errorListener);
 
@@ -125,7 +125,7 @@ public class BeamCore {
         CommonTokenStream tokens = new CommonTokenStream(lexer);
 
         BeamParser parser = new BeamParser(tokens);
-        BeamErrorListener errorListener = new BeamErrorListener();
+        ErrorListener errorListener = new ErrorListener();
         parser.removeErrorListeners();
         parser.addErrorListener(errorListener);
 

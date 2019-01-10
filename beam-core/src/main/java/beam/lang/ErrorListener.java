@@ -15,7 +15,7 @@ import java.io.File;
 import java.util.BitSet;
 import java.util.List;
 
-public class BeamErrorListener implements ANTLRErrorListener {
+public class ErrorListener implements ANTLRErrorListener {
 
     private int syntaxErrors = 0;
     private String previousSource;
