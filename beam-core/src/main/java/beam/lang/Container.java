@@ -20,10 +20,10 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ContainerNode extends Node {
+public class Container extends Node {
 
     transient Map<String, ValueNode> keyValues = new HashMap<>();
-    transient List<ControlNode> controlNodes = new ArrayList<>();
+    transient List<ControlStructure> controlNodes = new ArrayList<>();
 
     private static final Pattern NEWLINES = Pattern.compile("([\r\n]+)");
 
@@ -43,7 +43,7 @@ public class ContainerNode extends Node {
         }
 
         try {
-            for (PropertyDescriptor p : Introspector.getBeanInfo(getClass(), ContainerNode.class).getPropertyDescriptors()) {
+            for (PropertyDescriptor p : Introspector.getBeanInfo(getClass(), Container.class).getPropertyDescriptors()) {
                 Method reader = p.getReadMethod();
 
                 if (reader != null) {
@@ -76,27 +76,27 @@ public class ContainerNode extends Node {
         keyValues.put(key, valueNode);
     }
 
-    public void putControlNode(ControlNode node) {
+    public void putControlNode(ControlStructure node) {
         controlNodes.add(node);
     }
 
-    public List<ControlNode> controlNodes() {
+    public List<ControlStructure> controlNodes() {
         return controlNodes;
     }
 
-    public void copyNonResourceState(ContainerNode source) {
+    public void copyNonResourceState(Container source) {
         keyValues.putAll(source.keyValues);
     }
 
     public void evaluateControlNodes() {
-        for (ControlNode controlNode : controlNodes()) {
+        for (ControlStructure controlNode : controlNodes()) {
             controlNode.evaluate();
         }
     }
 
-    public ContainerNode copy() {
+    public Container copy() {
         try {
-            ContainerNode node = getClass().newInstance();
+            Container node = getClass().newInstance();
 
             for (String key : keys()) {
                 ValueNode valueNode = get(key).copy();
@@ -142,7 +142,7 @@ public class ContainerNode extends Node {
             }
         }
 
-        for (ControlNode controlNode : controlNodes()) {
+        for (ControlStructure controlNode : controlNodes()) {
             boolean resolved = controlNode.resolve();
             if (!resolved) {
                 throw new BeamLanguageException("Unable to resolve configuration.", controlNode);

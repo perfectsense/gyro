@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public abstract class ControlNode extends ResourceContainerNode {
+public abstract class ControlStructure extends ResourceContainer {
 
     private Map<String, List<BeamResource>> subResources;
 

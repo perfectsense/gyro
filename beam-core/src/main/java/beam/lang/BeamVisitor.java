@@ -36,8 +36,8 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         return path;
     }
 
-    public FileNode visitBeam_root(Beam_rootContext context) {
-        FileNode containerNode = new FileNode();
+    public BeamFile visitBeam_root(Beam_rootContext context) {
+        BeamFile containerNode = new BeamFile();
         containerNode.setPath(getPath());
 
         for (BeamParser.File_blockContext blockContext : context.file_block()) {
@@ -76,7 +76,7 @@ public class BeamVisitor extends BeamParserBaseVisitor {
                         ? blockContext.import_block().import_name().getText()
                         : importFileName;
 
-                    FileNode importedFileNode = core.parseImport(resolvedPath);
+                    BeamFile importedFileNode = core.parseImport(resolvedPath);
                     importedFileNode.setPath(resolvedPath);
 
                     containerNode.putImport(importName, importedFileNode);
@@ -84,7 +84,7 @@ public class BeamVisitor extends BeamParserBaseVisitor {
                     throw new BeamException("Failed to import '" + resolvedPath + "'");
                 }
             } else if (blockContext.for_block() != null) {
-                ForNode forNode = visitFor_block(blockContext.for_block(), containerNode);
+                ForControl forNode = visitFor_block(blockContext.for_block(), containerNode);
                 containerNode.putControlNode(forNode);
             }
         }
@@ -115,7 +115,7 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         return new BeamLocalState();
     }
 
-    public BeamResource visitResource_block(Resource_blockContext context, ContainerNode parent) {
+    public BeamResource visitResource_block(Resource_blockContext context, Container parent) {
         BeamResource resourceBlock = createResourceBlock(context.resource_type().getText());
         resourceBlock.setResourceType(context.resource_type().getText());
         resourceBlock.setParentNode(parent);
@@ -146,7 +146,7 @@ public class BeamVisitor extends BeamParserBaseVisitor {
                 String type = blockContext.subresource_block().resource_type().getText();
                 resourceBlock.putSubresource(type, node);
             } else if (blockContext.for_block() != null) {
-                ForNode forNode = visitFor_block(blockContext.for_block(), resourceBlock);
+                ForControl forNode = visitFor_block(blockContext.for_block(), resourceBlock);
                 resourceBlock.putControlNode(forNode);
             }
         }
@@ -183,8 +183,8 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         return resourceBlock;
     }
 
-    public ForNode visitFor_block(BeamParser.For_blockContext context, Node parent) {
-        ForNode forNode = new ForNode();
+    public ForControl visitFor_block(BeamParser.For_blockContext context, Node parent) {
+        ForControl forNode = new ForControl();
         forNode.setLine(context.getStart().getLine());
         forNode.setColumn(context.getStart().getCharPositionInLine());
         forNode.setParentNode(parent);
@@ -224,7 +224,7 @@ public class BeamVisitor extends BeamParserBaseVisitor {
 
                 forNode.put(key, valueNode);
             } else if (blockContext.resource_block() != null) {
-                if (!(parent instanceof ResourceContainerNode)) {
+                if (!(parent instanceof ResourceContainer)) {
                     throw new BeamLanguageException("Resource is not valid.");
                 }
 

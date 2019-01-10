@@ -3,7 +3,7 @@ package beam.core.diff;
 import beam.core.BeamCore;
 import beam.core.BeamCredentials;
 import beam.core.BeamResource;
-import beam.lang.FileNode;
+import beam.lang.BeamFile;
 import com.psddev.dari.util.CompactMap;
 
 import java.util.ArrayList;
@@ -20,11 +20,11 @@ public class ResourceDiff {
     private List<BeamResource> pendingResources;
     private final List<ResourceChange> changes = new ArrayList<>();
 
-    private FileNode current;
-    private FileNode pending;
+    private BeamFile current;
+    private BeamFile pending;
     private boolean refresh;
 
-    public ResourceDiff(FileNode current, FileNode pending) {
+    public ResourceDiff(BeamFile current, BeamFile pending) {
         this.current = current;
         this.pending = pending;
     }
@@ -307,14 +307,14 @@ public class ResourceDiff {
         }
     }
 
-    private List<BeamResource> findResources(FileNode fileNode, boolean loadState) {
+    private List<BeamResource> findResources(BeamFile fileNode, boolean loadState) {
         List<BeamResource> resources = new ArrayList<>();
 
         for (BeamResource resource : fileNode.resources()) {
             resources.add(resource);
         }
 
-        for (FileNode importedNode : fileNode.imports().values()) {
+        for (BeamFile importedNode : fileNode.imports().values()) {
             if (loadState && importedNode.state() != null) {
                 resources.addAll(findResources(importedNode.state(), loadState));
             } else {

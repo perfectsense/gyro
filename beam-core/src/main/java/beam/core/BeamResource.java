@@ -5,7 +5,7 @@ import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceDisplayDiff;
 import beam.core.diff.ResourceName;
 import beam.lang.BeamLanguageException;
-import beam.lang.ContainerNode;
+import beam.lang.Container;
 import beam.lang.Node;
 import beam.lang.ReferenceNode;
 import beam.lang.ResourceKey;
@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-public abstract class BeamResource extends ContainerNode implements Comparable<BeamResource> {
+public abstract class BeamResource extends Container implements Comparable<BeamResource> {
 
     private String type;
     private String name;

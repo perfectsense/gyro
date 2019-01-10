@@ -5,11 +5,11 @@ import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiff;
 import beam.core.diff.ResourceName;
 import beam.lang.BeamErrorListener;
+import beam.lang.BeamFile;
 import beam.lang.BeamLanguageException;
 import beam.lang.BeamProviderLoadingListener;
 import beam.lang.BeamStateLoadingListener;
 import beam.lang.BeamVisitor;
-import beam.lang.FileNode;
 import beam.lang.Node;
 import beam.parser.antlr4.BeamLexer;
 import beam.parser.antlr4.BeamParser;
@@ -62,7 +62,7 @@ public class BeamCore {
         resourceTypes.clear();
     }
 
-    public FileNode parse(String path) throws IOException {
+    public BeamFile parse(String path) throws IOException {
         init();
 
         // Initial file parse loads state and providers.
@@ -93,7 +93,7 @@ public class BeamCore {
         }
 
         // Load initial configuration
-        FileNode fileNode = visitor.visitBeam_root(context);
+        BeamFile fileNode = visitor.visitBeam_root(context);
 
         if (!fileNode.resolve()) {
             System.out.println("Unable to resolve config.");
@@ -103,7 +103,7 @@ public class BeamCore {
         if (!path.endsWith(".state")) {
             BeamState backend = stateListener.getState();
             try {
-                FileNode stateNode = backend.load(fileNode, this);
+                BeamFile stateNode = backend.load(fileNode, this);
                 stateNode.copyNonResourceState(fileNode);
 
                 fileNode.setState(stateNode);
@@ -117,7 +117,7 @@ public class BeamCore {
         return fileNode;
     }
 
-    public FileNode parseImport(String path) throws IOException {
+    public BeamFile parseImport(String path) throws IOException {
         BeamLexer lexer = new BeamLexer(CharStreams.fromFileName(path));
         CommonTokenStream tokens = new CommonTokenStream(lexer);
 
@@ -141,7 +141,7 @@ public class BeamCore {
 
         // Load configuration
         BeamVisitor visitor = new BeamVisitor(this, path);
-        FileNode fileNode = visitor.visitBeam_root(context);
+        BeamFile fileNode = visitor.visitBeam_root(context);
 
         if (!fileNode.resolve()) {
             System.out.println("Unable to resolve config.");
@@ -151,7 +151,7 @@ public class BeamCore {
         if (!path.endsWith(".state")) {
             BeamState backend = fileNode.stateBackend();
             try {
-                FileNode stateNode = backend.load(fileNode, this);
+                BeamFile stateNode = backend.load(fileNode, this);
                 stateNode.copyNonResourceState(fileNode);
 
                 fileNode.setState(stateNode);
@@ -163,7 +163,7 @@ public class BeamCore {
         return fileNode;
     }
 
-    public List<ResourceDiff> diff(FileNode pending, boolean refresh) throws Exception {
+    public List<ResourceDiff> diff(BeamFile pending, boolean refresh) throws Exception {
         ResourceDiff diff = new ResourceDiff(pending.state(), pending);
         diff.setRefresh(refresh);
         diff.diff();
@@ -238,7 +238,7 @@ public class BeamCore {
         writeChange(change);
         BeamResource resource = change.executeChange();
 
-        FileNode stateNode = resource.fileNode().state();
+        BeamFile stateNode = resource.fileNode().state();
         BeamState backend = resource.fileNode().stateBackend();
 
         if (type == ChangeType.DELETE) {
@@ -259,7 +259,7 @@ public class BeamCore {
         BeamCore.ui().write(" OK\n");
         backend.save(stateNode);
 
-        for (FileNode importNode : stateNode.imports().values()) {
+        for (BeamFile importNode : stateNode.imports().values()) {
             backend.save(importNode);
         }
     }

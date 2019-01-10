@@ -14,7 +14,7 @@ public class ReferenceNode extends ValueNode {
     private String name;
     private StringExpressionNode nameExpression;
     private String attribute;
-    private ContainerNode referencedBlock;
+    private Container referencedBlock;
     private ValueNode valueNode;
 
     ReferenceNode(BeamParser.Reference_bodyContext context) {
@@ -81,7 +81,7 @@ public class ReferenceNode extends ValueNode {
         return attribute;
     }
 
-    public ContainerNode getReferencedBlock() {
+    public Container getReferencedBlock() {
         return referencedBlock;
     }
 
@@ -146,27 +146,27 @@ public class ReferenceNode extends ValueNode {
 
         // Traverse up
         while (parent != null) {
-            if (parent instanceof ContainerNode) {
-                ContainerNode containerNode = (ContainerNode) parent;
+            if (parent instanceof Container) {
+                Container container = (Container) parent;
 
                 // Look for key/value pairs.
                 if (isSimpleValue()) {
-                    valueNode = containerNode.get(name);
+                    valueNode = container.get(name);
                     if (valueNode != null) {
                         return true;
                     }
                 }
             }
 
-            if (parent instanceof FileNode) {
-                FileNode containerNode = (FileNode) parent;
+            if (parent instanceof BeamFile) {
+                BeamFile containerNode = (BeamFile) parent;
                 String name = getName();
 
                 // Resolve scopes
                 if (getScopes().size() > 1) {
                     name = "";
                     for (String key : getScopes()) {
-                        FileNode scope = containerNode.getImport(key);
+                        BeamFile scope = containerNode.getImport(key);
                         if (scope != null) {
                             containerNode = scope;
                         } else {

@@ -5,8 +5,8 @@ import beam.core.BeamException;
 import beam.core.diff.ChangeType;
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiff;
+import beam.lang.BeamFile;
 import beam.lang.BeamLanguageException;
-import beam.lang.FileNode;
 import io.airlift.airline.Arguments;
 import io.airlift.airline.Command;
 import io.airlift.airline.Option;
@@ -32,7 +32,7 @@ public class UpCommand extends AbstractCommand {
 
         String configPath = getArguments().get(0);
         BeamCore core = new BeamCore();
-        FileNode pending;
+        BeamFile pending;
         try {
             pending = core.parse(configPath);
         } catch (BeamLanguageException ex) {

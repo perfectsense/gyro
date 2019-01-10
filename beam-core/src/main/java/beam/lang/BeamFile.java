@@ -12,14 +12,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class FileNode extends ResourceContainerNode {
+public class BeamFile extends ResourceContainer {
 
     private transient String path;
-    private transient FileNode state;
+    private transient BeamFile state;
     private BeamState stateBackend;
     private List<BeamProvider> providers;
 
-    transient Map<String, FileNode> imports = new HashMap<>();
+    transient Map<String, BeamFile> imports = new HashMap<>();
 
     public String path() {
         return path;
@@ -29,7 +29,7 @@ public class FileNode extends ResourceContainerNode {
         this.path = path;
     }
 
-    public FileNode state() {
+    public BeamFile state() {
         if (state == null) {
             return this;
         }
@@ -37,7 +37,7 @@ public class FileNode extends ResourceContainerNode {
         return state;
     }
 
-    public void setState(FileNode state) {
+    public void setState(BeamFile state) {
         this.state = state;
     }
 
@@ -61,17 +61,17 @@ public class FileNode extends ResourceContainerNode {
         return providers;
     }
 
-    public Map<String, FileNode> imports() {
+    public Map<String, BeamFile> imports() {
         return imports;
     }
 
-    public void putImport(String key, FileNode fileNode) {
+    public void putImport(String key, BeamFile fileNode) {
         fileNode.setParentNode(this);
 
         imports.put(key, fileNode);
     }
 
-    public FileNode getImport(String key) {
+    public BeamFile getImport(String key) {
         return imports.get(key);
     }
 
@@ -87,7 +87,7 @@ public class FileNode extends ResourceContainerNode {
         BeamResource resource = super.getResource(type, key);
         if (resource == null && imports().containsKey("_")) {
             // Check in "global" import
-            FileNode importNode = imports().get("_");
+            BeamFile importNode = imports().get("_");
             resource = importNode.getResource(type, key);
         }
 
@@ -95,11 +95,11 @@ public class FileNode extends ResourceContainerNode {
     }
 
     @Override
-    public void copyNonResourceState(ContainerNode source) {
+    public void copyNonResourceState(Container source) {
         super.copyNonResourceState(source);
 
-        if (source instanceof FileNode) {
-            FileNode fileNode = (FileNode) source;
+        if (source instanceof BeamFile) {
+            BeamFile fileNode = (BeamFile) source;
 
             imports().putAll(fileNode.imports());
             providers().addAll(fileNode.providers());
@@ -112,7 +112,7 @@ public class FileNode extends ResourceContainerNode {
         ValueNode value = super.get(key);
         if (value == null && imports().containsKey("_")) {
             // Check in "global" import
-            FileNode importNode = imports().get("_");
+            BeamFile importNode = imports().get("_");
             value = importNode.get(key);
         }
 
@@ -138,7 +138,7 @@ public class FileNode extends ResourceContainerNode {
         StringBuilder sb = new StringBuilder();
 
         for (String importName : imports.keySet()) {
-            FileNode importNode = imports.get(importName);
+            BeamFile importNode = imports.get(importName);
 
             String importPath = importNode.importPath(path) + ".bcl.state";
 

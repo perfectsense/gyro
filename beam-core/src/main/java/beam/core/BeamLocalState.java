@@ -1,6 +1,6 @@
 package beam.core;
 
-import beam.lang.FileNode;
+import beam.lang.BeamFile;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -15,16 +15,16 @@ public class BeamLocalState extends BeamState {
     }
 
     @Override
-    public FileNode load(FileNode fileNode, BeamCore core) throws IOException {
+    public BeamFile load(BeamFile fileNode, BeamCore core) throws IOException {
         String path = fileNode.path().endsWith(".state") ? fileNode.path() : fileNode.path() + ".state";
 
-        FileNode state;
+        BeamFile state;
 
         File stateFile = new File(path);
         if (stateFile.exists() && !stateFile.isDirectory()) {
             state = core.parse(path);
         } else {
-            state = new FileNode();
+            state = new BeamFile();
             state.setPath(path);
             state.copyNonResourceState(fileNode);
         }
@@ -33,7 +33,7 @@ public class BeamLocalState extends BeamState {
     }
 
     @Override
-    public void save(FileNode fileNode) {
+    public void save(BeamFile fileNode) {
         try {
             String path = fileNode.path().endsWith(".state") ? fileNode.path() : fileNode.path() + ".state";
 

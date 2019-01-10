@@ -5,7 +5,7 @@ import beam.core.BeamResource;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ForNode extends ControlNode {
+public class ForControl extends ControlStructure {
 
     private List<String> variables;
     private List<ValueNode> listValues;
@@ -57,7 +57,7 @@ public class ForNode extends ControlNode {
 
         Node parent = parentNode();
         for (int i = 0; i < loops; i++) {
-            ContainerNode scope = new ContainerNode();
+            Container scope = new Container();
             scope.setParentNode(parent);
 
             for (int j = 0; j < variables().size(); j++) {
@@ -70,21 +70,21 @@ public class ForNode extends ControlNode {
             }
 
             // Duplicate key/values
-            if (parent instanceof ContainerNode) {
+            if (parent instanceof Container) {
 
-                ContainerNode containerNode = (ContainerNode) parent;
+                Container container = (Container) parent;
                 for (String key : keys()) {
 
                     ValueNode valueNode = get(key).copy();
                     valueNode.setParentNode(scope);
 
-                    containerNode.put(key, valueNode);
+                    container.put(key, valueNode);
                 }
             }
 
             // Copy resource nodes
-            if (parent instanceof ResourceContainerNode) {
-                ResourceContainerNode resourceContainerNode = (ResourceContainerNode) parent;
+            if (parent instanceof ResourceContainer) {
+                ResourceContainer resourceContainerNode = (ResourceContainer) parent;
 
                 for (BeamResource resourceNode : resources()) {
                     BeamResource copy = resourceNode.copy();

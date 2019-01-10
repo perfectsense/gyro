@@ -6,7 +6,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ResourceContainerNode extends ContainerNode {
+public class ResourceContainer extends Container {
 
     transient Map<ResourceKey, BeamResource> resources = new HashMap<>();
 
