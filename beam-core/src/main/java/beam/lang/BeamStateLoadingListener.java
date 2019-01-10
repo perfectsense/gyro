@@ -27,10 +27,8 @@ public class BeamStateLoadingListener extends BeamParserBaseListener {
     }
 
     @Override
-    public void exitResource_block(BeamParser.Resource_blockContext context) {
-        if (context.resource_type().getText().equalsIgnoreCase(STATE)) {
-            state = (BeamState) visitor.visitResource_block(context, null);
-        }
+    public void exitState_block(BeamParser.State_blockContext context) {
+        state = visitor.visitState_block(context);
     }
 
 }

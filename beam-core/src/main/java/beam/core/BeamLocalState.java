@@ -10,6 +10,11 @@ import java.io.IOException;
 public class BeamLocalState extends BeamState {
 
     @Override
+    public String name() {
+        return "local";
+    }
+
+    @Override
     public FileNode load(FileNode fileNode, BeamCore core) throws IOException {
         String path = fileNode.path().endsWith(".state") ? fileNode.path() : fileNode.path() + ".state";
 
@@ -42,11 +47,6 @@ public class BeamLocalState extends BeamState {
 
     @Override
     public void delete(String path) {
-
-    }
-
-    @Override
-    public void execute() {
 
     }
 

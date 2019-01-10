@@ -61,8 +61,6 @@ public class BeamCore {
 
     public void init() {
         resourceTypes.clear();
-
-        addResourceType("state", BeamLocalState.class);
     }
 
     public FileNode parse(String path) throws IOException {
@@ -152,7 +150,7 @@ public class BeamCore {
 
         // Load state, assuming this isn't a state file itself.
         if (!path.endsWith(".state")) {
-            BeamState backend = getState(fileNode);
+            BeamState backend = fileNode.stateBackend();
             try {
                 FileNode stateNode = backend.load(fileNode, this);
                 stateNode.copyNonResourceState(fileNode);
@@ -164,18 +162,6 @@ public class BeamCore {
         }
 
         return fileNode;
-    }
-
-    public BeamState getState(FileNode block) {
-        BeamState backend = new BeamLocalState();
-
-        for (ResourceNode resourceBlock : block.resources()) {
-            if (resourceBlock instanceof BeamState) {
-                backend = (BeamState) resourceBlock;
-            }
-        }
-
-        return backend;
     }
 
     public List<ResourceDiff> diff(FileNode pending, boolean refresh) throws Exception {
@@ -254,7 +240,7 @@ public class BeamCore {
         BeamResource resource = change.executeChange();
 
         FileNode stateNode = resource.fileNode().state();
-        BeamState backend = getState(resource.fileNode());
+        BeamState backend = resource.fileNode().stateBackend();
 
         if (type == ChangeType.DELETE) {
             stateNode.removeResource(resource);
