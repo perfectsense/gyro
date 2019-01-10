@@ -3,7 +3,6 @@ package beam.lang;
 import beam.core.BeamCore;
 import beam.core.BeamException;
 import beam.core.BeamLocalState;
-import beam.core.BeamProvider;
 import beam.core.BeamState;
 import beam.parser.antlr4.BeamParser;
 import beam.parser.antlr4.BeamParser.Beam_rootContext;
@@ -52,7 +51,7 @@ public class BeamVisitor extends BeamParserBaseVisitor {
 
                 containerNode.putResource(block);
             } else if (blockContext.provider_block() != null) {
-                BeamProvider provider = visitProvider_block(blockContext.provider_block());
+                Provider provider = visitProvider_block(blockContext.provider_block());
                 containerNode.providers().add(provider);
             } else if (blockContext.state_block() != null) {
                 BeamState stateBackend = visitState_block(blockContext.state_block());
@@ -91,8 +90,8 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         return containerNode;
     }
 
-    public BeamProvider visitProvider_block(Provider_blockContext context) {
-        BeamProvider provider = new BeamProvider();
+    public Provider visitProvider_block(Provider_blockContext context) {
+        Provider provider = new Provider();
         provider.setName(context.provider_name().getText());
         provider.setCore(core);
 

@@ -1,7 +1,6 @@
 package beam.lang;
 
 import beam.core.BeamLocalState;
-import beam.core.BeamProvider;
 import beam.core.BeamState;
 
 import java.io.File;
@@ -16,7 +15,7 @@ public class BeamFile extends ResourceContainer {
     private transient String path;
     private transient BeamFile state;
     private BeamState stateBackend;
-    private List<BeamProvider> providers;
+    private List<Provider> providers;
 
     transient Map<String, BeamFile> imports = new HashMap<>();
 
@@ -52,7 +51,7 @@ public class BeamFile extends ResourceContainer {
         this.stateBackend = stateBackend;
     }
 
-    public List<BeamProvider> providers() {
+    public List<Provider> providers() {
         if (providers == null) {
             providers = new ArrayList<>();
         }
@@ -152,7 +151,7 @@ public class BeamFile extends ResourceContainer {
             sb.append("\n");
         }
 
-        for (BeamProvider provider : providers()) {
+        for (Provider provider : providers()) {
             sb.append(provider);
         }
 

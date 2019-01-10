@@ -7,10 +7,11 @@ import beam.core.diff.ResourceName;
 import beam.lang.BeamErrorListener;
 import beam.lang.BeamFile;
 import beam.lang.BeamLanguageException;
-import beam.lang.BeamProviderLoadingListener;
+import beam.lang.ProviderLoadingListener;
 import beam.lang.BeamStateLoadingListener;
 import beam.lang.BeamVisitor;
 import beam.lang.Node;
+import beam.lang.Provider;
 import beam.lang.Resource;
 import beam.parser.antlr4.BeamLexer;
 import beam.parser.antlr4.BeamParser;
@@ -30,7 +31,7 @@ public class BeamCore {
 
     private final Map<String, Class<? extends Resource>> resourceTypes = new HashMap<>();
 
-    private BeamProviderLoadingListener providerListener;
+    private ProviderLoadingListener providerListener;
     private BeamStateLoadingListener stateListener;
 
     private static final ThreadLocalStack<BeamUI> UI = new ThreadLocalStack<>();
@@ -80,7 +81,7 @@ public class BeamCore {
         stateListener = new BeamStateLoadingListener(this, visitor);
         parser.addParseListener(stateListener);
 
-        providerListener = new BeamProviderLoadingListener(visitor);
+        providerListener = new ProviderLoadingListener(visitor);
         parser.addParseListener(providerListener);
 
         BeamParser.Beam_rootContext context = parser.beam_root();
@@ -89,7 +90,7 @@ public class BeamCore {
             throw new BeamLanguageException(errorListener.getSyntaxErrors() + " errors while parsing.");
         }
 
-        for (BeamProvider provider : providerListener.getProviders()) {
+        for (Provider provider : providerListener.getProviders()) {
             provider.load();
         }
 
@@ -136,7 +137,7 @@ public class BeamCore {
             throw new BeamLanguageException(errorListener.getSyntaxErrors() + " errors while parsing.");
         }
 
-        for (BeamProvider provider : providerListener.getProviders()) {
+        for (Provider provider : providerListener.getProviders()) {
             provider.load();
         }
 
