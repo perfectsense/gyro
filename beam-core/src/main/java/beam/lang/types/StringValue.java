@@ -1,4 +1,4 @@
-package beam.lang;
+package beam.lang.types;
 
 import org.apache.commons.lang.StringUtils;
 

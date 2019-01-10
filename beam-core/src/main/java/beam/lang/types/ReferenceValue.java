@@ -1,6 +1,12 @@
-package beam.lang;
+package beam.lang.types;
 
 import beam.core.diff.ResourceName;
+import beam.lang.BeamFile;
+import beam.lang.BeamLanguageException;
+import beam.lang.BeamVisitor;
+import beam.lang.Container;
+import beam.lang.Node;
+import beam.lang.Resource;
 import beam.parser.antlr4.BeamParser;
 
 import java.util.ArrayList;
@@ -16,7 +22,7 @@ public class ReferenceValue extends Value {
     private Container referencedBlock;
     private Value value;
 
-    ReferenceValue(BeamParser.Reference_bodyContext context) {
+    public ReferenceValue(BeamParser.Reference_bodyContext context) {
         // $(reference_type reference_name | reference_attribute)
         if (context.reference_type() != null) {
             this.type = context.reference_type().getText();

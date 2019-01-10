@@ -1,4 +1,6 @@
-package beam.lang;
+package beam.lang.types;
+
+import beam.lang.Node;
 
 import java.util.ArrayList;
 import java.util.List;

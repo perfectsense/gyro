@@ -1,5 +1,7 @@
 package beam.lang;
 
+import beam.lang.types.Value;
+
 import java.util.ArrayList;
 import java.util.List;
 

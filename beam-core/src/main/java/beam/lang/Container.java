@@ -2,6 +2,7 @@ package beam.lang;
 
 import beam.core.BeamException;
 import beam.core.diff.ResourceDiffProperty;
+import beam.lang.types.Value;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Throwables;
 import org.apache.commons.beanutils.BeanUtils;

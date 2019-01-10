@@ -1,4 +1,4 @@
-package beam.lang;
+package beam.lang.types;
 
 public class BooleanValue extends Value<Boolean> {
 

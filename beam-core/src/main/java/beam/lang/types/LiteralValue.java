@@ -1,4 +1,4 @@
-package beam.lang;
+package beam.lang.types;
 
 public abstract class LiteralValue extends Value<String> {
 

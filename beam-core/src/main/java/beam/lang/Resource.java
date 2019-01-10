@@ -5,6 +5,8 @@ import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceDisplayDiff;
 import beam.core.diff.ResourceName;
+import beam.lang.types.ReferenceValue;
+import beam.lang.types.StringExpressionValue;
 import com.google.common.base.Throwables;
 import com.psddev.dari.util.ObjectUtils;
 import org.apache.commons.beanutils.BeanUtils;
