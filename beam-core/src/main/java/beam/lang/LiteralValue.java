@@ -1,10 +1,10 @@
 package beam.lang;
 
-public abstract class LiteralNode extends ValueNode<String> {
+public abstract class LiteralValue extends Value<String> {
 
     private String literal;
 
-    public LiteralNode(String literal) {
+    public LiteralValue(String literal) {
         this.literal = literal;
     }
 

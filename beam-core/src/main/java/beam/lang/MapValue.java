@@ -7,11 +7,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MapNode extends ValueNode<Map> {
+public class MapValue extends Value<Map> {
 
-    private Map<String, ValueNode> keyValues;
+    private Map<String, Value> keyValues;
 
-    public Map<String, ValueNode> getKeyValues() {
+    public Map<String, Value> getKeyValues() {
         if (keyValues == null) {
             keyValues = new HashMap<>();
         }
@@ -19,18 +19,18 @@ public class MapNode extends ValueNode<Map> {
         return keyValues;
     }
 
-    public void put(String key, ValueNode valueNode) {
-        valueNode.setParentNode(this);
+    public void put(String key, Value value) {
+        value.setParentNode(this);
 
-        getKeyValues().put(key, valueNode);
+        getKeyValues().put(key, value);
     }
 
     @Override
     public void setParentNode(Node parentNode) {
         super.setParentNode(parentNode);
 
-        for (ValueNode valueNode : getKeyValues().values()) {
-            valueNode.setParentNode(parentNode);
+        for (Value value : getKeyValues().values()) {
+            value.setParentNode(parentNode);
         }
     }
 
@@ -45,12 +45,12 @@ public class MapNode extends ValueNode<Map> {
     }
 
     @Override
-    public MapNode copy() {
-        MapNode mapNode = new MapNode();
+    public MapValue copy() {
+        MapValue mapNode = new MapValue();
 
         for (String key : getKeyValues().keySet()) {
-            ValueNode valueNode = getKeyValues().get(key).copy();
-            mapNode.put(key, valueNode);
+            Value value = getKeyValues().get(key).copy();
+            mapNode.put(key, value);
         }
 
         return mapNode;
@@ -58,10 +58,10 @@ public class MapNode extends ValueNode<Map> {
 
     @Override
     public boolean resolve() {
-        for (ValueNode valueNode : getKeyValues().values()) {
-            boolean resolved = valueNode.resolve();
+        for (Value value : getKeyValues().values()) {
+            boolean resolved = value.resolve();
             if (!resolved) {
-                throw new BeamLanguageException("Unabled to resolve configuration.", valueNode);
+                throw new BeamLanguageException("Unabled to resolve configuration.", value);
             }
         }
 

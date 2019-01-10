@@ -2,11 +2,11 @@ package beam.lang;
 
 import org.apache.commons.lang.math.NumberUtils;
 
-public class NumberNode extends ValueNode<Number> {
+public class NumberValue extends Value<Number> {
 
     private Number number;
 
-    public NumberNode(String number) {
+    public NumberValue(String number) {
         this.number = NumberUtils.createNumber(number);
     }
 
@@ -16,8 +16,8 @@ public class NumberNode extends ValueNode<Number> {
     }
 
     @Override
-    public NumberNode copy() {
-        return new NumberNode(number.toString());
+    public NumberValue copy() {
+        return new NumberValue(number.toString());
     }
 
     @Override

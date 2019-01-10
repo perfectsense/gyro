@@ -6,7 +6,7 @@ import java.util.List;
 public class ForControl extends ControlStructure {
 
     private List<String> variables;
-    private List<ValueNode> listValues;
+    private List<Value> listValues;
 
     public List<String> variables() {
         if (variables == null) {
@@ -20,7 +20,7 @@ public class ForControl extends ControlStructure {
         this.variables = variables;
     }
 
-    public List<ValueNode> listValues() {
+    public List<Value> listValues() {
         if (listValues == null) {
             listValues = new ArrayList<>();
         }
@@ -28,13 +28,13 @@ public class ForControl extends ControlStructure {
         return listValues;
     }
 
-    public void listValues(List<ValueNode> listValues) {
+    public void listValues(List<Value> listValues) {
         this.listValues = listValues;
     }
 
     @Override
     public boolean resolve() {
-        for (ValueNode value : listValues()) {
+        for (Value value : listValues()) {
             boolean resolved = value.resolve();
             if (!resolved) {
                 throw new BeamLanguageException("Unable to resolve configuration.", value);
@@ -62,9 +62,9 @@ public class ForControl extends ControlStructure {
                 int index = (i * variables().size()) + j;
 
                 String variableName = variables().get(index % variables.size());
-                ValueNode valueNode = listValues().get(index);
+                Value value = listValues().get(index);
 
-                scope.put(variableName, valueNode);
+                scope.put(variableName, value);
             }
 
             // Duplicate key/values
@@ -73,10 +73,10 @@ public class ForControl extends ControlStructure {
                 Container container = (Container) parent;
                 for (String key : keys()) {
 
-                    ValueNode valueNode = get(key).copy();
-                    valueNode.setParentNode(scope);
+                    Value value = get(key).copy();
+                    value.setParentNode(scope);
 
-                    container.put(key, valueNode);
+                    container.put(key, value);
                 }
             }
 

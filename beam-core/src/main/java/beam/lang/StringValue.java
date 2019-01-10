@@ -2,9 +2,9 @@ package beam.lang;
 
 import org.apache.commons.lang.StringUtils;
 
-public class StringNode extends LiteralNode {
+public class StringValue extends LiteralValue {
 
-    public StringNode(String literal) {
+    public StringValue(String literal) {
         super(StringUtils.strip(literal, "'"));
     }
 
@@ -23,8 +23,8 @@ public class StringNode extends LiteralNode {
     }
 
     @Override
-    public StringNode copy() {
-        return new StringNode(getLiteral());
+    public StringValue copy() {
+        return new StringValue(getLiteral());
     }
 
 }

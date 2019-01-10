@@ -1,10 +1,10 @@
 package beam.lang;
 
-public class BooleanNode extends ValueNode<Boolean> {
+public class BooleanValue extends Value<Boolean> {
 
     private boolean value;
 
-    public BooleanNode(String value) {
+    public BooleanValue(String value) {
         this.value = Boolean.valueOf(value);
     }
 
@@ -14,8 +14,8 @@ public class BooleanNode extends ValueNode<Boolean> {
     }
 
     @Override
-    public BooleanNode copy() {
-        return new BooleanNode(Boolean.toString(value));
+    public BooleanValue copy() {
+        return new BooleanValue(Boolean.toString(value));
     }
 
     @Override

@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 
 public class Container extends Node {
 
-    transient Map<String, ValueNode> keyValues = new HashMap<>();
+    transient Map<String, Value> keyValues = new HashMap<>();
     transient List<ControlStructure> controlNodes = new ArrayList<>();
 
     private static final Pattern NEWLINES = Pattern.compile("([\r\n]+)");
@@ -65,14 +65,14 @@ public class Container extends Node {
         return keyValues.keySet();
     }
 
-    public ValueNode get(String key) {
+    public Value get(String key) {
         return keyValues.get(key);
     }
 
-    public void put(String key, ValueNode valueNode) {
-        valueNode.setParentNode(this);
+    public void put(String key, Value value) {
+        value.setParentNode(this);
 
-        keyValues.put(key, valueNode);
+        keyValues.put(key, value);
     }
 
     public void putControlNode(ControlStructure node) {
@@ -98,10 +98,10 @@ public class Container extends Node {
             Container node = getClass().newInstance();
 
             for (String key : keys()) {
-                ValueNode valueNode = get(key).copy();
-                valueNode.setParentNode(node);
+                Value value = get(key).copy();
+                value.setParentNode(node);
 
-                node.put(key, valueNode);
+                node.put(key, value);
             }
 
             return node;
@@ -118,7 +118,7 @@ public class Container extends Node {
                 String convertedKey = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key);
 
                 if (!BeanUtils.describe(this).containsKey(convertedKey)) {
-                    ValueNode valueNode = get(key);
+                    Value valueNode = get(key);
                     String message = String.format("invalid attribute '%s' found on line %s", key, valueNode.getLine());
 
                     throw new BeamException(message);
@@ -134,7 +134,7 @@ public class Container extends Node {
 
     @Override
     public boolean resolve() {
-        for (ValueNode value : keyValues.values()) {
+        for (Value value : keyValues.values()) {
             boolean resolved = value.resolve();
             if (!resolved) {
                 throw new BeamLanguageException("Unable to resolve configuration.", value);

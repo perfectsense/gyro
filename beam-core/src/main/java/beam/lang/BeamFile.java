@@ -107,8 +107,8 @@ public class BeamFile extends ResourceContainer {
     }
 
     @Override
-    public ValueNode get(String key) {
-        ValueNode value = super.get(key);
+    public Value get(String key) {
+        Value value = super.get(key);
         if (value == null && imports().containsKey("_")) {
             // Check in "global" import
             BeamFile importNode = imports().get("_");

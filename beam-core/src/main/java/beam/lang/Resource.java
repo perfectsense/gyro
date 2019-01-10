@@ -28,7 +28,7 @@ public abstract class Resource extends Container implements Comparable<Resource>
 
     private String type;
     private String name;
-    private StringExpressionNode nameExpression;
+    private StringExpressionValue nameExpression;
     private Set<Resource> dependencies;
     private Set<Resource> dependents;
     private Map<String, List<Resource>> subResources;
@@ -214,7 +214,7 @@ public abstract class Resource extends Container implements Comparable<Resource>
 
     public void execute() {
         if (get("resource-credentials") == null) {
-            ReferenceNode credentialsReference = new ReferenceNode(resourceCredentialsName(), "default");
+            ReferenceValue credentialsReference = new ReferenceValue(resourceCredentialsName(), "default");
             credentialsReference.setLine(getLine());
             credentialsReference.setColumn(getColumn());
 
@@ -335,7 +335,7 @@ public abstract class Resource extends Container implements Comparable<Resource>
         this.name = name;
     }
 
-    public void setResourceIdentifierExpression(StringExpressionNode nameExpression) {
+    public void setResourceIdentifierExpression(StringExpressionValue nameExpression) {
         this.nameExpression = nameExpression;
     }
 

@@ -5,11 +5,11 @@ import org.apache.commons.lang.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ListNode extends ValueNode<List> {
+public class ListValue extends Value<List> {
 
-    private List<ValueNode> values;
+    private List<Value> values;
 
-    public List<ValueNode> getValues() {
+    public List<Value> getValues() {
         if (values == null) {
             values = new ArrayList<>();
         }
@@ -21,7 +21,7 @@ public class ListNode extends ValueNode<List> {
     public void setParentNode(Node parentNode) {
         super.setParentNode(parentNode);
 
-        for (ValueNode value : getValues()) {
+        for (Value value : getValues()) {
             value.setParentNode(parentNode);
         }
     }
@@ -29,7 +29,7 @@ public class ListNode extends ValueNode<List> {
     @Override
     public List getValue() {
         List<String> list = new ArrayList();
-        for (ValueNode value : getValues()) {
+        for (Value value : getValues()) {
             Object item = value.getValue();
             if (item != null) {
                 list.add(item.toString());
@@ -42,11 +42,11 @@ public class ListNode extends ValueNode<List> {
     }
 
     @Override
-    public ListNode copy() {
-        ListNode listNode = new ListNode();
+    public ListValue copy() {
+        ListValue listNode = new ListValue();
 
-        for (ValueNode valueNode : getValues()) {
-            listNode.getValues().add(valueNode.copy());
+        for (Value value : getValues()) {
+            listNode.getValues().add(value.copy());
         }
 
         return listNode;
@@ -54,7 +54,7 @@ public class ListNode extends ValueNode<List> {
 
     @Override
     public boolean resolve() {
-        for (ValueNode value : getValues()) {
+        for (Value value : getValues()) {
             boolean resolved = value.resolve();
             if (!resolved) {
                 throw new BeamLanguageException("Unabled to resolve configuration.", value);
@@ -71,7 +71,7 @@ public class ListNode extends ValueNode<List> {
         sb.append("[\n");
 
         List<String> out = new ArrayList<>();
-        for (ValueNode value : getValues()) {
+        for (Value value : getValues()) {
             out.add("    " + value.toString());
         }
 

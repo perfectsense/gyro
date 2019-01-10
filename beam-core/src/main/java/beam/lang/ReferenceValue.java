@@ -7,16 +7,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class ReferenceNode extends ValueNode {
+public class ReferenceValue extends Value {
 
     private String type;
     private String name;
-    private StringExpressionNode nameExpression;
+    private StringExpressionValue nameExpression;
     private String attribute;
     private Container referencedBlock;
-    private ValueNode valueNode;
+    private Value value;
 
-    ReferenceNode(BeamParser.Reference_bodyContext context) {
+    ReferenceValue(BeamParser.Reference_bodyContext context) {
         // $(reference_type reference_name | reference_attribute)
         if (context.reference_type() != null) {
             this.type = context.reference_type().getText();
@@ -42,15 +42,15 @@ public class ReferenceNode extends ValueNode {
         }
     }
 
-    public ReferenceNode(String name) {
+    public ReferenceValue(String name) {
         this(null, name, null);
     }
 
-    public ReferenceNode(String type, String name) {
+    public ReferenceValue(String type, String name) {
         this(type, name, null);
     }
 
-    public ReferenceNode(String type, String name, String attribute) {
+    public ReferenceValue(String type, String name, String attribute) {
         this.type = type;
         this.name = name;
         this.attribute = attribute;
@@ -84,8 +84,8 @@ public class ReferenceNode extends ValueNode {
         return referencedBlock;
     }
 
-    public ValueNode getValueNode() {
-        return valueNode;
+    public Value getReferenceValue() {
+        return value;
     }
 
     public boolean isSimpleValue() {
@@ -100,16 +100,16 @@ public class ReferenceNode extends ValueNode {
             return getReferencedBlock().resolvedKeyValues().get(getAttribute());
         }
 
-        if (getValueNode() != null) {
-            return getValueNode().getValue();
+        if (getReferenceValue() != null) {
+            return getReferenceValue().getValue();
         }
 
         return null;
     }
 
     @Override
-    public ValueNode copy() {
-        ReferenceNode referenceNode = new ReferenceNode(getType(), getName(), getAttribute());
+    public Value copy() {
+        ReferenceValue referenceNode = new ReferenceValue(getType(), getName(), getAttribute());
         referenceNode.nameExpression = nameExpression != null ? nameExpression.copy() : null;
         referenceNode.referencedBlock = referencedBlock;
 
@@ -150,8 +150,8 @@ public class ReferenceNode extends ValueNode {
 
                 // Look for key/value pairs.
                 if (isSimpleValue()) {
-                    valueNode = container.get(name);
-                    if (valueNode != null) {
+                    value = container.get(name);
+                    if (value != null) {
                         return true;
                     }
                 }
@@ -192,8 +192,8 @@ public class ReferenceNode extends ValueNode {
 
                 // Look for key/value pairs.
                 if (isSimpleValue()) {
-                    valueNode = containerNode.get(name);
-                    if (valueNode != null) {
+                    value = containerNode.get(name);
+                    if (value != null) {
                         return true;
                     }
                 }
