@@ -1,8 +1,6 @@
 package beam.lang;
 
-import beam.core.BeamException;
 import beam.core.diff.ResourceDiffProperty;
-import com.google.common.base.CaseFormat;
 import com.google.common.base.Throwables;
 import org.apache.commons.beanutils.BeanUtils;
 
@@ -224,7 +222,7 @@ public class ResourceNode extends ContainerNode {
     }
 
     /**
-     * `execute()` is called during the parsing of the configuration. This
+     * `load()` is called during the parsing of the configuration. This
      * allows extensions to perform any necessary actions to load themselves.
      */
     public void execute() {

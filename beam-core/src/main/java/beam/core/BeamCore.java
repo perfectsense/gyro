@@ -30,6 +30,9 @@ public class BeamCore {
 
     private final Map<String, Class<? extends ResourceNode>> resourceTypes = new HashMap<>();
 
+    private BeamProviderLoadingListener providerListener;
+    private BeamStateLoadingListener stateListener;
+
     private static final ThreadLocalStack<BeamUI> UI = new ThreadLocalStack<>();
 
     public static BeamUI ui() {
@@ -60,7 +63,6 @@ public class BeamCore {
         resourceTypes.clear();
 
         addResourceType("state", BeamLocalState.class);
-        addResourceType("provider", BeamProvider.class);
     }
 
     public FileNode parse(String path) throws IOException {
@@ -77,16 +79,20 @@ public class BeamCore {
 
         BeamVisitor visitor = new BeamVisitor(this, path);
 
-        BeamStateLoadingListener stateListener = new BeamStateLoadingListener(this, visitor);
+        stateListener = new BeamStateLoadingListener(this, visitor);
         parser.addParseListener(stateListener);
 
-        BeamProviderLoadingListener providerLoadingListener = new BeamProviderLoadingListener(visitor);
-        parser.addParseListener(providerLoadingListener);
+        providerListener = new BeamProviderLoadingListener(visitor);
+        parser.addParseListener(providerListener);
 
         BeamParser.Beam_rootContext context = parser.beam_root();
 
         if (errorListener.getSyntaxErrors() > 0) {
             throw new BeamLanguageException(errorListener.getSyntaxErrors() + " errors while parsing.");
+        }
+
+        for (BeamProvider provider : providerListener.getProviders()) {
+            provider.load();
         }
 
         // Load initial configuration
@@ -122,15 +128,22 @@ public class BeamCore {
         BeamErrorListener errorListener = new BeamErrorListener();
         parser.removeErrorListeners();
         parser.addErrorListener(errorListener);
+
+        parser.addParseListener(stateListener);
+        parser.addParseListener(providerListener);
+
         BeamParser.Beam_rootContext context = parser.beam_root();
 
         if (errorListener.getSyntaxErrors() > 0) {
             throw new BeamLanguageException(errorListener.getSyntaxErrors() + " errors while parsing.");
         }
 
+        for (BeamProvider provider : providerListener.getProviders()) {
+            provider.load();
+        }
+
         // Load configuration
         BeamVisitor visitor = new BeamVisitor(this, path);
-
         FileNode fileNode = visitor.visitBeam_root(context);
 
         if (!fileNode.resolve()) {

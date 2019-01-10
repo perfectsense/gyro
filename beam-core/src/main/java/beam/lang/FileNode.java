@@ -1,16 +1,20 @@
 package beam.lang;
 
+import beam.core.BeamProvider;
 import beam.core.BeamResource;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class FileNode extends ResourceContainerNode {
 
     private transient String path;
     private transient FileNode state;
+    private List<BeamProvider> providers;
 
     transient Map<String, FileNode> imports = new HashMap<>();
 
@@ -32,6 +36,14 @@ public class FileNode extends ResourceContainerNode {
 
     public void setState(FileNode state) {
         this.state = state;
+    }
+
+    public List<BeamProvider> providers() {
+        if (providers == null) {
+            providers = new ArrayList<>();
+        }
+
+        return providers;
     }
 
     public Map<String, FileNode> imports() {
@@ -128,6 +140,10 @@ public class FileNode extends ResourceContainerNode {
             }
 
             sb.append("\n");
+        }
+
+        for (BeamProvider provider : providers()) {
+            sb.append(provider);
         }
 
         sb.append("\n");

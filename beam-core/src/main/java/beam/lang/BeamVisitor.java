@@ -2,10 +2,12 @@ package beam.lang;
 
 import beam.core.BeamCore;
 import beam.core.BeamException;
+import beam.core.BeamProvider;
 import beam.parser.antlr4.BeamParser;
 import beam.parser.antlr4.BeamParser.Beam_rootContext;
 import beam.parser.antlr4.BeamParser.Key_value_blockContext;
 import beam.parser.antlr4.BeamParser.List_item_valueContext;
+import beam.parser.antlr4.BeamParser.Provider_blockContext;
 import beam.parser.antlr4.BeamParser.Reference_valueContext;
 import beam.parser.antlr4.BeamParser.Resource_blockContext;
 import beam.parser.antlr4.BeamParser.ValueContext;
@@ -46,6 +48,9 @@ public class BeamVisitor extends BeamParserBaseVisitor {
                 ResourceNode block = visitResource_block(blockContext.resource_block(), containerNode);
 
                 containerNode.putResource(block);
+            } else if (blockContext.provider_block() != null) {
+                BeamProvider provider = visitProvider_block(blockContext.provider_block());
+                containerNode.providers().add(provider);
             } else if (blockContext.import_block() != null) {
                 String path = blockContext.import_block().import_path().getText();
 
@@ -78,6 +83,25 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         }
 
         return containerNode;
+    }
+
+    public BeamProvider visitProvider_block(Provider_blockContext context) {
+        BeamProvider provider = new BeamProvider();
+        provider.setName(context.provider_name().getText());
+        provider.setCore(core);
+
+        for (BeamParser.Key_simple_value_blockContext blockContext : context.provider_block_body().key_simple_value_block()) {
+            String key = StringUtils.stripEnd(blockContext.key().getText(), ":");
+            ValueNode valueNode = parseValue(blockContext.simple_value());
+            valueNode.setLine(blockContext.getStart().getLine());
+            valueNode.setColumn(blockContext.getStart().getCharPositionInLine());
+
+            provider.put(key, valueNode);
+        }
+
+        provider.syncInternalToProperties();
+
+        return provider;
     }
 
     public ResourceNode visitResource_block(Resource_blockContext context, ContainerNode parent) {
@@ -208,6 +232,27 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         return forNode;
     }
 
+    public ValueNode parseValue(BeamParser.Simple_valueContext context) {
+        ValueNode value = null;
+
+        if (context.boolean_value() != null) {
+            value = new BooleanNode(context.boolean_value().getText());
+        } else if (context.number_value() != null) {
+            value = new NumberNode(context.number_value().getText());
+        } else if (context.STRING_LITERAL() != null) {
+            value = new StringNode(context.STRING_LITERAL().getText());
+        } else if (context.list_value() != null) {
+            value = parseListValue(context.list_value());
+        } else if (context.map_value() != null) {
+            value = parseMapNode(context.map_value());
+        }
+
+        value.setLine(context.start.getLine());
+        value.setColumn(context.start.getCharPositionInLine());
+
+        return value;
+    }
+
     public ValueNode parseValue(ValueContext context) {
         ValueNode value = null;
 
@@ -220,34 +265,42 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         } else if (context.string_value() != null) {
             value = parseStringValue(context.string_value());
         } else if (context.list_value() != null) {
-            ListNode listValue = new ListNode();
-            for (List_item_valueContext valueContext : context.list_value().list_item_value()) {
-                ValueNode listItemValue = parseListItemValue(valueContext);
-                listItemValue.setLine(valueContext.getStart().getLine());
-                listItemValue.setColumn(valueContext.getStart().getCharPositionInLine());
-
-                listValue.getValues().add(listItemValue);
-            }
-
-            value = listValue;
+            value = parseListValue(context.list_value());
         } else if (context.map_value() != null) {
-            MapNode mapValue = new MapNode();
-            for (Key_value_blockContext valueContext : context.map_value().key_value_block()) {
-                String key = StringUtils.stripEnd(valueContext.key().getText(), ":");
-                ValueNode valueNode = parseValue(valueContext.value());
-                valueNode.setLine(valueContext.getStart().getLine());
-                valueNode.setColumn(valueContext.getStart().getCharPositionInLine());
-
-                mapValue.getKeyValues().put(key, valueNode);
-            }
-
-            value = mapValue;
+            value = parseMapNode(context.map_value());
         }
 
         value.setLine(context.start.getLine());
         value.setColumn(context.start.getCharPositionInLine());
 
         return value;
+    }
+
+    public MapNode parseMapNode(BeamParser.Map_valueContext context) {
+        MapNode mapValue = new MapNode();
+        for (Key_value_blockContext valueContext : context.key_value_block()) {
+            String key = StringUtils.stripEnd(valueContext.key().getText(), ":");
+            ValueNode valueNode = parseValue(valueContext.value());
+            valueNode.setLine(valueContext.getStart().getLine());
+            valueNode.setColumn(valueContext.getStart().getCharPositionInLine());
+
+            mapValue.getKeyValues().put(key, valueNode);
+        }
+
+        return mapValue;
+    }
+
+    public ListNode parseListValue(BeamParser.List_valueContext context) {
+        ListNode listValue = new ListNode();
+        for (List_item_valueContext valueContext : context.list_item_value()) {
+            ValueNode listItemValue = parseListItemValue(valueContext);
+            listItemValue.setLine(valueContext.getStart().getLine());
+            listItemValue.setColumn(valueContext.getStart().getCharPositionInLine());
+
+            listValue.getValues().add(listItemValue);
+        }
+
+        return listValue;
     }
 
     public ValueNode parseListItemValue(List_item_valueContext context) {

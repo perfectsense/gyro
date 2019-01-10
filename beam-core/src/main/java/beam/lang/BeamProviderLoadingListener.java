@@ -1,7 +1,11 @@
 package beam.lang;
 
+import beam.core.BeamProvider;
 import beam.parser.antlr4.BeamParser;
 import beam.parser.antlr4.BeamParserBaseListener;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Parse and load provider implementations during initial parse.
@@ -9,6 +13,7 @@ import beam.parser.antlr4.BeamParserBaseListener;
 public class BeamProviderLoadingListener extends BeamParserBaseListener {
 
     private BeamVisitor visitor;
+    private List<BeamProvider> providers;
 
     private static final String PROVIDER = "provider";
 
@@ -16,11 +21,17 @@ public class BeamProviderLoadingListener extends BeamParserBaseListener {
         this.visitor = visitor;
     }
 
-    @Override
-    public void exitResource_block(BeamParser.Resource_blockContext context) {
-        if (context.resource_type().getText().equalsIgnoreCase(PROVIDER)) {
-            visitor.visitResource_block(context, null);
+    public List<BeamProvider> getProviders() {
+        if (providers == null) {
+            providers = new ArrayList<>();
         }
+
+        return providers;
+    }
+
+    @Override
+    public void exitProvider_block(BeamParser.Provider_blockContext context) {
+        getProviders().add(visitor.visitProvider_block(context));
     }
 
 }

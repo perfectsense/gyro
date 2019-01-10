@@ -1,7 +1,7 @@
 package beam.core;
 
 import beam.core.diff.ResourceName;
-import beam.lang.ResourceNode;
+import beam.lang.ContainerNode;
 import com.psddev.dari.util.ObjectUtils;
 import com.psddev.dari.util.StringUtils;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
@@ -38,13 +38,22 @@ import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-public class BeamProvider extends ResourceNode {
+public class BeamProvider extends ContainerNode {
 
+    private String name;
     private String artifact;
     private List<String> repositories;
 
     private static Map<String, Map<String, Class>> PROVIDER_CLASS_CACHE = new HashMap<>();
     private static Map<String, List<Artifact>> ARTIFACTS = new HashMap<>();
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 
     public void setArtifact(String artifact) {
         this.artifact = artifact;
@@ -66,19 +75,15 @@ public class BeamProvider extends ResourceNode {
         return repositories;
     }
 
-    @Override
-    public String resourceType() {
-        return "provider";
-    }
+    public void load() {
+        syncInternalToProperties();
 
-    @Override
-    public void execute() {
         try {
             Map<String, Object> resolvedKeyValues = resolvedKeyValues();
 
             List<Artifact> artifacts = ARTIFACTS.get(getArtifact());
             if (artifacts == null) {
-                BeamCore.ui().write("@|bold,blue Loading:|@ provider %s...\n", resourceIdentifier());
+                BeamCore.ui().write("@|bold,blue Loading:|@ provider %s...\n", getName());
 
                 List<RemoteRepository> remoteRepositories = new ArrayList<>();
                 remoteRepositories.add(new RemoteRepository.Builder("central", "default", "http://repo1.maven.org/maven2/").build());
@@ -209,6 +214,33 @@ public class BeamProvider extends ResourceNode {
         }
 
         core.addResourceType(fullName, cache.get(fullName));
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("provider ");
+        sb.append(getName()).append("\n");
+        sb.append("    artifact: ");
+        sb.append("'").append(getArtifact()).append("'");
+        sb.append("\n");
+
+        if (!getRepositories().isEmpty()) {
+            sb.append("    repositories: [\n");
+
+            List<String> values = new ArrayList<>();
+            for (String value : getRepositories()) {
+                values.add("        '" + value + "'");
+            }
+
+            sb.append(StringUtils.join(values, ",\n"));
+            sb.append("\n    ]\n");
+        }
+
+        sb.append("end\n");
+
+        return sb.toString();
     }
 
 }

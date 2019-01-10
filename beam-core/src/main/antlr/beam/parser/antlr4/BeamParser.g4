@@ -8,12 +8,22 @@ beam_root
     : file_block* EOF
     ;
 
-file_block
-    :  (key_value_block | resource_block | for_block | import_block)
-    ;
+file_block : (provider_block | key_value_block | resource_block | for_block | import_block);
 
 block_end
     : END
+    ;
+
+provider_block
+    : PROVIDER provider_name provider_block_body block_end
+    ;
+
+provider_name
+    : IDENTIFIER
+    ;
+
+provider_block_body
+    : key_simple_value_block*
     ;
 
 resource_block
@@ -77,8 +87,18 @@ key_value_block
     : key value
     ;
 
+key_simple_value_block
+    : key simple_value
+    ;
+
 key
-    : (IDENTIFIER | STRING_LITERAL) key_delimiter
+    : (IDENTIFIER | STRING_LITERAL | keywords) key_delimiter
+    ;
+
+keywords
+    : IMPORT
+    | PROVIDER
+    | AS
     ;
 
 key_delimiter
@@ -92,6 +112,14 @@ value
     | boolean_value
     | number_value
     | reference_value
+    ;
+
+simple_value
+    : list_value
+    | map_value
+    | STRING_LITERAL
+    | boolean_value
+    | number_value
     ;
 
 number_value
