@@ -179,11 +179,11 @@ public class BeamProvider {
             }
 
             BeamCredentials credentials = null;
-            if (BeamResource.class.isAssignableFrom(resourceClass)) {
+            if (BeamCredentials.class.isAssignableFrom(resourceClass)) {
+                credentials = (BeamCredentials) resourceClass.newInstance();
+            } else if (BeamResource.class.isAssignableFrom(resourceClass)) {
                 BeamResource resource = (BeamResource) resourceClass.newInstance();
                 credentials = (BeamCredentials) resource.resourceCredentialsClass().newInstance();
-            } else if (BeamCredentials.class.isAssignableFrom(resourceClass)) {
-                credentials = (BeamCredentials) resourceClass.newInstance();
             } else {
                 continue;
             }

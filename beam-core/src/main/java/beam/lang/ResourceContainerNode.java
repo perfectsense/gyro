@@ -1,32 +1,34 @@
 package beam.lang;
 
+import beam.core.BeamResource;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 public class ResourceContainerNode extends ContainerNode {
 
-    transient Map<ResourceKey, ResourceNode> resources = new HashMap<>();
+    transient Map<ResourceKey, BeamResource> resources = new HashMap<>();
 
-    public Collection<ResourceNode> resources() {
+    public Collection<BeamResource> resources() {
         return resources.values();
     }
 
-    public ResourceNode removeResource(ResourceNode block) {
+    public BeamResource removeResource(BeamResource block) {
         return resources.remove(block.resourceKey());
     }
 
-    public void putResource(ResourceNode resourceBlock) {
+    public void putResource(BeamResource resourceBlock) {
         resourceBlock.setParentNode(this);
 
         resources.put(resourceBlock.resourceKey(), resourceBlock);
     }
 
-    public void putResourceKeepParent(ResourceNode resourceNode) {
+    public void putResourceKeepParent(BeamResource resourceNode) {
         resources.put(resourceNode.resourceKey(), resourceNode);
     }
 
-    public ResourceNode getResource(String type, String key) {
+    public BeamResource getResource(String type, String key) {
         ResourceKey resourceKey = new ResourceKey(type, key);
 
         return resources.get(resourceKey);
@@ -36,7 +38,7 @@ public class ResourceContainerNode extends ContainerNode {
     public void evaluateControlNodes() {
         super.evaluateControlNodes();
 
-        for (ResourceNode resourceNode : resources()) {
+        for (BeamResource resourceNode : resources()) {
             resourceNode.evaluateControlNodes();
         }
     }
@@ -45,7 +47,7 @@ public class ResourceContainerNode extends ContainerNode {
     public String toString() {
         StringBuilder sb = new StringBuilder();
 
-        for (ResourceNode resourceBlock : resources()) {
+        for (BeamResource resourceBlock : resources()) {
             sb.append(resourceBlock.toString());
         }
 

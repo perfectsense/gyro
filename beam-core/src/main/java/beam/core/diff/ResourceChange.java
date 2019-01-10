@@ -9,7 +9,6 @@ import com.psddev.dari.util.ObjectUtils;
 import com.psddev.dari.util.StringUtils;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -57,7 +56,7 @@ public class ResourceChange {
         }
     }
 
-    public void create(Collection<BeamResource> pendingResources) throws Exception {
+    public void create(List<BeamResource> pendingResources) throws Exception {
         diff.create(this, pendingResources);
     }
 
@@ -65,7 +64,7 @@ public class ResourceChange {
         diff.createOne(this, pendingResource);
     }
 
-    public void update(Collection currentResources, Collection pendingResources) throws Exception {
+    public void update(List currentResources, List pendingResources) throws Exception {
         diff.update(this, currentResources, pendingResources);
     }
 
@@ -73,7 +72,7 @@ public class ResourceChange {
         diff.updateOne(this, currentResource, pendingResource);
     }
 
-    public void delete(Collection<BeamResource> pendingResources) throws Exception {
+    public void delete(List<BeamResource> pendingResources) throws Exception {
         diff.delete(this, pendingResources);
     }
 

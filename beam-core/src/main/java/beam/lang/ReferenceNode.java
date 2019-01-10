@@ -1,5 +1,6 @@
 package beam.lang;
 
+import beam.core.BeamResource;
 import beam.core.diff.ResourceName;
 import beam.parser.antlr4.BeamParser;
 
@@ -116,16 +117,16 @@ public class ReferenceNode extends ValueNode {
         return referenceNode;
     }
 
-    public ResourceNode getParentResourceNode() {
+    public BeamResource getParentResourceNode() {
         Node parent = parentNode();
 
         // Traverse up
         while (parent != null) {
-            if (parent instanceof ResourceNode) {
+            if (parent instanceof BeamResource) {
                 // Skip subresources
                 ResourceName name = parent.getClass().getAnnotation(ResourceName.class);
                 if (name != null && name.parent().equals("")) {
-                    return (ResourceNode) parent;
+                    return (BeamResource) parent;
                 }
             }
 
@@ -179,8 +180,8 @@ public class ReferenceNode extends ValueNode {
 
                 // Only ResourceBlocks have a dependency chain.
                 if (referencedBlock != null  && getParentResourceNode() != null) {
-                    ResourceNode parentRef = getParentResourceNode();
-                    ResourceNode resourceRef = (ResourceNode) referencedBlock;
+                    BeamResource parentRef = getParentResourceNode();
+                    BeamResource resourceRef = (BeamResource) referencedBlock;
 
                     if (parentRef != resourceRef) {
                         resourceRef.dependents().add(parentRef);

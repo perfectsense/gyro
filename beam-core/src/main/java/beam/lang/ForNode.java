@@ -1,5 +1,7 @@
 package beam.lang;
 
+import beam.core.BeamResource;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -84,8 +86,8 @@ public class ForNode extends ControlNode {
             if (parent instanceof ResourceContainerNode) {
                 ResourceContainerNode resourceContainerNode = (ResourceContainerNode) parent;
 
-                for (ResourceNode resourceNode : resources()) {
-                    ResourceNode copy = resourceNode.copy();
+                for (BeamResource resourceNode : resources()) {
+                    BeamResource copy = resourceNode.copy();
                     copy.setParentNode(scope);
 
                     resourceContainerNode.putResourceKeepParent(copy);
@@ -93,22 +95,22 @@ public class ForNode extends ControlNode {
             }
 
             // Copy subresource nodes
-            if (parent instanceof ResourceNode) {
-                ResourceNode resourceNode = (ResourceNode) parent;
+            if (parent instanceof BeamResource) {
+                BeamResource resource = (BeamResource) parent;
 
                 for (String fieldName : subResources().keySet()) {
-                    List<ResourceNode> subresources = subResources().get(fieldName);
+                    List<BeamResource> subresources = subResources().get(fieldName);
 
-                    for (ResourceNode subresource : subresources) {
-                        ResourceNode copy = subresource.copy();
+                    for (BeamResource subresource : subresources) {
+                        BeamResource copy = subresource.copy();
                         copy.setParentNode(scope);
 
-                        resourceNode.putSubresource(fieldName, copy);
+                        resource.putSubresource(fieldName, copy);
                     }
                 }
 
-                resourceNode.syncInternalToProperties();
-                resourceNode.resolve();
+                //resourceNode.syncInternalToProperties();
+                resource.resolve();
             }
         }
     }

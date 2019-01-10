@@ -83,15 +83,15 @@ public class FileNode extends ResourceContainerNode {
     }
 
     @Override
-    public ResourceNode getResource(String type, String key) {
-        ResourceNode resourceNode = super.getResource(type, key);
-        if (resourceNode == null && imports().containsKey("_")) {
+    public BeamResource getResource(String type, String key) {
+        BeamResource resource = super.getResource(type, key);
+        if (resource == null && imports().containsKey("_")) {
             // Check in "global" import
             FileNode importNode = imports().get("_");
-            resourceNode = importNode.getResource(type, key);
+            resource = importNode.getResource(type, key);
         }
 
-        return resourceNode;
+        return resource;
     }
 
     @Override
@@ -101,13 +101,9 @@ public class FileNode extends ResourceContainerNode {
         if (source instanceof FileNode) {
             FileNode fileNode = (FileNode) source;
 
-            imports.putAll(fileNode.imports);
-
-            for (ResourceNode resourceNode : fileNode.resources()) {
-                if (!(resourceNode instanceof BeamResource)) {
-                    putResource(resourceNode);
-                }
-            }
+            imports().putAll(fileNode.imports());
+            providers().addAll(fileNode.providers());
+            stateBackend(fileNode.stateBackend());
         }
     }
 
@@ -127,10 +123,10 @@ public class FileNode extends ResourceContainerNode {
     public boolean resolve() {
         super.resolve();
 
-        for (ResourceNode resourceBlock : resources()) {
-            boolean resolved = resourceBlock.resolve();
+        for (BeamResource resource : resources()) {
+            boolean resolved = resource.resolve();
             if (!resolved) {
-                throw new BeamLanguageException("Unable to resolve configuration.", resourceBlock);
+                throw new BeamLanguageException("Unable to resolve configuration.", resource);
             }
         }
 

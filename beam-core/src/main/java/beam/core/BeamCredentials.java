@@ -1,12 +1,9 @@
 package beam.core;
 
-import beam.lang.ResourceNode;
-
 import java.util.Map;
+import java.util.Set;
 
-public abstract class BeamCredentials extends ResourceNode implements Comparable<BeamCredentials> {
-
-    private BeamState stateBackend;
+public abstract class BeamCredentials extends BeamResource {
 
     /**
      * Return the name of this cloud.
@@ -26,25 +23,38 @@ public abstract class BeamCredentials extends ResourceNode implements Comparable
     }
 
     @Override
-    public int hashCode() {
-        return getClass().hashCode();
+    public final void execute() {
+
     }
 
     @Override
-    public boolean equals(Object other) {
-        return this == other || (other != null && getClass().equals(other.getClass()));
+    public final boolean refresh() {
+        return false;
     }
 
     @Override
-    public int compareTo(BeamCredentials o) {
-        if (o == null) {
-            return 1;
-        }
+    public final void create() {
 
-        String compareKey = String.format("%s %s", resourceType(), resourceIdentifier());
-        String otherKey = String.format("%s %s", o.resourceType(), o.resourceIdentifier());
+    }
 
-        return compareKey.compareTo(otherKey);
+    @Override
+    public final void update(BeamResource current, Set<String> changedProperties) {
+
+    }
+
+    @Override
+    public final void delete() {
+
+    }
+
+    @Override
+    public final String toDisplayString() {
+        return null;
+    }
+
+    @Override
+    public final Class resourceCredentialsClass() {
+        return null;
     }
 
 }

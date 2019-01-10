@@ -11,7 +11,6 @@ import beam.lang.BeamStateLoadingListener;
 import beam.lang.BeamVisitor;
 import beam.lang.FileNode;
 import beam.lang.Node;
-import beam.lang.ResourceNode;
 import beam.parser.antlr4.BeamLexer;
 import beam.parser.antlr4.BeamParser;
 import com.psddev.dari.util.ThreadLocalStack;
@@ -28,7 +27,7 @@ import java.util.Set;
 
 public class BeamCore {
 
-    private final Map<String, Class<? extends ResourceNode>> resourceTypes = new HashMap<>();
+    private final Map<String, Class<? extends BeamResource>> resourceTypes = new HashMap<>();
 
     private BeamProviderLoadingListener providerListener;
     private BeamStateLoadingListener stateListener;
@@ -47,7 +46,7 @@ public class BeamCore {
         return UI.pop();
     }
 
-    public void addResourceType(String key, Class<? extends ResourceNode> extension) {
+    public void addResourceType(String key, Class<? extends BeamResource> extension) {
         resourceTypes.put(key, extension);
     }
 

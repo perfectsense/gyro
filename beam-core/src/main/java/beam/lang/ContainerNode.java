@@ -187,8 +187,8 @@ public class ContainerNode extends Node {
                     sb.append(mapToString((Map) value));
                 } else if (value instanceof List) {
                     sb.append(listToString((List) value));
-                } else if (value instanceof ResourceNode) {
-                    sb.append(((ResourceNode) value).resourceKey());
+                } else if (value instanceof BeamResource) {
+                    sb.append(((BeamResource) value).resourceKey());
                 }
                 sb.append("\n");
             }
