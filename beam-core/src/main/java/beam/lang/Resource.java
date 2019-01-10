@@ -30,12 +30,16 @@ public abstract class Resource extends Container {
     private String type;
     private String name;
     private StringExpressionValue nameExpression;
+
+    // -- Internal
+
     private Set<Resource> dependencies;
     private Set<Resource> dependents;
     private Map<String, List<Resource>> subResources;
+    private Credentials resourceCredentials;
+    private ResourceChange change;
 
-    private transient Credentials resourceCredentials;
-    private transient ResourceChange change;
+    // -- Resource Implementation API
 
     public abstract boolean refresh();
 
@@ -92,10 +96,6 @@ public abstract class Resource extends Container {
         return c.getSimpleName();
     }
 
-    public String primaryKey() {
-        return String.format("%s %s", resourceType(), resourceIdentifier());
-    }
-
     public Credentials getResourceCredentials() {
         return resourceCredentials;
     }
@@ -104,12 +104,34 @@ public abstract class Resource extends Container {
         this.resourceCredentials = resourceCredentials;
     }
 
+    // -- Diff Engine
+
+    public String primaryKey() {
+        return String.format("%s %s", resourceType(), resourceIdentifier());
+    }
+
     public ResourceChange change() {
         return change;
     }
 
     public void change(ResourceChange change) {
         this.change = change;
+    }
+
+    public Set<Resource> dependencies() {
+        if (dependencies == null) {
+            dependencies = new LinkedHashSet<>();
+        }
+
+        return dependencies;
+    }
+
+    public Set<Resource> dependents() {
+        if (dependents == null) {
+            dependents = new LinkedHashSet<>();
+        }
+
+        return dependents;
     }
 
     public void diffOnCreate(ResourceChange change) throws Exception {
@@ -213,6 +235,8 @@ public abstract class Resource extends Container {
         return displayDiff;
     }
 
+    // -- Base Resource
+
     public void execute() {
         if (get("resource-credentials") == null) {
             ReferenceValue credentialsReference = new ReferenceValue(resourceCredentialsName(), "default");
@@ -253,42 +277,6 @@ public abstract class Resource extends Container {
         }
 
         return keys;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        Resource that = (Resource) o;
-
-        return Objects.equals(primaryKey(), that.primaryKey());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(primaryKey());
-    }
-
-    public Set<Resource> dependencies() {
-        if (dependencies == null) {
-            dependencies = new LinkedHashSet<>();
-        }
-
-        return dependencies;
-    }
-
-    public Set<Resource> dependents() {
-        if (dependents == null) {
-            dependents = new LinkedHashSet<>();
-        }
-
-        return dependents;
     }
 
     public Map<String, List<Resource>> subResources() {
@@ -341,6 +329,8 @@ public abstract class Resource extends Container {
 
         return (Resource) parent;
     }
+
+    // -- Internal State
 
     protected final void syncInternalToProperties() {
         super.syncInternalToProperties();
@@ -428,6 +418,26 @@ public abstract class Resource extends Container {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        Resource that = (Resource) o;
+
+        return Objects.equals(primaryKey(), that.primaryKey());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(primaryKey());
+    }
+
+    @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
 
@@ -446,4 +456,5 @@ public abstract class Resource extends Container {
 
         return sb.toString();
     }
+
 }
