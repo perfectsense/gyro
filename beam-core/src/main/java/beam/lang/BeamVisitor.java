@@ -93,13 +93,13 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         for (BeamParser.Key_simple_value_blockContext blockContext : context.provider_block_body().key_simple_value_block()) {
             String key = StringUtils.stripEnd(blockContext.key().getText(), ":");
             ValueNode valueNode = parseValue(blockContext.simple_value());
-            valueNode.setLine(blockContext.getStart().getLine());
-            valueNode.setColumn(blockContext.getStart().getCharPositionInLine());
 
-            provider.put(key, valueNode);
+            if (key.equalsIgnoreCase("artifact")) {
+                provider.setArtifact(valueNode.getValue().toString());
+            } else if (key.equalsIgnoreCase("repositories")) {
+                provider.setRepositories(((ListNode) valueNode).getValue());
+            }
         }
-
-        provider.syncInternalToProperties();
 
         return provider;
     }

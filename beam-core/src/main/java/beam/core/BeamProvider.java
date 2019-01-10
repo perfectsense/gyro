@@ -1,7 +1,6 @@
 package beam.core;
 
 import beam.core.diff.ResourceName;
-import beam.lang.ContainerNode;
 import com.psddev.dari.util.ObjectUtils;
 import com.psddev.dari.util.StringUtils;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
@@ -38,11 +37,12 @@ import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-public class BeamProvider extends ContainerNode {
+public class BeamProvider {
 
     private String name;
     private String artifact;
     private List<String> repositories;
+    private BeamCore core;
 
     private static Map<String, Map<String, Class>> PROVIDER_CLASS_CACHE = new HashMap<>();
     private static Map<String, List<Artifact>> ARTIFACTS = new HashMap<>();
@@ -75,12 +75,16 @@ public class BeamProvider extends ContainerNode {
         return repositories;
     }
 
+    public BeamCore getCore() {
+        return core;
+    }
+
+    public void setCore(BeamCore core) {
+        this.core = core;
+    }
+
     public void load() {
-        syncInternalToProperties();
-
         try {
-            Map<String, Object> resolvedKeyValues = resolvedKeyValues();
-
             List<Artifact> artifacts = ARTIFACTS.get(getArtifact());
             if (artifacts == null) {
                 BeamCore.ui().write("@|bold,blue Loading:|@ provider %s...\n", getName());
@@ -88,11 +92,8 @@ public class BeamProvider extends ContainerNode {
                 List<RemoteRepository> remoteRepositories = new ArrayList<>();
                 remoteRepositories.add(new RemoteRepository.Builder("central", "default", "http://repo1.maven.org/maven2/").build());
 
-                List<String> repos = (List<String>) resolvedKeyValues.get("repositories");
-                if (resolvedKeyValues.get("repositories") != null) {
-                    for (String repo : repos) {
-                        remoteRepositories.add(new RemoteRepository.Builder(repo, "default", repo).build());
-                    }
+                for (String repo : getRepositories()) {
+                    remoteRepositories.add(new RemoteRepository.Builder(repo, "default", repo).build());
                 }
 
                 artifacts = fetchArtifacts(getArtifact(), remoteRepositories);
@@ -112,12 +113,12 @@ public class BeamProvider extends ContainerNode {
                         dependencyArtifact.getVersion());
 
                     if (getArtifact().equals(key)) {
-                        registerResources(core(), artifactJarUrls, dependencyArtifact);
+                        registerResources(getCore(), artifactJarUrls, dependencyArtifact);
                     }
                 }
             } else {
                 for (String resourceName : PROVIDER_CLASS_CACHE.get(getArtifact()).keySet()) {
-                    core().addResourceType(resourceName, PROVIDER_CLASS_CACHE.get(getArtifact()).get(resourceName));
+                    getCore().addResourceType(resourceName, PROVIDER_CLASS_CACHE.get(getArtifact()).get(resourceName));
                 }
             }
         } catch (Exception e) {
