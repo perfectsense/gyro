@@ -34,8 +34,8 @@ import java.util.Set;
  *aws::sqs sqs-example996556
  *      name : "testRedrive3345itest12345"
  *      visibility-timeout : 400
- *      message-retention-period : 864000
- *      maximum-message-size : 258048
+ *      message-retention-period : 864000 (in seconds)
+ *      maximum-message-size : 258048 (bytes)
  *      delay-seconds : 140
  *      receive-message-wait-time-seconds : 5
  *      kms-master-key-id : 23
@@ -43,16 +43,16 @@ import java.util.Set;
  *      policy-doc-path: 'policy.json'
  *      dead-letter-queue-name : "testRedrive3345itest123"
  *      max-receive-count : "5"
- *      account-no : 242040583208
+ *      account-no : 242040583208 (needed when dead letter queue name is provided instead of the dead letter target ARN)
  * end
  *
  *.. code-block:: beam with the fifo queue
  *
- * aws::sqs sqs-example9965567.fifo
- *      name : "testRedrive3345itest1234567"
+ * aws::sqs sqs-example2.fifo
+ *      name : "testxyz"
  *      visibility-timeout : 400
- *      message-retention-period : 864000
- *      maximum-message-size : 258048
+ *      message-retention-period : 864000 (in seconds)
+ *      maximum-message-size : 258048 (bytes)
  *      delay-seconds : 140
  *      receive-message-wait-time-seconds : 5
  *      kms-master-key-id : 23
@@ -95,14 +95,14 @@ public class SqsResource extends AwsResource {
     public void setName(String name) {
         this.name = name;
     }
-    
+
     /**
      * Enable setting up the attributes for the queue. See `<https://docs.aws.amazon.com/AWSSimpleQueueService/latest/APIReference/API_GetQueueAttributes.html>`_.
      * Check default values for the attributes of the queue here `<https://docs.aws.amazon.com/AWSSimpleQueueService/latest/APIReference/API_SetQueueAttributes.html>`_.
      * Valid values :
      * delay-seconds : 0-900 seconds
      * visibility-timeout : 0-12 hrs
-     * message-retention-period : 1 minute -14 days
+     * message-retention-period : 1 minute - 14 days
      * maximum-message-size : 1 KiB - 256 Kib
      * receive-message-wait-time-seconds : 0-20 seconds
      */
@@ -383,12 +383,9 @@ public class SqsResource extends AwsResource {
         attributeUpdate.put(QueueAttributeName.KMS_MASTER_KEY_ID, getKmsMasterKeyId().toString());
         attributeUpdate.put(QueueAttributeName.KMS_DATA_KEY_REUSE_PERIOD_SECONDS, getKmsDataKeyReusePeriodSeconds().toString());
         attributeUpdate.put(QueueAttributeName.POLICY, getPolicy());
+        attributeUpdate.put(QueueAttributeName.CONTENT_BASED_DEDUPLICATION, getContentBasedDeduplication());
 
         SqsClient client = createClient(SqsClient.class);
-
-        if (client.getQueueAttributes(r -> r.queueUrl(queueUrl)).attributes().get(QueueAttributeName.CONTENT_BASED_DEDUPLICATION) != null) {
-            attributeUpdate.put(QueueAttributeName.CONTENT_BASED_DEDUPLICATION, getContentBasedDeduplication());
-        }
 
         client.setQueueAttributes(r -> r.attributes(attributeUpdate).queueUrl(getQueueUrl()));
     }
