@@ -1,10 +1,9 @@
 package beam.aws;
 
-import beam.core.BeamCredentials;
+import beam.core.Credentials;
 import beam.core.diff.ResourceName;
 import com.google.common.collect.ImmutableMap;
 import org.joda.time.DateTime;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
@@ -14,7 +13,7 @@ import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import java.util.Map;
 
 @ResourceName("credentials")
-public class AwsBeamCredentials extends BeamCredentials {
+public class AwsCredentials extends Credentials {
 
     private transient AwsCredentialsProvider provider;
 
@@ -22,7 +21,7 @@ public class AwsBeamCredentials extends BeamCredentials {
 
     private String region;
 
-    public AwsBeamCredentials() {
+    public AwsCredentials() {
         this.provider = AwsCredentialsProviderChain.builder()
                 .credentialsProviders(DefaultCredentialsProvider.create())
                 .build();
@@ -67,7 +66,7 @@ public class AwsBeamCredentials extends BeamCredentials {
     @Override
     public Map<String, String> findCredentials(boolean refresh) {
         ImmutableMap.Builder<String, String> mapBuilder = new ImmutableMap.Builder<>();
-        AwsCredentials creds;
+        software.amazon.awssdk.auth.credentials.AwsCredentials creds;
 
         AwsCredentialsProvider provider = provider();
         creds = provider.resolveCredentials();

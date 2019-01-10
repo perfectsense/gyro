@@ -1,7 +1,6 @@
 package beam.lang;
 
 import beam.core.BeamException;
-import beam.core.BeamResource;
 import beam.core.diff.ResourceDiffProperty;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Throwables;
@@ -171,10 +170,10 @@ public class Container extends Node {
             if (propertyAnnotation != null && propertyAnnotation.subresource()) {
                 if (value instanceof List) {
                     for (Object resource : (List) value) {
-                        sb.append(subresourceToString((BeamResource) resource));
+                        sb.append(subresourceToString((Resource) resource));
                     }
-                } else if (value instanceof BeamResource) {
-                    sb.append(subresourceToString((BeamResource) value));
+                } else if (value instanceof Resource) {
+                    sb.append(subresourceToString((Resource) value));
                 }
             } else {
                 sb.append("    ").append(entry.getKey()).append(": ");
@@ -187,8 +186,8 @@ public class Container extends Node {
                     sb.append(mapToString((Map) value));
                 } else if (value instanceof List) {
                     sb.append(listToString((List) value));
-                } else if (value instanceof BeamResource) {
-                    sb.append(((BeamResource) value).resourceKey());
+                } else if (value instanceof Resource) {
+                    sb.append(((Resource) value).resourceKey());
                 }
                 sb.append("\n");
             }
@@ -197,7 +196,7 @@ public class Container extends Node {
         return sb.toString();
     }
 
-    protected String subresourceToString(BeamResource resource) {
+    protected String subresourceToString(Resource resource) {
         StringBuilder sb = new StringBuilder();
         int offset = 0;
 

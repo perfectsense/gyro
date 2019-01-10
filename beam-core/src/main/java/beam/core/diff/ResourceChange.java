@@ -1,7 +1,7 @@
 package beam.core.diff;
 
-import beam.core.BeamResource;
 import beam.lang.Node;
+import beam.lang.Resource;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 import com.psddev.dari.util.Lazy;
@@ -17,8 +17,8 @@ import java.util.Set;
 
 public class ResourceChange {
 
-    private final BeamResource currentResource;
-    private final BeamResource pendingResource;
+    private final Resource currentResource;
+    private final Resource pendingResource;
 
     private final ResourceDiff diff;
     private final List<ResourceDiff> diffs = new ArrayList<>();
@@ -30,24 +30,24 @@ public class ResourceChange {
     private final Set<String> replacedProperties = new HashSet<>();
     private final StringBuilder replacedPropertiesDisplay = new StringBuilder();
 
-    private final Lazy<BeamResource> changedResource = new Lazy<BeamResource>() {
+    private final Lazy<Resource> changedResource = new Lazy<Resource>() {
 
         @Override
-        public final BeamResource create() throws Exception {
-            BeamResource resource = change();
+        public final Resource create() throws Exception {
+            Resource resource = change();
             changed = true;
 
             return resource;
         }
     };
 
-    public ResourceChange(ResourceDiff diff, BeamResource currentResource, BeamResource pendingResource) {
+    public ResourceChange(ResourceDiff diff, Resource currentResource, Resource pendingResource) {
         this.currentResource = currentResource;
         this.pendingResource = pendingResource;
         this.diff = diff;
     }
 
-    public BeamResource executeChange() {
+    public Resource executeChange() {
         if (isChangeable()) {
             return changedResource.get();
 
@@ -56,11 +56,11 @@ public class ResourceChange {
         }
     }
 
-    public void create(List<BeamResource> pendingResources) throws Exception {
+    public void create(List<Resource> pendingResources) throws Exception {
         diff.create(this, pendingResources);
     }
 
-    public void createOne(BeamResource pendingResource) throws Exception {
+    public void createOne(Resource pendingResource) throws Exception {
         diff.createOne(this, pendingResource);
     }
 
@@ -68,25 +68,25 @@ public class ResourceChange {
         diff.update(this, currentResources, pendingResources);
     }
 
-    public void updateOne(BeamResource currentResource, BeamResource pendingResource) throws Exception {
+    public void updateOne(Resource currentResource, Resource pendingResource) throws Exception {
         diff.updateOne(this, currentResource, pendingResource);
     }
 
-    public void delete(List<BeamResource> pendingResources) throws Exception {
+    public void delete(List<Resource> pendingResources) throws Exception {
         diff.delete(this, pendingResources);
     }
 
-    public void deleteOne(BeamResource pendingResource) throws Exception {
+    public void deleteOne(Resource pendingResource) throws Exception {
         diff.deleteOne(this, pendingResource);
     }
 
     public Set<ResourceChange> dependencies() {
         Set<ResourceChange> dependencies = new HashSet<>();
 
-        BeamResource resource = pendingResource != null ? pendingResource : currentResource;
+        Resource resource = pendingResource != null ? pendingResource : currentResource;
         for (Node block : (getType() == ChangeType.DELETE ? resource.dependents() : resource.dependencies())) {
-            if (block instanceof BeamResource) {
-                BeamResource r = (BeamResource) block;
+            if (block instanceof Resource) {
+                Resource r = (Resource) block;
                 ResourceChange c = r.change();
 
                 if (c != null) {
@@ -268,7 +268,7 @@ public class ResourceChange {
         }
     }
 
-    protected BeamResource change() {
+    protected Resource change() {
         ChangeType type = getType();
 
         if (type == ChangeType.UPDATE) {

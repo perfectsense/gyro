@@ -2,7 +2,6 @@ package beam.lang;
 
 import beam.core.BeamLocalState;
 import beam.core.BeamProvider;
-import beam.core.BeamResource;
 import beam.core.BeamState;
 
 import java.io.File;
@@ -83,8 +82,8 @@ public class BeamFile extends ResourceContainer {
     }
 
     @Override
-    public BeamResource getResource(String type, String key) {
-        BeamResource resource = super.getResource(type, key);
+    public Resource getResource(String type, String key) {
+        Resource resource = super.getResource(type, key);
         if (resource == null && imports().containsKey("_")) {
             // Check in "global" import
             BeamFile importNode = imports().get("_");
@@ -123,7 +122,7 @@ public class BeamFile extends ResourceContainer {
     public boolean resolve() {
         super.resolve();
 
-        for (BeamResource resource : resources()) {
+        for (Resource resource : resources()) {
             boolean resolved = resource.resolve();
             if (!resolved) {
                 throw new BeamLanguageException("Unable to resolve configuration.", resource);

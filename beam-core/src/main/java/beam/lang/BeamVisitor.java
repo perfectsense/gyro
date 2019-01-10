@@ -4,7 +4,6 @@ import beam.core.BeamCore;
 import beam.core.BeamException;
 import beam.core.BeamLocalState;
 import beam.core.BeamProvider;
-import beam.core.BeamResource;
 import beam.core.BeamState;
 import beam.parser.antlr4.BeamParser;
 import beam.parser.antlr4.BeamParser.Beam_rootContext;
@@ -49,7 +48,7 @@ public class BeamVisitor extends BeamParserBaseVisitor {
 
                 containerNode.put(key, valueNode);
             } else if (blockContext.resource_block() != null) {
-                BeamResource block = visitResource_block(blockContext.resource_block(), containerNode);
+                Resource block = visitResource_block(blockContext.resource_block(), containerNode);
 
                 containerNode.putResource(block);
             } else if (blockContext.provider_block() != null) {
@@ -115,8 +114,8 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         return new BeamLocalState();
     }
 
-    public BeamResource visitResource_block(Resource_blockContext context, Container parent) {
-        BeamResource resourceBlock = createResourceBlock(context.resource_type().getText());
+    public Resource visitResource_block(Resource_blockContext context, Container parent) {
+        Resource resourceBlock = createResourceBlock(context.resource_type().getText());
         resourceBlock.setResourceType(context.resource_type().getText());
         resourceBlock.setParentNode(parent);
         resourceBlock.setLine(context.getStart().getLine());
@@ -142,7 +141,7 @@ public class BeamVisitor extends BeamParserBaseVisitor {
 
                 resourceBlock.put(key, valueNode);
             } else if (blockContext.subresource_block() != null) {
-                BeamResource node = visitSubresource_block(blockContext.subresource_block(), resourceBlock);
+                Resource node = visitSubresource_block(blockContext.subresource_block(), resourceBlock);
                 String type = blockContext.subresource_block().resource_type().getText();
                 resourceBlock.putSubresource(type, node);
             } else if (blockContext.for_block() != null) {
@@ -156,8 +155,8 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         return resourceBlock;
     }
 
-    public BeamResource visitSubresource_block(BeamParser.Subresource_blockContext context, BeamResource parent) {
-        BeamResource resourceBlock = createSubResourceBlock(parent, context.resource_type().getText());
+    public Resource visitSubresource_block(BeamParser.Subresource_blockContext context, Resource parent) {
+        Resource resourceBlock = createSubResourceBlock(parent, context.resource_type().getText());
         resourceBlock.setResourceType(context.resource_type().getText());
         resourceBlock.setParentNode(parent);
         resourceBlock.setLine(context.getStart().getLine());
@@ -228,14 +227,14 @@ public class BeamVisitor extends BeamParserBaseVisitor {
                     throw new BeamLanguageException("Resource is not valid.");
                 }
 
-                BeamResource block = visitResource_block(blockContext.resource_block(), forNode);
+                Resource block = visitResource_block(blockContext.resource_block(), forNode);
                 forNode.putResource(block);
             } else if (blockContext.subresource_block() != null) {
-                if (!(parent instanceof BeamResource)) {
+                if (!(parent instanceof Resource)) {
                     throw new BeamLanguageException("Subresource is not valid.");
                 }
 
-                BeamResource subresourceNode = visitSubresource_block(blockContext.subresource_block(), (BeamResource) parent);
+                Resource subresourceNode = visitSubresource_block(blockContext.subresource_block(), (Resource) parent);
                 forNode.putSubResource(subresourceNode);
             }
         }
@@ -380,11 +379,11 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         return value;
     }
 
-    public BeamResource createResourceBlock(String type) {
+    public Resource createResourceBlock(String type) {
         Class klass = core.getResourceType(type);
         if (klass != null) {
             try {
-                BeamResource resource = (BeamResource) klass.newInstance();
+                Resource resource = (Resource) klass.newInstance();
                 resource.setResourceType(type);
                 resource.setCore(core);
 
@@ -397,7 +396,7 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         return null;
     }
 
-    public BeamResource createSubResourceBlock(BeamResource parent, String type) {
+    public Resource createSubResourceBlock(Resource parent, String type) {
         String key = String.format("%s::%s", parent.resourceType(), type);
         return createResourceBlock(key);
     }

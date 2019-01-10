@@ -1,7 +1,5 @@
 package beam.lang;
 
-import beam.core.BeamResource;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -86,8 +84,8 @@ public class ForControl extends ControlStructure {
             if (parent instanceof ResourceContainer) {
                 ResourceContainer resourceContainerNode = (ResourceContainer) parent;
 
-                for (BeamResource resourceNode : resources()) {
-                    BeamResource copy = resourceNode.copy();
+                for (Resource resourceNode : resources()) {
+                    Resource copy = resourceNode.copy();
                     copy.setParentNode(scope);
 
                     resourceContainerNode.putResourceKeepParent(copy);
@@ -95,14 +93,14 @@ public class ForControl extends ControlStructure {
             }
 
             // Copy subresource nodes
-            if (parent instanceof BeamResource) {
-                BeamResource resource = (BeamResource) parent;
+            if (parent instanceof Resource) {
+                Resource resource = (Resource) parent;
 
                 for (String fieldName : subResources().keySet()) {
-                    List<BeamResource> subresources = subResources().get(fieldName);
+                    List<Resource> subresources = subResources().get(fieldName);
 
-                    for (BeamResource subresource : subresources) {
-                        BeamResource copy = subresource.copy();
+                    for (Resource subresource : subresources) {
+                        Resource copy = subresource.copy();
                         copy.setParentNode(scope);
 
                         resource.putSubresource(fieldName, copy);

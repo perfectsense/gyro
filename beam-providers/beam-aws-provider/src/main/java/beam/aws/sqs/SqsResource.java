@@ -1,13 +1,12 @@
 package beam.aws.sqs;
 
-import beam.aws.AwsBeamCredentials;
+import beam.aws.AwsCredentials;
 import beam.aws.AwsResource;
-import beam.core.BeamCredentials;
 import beam.core.BeamException;
-import beam.core.BeamResource;
+import beam.core.Credentials;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
-
+import beam.lang.Resource;
 import com.psddev.dari.util.CompactMap;
 import com.psddev.dari.util.JsonProcessor;
 import software.amazon.awssdk.services.sqs.SqsClient;
@@ -371,7 +370,7 @@ public class SqsResource extends AwsResource {
     }
 
     @Override
-    public void update(BeamResource current, Set<String> changedProperties) {
+    public void update(Resource current, Set<String> changedProperties) {
 
         Map<QueueAttributeName, String> attributeUpdate = new HashMap<>();
 
@@ -417,8 +416,8 @@ public class SqsResource extends AwsResource {
      * Adding the account number in the config is a temporary fix, need to change when code changes
      */
     private String createQueueArn(String deadLetterQueueName) {
-        BeamCredentials resourceCredentials = this.getResourceCredentials();
-        AwsBeamCredentials awsCredentials = (AwsBeamCredentials) resourceCredentials;
+        Credentials resourceCredentials = this.getResourceCredentials();
+        AwsCredentials awsCredentials = (AwsCredentials) resourceCredentials;
 
         return "arn:aws:sqs:" + awsCredentials.getRegion() + ":" + getAccountNo() + ":" + deadLetterQueueName;
     }

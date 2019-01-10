@@ -1,34 +1,32 @@
 package beam.lang;
 
-import beam.core.BeamResource;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 public class ResourceContainer extends Container {
 
-    transient Map<ResourceKey, BeamResource> resources = new HashMap<>();
+    transient Map<ResourceKey, Resource> resources = new HashMap<>();
 
-    public Collection<BeamResource> resources() {
+    public Collection<Resource> resources() {
         return resources.values();
     }
 
-    public BeamResource removeResource(BeamResource block) {
+    public Resource removeResource(Resource block) {
         return resources.remove(block.resourceKey());
     }
 
-    public void putResource(BeamResource resourceBlock) {
+    public void putResource(Resource resourceBlock) {
         resourceBlock.setParentNode(this);
 
         resources.put(resourceBlock.resourceKey(), resourceBlock);
     }
 
-    public void putResourceKeepParent(BeamResource resourceNode) {
+    public void putResourceKeepParent(Resource resourceNode) {
         resources.put(resourceNode.resourceKey(), resourceNode);
     }
 
-    public BeamResource getResource(String type, String key) {
+    public Resource getResource(String type, String key) {
         ResourceKey resourceKey = new ResourceKey(type, key);
 
         return resources.get(resourceKey);
@@ -38,7 +36,7 @@ public class ResourceContainer extends Container {
     public void evaluateControlNodes() {
         super.evaluateControlNodes();
 
-        for (BeamResource resourceNode : resources()) {
+        for (Resource resourceNode : resources()) {
             resourceNode.evaluateControlNodes();
         }
     }
@@ -47,7 +45,7 @@ public class ResourceContainer extends Container {
     public String toString() {
         StringBuilder sb = new StringBuilder();
 
-        for (BeamResource resourceBlock : resources()) {
+        for (Resource resourceBlock : resources()) {
             sb.append(resourceBlock.toString());
         }
 

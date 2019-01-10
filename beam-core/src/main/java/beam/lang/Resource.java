@@ -1,15 +1,11 @@
-package beam.core;
+package beam.lang;
 
+import beam.core.BeamException;
+import beam.core.Credentials;
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceDisplayDiff;
 import beam.core.diff.ResourceName;
-import beam.lang.BeamLanguageException;
-import beam.lang.Container;
-import beam.lang.Node;
-import beam.lang.ReferenceNode;
-import beam.lang.ResourceKey;
-import beam.lang.StringExpressionNode;
 import com.google.common.base.Throwables;
 import com.psddev.dari.util.ObjectUtils;
 import org.apache.commons.beanutils.BeanUtils;
@@ -28,23 +24,23 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-public abstract class BeamResource extends Container implements Comparable<BeamResource> {
+public abstract class Resource extends Container implements Comparable<Resource> {
 
     private String type;
     private String name;
     private StringExpressionNode nameExpression;
-    private Set<BeamResource> dependencies;
-    private Set<BeamResource> dependents;
-    private Map<String, List<BeamResource>> subResources;
+    private Set<Resource> dependencies;
+    private Set<Resource> dependents;
+    private Map<String, List<Resource>> subResources;
 
-    private transient BeamCredentials resourceCredentials;
+    private transient Credentials resourceCredentials;
     private transient ResourceChange change;
 
     public abstract boolean refresh();
 
     public abstract void create();
 
-    public abstract void update(BeamResource current, Set<String> changedProperties);
+    public abstract void update(Resource current, Set<String> changedProperties);
 
     public abstract void delete();
 
@@ -53,8 +49,8 @@ public abstract class BeamResource extends Container implements Comparable<BeamR
     public abstract Class resourceCredentialsClass();
 
     @Override
-    public BeamResource copy() {
-        BeamResource resource = (BeamResource) super.copy();
+    public Resource copy() {
+        Resource resource = (Resource) super.copy();
         resource.setResourceCredentials(getResourceCredentials());
         resource.setResourceType(resourceType());
         resource.setResourceIdentifier(resourceIdentifier());
@@ -62,9 +58,9 @@ public abstract class BeamResource extends Container implements Comparable<BeamR
 
         // Copy subresources
         for (String fieldName : subResources().keySet()) {
-            List<BeamResource> subresources = new ArrayList<>();
+            List<Resource> subresources = new ArrayList<>();
 
-            for (BeamResource subresource : subResources().get(fieldName)) {
+            for (Resource subresource : subResources().get(fieldName)) {
                 subresources.add(subresource.copy());
             }
 
@@ -78,7 +74,7 @@ public abstract class BeamResource extends Container implements Comparable<BeamR
         Class c = resourceCredentialsClass();
 
         try {
-            BeamCredentials credentials = (BeamCredentials) c.newInstance();
+            Credentials credentials = (Credentials) c.newInstance();
 
             String resourceNamespace = credentials.getCloudName();
             String resourceName = c.getSimpleName();
@@ -99,11 +95,11 @@ public abstract class BeamResource extends Container implements Comparable<BeamR
         return String.format("%s %s", resourceType(), resourceIdentifier());
     }
 
-    public BeamCredentials getResourceCredentials() {
+    public Credentials getResourceCredentials() {
         return resourceCredentials;
     }
 
-    public void setResourceCredentials(BeamCredentials resourceCredentials) {
+    public void setResourceCredentials(Credentials resourceCredentials) {
         this.resourceCredentials = resourceCredentials;
     }
 
@@ -124,12 +120,12 @@ public abstract class BeamResource extends Container implements Comparable<BeamR
             if (pendingValue instanceof Collection) {
                 change.create((List) pendingValue);
             } else {
-                change.createOne((BeamResource) pendingValue);
+                change.createOne((Resource) pendingValue);
             }
         }
     }
 
-    public void diffOnUpdate(ResourceChange change, BeamResource current) throws Exception {
+    public void diffOnUpdate(ResourceChange change, Resource current) throws Exception {
         Map<String, Object> currentValues = current.resolvedKeyValues();
         Map<String, Object> pendingValues = resolvedKeyValues();
 
@@ -141,7 +137,7 @@ public abstract class BeamResource extends Container implements Comparable<BeamR
             if (pendingValue instanceof Collection) {
                 change.update((List) currentValue, (List) pendingValue);
             } else {
-                change.updateOne((BeamResource) currentValue, (BeamResource) pendingValue);
+                change.updateOne((Resource) currentValue, (Resource) pendingValue);
             }
         }
     }
@@ -155,12 +151,12 @@ public abstract class BeamResource extends Container implements Comparable<BeamR
             if (pendingValue instanceof Collection) {
                 change.delete((List) pendingValue);
             } else {
-                change.deleteOne((BeamResource) pendingValue);
+                change.deleteOne((Resource) pendingValue);
             }
         }
     }
 
-    public ResourceDisplayDiff calculateFieldDiffs(BeamResource current) {
+    public ResourceDisplayDiff calculateFieldDiffs(Resource current) {
         boolean firstField = true;
 
         ResourceDisplayDiff displayDiff = new ResourceDisplayDiff();
@@ -232,7 +228,7 @@ public abstract class BeamResource extends Container implements Comparable<BeamR
     }
 
     @Override
-    public int compareTo(BeamResource o) {
+    public int compareTo(Resource o) {
         if (o == null) {
             return 1;
         }
@@ -280,7 +276,7 @@ public abstract class BeamResource extends Container implements Comparable<BeamR
             return false;
         }
 
-        BeamResource that = (BeamResource) o;
+        Resource that = (Resource) o;
 
         return Objects.equals(primaryKey(), that.primaryKey());
     }
@@ -290,7 +286,7 @@ public abstract class BeamResource extends Container implements Comparable<BeamR
         return Objects.hash(primaryKey());
     }
 
-    public Set<BeamResource> dependencies() {
+    public Set<Resource> dependencies() {
         if (dependencies == null) {
             dependencies = new LinkedHashSet<>();
         }
@@ -298,7 +294,7 @@ public abstract class BeamResource extends Container implements Comparable<BeamR
         return dependencies;
     }
 
-    public Set<BeamResource> dependents() {
+    public Set<Resource> dependents() {
         if (dependents == null) {
             dependents = new LinkedHashSet<>();
         }
@@ -306,7 +302,7 @@ public abstract class BeamResource extends Container implements Comparable<BeamR
         return dependents;
     }
 
-    public Map<String, List<BeamResource>> subResources() {
+    public Map<String, List<Resource>> subResources() {
         if (subResources == null) {
             subResources = new HashMap<>();
         }
@@ -314,8 +310,8 @@ public abstract class BeamResource extends Container implements Comparable<BeamR
         return subResources;
     }
 
-    public void putSubresource(String fieldName, BeamResource subresource) {
-        List<BeamResource> resources = subResources().computeIfAbsent(fieldName, r -> new ArrayList<>());
+    public void putSubresource(String fieldName, Resource subresource) {
+        List<Resource> resources = subResources().computeIfAbsent(fieldName, r -> new ArrayList<>());
         resources.add(subresource);
     }
 
@@ -347,21 +343,21 @@ public abstract class BeamResource extends Container implements Comparable<BeamR
         return new ResourceKey(resourceType(), resourceIdentifier());
     }
 
-    public BeamResource parentResourceNode() {
+    public Resource parentResourceNode() {
         Node parent = parentNode();
 
-        while (parent != null && !(parent instanceof BeamResource)) {
+        while (parent != null && !(parent instanceof Resource)) {
             parent = parent.parentNode();
         }
 
-        return (BeamResource) parent;
+        return (Resource) parent;
     }
 
     protected final void syncInternalToProperties() {
         super.syncInternalToProperties();
 
         for (String subResourceField : subResources().keySet()) {
-            List<BeamResource> subResources = subResources().get(subResourceField);
+            List<Resource> subResources = subResources().get(subResourceField);
 
             try {
                 BeanUtils.setProperty(this, subResourceField, subResources);
@@ -377,11 +373,11 @@ public abstract class BeamResource extends Container implements Comparable<BeamR
      * from the current state (i.e. a resource loaded from a state file) into a pending
      * state (i.e. a resource loaded from a config file).
      */
-    public void syncPropertiesFromResource(BeamResource source) {
+    public void syncPropertiesFromResource(Resource source) {
         syncPropertiesFromResource(source, false);
     }
 
-    public void syncPropertiesFromResource(BeamResource source, boolean force) {
+    public void syncPropertiesFromResource(Resource source, boolean force) {
         if (source == null) {
             return;
         }
@@ -427,8 +423,8 @@ public abstract class BeamResource extends Container implements Comparable<BeamR
             nameExpression.resolve();
         }
 
-        for (List<BeamResource> resources : subResources().values()) {
-            for (BeamResource resource : resources) {
+        for (List<Resource> resources : subResources().values()) {
+            for (Resource resource : resources) {
                 if (!resource.resolve()) {
                     throw new BeamLanguageException("Unable to resolve configuration.", resource);
                 }

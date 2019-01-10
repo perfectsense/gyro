@@ -1,9 +1,11 @@
 package beam.core;
 
+import beam.lang.Resource;
+
 import java.util.Map;
 import java.util.Set;
 
-public abstract class BeamCredentials extends BeamResource {
+public abstract class Credentials extends Resource {
 
     /**
      * Return the name of this cloud.
@@ -38,7 +40,7 @@ public abstract class BeamCredentials extends BeamResource {
     }
 
     @Override
-    public final void update(BeamResource current, Set<String> changedProperties) {
+    public final void update(Resource current, Set<String> changedProperties) {
 
     }
 

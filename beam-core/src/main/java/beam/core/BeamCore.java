@@ -11,6 +11,7 @@ import beam.lang.BeamProviderLoadingListener;
 import beam.lang.BeamStateLoadingListener;
 import beam.lang.BeamVisitor;
 import beam.lang.Node;
+import beam.lang.Resource;
 import beam.parser.antlr4.BeamLexer;
 import beam.parser.antlr4.BeamParser;
 import com.psddev.dari.util.ThreadLocalStack;
@@ -27,7 +28,7 @@ import java.util.Set;
 
 public class BeamCore {
 
-    private final Map<String, Class<? extends BeamResource>> resourceTypes = new HashMap<>();
+    private final Map<String, Class<? extends Resource>> resourceTypes = new HashMap<>();
 
     private BeamProviderLoadingListener providerListener;
     private BeamStateLoadingListener stateListener;
@@ -46,7 +47,7 @@ public class BeamCore {
         return UI.pop();
     }
 
-    public void addResourceType(String key, Class<? extends BeamResource> extension) {
+    public void addResourceType(String key, Class<? extends Resource> extension) {
         resourceTypes.put(key, extension);
     }
 
@@ -236,7 +237,7 @@ public class BeamCore {
 
         BeamCore.ui().write("Executing: ");
         writeChange(change);
-        BeamResource resource = change.executeChange();
+        Resource resource = change.executeChange();
 
         BeamFile stateNode = resource.fileNode().state();
         BeamState backend = resource.fileNode().stateBackend();
@@ -248,8 +249,8 @@ public class BeamCore {
             if (nameAnnotation != null && !nameAnnotation.parent().equals("")) {
                 // Save parent resource when current resource is a subresource.
                 Node parent = resource.parentNode();
-                if (parent instanceof BeamResource) {
-                    stateNode.putResource(((BeamResource) parent).copy());
+                if (parent instanceof Resource) {
+                    stateNode.putResource(((Resource) parent).copy());
                 }
             } else {
                 stateNode.putResource(resource.copy());

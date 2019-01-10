@@ -1,6 +1,7 @@
 package beam.core;
 
 import beam.core.diff.ResourceName;
+import beam.lang.Resource;
 import com.psddev.dari.util.ObjectUtils;
 import com.psddev.dari.util.StringUtils;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
@@ -178,12 +179,12 @@ public class BeamProvider {
                 continue;
             }
 
-            BeamCredentials credentials = null;
-            if (BeamCredentials.class.isAssignableFrom(resourceClass)) {
-                credentials = (BeamCredentials) resourceClass.newInstance();
-            } else if (BeamResource.class.isAssignableFrom(resourceClass)) {
-                BeamResource resource = (BeamResource) resourceClass.newInstance();
-                credentials = (BeamCredentials) resource.resourceCredentialsClass().newInstance();
+            Credentials credentials = null;
+            if (Credentials.class.isAssignableFrom(resourceClass)) {
+                credentials = (Credentials) resourceClass.newInstance();
+            } else if (Resource.class.isAssignableFrom(resourceClass)) {
+                Resource resource = (Resource) resourceClass.newInstance();
+                credentials = (Credentials) resource.resourceCredentialsClass().newInstance();
             } else {
                 continue;
             }
