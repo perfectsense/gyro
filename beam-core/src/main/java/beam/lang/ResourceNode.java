@@ -29,7 +29,6 @@ public class ResourceNode extends ContainerNode {
     private Set<ResourceNode> dependencies;
     private Set<ResourceNode> dependents;
     private Map<String, List<ResourceNode>> subResources;
-    private FileNode fileNode;
 
     public Set<ResourceNode> dependencies() {
         if (dependencies == null) {
@@ -86,22 +85,6 @@ public class ResourceNode extends ContainerNode {
 
     public ResourceKey resourceKey() {
         return new ResourceKey(resourceType(), resourceIdentifier());
-    }
-
-    public FileNode fileNode() {
-        if (fileNode == null) {
-            Node parent = parentNode();
-
-            while (parent != null && !(parent instanceof FileNode)) {
-                parent = parent.parentNode();
-            }
-
-            if (parent instanceof FileNode) {
-                fileNode = (FileNode) parent;
-            }
-        }
-
-        return fileNode;
     }
 
     public ResourceNode parentResourceNode() {

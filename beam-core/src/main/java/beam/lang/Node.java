@@ -8,6 +8,7 @@ public abstract class Node {
     private transient int line;
     private transient int column;
     private BeamCore core;
+    private FileNode fileNode;
 
     public abstract boolean resolve();
 
@@ -42,4 +43,21 @@ public abstract class Node {
     public void setCore(BeamCore core) {
         this.core = core;
     }
+
+    public FileNode fileNode() {
+        if (fileNode == null) {
+            Node parent = parentNode();
+
+            while (parent != null && !(parent instanceof FileNode)) {
+                parent = parent.parentNode();
+            }
+
+            if (parent instanceof FileNode) {
+                fileNode = (FileNode) parent;
+            }
+        }
+
+        return fileNode;
+    }
+
 }
