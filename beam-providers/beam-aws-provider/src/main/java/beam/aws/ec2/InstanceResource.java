@@ -250,6 +250,7 @@ public class InstanceResource extends Ec2TaggableResource<Instance> {
                     .hibernationOptions(o -> o.configured(getConfigureHibernateOption()))
                     .instanceInitiatedShutdownBehavior(getShutdownBehavior())
                     .cpuOptions(o -> o.build())
+                    .cpuOptions(getCoreCount() > 0 ? o -> o.threadsPerCore(getThreadPerCore()).coreCount(getCoreCount()).build() : SdkBuilder::build)
                     .instanceType(getInstanceType())
                     .keyName(getKeyName())
                     .maxCount(1)
