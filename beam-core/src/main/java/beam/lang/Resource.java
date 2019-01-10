@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-public abstract class Resource extends Container implements Comparable<Resource> {
+public abstract class Resource extends Container {
 
     private String type;
     private String name;
@@ -226,18 +226,6 @@ public abstract class Resource extends Container implements Comparable<Resource>
     public final void executeInternal() {
         syncInternalToProperties();
         execute();
-    }
-
-    @Override
-    public int compareTo(Resource o) {
-        if (o == null) {
-            return 1;
-        }
-
-        String compareKey = String.format("%s %s", resourceType(), resourceIdentifier());
-        String otherKey = String.format("%s %s", o.resourceType(), o.resourceIdentifier());
-
-        return compareKey.compareTo(otherKey);
     }
 
     /**
