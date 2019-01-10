@@ -2,22 +2,27 @@ package beam.aws.ec2;
 
 import beam.aws.AwsResource;
 import beam.core.BeamException;
+import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 import com.psddev.dari.util.ObjectUtils;
 import software.amazon.awssdk.services.ec2.Ec2Client;
+import software.amazon.awssdk.services.ec2.model.AttributeBooleanValue;
 import software.amazon.awssdk.services.ec2.model.DescribeImagesRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeImagesResponse;
+import software.amazon.awssdk.services.ec2.model.DescribeInstanceAttributeResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeInstancesResponse;
 import software.amazon.awssdk.services.ec2.model.Ec2Exception;
 import software.amazon.awssdk.services.ec2.model.Filter;
 import software.amazon.awssdk.services.ec2.model.GroupIdentifier;
 import software.amazon.awssdk.services.ec2.model.Instance;
+import software.amazon.awssdk.services.ec2.model.InstanceAttributeName;
 import software.amazon.awssdk.services.ec2.model.InstanceType;
 import software.amazon.awssdk.services.ec2.model.MonitoringState;
 import software.amazon.awssdk.services.ec2.model.Reservation;
 import software.amazon.awssdk.services.ec2.model.RunInstancesMonitoringEnabled;
 import software.amazon.awssdk.services.ec2.model.RunInstancesResponse;
 import software.amazon.awssdk.services.ec2.model.ShutdownBehavior;
+import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 import java.util.Collections;
 import java.util.List;
@@ -40,6 +45,7 @@ public class InstanceResource extends Ec2TaggableResource<Instance> {
     private Boolean enableMonitoring;
     private List<String> securityGroupIds;
     private String subnetId;
+    private Boolean disableApiTermination;
 
     public String getInstanceId() {
         return instanceId;
@@ -156,6 +162,19 @@ public class InstanceResource extends Ec2TaggableResource<Instance> {
         this.subnetId = subnetId;
     }
 
+    @ResourceDiffProperty(updatable = true)
+    public Boolean getDisableApiTermination() {
+        if (disableApiTermination == null) {
+            disableApiTermination = false;
+        }
+
+        return disableApiTermination;
+    }
+
+    public void setDisableApiTermination(Boolean disableApiTermination) {
+        this.disableApiTermination = disableApiTermination;
+    }
+
     @Override
     protected String getId() {
         return getInstanceId();
@@ -191,6 +210,12 @@ public class InstanceResource extends Ec2TaggableResource<Instance> {
                 }
                 break;
             }
+
+            DescribeInstanceAttributeResponse attributeResponse = client.describeInstanceAttribute(
+                r -> r.instanceId(getInstanceId()).attribute(InstanceAttributeName.DISABLE_API_TERMINATION)
+            );
+            setDisableApiTermination(attributeResponse.disableApiTermination().equals(AttributeBooleanValue.builder().value(true).build()));
+
         } catch (Ec2Exception ex) {
             if (ex.getLocalizedMessage().contains("does not exist")) {
                 return false;
@@ -249,7 +274,6 @@ public class InstanceResource extends Ec2TaggableResource<Instance> {
                     .ebsOptimized(getEbsOptimized())
                     .hibernationOptions(o -> o.configured(getConfigureHibernateOption()))
                     .instanceInitiatedShutdownBehavior(getShutdownBehavior())
-                    .cpuOptions(o -> o.build())
                     .cpuOptions(getCoreCount() > 0 ? o -> o.threadsPerCore(getThreadPerCore()).coreCount(getCoreCount()).build() : SdkBuilder::build)
                     .instanceType(getInstanceType())
                     .keyName(getKeyName())
@@ -258,6 +282,7 @@ public class InstanceResource extends Ec2TaggableResource<Instance> {
                     .monitoring(RunInstancesMonitoringEnabled.builder().enabled(getEnableMonitoring()).build())
                     .securityGroupIds(getSecurityGroupIds())
                     .subnetId(getSubnetId())
+                    .disableApiTermination(getDisableApiTermination())
             );
 
             setInstanceId(response.instances().get(0).instanceId());
@@ -268,11 +293,18 @@ public class InstanceResource extends Ec2TaggableResource<Instance> {
 
     @Override
     protected void doUpdate(AwsResource config, Set<String> changedProperties) {
-
+        Ec2Client client = createClient(Ec2Client.class);
+        if (changedProperties.contains("disable-api-termination")) {
+            client.modifyInstanceAttribute(r -> r.instanceId(getInstanceId()).disableApiTermination(o -> o.value(getDisableApiTermination())));
+        }
     }
 
     @Override
     public void delete() {
+        if (getDisableApiTermination()) {
+            throw new BeamException("The instance (" + getInstanceId() + ") cannot be terminated when 'disableApiTermination' is set to True.");
+        }
+
         Ec2Client client = createClient(Ec2Client.class);
 
         client.terminateInstances(r -> r.instanceIds(Collections.singletonList(getInstanceId())));
