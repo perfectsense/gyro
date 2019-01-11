@@ -292,6 +292,12 @@ public abstract class Resource extends Container {
         resources.add(subresource);
     }
 
+    public void removeSubresource(Resource subresource) {
+        String fieldName = subresource.resourceType();
+        List<Resource> resources = subResources().computeIfAbsent(fieldName, r -> new ArrayList<>());
+        resources.remove(subresource);
+    }
+
     public String resourceType() {
         return type;
     }
@@ -332,7 +338,7 @@ public abstract class Resource extends Container {
 
     // -- Internal State
 
-    protected final void syncInternalToProperties() {
+    public final void syncInternalToProperties() {
         super.syncInternalToProperties();
 
         for (String subResourceField : subResources().keySet()) {
@@ -342,7 +348,6 @@ public abstract class Resource extends Container {
                 BeanUtils.setProperty(this, subResourceField, subResources);
             } catch (IllegalArgumentException | InvocationTargetException | IllegalAccessException e) {
                 // Ignoring errors from setProperty
-                e.printStackTrace();
             }
         }
     }

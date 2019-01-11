@@ -244,16 +244,24 @@ public class BeamCore {
         BeamFile stateNode = resource.fileNode().state();
         StateBackend backend = resource.fileNode().stateBackend();
 
+        ResourceName nameAnnotation = resource.getClass().getAnnotation(ResourceName.class);
+        boolean isSubresource = nameAnnotation != null && !nameAnnotation.parent().equals("");
+
         if (type == ChangeType.DELETE) {
-            stateNode.removeResource(resource);
+            if (isSubresource) {
+                Resource copy = resource.parentResourceNode().copy();
+                copy.removeSubresource(resource);
+                copy.syncInternalToProperties();
+
+                stateNode.putResource(copy);
+            } else {
+                stateNode.removeResource(resource);
+            }
         } else {
-            ResourceName nameAnnotation = resource.getClass().getAnnotation(ResourceName.class);
-            if (nameAnnotation != null && !nameAnnotation.parent().equals("")) {
+            if (isSubresource) {
                 // Save parent resource when current resource is a subresource.
-                Node parent = resource.parentNode();
-                if (parent instanceof Resource) {
-                    stateNode.putResource(((Resource) parent).copy());
-                }
+                Resource parent = resource.parentResourceNode();
+                stateNode.putResource(parent.copy());
             } else {
                 stateNode.putResource(resource.copy());
             }
