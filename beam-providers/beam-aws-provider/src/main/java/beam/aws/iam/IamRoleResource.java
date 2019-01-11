@@ -29,11 +29,10 @@ import java.util.Set;
  *
  * .. code-block:: beam
  *
- *     aws::role-resource example-role
- *         description: testing the role functionality
- *         assume-role-policy-document-file: role_example
- *         role-name: rta-test-role
- *
+ *     aws::iam-role example-role
+ *         role-name: "rta-test-role"
+ *         description: "testing the role functionality"
+ *         assume-role-policy-document-file: "role_example.json"
  *     end
  */
 
@@ -50,7 +49,7 @@ public class IamRoleResource extends AwsResource {
     public String getAssumeRolePolicyContents() {
 
         if(assumeRolePolicyContents != null){
-            return assumeRolePolicyContents;
+            return this.assumeRolePolicyContents;
         }
         else {
             if(getAssumeRolePolicyDocumentFile() != null) {
@@ -116,6 +115,7 @@ public class IamRoleResource extends AwsResource {
                 .build();
 
         Role response = client.getRole(r -> r.roleName(getRoleName())).role();
+
         if (response != null) {
             setRoleName(response.roleName());
             setDescription(response.description());
@@ -179,7 +179,6 @@ public class IamRoleResource extends AwsResource {
             client.detachRolePolicy(r -> r.policyArn(deletePolicyArn)
                     .roleName(getRoleName()));
         }
-
     }
 
     @Override
@@ -195,7 +194,6 @@ public class IamRoleResource extends AwsResource {
         }
 
         client.deleteRole(r -> r.roleName(getRoleName()));
-
     }
 
     @Override
