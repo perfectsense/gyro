@@ -403,7 +403,7 @@ public class InstanceResource extends Ec2TaggableResource<Instance> {
                     .securityGroupIds(getSecurityGroupIds())
                     .subnetId(getSubnetId())
                     .disableApiTermination(getDisableApiTermination())
-                    .userData(getUserData())
+                    .userData(new String(Base64.encodeBase64(getUserData().trim().getBytes())))
             );
 
             setInstanceId(response.instances().get(0).instanceId());
