@@ -88,7 +88,7 @@ public class IamRoleResource extends AwsResource {
         this.description = description;
     }
 
-    @ResourceDiffProperty(updatable = true)
+    @ResourceDiffProperty(updatable = true, nullable = true)
     public List<String> getPolicyArns() {
         if (this.policyArns == null) {
             this.policyArns = new ArrayList<>();
@@ -120,14 +120,14 @@ public class IamRoleResource extends AwsResource {
             setRoleName(response.roleName());
             setDescription(response.description());
             String encode = URLDecoder.decode(response.assumeRolePolicyDocument());
-            System.out.println("Show encoded "+encode);
             setAssumeRolePolicyContents(formatPolicy(encode));
-            System.out.println("Past contents "+response.assumeRolePolicyDocument());
 
+            getPolicyArns().clear();
             ListAttachedRolePoliciesResponse policyResponse = client.listAttachedRolePolicies(r -> r.roleName(getRoleName()));
             for (AttachedPolicy attachedPolicy: policyResponse.attachedPolicies()) {
                 getPolicyArns().add(attachedPolicy.policyArn());
             }
+
             return true;
         }
 
@@ -140,13 +140,11 @@ public class IamRoleResource extends AwsResource {
                 .region(Region.AWS_GLOBAL)
                 .build();
 
-        System.out.println("What is role policy document filename"+getAssumeRolePolicyDocumentFile());
-
         client.createRole(r -> r.assumeRolePolicyDocument(getAssumeRolePolicyContents())
                                 .description(getDescription())
                                 .roleName(getRoleName()));
 
-        for(String policyArn: getPolicyArns()){
+        for (String policyArn: getPolicyArns()) {
             client.attachRolePolicy(r -> r.roleName(getRoleName())
                     .policyArn(policyArn));
         }
@@ -154,19 +152,33 @@ public class IamRoleResource extends AwsResource {
 
     @Override
     public void update(BeamResource current, Set<String> changedProperties) {
-        System.out.println("Changed properties are: "+changedProperties);
-        IamRoleResource currentResource = (IamRoleResource) current;
-        System.out.println("policy contents "+currentResource.getAssumeRolePolicyContents());
-        System.out.println("get new policy contents "+getAssumeRolePolicyContents());
         IamClient client = IamClient.builder()
                 .region(Region.AWS_GLOBAL)
                 .build();
+
+        IamRoleResource currentResource = (IamRoleResource) current;
 
         client.updateAssumeRolePolicy(r -> r.policyDocument(formatPolicy(getAssumeRolePolicyContents()))
                                             .roleName(getRoleName()));
 
         client.updateRole(r -> r.description(getDescription())
                                 .roleName(getRoleName()));
+
+        List<String> additions = new ArrayList<>(getPolicyArns());
+        additions.removeAll(currentResource.getPolicyArns());
+
+        List<String> subtractions = new ArrayList<>(currentResource.getPolicyArns());
+        subtractions.removeAll(getPolicyArns());
+
+        for (String addPolicyArn : additions) {
+            client.attachRolePolicy(r -> r.policyArn(addPolicyArn)
+                    .roleName(getRoleName()));
+        }
+
+        for (String deletePolicyArn : subtractions) {
+            client.detachRolePolicy(r -> r.policyArn(deletePolicyArn)
+                    .roleName(getRoleName()));
+        }
 
     }
 
@@ -191,10 +203,10 @@ public class IamRoleResource extends AwsResource {
         StringBuilder sb = new StringBuilder();
 
         if (getRoleName() != null) {
-            sb.append("role name " + getRoleName());
+            sb.append("role " + getRoleName());
 
         } else {
-            sb.append("role name ");
+            sb.append("role ");
         }
 
         return sb.toString();
