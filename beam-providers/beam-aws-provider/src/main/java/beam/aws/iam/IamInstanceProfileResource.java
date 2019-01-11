@@ -1,7 +1,9 @@
 package beam.aws.iam;
 
 import beam.aws.AwsResource;
+import beam.core.BeamException;
 import beam.core.BeamResource;
+import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.iam.IamClient;
@@ -22,7 +24,6 @@ import java.util.Set;
  *
  *     aws::iam-instance-profile ex-inst-profile
  *         instance-profile-name: "ex-inst-profile"
- *         role-name: $(aws::role-resource example-role | role-name)
  *         roles: [$(aws::role-resource example-role | role-name)]
  *
  *     end
@@ -39,7 +40,6 @@ import java.util.Set;
 public class IamInstanceProfileResource extends AwsResource {
 
     private String instanceProfileName;
-    private String roleName;
     private List<String> roles;
 
     public String getInstanceProfileName() {
@@ -50,14 +50,7 @@ public class IamInstanceProfileResource extends AwsResource {
         this.instanceProfileName = instanceProfileName;
     }
 
-    public String getRoleName() {
-        return this.roleName;
-    }
-
-    public void setRoleName(String roleName) {
-        this.roleName = roleName;
-    }
-
+    @ResourceDiffProperty(updatable = true, nullable = true)
     public List<String> getRoles() {
         if (roles == null) {
             roles = new ArrayList<>();
@@ -69,7 +62,6 @@ public class IamInstanceProfileResource extends AwsResource {
         this.roles = roles;
     }
 
-
     @Override
     public boolean refresh() {
         IamClient client = IamClient.builder()
@@ -77,12 +69,14 @@ public class IamInstanceProfileResource extends AwsResource {
                 .build();
 
         GetInstanceProfileResponse response = client.getInstanceProfile(r -> r.instanceProfileName(getInstanceProfileName()));
-        System.out.println("Am I even in here ");
+
         if (response != null) {
+
             getRoles().clear();
             for (Role role : response.instanceProfile().roles()) {
                 getRoles().add(role.roleName());
             }
+
             return true;
         }
 
@@ -95,11 +89,11 @@ public class IamInstanceProfileResource extends AwsResource {
                 .region(Region.AWS_GLOBAL)
                 .build();
 
-        client.createInstanceProfile(r -> r.instanceProfileName(getInstanceProfileName()));
+        if (getRoles().size() > 1){
+            throw new BeamException("Only one role can be added to an instance profile");
+        }
 
-        System.out.println("What is the instance profile name "+getInstanceProfileName());
-        System.out.println("What is role name "+getRoleName());
-        System.out.println("What are roles "+getRoles());
+        client.createInstanceProfile(r -> r.instanceProfileName(getInstanceProfileName()));
 
         for (String role : getRoles()) {
             client.addRoleToInstanceProfile(
@@ -109,7 +103,29 @@ public class IamInstanceProfileResource extends AwsResource {
     }
 
     @Override
-    public void update(BeamResource current, Set<String> changedProperties) {}
+    public void update(BeamResource current, Set<String> changedProperties) {
+        IamClient client = IamClient.builder()
+                .region(Region.AWS_GLOBAL)
+                .build();
+
+        IamInstanceProfileResource currentResource = (IamInstanceProfileResource) current;
+
+        List<String> additions = new ArrayList<>(getRoles());
+        additions.removeAll(currentResource.getRoles());
+
+        List<String> subtractions = new ArrayList<>(currentResource.getRoles());
+        subtractions.removeAll(getRoles());
+
+        for (String addRole : additions) {
+            client.addRoleToInstanceProfile(r -> r.instanceProfileName(getInstanceProfileName())
+                    .roleName(addRole));
+        }
+
+        for (String deleteRole : subtractions) {
+            client.removeRoleFromInstanceProfile(r -> r.instanceProfileName(getInstanceProfileName())
+                    .roleName(deleteRole));
+        }
+    }
 
     @Override
     public void delete() {
@@ -117,7 +133,13 @@ public class IamInstanceProfileResource extends AwsResource {
                 .region(Region.AWS_GLOBAL)
                 .build();
 
-        client.deleteInstanceProfile(r -> r.instanceProfileName(getRoleName()));
+        GetInstanceProfileResponse response = client.getInstanceProfile(r -> r.instanceProfileName(getInstanceProfileName()));
+        for(Role removeRole: response.instanceProfile().roles()){
+            client.removeRoleFromInstanceProfile(r -> r.instanceProfileName(getInstanceProfileName())
+                                                    .roleName(removeRole.roleName()));
+        }
+
+        client.deleteInstanceProfile(r -> r.instanceProfileName(getInstanceProfileName()));
     }
 
     @Override
