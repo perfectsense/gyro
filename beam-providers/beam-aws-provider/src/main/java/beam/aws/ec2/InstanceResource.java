@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
  *     aws::instance instance
  *         ami-name: "amzn-ami-hvm-2018.03.0.20181129-x86_64-gp2"
  *         shutdown-behavior: "stop"
- *         instance-type: "m5.large"
+ *         instance-type: "t2.micro"
  *         key-name: "instance-static"
  *         subnet-id: $(aws::subnet subnet-instance-example | subnet-id)
  *         security-group-ids: [
@@ -53,12 +53,9 @@ import java.util.stream.Collectors;
  *             $(aws::security-group security-group-instance-example-2 | group-id)
  *         ]
  *         disable-api-termination: false
- *         enable-ena-support: false
+ *         enable-ena-support: true
  *         ebs-optimized: false
  *         source-dest-check: true
- *
- *         core-count: 1
- *         thread-per-core: 2
  *
  *         tags: {
  *             Name: "instance-example"
