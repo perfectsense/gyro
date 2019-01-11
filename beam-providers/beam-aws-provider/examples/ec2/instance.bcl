@@ -101,7 +101,7 @@ aws::instance instance
     ]
     disable-api-termination: false
     enable-ena-support: false
-    ebs-optimized: true
+    ebs-optimized: false
     source-dest-check: true
     user-data: "abc"
 
