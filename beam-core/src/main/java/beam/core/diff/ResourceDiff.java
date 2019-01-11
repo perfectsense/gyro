@@ -4,7 +4,6 @@ import beam.core.BeamCore;
 import beam.lang.BeamFile;
 import beam.lang.Credentials;
 import beam.lang.Resource;
-import com.psddev.dari.util.CompactMap;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,7 +13,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 public class ResourceDiff {
 
