@@ -264,12 +264,12 @@ public class InstanceResource extends Ec2TaggableResource<Instance> {
     }
 
     /**
-     * Enable or Disable ENA support for an instance. Defaults to false and cannot be turned on during creation. See `Enabling Enhanced Networking with the Elastic Network Adapter (ENA) on Linux Instances <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/enhanced-networking-ena.html/>`_.
+     * Enable or Disable ENA support for an instance. Defaults to true and cannot be turned off during creation. See `Enabling Enhanced Networking with the Elastic Network Adapter (ENA) on Linux Instances <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/enhanced-networking-ena.html/>`_.
      */
     @ResourceDiffProperty(updatable = true)
     public Boolean getEnableEnaSupport() {
         if (enableEnaSupport == null) {
-            enableEnaSupport = false;
+            enableEnaSupport = true;
         }
         return enableEnaSupport;
     }
@@ -536,8 +536,8 @@ public class InstanceResource extends Ec2TaggableResource<Instance> {
             throw new BeamException("The value - (" + getInstanceType() + ") is invalid for parameter Instance Type.");
         }
 
-        if (getEnableEnaSupport() && isCreate) {
-            throw new BeamException("enableEnaSupport cannot be set to True at the time of instance creation. Update the instance to set it.");
+        if (!getEnableEnaSupport() && isCreate) {
+            throw new BeamException("enableEnaSupport cannot be set to False at the time of instance creation. Update the instance to set it.");
         }
 
         if (!getSourceDestCheck() && isCreate) {
@@ -621,6 +621,12 @@ public class InstanceResource extends Ec2TaggableResource<Instance> {
     }
 
     private boolean isInstanceStopped(Ec2Client client) {
+        for (Reservation reservation : client.describeInstances(r -> r.instanceIds(getInstanceId())).reservations()) {
+            for (Instance instance : reservation.instances()) {
+                return ("stopped".equals(instance.state().nameAsString()));
+            }
+
+            return false;
         }
 
         return false;
