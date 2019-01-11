@@ -338,6 +338,10 @@ public class ResourceDiff {
     }
 
     private void removeBeamCredentials(List<Resource> resources) {
+        if (resources == null) {
+            return;
+        }
+
         Iterator<Resource> iter = resources.iterator();
         while (iter.hasNext()) {
             Resource resource = iter.next();
