@@ -48,11 +48,10 @@ public class IamRoleResource extends AwsResource {
     @ResourceDiffProperty(updatable = true)
     public String getAssumeRolePolicyContents() {
 
-        if(assumeRolePolicyContents != null){
+        if (assumeRolePolicyContents != null) {
             return this.assumeRolePolicyContents;
-        }
-        else {
-            if(getAssumeRolePolicyDocumentFile() != null) {
+        } else {
+            if (getAssumeRolePolicyDocumentFile() != null) {
                 try {
                     String encode = new String(Files.readAllBytes(Paths.get(getAssumeRolePolicyDocumentFile())), "UTF-8");
                     return formatPolicy(encode);
@@ -140,14 +139,21 @@ public class IamRoleResource extends AwsResource {
                 .region(Region.AWS_GLOBAL)
                 .build();
 
-        client.createRole(r -> r.assumeRolePolicyDocument(getAssumeRolePolicyContents())
-                                .description(getDescription())
-                                .roleName(getRoleName()));
+        try {
+            client.createRole(r -> r.assumeRolePolicyDocument(getAssumeRolePolicyContents())
+                    .description(getDescription())
+                    .roleName(getRoleName()));
+            System.out.println("Here in create");
 
-        for (String policyArn: getPolicyArns()) {
-            client.attachRolePolicy(r -> r.roleName(getRoleName())
-                    .policyArn(policyArn));
+            for (String policyArn : getPolicyArns()) {
+                client.attachRolePolicy(r -> r.roleName(getRoleName())
+                        .policyArn(policyArn));
+            }
+        } catch (Exception err) {
+            delete();
+            throw new BeamException(err.getMessage());
         }
+
     }
 
     @Override
@@ -172,12 +178,12 @@ public class IamRoleResource extends AwsResource {
 
         for (String addPolicyArn : additions) {
             client.attachRolePolicy(r -> r.policyArn(addPolicyArn)
-                    .roleName(getRoleName()));
+                .roleName(getRoleName()));
         }
 
         for (String deletePolicyArn : subtractions) {
             client.detachRolePolicy(r -> r.policyArn(deletePolicyArn)
-                    .roleName(getRoleName()));
+                .roleName(getRoleName()));
         }
     }
 
@@ -186,9 +192,9 @@ public class IamRoleResource extends AwsResource {
         IamClient client = IamClient.builder()
                 .region(Region.AWS_GLOBAL)
                 .build();
-
+        System.out.println("Here");
         ListAttachedRolePoliciesResponse response = client.listAttachedRolePolicies(r -> r.roleName(getRoleName()));
-        for(AttachedPolicy policies : response.attachedPolicies()){
+        for (AttachedPolicy policies : response.attachedPolicies()) {
             client.detachRolePolicy(r -> r.policyArn(policies.policyArn())
                                         .roleName(getRoleName()));
         }
