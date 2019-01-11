@@ -448,9 +448,10 @@ public abstract class Resource extends Container {
     }
 
     @Override
-    public String toString() {
+    public String serialize(int indent) {
         StringBuilder sb = new StringBuilder();
 
+        sb.append(indent(indent));
         sb.append(resourceType()).append(" ");
 
         if (resourceIdentifier() != null) {
@@ -460,11 +461,17 @@ public abstract class Resource extends Container {
         }
 
         sb.append("\n");
-        sb.append(super.toString());
+        sb.append(super.serialize(indent + 4));
 
+        sb.append(indent(indent));
         sb.append("end\n\n");
 
         return sb.toString();
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s %s", resourceType(), resourceIdentifier());
     }
 
 }

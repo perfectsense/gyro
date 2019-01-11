@@ -39,7 +39,7 @@ public class LocalStateBackend extends StateBackend {
             String path = fileNode.path().endsWith(".state") ? fileNode.path() : fileNode.path() + ".state";
 
             BufferedWriter out = new BufferedWriter(new FileWriter(path));
-            out.write(fileNode.toString());
+            out.write(fileNode.serialize(0));
             out.close();
         } catch (IOException e) {
             e.printStackTrace();

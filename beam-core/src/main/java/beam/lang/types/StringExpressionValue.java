@@ -60,6 +60,11 @@ public class StringExpressionValue extends Value<String> {
     }
 
     @Override
+    public String serialize(int indent) {
+        return toString();
+    }
+
+    @Override
     public String toString() {
         return "\"" + getValue() + "\"";
     }

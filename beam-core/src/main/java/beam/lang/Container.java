@@ -17,7 +17,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Container extends Node {
@@ -153,7 +152,7 @@ public class Container extends Node {
     }
 
     @Override
-    public String toString() {
+    public String serialize(int indent) {
         StringBuilder sb = new StringBuilder();
 
         for (Map.Entry<String, Object> entry : resolvedKeyValues().entrySet()) {
@@ -171,22 +170,26 @@ public class Container extends Node {
             if (propertyAnnotation != null && propertyAnnotation.subresource()) {
                 if (value instanceof List) {
                     for (Object resource : (List) value) {
-                        sb.append(subresourceToString((Resource) resource));
+                        sb.append(((Resource) resource).serialize(indent));
                     }
                 } else if (value instanceof Resource) {
-                    sb.append(subresourceToString((Resource) value));
+                    sb.append(((Resource) value).serialize(indent));
                 }
-            } else {
-                sb.append("    ").append(entry.getKey()).append(": ");
+            } else if (value != null) {
+                if (value instanceof Map && ((Map) value).isEmpty() || value instanceof List && ((List) value).isEmpty()) {
+                    continue;
+                }
+
+                sb.append(indent(indent)).append(entry.getKey()).append(": ");
 
                 if (value instanceof String) {
                     sb.append("'" + entry.getValue() + "'");
                 } else if (value instanceof Number || value instanceof Boolean) {
                     sb.append(entry.getValue());
-                } else if (value instanceof Map) {
-                    sb.append(mapToString((Map) value));
-                } else if (value instanceof List) {
-                    sb.append(listToString((List) value));
+                } else if (value instanceof Map && !((Map) value).isEmpty()) {
+                    sb.append(mapToString((Map) value, indent));
+                } else if (value instanceof List && !((List) value).isEmpty()) {
+                    sb.append(listToString((List) value, indent));
                 } else if (value instanceof Resource) {
                     sb.append(((Resource) value).resourceKey());
                 }
@@ -197,37 +200,26 @@ public class Container extends Node {
         return sb.toString();
     }
 
-    protected String subresourceToString(Resource resource) {
-        StringBuilder sb = new StringBuilder();
-        int offset = 0;
-
-        String output = resource.toString();
-        for (Matcher m = NEWLINES.matcher(output); m.find();) {
-            sb.append("    ");
-            sb.append(output.substring(offset, m.start()));
-            sb.append(m.group(1));
-
-            offset = m.end();
-        }
-
-        return sb.toString();
+    @Override
+    public String toString() {
+        return String.format("Container[key/values: %d, controls: %d]", keys().size(), controlNodes().size());
     }
 
-    protected String valueToString(Object value) {
+    protected String valueToString(Object value, int indent) {
         StringBuilder sb = new StringBuilder();
 
         if (value instanceof String) {
             sb.append("'" + value + "'");
         } else if (value instanceof Map) {
-            sb.append(mapToString((Map) value));
+            sb.append(mapToString((Map) value, indent));
         } else if (value instanceof List) {
-            sb.append(listToString((List) value));
+            sb.append(listToString((List) value, indent));
         }
 
         return sb.toString();
     }
 
-    protected String mapToString(Map map) {
+    protected String mapToString(Map map, int indent) {
         StringBuilder sb = new StringBuilder();
 
         sb.append("{").append("\n");
@@ -236,9 +228,9 @@ public class Container extends Node {
             for (Object key : map.keySet()) {
                 Object value = map.get(key);
 
-                sb.append("        ");
+                sb.append(indent(indent + 4));
                 sb.append(key).append(": ");
-                sb.append(valueToString(value));
+                sb.append(valueToString(value, indent));
                 sb.append(",\n");
             }
             sb.setLength(sb.length() - 2);
@@ -249,21 +241,22 @@ public class Container extends Node {
         return sb.toString();
     }
 
-    protected String listToString(List list) {
+    protected String listToString(List list, int indent) {
         StringBuilder sb = new StringBuilder();
 
         sb.append("[").append("\n");
 
         if (!list.isEmpty()) {
             for (Object value : list) {
-                sb.append("        ");
-                sb.append(valueToString(value));
+                sb.append(indent(indent + 4));
+                sb.append(valueToString(value, indent));
                 sb.append(",\n");
             }
             sb.setLength(sb.length() - 2);
         }
 
-        sb.append("\n    ]");
+        sb.append("\n");
+        sb.append(indent(indent)).append("]");
 
         return sb.toString();
     }

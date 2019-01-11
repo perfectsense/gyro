@@ -71,20 +71,25 @@ public class MapValue extends Value<Map> {
     }
 
     @Override
-    public String toString() {
+    public String serialize(int indent) {
         StringBuilder sb = new StringBuilder();
 
         sb.append("{\n");
 
         List<String> out = new ArrayList<>();
         for (String key : getKeyValues().keySet()) {
-            out.add(String.format("    %s: %s", key, getKeyValues().get(key).getValue()));
+            out.add(String.format("%s%s: %s", StringUtils.repeat(" ", indent), key, getKeyValues().get(key).getValue()));
         }
 
         sb.append(StringUtils.join(out, ",\n"));
         sb.append("\n}\n");
 
         return sb.toString();
+    }
+
+    @Override
+    public String toString() {
+        return serialize(0);
     }
 
 }

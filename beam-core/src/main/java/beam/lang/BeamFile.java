@@ -132,7 +132,7 @@ public class BeamFile extends ResourceContainer {
     }
 
     @Override
-    public String toString() {
+    public String serialize(int indent) {
         StringBuilder sb = new StringBuilder();
 
         for (String importName : imports.keySet()) {
@@ -156,9 +156,14 @@ public class BeamFile extends ResourceContainer {
         }
 
         sb.append("\n");
-        sb.append(super.toString());
+        sb.append(super.serialize(indent));
 
         return sb.toString();
+    }
+
+    @Override
+    public String toString() {
+        return String.format("BeamFile[%s]", path);
     }
 
 }

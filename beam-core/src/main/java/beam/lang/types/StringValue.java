@@ -14,6 +14,11 @@ public class StringValue extends LiteralValue {
     }
 
     @Override
+    public String serialize(int indent) {
+        return toString();
+    }
+
+    @Override
     public String toString() {
         if (getLiteral() == null) {
             return null;

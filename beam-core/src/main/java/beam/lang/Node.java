@@ -1,6 +1,7 @@
 package beam.lang;
 
 import beam.core.BeamCore;
+import org.apache.commons.lang.StringUtils;
 
 public abstract class Node {
 
@@ -11,6 +12,8 @@ public abstract class Node {
     private BeamFile fileNode;
 
     public abstract boolean resolve();
+
+    public abstract String serialize(int indent);
 
     public Node parentNode() {
         return parentNode;
@@ -58,6 +61,10 @@ public abstract class Node {
         }
 
         return fileNode;
+    }
+
+    protected String indent(int indent) {
+        return StringUtils.repeat(" ", indent);
     }
 
 }

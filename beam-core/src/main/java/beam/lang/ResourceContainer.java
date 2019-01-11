@@ -42,16 +42,21 @@ public class ResourceContainer extends Container {
     }
 
     @Override
-    public String toString() {
+    public String serialize(int indent) {
         StringBuilder sb = new StringBuilder();
 
         for (Resource resourceBlock : resources()) {
-            sb.append(resourceBlock.toString());
+            sb.append(resourceBlock.serialize(indent));
         }
 
-        sb.append(super.toString());
+        sb.append(super.serialize(indent));
 
         return sb.toString();
+    }
+
+    @Override
+    public String toString() {
+        return String.format("ResourceContainer[resources: %d]", resources().size());
     }
 
 }

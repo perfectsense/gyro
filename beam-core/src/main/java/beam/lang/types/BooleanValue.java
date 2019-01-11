@@ -24,6 +24,11 @@ public class BooleanValue extends Value<Boolean> {
     }
 
     @Override
+    public String serialize(int indent) {
+        return toString();
+    }
+
+    @Override
     public String toString() {
         return Boolean.toString(getValue());
     }

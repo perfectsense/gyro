@@ -212,7 +212,7 @@ public class ReferenceValue extends Value {
     }
 
     @Override
-    public String toString() {
+    public String serialize(int indent) {
         StringBuilder sb = new StringBuilder();
 
         Object value = getValue();
@@ -233,6 +233,25 @@ public class ReferenceValue extends Value {
 
             sb.append(")");
         }
+
+        return sb.toString();
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("$(");
+        if (getType() != null) {
+            sb.append(getType()).append(" ");
+        }
+        sb.append(getName());
+
+        if (getAttribute() != null) {
+            sb.append(" | ").append(getAttribute());
+        }
+
+        sb.append(")");
 
         return sb.toString();
     }

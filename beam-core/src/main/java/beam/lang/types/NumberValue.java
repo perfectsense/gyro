@@ -26,6 +26,11 @@ public class NumberValue extends Value<Number> {
     }
 
     @Override
+    public String serialize(int indent) {
+        return toString();
+    }
+
+    @Override
     public String toString() {
         return number.toString();
     }

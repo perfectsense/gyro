@@ -67,20 +67,25 @@ public class ListValue extends Value<List> {
     }
 
     @Override
-    public String toString() {
+    public String serialize(int indent) {
         StringBuilder sb = new StringBuilder();
 
         sb.append("[\n");
 
         List<String> out = new ArrayList<>();
         for (Value value : getValues()) {
-            out.add("    " + value.toString());
+            out.add(StringUtils.repeat(" ", indent) + value.toString());
         }
 
         sb.append(StringUtils.join(out, ",\n"));
         sb.append("\n]\n");
 
         return sb.toString();
+    }
+
+    @Override
+    public String toString() {
+        return serialize(0);
     }
 
 }
