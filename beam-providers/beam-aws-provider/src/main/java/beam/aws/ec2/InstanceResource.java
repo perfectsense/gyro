@@ -353,7 +353,7 @@ public class InstanceResource extends Ec2TaggableResource<Instance> {
             DescribeInstanceAttributeResponse attributeResponse = client.describeInstanceAttribute(
                 r -> r.instanceId(getInstanceId()).attribute(InstanceAttributeName.INSTANCE_INITIATED_SHUTDOWN_BEHAVIOR)
             );
-            setShutdownBehavior(attributeResponse.instanceInitiatedShutdownBehavior().toString());
+            setShutdownBehavior(attributeResponse.instanceInitiatedShutdownBehavior().value());
 
             attributeResponse = client.describeInstanceAttribute(
                 r -> r.instanceId(getInstanceId()).attribute(InstanceAttributeName.DISABLE_API_TERMINATION)
