@@ -9,8 +9,8 @@ import beam.core.diff.ResourceName;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.iam.IamClient;
 import software.amazon.awssdk.services.iam.model.CreatePolicyResponse;
-import software.amazon.awssdk.services.iam.model.GetPolicyVersionResponse;
 import software.amazon.awssdk.services.iam.model.GetPolicyResponse;
+import software.amazon.awssdk.services.iam.model.GetPolicyVersionResponse;
 import software.amazon.awssdk.services.iam.model.PolicyVersion;
 
 import java.net.URLDecoder;
@@ -77,11 +77,10 @@ public class IamPolicyResource extends AwsResource {
 
     @ResourceDiffProperty(updatable = true)
     public String getPolicyDocumentContents() {
-        if(policyDocumentContents != null){
+        if (policyDocumentContents != null) {
             return this.policyDocumentContents;
-        }
-        else {
-            if(getPolicyDocumentFile() != null) {
+        } else {
+            if (getPolicyDocumentFile() != null) {
                 try {
                     String encode = new String(Files.readAllBytes(Paths.get(getPolicyDocumentFile())), "UTF-8");
                     return formatPolicy(encode);
@@ -114,7 +113,7 @@ public class IamPolicyResource extends AwsResource {
                 .build();
 
         GetPolicyResponse response = client.getPolicy(
-                r -> r.policyArn(getPolicyArn())
+            r -> r.policyArn(getPolicyArn())
         );
 
         if (response.policy() != null) {
@@ -122,12 +121,12 @@ public class IamPolicyResource extends AwsResource {
             setDescription(response.policy().description());
             setPolicyArn(response.policy().arn());
 
-            for(PolicyVersion versions : client.listPolicyVersions(r -> r.policyArn(getPolicyArn())).versions()){
+            for (PolicyVersion versions : client.listPolicyVersions(r -> r.policyArn(getPolicyArn())).versions()) {
                 setPastVersionId(versions.versionId());
             }
 
             GetPolicyVersionResponse versionResponse = client.getPolicyVersion(
-                    r -> r.versionId(getPastVersionId())
+                r -> r.versionId(getPastVersionId())
                             .policyArn(getPolicyArn())
             );
 
@@ -147,7 +146,7 @@ public class IamPolicyResource extends AwsResource {
                 .build();
 
         CreatePolicyResponse response = client.createPolicy(
-                r -> r.policyName(getPolicyName())
+            r -> r.policyName(getPolicyName())
                         .policyDocument(getPolicyDocumentContents())
                         .description(getDescription())
         );
@@ -161,18 +160,18 @@ public class IamPolicyResource extends AwsResource {
                 .region(Region.AWS_GLOBAL)
                 .build();
 
-        for(PolicyVersion versions : client.listPolicyVersions(r -> r.policyArn(getPolicyArn())).versions()){
+        for (PolicyVersion versions : client.listPolicyVersions(r -> r.policyArn(getPolicyArn())).versions()) {
             setPastVersionId(versions.versionId());
         }
 
         client.createPolicyVersion(
-                r -> r.policyArn(getPolicyArn())
-                        .policyDocument(getPolicyDocumentContents())
-                        .setAsDefault(true)
+            r -> r.policyArn(getPolicyArn())
+                    .policyDocument(getPolicyDocumentContents())
+                    .setAsDefault(true)
         );
 
         client.deletePolicyVersion(
-                r -> r.policyArn(getPolicyArn())
+            r -> r.policyArn(getPolicyArn())
                         .versionId(getPastVersionId())
         );
     }
