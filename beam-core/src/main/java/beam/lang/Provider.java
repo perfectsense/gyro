@@ -36,6 +36,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -217,6 +218,25 @@ public class Provider {
         }
 
         core.addResourceType(fullName, cache.get(fullName));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (!(o instanceof Provider)) {
+            return false;
+        }
+
+        Provider provider = (Provider) o;
+        return Objects.equals(getName(), provider.getName());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getName());
     }
 
     @Override

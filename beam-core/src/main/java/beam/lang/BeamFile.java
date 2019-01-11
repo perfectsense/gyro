@@ -7,15 +7,17 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class BeamFile extends ResourceContainer {
 
     private transient String path;
     private transient BeamFile state;
     private StateBackend stateBackend;
-    private List<Provider> providers;
+    private Set<Provider> providers;
 
     transient Map<String, BeamFile> imports = new HashMap<>();
 
@@ -51,9 +53,9 @@ public class BeamFile extends ResourceContainer {
         this.stateBackend = stateBackend;
     }
 
-    public List<Provider> providers() {
+    public Set<Provider> providers() {
         if (providers == null) {
-            providers = new ArrayList<>();
+            providers = new HashSet<>();
         }
 
         return providers;
