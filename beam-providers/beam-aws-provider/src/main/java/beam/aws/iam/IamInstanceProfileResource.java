@@ -24,15 +24,6 @@ import java.util.Set;
  *
  *     aws::iam-instance-profile ex-inst-profile
  *         instance-profile-name: "ex-inst-profile"
- *         roles: [$(aws::role-resource example-role | role-name)]
- *
- *     end
- *
- *     aws::iam-role example-role
- *         role-name: "example-role"
- *         description: "description"
- *         assume-role-policy-document-file: "role_example.json"
- *
  *     end
  */
 
