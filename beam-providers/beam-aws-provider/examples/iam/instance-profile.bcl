@@ -13,5 +13,5 @@ aws::credentials default
 end
 
 aws::iam-instance-profile test-instance-profile
-       instance-profile-name: "test-instance-profile"
+    instance-profile-name: "test-instance-profile"
 end
