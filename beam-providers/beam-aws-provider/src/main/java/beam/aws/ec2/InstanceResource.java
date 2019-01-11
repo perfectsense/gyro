@@ -114,7 +114,7 @@ public class InstanceResource extends Ec2TaggableResource<Instance> {
     }
 
     /**
-     * Launch instances with defined number of cores. Defaults to 0 which sets its to the instance type defaults. See `Optimizing CPU Options <https://docs.aws.amazon.com/vpc/latest/userguide/vpc-dns.html#vpc-dns-support/>`_.
+     * Launch instances with defined number of cores. Defaults to 0 which sets its to the instance type defaults. See `Optimizing CPU Options <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-optimize-cpu.html/>`_.
      */
     public Integer getCoreCount() {
         if (coreCount == null) {
@@ -129,7 +129,7 @@ public class InstanceResource extends Ec2TaggableResource<Instance> {
     }
 
     /**
-     * Launch instances with defined number of threads per cores. Defaults to 0 which sets its to the instance type defaults. See `Optimizing CPU Options <https://docs.aws.amazon.com/vpc/latest/userguide/vpc-dns.html#vpc-dns-support/>`_.
+     * Launch instances with defined number of threads per cores. Defaults to 0 which sets its to the instance type defaults. See `Optimizing CPU Options <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-optimize-cpu.html/>`_.
      */
     public Integer getThreadPerCore() {
         if (threadPerCore == null) {
