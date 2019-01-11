@@ -30,7 +30,7 @@ import java.util.Set;
 public class VpnGatewayResource extends Ec2TaggableResource<VpnGateway> {
 
     private String vpnGatewayId;
-    private long amazonSideAsn;
+    private Long amazonSideAsn;
     private String vpcId;
 
     public String getVpnGatewayId() {
@@ -41,11 +41,11 @@ public class VpnGatewayResource extends Ec2TaggableResource<VpnGateway> {
         this.vpnGatewayId = vpnGatewayId;
     }
 
-    public long getAmazonSideAsn() {
+    public Long getAmazonSideAsn() {
         return amazonSideAsn;
     }
 
-    public void setAmazonSideAsn(long amazonSideAsn) {
+    public void setAmazonSideAsn(Long amazonSideAsn) {
         this.amazonSideAsn = amazonSideAsn;
     }
 
