@@ -59,6 +59,7 @@ public abstract class Resource extends Container {
         resource.setResourceCredentials(getResourceCredentials());
         resource.resourceType(resourceType());
         resource.resourceIdentifier(resourceIdentifier());
+        resource.resourceIdentifierExpression(resourceIdentifierExpression());
         resource.syncPropertiesFromResource(this, true);
 
         // Copy subresources
@@ -107,6 +108,10 @@ public abstract class Resource extends Container {
     // -- Diff Engine
 
     public String primaryKey() {
+        if (resourceIdentifierExpression() != null) {
+
+        }
+
         return String.format("%s %s", resourceType(), resourceIdentifier());
     }
 
@@ -316,6 +321,10 @@ public abstract class Resource extends Container {
 
     public void resourceIdentifier(String name) {
         this.name = name;
+    }
+
+    public StringExpressionValue resourceIdentifierExpression() {
+        return nameExpression;
     }
 
     public void resourceIdentifierExpression(StringExpressionValue nameExpression) {
