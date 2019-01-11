@@ -56,7 +56,7 @@ public abstract class SecurityGroupRuleResource extends AwsResource {
             return protocol.toLowerCase();
         }
 
-        return "TCP";
+        return "tcp";
     }
 
     public void setProtocol(String protocol) {
