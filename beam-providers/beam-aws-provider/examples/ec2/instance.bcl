@@ -100,10 +100,9 @@ aws::instance instance
         $(aws::security-group security-group-instance-example-2 | group-id)
     ]
     disable-api-termination: false
-    enable-ena-support: false
+    enable-ena-support: true
     ebs-optimized: false
     source-dest-check: true
-    user-data: "abc"
 
     tags: {
         Name: "instance-example"
