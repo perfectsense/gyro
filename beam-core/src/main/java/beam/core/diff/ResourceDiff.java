@@ -11,8 +11,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class ResourceDiff {
 
@@ -52,6 +54,8 @@ public class ResourceDiff {
         if (currentResources == null && current != null) {
             return findResources(current, true);
         }
+
+        removeBeamCredentials(currentResources);
 
         return currentResources;
     }
@@ -204,7 +208,8 @@ public class ResourceDiff {
     }
 
     public void diff() throws Exception {
-        sortResources();
+        sortPendingResources();
+        sortCurrentResources();
         diffResources();
     }
 
@@ -251,15 +256,22 @@ public class ResourceDiff {
         return sorted;
     }
 
-    private void sortResources() {
+    private void sortPendingResources() {
         List<Resource> pending = getPendingResources();
         if (pending != null) {
             pendingResources = sortResources(pending);
         }
     }
 
+    private void sortCurrentResources() {
+        List<Resource> current = getCurrentResources();
+        if (current != null) {
+            currentResources = sortResources(current);
+        }
+    }
+
     private void diffResources() throws Exception {
-        Map<String, Resource> currentResourcesByName = new CompactMap<>();
+        Map<String, Resource> currentResourcesByName = new LinkedHashMap<>();
         Iterable<? extends Resource> currentResources = getCurrentResources();
 
         if (currentResources != null) {
