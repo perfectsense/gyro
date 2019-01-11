@@ -143,7 +143,6 @@ public class IamRoleResource extends AwsResource {
             client.createRole(r -> r.assumeRolePolicyDocument(getAssumeRolePolicyContents())
                     .description(getDescription())
                     .roleName(getRoleName()));
-            System.out.println("Here in create");
 
             for (String policyArn : getPolicyArns()) {
                 client.attachRolePolicy(r -> r.roleName(getRoleName())
@@ -192,7 +191,7 @@ public class IamRoleResource extends AwsResource {
         IamClient client = IamClient.builder()
                 .region(Region.AWS_GLOBAL)
                 .build();
-        System.out.println("Here");
+
         ListAttachedRolePoliciesResponse response = client.listAttachedRolePolicies(r -> r.roleName(getRoleName()));
         for (AttachedPolicy policies : response.attachedPolicies()) {
             client.detachRolePolicy(r -> r.policyArn(policies.policyArn())
