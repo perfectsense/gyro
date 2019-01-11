@@ -33,6 +33,21 @@ public class ResourceContainer extends Container {
     }
 
     @Override
+    public void copyNonResourceState(Container source) {
+        super.copyNonResourceState(source);
+
+        if (source instanceof ResourceContainer) {
+            ResourceContainer resourceContainer = (ResourceContainer) source;
+
+            for (Resource resource : resourceContainer.resources()) {
+                if (resource instanceof Credentials) {
+                    putResource(resource);
+                }
+            }
+        }
+    }
+
+    @Override
     public void evaluateControlNodes() {
         super.evaluateControlNodes();
 
