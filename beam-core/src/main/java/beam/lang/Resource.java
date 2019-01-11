@@ -108,10 +108,6 @@ public abstract class Resource extends Container {
     // -- Diff Engine
 
     public String primaryKey() {
-        if (resourceIdentifierExpression() != null) {
-
-        }
-
         return String.format("%s %s", resourceType(), resourceIdentifier());
     }
 
