@@ -19,8 +19,6 @@ import software.amazon.awssdk.services.ec2.model.Filter;
 import software.amazon.awssdk.services.ec2.model.GroupIdentifier;
 import software.amazon.awssdk.services.ec2.model.Instance;
 import software.amazon.awssdk.services.ec2.model.InstanceAttributeName;
-import software.amazon.awssdk.services.ec2.model.InstanceStateName;
-import software.amazon.awssdk.services.ec2.model.InstanceStatus;
 import software.amazon.awssdk.services.ec2.model.InstanceType;
 import software.amazon.awssdk.services.ec2.model.MonitoringState;
 import software.amazon.awssdk.services.ec2.model.Reservation;
@@ -623,8 +621,6 @@ public class InstanceResource extends Ec2TaggableResource<Instance> {
     }
 
     private boolean isInstanceStopped(Ec2Client client) {
-        for (InstanceStatus instanceStatus : client.describeInstanceStatus(r -> r.instanceIds(getInstanceId())).instanceStatuses()) {
-            return instanceStatus.instanceState().name().equals(InstanceStateName.STOPPED);
         }
 
         return false;
