@@ -12,6 +12,10 @@ aws::credentials default
     region: "us-east-2"
 end
 
+project: "beam"
+environment: "sandbox"
+serial: "v1"
+
 aws::vpc vpc-instance-example
     cidr-block: "10.0.0.0/16"
     provide-ipv6-cidr-block: true
@@ -23,7 +27,7 @@ end
 
 aws::subnet subnet-instance-example
     vpc-id: $(aws::vpc vpc-instance-example | vpc-id)
-    availability-zone: "us-west-2b"
+    availability-zone: "us-east-2a"
     cidr-block: "10.0.0.0/16"
 
     tags: {
