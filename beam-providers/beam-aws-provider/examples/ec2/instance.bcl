@@ -95,6 +95,14 @@ aws::instance instance
         $(aws::security-group security-group-instance-example-1 | group-id),
         $(aws::security-group security-group-instance-example-2 | group-id)
     ]
+    disable-api-termination: false
+    enable-ena-support: false
+    ebs-optimized: true
+    source-dest-check: true
+    user-data: "abc"
+
+    core-count: 1
+    thread-per-core: 2
 
     tags: {
         Name: "instance-example"
