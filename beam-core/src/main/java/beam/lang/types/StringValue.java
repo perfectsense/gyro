@@ -1,10 +1,10 @@
-package beam.lang;
+package beam.lang.types;
 
 import org.apache.commons.lang.StringUtils;
 
-public class StringNode extends LiteralNode {
+public class StringValue extends LiteralValue {
 
-    public StringNode(String literal) {
+    public StringValue(String literal) {
         super(StringUtils.strip(literal, "'"));
     }
 
@@ -14,12 +14,22 @@ public class StringNode extends LiteralNode {
     }
 
     @Override
+    public String serialize(int indent) {
+        return toString();
+    }
+
+    @Override
     public String toString() {
         if (getLiteral() == null) {
             return null;
         }
 
         return "'" + getLiteral() + "'";
+    }
+
+    @Override
+    public StringValue copy() {
+        return new StringValue(getLiteral());
     }
 
 }

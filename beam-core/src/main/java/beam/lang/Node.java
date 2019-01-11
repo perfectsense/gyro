@@ -1,44 +1,70 @@
 package beam.lang;
 
+import beam.core.BeamCore;
+import org.apache.commons.lang.StringUtils;
+
 public abstract class Node {
 
     private transient Node parentNode;
     private transient int line;
     private transient int column;
-    private transient String path;
+    private BeamCore core;
+    private BeamFile fileNode;
 
     public abstract boolean resolve();
 
-    public Node getParentNode() {
+    public abstract String serialize(int indent);
+
+    public Node parentNode() {
         return parentNode;
     }
 
-    public void setParentNode(Node parentNode) {
+    public void parentNode(Node parentNode) {
         this.parentNode = parentNode;
     }
 
-    public int getLine() {
+    public int line() {
         return line;
     }
 
-    public void setLine(int line) {
+    public void line(int line) {
         this.line = line;
     }
 
-    public int getColumn() {
+    public int column() {
         return column;
     }
 
-    public void setColumn(int column) {
+    public void column(int column) {
         this.column = column;
     }
 
-    public String getPath() {
-        return path;
+    public BeamCore core() {
+        return core;
     }
 
-    public void setPath(String path) {
-        this.path = path;
+    public void core(BeamCore core) {
+        this.core = core;
+    }
+
+    public BeamFile fileNode() {
+        if (fileNode == null) {
+            Node parent = parentNode();
+
+            while (parent != null && !(parent instanceof BeamFile)) {
+                parent = parent.parentNode();
+            }
+
+            if (parent instanceof BeamFile) {
+                fileNode = (BeamFile) parent;
+            }
+        }
+
+        return fileNode;
+    }
+
+    protected String indent(int indent) {
+        return StringUtils.repeat(" ", indent);
     }
 
 }

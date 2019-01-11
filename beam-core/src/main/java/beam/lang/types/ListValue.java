@@ -1,15 +1,17 @@
-package beam.lang;
+package beam.lang.types;
 
+import beam.lang.BeamLanguageException;
+import beam.lang.Node;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ListNode extends ValueNode<List> {
+public class ListValue extends Value<List> {
 
-    private List<ValueNode> values;
+    private List<Value> values;
 
-    public List<ValueNode> getValues() {
+    public List<Value> getValues() {
         if (values == null) {
             values = new ArrayList<>();
         }
@@ -18,18 +20,18 @@ public class ListNode extends ValueNode<List> {
     }
 
     @Override
-    public void setParentNode(Node parentNode) {
-        super.setParentNode(parentNode);
+    public void parentNode(Node parentNode) {
+        super.parentNode(parentNode);
 
-        for (ValueNode value : getValues()) {
-            value.setParentNode(parentNode);
+        for (Value value : getValues()) {
+            value.parentNode(parentNode);
         }
     }
 
     @Override
     public List getValue() {
         List<String> list = new ArrayList();
-        for (ValueNode value : getValues()) {
+        for (Value value : getValues()) {
             Object item = value.getValue();
             if (item != null) {
                 list.add(item.toString());
@@ -42,8 +44,19 @@ public class ListNode extends ValueNode<List> {
     }
 
     @Override
+    public ListValue copy() {
+        ListValue listNode = new ListValue();
+
+        for (Value value : getValues()) {
+            listNode.getValues().add(value.copy());
+        }
+
+        return listNode;
+    }
+
+    @Override
     public boolean resolve() {
-        for (ValueNode value : getValues()) {
+        for (Value value : getValues()) {
             boolean resolved = value.resolve();
             if (!resolved) {
                 throw new BeamLanguageException("Unabled to resolve configuration.", value);
@@ -54,20 +67,25 @@ public class ListNode extends ValueNode<List> {
     }
 
     @Override
-    public String toString() {
+    public String serialize(int indent) {
         StringBuilder sb = new StringBuilder();
 
         sb.append("[\n");
 
         List<String> out = new ArrayList<>();
-        for (ValueNode value : getValues()) {
-            out.add("    " + value.toString());
+        for (Value value : getValues()) {
+            out.add(StringUtils.repeat(" ", indent) + value.toString());
         }
 
         sb.append(StringUtils.join(out, ",\n"));
         sb.append("\n]\n");
 
         return sb.toString();
+    }
+
+    @Override
+    public String toString() {
+        return serialize(0);
     }
 
 }

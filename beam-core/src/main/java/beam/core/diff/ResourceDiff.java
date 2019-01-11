@@ -1,26 +1,46 @@
 package beam.core.diff;
 
-import beam.core.BeamResource;
-import beam.lang.ResourceNode;
-import com.psddev.dari.util.CompactMap;
+import beam.core.BeamCore;
+import beam.lang.BeamFile;
+import beam.lang.Credentials;
+import beam.lang.Resource;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 public class ResourceDiff {
 
-    private Collection<BeamResource> currentResources;
-    private Collection<BeamResource> pendingResources;
+    private List<Resource> currentResources;
+    private List<Resource> pendingResources;
     private final List<ResourceChange> changes = new ArrayList<>();
 
-    public ResourceDiff(Collection<BeamResource> currentResources,
-                        Collection<BeamResource> pendingResources) {
+    private BeamFile current;
+    private BeamFile pending;
+    private boolean refresh;
+
+    public ResourceDiff(BeamFile current, BeamFile pending) {
+        this.current = current;
+        this.pending = pending;
+    }
+
+    public ResourceDiff(List<Resource> currentResources,
+                        List<Resource> pendingResources) {
         this.currentResources = currentResources;
-        this.pendingResources = pendingResources != null ? pendingResources : Collections.<BeamResource>emptySet();
+        this.pendingResources = pendingResources != null ? pendingResources : Collections.EMPTY_LIST;
+    }
+
+    public boolean shouldRefresh() {
+        return refresh;
+    }
+
+    public void setRefresh(boolean refresh) {
+        this.refresh = refresh;
     }
 
     /**
@@ -28,7 +48,13 @@ public class ResourceDiff {
      *
      * @return May be {@code null} to represent an empty iterable.
      */
-    public Collection<BeamResource> getCurrentResources() {
+    public List<Resource> getCurrentResources() {
+        if (currentResources == null && current != null) {
+            return findResources(current, true);
+        }
+
+        removeBeamCredentials(currentResources);
+
         return currentResources;
     }
 
@@ -37,7 +63,13 @@ public class ResourceDiff {
      *
      * @return May be {@code null} to represent an empty iterable.
      */
-    public Collection<BeamResource> getPendingResources() {
+    public List<Resource> getPendingResources() {
+        if (pendingResources == null && pending != null) {
+            return findResources(pending, false);
+        }
+
+        removeBeamCredentials(pendingResources);
+
         return pendingResources;
     }
 
@@ -48,11 +80,11 @@ public class ResourceDiff {
      * @param pendingResource Can't be {@code null}.
      * @return May be {@code null} to indicate no change.
      */
-    public ResourceChange newCreate(final BeamResource pendingResource) throws Exception {
+    public ResourceChange newCreate(final Resource pendingResource) throws Exception {
         ResourceChange create = new ResourceChange(this, null, pendingResource) {
 
             @Override
-            protected BeamResource change() {
+            protected Resource change() {
                 pendingResource.resolve();
                 pendingResource.create();
                 return pendingResource;
@@ -64,7 +96,7 @@ public class ResourceDiff {
             }
         };
 
-        pendingResource.setChange(create);
+        pendingResource.change(create);
         pendingResource.diffOnCreate(create);
 
         return create;
@@ -78,14 +110,14 @@ public class ResourceDiff {
      * @param pendingResource Can't be {@code null}.
      * @return May be {@code null} to indicate no change.
      */
-    public ResourceChange newUpdate(final BeamResource currentResource, final BeamResource pendingResource) throws Exception {
+    public ResourceChange newUpdate(final Resource currentResource, final Resource pendingResource) throws Exception {
         pendingResource.syncPropertiesFromResource(currentResource);
 
         ResourceChange update = new ResourceChange(this, currentResource, pendingResource);
         update.calculateFieldDiffs();
 
-        currentResource.setChange(update);
-        pendingResource.setChange(update);
+        currentResource.change(update);
+        pendingResource.change(update);
         pendingResource.diffOnUpdate(update, currentResource);
 
         return update;
@@ -97,11 +129,11 @@ public class ResourceDiff {
      * @param currentResource Can't be {@code null}.
      * @return May be {@code null} to indicate no change.
      */
-    public ResourceChange newDelete(final BeamResource currentResource) throws Exception {
+    public ResourceChange newDelete(final Resource currentResource) throws Exception {
         ResourceChange delete = new ResourceChange(this, currentResource, null) {
 
             @Override
-            protected BeamResource change() {
+            protected Resource change() {
                 currentResource.delete();
                 return currentResource;
             }
@@ -114,19 +146,19 @@ public class ResourceDiff {
             }
         };
 
-        currentResource.setChange(delete);
+        currentResource.change(delete);
         currentResource.diffOnDelete(delete);
 
         return delete;
     }
 
-    public void create(ResourceChange change, Collection<BeamResource> pendingResources) throws Exception {
+    public void create(ResourceChange change, List<Resource> pendingResources) throws Exception {
         ResourceDiff diff = new ResourceDiff(null, pendingResources);
         diff.diff();
         change.getDiffs().add(diff);
     }
 
-    public void createOne(ResourceChange change, BeamResource pendingResource) throws Exception {
+    public void createOne(ResourceChange change, Resource pendingResource) throws Exception {
         if (pendingResource != null) {
             ResourceDiff diff = new ResourceDiff(null, Arrays.asList(pendingResource));
             diff.diff();
@@ -134,13 +166,13 @@ public class ResourceDiff {
         }
     }
 
-    public void update(ResourceChange change, Collection currentResources, Collection pendingResources) throws Exception {
+    public void update(ResourceChange change, List currentResources, List pendingResources) throws Exception {
         ResourceDiff diff = new ResourceDiff(currentResources, pendingResources);
         diff.diff();
         change.getDiffs().add(diff);
     }
 
-    public void updateOne(ResourceChange change, BeamResource currentResource, BeamResource pendingResource) throws Exception {
+    public void updateOne(ResourceChange change, Resource currentResource, Resource pendingResource) throws Exception {
         if (currentResource != null) {
             if (pendingResource != null) {
                 ResourceDiff diff = new ResourceDiff(Arrays.asList(currentResource), Arrays.asList(pendingResource));
@@ -155,13 +187,13 @@ public class ResourceDiff {
         }
     }
 
-    public void delete(ResourceChange change, Collection<BeamResource> currentResources) throws Exception {
+    public void delete(ResourceChange change, List<Resource> currentResources) throws Exception {
         ResourceDiff diff = new ResourceDiff(currentResources, null);
         diff.diff();
         change.getDiffs().add(diff);
     }
 
-    public void deleteOne(ResourceChange change, BeamResource currentResource) throws Exception {
+    public void deleteOne(ResourceChange change, Resource currentResource) throws Exception {
         if (currentResource != null) {
             ResourceDiff diff = new ResourceDiff(Arrays.asList(currentResource), null);
             diff.diff();
@@ -174,41 +206,9 @@ public class ResourceDiff {
     }
 
     public void diff() throws Exception {
-        sortResources();
-        syncState();
-
-        Map<String, BeamResource> currentResourcesByName = new CompactMap<>();
-        Iterable<? extends BeamResource> currentResources = getCurrentResources();
-
-        if (currentResources != null) {
-            for (BeamResource resource : currentResources) {
-                currentResourcesByName.put(resource.primaryKey(), resource);
-            }
-        }
-
-        Iterable<? extends BeamResource> pendingResources = getPendingResources();
-
-        if (pendingResources != null) {
-            for (BeamResource config : pendingResources) {
-                String name = config.primaryKey();
-                BeamResource asset = currentResourcesByName.remove(name);
-                ResourceChange change = asset != null ? newUpdate(asset, config) : newCreate(config);
-
-                if (change != null) {
-                    changes.add(change);
-                }
-            }
-        }
-
-        if (currentResources != null) {
-            for (BeamResource resource : currentResourcesByName.values()) {
-                ResourceChange change = newDelete(resource);
-
-                if (change != null) {
-                    changes.add(change);
-                }
-            }
-        }
+        sortPendingResources();
+        sortCurrentResources();
+        diffResources();
     }
 
     public boolean hasChanges() {
@@ -231,36 +231,16 @@ public class ResourceDiff {
         return false;
     }
 
-    private void syncState() {
-        if (currentResources == null) {
-            return;
-        }
+    private List<Resource> sortResources(Collection<? extends Resource> resources) {
+        List<Resource> sorted = new ArrayList<>();
 
-        Map<String, BeamResource> currentResourcesByName = new CompactMap<>();
-        for (BeamResource resource : currentResources) {
-            currentResourcesByName.put(resource.resourceIdentifier(), resource);
-        }
-
-        for (BeamResource pendingResource : getPendingResources()) {
-            BeamResource currentResource = currentResourcesByName.get(pendingResource.resourceIdentifier());
-
-            pendingResource.syncPropertiesFromResource(currentResource);
-            pendingResource.resolve();
-        }
-    }
-
-    private Collection<BeamResource> sortResources(Collection<? extends BeamResource> resources) {
-        List<BeamResource> sorted = new ArrayList<>();
-
-        for (BeamResource resource : resources) {
-            List<BeamResource> deps = new ArrayList<>();
-            for (ResourceNode dependency : resource.dependencies()) {
-                if (dependency instanceof BeamResource) {
-                    deps.add((BeamResource) dependency);
-                }
+        for (Resource resource : resources) {
+            List<Resource> deps = new ArrayList<>();
+            for (Resource dependency : resource.dependencies()) {
+                deps.add(dependency);
             }
 
-            for (BeamResource r : sortResources(deps)) {
+            for (Resource r : sortResources(deps)) {
                 if (!sorted.contains(r)) {
                     sorted.add(r);
                 }
@@ -274,9 +254,101 @@ public class ResourceDiff {
         return sorted;
     }
 
-    private void sortResources() {
+    private void sortPendingResources() {
+        List<Resource> pending = getPendingResources();
+        if (pending != null) {
+            pendingResources = sortResources(pending);
+        }
+    }
+
+    private void sortCurrentResources() {
+        List<Resource> current = getCurrentResources();
+        if (current != null) {
+            currentResources = sortResources(current);
+        }
+    }
+
+    private void diffResources() throws Exception {
+        Map<String, Resource> currentResourcesByName = new LinkedHashMap<>();
+        Iterable<? extends Resource> currentResources = getCurrentResources();
+
+        if (currentResources != null) {
+            for (Resource resource : currentResources) {
+                currentResourcesByName.put(resource.primaryKey(), resource);
+            }
+        }
+
+        Iterable<? extends Resource> pendingResources = getPendingResources();
+
         if (pendingResources != null) {
-            pendingResources = sortResources(pendingResources);
+            for (Resource pendingResource : pendingResources) {
+                Resource currentResource = currentResourcesByName.remove(pendingResource.primaryKey());
+
+                if (currentResource != null && shouldRefresh()) {
+                    BeamCore.ui().write("@|bold,blue Refreshing|@: @|yellow %s|@ -> %s...",
+                        currentResource.resourceType(), currentResource.resourceIdentifier());
+
+                    if (!currentResource.refresh()) {
+                        currentResource = null;
+                    }
+
+                    BeamCore.ui().write("\n");
+                }
+
+                pendingResource.syncPropertiesFromResource(currentResource);
+                pendingResource.resolve();
+
+                ResourceChange change = currentResource != null ? newUpdate(currentResource, pendingResource) : newCreate(pendingResource);
+
+                if (change != null) {
+                    changes.add(change);
+                }
+            }
+        }
+
+        if (currentResources != null) {
+            for (Resource resource : currentResourcesByName.values()) {
+                ResourceChange change = newDelete(resource);
+
+                if (change != null) {
+                    changes.add(change);
+                }
+            }
+        }
+    }
+
+    private List<Resource> findResources(BeamFile fileNode, boolean loadState) {
+        List<Resource> resources = new ArrayList<>();
+
+        for (Resource resource : fileNode.resources()) {
+            resources.add(resource);
+        }
+
+        for (BeamFile importedNode : fileNode.imports().values()) {
+            if (loadState && importedNode.state() != null) {
+                resources.addAll(findResources(importedNode.state(), loadState));
+            } else {
+                resources.addAll(findResources(importedNode, loadState));
+            }
+        }
+
+        removeBeamCredentials(resources);
+
+        return resources;
+    }
+
+    private void removeBeamCredentials(List<Resource> resources) {
+        if (resources == null) {
+            return;
+        }
+
+        Iterator<Resource> iter = resources.iterator();
+        while (iter.hasNext()) {
+            Resource resource = iter.next();
+
+            if (resource instanceof Credentials) {
+                iter.remove();
+            }
         }
     }
 

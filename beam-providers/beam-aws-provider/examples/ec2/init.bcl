@@ -12,18 +12,6 @@ aws::credentials default
     region: "us-east-2"
 end
 
-aws::vpc vpc-example-for-network-acl
-    cidr-block: "10.0.0.0/16"
-
-    tags: {
-        Name: "vpc-example-for-network-acl"
-    }
-end
-
-aws::network-acl network-acl-example
-    vpc-id: $(aws::vpc vpc-example-for-network-acl | vpc-id)
-
-    tags: {
-        Name: "network-acl-example"
-    }
-end
+project: "beam"
+environment: "sandbox"
+serial: "v1"

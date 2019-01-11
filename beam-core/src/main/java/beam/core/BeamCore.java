@@ -4,12 +4,16 @@ import beam.core.diff.ChangeType;
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiff;
 import beam.core.diff.ResourceName;
-import beam.lang.BeamErrorListener;
+import beam.lang.BeamFile;
 import beam.lang.BeamLanguageException;
 import beam.lang.BeamVisitor;
 import beam.lang.Node;
-import beam.lang.ResourceNode;
-import beam.lang.RootNode;
+import beam.lang.Provider;
+import beam.lang.Resource;
+import beam.lang.StateBackend;
+import beam.lang.listeners.ErrorListener;
+import beam.lang.listeners.ProviderLoadingListener;
+import beam.lang.listeners.StateBackendLoadingListener;
 import beam.parser.antlr4.BeamLexer;
 import beam.parser.antlr4.BeamParser;
 import com.psddev.dari.util.ThreadLocalStack;
@@ -23,13 +27,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 
 public class BeamCore {
 
-    private RootNode root;
+    private final Map<String, Class<? extends Resource>> resourceTypes = new HashMap<>();
 
-    private final Map<String, Class<? extends ResourceNode>> resourceTypes = new HashMap<>();
+    private ProviderLoadingListener providerListener;
+    private StateBackendLoadingListener stateListener;
 
     private static final ThreadLocalStack<BeamUI> UI = new ThreadLocalStack<>();
 
@@ -45,7 +49,7 @@ public class BeamCore {
         return UI.pop();
     }
 
-    public void addResourceType(String key, Class<? extends ResourceNode> extension) {
+    public void addResourceType(String key, Class<? extends Resource> extension) {
         resourceTypes.put(key, extension);
     }
 
@@ -61,90 +65,110 @@ public class BeamCore {
         resourceTypes.clear();
     }
 
-    public RootNode parse(String path) throws IOException {
+    public BeamFile parse(String path) throws IOException {
         init();
-        addResourceType("state", BeamLocalState.class);
-        addResourceType("provider", BeamProvider.class);
 
+        // Initial file parse loads state and providers.
         BeamLexer lexer = new BeamLexer(CharStreams.fromFileName(path));
         CommonTokenStream tokens = new CommonTokenStream(lexer);
 
         BeamParser parser = new BeamParser(tokens);
-        BeamErrorListener errorListener = new BeamErrorListener();
+        ErrorListener errorListener = new ErrorListener();
         parser.removeErrorListeners();
         parser.addErrorListener(errorListener);
+
+        BeamVisitor visitor = new BeamVisitor(this, path);
+
+        stateListener = new StateBackendLoadingListener(this, visitor);
+        parser.addParseListener(stateListener);
+
+        providerListener = new ProviderLoadingListener(visitor);
+        parser.addParseListener(providerListener);
+
         BeamParser.Beam_rootContext context = parser.beam_root();
 
         if (errorListener.getSyntaxErrors() > 0) {
             throw new BeamLanguageException(errorListener.getSyntaxErrors() + " errors while parsing.");
         }
 
-        BeamVisitor visitor = new BeamVisitor(this);
-        visitor.visitBeam_root(context);        // First pass ensures resourceTypes are loaded and executed
-        root = visitor.visitBeam_root(context);
+        for (Provider provider : providerListener.getProviders()) {
+            provider.load();
+        }
 
-        if (!root.resolve()) {
+        // Load initial configuration
+        BeamFile fileNode = visitor.visitBeam_root(context);
+
+        if (!fileNode.resolve()) {
             System.out.println("Unable to resolve config.");
         }
 
-        return root;
-    }
+        // Load state, assuming this isn't a state file itself.
+        if (!path.endsWith(".state")) {
+            StateBackend backend = stateListener.getStateBackend();
+            try {
+                BeamFile stateNode = backend.load(fileNode, this);
+                stateNode.copyNonResourceState(fileNode);
 
-    public BeamState getState(RootNode block) {
-        BeamState backend = new BeamLocalState();
-
-        for (ResourceNode resourceBlock : block.resources()) {
-            if (resourceBlock instanceof BeamState) {
-                backend = (BeamState) resourceBlock;
+                fileNode.state(stateNode);
+            } catch (Exception ex) {
+                throw new BeamLanguageException("Unable to load state.", ex);
             }
         }
 
-        return backend;
+        fileNode.evaluateControlNodes();
+
+        return fileNode;
     }
 
-    public void copyNonResourceState(RootNode source, RootNode state) {
-        state.copyNonResourceState(source);
+    public BeamFile parseImport(String path) throws IOException {
+        BeamLexer lexer = new BeamLexer(CharStreams.fromFileName(path));
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
 
-        for (ResourceNode block : source.resources()) {
-            if (block instanceof BeamResource) {
-                continue;
-            }
+        BeamParser parser = new BeamParser(tokens);
+        ErrorListener errorListener = new ErrorListener();
+        parser.removeErrorListeners();
+        parser.addErrorListener(errorListener);
 
-            state.putResource(block);
-        }
-    }
+        parser.addParseListener(stateListener);
+        parser.addParseListener(providerListener);
 
-    public Set<BeamResource> findBeamResources(RootNode block) {
-        return findBeamResources(block, false);
-    }
+        BeamParser.Beam_rootContext context = parser.beam_root();
 
-    public Set<BeamResource> findBeamResources(RootNode block, boolean refresh) {
-        Set<BeamResource> resources = new TreeSet<>();
-
-        for (ResourceNode resource : block.resources()) {
-            if (resource instanceof BeamResource) {
-                if (refresh) {
-                    BeamCore.ui().write("@|bold,blue Refreshing|@: @|yellow %s|@ -> %s...",
-                        resource.resourceType(), resource.resourceIdentifier());
-                }
-
-                if (refresh && ((BeamResource) resource).refreshInternal()) {
-                    resources.add((BeamResource) resource);
-
-                    BeamCore.ui().write("\n");
-                } else if (refresh) {
-                    BeamCore.ui().write("\n");
-                } else if (!refresh) {
-                    resources.add((BeamResource) resource);
-                }
-            }
+        if (errorListener.getSyntaxErrors() > 0) {
+            throw new BeamLanguageException(errorListener.getSyntaxErrors() + " errors while parsing.");
         }
 
-        return resources;
+        for (Provider provider : providerListener.getProviders()) {
+            provider.load();
+        }
+
+        // Load configuration
+        BeamVisitor visitor = new BeamVisitor(this, path);
+        BeamFile fileNode = visitor.visitBeam_root(context);
+
+        if (!fileNode.resolve()) {
+            System.out.println("Unable to resolve config.");
+        }
+
+        // Load state, assuming this isn't a state file itself.
+        if (!path.endsWith(".state")) {
+            StateBackend backend = fileNode.stateBackend();
+            try {
+                BeamFile stateNode = backend.load(fileNode, this);
+                stateNode.copyNonResourceState(fileNode);
+
+                fileNode.state(stateNode);
+            } catch (Exception ex) {
+                throw new BeamLanguageException("Unable to load state.", ex);
+            }
+        }
+
+        return fileNode;
     }
 
-    public List<ResourceDiff> diff(Set<BeamResource> current, Set<BeamResource> pending) throws Exception {
-        ResourceDiff diff = new ResourceDiff(current, pending);
+    public List<ResourceDiff> diff(BeamFile pending, boolean refresh) throws Exception {
+        ResourceDiff diff = new ResourceDiff(pending.state(), pending);
+        diff.setRefresh(refresh);
         diff.diff();
 
         List<ResourceDiff> diffs = new ArrayList<>();
@@ -189,6 +213,68 @@ public class BeamCore {
         return changeTypes;
     }
 
+    public void setChangeable(List<ResourceDiff> diffs) {
+        for (ResourceDiff diff : diffs) {
+            for (ResourceChange change : diff.getChanges()) {
+                change.setChangeable(true);
+                setChangeable(change.getDiffs());
+            }
+        }
+    }
+
+    public void execute(ResourceChange change) {
+        ChangeType type = change.getType();
+
+        if (type == ChangeType.KEEP || type == ChangeType.REPLACE || change.isChanged()) {
+            return;
+        }
+
+        Set<ResourceChange> dependencies = change.dependencies();
+
+        if (dependencies != null && !dependencies.isEmpty()) {
+            for (ResourceChange d : dependencies) {
+                execute(d);
+            }
+        }
+
+        BeamCore.ui().write("Executing: ");
+        writeChange(change);
+        Resource resource = change.executeChange();
+
+        BeamFile stateNode = resource.fileNode().state();
+        StateBackend backend = resource.fileNode().stateBackend();
+
+        ResourceName nameAnnotation = resource.getClass().getAnnotation(ResourceName.class);
+        boolean isSubresource = nameAnnotation != null && !nameAnnotation.parent().equals("");
+
+        if (type == ChangeType.DELETE) {
+            if (isSubresource) {
+                Resource copy = resource.parentResourceNode().copy();
+                copy.removeSubresource(resource);
+                copy.syncInternalToProperties();
+
+                stateNode.putResource(copy);
+            } else {
+                stateNode.removeResource(resource);
+            }
+        } else {
+            if (isSubresource) {
+                // Save parent resource when current resource is a subresource.
+                Resource parent = resource.parentResourceNode();
+                stateNode.putResource(parent.copy());
+            } else {
+                stateNode.putResource(resource.copy());
+            }
+        }
+
+        BeamCore.ui().write(" OK\n");
+        backend.save(stateNode);
+
+        for (BeamFile importNode : stateNode.imports().values()) {
+            backend.save(importNode);
+        }
+    }
+
     private void writeChange(ResourceChange change) {
         switch (change.getType()) {
             case CREATE :
@@ -216,50 +302,4 @@ public class BeamCore {
         }
     }
 
-    public void setChangeable(List<ResourceDiff> diffs) {
-        for (ResourceDiff diff : diffs) {
-            for (ResourceChange change : diff.getChanges()) {
-                change.setChangeable(true);
-                setChangeable(change.getDiffs());
-            }
-        }
-    }
-
-    public void execute(ResourceChange change, RootNode state, BeamState backend, String path) {
-        ChangeType type = change.getType();
-
-        if (type == ChangeType.KEEP || type == ChangeType.REPLACE || change.isChanged()) {
-            return;
-        }
-
-        Set<ResourceChange> dependencies = change.dependencies();
-
-        if (dependencies != null && !dependencies.isEmpty()) {
-            for (ResourceChange d : dependencies) {
-                execute(d, state, backend, path);
-            }
-        }
-
-        BeamCore.ui().write("Executing: ");
-        writeChange(change);
-        BeamResource resource = change.executeChange();
-
-        if (type == ChangeType.DELETE) {
-            state.removeResource(resource);
-        } else {
-            ResourceName nameAnnotation = resource.getClass().getAnnotation(ResourceName.class);
-            if (nameAnnotation != null && !nameAnnotation.parent().equals("")) {
-                // Save parent resource when current resource is a subresource.
-                Node parent = resource.getParentNode();
-                if (parent instanceof ResourceNode) {
-                    state.putResource((ResourceNode) parent);
-                }
-            } else {
-                state.putResource(resource);
-            }
-        }
-
-        BeamCore.ui().write(" OK\n");
-        backend.save(path, state);
-    }
 }

@@ -1,12 +1,12 @@
-package beam.lang;
+package beam.lang.types;
 
 import org.apache.commons.lang.math.NumberUtils;
 
-public class NumberNode extends ValueNode<Number> {
+public class NumberValue extends Value<Number> {
 
     private Number number;
 
-    public NumberNode(String number) {
+    public NumberValue(String number) {
         this.number = NumberUtils.createNumber(number);
     }
 
@@ -16,8 +16,18 @@ public class NumberNode extends ValueNode<Number> {
     }
 
     @Override
+    public NumberValue copy() {
+        return new NumberValue(number.toString());
+    }
+
+    @Override
     public boolean resolve() {
         return true;
+    }
+
+    @Override
+    public String serialize(int indent) {
+        return toString();
     }
 
     @Override

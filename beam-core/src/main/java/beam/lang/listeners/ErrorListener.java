@@ -1,4 +1,4 @@
-package beam.lang;
+package beam.lang.listeners;
 
 import org.antlr.v4.runtime.ANTLRErrorListener;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -15,7 +15,7 @@ import java.io.File;
 import java.util.BitSet;
 import java.util.List;
 
-public class BeamErrorListener implements ANTLRErrorListener {
+public class ErrorListener implements ANTLRErrorListener {
 
     private int syntaxErrors = 0;
     private String previousSource;

@@ -49,6 +49,7 @@ public class SecurityGroupResource extends Ec2TaggableResource<SecurityGroup> {
     /**
      * The name of the security group.
      */
+    @ResourceDiffProperty
     public String getGroupName() {
         return groupName;
     }
@@ -72,6 +73,7 @@ public class SecurityGroupResource extends Ec2TaggableResource<SecurityGroup> {
     /**
      * The description of this security group.
      */
+    @ResourceDiffProperty
     public String getDescription() {
         return description;
     }
@@ -154,7 +156,7 @@ public class SecurityGroupResource extends Ec2TaggableResource<SecurityGroup> {
         Ec2Client client = createClient(Ec2Client.class);
 
         List<Filter> filters = new ArrayList<>();
-        Filter nameFilter = Filter.builder().name("group-name").values(getGroupName()).build();
+        Filter nameFilter = Filter.builder().name("group-id").values(getGroupId()).build();
         filters.add(nameFilter);
 
         if (getVpcId() != null) {
@@ -180,7 +182,7 @@ public class SecurityGroupResource extends Ec2TaggableResource<SecurityGroup> {
                 }
 
                 SecurityGroupEgressRuleResource rule = new SecurityGroupEgressRuleResource(permission);
-                rule.setParentNode(this);
+                rule.parentNode(this);
                 rule.setResourceCredentials(getResourceCredentials());
                 getEgress().add(rule);
             }
@@ -188,7 +190,7 @@ public class SecurityGroupResource extends Ec2TaggableResource<SecurityGroup> {
             getIngress().clear();
             for (IpPermission permission : group.ipPermissions()) {
                 SecurityGroupIngressRuleResource rule = new SecurityGroupIngressRuleResource(permission);
-                rule.setParentNode(this);
+                rule.parentNode(this);
                 rule.setResourceCredentials(getResourceCredentials());
                 getIngress().add(rule);
             }
@@ -235,7 +237,7 @@ public class SecurityGroupResource extends Ec2TaggableResource<SecurityGroup> {
         String groupName = getGroupName();
 
         if (groupName != null) {
-            sb.append(' ');
+            sb.append(" - ");
             sb.append(groupName);
         }
 

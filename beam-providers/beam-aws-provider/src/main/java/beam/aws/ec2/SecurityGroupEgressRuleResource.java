@@ -1,7 +1,7 @@
 package beam.aws.ec2;
 
-import beam.core.BeamResource;
 import beam.core.diff.ResourceName;
+import beam.lang.Resource;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.Ec2Exception;
 import software.amazon.awssdk.services.ec2.model.IpPermission;
@@ -30,7 +30,7 @@ public class SecurityGroupEgressRuleResource extends SecurityGroupRuleResource {
     }
 
     @Override
-    public void update(BeamResource current, Set<String> changedProperties) {
+    public void update(Resource current, Set<String> changedProperties) {
         Ec2Client client = createClient(Ec2Client.class);
 
         if (changedProperties.size() == 1 && changedProperties.contains("description")) {

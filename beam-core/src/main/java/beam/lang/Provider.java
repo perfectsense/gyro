@@ -1,7 +1,8 @@
-package beam.core;
+package beam.lang;
 
+import beam.core.BeamCore;
+import beam.core.BeamException;
 import beam.core.diff.ResourceName;
-import beam.lang.BeamBaseResource;
 import com.psddev.dari.util.ObjectUtils;
 import com.psddev.dari.util.StringUtils;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
@@ -35,16 +36,27 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-public class BeamProvider extends BeamBaseResource {
+public class Provider {
 
+    private String name;
     private String artifact;
     private List<String> repositories;
+    private BeamCore core;
 
     private static Map<String, Map<String, Class>> PROVIDER_CLASS_CACHE = new HashMap<>();
     private static Map<String, List<Artifact>> ARTIFACTS = new HashMap<>();
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 
     public void setArtifact(String artifact) {
         this.artifact = artifact;
@@ -66,28 +78,25 @@ public class BeamProvider extends BeamBaseResource {
         return repositories;
     }
 
-    @Override
-    public String resourceType() {
-        return "provider";
+    public BeamCore getCore() {
+        return core;
     }
 
-    @Override
-    public void execute() {
-        try {
-            Map<String, Object> resolvedKeyValues = resolvedKeyValues();
+    public void setCore(BeamCore core) {
+        this.core = core;
+    }
 
+    public void load() {
+        try {
             List<Artifact> artifacts = ARTIFACTS.get(getArtifact());
             if (artifacts == null) {
-                BeamCore.ui().write("@|bold,blue Loading:|@ provider %s...\n", resourceIdentifier());
+                BeamCore.ui().write("@|bold,blue Loading:|@ provider %s...\n", getName());
 
                 List<RemoteRepository> remoteRepositories = new ArrayList<>();
                 remoteRepositories.add(new RemoteRepository.Builder("central", "default", "http://repo1.maven.org/maven2/").build());
 
-                List<String> repos = (List<String>) resolvedKeyValues.get("repositories");
-                if (resolvedKeyValues.get("repositories") != null) {
-                    for (String repo : repos) {
-                        remoteRepositories.add(new RemoteRepository.Builder(repo, "default", repo).build());
-                    }
+                for (String repo : getRepositories()) {
+                    remoteRepositories.add(new RemoteRepository.Builder(repo, "default", repo).build());
                 }
 
                 artifacts = fetchArtifacts(getArtifact(), remoteRepositories);
@@ -107,12 +116,12 @@ public class BeamProvider extends BeamBaseResource {
                         dependencyArtifact.getVersion());
 
                     if (getArtifact().equals(key)) {
-                        registerResources(core(), artifactJarUrls, dependencyArtifact);
+                        registerResources(getCore(), artifactJarUrls, dependencyArtifact);
                     }
                 }
             } else {
                 for (String resourceName : PROVIDER_CLASS_CACHE.get(getArtifact()).keySet()) {
-                    core().addResourceType(resourceName, PROVIDER_CLASS_CACHE.get(getArtifact()).get(resourceName));
+                    getCore().addResourceType(resourceName, PROVIDER_CLASS_CACHE.get(getArtifact()).get(resourceName));
                 }
             }
         } catch (Exception e) {
@@ -172,12 +181,12 @@ public class BeamProvider extends BeamBaseResource {
                 continue;
             }
 
-            BeamCredentials credentials = null;
-            if (BeamResource.class.isAssignableFrom(resourceClass)) {
-                BeamResource resource = (BeamResource) resourceClass.newInstance();
-                credentials = (BeamCredentials) resource.resourceCredentialsClass().newInstance();
-            } else if (BeamCredentials.class.isAssignableFrom(resourceClass)) {
-                credentials = (BeamCredentials) resourceClass.newInstance();
+            Credentials credentials = null;
+            if (Credentials.class.isAssignableFrom(resourceClass)) {
+                credentials = (Credentials) resourceClass.newInstance();
+            } else if (Resource.class.isAssignableFrom(resourceClass)) {
+                Resource resource = (Resource) resourceClass.newInstance();
+                credentials = (Credentials) resource.resourceCredentialsClass().newInstance();
             } else {
                 continue;
             }
@@ -209,6 +218,52 @@ public class BeamProvider extends BeamBaseResource {
         }
 
         core.addResourceType(fullName, cache.get(fullName));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (!(o instanceof Provider)) {
+            return false;
+        }
+
+        Provider provider = (Provider) o;
+        return Objects.equals(getName(), provider.getName());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getName());
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("provider ");
+        sb.append(getName()).append("\n");
+        sb.append("    artifact: ");
+        sb.append("'").append(getArtifact()).append("'");
+        sb.append("\n");
+
+        if (!getRepositories().isEmpty()) {
+            sb.append("    repositories: [\n");
+
+            List<String> values = new ArrayList<>();
+            for (String value : getRepositories()) {
+                values.add("        '" + value + "'");
+            }
+
+            sb.append(StringUtils.join(values, ",\n"));
+            sb.append("\n    ]\n");
+        }
+
+        sb.append("end\n");
+
+        return sb.toString();
     }
 
 }

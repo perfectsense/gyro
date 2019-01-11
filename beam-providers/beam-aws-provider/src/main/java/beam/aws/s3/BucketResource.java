@@ -1,9 +1,9 @@
 package beam.aws.s3;
 
 import beam.aws.AwsResource;
-import beam.core.BeamResource;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
+import beam.lang.Resource;
 import com.psddev.dari.util.CompactMap;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.Bucket;
@@ -187,7 +187,7 @@ public class BucketResource extends AwsResource {
     }
 
     @Override
-    public void update(BeamResource current, Set<String> changedProperties) {
+    public void update(Resource current, Set<String> changedProperties) {
         S3Client client = createClient(S3Client.class);
 
         if (changedProperties.contains("tags")) {

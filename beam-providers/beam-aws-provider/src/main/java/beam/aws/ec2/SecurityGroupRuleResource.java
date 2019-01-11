@@ -42,7 +42,7 @@ public abstract class SecurityGroupRuleResource extends AwsResource {
     }
 
     public String getGroupId() {
-        SecurityGroupResource parent = (SecurityGroupResource) getParentNode();
+        SecurityGroupResource parent = (SecurityGroupResource) parentResourceNode();
         if (parent != null) {
             return parent.getGroupId();
         }
@@ -56,7 +56,7 @@ public abstract class SecurityGroupRuleResource extends AwsResource {
             return protocol.toLowerCase();
         }
 
-        return "TCP";
+        return "tcp";
     }
 
     public void setProtocol(String protocol) {

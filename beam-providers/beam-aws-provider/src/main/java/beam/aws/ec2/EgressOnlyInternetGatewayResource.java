@@ -1,8 +1,8 @@
 package beam.aws.ec2;
 
 import beam.aws.AwsResource;
-import beam.core.BeamResource;
 import beam.core.diff.ResourceName;
+import beam.lang.Resource;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.CreateEgressOnlyInternetGatewayResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeEgressOnlyInternetGatewaysResponse;
@@ -79,7 +79,7 @@ public class EgressOnlyInternetGatewayResource extends AwsResource {
     }
 
     @Override
-    public void update(BeamResource current, Set<String> changedProperties) {
+    public void update(Resource current, Set<String> changedProperties) {
 
     }
 

@@ -1,8 +1,8 @@
 package beam.aws.ec2;
 
 import beam.aws.AwsResource;
-import beam.core.BeamResource;
 import beam.core.diff.ResourceDiffProperty;
+import beam.lang.Resource;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 import com.psddev.dari.util.CompactMap;
@@ -99,7 +99,7 @@ public abstract class Ec2TaggableResource<T> extends AwsResource {
     protected abstract void doUpdate(AwsResource config, Set<String> changedProperties);
 
     @Override
-    public final void update(BeamResource current, Set<String> changedProperties) {
+    public final void update(Resource current, Set<String> changedProperties) {
         doUpdate((AwsResource) current, changedProperties);
         createTags();
     }
