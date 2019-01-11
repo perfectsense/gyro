@@ -89,16 +89,17 @@ public class IamInstanceProfileResource extends AwsResource {
                 .region(Region.AWS_GLOBAL)
                 .build();
 
-        if (getRoles().size() > 1){
-            throw new BeamException("Only one role can be added to an instance profile");
-        }
+        try {
+            client.createInstanceProfile(r -> r.instanceProfileName(getInstanceProfileName()));
 
-        client.createInstanceProfile(r -> r.instanceProfileName(getInstanceProfileName()));
-
-        for (String role : getRoles()) {
-            client.addRoleToInstanceProfile(
-                r -> r.roleName(role)
-                .instanceProfileName(getInstanceProfileName()));
+            for (String role : getRoles()) {
+                client.addRoleToInstanceProfile(
+                    r -> r.roleName(role)
+                            .instanceProfileName(getInstanceProfileName()));
+            }
+        } catch (Exception err) {
+            delete();
+            throw new BeamException(err.getMessage());
         }
     }
 
@@ -134,7 +135,7 @@ public class IamInstanceProfileResource extends AwsResource {
                 .build();
 
         GetInstanceProfileResponse response = client.getInstanceProfile(r -> r.instanceProfileName(getInstanceProfileName()));
-        for(Role removeRole: response.instanceProfile().roles()){
+        for (Role removeRole: response.instanceProfile().roles()) {
             client.removeRoleFromInstanceProfile(r -> r.instanceProfileName(getInstanceProfileName())
                                                     .roleName(removeRole.roleName()));
         }
