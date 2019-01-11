@@ -12,15 +12,15 @@ aws::credentials default
     region: "us-east-2"
 end
 
-aws::role-resource ex-role-test
-    role-name: "ex-role-test"
-    description: "description - new"
+aws::iam-role example-role
+    role-name: "example-role"
+    description: "example-role description"
     assume-role-policy-document-file: "role_example.json"
-    policies: [$(aws::policy-resource example-policy-b | policy-arn)]
+    policy-arns: [$(aws::iam-policy example-policy | policy-arn)]
 end
 
-aws::policy-resource ex-pol-test
-    policy-name: "ex-pol-test"
-    description: "example policy"
+aws::iam-policy example-policy
+    policy-name: "example-policy"
+    description: "example policy description"
     policy-document-file: "policy_file.json"
 end
