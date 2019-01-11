@@ -1,9 +1,9 @@
 provider aws
-    artifact: "beam:beam-aws-provider:0.5"
+    artifact: 'beam:beam-aws-provider:0.5'
     repositories: [
-        "http://repo1.maven.org/maven2/",
-        "https://repo.gradle.org/gradle/libs-releases/",
-        "https://artifactory.psdops.com/public"
+        'http://repo1.maven.org/maven2/',
+        'https://repo.gradle.org/gradle/libs-releases/',
+        'https://artifactory.psdops.com/public'
     ]
 end
 
@@ -13,7 +13,7 @@ aws::credentials default
 end
 
 aws::sqs sqs-example1
-     name : "test999"
+     name : "testStandard"
      visibility-timeout : 400
      message-retention-period : 864000
      maximum-message-size : 258048
@@ -21,11 +21,11 @@ aws::sqs sqs-example1
      receive-message-wait-time-seconds : 5
      kms-master-key-id : 23
      kms-data-key-reuse-period-seconds : 200
-     policy-doc-path: 'policy.json'
+     policy-doc-path: 'beam-providers/beam-aws-provider/examples/sqs/policy.json'
 end
 
 aws::sqs sqs-example2
-     name : "test2.fifo"
+     name : "testFifo.fifo"
      visibility-timeout : 400
      message-retention-period : 864000
      maximum-message-size : 258048
@@ -33,6 +33,6 @@ aws::sqs sqs-example2
      receive-message-wait-time-seconds : 5
      kms-master-key-id : 23
      kms-data-key-reuse-period-seconds : 200
-     policy-doc-path: 'policy.json'
+     policy-doc-path: 'beam-providers/beam-aws-provider/examples/sqs/policy.json'
 end
 

@@ -404,8 +404,7 @@ public class SqsResource extends AwsResource {
 
     private void setPolicyFromPath() {
         try {
-            String path = "beam-providers/beam-aws-provider/examples/sqs/" + policyDocPath;
-            setPolicy(new String(Files.readAllBytes(Paths.get(path)), StandardCharsets.UTF_8));
+            setPolicy(new String(Files.readAllBytes(Paths.get(getPolicyDocPath())), StandardCharsets.UTF_8));
         } catch (IOException ioex) {
             throw new BeamException(MessageFormat
                 .format("Queue - {0} policy error. Unable to read policy from path [{1}]", getName(), getPolicyDocPath()));
