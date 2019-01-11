@@ -5,7 +5,7 @@ plugins {
 
 sourceCompatibility = 1.8
 
-def aws_sdk2_version = '2.1.4'
+def aws_sdk2_version = '2.3.0'
 
 defaultTasks 'build'
 
