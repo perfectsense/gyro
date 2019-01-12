@@ -48,15 +48,6 @@ public class ResourceContainer extends Container {
     }
 
     @Override
-    public void evaluateControlNodes() {
-        super.evaluateControlNodes();
-
-        for (Resource resourceNode : resources()) {
-            resourceNode.evaluateControlNodes();
-        }
-    }
-
-    @Override
     public String serialize(int indent) {
         StringBuilder sb = new StringBuilder();
 

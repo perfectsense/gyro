@@ -87,12 +87,6 @@ public class Container extends Node {
         keyValues.putAll(source.keyValues);
     }
 
-    public void evaluateControlNodes() {
-        for (ControlStructure controlNode : controlNodes()) {
-            controlNode.evaluate();
-        }
-    }
-
     public Container copy() {
         try {
             Container node = getClass().newInstance();
