@@ -1,0 +1,17 @@
+provider test
+    artifact: "beam:beam-aws-provider:0.5"
+    repositories: [
+        "http://repo1.maven.org/maven2/",
+        "https://repo.gradle.org/gradle/libs-releases/",
+        "https://artifactory.psdops.com/public"
+    ]
+end
+
+test::credentials default
+    profile-name: "psd-beam-sandbox"
+    region: "us-east-2"
+end
+
+test::network network
+    cidr-block: "10.0.0.0/16"
+end
