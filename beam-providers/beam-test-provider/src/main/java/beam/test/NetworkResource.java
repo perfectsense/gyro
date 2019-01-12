@@ -3,28 +3,25 @@ package beam.test;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 
+import java.util.UUID;
+
 @ResourceName("network")
 public class NetworkResource extends FakeResource {
 
-    private String vpcId;
+    private String networkId;
     private String cidrBlock;
     private Boolean enableDnsHostnames;
     private Boolean enableDnsSupport;
-    private String instanceTenancy;
 
     // Read-only
     private String ownerId;
 
-    public String getId() {
-        return getVpcId();
+    public String getNetworkId() {
+        return networkId;
     }
 
-    public String getVpcId() {
-        return vpcId;
-    }
-
-    public void setVpcId(String vpcId) {
-        this.vpcId = vpcId;
+    public void setNetworkId(String networkId) {
+        this.networkId = networkId;
     }
 
     @ResourceDiffProperty
@@ -73,10 +70,10 @@ public class NetworkResource extends FakeResource {
     @Override
     public String toDisplayString() {
         StringBuilder sb = new StringBuilder();
-        String vpcId = getVpcId();
+        String networkId = getNetworkId();
 
-        if (vpcId != null) {
-            sb.append(vpcId);
+        if (networkId != null) {
+            sb.append(networkId);
 
         } else {
             sb.append("fake network");
