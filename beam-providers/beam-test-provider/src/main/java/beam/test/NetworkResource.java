@@ -68,6 +68,12 @@ public class NetworkResource extends FakeResource {
     }
 
     @Override
+    public void create() {
+        setNetworkId("network-" + UUID.randomUUID().toString().replace("-", "").substring(16));
+        setOwnerId("owner-4a4f49a0b9fe");
+    }
+
+    @Override
     public String toDisplayString() {
         StringBuilder sb = new StringBuilder();
         String networkId = getNetworkId();
