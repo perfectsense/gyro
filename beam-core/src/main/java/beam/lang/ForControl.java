@@ -9,6 +9,7 @@ public class ForControl extends ControlStructure {
 
     private List<String> variables;
     private List<Value> listValues;
+    private boolean resolved;
 
     public List<String> variables() {
         if (variables == null) {
@@ -36,6 +37,10 @@ public class ForControl extends ControlStructure {
 
     @Override
     public boolean resolve() {
+        if (resolved) {
+            return true;
+        }
+
         evaluate();
 
         for (Value value : listValues()) {
@@ -44,6 +49,8 @@ public class ForControl extends ControlStructure {
                 throw new BeamLanguageException("Unable to resolve configuration.", value);
             }
         }
+
+        resolved = true;
 
         return super.resolve();
     }
