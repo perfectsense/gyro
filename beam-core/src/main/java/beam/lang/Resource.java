@@ -64,13 +64,9 @@ public abstract class Resource extends Container {
 
         // Copy subresources
         for (String fieldName : subResources().keySet()) {
-            List<Resource> subresources = new ArrayList<>();
-
             for (Resource subresource : subResources().get(fieldName)) {
-                subresources.add(subresource.copy());
+                resource.putSubresource(fieldName, subresource.copy());
             }
-
-            resource.subResources().put(fieldName, subresources);
         }
 
         return resource;
