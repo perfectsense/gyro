@@ -36,6 +36,8 @@ public class ForControl extends ControlStructure {
 
     @Override
     public boolean resolve() {
+        evaluate();
+
         for (Value value : listValues()) {
             boolean resolved = value.resolve();
             if (!resolved) {
@@ -65,30 +67,19 @@ public class ForControl extends ControlStructure {
 
                 String variableName = variables().get(index % variables.size());
                 Value value = listValues().get(index);
+                value.parentNode(scope);
 
                 scope.put(variableName, value);
-            }
-
-            // Duplicate key/values
-            if (parent instanceof Container) {
-
-                Container container = (Container) parent;
-                for (String key : keys()) {
-
-                    Value value = get(key).copy();
-                    value.parentNode(scope);
-
-                    container.put(key, value);
-                }
             }
 
             // Copy resource nodes
             if (parent instanceof ResourceContainer) {
                 ResourceContainer resourceContainerNode = (ResourceContainer) parent;
 
-                for (Resource resourceNode : resources()) {
-                    Resource copy = resourceNode.copy();
+                for (Resource resource : resources()) {
+                    Resource copy = resource.copy();
                     copy.parentNode(scope);
+                    copy.resolve();
 
                     resourceContainerNode.putResourceKeepParent(copy);
                 }
@@ -108,9 +99,6 @@ public class ForControl extends ControlStructure {
                         resource.putSubresource(fieldName, copy);
                     }
                 }
-
-                //resourceNode.syncInternalToProperties();
-                resource.resolve();
             }
         }
     }

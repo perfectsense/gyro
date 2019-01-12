@@ -309,7 +309,7 @@ public abstract class Resource extends Container {
 
     public String resourceIdentifier() {
         if (nameExpression != null) {
-            return nameExpression.getValue();
+            name = nameExpression.getValue();
         }
 
         return name;
@@ -324,7 +324,10 @@ public abstract class Resource extends Container {
     }
 
     public void resourceIdentifierExpression(StringExpressionValue nameExpression) {
-        this.nameExpression = nameExpression;
+        if (nameExpression != null) {
+            this.nameExpression = nameExpression.copy();
+            this.nameExpression.parentNode(this);
+        }
     }
 
     public ResourceKey resourceKey() {
@@ -410,6 +413,10 @@ public abstract class Resource extends Container {
 
         if (nameExpression != null) {
             nameExpression.resolve();
+        }
+
+        for (ControlStructure controlStructure : controlNodes()) {
+            controlStructure.resolve();
         }
 
         for (List<Resource> resources : subResources().values()) {

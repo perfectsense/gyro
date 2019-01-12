@@ -115,8 +115,6 @@ public class BeamCore {
             }
         }
 
-        fileNode.evaluateControlNodes();
-
         return fileNode;
     }
 
