@@ -478,7 +478,11 @@ public abstract class Resource extends Container {
 
     @Override
     public String toString() {
-        return String.format("%s %s", resourceType(), resourceIdentifier());
+        if (resourceIdentifier() == null) {
+            return String.format("Resource[type: %s]", resourceType());
+        }
+
+        return String.format("Resource[type: %s, id: %s]", resourceType(), resourceIdentifier());
     }
 
 }
