@@ -16,16 +16,18 @@ aws::vpc vpc
     cidr-block: "10.0.0.0/16"
 
     tags: {
-        Name: "vpc-example"
+        Name: "subnet-example"
     }
 end
 
-aws::subnet subnet
-    vpc-id: $(aws::vpc vpc | vpc-id)
-    availability-zone: "us-east-2a"
-    cidr-block: "10.0.0.0/24"
+for zone, cidr in ['us-east-2a', '10.0.0.0/24', 'us-east-2b', '10.0.1.0/24']
+    aws::subnet "subnet-$(zone)"
+        vpc-id: $(aws::vpc vpc | vpc-id)
+        availability-zone: $(zone)
+        cidr-block: $(cidr)
 
-    tags: {
-        Name: "vpc-example"
-    }
+        tags: {
+            Name: "subnet-example $(zone) $(cidr)"
+        }
+    end
 end
