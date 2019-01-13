@@ -64,17 +64,17 @@ public class ForControl extends ControlStructure {
 
         int loops = listValues().size() / variables().size();
 
-        Node parent = parentNode();
+        Node parent = parent();
         for (int i = 0; i < loops; i++) {
             Container scope = new Container();
-            scope.parentNode(parent);
+            scope.parent(parent);
 
             for (int j = 0; j < variables().size(); j++) {
                 int index = (i * variables().size()) + j;
 
                 String variableName = variables().get(index % variables.size());
                 Value value = listValues().get(index);
-                value.parentNode(scope);
+                value.parent(scope);
 
                 scope.put(variableName, value);
             }
@@ -85,7 +85,7 @@ public class ForControl extends ControlStructure {
 
                 for (Resource resource : resources()) {
                     Resource copy = resource.copy();
-                    copy.parentNode(scope);
+                    copy.parent(scope);
                     copy.resolve();
 
                     resourceContainerNode.putResourceKeepParent(copy);
@@ -101,7 +101,7 @@ public class ForControl extends ControlStructure {
 
                     for (Resource subresource : subresources) {
                         Resource copy = subresource.copy();
-                        copy.parentNode(scope);
+                        copy.parent(scope);
 
                         resource.putSubresource(fieldName, copy);
                     }

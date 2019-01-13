@@ -42,8 +42,8 @@ public class BeamVisitor extends BeamParserBaseVisitor {
     }
 
     public BeamFile visitBeam_root(Beam_rootContext context) {
-        BeamFile containerNode = new BeamFile();
-        containerNode.path(getPath());
+        BeamFile container = new BeamFile();
+        container.path(getPath());
 
         for (BeamParser.File_blockContext blockContext : context.file_block()) {
             if (blockContext.key_value_block() != null) {
@@ -52,17 +52,17 @@ public class BeamVisitor extends BeamParserBaseVisitor {
                 value.line(blockContext.key_value_block().getStart().getLine());
                 value.column(blockContext.key_value_block().getStart().getCharPositionInLine());
 
-                containerNode.put(key, value);
+                container.put(key, value);
             } else if (blockContext.resource_block() != null) {
-                Resource block = visitResource_block(blockContext.resource_block(), containerNode);
+                Resource block = visitResource_block(blockContext.resource_block(), container);
 
-                containerNode.putResource(block);
+                container.putResource(block);
             } else if (blockContext.provider_block() != null) {
                 Provider provider = visitProvider_block(blockContext.provider_block());
-                containerNode.providers().add(provider);
+                container.providers().add(provider);
             } else if (blockContext.state_block() != null) {
                 StateBackend stateBackend = visitState_block(blockContext.state_block());
-                containerNode.stateBackend(stateBackend);
+                container.stateBackend(stateBackend);
             } else if (blockContext.import_block() != null) {
                 String path = blockContext.import_block().import_path().getText();
 
@@ -84,17 +84,17 @@ public class BeamVisitor extends BeamParserBaseVisitor {
                     BeamFile importedFileNode = core.parseImport(resolvedPath);
                     importedFileNode.path(resolvedPath);
 
-                    containerNode.putImport(importName, importedFileNode);
+                    container.putImport(importName, importedFileNode);
                 } catch (IOException ioe) {
                     throw new BeamException("Failed to import '" + resolvedPath + "'");
                 }
             } else if (blockContext.for_block() != null) {
-                ForControl forNode = visitFor_block(blockContext.for_block(), containerNode);
-                containerNode.putControlNode(forNode);
+                ForControl forNode = visitFor_block(blockContext.for_block(), container);
+                container.putControlNode(forNode);
             }
         }
 
-        return containerNode;
+        return container;
     }
 
     public Provider visitProvider_block(Provider_blockContext context) {
@@ -123,7 +123,7 @@ public class BeamVisitor extends BeamParserBaseVisitor {
     public Resource visitResource_block(Resource_blockContext context, Container parent) {
         Resource resourceBlock = createResourceBlock(context.resource_type().getText());
         resourceBlock.resourceType(context.resource_type().getText());
-        resourceBlock.parentNode(parent);
+        resourceBlock.parent(parent);
         resourceBlock.line(context.getStart().getLine());
         resourceBlock.column(context.getStart().getCharPositionInLine());
 
@@ -164,7 +164,7 @@ public class BeamVisitor extends BeamParserBaseVisitor {
     public Resource visitSubresource_block(BeamParser.Subresource_blockContext context, Resource parent) {
         Resource resourceBlock = createSubResourceBlock(parent, context.resource_type().getText());
         resourceBlock.resourceType(context.resource_type().getText());
-        resourceBlock.parentNode(parent);
+        resourceBlock.parent(parent);
         resourceBlock.line(context.getStart().getLine());
         resourceBlock.column(context.getStart().getCharPositionInLine());
 
@@ -192,7 +192,7 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         ForControl forNode = new ForControl();
         forNode.line(context.getStart().getLine());
         forNode.column(context.getStart().getCharPositionInLine());
-        forNode.parentNode(parent);
+        forNode.parent(parent);
 
         for (BeamParser.For_list_itemContext itemContext : context.for_list().for_list_item()) {
             forNode.variables().add(itemContext.IDENTIFIER().getText());
@@ -214,7 +214,7 @@ public class BeamVisitor extends BeamParserBaseVisitor {
             if (value != null) {
                 value.line(valueContext.getStart().getLine());
                 value.column(valueContext.getStart().getCharPositionInLine());
-                value.parentNode(forNode);
+                value.parent(forNode);
 
                 forNode.listValues().add(value);
             }
@@ -347,7 +347,7 @@ public class BeamVisitor extends BeamParserBaseVisitor {
                     StringValue string = new StringValue(sb.toString());
                     string.line(contentsContext.reference_body().getStart().getLine());
                     string.column(contentsContext.reference_body().getStart().getCharPositionInLine());
-                    string.parentNode(value);
+                    string.parent(value);
                     sb.setLength(0);
 
                     value.getValues().add(string);
@@ -356,7 +356,7 @@ public class BeamVisitor extends BeamParserBaseVisitor {
                 ReferenceValue reference = new ReferenceValue(contentsContext.reference_body());
                 reference.line(contentsContext.reference_body().getStart().getLine());
                 reference.column(contentsContext.reference_body().getStart().getCharPositionInLine());
-                reference.parentNode(value);
+                reference.parent(value);
 
                 value.getValues().add(reference);
             }
@@ -364,7 +364,7 @@ public class BeamVisitor extends BeamParserBaseVisitor {
 
         if (sb.length() > 0) {
             StringValue string = new StringValue(sb.toString());
-            string.parentNode(value);
+            string.parent(value);
             value.getValues().add(string);
         }
 

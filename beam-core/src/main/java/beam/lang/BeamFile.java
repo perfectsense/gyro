@@ -64,7 +64,7 @@ public class BeamFile extends ResourceContainer {
     }
 
     public void putImport(String key, BeamFile fileNode) {
-        fileNode.parentNode(this);
+        fileNode.parent(this);
 
         imports.put(key, fileNode);
     }

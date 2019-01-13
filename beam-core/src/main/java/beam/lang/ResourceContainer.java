@@ -12,18 +12,18 @@ public class ResourceContainer extends Container {
         return resources.values();
     }
 
-    public Resource removeResource(Resource block) {
-        return resources.remove(block.resourceKey());
+    public Resource removeResource(Resource resource) {
+        return resources.remove(resource.resourceKey());
     }
 
-    public void putResource(Resource resourceBlock) {
-        resourceBlock.parentNode(this);
+    public void putResource(Resource resource) {
+        resource.parent(this);
 
-        resources.put(resourceBlock.resourceKey(), resourceBlock);
+        resources.put(resource.resourceKey(), resource);
     }
 
-    public void putResourceKeepParent(Resource resourceNode) {
-        resources.put(resourceNode.resourceKey(), resourceNode);
+    public void putResourceKeepParent(Resource resource) {
+        resources.put(resource.resourceKey(), resource);
     }
 
     public Resource resource(String type, String key) {
@@ -51,8 +51,8 @@ public class ResourceContainer extends Container {
     public String serialize(int indent) {
         StringBuilder sb = new StringBuilder();
 
-        for (Resource resourceBlock : resources()) {
-            sb.append(resourceBlock.serialize(indent));
+        for (Resource resource: resources()) {
+            sb.append(resource.serialize(indent));
         }
 
         sb.append(super.serialize(indent));

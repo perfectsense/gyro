@@ -322,7 +322,7 @@ public abstract class Resource extends Container {
     public void resourceIdentifierExpression(StringExpressionValue nameExpression) {
         if (nameExpression != null) {
             this.nameExpression = nameExpression.copy();
-            this.nameExpression.parentNode(this);
+            this.nameExpression.parent(this);
         }
     }
 
@@ -331,10 +331,10 @@ public abstract class Resource extends Container {
     }
 
     public Resource parentResourceNode() {
-        Node parent = parentNode();
+        Node parent = parent();
 
         while (parent != null && !(parent instanceof Resource)) {
-            parent = parent.parentNode();
+            parent = parent.parent();
         }
 
         return (Resource) parent;

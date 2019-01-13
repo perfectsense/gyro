@@ -70,7 +70,7 @@ public class Container extends Node {
     }
 
     public void put(String key, Value value) {
-        value.parentNode(this);
+        value.parent(this);
 
         keyValues.put(key, value);
     }
@@ -89,16 +89,16 @@ public class Container extends Node {
 
     public Container copy() {
         try {
-            Container node = getClass().newInstance();
+            Container copy = getClass().newInstance();
 
             for (String key : keys()) {
                 Value value = get(key).copy();
-                value.parentNode(node);
+                value.parent(copy);
 
-                node.put(key, value);
+                copy.put(key, value);
             }
 
-            return node;
+            return copy;
         } catch (InstantiationException | IllegalAccessException e) {
             throw new BeamException("");
         }

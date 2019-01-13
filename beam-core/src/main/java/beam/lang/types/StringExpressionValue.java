@@ -36,16 +36,16 @@ public class StringExpressionValue extends Value<String> {
 
     @Override
     public StringExpressionValue copy() {
-        StringExpressionValue expressionNode = new StringExpressionValue();
+        StringExpressionValue expression = new StringExpressionValue();
 
         for (Value value : getValues()) {
             Value copy = value.copy();
-            copy.parentNode(expressionNode);
+            copy.parent(expression);
 
-            expressionNode.getValues().add(copy);
+            expression.getValues().add(copy);
         }
 
-        return expressionNode;
+        return expression;
     }
 
     @Override
