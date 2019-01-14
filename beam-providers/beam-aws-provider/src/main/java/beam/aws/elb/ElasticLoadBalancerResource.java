@@ -21,6 +21,9 @@ import java.util.Set;
  * .. code-block:: beam
  *
  *     aws::elastic-load-balancer elb-example
+ *         load-balancer-name: "elb-example"
+ *         security-groups: [""]
+ *
  *
  *     end
  */
@@ -30,7 +33,7 @@ public class ElasticLoadBalancerResource extends AwsResource {
     private String loadBalancerName;
     private List<ListenerResource> listeners;
     private List<String> securityGroups;
-    private List<String> subnets;
+    //private List<String> subnets;
 
     public List<ListenerResource> getListeners() {
         if (listeners == null) {
@@ -80,6 +83,7 @@ public class ElasticLoadBalancerResource extends AwsResource {
         this.securityGroups = securityGroups;
     }
 
+    /*
     public List<String> getSubnets() {
         if (subnets == null) {
             subnets = new ArrayList<>();
@@ -91,6 +95,7 @@ public class ElasticLoadBalancerResource extends AwsResource {
     public void setSubnets(List<String> subnets) {
         this.subnets = subnets;
     }
+    */
 
     @Override
     public boolean refresh() {return false;}
@@ -102,7 +107,7 @@ public class ElasticLoadBalancerResource extends AwsResource {
 
        client.createLoadBalancer(r -> r.listeners(toListeners())
                 .securityGroups(getSecurityGroups())
-                .subnets(getSubnets())
+                //.subnets(getSubnets())
         );
 
     }
