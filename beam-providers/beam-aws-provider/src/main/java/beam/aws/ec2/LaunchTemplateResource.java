@@ -389,15 +389,15 @@ public class LaunchTemplateResource extends Ec2TaggableResource<LaunchTemplate> 
 
     private void validate(Ec2Client client) {
 
-        if (InstanceType.fromValue(getInstanceType()).equals(InstanceType.UNKNOWN_TO_SDK_VERSION)) {
-            throw new BeamException("The value - (" + getInstanceType() + ") is invalid for parameter Instance Type.");
-        }
-
         if (getSecurityGroupIds().isEmpty()) {
             throw new BeamException("At least one security group is required.");
         }
 
         if (ObjectUtils.isBlank(getInstanceId())) {
+
+            if (ObjectUtils.isBlank(getInstanceType()) || InstanceType.fromValue(getInstanceType()).equals(InstanceType.UNKNOWN_TO_SDK_VERSION)) {
+                throw new BeamException("The value - (" + getInstanceType() + ") is invalid for parameter Instance Type.");
+            }
 
             DescribeImagesRequest amiRequest;
 
