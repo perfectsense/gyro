@@ -101,6 +101,12 @@ project(":beam-providers:beam-aws-provider") {
     }
 }
 
+project(":beam-providers:beam-test-provider") {
+    dependencies {
+        compile project(':beam-core')
+    }
+}
+
 task distDir {
     doLast {
         mkdir "dist"
