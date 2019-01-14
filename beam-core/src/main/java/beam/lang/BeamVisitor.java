@@ -11,14 +11,27 @@ import beam.lang.types.ReferenceValue;
 import beam.lang.types.StringExpressionValue;
 import beam.lang.types.StringValue;
 import beam.lang.types.Value;
-import beam.parser.antlr4.BeamParser;
-import beam.parser.antlr4.BeamParser.Beam_rootContext;
-import beam.parser.antlr4.BeamParser.Key_value_blockContext;
-import beam.parser.antlr4.BeamParser.List_item_valueContext;
-import beam.parser.antlr4.BeamParser.Provider_blockContext;
-import beam.parser.antlr4.BeamParser.Reference_valueContext;
-import beam.parser.antlr4.BeamParser.Resource_blockContext;
-import beam.parser.antlr4.BeamParser.State_blockContext;
+import beam.parser.antlr4.BeamParser.BeamFileContext;
+import beam.parser.antlr4.BeamParser.FileContext;
+import beam.parser.antlr4.BeamParser.ForBodyContext;
+import beam.parser.antlr4.BeamParser.ForListItemContext;
+import beam.parser.antlr4.BeamParser.ForStmtContext;
+import beam.parser.antlr4.BeamParser.KeySimpleValueContext;
+import beam.parser.antlr4.BeamParser.KeyValueContext;
+import beam.parser.antlr4.BeamParser.ListItemValueContext;
+import beam.parser.antlr4.BeamParser.ListValueContext;
+import beam.parser.antlr4.BeamParser.MapValueContext;
+import beam.parser.antlr4.BeamParser.ProviderContext;
+import beam.parser.antlr4.BeamParser.ReferenceValueContext;
+import beam.parser.antlr4.BeamParser.ResourceBodyContext;
+import beam.parser.antlr4.BeamParser.ResourceContext;
+import beam.parser.antlr4.BeamParser.SimpleValueContext;
+import beam.parser.antlr4.BeamParser.StateContext;
+import beam.parser.antlr4.BeamParser.StringContentsContext;
+import beam.parser.antlr4.BeamParser.StringExpressionContext;
+import beam.parser.antlr4.BeamParser.StringValueContext;
+import beam.parser.antlr4.BeamParser.SubresourceBodyContext;
+import beam.parser.antlr4.BeamParser.SubresourceContext;
 import beam.parser.antlr4.BeamParser.ValueContext;
 import beam.parser.antlr4.BeamParserBaseVisitor;
 import org.apache.commons.lang.StringUtils;
@@ -41,30 +54,29 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         return path;
     }
 
-    public BeamFile visitBeam_root(Beam_rootContext context) {
-        BeamFile container = new BeamFile();
-        container.path(getPath());
+    public BeamFile visitBeamFile(BeamFileContext context) {
+        BeamFile beamFile = new BeamFile();
+        beamFile.path(getPath());
 
-        for (BeamParser.File_blockContext blockContext : context.file_block()) {
-            if (blockContext.key_value_block() != null) {
-                String key = StringUtils.stripEnd(blockContext.key_value_block().key().getText(), ":");
-                Value value = parseValue(blockContext.key_value_block().value());
-                value.line(blockContext.key_value_block().getStart().getLine());
-                value.column(blockContext.key_value_block().getStart().getCharPositionInLine());
+        for (FileContext fileContext : context.file()) {
+            if (fileContext.keyValue() != null) {
+                String key = StringUtils.stripEnd(fileContext.keyValue().key().getText(), ":");
+                Value value = parseValue(fileContext.keyValue().value());
+                value.line(fileContext.keyValue().getStart().getLine());
+                value.column(fileContext.keyValue().getStart().getCharPositionInLine());
 
-                container.put(key, value);
-            } else if (blockContext.resource_block() != null) {
-                Resource block = visitResource_block(blockContext.resource_block(), container);
-
-                container.putResource(block);
-            } else if (blockContext.provider_block() != null) {
-                Provider provider = visitProvider_block(blockContext.provider_block());
-                container.providers().add(provider);
-            } else if (blockContext.state_block() != null) {
-                StateBackend stateBackend = visitState_block(blockContext.state_block());
-                container.stateBackend(stateBackend);
-            } else if (blockContext.import_block() != null) {
-                String path = blockContext.import_block().import_path().getText();
+                beamFile.put(key, value);
+            } else if (fileContext.resource() != null) {
+                Resource resource = visitResource(fileContext.resource(), beamFile);
+                beamFile.putResource(resource);
+            } else if (fileContext.provider() != null) {
+                Provider provider = visitProvider(fileContext.provider());
+                beamFile.providers().add(provider);
+            } else if (fileContext.state() != null) {
+                StateBackend stateBackend = visitState(fileContext.state());
+                beamFile.stateBackend(stateBackend);
+            } else if (fileContext.importStmt() != null) {
+                String path = fileContext.importStmt().importPath().getText();
 
                 Path currentPath = new File(getPath()).getParentFile().toPath();
                 Path importPath = new File(path).toPath();
@@ -77,34 +89,34 @@ public class BeamVisitor extends BeamParserBaseVisitor {
                 }
 
                 try {
-                    String importName = blockContext.import_block().import_name() != null
-                        ? blockContext.import_block().import_name().getText()
+                    String importName = fileContext.importStmt().importName() != null
+                        ? fileContext.importStmt().importName().getText()
                         : importFileName;
 
                     BeamFile importedFileNode = core.parseImport(resolvedPath);
                     importedFileNode.path(resolvedPath);
 
-                    container.putImport(importName, importedFileNode);
+                    beamFile.putImport(importName, importedFileNode);
                 } catch (IOException ioe) {
                     throw new BeamException("Failed to import '" + resolvedPath + "'");
                 }
-            } else if (blockContext.for_block() != null) {
-                ForControl forNode = visitFor_block(blockContext.for_block(), container);
-                container.putControlNode(forNode);
+            } else if (fileContext.forStmt() != null) {
+                ForControl forNode = visitForStmt(fileContext.forStmt(), beamFile);
+                beamFile.putControlNode(forNode);
             }
         }
 
-        return container;
+        return beamFile;
     }
 
-    public Provider visitProvider_block(Provider_blockContext context) {
+    public Provider visitProvider(ProviderContext context) {
         Provider provider = new Provider();
-        provider.setName(context.provider_name().getText());
+        provider.setName(context.providerName().getText());
         provider.setCore(core);
 
-        for (BeamParser.Key_simple_value_blockContext blockContext : context.provider_block_body().key_simple_value_block()) {
-            String key = StringUtils.stripEnd(blockContext.key().getText(), ":");
-            Value value = parseValue(blockContext.simple_value());
+        for (KeySimpleValueContext keyValueContext : context.providerBody().keySimpleValue()) {
+            String key = StringUtils.stripEnd(keyValueContext.key().getText(), ":");
+            Value value = parseValue(keyValueContext.simpleValue());
 
             if (key.equalsIgnoreCase("artifact")) {
                 provider.setArtifact(value.getValue().toString());
@@ -116,99 +128,99 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         return provider;
     }
 
-    public StateBackend visitState_block(State_blockContext context) {
+    public StateBackend visitState(StateContext context) {
         return new LocalStateBackend();
     }
 
-    public Resource visitResource_block(Resource_blockContext context, Container parent) {
-        Resource resourceBlock = createResourceBlock(context.resource_type().getText());
-        resourceBlock.resourceType(context.resource_type().getText());
-        resourceBlock.parent(parent);
-        resourceBlock.line(context.getStart().getLine());
-        resourceBlock.column(context.getStart().getCharPositionInLine());
+    public Resource visitResource(ResourceContext context, Container parent) {
+        Resource resource = createResource(context.resourceType().getText());
+        resource.resourceType(context.resourceType().getText());
+        resource.parent(parent);
+        resource.line(context.getStart().getLine());
+        resource.column(context.getStart().getCharPositionInLine());
 
-        if (context.resource_name().string_value() != null) {
-            Value idValue = parseStringValue(context.resource_name().string_value());
+        if (context.resourceName().stringValue() != null) {
+            Value idValue = parseStringValue(context.resourceName().stringValue());
             if (idValue instanceof StringExpressionValue) {
-                resourceBlock.resourceIdentifierExpression((StringExpressionValue) idValue);
+                resource.resourceIdentifierExpression((StringExpressionValue) idValue);
             } else if (idValue instanceof StringValue) {
-                resourceBlock.resourceIdentifier(((StringValue) idValue).getValue());
+                resource.resourceIdentifier(((StringValue) idValue).getValue());
             }
         } else {
-            resourceBlock.resourceIdentifier(context.resource_name().getText());
+            resource.resourceIdentifier(context.resourceName().getText());
         }
 
-        for (BeamParser.Resource_block_bodyContext blockContext : context.resource_block_body()) {
-            if (blockContext.key_value_block() != null) {
-                String key = StringUtils.stripEnd(blockContext.key_value_block().key().getText(), ":");
-                Value value = parseValue(blockContext.key_value_block().value());
-                value.line(blockContext.key_value_block().getStart().getLine());
-                value.column(blockContext.key_value_block().getStart().getCharPositionInLine());
+        for (ResourceBodyContext bodyContext : context.resourceBody()) {
+            if (bodyContext.keyValue() != null) {
+                String key = StringUtils.stripEnd(bodyContext.keyValue().key().getText(), ":");
+                Value value = parseValue(bodyContext.keyValue().value());
+                value.line(bodyContext.keyValue().getStart().getLine());
+                value.column(bodyContext.keyValue().getStart().getCharPositionInLine());
 
-                resourceBlock.put(key, value);
-            } else if (blockContext.subresource_block() != null) {
-                Resource node = visitSubresource_block(blockContext.subresource_block(), resourceBlock);
-                String type = blockContext.subresource_block().resource_type().getText();
-                resourceBlock.putSubresource(type, node);
-            } else if (blockContext.for_block() != null) {
-                ForControl forNode = visitFor_block(blockContext.for_block(), resourceBlock);
-                resourceBlock.putControlNode(forNode);
+                resource.put(key, value);
+            } else if (bodyContext.subresource() != null) {
+                Resource node = visitSubresource(bodyContext.subresource(), resource);
+                String type = bodyContext.subresource().resourceType().getText();
+                resource.putSubresource(type, node);
+            } else if (bodyContext.forStmt() != null) {
+                ForControl forNode = visitForStmt(bodyContext.forStmt(), resource);
+                resource.putControlNode(forNode);
             }
         }
 
-        resourceBlock.executeInternal();
+        resource.executeInternal();
 
-        return resourceBlock;
+        return resource;
     }
 
-    public Resource visitSubresource_block(BeamParser.Subresource_blockContext context, Resource parent) {
-        Resource resourceBlock = createSubResourceBlock(parent, context.resource_type().getText());
-        resourceBlock.resourceType(context.resource_type().getText());
-        resourceBlock.parent(parent);
-        resourceBlock.line(context.getStart().getLine());
-        resourceBlock.column(context.getStart().getCharPositionInLine());
+    public Resource visitSubresource(SubresourceContext context, Resource parent) {
+        Resource resource = createSubResource(parent, context.resourceType().getText());
+        resource.resourceType(context.resourceType().getText());
+        resource.parent(parent);
+        resource.line(context.getStart().getLine());
+        resource.column(context.getStart().getCharPositionInLine());
 
-        if (context.resource_name() != null) {
-            resourceBlock.resourceIdentifier(context.resource_name().getText());
+        if (context.resourceName() != null) {
+            resource.resourceIdentifier(context.resourceName().getText());
         }
 
-        for (BeamParser.Subresource_block_bodyContext blockContext : context.subresource_block_body()) {
-            if (blockContext.key_value_block() != null) {
-                String key = StringUtils.stripEnd(blockContext.key_value_block().key().getText(), ":");
-                Value value = parseValue(blockContext.key_value_block().value());
-                value.line(blockContext.key_value_block().getStart().getLine());
-                value.column(blockContext.key_value_block().getStart().getCharPositionInLine());
+        for (SubresourceBodyContext bodyContext : context.subresourceBody()) {
+            if (bodyContext.keyValue() != null) {
+                String key = StringUtils.stripEnd(bodyContext.keyValue().key().getText(), ":");
+                Value value = parseValue(bodyContext.keyValue().value());
+                value.line(bodyContext.keyValue().getStart().getLine());
+                value.column(bodyContext.keyValue().getStart().getCharPositionInLine());
 
-                resourceBlock.put(key, value);
+                resource.put(key, value);
             }
         }
 
-        resourceBlock.executeInternal();
+        resource.executeInternal();
 
-        return resourceBlock;
+        return resource;
     }
 
-    public ForControl visitFor_block(BeamParser.For_blockContext context, Node parent) {
+    public ForControl visitForStmt(ForStmtContext context, Node parent) {
         ForControl forNode = new ForControl();
         forNode.line(context.getStart().getLine());
         forNode.column(context.getStart().getCharPositionInLine());
         forNode.parent(parent);
 
-        for (BeamParser.For_list_itemContext itemContext : context.for_list().for_list_item()) {
+        for (ForListItemContext itemContext : context.forList().forListItem()) {
             forNode.variables().add(itemContext.IDENTIFIER().getText());
         }
 
-        for (BeamParser.List_item_valueContext valueContext : context.list_value().list_item_value()) {
+        for (ListItemValueContext valueContext : context.listValue().listItemValue()) {
             Value value = null;
 
-            if (valueContext.string_value() != null) {
-                value = parseStringValue(valueContext.string_value());
-            } else if (valueContext.reference_value() != null) {
-                value = parseReferenceValue(valueContext.reference_value());
-            } else if (valueContext.number_value() != null) {
-                value = new NumberValue(valueContext.number_value().getText());
-            } else if (valueContext.boolean_value() != null) {
-                value = new BooleanValue(valueContext.boolean_value().getText());
+            if (valueContext.stringValue() != null) {
+                value = parseStringValue(valueContext.stringValue());
+            } else if (valueContext.referenceValue() != null) {
+                value = parseReferenceValue(valueContext.referenceValue());
+            } else if (valueContext.numberValue() != null) {
+                value = new NumberValue(valueContext.numberValue().getText());
+            } else if (valueContext.booleanValue() != null) {
+                value = new BooleanValue(valueContext.booleanValue().getText());
             }
 
             if (value != null) {
@@ -220,27 +232,27 @@ public class BeamVisitor extends BeamParserBaseVisitor {
             }
         }
 
-        for (BeamParser.For_block_bodyContext blockContext : context.for_block_body()) {
-            if (blockContext.key_value_block() != null) {
-                String key = StringUtils.stripEnd(blockContext.key_value_block().key().getText(), ":");
-                Value value = parseValue(blockContext.key_value_block().value());
-                value.line(blockContext.key_value_block().getStart().getLine());
-                value.column(blockContext.key_value_block().getStart().getCharPositionInLine());
+        for (ForBodyContext bodyContext : context.forBody()) {
+            if (bodyContext.keyValue() != null) {
+                String key = StringUtils.stripEnd(bodyContext.keyValue().key().getText(), ":");
+                Value value = parseValue(bodyContext.keyValue().value());
+                value.line(bodyContext.keyValue().getStart().getLine());
+                value.column(bodyContext.keyValue().getStart().getCharPositionInLine());
 
                 forNode.put(key, value);
-            } else if (blockContext.resource_block() != null) {
+            } else if (bodyContext.resource() != null) {
                 if (!(parent instanceof ResourceContainer)) {
                     throw new BeamLanguageException("Resource is not valid.");
                 }
 
-                Resource block = visitResource_block(blockContext.resource_block(), forNode);
-                forNode.putResource(block);
-            } else if (blockContext.subresource_block() != null) {
+                Resource resource = visitResource(bodyContext.resource(), forNode);
+                forNode.putResource(resource);
+            } else if (bodyContext.subresource() != null) {
                 if (!(parent instanceof Resource)) {
                     throw new BeamLanguageException("Subresource is not valid.");
                 }
 
-                Resource subresourceNode = visitSubresource_block(blockContext.subresource_block(), (Resource) parent);
+                Resource subresourceNode = visitSubresource(bodyContext.subresource(), (Resource) parent);
                 forNode.putSubResource(subresourceNode);
             }
         }
@@ -248,19 +260,19 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         return forNode;
     }
 
-    public Value parseValue(BeamParser.Simple_valueContext context) {
+    public Value parseValue(SimpleValueContext context) {
         Value value = null;
 
-        if (context.boolean_value() != null) {
-            value = new BooleanValue(context.boolean_value().getText());
-        } else if (context.number_value() != null) {
-            value = new NumberValue(context.number_value().getText());
+        if (context.booleanValue() != null) {
+            value = new BooleanValue(context.booleanValue().getText());
+        } else if (context.numberValue() != null) {
+            value = new NumberValue(context.numberValue().getText());
         } else if (context.STRING_LITERAL() != null) {
             value = new StringValue(context.STRING_LITERAL().getText());
-        } else if (context.list_value() != null) {
-            value = parseListValue(context.list_value());
-        } else if (context.map_value() != null) {
-            value = parseMapNode(context.map_value());
+        } else if (context.listValue() != null) {
+            value = parseListValue(context.listValue());
+        } else if (context.mapValue() != null) {
+            value = parseMapNode(context.mapValue());
         }
 
         value.line(context.start.getLine());
@@ -272,18 +284,18 @@ public class BeamVisitor extends BeamParserBaseVisitor {
     public Value parseValue(ValueContext context) {
         Value value = null;
 
-        if (context.boolean_value() != null) {
-            value = new BooleanValue(context.boolean_value().getText());
-        } else if (context.number_value() != null) {
-            value = new NumberValue(context.number_value().getText());
-        } else if (context.reference_value() != null) {
-            value = parseReferenceValue(context.reference_value());
-        } else if (context.string_value() != null) {
-            value = parseStringValue(context.string_value());
-        } else if (context.list_value() != null) {
-            value = parseListValue(context.list_value());
-        } else if (context.map_value() != null) {
-            value = parseMapNode(context.map_value());
+        if (context.booleanValue() != null) {
+            value = new BooleanValue(context.booleanValue().getText());
+        } else if (context.numberValue() != null) {
+            value = new NumberValue(context.numberValue().getText());
+        } else if (context.referenceValue() != null) {
+            value = parseReferenceValue(context.referenceValue());
+        } else if (context.stringValue() != null) {
+            value = parseStringValue(context.stringValue());
+        } else if (context.listValue() != null) {
+            value = parseListValue(context.listValue());
+        } else if (context.mapValue() != null) {
+            value = parseMapNode(context.mapValue());
         }
 
         value.line(context.start.getLine());
@@ -292,9 +304,9 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         return value;
     }
 
-    public MapValue parseMapNode(BeamParser.Map_valueContext context) {
+    public MapValue parseMapNode(MapValueContext context) {
         MapValue mapValue = new MapValue();
-        for (Key_value_blockContext valueContext : context.key_value_block()) {
+        for (KeyValueContext valueContext : context.keyValue()) {
             String key = StringUtils.stripEnd(valueContext.key().getText(), ":");
             Value value = parseValue(valueContext.value());
             value.line(valueContext.getStart().getLine());
@@ -306,9 +318,9 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         return mapValue;
     }
 
-    public ListValue parseListValue(BeamParser.List_valueContext context) {
+    public ListValue parseListValue(ListValueContext context) {
         ListValue listValue = new ListValue();
-        for (List_item_valueContext valueContext : context.list_item_value()) {
+        for (ListItemValueContext valueContext : context.listItemValue()) {
             Value listItemValue = parseListItemValue(valueContext);
             listItemValue.line(valueContext.getStart().getLine());
             listItemValue.column(valueContext.getStart().getCharPositionInLine());
@@ -319,43 +331,43 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         return listValue;
     }
 
-    public Value parseListItemValue(List_item_valueContext context) {
-        if (context.string_value() != null) {
-            return parseStringValue(context.string_value());
+    public Value parseListItemValue(ListItemValueContext context) {
+        if (context.stringValue() != null) {
+            return parseStringValue(context.stringValue());
         } else {
-            return parseReferenceValue(context.reference_value());
+            return parseReferenceValue(context.referenceValue());
         }
     }
 
-    public ReferenceValue parseReferenceValue(Reference_valueContext context) {
-        return new ReferenceValue(context.reference_body());
+    public ReferenceValue parseReferenceValue(ReferenceValueContext context) {
+        return new ReferenceValue(context.referenceBody());
     }
 
-    public static StringExpressionValue parseStringExpressionValue(BeamParser.String_expressionContext context) {
+    public static StringExpressionValue parseStringExpressionValue(StringExpressionContext context) {
         StringExpressionValue value = new StringExpressionValue();
 
         StringBuilder sb = new StringBuilder();
-        for (BeamParser.String_contentsContext contentsContext : context.string_contents()) {
+        for (StringContentsContext contentsContext : context.stringContents()) {
             if (contentsContext.DOLLAR() != null) {
                 sb.append(contentsContext.getText());
             } else if (contentsContext.LPAREN() != null) {
                 sb.append(contentsContext.getText());
             } else if (contentsContext.TEXT() != null) {
                 sb.append(contentsContext.getText());
-            } else if (contentsContext.reference_body() != null) {
+            } else if (contentsContext.referenceBody() != null) {
                 if (sb.length() > 0) {
                     StringValue string = new StringValue(sb.toString());
-                    string.line(contentsContext.reference_body().getStart().getLine());
-                    string.column(contentsContext.reference_body().getStart().getCharPositionInLine());
+                    string.line(contentsContext.referenceBody().getStart().getLine());
+                    string.column(contentsContext.referenceBody().getStart().getCharPositionInLine());
                     string.parent(value);
                     sb.setLength(0);
 
                     value.getValues().add(string);
                 }
 
-                ReferenceValue reference = new ReferenceValue(contentsContext.reference_body());
-                reference.line(contentsContext.reference_body().getStart().getLine());
-                reference.column(contentsContext.reference_body().getStart().getCharPositionInLine());
+                ReferenceValue reference = new ReferenceValue(contentsContext.referenceBody());
+                reference.line(contentsContext.referenceBody().getStart().getLine());
+                reference.column(contentsContext.referenceBody().getStart().getCharPositionInLine());
                 reference.parent(value);
 
                 value.getValues().add(reference);
@@ -371,10 +383,10 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         return value;
     }
 
-    public static Value parseStringValue(BeamParser.String_valueContext context) {
+    public static Value parseStringValue(StringValueContext context) {
         Value value;
-        if (context.string_expression() != null) {
-            value = parseStringExpressionValue(context.string_expression());
+        if (context.stringExpression() != null) {
+            value = parseStringExpressionValue(context.stringExpression());
         } else {
             value = new StringValue(context.getText());
         }
@@ -385,7 +397,7 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         return value;
     }
 
-    public Resource createResourceBlock(String type) {
+    public Resource createResource(String type) {
         Class klass = core.getResourceType(type);
         if (klass != null) {
             try {
@@ -402,9 +414,9 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         return null;
     }
 
-    public Resource createSubResourceBlock(Resource parent, String type) {
+    public Resource createSubResource(Resource parent, String type) {
         String key = String.format("%s::%s", parent.resourceType(), type);
-        return createResourceBlock(key);
+        return createResource(key);
     }
 
 }

@@ -22,28 +22,28 @@ public class ReferenceValue extends Value {
     private Container referencedBlock;
     private Value value;
 
-    public ReferenceValue(BeamParser.Reference_bodyContext context) {
+    public ReferenceValue(BeamParser.ReferenceBodyContext context) {
         // $(reference_type reference_name | reference_attribute)
-        if (context.reference_type() != null) {
-            this.type = context.reference_type().getText();
+        if (context.referenceType() != null) {
+            this.type = context.referenceType().getText();
         }
 
-        if (context.reference_name() != null) {
-            if (context.reference_name().string_expression() != null) {
-                this.nameExpression = BeamVisitor.parseStringExpressionValue(context.reference_name().string_expression());
+        if (context.referenceName() != null) {
+            if (context.referenceName().stringExpression() != null) {
+                this.nameExpression = BeamVisitor.parseStringExpressionValue(context.referenceName().stringExpression());
                 this.nameExpression.parent(this);
             } else {
-                this.name = context.reference_name().getText();
+                this.name = context.referenceName().getText();
             }
         }
 
-        if (context.reference_attribute() != null) {
-            this.attribute = context.reference_attribute().getText();
+        if (context.referenceAttribute() != null) {
+            this.attribute = context.referenceAttribute().getText();
         }
 
         // $(reference_name)
-        if (context.reference_type() != null && context.reference_name() == null) {
-            this.name = context.reference_type().getText();
+        if (context.referenceType() != null && context.referenceName() == null) {
+            this.name = context.referenceType().getText();
             this.type = null;
         }
     }
