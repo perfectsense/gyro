@@ -1,7 +1,9 @@
 package beam.lang;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ResourceContainer extends Container {
@@ -9,7 +11,15 @@ public class ResourceContainer extends Container {
     transient Map<ResourceKey, Resource> resources = new HashMap<>();
 
     public Collection<Resource> resources() {
-        return resources.values();
+        Map<ResourceKey, Resource> allResources = new HashMap<>(resources);
+
+        for (Frame frame : frames()) {
+            for (Resource resource : frame.resources()) {
+                allResources.put(resource.resourceKey(), resource);
+            }
+        }
+
+        return allResources.values();
     }
 
     public Resource removeResource(Resource resource) {
@@ -30,6 +40,19 @@ public class ResourceContainer extends Container {
         ResourceKey resourceKey = new ResourceKey(type, key);
 
         return resources.get(resourceKey);
+    }
+
+    @Override
+    public boolean resolve() {
+        super.resolve();
+
+        for (Resource resource : resources()) {
+            if (!resource.resolve()) {
+                throw new BeamLanguageException("Unable to resolve configuration.", resource);
+            }
+        }
+
+        return true;
     }
 
     @Override

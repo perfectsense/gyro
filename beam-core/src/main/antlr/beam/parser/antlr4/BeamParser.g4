@@ -29,10 +29,10 @@ importStmt  : IMPORT importPath AS? importName?;
 importPath  : IDENTIFIER;
 importName  : IDENTIFIER;
 
-forStmt     : FOR forList IN listValue forBody* blockEnd;
-forBody     : keyValue | resource | subresource;
-forList     : forListItem (COMMA forListItem)*;
-forListItem : IDENTIFIER;
+forStmt      : FOR forVariables IN listValue forBody* blockEnd;
+forBody      : keyValue | resource | subresource;
+forVariables : forVariable (COMMA forVariable)*;
+forVariable  : IDENTIFIER;
 
 // -- Key/Value blocks.
 //

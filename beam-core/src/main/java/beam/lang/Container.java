@@ -22,7 +22,8 @@ import java.util.regex.Pattern;
 public class Container extends Node {
 
     transient Map<String, Value> keyValues = new HashMap<>();
-    transient List<ControlStructure> controlNodes = new ArrayList<>();
+    transient List<Control> controls = new ArrayList<>();
+    transient List<Frame> frames = new ArrayList<>();
 
     private static final Pattern NEWLINES = Pattern.compile("([\r\n]+)");
 
@@ -75,12 +76,20 @@ public class Container extends Node {
         keyValues.put(key, value);
     }
 
-    public void putControlNode(ControlStructure node) {
-        controlNodes.add(node);
+    public void putControl(Control node) {
+        controls.add(node);
     }
 
-    public List<ControlStructure> controlNodes() {
-        return controlNodes;
+    public List<Control> controls() {
+        return controls;
+    }
+
+    public List<Frame> frames() {
+        return frames;
+    }
+
+    public void frames(List<Frame> frames) {
+        this.frames = frames;
     }
 
     public void copyNonResourceState(Container source) {
@@ -135,10 +144,17 @@ public class Container extends Node {
             }
         }
 
-        for (ControlStructure controlNode : controlNodes()) {
-            boolean resolved = controlNode.resolve();
+        for (Control control : controls()) {
+            boolean resolved = control.resolve();
             if (!resolved) {
-                throw new BeamLanguageException("Unable to resolve configuration.", controlNode);
+                throw new BeamLanguageException("Unable to resolve configuration.", control);
+            }
+        }
+
+        for (Frame frame : frames()) {
+            boolean resolved = frame.resolve();
+            if (!resolved) {
+                throw new BeamLanguageException("Unable to resolve configuration.", frame);
             }
         }
 
@@ -196,7 +212,7 @@ public class Container extends Node {
 
     @Override
     public String toString() {
-        return String.format("Container[key/values: %d, controls: %d]", keys().size(), controlNodes().size());
+        return String.format("Container[key/values: %d, controls: %d]", keys().size(), controls().size());
     }
 
     protected String valueToString(Object value, int indent) {

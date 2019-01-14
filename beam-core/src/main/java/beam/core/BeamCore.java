@@ -248,11 +248,10 @@ public class BeamCore {
 
         if (type == ChangeType.DELETE) {
             if (isSubresource) {
-                Resource copy = resource.parentResourceNode().copy();
-                copy.removeSubresource(resource);
-                copy.syncInternalToProperties();
+                Resource parent = resource.parentResourceNode();
+                parent.removeSubresource(resource);
 
-                stateNode.putResource(copy);
+                stateNode.putResource(parent);
             } else {
                 stateNode.removeResource(resource);
             }
@@ -260,9 +259,9 @@ public class BeamCore {
             if (isSubresource) {
                 // Save parent resource when current resource is a subresource.
                 Resource parent = resource.parentResourceNode();
-                stateNode.putResource(parent.copy());
+                stateNode.putResource(parent);
             } else {
-                stateNode.putResource(resource.copy());
+                stateNode.putResource(resource);
             }
         }
 
