@@ -2,10 +2,10 @@ package beam.aws.iam;
 
 import beam.aws.AwsResource;
 import beam.core.BeamException;
-import beam.core.BeamResource;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 
+import beam.lang.Resource;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.iam.IamClient;
 import software.amazon.awssdk.services.iam.model.AttachedPolicy;
@@ -156,7 +156,7 @@ public class IamRoleResource extends AwsResource {
     }
 
     @Override
-    public void update(BeamResource current, Set<String> changedProperties) {
+    public void update(Resource current, Set<String> changedProperties) {
         IamClient client = IamClient.builder()
                 .region(Region.AWS_GLOBAL)
                 .build();
