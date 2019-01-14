@@ -322,7 +322,7 @@ public class LaunchTemplateResource extends Ec2TaggableResource<LaunchTemplate> 
 
         validate(client);
 
-        if(!ObjectUtils.isBlank(getInstanceId())) {
+        if (!ObjectUtils.isBlank(getInstanceId())) {
             GetLaunchTemplateDataResponse response = client.getLaunchTemplateData(r -> r.instanceId(getInstanceId()));
             setCoreCount(response.launchTemplateData().cpuOptions().coreCount());
             setThreadPerCore(response.launchTemplateData().cpuOptions().threadsPerCore());
