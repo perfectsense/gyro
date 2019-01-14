@@ -53,26 +53,6 @@ public abstract class Resource extends Container {
 
     public abstract Class resourceCredentialsClass();
 
-    @Override
-    public Resource copy() {
-        Resource resource = (Resource) super.copy();
-        resource.parent(parent());
-        resource.setResourceCredentials(getResourceCredentials());
-        resource.resourceType(resourceType());
-        resource.resourceIdentifier(resourceIdentifier());
-        resource.resourceIdentifierExpression(resourceIdentifierExpression());
-        resource.syncPropertiesFromResource(this, true);
-
-        // Copy subresources
-        for (String fieldName : subResources().keySet()) {
-            for (Resource subresource : subResources().get(fieldName)) {
-                resource.putSubresource(fieldName, subresource.copy());
-            }
-        }
-
-        return resource;
-    }
-
     public String resourceCredentialsName() {
         Class c = resourceCredentialsClass();
 

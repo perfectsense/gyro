@@ -96,23 +96,6 @@ public class Container extends Node {
         keyValues.putAll(source.keyValues);
     }
 
-    public Container copy() {
-        try {
-            Container copy = getClass().newInstance();
-
-            for (String key : keys()) {
-                Value value = get(key).copy();
-                value.parent(copy);
-
-                copy.put(key, value);
-            }
-
-            return copy;
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new BeamException("");
-        }
-    }
-
     protected void syncInternalToProperties() {
         for (String key : keys()) {
             Object value = get(key).getValue();
