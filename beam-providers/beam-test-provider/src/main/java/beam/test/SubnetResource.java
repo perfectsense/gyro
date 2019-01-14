@@ -3,6 +3,8 @@ package beam.test;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 
+import java.util.UUID;
+
 @ResourceName("subnet")
 public class SubnetResource extends FakeResource {
 
@@ -61,6 +63,11 @@ public class SubnetResource extends FakeResource {
 
     public void setSubnetId(String subnetId) {
         this.subnetId = subnetId;
+    }
+
+    @Override
+    public void create() {
+        setSubnetId("subnet-" + UUID.randomUUID().toString().replace("-", "").substring(16));
     }
 
     @Override
