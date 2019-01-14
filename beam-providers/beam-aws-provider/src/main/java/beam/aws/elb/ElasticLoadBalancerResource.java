@@ -104,11 +104,12 @@ public class ElasticLoadBalancerResource extends AwsResource {
     public void create() {
         ElasticLoadBalancingClient client = ElasticLoadBalancingClient.builder()
                 .build();
-
-       client.createLoadBalancer(r -> r.listeners(toListeners())
+        /*
+        client.createLoadBalancer(r -> r.listeners(toListeners())
                 .securityGroups(getSecurityGroups())
                 //.subnets(getSubnets())
-        );
+        );*/
+        client.createLoadBalancer(r -> r.loadBalancerName(getLoadBalancerName()));
 
     }
 
