@@ -13,6 +13,7 @@ import software.amazon.awssdk.services.ec2.model.DescribeLaunchTemplatesResponse
 import software.amazon.awssdk.services.ec2.model.Ec2Exception;
 import software.amazon.awssdk.services.ec2.model.Filter;
 import software.amazon.awssdk.services.ec2.model.GetLaunchTemplateDataResponse;
+import software.amazon.awssdk.services.ec2.model.InstanceType;
 import software.amazon.awssdk.services.ec2.model.LaunchTemplate;
 import software.amazon.awssdk.services.ec2.model.ShutdownBehavior;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
@@ -374,13 +375,13 @@ public class LaunchTemplateResource extends Ec2TaggableResource<LaunchTemplate> 
     @Override
     public String toDisplayString() {
         StringBuilder sb = new StringBuilder();
-        String instanceId = getLaunchTemplateId();
+        String launchTemplateId = getLaunchTemplateId();
 
-        if (!ObjectUtils.isBlank(instanceId)) {
-            sb.append(instanceId);
+        sb.append("Launch Template");
 
-        } else {
-            sb.append("Launch Template");
+        if (!ObjectUtils.isBlank(launchTemplateId)) {
+            sb.append(" - ").append(launchTemplateId);
+
         }
 
         return sb.toString();
