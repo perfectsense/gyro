@@ -1,7 +1,7 @@
 package beam.aws;
 
 import beam.core.BeamException;
-import beam.core.BeamResource;
+import beam.lang.Resource;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.core.SdkClient;
@@ -10,7 +10,7 @@ import software.amazon.awssdk.regions.Region;
 
 import java.lang.reflect.Method;
 
-public abstract class AwsResource extends BeamResource {
+public abstract class AwsResource extends Resource {
 
     private SdkClient client;
 
@@ -20,7 +20,7 @@ public abstract class AwsResource extends BeamResource {
         }
 
         try {
-            AwsBeamCredentials credentials = (AwsBeamCredentials) getResourceCredentials();
+            AwsCredentials credentials = (AwsCredentials) getResourceCredentials();
             if (credentials == null) {
                 throw new BeamException("No credentials associated with the resource.");
             }
@@ -42,7 +42,7 @@ public abstract class AwsResource extends BeamResource {
     }
 
     public Class resourceCredentialsClass() {
-        return AwsBeamCredentials.class;
+        return AwsCredentials.class;
     }
 
     @FunctionalInterface

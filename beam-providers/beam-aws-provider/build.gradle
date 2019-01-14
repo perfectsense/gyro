@@ -5,7 +5,7 @@ plugins {
 
 sourceCompatibility = 1.8
 
-def aws_sdk2_version = '2.1.4'
+def aws_sdk2_version = '2.3.0'
 
 defaultTasks 'build'
 
@@ -14,6 +14,7 @@ dependencies {
     compile "software.amazon.awssdk:ec2:${aws_sdk2_version}"
     compile "software.amazon.awssdk:s3:${aws_sdk2_version}"
     compile "software.amazon.awssdk:iam:${aws_sdk2_version}"
+    compile "software.amazon.awssdk:sqs:${aws_sdk2_version}"
 
     compile 'com.psddev:dari-util:3.3.607-xe0f27a'
     compile "com.google.guava:guava:23.0"

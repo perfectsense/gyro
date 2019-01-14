@@ -32,7 +32,7 @@ public class CustomerGatewayResource extends Ec2TaggableResource<CustomerGateway
 
     private String customerGatewayId;
     private String publicIp;
-    private int bgpAsn;
+    private Integer bgpAsn;
 
     public String getCustomerGatewayId() {
         return customerGatewayId;
@@ -56,11 +56,11 @@ public class CustomerGatewayResource extends Ec2TaggableResource<CustomerGateway
     /**
      * the Border Gateway Protocol Autonomous System Number of the gateway.
      */
-    public int getBgpAsn() {
+    public Integer getBgpAsn() {
         return bgpAsn;
     }
 
-    public void setBgpAsn(int bgpAsn) {
+    public void setBgpAsn(Integer bgpAsn) {
         this.bgpAsn = bgpAsn;
     }
 

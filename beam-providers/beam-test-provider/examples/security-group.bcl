@@ -1,0 +1,30 @@
+import init as _
+
+test::network network-security-group-example
+    cidr-block: "10.0.0.0/16"
+end
+
+test::security-group security-group-example
+    group-name: "$(project) $(environment) - Allow web traffic only"
+    network-id: $(test::network network-security-group-example | network-id)
+    description: "Allow web traffic only"
+    keep-default-egress-rules: true
+
+    for port, type in [80, 'http', 443, 'https']
+        ingress
+            description: "allow inbound $(type) traffic"
+            cidr-blocks: ["0.0.0.0/0"]
+            protocol: "TCP"
+            from-port: $(port)
+            to-port: $(port)
+        end
+    end
+
+    egress
+        description: "allow outbound http traffic"
+        cidr-blocks: ["0.0.0.0/0"]
+        protocol: "TCP"
+        from-port: 80
+        to-port: 80
+    end
+end

@@ -1,0 +1,13 @@
+{
+  "Version": "2012-10-17",
+  "Id": "arn:aws:sqs:us-east-2:242040583208:KmsTest50/SQSDefaultPolicy",
+  "Statement": [
+    {
+      "Sid": "Sid1546834209042",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "SQS:DeleteMessage",
+      "Resource": "arn:aws:sqs:us-east-2:242040583208:KmsTest"
+    }
+  ]
+}

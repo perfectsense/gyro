@@ -15,12 +15,14 @@ aws::security-group security-group-example
     description: "Allow web traffic only"
     keep-default-egress-rules: true
 
-    ingress
-        description: "allow inbound http traffic, ipv4 only"
-        cidr-blocks: ["0.0.0.0/0"]
-        protocol: "TCP"
-        from-port: 80
-        to-port: 80
+    for port, type in [80, 'http', 443, 'https']
+        ingress
+            description: "allow inbound $(type) traffic, ipv4 only"
+            cidr-blocks: ["0.0.0.0/0"]
+            protocol: "TCP"
+            from-port: $(port)
+            to-port: $(port)
+        end
     end
 
     egress

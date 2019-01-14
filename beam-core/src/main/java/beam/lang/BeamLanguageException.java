@@ -31,8 +31,8 @@ public class BeamLanguageException extends RuntimeException {
         sb.append(message).append("\n");
         if (getReferable() != null) {
             sb.append("    at line ");
-            sb.append(getReferable().getLine()).append(":");
-            sb.append(getReferable().getColumn()).append(" => ");
+            sb.append(getReferable().line()).append(":");
+            sb.append(getReferable().column()).append(" => ");
             sb.append(getReferable().toString());
         }
 
