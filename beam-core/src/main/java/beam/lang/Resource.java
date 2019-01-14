@@ -350,7 +350,7 @@ public abstract class Resource extends Container {
         return new ResourceKey(resourceType(), resourceIdentifier());
     }
 
-    public Resource parentResourceNode() {
+    public Resource parentResource() {
         Node parent = parent();
 
         while (parent != null && !(parent instanceof Resource)) {
