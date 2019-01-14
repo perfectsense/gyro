@@ -62,7 +62,12 @@ public class ListenerResource extends ElasticLoadBalancerResource {
     public boolean refresh() {return false;}
 
     @Override
-    public void create() {}
+    public void create() {
+        ElasticLoadBalancingClient client = ElasticLoadBalancingClient.builder()
+                .build();
+        client.createLoadBalancerListeners(r -> r.loadBalancerName(getLoadBalancerName())
+        .listeners(toListeners()));
+    }
 
     @Override
     public void update(Resource current, Set<String> changedProperties) {}
