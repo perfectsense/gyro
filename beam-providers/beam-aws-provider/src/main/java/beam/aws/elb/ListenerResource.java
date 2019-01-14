@@ -17,8 +17,11 @@ import java.util.Set;
  * .. code-block:: beam
  *
  *     aws::listener listener-ex
- *
- *
+ *        instance-port: "443"
+ *        instance-protocol: "https"
+ *        load-balancer-port: "443"
+ *        protocol: "https"
+ *        ssl-certificate-id: "arn:aws:iam::123456789012:server-certificate/my-server-cert"
  *     end
  */
 
