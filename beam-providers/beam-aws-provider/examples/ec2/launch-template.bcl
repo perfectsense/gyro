@@ -1,0 +1,98 @@
+provider aws
+    artifact: 'beam:beam-aws-provider:0.5'
+    repositories: [
+        'http://repo1.maven.org/maven2/',
+        'https://repo.gradle.org/gradle/libs-releases/',
+        'https://artifactory.psdops.com/public'
+    ]
+end
+
+aws::credentials default
+    profile-name: "psd-beam-sandbox"
+    region: "us-west-2"
+end
+
+project: "beam"
+environment: "sandbox"
+serial: "v1"
+
+aws::vpc vpc-launch-template-example
+    cidr-block: "10.0.0.0/16"
+    provide-ipv6-cidr-block: true
+
+    tags: {
+        Name: "vpc-launch-template-example"
+         }
+end
+
+aws::security-group security-group-launch-template-example-1
+    group-name: "security-group-launch-template-example-1"
+    vpc-id: $(aws::vpc vpc-launch-template-example | vpc-id)
+    description: "security group launch-template example 1"
+    keep-default-egress-rules: true
+
+    ingress
+        description: "allow inbound http traffic, ipv4 only"
+        cidr-blocks: ["0.0.0.0/0"]
+        protocol: "TCP"
+        from-port: 22
+        to-port: 22
+    end
+
+    egress
+        description: "allow outbound http traffic, ipv6 only"
+        ipv6-cidr-blocks: ["::/0"]
+        protocol: "TCP"
+        from-port: 22
+        to-port: 22
+    end
+
+    tags: {
+        Name: "security-group-launch-template-example-1"
+    }
+end
+
+aws::security-group security-group-launch-template-example-2
+    group-name: "security-group-launch-template-example-2"
+    vpc-id: $(aws::vpc vpc-launch-template-example | vpc-id)
+    description: "security group launch-template example 2"
+    keep-default-egress-rules: true
+
+    ingress
+        description: "allow inbound http traffic, ipv4 only"
+        cidr-blocks: ["0.0.0.0/0"]
+        protocol: "TCP"
+        from-port: 22
+        to-port: 22
+    end
+
+    egress
+        description: "allow outbound http traffic, ipv6 only"
+        ipv6-cidr-blocks: ["::/0"]
+        protocol: "TCP"
+        from-port: 22
+        to-port: 22
+    end
+
+    tags: {
+        Name: "security-group-launch-template-example-2"
+    }
+end
+
+aws::launch-template launch-template
+    launch-template-name: "launch-template-beam-1"
+    ami-name: "amzn-ami-hvm-2018.03.0.20181129-x86_64-gp2"
+    shutdown-behavior: "STOP"
+    instance-type: "t2.micro"
+    key-name: "instance-static"
+    security-group-ids: [
+        $(aws::security-group security-group-launch-template-example-1 | group-id),
+        $(aws::security-group security-group-launch-template-example-2 | group-id)
+    ]
+    disable-api-termination: false
+    ebs-optimized: false
+
+    tags: {
+        Name: "launch-template-example"
+    }
+end
