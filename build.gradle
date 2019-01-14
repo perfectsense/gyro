@@ -4,9 +4,6 @@ buildscript {
             url "https://plugins.gradle.org/m2/"
         }
     }
-    dependencies {
-        classpath "gradle.plugin.aspectj:gradle-aspectj:0.1.6"
-    }
 }
 
 plugins {
@@ -18,11 +15,6 @@ defaultTasks 'build', 'checkstyle', 'publish', 'publishToMavenLocal', 'distDir',
 allprojects {
     version = '0.5'
 }
-
-ext {
-    aspectjVersion = '1.9.0'
-}
-
 
 subprojects {
     apply plugin: "idea"
