@@ -117,7 +117,12 @@ public class ElasticLoadBalancerResource extends AwsResource {
     public void update(Resource current, Set<String> changedProperties) {}
 
     @Override
-    public void delete() {}
+    public void delete() {
+        ElasticLoadBalancingClient client = ElasticLoadBalancingClient.builder()
+                .build();
+
+        client.deleteLoadBalancer(r -> r.loadBalancerName(getLoadBalancerName()));
+    }
 
     @Override
     public String toDisplayString() {
