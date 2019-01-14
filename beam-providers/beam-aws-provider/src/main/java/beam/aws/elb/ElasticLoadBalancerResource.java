@@ -40,6 +40,22 @@ public class ElasticLoadBalancerResource extends AwsResource {
         return listeners;
     }
 
+    public List<Listener> toListeners() {
+        List<Listener> listeners = new ArrayList<>();
+        for(ListenerResource resource : getListeners()) {
+            Listener newListener = Listener.builder()
+                    .instancePort(resource.getInstancePort())
+                    .instanceProtocol(resource.getInstanceProtocol())
+                    .loadBalancerPort(resource.getLoadBalancerPort())
+                    .protocol(resource.getProtocol())
+                    .sslCertificateId(resource.getSslCertificateId())
+                    .build();
+            listeners.add(newListener);
+        }
+
+        return listeners;
+    }
+
     public void setListeners(List<ListenerResource> listeners) {
         this.listeners = listeners;
     }
@@ -80,7 +96,16 @@ public class ElasticLoadBalancerResource extends AwsResource {
     public boolean refresh() {return false;}
 
     @Override
-    public void create() {}
+    public void create() {
+        ElasticLoadBalancingClient client = ElasticLoadBalancingClient.builder()
+                .build();
+
+       client.createLoadBalancer(r -> r.listeners(toListeners())
+                .securityGroups(getSecurityGroups())
+                .subnets(getSubnets())
+        );
+
+    }
 
     @Override
     public void update(Resource current, Set<String> changedProperties) {}
