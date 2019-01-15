@@ -16,28 +16,28 @@ project: "beam"
 environment: "sandbox"
 serial: "v1"
 
-aws::vpc vpc-autoscaling-group-example
+aws::vpc vpc-auto-scaling-group-example
     cidr-block: "10.0.0.0/16"
     provide-ipv6-cidr-block: true
 
     tags: {
-        Name: "vpc-autoscaling-group-example"
+        Name: "vpc-auto-scaling-group-example"
          }
 end
 
-aws::subnet subnet-autoscaling-group-example
-    vpc-id: $(aws::vpc vpc-autoscaling-group-example | vpc-id)
+aws::subnet subnet-auto-scaling-group-example
+    vpc-id: $(aws::vpc vpc-auto-scaling-group-example | vpc-id)
     availability-zone: "us-east-2a"
     cidr-block: "10.0.0.0/16"
 
     tags: {
-        Name: "subnet-autoscaling-group-example"
+        Name: "subnet-auto-scaling-group-example"
     }
 end
 
-aws::security-group security-group-autoscaling-group-example-1
-    group-name: "security-group-autoscaling-group-example-1"
-    vpc-id: $(aws::vpc vpc-autoscaling-group-example | vpc-id)
+aws::security-group security-group-auto-scaling-group-example-1
+    group-name: "security-group-auto-scaling-group-example-1"
+    vpc-id: $(aws::vpc vpc-auto-scaling-group-example | vpc-id)
     description: "security group instance example 1"
     keep-default-egress-rules: true
 
@@ -58,13 +58,13 @@ aws::security-group security-group-autoscaling-group-example-1
     end
 
     tags: {
-        Name: "security-group-autoscaling-group-example-1"
+        Name: "security-group-auto-scaling-group-example-1"
     }
 end
 
-aws::security-group security-group-autoscaling-group-example-2
-    group-name: "security-group-autoscaling-group-example-2"
-    vpc-id: $(aws::vpc vpc-autoscaling-group-example | vpc-id)
+aws::security-group security-group-auto-scaling-group-example-2
+    group-name: "security-group-auto-scaling-group-example-2"
+    vpc-id: $(aws::vpc vpc-auto-scaling-group-example | vpc-id)
     description: "security group instance example 2"
     keep-default-egress-rules: true
 
@@ -85,19 +85,19 @@ aws::security-group security-group-autoscaling-group-example-2
     end
 
     tags: {
-        Name: "security-group-autoscaling-group-example-2"
+        Name: "security-group-auto-scaling-group-example-2"
     }
 end
 
-aws::instance instance-autoscaling-group-example
+aws::instance instance-auto-scaling-group-example
     ami-name: "amzn-ami-hvm-2018.03.0.20181129-x86_64-gp2"
     shutdown-behavior: "STOP"
     instance-type: "t2.micro"
     key-name: "instance-static"
-    subnet-id: $(aws::subnet subnet-autoscaling-group-example | subnet-id)
+    subnet-id: $(aws::subnet subnet-auto-scaling-group-example | subnet-id)
     security-group-ids: [
-        $(aws::security-group security-group-autoscaling-group-example-1 | group-id),
-        $(aws::security-group security-group-autoscaling-group-example-2 | group-id)
+        $(aws::security-group security-group-auto-scaling-group-example-1 | group-id),
+        $(aws::security-group security-group-auto-scaling-group-example-2 | group-id)
     ]
     disable-api-termination: false
     enable-ena-support: true
@@ -105,26 +105,20 @@ aws::instance instance-autoscaling-group-example
     source-dest-check: true
 
     tags: {
-        Name: "instance-autoscaling-group-example"
+        Name: "instance-auto-scaling-group-example"
     }
 end
 
-aws::launch-template launch-template-autoscaling-group-example
+aws::launch-template launch-template-auto-scaling-group-example
     launch-template-name: "launch-template-beam-1"
-    instance-id: $(aws::instance instance-autoscaling-group-example | instance-id)
+    instance-id: $(aws::instance instance-auto-scaling-group-example | instance-id)
 
     tags: {
-        Name: "launch-template-autoscaling-group-example"
+        Name: "launch-template-auto-scaling-group-example"
     }
 end
 
-aws::launch-configuration launch-configuration-autoscaling-group-example
+aws::launch-configuration launch-configuration-auto-scaling-group-example
     launch-configuration-name: "launch-configuration-beam-1"
-    instance-id: $(aws::instance instance-autoscaling-group-example | instance-id)
-end
-
-aws::auto-scaling-group auto-scaling-group-example
-    auto-scaling-group-name: "auto-scaling-group-beam-1"
-    launch-template-id: $(aws::launch-template launch-template-autoscaling-group-example | launch-template-id)
-    availability-zone: $(aws::subnet subnet-autoscaling-group-example | availability-zone)
+    instance-id: $(aws::instance instance-auto-scaling-group-example | instance-id)
 end
