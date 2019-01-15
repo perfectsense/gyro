@@ -8,7 +8,7 @@ import beam.lang.Resource;
 
 import software.amazon.awssdk.services.elasticloadbalancing.ElasticLoadBalancingClient;
 import software.amazon.awssdk.services.elasticloadbalancing.model.CreateLoadBalancerResponse;
-import software.amazon.awssdk.services.elasticloadbalancing.model.DescribeLoadBalancersResponse
+import software.amazon.awssdk.services.elasticloadbalancing.model.DescribeLoadBalancersResponse;
 import software.amazon.awssdk.services.elasticloadbalancing.model.HealthCheck;
 import software.amazon.awssdk.services.elasticloadbalancing.model.Instance;
 import software.amazon.awssdk.services.elasticloadbalancing.model.Listener;
@@ -33,8 +33,8 @@ import java.util.Set;
  *
  *     end
  */
-@ResourceName("elastic-load-balancer")
-public class ClassicLoadBalancerResource extends AwsResource {
+@ResourceName("load-balancer")
+public class LoadBalancerResource extends AwsResource {
 
     private String loadBalancerName;
     private List<String> instances;
@@ -141,6 +141,7 @@ public class ClassicLoadBalancerResource extends AwsResource {
         return listeners;
     }
 
+    /*
     public HealthCheckResource fromHealthCheck(HealthCheck healthCheck){
         HealthCheckResource healthCheckResource = new HealthCheckResource();
         healthCheckResource.setUnhealthyThreshold(healthCheck.unhealthyThreshold());
@@ -149,25 +150,22 @@ public class ClassicLoadBalancerResource extends AwsResource {
         healthCheckResource.setTimeout(healthCheck.timeout());
         healthCheckResource.setUnhealthyThreshold(healthCheck.unhealthyThreshold());
         return healthCheckResource;
-    }
+    }*/
 
     @Override
-    public boolean doRefresh() {
+    public boolean refresh() {
         ElasticLoadBalancingClient client = ElasticLoadBalancingClient.builder()
                 .build();
 
         DescribeLoadBalancersResponse response = client.describeLoadBalancers(r -> r.loadBalancerNames(getLoadBalancerName()));
         if (response != null) {
             for(LoadBalancerDescription description : response.loadBalancerDescriptions()){
-                //update values
                 setLoadBalancerName(description.loadBalancerName());
-                //refresh happens in HealthCheckResource
-                //setHealthCheck(fromHealthCheck(description.healthCheck()));
                 setInstances(fromInstances(description.instances()));
                 setSecurityGroups(description.securityGroups());
                 setSubnets(description.subnets());
-
-
+                //refresh for health check will happen in its own class
+                //not sure if that is correct
                 //refresh listeners
                 getListeners().clear();
                 for (ListenerDescription listenerDescription : description.listenerDescriptions()){
