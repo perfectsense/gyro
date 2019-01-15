@@ -6,6 +6,7 @@ import beam.lang.Resource;
 import software.amazon.awssdk.services.elasticloadbalancing.ElasticLoadBalancingClient;
 import software.amazon.awssdk.services.elasticloadbalancing.model.Listener;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -25,8 +26,9 @@ import java.util.Set;
  *     end
  */
 
-@ResourceName(parent = "elastic-load-balancer", value = "listener")
-public class ListenerResource extends ElasticLoadBalancerResource {
+@ResourceName(parent = "load-balancer-resource", value = "listener")
+public class ListenerResource extends AwsResource {
+
     private Integer instancePort;
     private String instanceProtocol;
     private Integer loadBalancerPort;
@@ -43,7 +45,7 @@ public class ListenerResource extends ElasticLoadBalancerResource {
         return instanceProtocol;
     }
 
-    public void setInstancePort(String instanceProtocol) { this.instanceProtocol = instanceProtocol; }
+    public void setInstanceProtocol(String instanceProtocol) { this.instanceProtocol = instanceProtocol; }
 
     public Integer getLoadBalancerPort() {
         return loadBalancerPort;
@@ -61,26 +63,40 @@ public class ListenerResource extends ElasticLoadBalancerResource {
 
     public void setSslCertificateId(String sslCertificateId) { this.sslCertificateId = sslCertificateId; }
 
+    public String getLoadBalancer() {
+        ClassicLoadBalancerResource parent = (ClassicLoadBalancerResource) parentResourceNode();
+        if (parent != null) {
+            return parent.getLoadBalancerName();
+        }
+
+        return null;
+    }
+
     @Override
     public boolean refresh() {return false;}
 
     @Override
     public void create() {
+         /*
         ElasticLoadBalancingClient client = ElasticLoadBalancingClient.builder()
                 .build();
-        client.createLoadBalancerListeners(r -> r.loadBalancerName(getLoadBalancerName())
-        .listeners(toListeners()));
+
+        client.createLoadBalancerListeners(r -> r.loadBalancerName(getLoadBalancer())
+        .listeners(toListeners()));*/
     }
 
     @Override
-    public void update(Resource current, Set<String> changedProperties) {}
+    public void update(Resource current, Set<String> changedProperties) {
+        //remove and attach based on new list of listeners
+
+    }
 
     @Override
     public void delete() {
         ElasticLoadBalancingClient client = ElasticLoadBalancingClient.builder()
                 .build();
 
-        client.deleteLoadBalancerListeners(r -> r.loadBalancerName(getLoadBalancerName()));
+        client.deleteLoadBalancerListeners(r -> r.loadBalancerName(getLoadBalancer()));
     }
 
     @Override
