@@ -2,6 +2,7 @@ package beam.lang;
 
 import beam.core.BeamException;
 import beam.core.diff.ResourceDiffProperty;
+import beam.lang.types.ReferenceValue;
 import beam.lang.types.Value;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Throwables;
@@ -117,7 +118,6 @@ public class Container extends Node {
         }
     }
 
-
     @Override
     public boolean resolve() {
         for (Value value : keyValues.values()) {
@@ -149,6 +149,7 @@ public class Container extends Node {
         StringBuilder sb = new StringBuilder();
 
         for (Map.Entry<String, Object> entry : resolvedKeyValues().entrySet()) {
+            Value sourceValue = get(entry.getKey());
             Object value = entry.getValue();
             if (value == null) {
                 continue;
@@ -175,7 +176,9 @@ public class Container extends Node {
 
                 sb.append(indent(indent)).append(entry.getKey()).append(": ");
 
-                if (value instanceof String) {
+                if (sourceValue instanceof ReferenceValue && ((ReferenceValue) sourceValue).getReferencedContainer() != null) {
+                    sb.append(sourceValue.toString());
+                } else if (value instanceof String) {
                     sb.append("'" + entry.getValue() + "'");
                 } else if (value instanceof Number || value instanceof Boolean) {
                     sb.append(entry.getValue());
