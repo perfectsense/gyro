@@ -47,7 +47,7 @@ public class IfControl extends Control {
                     String key = visitor.parseKey(stmtContext.keyValue().key());
                     Value value = visitor.parseValue(stmtContext.keyValue().value());
 
-                    frame.put(key, value);
+                    parent.put(key, value);
                 } else if (stmtContext.forStmt() != null) {
                     ForControl forControl = visitor.visitForStmt(stmtContext.forStmt(), frame);
                     frame.putControl(forControl);
