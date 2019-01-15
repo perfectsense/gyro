@@ -27,11 +27,21 @@ end
 
 aws::subnet subnet-auto-scaling-group-example
     vpc-id: $(aws::vpc vpc-auto-scaling-group-example | vpc-id)
-    availability-zone: "us-east-2a"
-    cidr-block: "10.0.0.0/16"
+    availability-zone: "us-west-2a"
+    cidr-block: "10.0.1.0/26"
 
     tags: {
         Name: "subnet-auto-scaling-group-example"
+    }
+end
+
+aws::subnet subnet-auto-scaling-group-example-2
+    vpc-id: $(aws::vpc vpc-auto-scaling-group-example | vpc-id)
+    availability-zone: "us-west-2a"
+    cidr-block: "10.0.2.0/26"
+
+    tags: {
+        Name: "subnet-auto-scaling-group-example-2"
     }
 end
 
@@ -121,4 +131,17 @@ end
 aws::launch-configuration launch-configuration-auto-scaling-group-example
     launch-configuration-name: "launch-configuration-beam-1"
     instance-id: $(aws::instance instance-auto-scaling-group-example | instance-id)
+end
+
+aws::auto-scaling-group auto-scaling-group-example
+    auto-scaling-group-name: "auto-scaling-group-beam-1"
+    #launch-template-id: $(aws::launch-template launch-template-auto-scaling-group-example | launch-template-id)
+    launch-configuration-name: $(aws::launch-configuration launch-configuration-auto-scaling-group-example | launch-configuration-name)
+    availability-zones: [
+        $(aws::subnet subnet-auto-scaling-group-example | availability-zone)
+    ]
+    subnet-ids: [
+        $(aws::subnet subnet-auto-scaling-group-example | subnet-id),
+        $(aws::subnet subnet-auto-scaling-group-example-2 | subnet-id)
+    ]
 end
