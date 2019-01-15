@@ -45,7 +45,7 @@ public class AutoScalingGroupResource extends AwsResource {
 
     public Integer getMaxSize() {
         if (maxSize == null) {
-            maxSize = 1;
+            maxSize = 0;
         }
         return maxSize;
     }
@@ -56,7 +56,7 @@ public class AutoScalingGroupResource extends AwsResource {
 
     public Integer getMinSize() {
         if (minSize == null) {
-            minSize = 1;
+            minSize = 0;
         }
         return minSize;
     }
