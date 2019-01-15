@@ -9,7 +9,7 @@ end
 
 aws::credentials default
     profile-name: "psd-beam-sandbox"
-    region: "us-west-2"
+    region: "us-east-2"
 end
 
 project: "beam"
@@ -27,7 +27,7 @@ end
 
 aws::subnet subnet-autoscaling-group-example
     vpc-id: $(aws::vpc vpc-autoscaling-group-example | vpc-id)
-    availability-zone: "us-west-2a"
+    availability-zone: "us-east-2a"
     cidr-block: "10.0.0.0/16"
 
     tags: {
@@ -121,4 +121,10 @@ end
 aws::launch-configuration launch-configuration-autoscaling-group-example
     launch-configuration-name: "launch-configuration-beam-1"
     instance-id: $(aws::instance instance-autoscaling-group-example | instance-id)
+end
+
+aws::auto-scaling-group auto-scaling-group-example
+    auto-scaling-group-name: "auto-scaling-group-beam-1"
+    launch-template-id: $(aws::launch-template launch-template-autoscaling-group-example | launch-template-id)
+    availability-zone: $(aws::subnet subnet-autoscaling-group-example | availability-zone)
 end
