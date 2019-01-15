@@ -79,11 +79,6 @@ public class ForControl extends Control {
         return true;
     }
 
-    @Override
-    public String serialize(int indent) {
-        return "";
-    }
-
     public void evaluate() {
         if (evaluated()) {
             return;
