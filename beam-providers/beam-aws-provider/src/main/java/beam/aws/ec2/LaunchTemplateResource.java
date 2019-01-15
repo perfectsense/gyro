@@ -15,6 +15,7 @@ import software.amazon.awssdk.services.ec2.model.Filter;
 import software.amazon.awssdk.services.ec2.model.GetLaunchTemplateDataResponse;
 import software.amazon.awssdk.services.ec2.model.InstanceType;
 import software.amazon.awssdk.services.ec2.model.LaunchTemplate;
+import software.amazon.awssdk.services.ec2.model.LaunchTemplateCpuOptions;
 import software.amazon.awssdk.services.ec2.model.ShutdownBehavior;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
@@ -325,8 +326,6 @@ public class LaunchTemplateResource extends Ec2TaggableResource<LaunchTemplate> 
 
         if (!ObjectUtils.isBlank(getInstanceId())) {
             GetLaunchTemplateDataResponse response = client.getLaunchTemplateData(r -> r.instanceId(getInstanceId()));
-            setCoreCount(response.launchTemplateData().cpuOptions().coreCount());
-            setThreadPerCore(response.launchTemplateData().cpuOptions().threadsPerCore());
             setDisableApiTermination(response.launchTemplateData().disableApiTermination());
             setEbsOptimized(response.launchTemplateData().ebsOptimized());
             setConfigureHibernateOption(response.launchTemplateData().hibernationOptions().configured());
@@ -337,6 +336,10 @@ public class LaunchTemplateResource extends Ec2TaggableResource<LaunchTemplate> 
             setEnableMonitoring(response.launchTemplateData().monitoring().enabled());
             setSecurityGroupIds(response.launchTemplateData().securityGroupIds());
             setUserData(response.launchTemplateData().userData());
+
+            //temp fix until we resolve a way to verify by instance types.
+            //setCoreCount(response.launchTemplateData().cpuOptions().coreCount());
+            //setThreadPerCore(response.launchTemplateData().cpuOptions().threadsPerCore());
         }
 
         CreateLaunchTemplateResponse response = client.createLaunchTemplate(
