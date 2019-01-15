@@ -15,6 +15,7 @@ import beam.parser.antlr4.BeamParser.BeamFileContext;
 import beam.parser.antlr4.BeamParser.FileContext;
 import beam.parser.antlr4.BeamParser.ForStmtContext;
 import beam.parser.antlr4.BeamParser.ForVariableContext;
+import beam.parser.antlr4.BeamParser.IfStmtContext;
 import beam.parser.antlr4.BeamParser.KeyContext;
 import beam.parser.antlr4.BeamParser.KeySimpleValueContext;
 import beam.parser.antlr4.BeamParser.KeyValueContext;
@@ -103,6 +104,9 @@ public class BeamVisitor extends BeamParserBaseVisitor {
             } else if (fileContext.forStmt() != null) {
                 ForControl forNode = visitForStmt(fileContext.forStmt(), beamFile);
                 beamFile.putControl(forNode);
+            } else if (fileContext.ifStmt() != null) {
+                IfControl ifStmt = visitIfStmt(fileContext.ifStmt(), beamFile);
+                beamFile.putControl(ifStmt);
             }
         }
 
@@ -165,6 +169,9 @@ public class BeamVisitor extends BeamParserBaseVisitor {
             } else if (bodyContext.forStmt() != null) {
                 ForControl forNode = visitForStmt(bodyContext.forStmt(), resource);
                 resource.putControl(forNode);
+            } else if (bodyContext.ifStmt() != null) {
+                IfControl ifStmt = visitIfStmt(bodyContext.ifStmt(), resource);
+                resource.putControl(ifStmt);
             }
         }
 
@@ -233,6 +240,15 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         }
 
         return forNode;
+    }
+
+    public IfControl visitIfStmt(IfStmtContext context, Node parent) {
+        IfControl ifStmt = new IfControl(this, context);
+        ifStmt.line(context.getStart().getLine());
+        ifStmt.column(context.getStart().getCharPositionInLine());
+        ifStmt.parent(parent);
+
+        return ifStmt;
     }
 
     public static String parseKey(KeyContext keyContext) {

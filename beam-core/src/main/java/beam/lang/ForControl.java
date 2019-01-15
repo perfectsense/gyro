@@ -117,6 +117,9 @@ public class ForControl extends Control {
                 } else if (stmtContext.forStmt() != null) {
                     ForControl forControl = visitor.visitForStmt(stmtContext.forStmt(), frame);
                     frame.putControl(forControl);
+                } else if (stmtContext.ifStmt() != null) {
+                    IfControl ifControl = visitor.visitIfStmt(stmtContext.ifStmt(), frame);
+                    frame.putControl(ifControl);
                 } else if (stmtContext.resource() != null) {
                     Resource resource = visitor.visitResource(stmtContext.resource(), frame);
                     frame.putResource(resource);

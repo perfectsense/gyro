@@ -5,7 +5,7 @@ import BeamReferenceParser;
 options { tokenVocab = BeamLexer; }
 
 beamFile : file* EOF;
-file     : (provider | keyValue | resource | forStmt | importStmt | state);
+file     : (provider | keyValue | resource | forStmt | ifStmt | importStmt | state);
 blockEnd : END;
 
 provider     : PROVIDER providerName providerBody blockEnd;
@@ -17,7 +17,7 @@ stateName : IDENTIFIER;
 stateBody : keySimpleValue*;
 
 resource     : resourceType resourceName resourceBody* blockEnd;
-resourceBody : keyValue | subresource | forStmt;
+resourceBody : keyValue | subresource | forStmt | ifStmt;
 
 subresource     : resourceType resourceName? subresourceBody* blockEnd;
 subresourceBody : keyValue;
@@ -32,11 +32,22 @@ importName  : IDENTIFIER;
 // -- Control Structures
 
 controlBody  : controlStmts*;
-controlStmts : keyValue | resource | subresource | forStmt;
+controlStmts : keyValue | resource | subresource | forStmt | ifStmt;
 
 forStmt      : FOR forVariables IN listValue controlBody blockEnd;
 forVariables : forVariable (COMMA forVariable)*;
 forVariable  : IDENTIFIER;
+
+ifStmt       : IF expression controlBody (ELSEIF expression controlBody)* (ELSE controlBody)? blockEnd;
+
+expression   :
+    | value
+    | expression operator expression
+    | expression OR expression
+    | expression AND expression
+    ;
+
+operator     : EQ | NOTEQ;
 
 // -- Key/Value blocks.
 //
