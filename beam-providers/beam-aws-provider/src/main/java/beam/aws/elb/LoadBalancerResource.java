@@ -28,12 +28,13 @@ import java.util.Set;
  *     end
  */
 @ResourceName("elastic-load-balancer")
-public class ElasticLoadBalancerResource extends AwsResource {
+public class LoadBalancerResource extends AwsResource {
 
     private String loadBalancerName;
     private List<ListenerResource> listeners;
     private List<String> securityGroups;
     //private List<String> subnets;
+
 
     public List<ListenerResource> getListeners() {
         if (listeners == null) {
