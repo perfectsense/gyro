@@ -10,7 +10,7 @@ import software.amazon.awssdk.services.elasticloadbalancing.model.LoadBalancerDe
 
 import java.util.Set;
 
-@ResourceName(parent = "classic-load-balancer", value = "health-check")
+@ResourceName(parent = "load-balancer", value = "health-check")
 public class HealthCheckResource extends AwsResource {
 
     private Integer healthyThreshold;
@@ -19,7 +19,7 @@ public class HealthCheckResource extends AwsResource {
     private Integer timeout;
     private Integer unhealthyThreshold;
 
-    public HealthCheckResource(){};
+    //public HealthCheckResource(){}
 
     public Integer getHealthyThreshold() { return healthyThreshold; }
 
@@ -72,14 +72,13 @@ public class HealthCheckResource extends AwsResource {
     }
 
     public String getLoadBalancer() {
-        ClassicLoadBalancerResource parent = (ClassicLoadBalancerResource) parentResourceNode();
+        LoadBalancerResource parent = (LoadBalancerResource) parentResourceNode();
         if (parent != null) {
             return parent.getLoadBalancerName();
         }
 
         return null;
     }
-
 
     @Override
     public boolean refresh() {
@@ -116,12 +115,15 @@ public class HealthCheckResource extends AwsResource {
 
     @Override
     public void update(Resource current, Set<String> changedProperties) {
+        /*
         ElasticLoadBalancingClient client = ElasticLoadBalancingClient.builder()
                 .build();
 
         client.configureHealthCheck(r ->
                 r.loadBalancerName(getLoadBalancer())
                 .healthCheck(toHealthCheck()));
+        */
+        create();
     }
 
     @Override
