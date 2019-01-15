@@ -29,8 +29,12 @@ importStmt  : IMPORT importPath AS? importName?;
 importPath  : IDENTIFIER;
 importName  : IDENTIFIER;
 
-forStmt      : FOR forVariables IN listValue forBody* blockEnd;
-forBody      : keyValue | resource | subresource;
+// -- Control Structures
+
+controlBody  : controlStmts*;
+controlStmts : keyValue | resource | subresource | forStmt;
+
+forStmt      : FOR forVariables IN listValue controlBody blockEnd;
 forVariables : forVariable (COMMA forVariable)*;
 forVariable  : IDENTIFIER;
 

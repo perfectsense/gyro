@@ -134,7 +134,7 @@ public class Container extends Node {
             }
         }
 
-        for (Frame frame : frames()) {
+        for (Frame frame : new ArrayList<>(frames())) {
             boolean resolved = frame.resolve();
             if (!resolved) {
                 throw new BeamLanguageException("Unable to resolve configuration.", frame);

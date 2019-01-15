@@ -113,17 +113,20 @@ public class ForControl extends Control {
                 frame.put(variableName, value);
             }
 
-            for (BeamParser.ForBodyContext bodyContext : context.forBody()) {
-                if (bodyContext.keyValue() != null) {
-                    String key = visitor.parseKey(bodyContext.keyValue().key());
-                    Value value = visitor.parseValue(bodyContext.keyValue().value());
+            for (BeamParser.ControlStmtsContext stmtContext : context.controlBody().controlStmts()) {
+                if (stmtContext.keyValue() != null) {
+                    String key = visitor.parseKey(stmtContext.keyValue().key());
+                    Value value = visitor.parseValue(stmtContext.keyValue().value());
 
                     frame.put(key, value);
-                } else if (bodyContext.resource() != null) {
-                    Resource resource = visitor.visitResource(bodyContext.resource(), frame);
+                } else if (stmtContext.forStmt() != null) {
+                    ForControl forControl = visitor.visitForStmt(stmtContext.forStmt(), frame);
+                    frame.putControl(forControl);
+                } else if (stmtContext.resource() != null) {
+                    Resource resource = visitor.visitResource(stmtContext.resource(), frame);
                     frame.putResource(resource);
-                } else if (bodyContext.subresource() != null) {
-                    Resource resource = visitor.visitSubresource(bodyContext.subresource(), (Resource) parent);
+                } else if (stmtContext.subresource() != null) {
+                    Resource resource = visitor.visitSubresource(stmtContext.subresource(), (Resource) parent);
                     frame.putSubresource(resource);
                 }
             }
