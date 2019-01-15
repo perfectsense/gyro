@@ -1,5 +1,6 @@
 package beam.aws.elb;
 
+import beam.aws.AwsResource;
 import beam.core.diff.ResourceName;
 import beam.lang.Resource;
 import software.amazon.awssdk.services.elasticloadbalancing.ElasticLoadBalancingClient;
@@ -10,7 +11,7 @@ import software.amazon.awssdk.services.elasticloadbalancing.model.LoadBalancerDe
 import java.util.Set;
 
 @ResourceName(parent = "classic-load-balancer", value = "health-check")
-public class HealthCheckResource extends ClassicLoadBalancerResource {
+public class HealthCheckResource extends AwsResource {
 
     private Integer healthyThreshold;
     private Integer interval;
@@ -18,9 +19,9 @@ public class HealthCheckResource extends ClassicLoadBalancerResource {
     private Integer timeout;
     private Integer unhealthyThreshold;
 
-    public Integer getHealthyThreshold() {
-        return healthyThreshold;
-    }
+    public HealthCheckResource(){};
+
+    public Integer getHealthyThreshold() { return healthyThreshold; }
 
     public void setHealthyThreshold(Integer healthyThreshold) {
         this.healthyThreshold = healthyThreshold;
@@ -70,12 +71,22 @@ public class HealthCheckResource extends ClassicLoadBalancerResource {
         return healthCheck;
     }
 
+    public String getLoadBalancer() {
+        ClassicLoadBalancerResource parent = (ClassicLoadBalancerResource) parentResourceNode();
+        if (parent != null) {
+            return parent.getLoadBalancerName();
+        }
+
+        return null;
+    }
+
+
     @Override
     public boolean refresh() {
         ElasticLoadBalancingClient client = ElasticLoadBalancingClient.builder()
                 .build();
 
-        DescribeLoadBalancersResponse response = client.describeLoadBalancers(r -> r.loadBalancerNames(getLoadBalancerName()));
+        DescribeLoadBalancersResponse response = client.describeLoadBalancers(r -> r.loadBalancerNames(getLoadBalancer()));
 
         if (response != null) {
             for (LoadBalancerDescription description : response.loadBalancerDescriptions()) {
@@ -99,7 +110,7 @@ public class HealthCheckResource extends ClassicLoadBalancerResource {
                 .build();
 
         client.configureHealthCheck(r ->
-                r.loadBalancerName(getLoadBalancerName())
+                r.loadBalancerName(getLoadBalancer())
                         .healthCheck(toHealthCheck()));
     }
 
@@ -109,7 +120,7 @@ public class HealthCheckResource extends ClassicLoadBalancerResource {
                 .build();
 
         client.configureHealthCheck(r ->
-                r.loadBalancerName(getLoadBalancerName())
+                r.loadBalancerName(getLoadBalancer())
                 .healthCheck(toHealthCheck()));
     }
 
