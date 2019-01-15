@@ -16,6 +16,7 @@ import beam.lang.listeners.ProviderLoadingListener;
 import beam.lang.listeners.StateBackendLoadingListener;
 import beam.parser.antlr4.BeamLexer;
 import beam.parser.antlr4.BeamParser;
+import beam.parser.antlr4.BeamParser.BeamFileContext;
 import com.psddev.dari.util.ThreadLocalStack;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -85,7 +86,7 @@ public class BeamCore {
         providerListener = new ProviderLoadingListener(visitor);
         parser.addParseListener(providerListener);
 
-        BeamParser.Beam_rootContext context = parser.beam_root();
+        BeamFileContext context = parser.beamFile();
 
         if (errorListener.getSyntaxErrors() > 0) {
             throw new BeamLanguageException(errorListener.getSyntaxErrors() + " errors while parsing.");
@@ -96,7 +97,7 @@ public class BeamCore {
         }
 
         // Load initial configuration
-        BeamFile fileNode = visitor.visitBeam_root(context);
+        BeamFile fileNode = visitor.visitBeamFile(context);
 
         if (!fileNode.resolve()) {
             System.out.println("Unable to resolve config.");
@@ -130,7 +131,7 @@ public class BeamCore {
         parser.addParseListener(stateListener);
         parser.addParseListener(providerListener);
 
-        BeamParser.Beam_rootContext context = parser.beam_root();
+        BeamFileContext context = parser.beamFile();
 
         if (errorListener.getSyntaxErrors() > 0) {
             throw new BeamLanguageException(errorListener.getSyntaxErrors() + " errors while parsing.");
@@ -142,7 +143,7 @@ public class BeamCore {
 
         // Load configuration
         BeamVisitor visitor = new BeamVisitor(this, path);
-        BeamFile fileNode = visitor.visitBeam_root(context);
+        BeamFile fileNode = visitor.visitBeamFile(context);
 
         if (!fileNode.resolve()) {
             System.out.println("Unable to resolve config.");
@@ -247,21 +248,20 @@ public class BeamCore {
 
         if (type == ChangeType.DELETE) {
             if (isSubresource) {
-                Resource copy = resource.parentResourceNode().copy();
-                copy.removeSubresource(resource);
-                copy.syncInternalToProperties();
+                Resource parent = resource.parentResource();
+                parent.removeSubresource(resource);
 
-                stateNode.putResource(copy);
+                stateNode.putResource(parent);
             } else {
                 stateNode.removeResource(resource);
             }
         } else {
             if (isSubresource) {
                 // Save parent resource when current resource is a subresource.
-                Resource parent = resource.parentResourceNode();
-                stateNode.putResource(parent.copy());
+                Resource parent = resource.parentResource();
+                stateNode.putResource(parent);
             } else {
-                stateNode.putResource(resource.copy());
+                stateNode.putResource(resource);
             }
         }
 

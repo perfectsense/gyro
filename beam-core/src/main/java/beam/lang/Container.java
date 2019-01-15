@@ -2,6 +2,7 @@ package beam.lang;
 
 import beam.core.BeamException;
 import beam.core.diff.ResourceDiffProperty;
+import beam.lang.types.ReferenceValue;
 import beam.lang.types.Value;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Throwables;
@@ -22,7 +23,8 @@ import java.util.regex.Pattern;
 public class Container extends Node {
 
     transient Map<String, Value> keyValues = new HashMap<>();
-    transient List<ControlStructure> controlNodes = new ArrayList<>();
+    transient List<Control> controls = new ArrayList<>();
+    transient List<Frame> frames = new ArrayList<>();
 
     private static final Pattern NEWLINES = Pattern.compile("([\r\n]+)");
 
@@ -75,33 +77,24 @@ public class Container extends Node {
         keyValues.put(key, value);
     }
 
-    public void putControlNode(ControlStructure node) {
-        controlNodes.add(node);
+    public void putControl(Control node) {
+        controls.add(node);
     }
 
-    public List<ControlStructure> controlNodes() {
-        return controlNodes;
+    public List<Control> controls() {
+        return controls;
+    }
+
+    public List<Frame> frames() {
+        return frames;
+    }
+
+    public void frames(List<Frame> frames) {
+        this.frames = frames;
     }
 
     public void copyNonResourceState(Container source) {
         keyValues.putAll(source.keyValues);
-    }
-
-    public Container copy() {
-        try {
-            Container copy = getClass().newInstance();
-
-            for (String key : keys()) {
-                Value value = get(key).copy();
-                value.parent(copy);
-
-                copy.put(key, value);
-            }
-
-            return copy;
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new BeamException("");
-        }
     }
 
     protected void syncInternalToProperties() {
@@ -125,7 +118,6 @@ public class Container extends Node {
         }
     }
 
-
     @Override
     public boolean resolve() {
         for (Value value : keyValues.values()) {
@@ -135,10 +127,17 @@ public class Container extends Node {
             }
         }
 
-        for (ControlStructure controlNode : controlNodes()) {
-            boolean resolved = controlNode.resolve();
+        for (Control control : controls()) {
+            boolean resolved = control.resolve();
             if (!resolved) {
-                throw new BeamLanguageException("Unable to resolve configuration.", controlNode);
+                throw new BeamLanguageException("Unable to resolve configuration.", control);
+            }
+        }
+
+        for (Frame frame : new ArrayList<>(frames())) {
+            boolean resolved = frame.resolve();
+            if (!resolved) {
+                throw new BeamLanguageException("Unable to resolve configuration.", frame);
             }
         }
 
@@ -150,6 +149,7 @@ public class Container extends Node {
         StringBuilder sb = new StringBuilder();
 
         for (Map.Entry<String, Object> entry : resolvedKeyValues().entrySet()) {
+            Value sourceValue = get(entry.getKey());
             Object value = entry.getValue();
             if (value == null) {
                 continue;
@@ -176,7 +176,9 @@ public class Container extends Node {
 
                 sb.append(indent(indent)).append(entry.getKey()).append(": ");
 
-                if (value instanceof String) {
+                if (sourceValue instanceof ReferenceValue && ((ReferenceValue) sourceValue).getReferencedContainer() != null) {
+                    sb.append(sourceValue.toString());
+                } else if (value instanceof String) {
                     sb.append("'" + entry.getValue() + "'");
                 } else if (value instanceof Number || value instanceof Boolean) {
                     sb.append(entry.getValue());
@@ -196,7 +198,7 @@ public class Container extends Node {
 
     @Override
     public String toString() {
-        return String.format("Container[key/values: %d, controls: %d]", keys().size(), controlNodes().size());
+        return String.format("Container[key/values: %d, controls: %d]", keys().size(), controls().size());
     }
 
     protected String valueToString(Object value, int indent) {

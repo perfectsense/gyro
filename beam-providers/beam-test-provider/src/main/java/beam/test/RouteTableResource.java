@@ -5,6 +5,7 @@ import beam.core.diff.ResourceName;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @ResourceName("route-table")
 public class RouteTableResource extends FakeResource {
@@ -49,6 +50,12 @@ public class RouteTableResource extends FakeResource {
 
     public void setOwnerId(String ownerId) {
         this.ownerId = ownerId;
+    }
+
+    @Override
+    public void create() {
+        setRouteTableId("route-" + UUID.randomUUID().toString().replace("-", "").substring(16));
+        setOwnerId("owner-4a4f49a0b9fe");
     }
 
     @Override

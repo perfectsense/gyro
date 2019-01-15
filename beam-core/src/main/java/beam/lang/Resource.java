@@ -53,25 +53,6 @@ public abstract class Resource extends Container {
 
     public abstract Class resourceCredentialsClass();
 
-    @Override
-    public Resource copy() {
-        Resource resource = (Resource) super.copy();
-        resource.setResourceCredentials(getResourceCredentials());
-        resource.resourceType(resourceType());
-        resource.resourceIdentifier(resourceIdentifier());
-        resource.resourceIdentifierExpression(resourceIdentifierExpression());
-        resource.syncPropertiesFromResource(this, true);
-
-        // Copy subresources
-        for (String fieldName : subResources().keySet()) {
-            for (Resource subresource : subResources().get(fieldName)) {
-                resource.putSubresource(fieldName, subresource.copy());
-            }
-        }
-
-        return resource;
-    }
-
     public String resourceCredentialsName() {
         Class c = resourceCredentialsClass();
 
@@ -281,10 +262,30 @@ public abstract class Resource extends Container {
             subResources = new HashMap<>();
         }
 
+        for (Frame frame : frames()) {
+            for (String fieldName : frame.subResources().keySet()) {
+                List<Resource> fieldResources = subResources.computeIfAbsent(fieldName, r -> new ArrayList<>());
+                List<Resource> frameResources = frame.subResources().get(fieldName);
+                for (Resource resource : frameResources) {
+                    if (!fieldResources.contains(resource)) {
+                        fieldResources.add(resource);
+                    }
+                }
+            }
+        }
+
         return subResources;
     }
 
     public void putSubresource(String fieldName, Resource subresource) {
+        List<Resource> resources = subResources().computeIfAbsent(fieldName, r -> new ArrayList<>());
+        resources.add(subresource);
+        dependents().add(subresource);
+    }
+
+    public void putSubresource(Resource subresource) {
+        subresource.parent(this);
+        String fieldName = subresource.resourceType();
         List<Resource> resources = subResources().computeIfAbsent(fieldName, r -> new ArrayList<>());
         resources.add(subresource);
     }
@@ -330,7 +331,7 @@ public abstract class Resource extends Container {
         return new ResourceKey(resourceType(), resourceIdentifier());
     }
 
-    public Resource parentResourceNode() {
+    public Resource parentResource() {
         Node parent = parent();
 
         while (parent != null && !(parent instanceof Resource)) {
@@ -409,10 +410,6 @@ public abstract class Resource extends Container {
 
         if (nameExpression != null) {
             nameExpression.resolve();
-        }
-
-        for (ControlStructure controlStructure : controlNodes()) {
-            controlStructure.resolve();
         }
 
         for (List<Resource> resources : subResources().values()) {

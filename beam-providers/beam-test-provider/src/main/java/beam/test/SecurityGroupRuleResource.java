@@ -1,7 +1,6 @@
 package beam.test;
 
 import beam.core.diff.ResourceDiffProperty;
-import beam.test.FakeResource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +14,7 @@ public abstract class SecurityGroupRuleResource extends FakeResource {
     private Integer toPort;
 
     public String getGroupId() {
-        SecurityGroupResource parent = (SecurityGroupResource) parentResourceNode();
+        SecurityGroupResource parent = (SecurityGroupResource) parentResource();
         if (parent != null) {
             return parent.getGroupId();
         }

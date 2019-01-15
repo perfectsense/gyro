@@ -2,7 +2,7 @@ package beam.test;
 
 import beam.core.diff.ResourceName;
 
-@ResourceName("fake-route")
+@ResourceName("route")
 public class RouteResource extends FakeResource {
 
     private String routeTableId;
