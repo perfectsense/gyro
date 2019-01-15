@@ -64,7 +64,7 @@ public class ListenerResource extends AwsResource {
     public void setSslCertificateId(String sslCertificateId) { this.sslCertificateId = sslCertificateId; }
 
     public String getLoadBalancer() {
-        ClassicLoadBalancerResource parent = (ClassicLoadBalancerResource) parentResourceNode();
+        LoadBalancerResource parent = (LoadBalancerResource) parentResourceNode();
         if (parent != null) {
             return parent.getLoadBalancerName();
         }
@@ -76,18 +76,13 @@ public class ListenerResource extends AwsResource {
     public boolean refresh() {return false;}
 
     @Override
-    public void create() {
-         /*
-        ElasticLoadBalancingClient client = ElasticLoadBalancingClient.builder()
-                .build();
-
-        client.createLoadBalancerListeners(r -> r.loadBalancerName(getLoadBalancer())
-        .listeners(toListeners()));*/
-    }
+    public void create() {}
 
     @Override
     public void update(Resource current, Set<String> changedProperties) {
         //remove and attach based on new list of listeners
+        LoadBalancerResource parent = (LoadBalancerResource) parentResourceNode();
+        //parent.update();
 
     }
 
