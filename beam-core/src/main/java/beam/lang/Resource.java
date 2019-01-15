@@ -280,6 +280,7 @@ public abstract class Resource extends Container {
     public void putSubresource(String fieldName, Resource subresource) {
         List<Resource> resources = subResources().computeIfAbsent(fieldName, r -> new ArrayList<>());
         resources.add(subresource);
+        dependents().add(subresource);
     }
 
     public void putSubresource(Resource subresource) {
