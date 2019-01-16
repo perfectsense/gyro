@@ -17,7 +17,7 @@ import java.util.Set;
  *
  * .. code-block:: beam
  *
- *     aws::listener listener-ex
+ *     listener
  *        instance-port: "443"
  *        instance-protocol: "https"
  *        load-balancer-port: "443"
@@ -62,7 +62,7 @@ public class ListenerResource extends AwsResource {
     public String getSslCertificateId() { return sslCertificateId; }
 
     public void setSslCertificateId(String sslCertificateId) { this.sslCertificateId = sslCertificateId; }
-
+    /*
     public String getLoadBalancer() {
         LoadBalancerResource parent = (LoadBalancerResource) parentResourceNode();
         if (parent != null) {
@@ -70,7 +70,7 @@ public class ListenerResource extends AwsResource {
         }
 
         return null;
-    }
+    }*/
 
     @Override
     public boolean refresh() {return false;}
@@ -81,7 +81,7 @@ public class ListenerResource extends AwsResource {
     @Override
     public void update(Resource current, Set<String> changedProperties) {
         //remove and attach based on new list of listeners
-        LoadBalancerResource parent = (LoadBalancerResource) parentResourceNode();
+        //LoadBalancerResource parent = (LoadBalancerResource) parentResourceNode();
         //parent.update();
 
     }
@@ -91,12 +91,13 @@ public class ListenerResource extends AwsResource {
         ElasticLoadBalancingClient client = ElasticLoadBalancingClient.builder()
                 .build();
 
-        client.deleteLoadBalancerListeners(r -> r.loadBalancerName(getLoadBalancer()));
+        //client.deleteLoadBalancerListeners(r -> r.loadBalancerName(getLoadBalancer()));
     }
 
     @Override
     public String toDisplayString() {
         StringBuilder sb = new StringBuilder();
+        sb.append("listener");
         return sb.toString();
     }
 }
