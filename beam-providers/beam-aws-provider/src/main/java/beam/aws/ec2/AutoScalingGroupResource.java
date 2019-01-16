@@ -2,6 +2,7 @@ package beam.aws.ec2;
 
 import beam.aws.AwsResource;
 import beam.core.BeamException;
+import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 import beam.lang.Resource;
 import com.psddev.dari.util.ObjectUtils;
@@ -13,10 +14,41 @@ import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateSpecifica
 import software.amazon.awssdk.services.ec2.model.Ec2Exception;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Creates an Auto scaling Group from a Launch Configuration or from a Launch Template.
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: beam
+ *
+ *     aws::auto-scaling-group auto-scaling-group-example
+ *         auto-scaling-group-name: "auto-scaling-group-beam-1"
+ *         launch-configuration-name: $(aws::launch-configuration launch-configuration-auto-scaling-group-example | launch-configuration-name)
+ *         availability-zones: [
+ *             $(aws::subnet subnet-auto-scaling-group-example | availability-zone)
+ *         ]
+ *     end
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: beam
+ *
+ *     aws::auto-scaling-group auto-scaling-group-example
+ *         auto-scaling-group-name: "auto-scaling-group-beam-1"
+ *         launch-template-id: $(aws::launch-template launch-template-auto-scaling-group-example | launch-template-id)
+ *         availability-zones: [
+ *             $(aws::subnet subnet-auto-scaling-group-example | availability-zone),
+ *             $(aws::subnet subnet-auto-scaling-group-example-2 | availability-zone)
+ *         ]
+ *     end
+ */
 @ResourceName("auto-scaling-group")
 public class AutoScalingGroupResource extends AwsResource {
 
@@ -35,6 +67,9 @@ public class AutoScalingGroupResource extends AwsResource {
 
     private String arn;
 
+    /**
+     * The name of the auto scaling group, also served as its identifier and thus unique. (Required)
+     */
     public String getAutoScalingGroupName() {
         return autoScalingGroupName;
     }
@@ -43,6 +78,10 @@ public class AutoScalingGroupResource extends AwsResource {
         this.autoScalingGroupName = autoScalingGroupName;
     }
 
+    /**
+     * The ID of an launched template that would be used as a skeleton to create the Auto scaling group. Required if launch configuration name not provided.
+     */
+    @ResourceDiffProperty(updatable = true)
     public String getLaunchTemplateId() {
         return launchTemplateId;
     }
@@ -51,6 +90,10 @@ public class AutoScalingGroupResource extends AwsResource {
         this.launchTemplateId = launchTemplateId;
     }
 
+    /**
+     *  A list of availability zones for the auto scale group to be active in. See `Distributing Instances Across Availability Zones <https://docs.aws.amazon.com/autoscaling/ec2/userguide/auto-scaling-benefits.html#arch-AutoScalingMultiAZ/>`_. (Required)
+     */
+    @ResourceDiffProperty(updatable = true)
     public List<String> getAvailabilityZones() {
         if (availabilityZones == null) {
             availabilityZones = new ArrayList<>();
@@ -62,6 +105,10 @@ public class AutoScalingGroupResource extends AwsResource {
         this.availabilityZones = availabilityZones;
     }
 
+    /**
+     * The maximum number of instances for the Auto Scaling group. (Required)
+     */
+    @ResourceDiffProperty(updatable = true)
     public Integer getMaxSize() {
         if (maxSize == null) {
             maxSize = 0;
@@ -73,6 +120,10 @@ public class AutoScalingGroupResource extends AwsResource {
         this.maxSize = maxSize;
     }
 
+    /**
+     * The minimum number of instances for the Auto Scaling group. (Required)
+     */
+    @ResourceDiffProperty(updatable = true)
     public Integer getMinSize() {
         if (minSize == null) {
             minSize = 0;
@@ -84,6 +135,10 @@ public class AutoScalingGroupResource extends AwsResource {
         this.minSize = minSize;
     }
 
+    /**
+     * The desired number of instances for the Auto Scaling group. (Required)
+     */
+    @ResourceDiffProperty(updatable = true)
     public Integer getDesiredCapacity() {
         if (desiredCapacity == null) {
             desiredCapacity = 0;
@@ -95,9 +150,13 @@ public class AutoScalingGroupResource extends AwsResource {
         this.desiredCapacity = desiredCapacity;
     }
 
+    /**
+     * The default cool down period in sec for the auto scale group. Defaults to 300 sec. See `Default Cool downs <https://docs.aws.amazon.com/autoscaling/ec2/userguide/Cooldown.html#cooldown-default/>`_.
+     */
+    @ResourceDiffProperty(updatable = true)
     public Integer getDefaultCooldown() {
         if (defaultCooldown == null) {
-            defaultCooldown = 0;
+            defaultCooldown = 300;
         }
         return defaultCooldown;
     }
@@ -106,6 +165,10 @@ public class AutoScalingGroupResource extends AwsResource {
         this.defaultCooldown = defaultCooldown;
     }
 
+    /**
+     * The type of health check to be performed on the auto scale group. Defaults to EC2. Can be 'EC2' or 'ELB'. See `Health Checks for Auto Scaling Instances <https://docs.aws.amazon.com/autoscaling/ec2/userguide/healthcheck.html/>`_.
+     */
+    @ResourceDiffProperty(updatable = true)
     public String getHealthCheckType() {
         if (healthCheckType == null) {
             healthCheckType = "EC2";
@@ -117,6 +180,10 @@ public class AutoScalingGroupResource extends AwsResource {
         this.healthCheckType = healthCheckType;
     }
 
+    /**
+     * The grace period after which health check is started, to give time for the instances to start up. Defaults to 0 sec. See `Health Checks for Auto Scaling Instances <https://docs.aws.amazon.com/autoscaling/ec2/userguide/healthcheck.html/>`_.
+     */
+    @ResourceDiffProperty(updatable = true)
     public Integer getHealthCheckGracePeriod() {
         if (healthCheckGracePeriod == null) {
             healthCheckGracePeriod = 0;
@@ -128,6 +195,10 @@ public class AutoScalingGroupResource extends AwsResource {
         this.healthCheckGracePeriod = healthCheckGracePeriod;
     }
 
+    /**
+     * The name of a launched configuration that would be used as a skeleton to create the Auto scaling group. Required if launch template Id is not provided.
+     */
+    @ResourceDiffProperty(updatable = true)
     public String getLaunchConfigurationName() {
         return launchConfigurationName;
     }
@@ -136,6 +207,10 @@ public class AutoScalingGroupResource extends AwsResource {
         this.launchConfigurationName = launchConfigurationName;
     }
 
+    /**
+     * Enable protection of instances from auto scale group scale in. Defaults to false. see `Controlling Which Auto Scaling Instances Terminate During Scale In <https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-instance-termination.html/>`_.
+     */
+    @ResourceDiffProperty(updatable = true)
     public Boolean getNewInstancesProtectedFromScaleIn() {
         if (newInstancesProtectedFromScaleIn == null) {
             newInstancesProtectedFromScaleIn = false;
@@ -147,6 +222,10 @@ public class AutoScalingGroupResource extends AwsResource {
         this.newInstancesProtectedFromScaleIn = newInstancesProtectedFromScaleIn;
     }
 
+    /**
+     * A list of subnet identifiers. If Availability Zone is provided, subnet's need to be part of that. See `Launching Auto Scaling Instances in a VPC <https://docs.aws.amazon.com/autoscaling/ec2/userguide/asg-in-vpc.html/>`_.
+     */
+    @ResourceDiffProperty(updatable = true)
     public List<String> getSubnetIds() {
         if (subnetIds == null) {
             subnetIds = new ArrayList<>();
@@ -187,6 +266,8 @@ public class AutoScalingGroupResource extends AwsResource {
         setHealthCheckGracePeriod(autoScalingGroup.healthCheckGracePeriod());
         setLaunchConfigurationName(autoScalingGroup.launchConfigurationName());
         setNewInstancesProtectedFromScaleIn(autoScalingGroup.newInstancesProtectedFromScaleIn());
+        setSubnetIds(autoScalingGroup.vpcZoneIdentifier().equals("")
+            ? new ArrayList<>() : Arrays.asList(autoScalingGroup.vpcZoneIdentifier().split(",")));
 
         return true;
     }
@@ -199,7 +280,6 @@ public class AutoScalingGroupResource extends AwsResource {
 
         client.createAutoScalingGroup(
             o -> o.autoScalingGroupName(getAutoScalingGroupName())
-                .launchTemplate(LaunchTemplateSpecification.builder().launchTemplateId(getLaunchTemplateId()).build())
                 .maxSize(getMaxSize())
                 .minSize(getMinSize())
                 .availabilityZones(getAvailabilityZones())
@@ -209,7 +289,8 @@ public class AutoScalingGroupResource extends AwsResource {
                 .healthCheckGracePeriod(getHealthCheckGracePeriod())
                 .launchConfigurationName(getLaunchConfigurationName())
                 .newInstancesProtectedFromScaleIn(getNewInstancesProtectedFromScaleIn())
-                .vpcZoneIdentifier(getSubnetIds().isEmpty() ? "" : StringUtils.join(getSubnetIds(), ","))
+                .vpcZoneIdentifier(getSubnetIds().isEmpty() ? " " : StringUtils.join(getSubnetIds(), ","))
+                .launchTemplate(LaunchTemplateSpecification.builder().launchTemplateId(getLaunchTemplateId()).build())
         );
 
         AutoScalingGroup autoScalingGroup = getAutoScalingGroup(client);
@@ -221,13 +302,31 @@ public class AutoScalingGroupResource extends AwsResource {
 
     @Override
     public void update(Resource current, Set<String> changedProperties) {
+        AutoScalingClient client = createClient(AutoScalingClient.class);
 
+        validate();
+
+        client.updateAutoScalingGroup(
+            r -> r.autoScalingGroupName(getAutoScalingGroupName())
+                .launchTemplate(LaunchTemplateSpecification.builder().launchTemplateId(getLaunchTemplateId()).build())
+                .maxSize(getMaxSize())
+                .minSize(getMinSize())
+                .availabilityZones(getAvailabilityZones())
+                .desiredCapacity(getDesiredCapacity())
+                .defaultCooldown(getDefaultCooldown())
+                .healthCheckType(getHealthCheckType())
+                .healthCheckGracePeriod(getHealthCheckGracePeriod())
+                .launchConfigurationName(getLaunchConfigurationName())
+                .newInstancesProtectedFromScaleIn(getNewInstancesProtectedFromScaleIn())
+                .vpcZoneIdentifier(getSubnetIds().isEmpty() ? " " : StringUtils.join(getSubnetIds(), ","))
+        );
     }
 
     @Override
     public void delete() {
         AutoScalingClient client = createClient(AutoScalingClient.class);
 
+        // have option of graceful delete with configurable timeouts.
         client.deleteAutoScalingGroup(r -> r.autoScalingGroupName(getAutoScalingGroupName()).forceDelete(true));
     }
 
@@ -270,8 +369,32 @@ public class AutoScalingGroupResource extends AwsResource {
     }
 
     private void validate() {
+        if (ObjectUtils.isBlank(getLaunchTemplateId()) || ObjectUtils.isBlank(getLaunchConfigurationName())) {
+            throw new BeamException("Either Launch template id or a launch configuration name is required.");
+        }
+
         if (!getHealthCheckType().equals("ELB") && !getHealthCheckType().equals("EC2")) {
             throw new BeamException("The value - (" + getHealthCheckType() + ") is invalid for parameter Health Check Type.");
+        }
+
+        if (getHealthCheckGracePeriod() < 0) {
+            throw new BeamException("The value - (" + getHealthCheckGracePeriod() + ") is invalid for parameter Health Check Grace period. Integer value grater or equal to 0.");
+        }
+
+        if (getMaxSize() < 0) {
+            throw new BeamException("The value - (" + getMaxSize() + ") is invalid for parameter Max size. Integer value grater or equal to 0.");
+        }
+
+        if (getMinSize() < 0) {
+            throw new BeamException("The value - (" + getMinSize() + ") is invalid for parameter Min size. Integer value grater or equal to 0.");
+        }
+
+        if (getDefaultCooldown() < 0) {
+            throw new BeamException("The value - (" + getDefaultCooldown() + ") is invalid for parameter Default cool down. Integer value grater or equal to 0.");
+        }
+
+        if (getDesiredCapacity() < 0) {
+            throw new BeamException("The value - (" + getDesiredCapacity() + ") is invalid for parameter Desired capacity. Integer value grater or equal to 0.");
         }
     }
 }
