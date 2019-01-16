@@ -51,8 +51,7 @@ public class UpCommand extends AbstractCommand {
 
             if (BeamCore.ui().readBoolean(Boolean.FALSE, "\nAre you sure you want to create and/or update resources?")) {
                 BeamCore.ui().write("\n");
-                core.setChangeable(diffs);
-                createOrUpdate(core, diffs);
+                core.createOrUpdate(diffs);
             }
         }
 
@@ -61,8 +60,7 @@ public class UpCommand extends AbstractCommand {
 
             if (BeamCore.ui().readBoolean(Boolean.FALSE, "\nAre you sure you want to delete resources?")) {
                 BeamCore.ui().write("\n");
-                core.setChangeable(diffs);
-                delete(core, diffs);
+                core.delete(diffs);
             }
         }
 
@@ -82,29 +80,4 @@ public class UpCommand extends AbstractCommand {
         return arguments;
     }
 
-    private void createOrUpdate(BeamCore core, List<ResourceDiff> diffs) {
-        for (ResourceDiff diff : diffs) {
-            for (ResourceChange change : diff.getChanges()) {
-                ChangeType type = change.getType();
-
-                if (type == ChangeType.CREATE || type == ChangeType.UPDATE) {
-                    core.execute(change);
-                }
-
-                createOrUpdate(core, change.getDiffs());
-            }
-        }
-    }
-
-    private void delete(BeamCore core, List<ResourceDiff> diffs) {
-        for (ResourceDiff diff : diffs) {
-            for (ResourceChange change : diff.getChanges()) {
-                delete(core, change.getDiffs());
-
-                if (change.getType() == ChangeType.DELETE) {
-                    core.execute(change);
-                }
-            }
-        }
-    }
 }

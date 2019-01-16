@@ -221,6 +221,36 @@ public class BeamCore {
         }
     }
 
+    public void createOrUpdate(List<ResourceDiff> diffs) {
+        setChangeable(diffs);
+
+        for (ResourceDiff diff : diffs) {
+            for (ResourceChange change : diff.getChanges()) {
+                ChangeType type = change.getType();
+
+                if (type == ChangeType.CREATE || type == ChangeType.UPDATE) {
+                    execute(change);
+                }
+
+                createOrUpdate(change.getDiffs());
+            }
+        }
+    }
+
+    public void delete(List<ResourceDiff> diffs) {
+        setChangeable(diffs);
+
+        for (ResourceDiff diff : diffs) {
+            for (ResourceChange change : diff.getChanges()) {
+                delete(change.getDiffs());
+
+                if (change.getType() == ChangeType.DELETE) {
+                    execute(change);
+                }
+            }
+        }
+    }
+
     public void execute(ResourceChange change) {
         ChangeType type = change.getType();
 
