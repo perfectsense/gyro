@@ -27,7 +27,7 @@ end
 
 aws::subnet subnet-auto-scaling-group-example
     vpc-id: $(aws::vpc vpc-auto-scaling-group-example | vpc-id)
-    availability-zone: "us-west-2a"
+    availability-zone: "us-east-2a"
     cidr-block: "10.0.1.0/26"
 
     tags: {
@@ -37,7 +37,7 @@ end
 
 aws::subnet subnet-auto-scaling-group-example-2
     vpc-id: $(aws::vpc vpc-auto-scaling-group-example | vpc-id)
-    availability-zone: "us-west-2a"
+    availability-zone: "us-east-2a"
     cidr-block: "10.0.2.0/26"
 
     tags: {
