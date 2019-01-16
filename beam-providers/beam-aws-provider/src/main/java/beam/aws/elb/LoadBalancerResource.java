@@ -38,11 +38,12 @@ public class LoadBalancerResource extends AwsResource {
 
     private String loadBalancerName;
     private List<String> instances;
-    private List<ListenerResource> listeners;
+    private List<ListenerResource> listener;
     private List<String> securityGroups;
     public HealthCheckResource healthCheck;
     private List<String> subnets;
 
+    @ResourceDiffProperty(nullable = true, subresource = true)
     public HealthCheckResource getHealthCheck(){
         return healthCheck;
     }
@@ -51,6 +52,7 @@ public class LoadBalancerResource extends AwsResource {
         this.healthCheck = healthCheck;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public List<String> getInstances() {
         if (instances == null) {
             instances = new ArrayList<>();
@@ -79,18 +81,20 @@ public class LoadBalancerResource extends AwsResource {
         return stringInstances;
     }
 
-    public List<ListenerResource> getListeners() {
-        if (listeners == null) {
-            listeners = new ArrayList<>();
+    @ResourceDiffProperty(nullable = true, subresource = true)
+    public List<ListenerResource> getListener() {
+        if (listener == null) {
+            listener = new ArrayList<>();
         }
 
-        return listeners;
+        return listener;
     }
 
-    public void setListeners(List<ListenerResource> listeners) {
-        this.listeners = listeners;
+    public void setListener(List<ListenerResource> listener) {
+        this.listener = listener;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public String getLoadBalancerName() {
         return loadBalancerName;
     }
@@ -99,6 +103,7 @@ public class LoadBalancerResource extends AwsResource {
         this.loadBalancerName = loadBalancerName;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public List<String> getSecurityGroups() {
         if (securityGroups == null) {
             securityGroups = new ArrayList<>();
@@ -111,7 +116,7 @@ public class LoadBalancerResource extends AwsResource {
         this.securityGroups = securityGroups;
     }
 
-
+    @ResourceDiffProperty(updatable = true)
     public List<String> getSubnets() {
         if (subnets == null) {
             subnets = new ArrayList<>();
@@ -126,13 +131,13 @@ public class LoadBalancerResource extends AwsResource {
 
     public List<Listener> toListeners() {
         List<Listener> listeners = new ArrayList<>();
-        for(ListenerResource resource : getListeners()) {
+        for(ListenerResource resource : getListener()) {
             Listener newListener = Listener.builder()
                     .instancePort(resource.getInstancePort())
                     .instanceProtocol(resource.getInstanceProtocol())
                     .loadBalancerPort(resource.getLoadBalancerPort())
                     .protocol(resource.getProtocol())
-                    .sslCertificateId(resource.getSslCertificateId())
+                    //.sslCertificateId(resource.getSslCertificateId())
                     .build();
             listeners.add(newListener);
         }
@@ -167,7 +172,7 @@ public class LoadBalancerResource extends AwsResource {
                 //refresh for health check will happen in its own class
                 //not sure if that is correct
                 //refresh listeners
-                getListeners().clear();
+                getListener().clear();
                 for (ListenerDescription listenerDescription : description.listenerDescriptions()){
                     Listener listener = listenerDescription.listener();
                     ListenerResource listenerResource = new ListenerResource();
@@ -175,7 +180,7 @@ public class LoadBalancerResource extends AwsResource {
                     listenerResource.setInstanceProtocol(listener.instanceProtocol());
                     listenerResource.setLoadBalancerPort(listener.loadBalancerPort());
                     listenerResource.setProtocol(listener.protocol());
-                    getListeners().add(listenerResource);
+                    getListener().add(listenerResource);
                 }
             }
 
@@ -193,7 +198,7 @@ public class LoadBalancerResource extends AwsResource {
 
         System.out.println("Show security groups "+getSecurityGroups());
         System.out.println("Show subnets "+getSubnets());
-        System.out.println("Show listeners "+getListeners());
+        System.out.println("Show listeners "+getListener());
         System.out.println("Show health check "+getHealthCheck());
 
         client.createLoadBalancer(r -> r.listeners(toListeners())
