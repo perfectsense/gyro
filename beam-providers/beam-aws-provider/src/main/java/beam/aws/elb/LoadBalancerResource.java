@@ -6,6 +6,7 @@ import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 import beam.lang.Resource;
 
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.elasticloadbalancing.ElasticLoadBalancingClient;
 import software.amazon.awssdk.services.elasticloadbalancing.model.CreateLoadBalancerResponse;
 import software.amazon.awssdk.services.elasticloadbalancing.model.DescribeLoadBalancersResponse;
@@ -28,9 +29,8 @@ import java.util.Set;
  *
  *     aws::elastic-load-balancer elb-example
  *         load-balancer-name: "elb-example"
- *         security-groups: [""]
- *
- *
+ *         security-groups: ["security-group"]
+ *         subnets: ["10.0.0.0/24"]
  *     end
  */
 @ResourceName("load-balancer")
@@ -86,7 +86,6 @@ public class LoadBalancerResource extends AwsResource {
 
         return listeners;
     }
-
 
     public void setListeners(List<ListenerResource> listeners) {
         this.listeners = listeners;
@@ -155,6 +154,7 @@ public class LoadBalancerResource extends AwsResource {
     @Override
     public boolean refresh() {
         ElasticLoadBalancingClient client = ElasticLoadBalancingClient.builder()
+                .region(Region.US_EAST_1)
                 .build();
 
         DescribeLoadBalancersResponse response = client.describeLoadBalancers(r -> r.loadBalancerNames(getLoadBalancerName()));
@@ -188,11 +188,18 @@ public class LoadBalancerResource extends AwsResource {
     @Override
     public void create() {
         ElasticLoadBalancingClient client = ElasticLoadBalancingClient.builder()
+                .region(Region.US_EAST_1)
                 .build();
+
+        System.out.println("Show security groups "+getSecurityGroups());
+        System.out.println("Show subnets "+getSubnets());
+        System.out.println("Show listeners "+getListeners());
+        System.out.println("Show health check "+getHealthCheck());
 
         client.createLoadBalancer(r -> r.listeners(toListeners())
                 .securityGroups(getSecurityGroups())
                 .subnets(getSubnets())
+                .loadBalancerName(getLoadBalancerName())
         );
 
         client.registerInstancesWithLoadBalancer(r -> r.instances(toInstances())
@@ -213,6 +220,7 @@ public class LoadBalancerResource extends AwsResource {
     @Override
     public void delete() {
         ElasticLoadBalancingClient client = ElasticLoadBalancingClient.builder()
+                .region(Region.US_EAST_1)
                 .build();
 
         client.deleteLoadBalancer(r -> r.loadBalancerName(getLoadBalancerName()));
