@@ -1,15 +1,11 @@
 package beam.aws.elb;
 
 import beam.aws.AwsResource;
-import beam.core.diff.ChangeType;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 import beam.lang.Resource;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.elasticloadbalancing.ElasticLoadBalancingClient;
-import software.amazon.awssdk.services.elasticloadbalancing.model.DescribeLoadBalancersResponse;
 import software.amazon.awssdk.services.elasticloadbalancing.model.HealthCheck;
-import software.amazon.awssdk.services.elasticloadbalancing.model.LoadBalancerDescription;
 
 import java.util.Set;
 
@@ -37,9 +33,7 @@ public class HealthCheckResource extends AwsResource {
     private String target;
     private Integer timeout;
     private Integer unhealthyThreshold;
-
-    //public HealthCheckResource(){}
-
+    
     @ResourceDiffProperty(updatable = true)
     public Integer getHealthyThreshold() { return healthyThreshold; }
 
@@ -96,9 +90,7 @@ public class HealthCheckResource extends AwsResource {
     }
 
     public String getLoadBalancer() {
-
         LoadBalancerResource parent = (LoadBalancerResource) parentResource();
-        System.out.println("Is parent null "+(parent == null));
         if (parent != null) {
             return parent.getLoadBalancerName();
         }
@@ -108,34 +100,12 @@ public class HealthCheckResource extends AwsResource {
 
     @Override
     public boolean refresh() {
-        ElasticLoadBalancingClient client = ElasticLoadBalancingClient.builder()
-                .region(Region.US_EAST_1)
-                .build();
-
-        DescribeLoadBalancersResponse response = client.describeLoadBalancers(r -> r.loadBalancerNames(getLoadBalancer()));
-
-        if (response != null) {
-            for (LoadBalancerDescription description : response.loadBalancerDescriptions()) {
-                HealthCheck healthCheck = description.healthCheck();
-                setHealthyThreshold(healthCheck.healthyThreshold());
-                setInterval(healthCheck.interval());
-                setTarget(healthCheck.target());
-                setTimeout(healthCheck.timeout());
-                setUnhealthyThreshold(healthCheck.unhealthyThreshold());
-            }
-
-            return true;
-        }
-
-        return false;
+        return true;
     }
 
     @Override
     public void create() {
-        System.out.println("Made it to create in health check");
-        ElasticLoadBalancingClient client = ElasticLoadBalancingClient.builder()
-                .region(Region.US_EAST_1)
-                .build();
+        ElasticLoadBalancingClient client = createClient(ElasticLoadBalancingClient.class);
 
         client.configureHealthCheck(r ->
                 r.loadBalancerName(getLoadBalancer())

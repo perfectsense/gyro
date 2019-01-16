@@ -16,12 +16,13 @@ project: "beam"
 environment: "sandbox"
 serial: "v1"
 
-aws::load-balancer elb-ex
-    load-balancer-name: "elb-ex"
-    security-groups: ["security-group"]
-    subnets: ["10.0.0.0/24"]
+aws::load-balancer elb-ex-test
+    load-balancer-name: "elb-ex-test"
+    security-groups: ["sg-3c0dfa46"]
+    subnets: ["subnet-04d3e586552ea5fe1"]
+    instances: ["i-01faa0ea54134538b"]
 
-    aws::health-check
+    health-check
         healthy-threshold: "2"
         interval: "30"
         target: "HTTP:80/png"
@@ -29,11 +30,11 @@ aws::load-balancer elb-ex
         unhealthy-threshold: "2"
     end
 
-    aws::listener
+    listener
         instance-port: "443"
-        instance-protocol: "https"
+        instance-protocol: "http"
         load-balancer-port: "443"
-        protocol: "https"
-        ssl-certificate-id: "arn:aws:iam::123456789012:server-certificate/my-server-cert"
+        protocol: "http"
     end
+
 end
