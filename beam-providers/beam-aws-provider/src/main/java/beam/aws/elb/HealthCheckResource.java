@@ -1,6 +1,8 @@
 package beam.aws.elb;
 
 import beam.aws.AwsResource;
+import beam.core.diff.ChangeType;
+import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 import beam.lang.Resource;
 import software.amazon.awssdk.regions.Region;
@@ -38,12 +40,14 @@ public class HealthCheckResource extends AwsResource {
 
     //public HealthCheckResource(){}
 
+    @ResourceDiffProperty(updatable = true)
     public Integer getHealthyThreshold() { return healthyThreshold; }
 
     public void setHealthyThreshold(Integer healthyThreshold) {
         this.healthyThreshold = healthyThreshold;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public Integer getInterval() {
         return interval;
     }
@@ -52,6 +56,7 @@ public class HealthCheckResource extends AwsResource {
         this.interval = interval;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public String getTarget() {
         return target;
     }
@@ -60,6 +65,7 @@ public class HealthCheckResource extends AwsResource {
         this.target = target;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public Integer getTimeout() {
         return timeout;
     }
@@ -68,6 +74,7 @@ public class HealthCheckResource extends AwsResource {
         this.timeout = timeout;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public Integer getUnhealthyThreshold() {
         return unhealthyThreshold;
     }
@@ -89,13 +96,14 @@ public class HealthCheckResource extends AwsResource {
     }
 
     public String getLoadBalancer() {
-        /*
-        LoadBalancerResource parent = (LoadBalancerResource) parentResourceNode();
+
+        LoadBalancerResource parent = (LoadBalancerResource) parentResource();
+        System.out.println("Is parent null "+(parent == null));
         if (parent != null) {
             return parent.getLoadBalancerName();
         }
-    */
-        return "hi";
+
+        return null;
     }
 
     @Override
@@ -124,6 +132,7 @@ public class HealthCheckResource extends AwsResource {
 
     @Override
     public void create() {
+        System.out.println("Made it to create in health check");
         ElasticLoadBalancingClient client = ElasticLoadBalancingClient.builder()
                 .region(Region.US_EAST_1)
                 .build();
@@ -135,14 +144,6 @@ public class HealthCheckResource extends AwsResource {
 
     @Override
     public void update(Resource current, Set<String> changedProperties) {
-        /*
-        ElasticLoadBalancingClient client = ElasticLoadBalancingClient.builder()
-                .build();
-
-        client.configureHealthCheck(r ->
-                r.loadBalancerName(getLoadBalancer())
-                .healthCheck(toHealthCheck()));
-        */
         create();
     }
 
