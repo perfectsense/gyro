@@ -371,7 +371,7 @@ public class AutoScalingGroupResource extends AwsResource {
     }
 
     private void validate() {
-        if (ObjectUtils.isBlank(getLaunchTemplateId()) || ObjectUtils.isBlank(getLaunchConfigurationName())) {
+        if (ObjectUtils.isBlank(getLaunchTemplateId()) && ObjectUtils.isBlank(getLaunchConfigurationName())) {
             throw new BeamException("Either Launch template id or a launch configuration name is required.");
         }
 
