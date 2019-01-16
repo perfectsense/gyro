@@ -3,6 +3,7 @@ package beam.aws.elb;
 import beam.aws.AwsResource;
 import beam.core.diff.ResourceName;
 import beam.lang.Resource;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.elasticloadbalancing.ElasticLoadBalancingClient;
 import software.amazon.awssdk.services.elasticloadbalancing.model.DescribeLoadBalancersResponse;
 import software.amazon.awssdk.services.elasticloadbalancing.model.HealthCheck;
@@ -10,6 +11,22 @@ import software.amazon.awssdk.services.elasticloadbalancing.model.LoadBalancerDe
 
 import java.util.Set;
 
+/**
+ * Creates a Health Check Resource
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: beam
+ *
+ *     health-check
+ *        healthy-threshold: "2"
+ *        interval: "30"
+ *        target: "HTTP:80/png"
+ *        timeout: "3"
+ *        unhealthy-threshold: "2"
+ *     end
+ */
 @ResourceName(parent = "load-balancer", value = "health-check")
 public class HealthCheckResource extends AwsResource {
 
@@ -72,17 +89,19 @@ public class HealthCheckResource extends AwsResource {
     }
 
     public String getLoadBalancer() {
+        /*
         LoadBalancerResource parent = (LoadBalancerResource) parentResourceNode();
         if (parent != null) {
             return parent.getLoadBalancerName();
         }
-
-        return null;
+    */
+        return "hi";
     }
 
     @Override
     public boolean refresh() {
         ElasticLoadBalancingClient client = ElasticLoadBalancingClient.builder()
+                .region(Region.US_EAST_1)
                 .build();
 
         DescribeLoadBalancersResponse response = client.describeLoadBalancers(r -> r.loadBalancerNames(getLoadBalancer()));
@@ -106,6 +125,7 @@ public class HealthCheckResource extends AwsResource {
     @Override
     public void create() {
         ElasticLoadBalancingClient client = ElasticLoadBalancingClient.builder()
+                .region(Region.US_EAST_1)
                 .build();
 
         client.configureHealthCheck(r ->
