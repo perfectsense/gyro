@@ -1,0 +1,39 @@
+provider aws
+    artifact: 'beam:beam-aws-provider:0.5'
+    repositories: [
+        'http://repo1.maven.org/maven2/',
+        'https://repo.gradle.org/gradle/libs-releases/',
+        'https://artifactory.psdops.com/public'
+    ]
+end
+
+aws::credentials default
+    profile-name: "psd-beam-sandbox"
+    region: "us-east-2"
+end
+
+project: "beam"
+environment: "sandbox"
+serial: "v1"
+
+aws::load-balancer elb-ex
+    load-balancer-name: "elb-ex"
+    security-groups: ["security-group"]
+    subnets: ["10.0.0.0/24"]
+
+    aws::health-check
+        healthy-threshold: "2"
+        interval: "30"
+        target: "HTTP:80/png"
+        timeout: "3"
+        unhealthy-threshold: "2"
+    end
+
+    aws::listener
+        instance-port: "443"
+        instance-protocol: "https"
+        load-balancer-port: "443"
+        protocol: "https"
+        ssl-certificate-id: "arn:aws:iam::123456789012:server-certificate/my-server-cert"
+    end
+end
