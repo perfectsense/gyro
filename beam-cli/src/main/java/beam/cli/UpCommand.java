@@ -3,7 +3,6 @@ package beam.cli;
 import beam.core.BeamCore;
 import beam.core.BeamException;
 import beam.core.diff.ChangeType;
-import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiff;
 import beam.lang.BeamFile;
 import beam.lang.BeamLanguageException;
