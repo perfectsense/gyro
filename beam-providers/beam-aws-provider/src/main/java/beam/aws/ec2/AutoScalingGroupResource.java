@@ -79,7 +79,8 @@ public class AutoScalingGroupResource extends AwsResource {
     }
 
     /**
-     * The ID of an launched template that would be used as a skeleton to create the Auto scaling group. Required if launch configuration name not provided.
+     * The ID of an launched template that would be used as a skeleton to create the Auto scaling group.
+     * Required if launch configuration name not provided.
      */
     @ResourceDiffProperty(updatable = true)
     public String getLaunchTemplateId() {
@@ -196,7 +197,8 @@ public class AutoScalingGroupResource extends AwsResource {
     }
 
     /**
-     * The name of a launched configuration that would be used as a skeleton to create the Auto scaling group. Required if launch template Id is not provided.
+     * The name of a launched configuration that would be used as a skeleton to create the Auto scaling group.
+     * Required if launch template Id is not provided.
      */
     @ResourceDiffProperty(updatable = true)
     public String getLaunchConfigurationName() {
@@ -374,27 +376,33 @@ public class AutoScalingGroupResource extends AwsResource {
         }
 
         if (!getHealthCheckType().equals("ELB") && !getHealthCheckType().equals("EC2")) {
-            throw new BeamException("The value - (" + getHealthCheckType() + ") is invalid for parameter Health Check Type.");
+            throw new BeamException("The value - (" + getHealthCheckType()
+                + ") is invalid for parameter Health Check Type.");
         }
 
         if (getHealthCheckGracePeriod() < 0) {
-            throw new BeamException("The value - (" + getHealthCheckGracePeriod() + ") is invalid for parameter Health Check Grace period. Integer value grater or equal to 0.");
+            throw new BeamException("The value - (" + getHealthCheckGracePeriod()
+                + ") is invalid for parameter Health Check Grace period. Integer value grater or equal to 0.");
         }
 
         if (getMaxSize() < 0) {
-            throw new BeamException("The value - (" + getMaxSize() + ") is invalid for parameter Max size. Integer value grater or equal to 0.");
+            throw new BeamException("The value - (" + getMaxSize()
+                + ") is invalid for parameter Max size. Integer value grater or equal to 0.");
         }
 
         if (getMinSize() < 0) {
-            throw new BeamException("The value - (" + getMinSize() + ") is invalid for parameter Min size. Integer value grater or equal to 0.");
+            throw new BeamException("The value - (" + getMinSize()
+                + ") is invalid for parameter Min size. Integer value grater or equal to 0.");
         }
 
         if (getDefaultCooldown() < 0) {
-            throw new BeamException("The value - (" + getDefaultCooldown() + ") is invalid for parameter Default cool down. Integer value grater or equal to 0.");
+            throw new BeamException("The value - (" + getDefaultCooldown()
+                + ") is invalid for parameter Default cool down. Integer value grater or equal to 0.");
         }
 
         if (getDesiredCapacity() < 0) {
-            throw new BeamException("The value - (" + getDesiredCapacity() + ") is invalid for parameter Desired capacity. Integer value grater or equal to 0.");
+            throw new BeamException("The value - (" + getDesiredCapacity()
+                + ") is invalid for parameter Desired capacity. Integer value grater or equal to 0.");
         }
     }
 }
