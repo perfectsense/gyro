@@ -528,11 +528,13 @@ public class InstanceResource extends Ec2TaggableResource<Instance> {
     }
 
     private void validate(Ec2Client client, boolean isCreate) {
-        if (ObjectUtils.isBlank(getShutdownBehavior()) || ShutdownBehavior.fromValue(getShutdownBehavior()).equals(ShutdownBehavior.UNKNOWN_TO_SDK_VERSION)) {
+        if (ObjectUtils.isBlank(getShutdownBehavior())
+            || ShutdownBehavior.fromValue(getShutdownBehavior()).equals(ShutdownBehavior.UNKNOWN_TO_SDK_VERSION)) {
             throw new BeamException("The value - (" + getShutdownBehavior() + ") is invalid for parameter Shutdown Behavior.");
         }
 
-        if (ObjectUtils.isBlank(getInstanceType()) || InstanceType.fromValue(getInstanceType()).equals(InstanceType.UNKNOWN_TO_SDK_VERSION)) {
+        if (ObjectUtils.isBlank(getInstanceType())
+            || InstanceType.fromValue(getInstanceType()).equals(InstanceType.UNKNOWN_TO_SDK_VERSION)) {
             throw new BeamException("The value - (" + getInstanceType() + ") is invalid for parameter Instance Type.");
         }
 
