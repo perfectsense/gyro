@@ -144,4 +144,5 @@ aws::auto-scaling-group auto-scaling-group-example
         $(aws::subnet subnet-auto-scaling-group-example | subnet-id),
         $(aws::subnet subnet-auto-scaling-group-example-2 | subnet-id)
     ]
+    enable-metrics-collection: false
 end

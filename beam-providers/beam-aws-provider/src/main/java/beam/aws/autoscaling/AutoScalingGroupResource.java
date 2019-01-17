@@ -1,4 +1,4 @@
-package beam.aws.ec2;
+package beam.aws.autoscaling;
 
 import beam.aws.AwsResource;
 import beam.core.BeamException;
