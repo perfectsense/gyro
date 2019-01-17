@@ -80,7 +80,6 @@ public class LoadBalancerResource extends AwsResource {
         this.listener = listener;
     }
 
-    @ResourceDiffProperty(updatable = true)
     public String getLoadBalancerName() {
         return loadBalancerName;
     }
@@ -168,7 +167,7 @@ public class LoadBalancerResource extends AwsResource {
                 setInstances(fromInstances(description.instances()));
                 setSecurityGroups(description.securityGroups());
                 setSubnets(description.subnets());
-                setHealthCheck(fromHealthCheck(description.healthCheck()));
+                //setHealthCheck(fromHealthCheck(description.healthCheck()));
 
                 getListener().clear();
                 for (ListenerDescription listenerDescription : description.listenerDescriptions()){
@@ -192,10 +191,6 @@ public class LoadBalancerResource extends AwsResource {
     public void create() {
         ElasticLoadBalancingClient client = createClient(ElasticLoadBalancingClient.class);
 
-        System.out.println("Show security groups "+getSecurityGroups());
-        System.out.println("Show subnets "+getSubnets());
-        System.out.println("Show listeners "+getListener());
-
         client.createLoadBalancer(r -> r.listeners(toListeners())
                 .securityGroups(getSecurityGroups())
                 .subnets(getSubnets())
@@ -218,23 +213,35 @@ public class LoadBalancerResource extends AwsResource {
         List<Instance> instanceSubtractions = new ArrayList<>(currentResource.toInstances());
         instanceSubtractions.removeAll(toInstances());
 
-        client.registerInstancesWithLoadBalancer(r -> r.instances(instanceAdditions)
-        .loadBalancerName(getLoadBalancerName()));
-
-        client.deregisterInstancesFromLoadBalancer(r -> r.instances(instanceSubtractions)
-        .loadBalancerName(getLoadBalancerName()));
-
         List<String> subnetAdditions = new ArrayList<>(getSubnets());
-        instanceAdditions.removeAll(currentResource.getSubnets());
+        subnetAdditions.removeAll(currentResource.getSubnets());
 
         List<String> subnetSubtractions = new ArrayList<>(currentResource.getSubnets());
-        instanceSubtractions.removeAll(getSubnets());
+        subnetSubtractions.removeAll(getSubnets());
+
+        List<String> sgAdditions = new ArrayList<>(getSecurityGroups());
+        sgAdditions.removeAll(currentResource.getSecurityGroups());
+
+        if (!instanceAdditions.isEmpty()) {
+            client.registerInstancesWithLoadBalancer(r -> r.instances(instanceAdditions)
+            .loadBalancerName(getLoadBalancerName()));
+        }
+        if (!instanceSubtractions.isEmpty()) {
+            client.deregisterInstancesFromLoadBalancer(r -> r.instances(instanceSubtractions)
+            .loadBalancerName(getLoadBalancerName()));
+        }
 
         client.attachLoadBalancerToSubnets(r -> r.subnets(subnetAdditions)
         .loadBalancerName(getLoadBalancerName()));
 
-        client.detachLoadBalancerFromSubnets(r -> r.subnets(getSubnets())
+        client.detachLoadBalancerFromSubnets(r -> r.subnets(subnetSubtractions)
         .loadBalancerName(getLoadBalancerName()));
+
+        if(!sgAdditions.isEmpty()) {
+            client.applySecurityGroupsToLoadBalancer(r -> r.securityGroups(sgAdditions)
+                    .loadBalancerName(getLoadBalancerName()));
+        }
+
     }
 
     @Override
