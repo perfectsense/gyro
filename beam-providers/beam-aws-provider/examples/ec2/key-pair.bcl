@@ -9,7 +9,7 @@ end
 
 aws::credentials default
     profile-name: "psd-beam-sandbox"
-    region: "us-west-2"
+    region: "us-east-2"
 end
 
 aws::key-pair key-pair-example
