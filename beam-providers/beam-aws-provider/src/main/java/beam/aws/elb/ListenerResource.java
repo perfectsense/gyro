@@ -43,28 +43,36 @@ public class ListenerResource extends AwsResource {
         return instancePort;
     }
 
-    public void setInstancePort(Integer instancePort) { this.instancePort = instancePort; }
+    public void setInstancePort(Integer instancePort) {
+        this.instancePort = instancePort;
+    }
 
     @ResourceDiffProperty(updatable = true)
     public String getInstanceProtocol() {
         return instanceProtocol;
     }
 
-    public void setInstanceProtocol(String instanceProtocol) { this.instanceProtocol = instanceProtocol; }
+    public void setInstanceProtocol(String instanceProtocol) {
+        this.instanceProtocol = instanceProtocol;
+    }
 
     @ResourceDiffProperty(updatable = true)
     public Integer getLoadBalancerPort() {
         return loadBalancerPort;
     }
 
-    public void setLoadBalancerPort(Integer loadBalancerPort) { this.loadBalancerPort = loadBalancerPort; }
+    public void setLoadBalancerPort(Integer loadBalancerPort) {
+        this.loadBalancerPort = loadBalancerPort;
+    }
 
     @ResourceDiffProperty(updatable = true)
     public String getProtocol() {
         return protocol;
     }
 
-    public void setProtocol(String protocol) { this.protocol = protocol; }
+    public void setProtocol(String protocol) {
+        this.protocol = protocol;
+    }
     /*
     @ResourceDiffProperty(updatable = true)
     public String getSslCertificateId() { return sslCertificateId; }
@@ -73,10 +81,8 @@ public class ListenerResource extends AwsResource {
     */
     public String getLoadBalancer() {
         LoadBalancerResource parent = (LoadBalancerResource) parentResource();
-        System.out.println("Is parent null "+(parent == null));
 
         if (parent != null) {
-            System.out.println("Load balancer name "+parent.getLoadBalancerName());
             return parent.getLoadBalancerName();
         }
 
@@ -97,7 +103,6 @@ public class ListenerResource extends AwsResource {
 
     @Override
     public boolean refresh() {
-        System.out.println("Made it to refresh in listener");
         return true;
     }
 
@@ -115,30 +120,17 @@ public class ListenerResource extends AwsResource {
 
     @Override
     public void update(Resource current, Set<String> changedProperties) {
-        // parent must refresh because of the listeners list
-        // call parent's update function
-        // delete and create
         delete();
         create();
     }
 
     @Override
     public void delete() {
-        // if parent is going to be deleted, then the listeners will
-        // get deleted
-
-        System.out.println("Is parent resource null "+(parentResource()==null));
-        System.out.println("Is parent resource-change- null "+(parentResource().change()==null));
-        System.out.println("Is parent resource-change- null-type "+(parentResource().change().getType()==null));
-
-
-
         if (parentResource().change().getType() == ChangeType.DELETE) {
             return;
         }
         ElasticLoadBalancingClient client = createClient(ElasticLoadBalancingClient.class);
 
-        System.out.println("Get load balancer name "+getLoadBalancer());
         client.deleteLoadBalancerListeners(r -> r.loadBalancerName(getLoadBalancer())
                                                 .loadBalancerPorts(getLoadBalancerPort()));
     }
