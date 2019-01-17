@@ -257,20 +257,38 @@ public class Container extends Node {
         return sb.toString();
     }
 
-    protected String fieldNameFromKey(String key) {
+    String fieldNameFromKey(String key) {
         return CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key);
     }
 
-    protected String keyFromFieldName(String field) {
+    String keyFromFieldName(String field) {
         return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN, field).replaceFirst("get-", "");
     }
 
-    protected Method readerMethodForKey(String key) {
+    Method readerMethodForKey(String key) {
+        PropertyDescriptor p = propertyDescriptorForKey(key);
+        if (p != null) {
+            return p.getReadMethod();
+        }
+
+        return null;
+    }
+
+    Method writerMethodForKey(String key) {
+        PropertyDescriptor p = propertyDescriptorForKey(key);
+        if (p != null) {
+            return p.getWriteMethod();
+        }
+
+        return null;
+    }
+
+    PropertyDescriptor propertyDescriptorForKey(String key) {
         String convertedKey = fieldNameFromKey(key);
         try {
             for (PropertyDescriptor p : Introspector.getBeanInfo(getClass()).getPropertyDescriptors()) {
                 if (p.getDisplayName().equals(convertedKey)) {
-                    return p.getReadMethod();
+                    return p;
                 }
             }
         } catch (IntrospectionException ex) {

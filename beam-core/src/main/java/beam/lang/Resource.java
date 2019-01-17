@@ -354,10 +354,25 @@ public abstract class Resource extends Container {
         for (String subResourceField : subResources().keySet()) {
             List<Resource> subResources = subResources().get(subResourceField);
 
+            Method writer = null;
             try {
-                BeanUtils.setProperty(this, subResourceField, subResources);
+                writer = writerMethodForKey(subResourceField);
+                if (writer == null) {
+                    throw new BeamException("Not setter for subresource field: " + subResourceField);
+                }
+
+                writer.invoke(this, subResources);
             } catch (IllegalArgumentException | InvocationTargetException | IllegalAccessException e) {
-                // Ignoring errors from setProperty
+                if (subResources.size() == 1) {
+                    try {
+                        writer.invoke(this, subResources.get(0));
+                        return;
+                    } catch (IllegalArgumentException | InvocationTargetException | IllegalAccessException ee) {
+                        // Exception is thrown below.
+                    }
+                }
+
+                throw new BeamException("Unable to set subresource field: " + subResourceField);
             }
         }
     }
