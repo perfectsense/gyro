@@ -10,14 +10,17 @@ import com.psddev.dari.util.StringUtils;
 import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
 import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup;
 import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsResponse;
+import software.amazon.awssdk.services.autoscaling.model.EnabledMetric;
 import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateSpecification;
 import software.amazon.awssdk.services.ec2.model.Ec2Exception;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Creates an Auto scaling Group from a Launch Configuration or from a Launch Template.
@@ -64,8 +67,20 @@ public class AutoScalingGroupResource extends AwsResource {
     private String launchConfigurationName;
     private Boolean newInstancesProtectedFromScaleIn;
     private List<String> subnetIds;
-
     private String arn;
+    private Boolean enableMetricsCollection;
+    private List<String> disabledMetrics;
+
+    private final Set<String> masterMetricSet = new HashSet<>(Arrays.asList(
+        "GroupMinSize",
+        "GroupMaxSize",
+        "GroupDesiredCapacity",
+        "GroupInServiceInstances",
+        "GroupPendingInstances",
+        "GroupStandbyInstances",
+        "GroupTerminatingInstances",
+        "GroupTotalInstances"
+        ));
 
     /**
      * The name of the auto scaling group, also served as its identifier and thus unique. (Required)
@@ -99,6 +114,7 @@ public class AutoScalingGroupResource extends AwsResource {
         if (availabilityZones == null) {
             availabilityZones = new ArrayList<>();
         }
+
         return availabilityZones;
     }
 
@@ -114,6 +130,7 @@ public class AutoScalingGroupResource extends AwsResource {
         if (maxSize == null) {
             maxSize = 0;
         }
+
         return maxSize;
     }
 
@@ -129,6 +146,7 @@ public class AutoScalingGroupResource extends AwsResource {
         if (minSize == null) {
             minSize = 0;
         }
+
         return minSize;
     }
 
@@ -144,6 +162,7 @@ public class AutoScalingGroupResource extends AwsResource {
         if (desiredCapacity == null) {
             desiredCapacity = 0;
         }
+
         return desiredCapacity;
     }
 
@@ -159,6 +178,7 @@ public class AutoScalingGroupResource extends AwsResource {
         if (defaultCooldown == null) {
             defaultCooldown = 300;
         }
+
         return defaultCooldown;
     }
 
@@ -174,6 +194,7 @@ public class AutoScalingGroupResource extends AwsResource {
         if (healthCheckType == null) {
             healthCheckType = "EC2";
         }
+
         return healthCheckType.toUpperCase();
     }
 
@@ -189,6 +210,7 @@ public class AutoScalingGroupResource extends AwsResource {
         if (healthCheckGracePeriod == null) {
             healthCheckGracePeriod = 0;
         }
+
         return healthCheckGracePeriod;
     }
 
@@ -217,6 +239,7 @@ public class AutoScalingGroupResource extends AwsResource {
         if (newInstancesProtectedFromScaleIn == null) {
             newInstancesProtectedFromScaleIn = false;
         }
+
         return newInstancesProtectedFromScaleIn;
     }
 
@@ -247,6 +270,32 @@ public class AutoScalingGroupResource extends AwsResource {
         this.arn = arn;
     }
 
+    @ResourceDiffProperty(updatable = true)
+    public Boolean getEnableMetricsCollection() {
+        if (enableMetricsCollection == null) {
+            enableMetricsCollection = false;
+        }
+
+        return enableMetricsCollection;
+    }
+
+    public void setEnableMetricsCollection(Boolean enableMetricsCollection) {
+        this.enableMetricsCollection = enableMetricsCollection;
+    }
+
+    @ResourceDiffProperty(updatable = true)
+    public List<String> getDisabledMetrics() {
+        if (disabledMetrics == null || disabledMetrics.isEmpty()) {
+            disabledMetrics = new ArrayList<>();
+        }
+
+        return disabledMetrics;
+    }
+
+    public void setDisabledMetrics(List<String> disabledMetrics) {
+        this.disabledMetrics = disabledMetrics;
+    }
+
     @Override
     public boolean refresh() {
         AutoScalingClient client = createClient(AutoScalingClient.class);
@@ -270,6 +319,11 @@ public class AutoScalingGroupResource extends AwsResource {
         setNewInstancesProtectedFromScaleIn(autoScalingGroup.newInstancesProtectedFromScaleIn());
         setSubnetIds(autoScalingGroup.vpcZoneIdentifier().equals("")
             ? new ArrayList<>() : Arrays.asList(autoScalingGroup.vpcZoneIdentifier().split(",")));
+
+        setEnableMetricsCollection(!autoScalingGroup.enabledMetrics().isEmpty());
+        Set<String> allMetrics = new HashSet<>(masterMetricSet);
+        allMetrics.removeAll(autoScalingGroup.enabledMetrics().stream().map(EnabledMetric::metric).collect(Collectors.toSet()));
+        setDisabledMetrics(allMetrics.size() == masterMetricSet.size() ? new ArrayList<>() : new ArrayList<>(allMetrics));
 
         return true;
     }
@@ -300,10 +354,16 @@ public class AutoScalingGroupResource extends AwsResource {
         if (autoScalingGroup != null) {
             setArn(autoScalingGroup.autoScalingGroupARN());
         }
+
+        if (getEnableMetricsCollection()) {
+            enableMonitoring(client);
+        }
     }
 
     @Override
     public void update(Resource current, Set<String> changedProperties) {
+        AutoScalingGroupResource old = (AutoScalingGroupResource) current;
+
         AutoScalingClient client = createClient(AutoScalingClient.class);
 
         validate();
@@ -322,6 +382,16 @@ public class AutoScalingGroupResource extends AwsResource {
                 .newInstancesProtectedFromScaleIn(getNewInstancesProtectedFromScaleIn())
                 .vpcZoneIdentifier(getSubnetIds().isEmpty() ? " " : StringUtils.join(getSubnetIds(), ","))
         );
+
+        if (changedProperties.contains("enable-metrics-collection") || changedProperties.contains("disabled-metrics")) {
+            if (getEnableMetricsCollection()) {
+                enableMonitoring(client);
+            } else {
+                client.disableMetricsCollection(
+                    r -> r.autoScalingGroupName(getAutoScalingGroupName())
+                );
+            }
+        }
     }
 
     @Override
@@ -403,6 +473,27 @@ public class AutoScalingGroupResource extends AwsResource {
         if (getDesiredCapacity() < 0) {
             throw new BeamException("The value - (" + getDesiredCapacity()
                 + ") is invalid for parameter Desired capacity. Integer value grater or equal to 0.");
+        }
+
+        if (!getEnableMetricsCollection() && !getDisabledMetrics().isEmpty()) {
+            throw new BeamException("When Enabled Metrics Collection is set to false, disabled metrics can't have items in it.");
+        }
+    }
+
+    private void enableMonitoring(AutoScalingClient client) {
+        Set<String> metrics = new HashSet<>(masterMetricSet);
+        metrics.removeAll(getDisabledMetrics());
+
+        client.enableMetricsCollection(
+            r -> r.autoScalingGroupName(getAutoScalingGroupName())
+                .granularity("1Minute")
+                .metrics(metrics)
+        );
+
+        if (!getDisabledMetrics().isEmpty()) {
+            client.disableMetricsCollection(
+                r -> r.autoScalingGroupName(getAutoScalingGroupName())
+                    .metrics(getDisabledMetrics()));
         }
     }
 }
