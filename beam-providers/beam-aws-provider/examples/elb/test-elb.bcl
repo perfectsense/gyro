@@ -8,8 +8,8 @@ provider aws
 end
 
 aws::credentials default
-    profile-name: "psd-beam-sandbox"
-    region: "us-east-2"
+    profile-name: "sandbox"
+    region: "us-east-1"
 end
 
 project: "beam"
@@ -18,7 +18,7 @@ serial: "v1"
 
 aws::load-balancer elb-ex-test
     load-balancer-name: "elb-ex-test"
-    security-groups: ["sg-3c0dfa46"]
+    security-groups: ["sg-4e0dfa34"]
     subnets: ["subnet-04d3e586552ea5fe1"]
     instances: ["i-01faa0ea54134538b"]
 
@@ -32,9 +32,9 @@ aws::load-balancer elb-ex-test
 
     listener
         instance-port: "443"
-        instance-protocol: "http"
+        instance-protocol: "HTTP"
         load-balancer-port: "443"
-        protocol: "http"
+        protocol: "HTTP"
     end
 
 end
