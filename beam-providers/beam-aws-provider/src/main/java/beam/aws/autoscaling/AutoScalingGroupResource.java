@@ -19,6 +19,7 @@ import software.amazon.awssdk.services.ec2.model.Ec2Exception;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -79,7 +80,7 @@ public class AutoScalingGroupResource extends AwsResource {
     private String serviceLinkedRoleArn;
     private String placementGroup;
     private String status;
-    private String createdTime;
+    private Date createdTime;
 
     private final Set<String> masterMetricSet = new HashSet<>(Arrays.asList(
         "GroupMinSize",
@@ -366,11 +367,11 @@ public class AutoScalingGroupResource extends AwsResource {
         this.status = status;
     }
 
-    public String getCreatedTime() {
+    public Date getCreatedTime() {
         return createdTime;
     }
 
-    public void setCreatedTime(String createdTime) {
+    public void setCreatedTime(Date createdTime) {
         this.createdTime = createdTime;
     }
 
@@ -398,7 +399,7 @@ public class AutoScalingGroupResource extends AwsResource {
         setServiceLinkedRoleArn(autoScalingGroup.serviceLinkedRoleARN());
         setPlacementGroup(autoScalingGroup.placementGroup());
         setStatus(autoScalingGroup.status());
-        setCreatedTime(autoScalingGroup.createdTime().toString());
+        setCreatedTime(Date.from(autoScalingGroup.createdTime()));
         setSubnetIds(autoScalingGroup.vpcZoneIdentifier().equals("")
             ? new ArrayList<>() : Arrays.asList(autoScalingGroup.vpcZoneIdentifier().split(",")));
 
