@@ -11,9 +11,6 @@ sourceCompatibility = 1.8
 defaultTasks 'build'
 
 dependencies {
-    compile 'io.airlift:airline:0.8'
-    compile 'org.fusesource.jansi:jansi:1.16'
-
     compile "beam:beam-core:${version}"
 }
 

@@ -1,9 +1,15 @@
 package beam.cli;
 
+import beam.commands.AbstractCommand;
+import beam.commands.BeamCommand;
+import beam.commands.CliBeamUI;
 import beam.core.BeamCore;
 import beam.core.BeamException;
+import beam.lang.BeamFile;
+import beam.lang.plugins.PluginLoader;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
+import com.psddev.dari.util.ObjectUtils;
 import io.airlift.airline.Cli;
 import io.airlift.airline.Command;
 import io.airlift.airline.Help;
@@ -13,20 +19,20 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.lang.reflect.Modifier;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class Beam {
 
-    private final Cli<Object> cli;
-    private final List<String> arguments;
+    private Cli<Object> cli;
+    private List<String> arguments;
+    private Set<Class<?>> commands = new HashSet<Class<?>>();
 
-    public static final Reflections reflections;
+    public static Reflections reflections;
 
     static {
         Reflections.log = null;
@@ -35,10 +41,28 @@ public class Beam {
     }
 
     public static void main(String[] arguments) throws Exception {
+        ((Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).setLevel(Level.OFF);
+
+        Beam beam = new Beam();
         BeamCore.pushUi(new CliBeamUI());
 
+        // Load ~/.beam/plugins.bcl
+        File plugins = Paths.get(getBeamUserHome(), ".beam", "plugins.bcl").toFile();
+        if (plugins.exists() && plugins.isFile()) {
+            BeamCore core = new BeamCore();
+            BeamFile pluginConfig = core.parse(plugins.toString());
+
+            for (PluginLoader loader : pluginConfig.plugins()) {
+                for (Class<?> c : loader.classes()) {
+                    if (BeamCommand.class.isAssignableFrom(c) && !Modifier.isAbstract(c.getModifiers())) {
+                        beam.commands().add(c);
+                    }
+                }
+            }
+        }
+
         try {
-            Beam beam = new Beam(Arrays.asList(arguments));
+            beam.init(Arrays.asList(arguments));
             beam.run();
 
         } finally {
@@ -46,16 +70,14 @@ public class Beam {
         }
     }
 
-    public Beam(List<String> arguments) {
+    public void init(List<String> arguments) {
         ((Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).setLevel(Level.OFF);
 
-        Set<Class<?>> commands = new HashSet<Class<?>>();
-
-        commands.add(Help.class);
+        commands().add(Help.class);
 
         for (Class<?> c : getReflections().getSubTypesOf(BeamCommand.class)) {
             if (c.isAnnotationPresent(Command.class)) {
-                commands.add(c);
+                commands().add(c);
             }
         }
 
@@ -70,17 +92,14 @@ public class Beam {
         Cli.CliBuilder<Object> builder = Cli.<Object>builder(appName)
             .withDescription("Beam.")
             .withDefaultCommand(Help.class)
-            .withCommands(commands);
-
-        Set<Class<?>> serviceCommands = new HashSet<Class<?>>();
-
-        builder.withGroup("service")
-            .withDefaultCommand(Help.class)
-            .withDescription("Beam service (client and server) commands.")
-            .withCommands(serviceCommands);
+            .withCommands(commands());
 
         this.cli = builder.build();
         this.arguments = arguments;
+    }
+
+    public Set<Class<?>> commands() {
+        return commands;
     }
 
     public void run() throws IOException {
@@ -91,7 +110,7 @@ public class Beam {
                 ((Runnable) command).run();
 
             } else if (command instanceof AbstractCommand) {
-                ((AbstractCommand) command).doExecute();
+                ((AbstractCommand) command).execute();
             } else {
                 throw new IllegalStateException(String.format(
                     "[%s] must be an instance of [%s] or [%s]!",
@@ -114,21 +133,13 @@ public class Beam {
         return reflections;
     }
 
-    private static List<String> parseAlias(String alias) {
-        Pattern pattern = Pattern.compile("([^\"'\\s]+)|\"([^\"]*)\"|'([^']*)'");
-        Matcher matcher = pattern.matcher(alias);
-
-        List<String> arguments = new ArrayList<>();
-        while (matcher.find()) {
-            if (matcher.group(2) != null) {
-                arguments.add(matcher.group(2));
-            } else if (matcher.group(3) != null) {
-                arguments.add(matcher.group(3));
-            } else {
-                arguments.add(matcher.group());
-            }
+    public static String getBeamUserHome() {
+        String userHome = System.getenv("BEAM_USER_HOME");
+        if (ObjectUtils.isBlank(userHome)) {
+            userHome = System.getProperty("user.home");
         }
 
-        return arguments;
+        return userHome;
     }
+
 }

@@ -138,7 +138,7 @@ public class BeamCore {
         }
 
         for (PluginLoader pluginLoader : pluginListener.plugins()) {
-            pluginLoader.load();;
+            pluginLoader.load();
         }
 
         // Load configuration

@@ -3,6 +3,7 @@ package beam.aws.ec2;
 import beam.aws.AwsResource;
 import beam.core.BeamCore;
 import beam.core.BeamException;
+import beam.core.BeamInstance;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 import com.psddev.dari.util.ObjectUtils;
@@ -28,6 +29,7 @@ import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -61,9 +63,8 @@ import java.util.stream.Collectors;
  *     end
  */
 @ResourceName("instance")
-public class InstanceResource extends Ec2TaggableResource<Instance> {
+public class InstanceResource extends Ec2TaggableResource<Instance> implements BeamInstance {
 
-    private String instanceId;
     private String amiId;
     private String amiName;
     private Integer coreCount;
@@ -80,6 +81,15 @@ public class InstanceResource extends Ec2TaggableResource<Instance> {
     private Boolean enableEnaSupport;
     private Boolean sourceDestCheck;
     private String userData;
+
+    // -- Readonly
+
+    private String instanceId;
+    private String privateIpAddress;
+    private String publicIpAddress;
+    private String publicDnsName;
+    private String instanceState;
+    private Date launchDate;
 
     public String getInstanceId() {
         return instanceId;
@@ -311,6 +321,72 @@ public class InstanceResource extends Ec2TaggableResource<Instance> {
         this.userData = userData;
     }
 
+    public String getPrivateIpAddress() {
+        return privateIpAddress;
+    }
+
+    public void setPrivateIpAddress(String privateIpAddress) {
+        this.privateIpAddress = privateIpAddress;
+    }
+
+    public String getPublicIpAddress() {
+        return publicIpAddress;
+    }
+
+    public void setPublicIpAddress(String publicIpAddress) {
+        this.publicIpAddress = publicIpAddress;
+    }
+
+    public String getPublicDnsName() {
+        return publicDnsName;
+    }
+
+    public void setPublicDnsName(String publicDnsName) {
+        this.publicDnsName = publicDnsName;
+    }
+
+    public String getInstanceState() {
+        return instanceState;
+    }
+
+    public void setInstanceState(String instanceState) {
+        this.instanceState = instanceState;
+    }
+
+    public void setInstanceLaunchDate(Date launchDate) {
+        this.launchDate = launchDate;
+    }
+
+    public Date getInstanceLaunchDate() {
+        return launchDate;
+    }
+
+    // -- BeamInstance Implementation
+
+    @Override
+    public String getState() {
+        return getInstanceState();
+    }
+
+    @Override
+    public String getHostname() {
+        return getPublicDnsName();
+    }
+
+    @Override
+    public String getLocation() {
+        return "";
+    }
+
+    @Override
+    public String getLaunchDate() {
+        if (getInstanceLaunchDate() != null) {
+            return getInstanceLaunchDate().toString();
+        }
+
+        return "";
+    }
+
     @Override
     protected String getId() {
         return getInstanceId();
@@ -343,6 +419,12 @@ public class InstanceResource extends Ec2TaggableResource<Instance> {
                     setSecurityGroupIds(instance.securityGroups().stream().map(GroupIdentifier::groupId).collect(Collectors.toList()));
                     setSubnetId(instance.subnetId());
                     setEnableEnaSupport(instance.enaSupport());
+                    setPublicDnsName(instance.publicDnsName());
+                    setPublicIpAddress(instance.publicIpAddress());
+                    setPrivateIpAddress(instance.privateIpAddress());
+                    setInstanceState(instance.state().nameAsString());
+                    setInstanceLaunchDate(new Date(instance.launchTime().toEpochMilli()));
+
                     break;
                 }
                 break;
@@ -404,7 +486,14 @@ public class InstanceResource extends Ec2TaggableResource<Instance> {
                     .userData(new String(Base64.encodeBase64(getUserData().trim().getBytes())))
             );
 
-            setInstanceId(response.instances().get(0).instanceId());
+            for (Instance instance : response.instances()) {
+                setInstanceId(instance.instanceId());
+                setPublicDnsName(instance.publicDnsName());
+                setPublicIpAddress(instance.publicIpAddress());
+                setPrivateIpAddress(instance.privateIpAddress());
+                setInstanceState(instance.state().nameAsString());
+                setInstanceLaunchDate(new Date(instance.launchTime().toEpochMilli()));
+            }
 
             waitForRunningInstances(client);
 

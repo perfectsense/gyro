@@ -1,12 +1,9 @@
-package beam.cli;
+package beam.commands;
 
 import beam.core.BeamCore;
-import beam.core.BeamException;
 import beam.core.diff.ChangeType;
 import beam.core.diff.ResourceDiff;
 import beam.lang.BeamFile;
-import beam.lang.BeamLanguageException;
-import io.airlift.airline.Arguments;
 import io.airlift.airline.Command;
 import io.airlift.airline.Option;
 
@@ -14,35 +11,19 @@ import java.util.List;
 import java.util.Set;
 
 @Command(name = "up", description = "Updates all resources to match the configuration.")
-public class UpCommand extends AbstractCommand {
-
-    @Arguments
-    private List<String> arguments;
+public class UpCommand extends AbstractConfigCommand {
 
     @Option(name = { "--skip-refresh" })
     public boolean skipRefresh;
 
     @Override
-    public void doExecute() throws Exception {
-
-        if (getArguments().size() < 1) {
-            throw new BeamException("Beam configuration file required.");
-        }
-
-        String configPath = getArguments().get(0);
-        BeamCore core = new BeamCore();
-        BeamFile pending;
-        try {
-            pending = core.parse(configPath);
-        } catch (BeamLanguageException ex) {
-            throw new BeamException(ex.getMessage());
-        }
+    public void doExecute(BeamFile pending) throws Exception {
 
         BeamCore.ui().write("\n@|bold,white Looking for changes...\n\n|@");
-        List<ResourceDiff> diffs = core.diff(pending, !skipRefresh);
+        List<ResourceDiff> diffs = core().diff(pending, !skipRefresh);
         BeamCore.ui().write("\n");
 
-        Set<ChangeType> changeTypes = core.writeDiffs(diffs);
+        Set<ChangeType> changeTypes = core().writeDiffs(diffs);
 
         boolean hasChanges = false;
         if (changeTypes.contains(ChangeType.CREATE) || changeTypes.contains(ChangeType.UPDATE)) {
@@ -50,7 +31,7 @@ public class UpCommand extends AbstractCommand {
 
             if (BeamCore.ui().readBoolean(Boolean.FALSE, "\nAre you sure you want to create and/or update resources?")) {
                 BeamCore.ui().write("\n");
-                core.createOrUpdate(diffs);
+                core().createOrUpdate(diffs);
             }
         }
 
@@ -59,7 +40,7 @@ public class UpCommand extends AbstractCommand {
 
             if (BeamCore.ui().readBoolean(Boolean.FALSE, "\nAre you sure you want to delete resources?")) {
                 BeamCore.ui().write("\n");
-                core.delete(diffs);
+                core().delete(diffs);
             }
         }
 
@@ -73,10 +54,6 @@ public class UpCommand extends AbstractCommand {
             BeamCore.ui().write("@|bold,green No changes.|@\n\n");
         }
 
-    }
-
-    public List<String> getArguments() {
-        return arguments;
     }
 
 }
