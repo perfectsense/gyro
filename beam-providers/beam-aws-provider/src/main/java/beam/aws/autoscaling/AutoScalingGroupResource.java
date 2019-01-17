@@ -283,7 +283,7 @@ public class AutoScalingGroupResource extends AwsResource {
         this.enableMetricsCollection = enableMetricsCollection;
     }
 
-    @ResourceDiffProperty(updatable = true)
+    @ResourceDiffProperty(updatable = true, nullable = true)
     public List<String> getDisabledMetrics() {
         if (disabledMetrics == null || disabledMetrics.isEmpty()) {
             disabledMetrics = new ArrayList<>();
@@ -362,8 +362,6 @@ public class AutoScalingGroupResource extends AwsResource {
 
     @Override
     public void update(Resource current, Set<String> changedProperties) {
-        AutoScalingGroupResource old = (AutoScalingGroupResource) current;
-
         AutoScalingClient client = createClient(AutoScalingClient.class);
 
         validate();
