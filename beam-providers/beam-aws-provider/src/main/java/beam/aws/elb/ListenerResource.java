@@ -7,11 +7,8 @@ import beam.core.diff.ResourceName;
 
 import beam.lang.Resource;
 import software.amazon.awssdk.services.elasticloadbalancing.ElasticLoadBalancingClient;
-import software.amazon.awssdk.services.elasticloadbalancing.model.Instance;
 import software.amazon.awssdk.services.elasticloadbalancing.model.Listener;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -38,6 +35,8 @@ public class ListenerResource extends AwsResource {
     private Integer loadBalancerPort;
     private String protocol;
     private String sslCertificateId;
+
+    public ListenerResource(){}
 
     @ResourceDiffProperty(updatable = true)
     public Integer getInstancePort() {
@@ -96,9 +95,9 @@ public class ListenerResource extends AwsResource {
         return newListener;
     }
 
-
     @Override
     public boolean refresh() {
+        System.out.println("Made it to refresh in listener");
         return true;
     }
 
@@ -109,7 +108,8 @@ public class ListenerResource extends AwsResource {
         }
 
         ElasticLoadBalancingClient client = createClient(ElasticLoadBalancingClient.class);
-        client.createLoadBalancerListeners(r -> r.listeners(toListener()));
+        client.createLoadBalancerListeners(r -> r.listeners(toListener())
+        .loadBalancerName(getLoadBalancer()));
 
     }
 
@@ -126,6 +126,12 @@ public class ListenerResource extends AwsResource {
     public void delete() {
         // if parent is going to be deleted, then the listeners will
         // get deleted
+
+        System.out.println("Is parent resource null "+(parentResource()==null));
+        System.out.println("Is parent resource-change- null "+(parentResource().change()==null));
+        System.out.println("Is parent resource-change- null-type "+(parentResource().change().getType()==null));
+
+
 
         if (parentResource().change().getType() == ChangeType.DELETE) {
             return;
