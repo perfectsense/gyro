@@ -102,6 +102,11 @@ public class ListenerResource extends AwsResource {
     }
 
     @Override
+    public String primaryKey() {
+        return String.format("%d", getLoadBalancerPort());
+    }
+
+    @Override
     public boolean refresh() {
         return true;
     }
