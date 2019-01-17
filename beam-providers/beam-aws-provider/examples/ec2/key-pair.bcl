@@ -14,5 +14,5 @@ end
 
 aws::key-pair key-pair-example
     key-name: "key-pair-example"
-    public-key-path: "beam-providers/beam-aws-provider/examples/ec2/example-public-key.pub"
+    public-key-path: "example-public-key.pub"
 end

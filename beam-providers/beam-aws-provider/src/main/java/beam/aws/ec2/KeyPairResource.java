@@ -11,6 +11,7 @@ import software.amazon.awssdk.services.ec2.model.DescribeKeyPairsResponse;
 import software.amazon.awssdk.services.ec2.model.Ec2Exception;
 import software.amazon.awssdk.services.ec2.model.ImportKeyPairResponse;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -28,7 +29,17 @@ import java.util.Set;
  *
  *     aws::key-pair key-pair-example
  *         key-name: "key-pair-example"
- *         public-key-path: "beam-providers/beam-aws-provider/examples/ec2/example-public-key.pub"
+ *         public-key-path: "example-public-key.pub"
+ *     end
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: beam
+ *
+ *     aws::key-pair key-pair-example
+ *         key-name: "key-pair-example"
+ *         public-key: ".."
  *     end
  */
 @ResourceName("key-pair")
@@ -36,6 +47,7 @@ public class KeyPairResource extends AwsResource {
 
     private String keyName;
     private String publicKeyPath;
+    private String publicKey;
     private String keyFingerPrint;
 
     /**
@@ -58,6 +70,17 @@ public class KeyPairResource extends AwsResource {
 
     public void setPublicKeyPath(String publicKeyPath) {
         this.publicKeyPath = publicKeyPath;
+    }
+
+    /**
+     * The public key needed to generate the key pair. See `Importing Your Own Public Key to Amazon EC2 <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html#how-to-generate-your-own-key-and-import-it-to-aws/>`_. (Required)
+     */
+    public String getPublicKey() {
+        return publicKey;
+    }
+
+    public void setPublicKey(String publicKey) {
+        this.publicKey = publicKey;
     }
 
     public String getKeyFingerPrint() {
@@ -92,11 +115,15 @@ public class KeyPairResource extends AwsResource {
 
     @Override
     public void create() {
+        if (ObjectUtils.isBlank(getPublicKey())) {
+            setPublicKey(getPublicKeyFromPath());
+        }
+
         Ec2Client client = createClient(Ec2Client.class);
 
         ImportKeyPairResponse response = client.importKeyPair(
             r -> r.keyName(getKeyName())
-                .publicKeyMaterial(SdkBytes.fromByteArray(getPublicKeyFromPath().getBytes()))
+                .publicKeyMaterial(SdkBytes.fromByteArray(getPublicKey().getBytes()))
         );
 
         setKeyFingerPrint(response.keyFingerprint());
@@ -129,7 +156,8 @@ public class KeyPairResource extends AwsResource {
 
     private String getPublicKeyFromPath() {
         try {
-            return (new String(Files.readAllBytes(Paths.get(getPublicKeyPath())), StandardCharsets.UTF_8));
+            String dir = fileNode().path().substring(0, fileNode().path().lastIndexOf(File.separator));
+            return new String(Files.readAllBytes(Paths.get(dir + File.separator + getPublicKeyPath())), StandardCharsets.UTF_8);
         } catch (IOException ioex) {
             throw new BeamException("Unable to read public key from file.");
         }
