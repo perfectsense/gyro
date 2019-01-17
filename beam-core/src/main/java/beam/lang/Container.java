@@ -7,6 +7,9 @@ import beam.lang.types.Value;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Throwables;
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.beanutils.ConvertUtils;
+import org.apache.commons.beanutils.converters.DateConverter;
+import org.apache.commons.beanutils.converters.DateTimeConverter;
 
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -14,11 +17,11 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 public class Container extends Node {
 
@@ -26,7 +29,10 @@ public class Container extends Node {
     transient List<Control> controls = new ArrayList<>();
     transient List<Frame> frames = new ArrayList<>();
 
-    private static final Pattern NEWLINES = Pattern.compile("([\r\n]+)");
+    static {
+        DateTimeConverter converter = new DateConverter(null);
+        ConvertUtils.register(converter, Date.class);
+    }
 
     /**
      * Returns a map of key/value pairs for this block.
@@ -169,7 +175,7 @@ public class Container extends Node {
                 } else if (value instanceof Resource) {
                     sb.append(((Resource) value).serialize(indent));
                 }
-            } else if (value != null) {
+            } else {
                 if (value instanceof Map && ((Map) value).isEmpty() || value instanceof List && ((List) value).isEmpty()) {
                     continue;
                 }
@@ -179,7 +185,7 @@ public class Container extends Node {
                 if (sourceValue instanceof ReferenceValue && ((ReferenceValue) sourceValue).getReferencedContainer() != null) {
                     sb.append(sourceValue.toString());
                 } else if (value instanceof String) {
-                    sb.append("'" + entry.getValue() + "'");
+                    sb.append("'").append(entry.getValue()).append("'");
                 } else if (value instanceof Number || value instanceof Boolean) {
                     sb.append(entry.getValue());
                 } else if (value instanceof Map && !((Map) value).isEmpty()) {
@@ -188,6 +194,8 @@ public class Container extends Node {
                     sb.append(listToString((List) value, indent));
                 } else if (value instanceof Resource) {
                     sb.append(((Resource) value).resourceKey());
+                } else {
+                    sb.append("'").append(value.toString()).append("'");
                 }
                 sb.append("\n");
             }
