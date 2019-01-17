@@ -137,8 +137,12 @@ public class ListenerResource extends AwsResource {
 
     @Override
     public String toDisplayString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("listener");
-        return sb.toString();
+        return String.format(
+            "load balancer listener %s:%d/%s:%d",
+            getProtocol(),
+            getLoadBalancerPort(),
+            getInstanceProtocol(),
+            getInstancePort());
     }
+
 }
