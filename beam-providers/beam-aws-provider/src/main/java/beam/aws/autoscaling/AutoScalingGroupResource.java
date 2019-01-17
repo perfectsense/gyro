@@ -79,6 +79,7 @@ public class AutoScalingGroupResource extends AwsResource {
     private String serviceLinkedRoleArn;
     private String placementGroup;
     private String status;
+    private String createdTime;
 
     private final Set<String> masterMetricSet = new HashSet<>(Arrays.asList(
         "GroupMinSize",
@@ -365,6 +366,14 @@ public class AutoScalingGroupResource extends AwsResource {
         this.status = status;
     }
 
+    public String getCreatedTime() {
+        return createdTime;
+    }
+
+    public void setCreatedTime(String createdTime) {
+        this.createdTime = createdTime;
+    }
+
     @Override
     public boolean refresh() {
         AutoScalingClient client = createClient(AutoScalingClient.class);
@@ -389,15 +398,13 @@ public class AutoScalingGroupResource extends AwsResource {
         setServiceLinkedRoleArn(autoScalingGroup.serviceLinkedRoleARN());
         setPlacementGroup(autoScalingGroup.placementGroup());
         setStatus(autoScalingGroup.status());
+        setCreatedTime(autoScalingGroup.createdTime().toString());
         setSubnetIds(autoScalingGroup.vpcZoneIdentifier().equals("")
             ? new ArrayList<>() : Arrays.asList(autoScalingGroup.vpcZoneIdentifier().split(",")));
 
         loadMetrics(autoScalingGroup.enabledMetrics());
 
         loadTags(autoScalingGroup.tags());
-
-        autoScalingGroup.createdTime();
-
 
         return true;
     }
