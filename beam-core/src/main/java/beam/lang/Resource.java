@@ -297,6 +297,11 @@ public abstract class Resource extends Container {
     }
 
     public String resourceType() {
+        if (type == null) {
+            ResourceName name = getClass().getAnnotation(ResourceName.class);
+            return name != null ? name.value() : null;
+        }
+
         return type;
     }
 
