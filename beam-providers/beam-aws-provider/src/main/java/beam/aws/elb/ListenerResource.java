@@ -90,7 +90,7 @@ public class ListenerResource extends AwsResource {
     }
 
     public Listener toListener() {
-            Listener newListener = Listener.builder()
+        Listener newListener = Listener.builder()
                     .instancePort(getInstancePort())
                     .instanceProtocol(getInstanceProtocol())
                     .loadBalancerPort(getLoadBalancerPort())
@@ -114,7 +114,7 @@ public class ListenerResource extends AwsResource {
 
         ElasticLoadBalancingClient client = createClient(ElasticLoadBalancingClient.class);
         client.createLoadBalancerListeners(r -> r.listeners(toListener())
-        .loadBalancerName(getLoadBalancer()));
+            .loadBalancerName(getLoadBalancer()));
 
     }
 
