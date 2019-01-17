@@ -1,8 +1,8 @@
 lexer grammar BeamLexer;
 
 IMPORT : 'import' -> pushMode(IN_IMPORT);
+PLUGIN : 'plugin';
 AS    : 'as';
-PROVIDER : 'provider';
 STATE : 'state';
 FOR   : 'for';
 IN    : 'in';

@@ -1,6 +1,7 @@
 package beam.lang;
 
 import beam.core.LocalStateBackend;
+import beam.lang.plugins.PluginLoader;
 import beam.lang.types.Value;
 
 import java.io.File;
@@ -15,7 +16,7 @@ public class BeamFile extends ResourceContainer {
     private transient String path;
     private transient BeamFile state;
     private StateBackend stateBackend;
-    private Set<Provider> providers;
+    private Set<PluginLoader> plugins;
 
     transient Map<String, BeamFile> imports = new HashMap<>();
 
@@ -51,12 +52,12 @@ public class BeamFile extends ResourceContainer {
         this.stateBackend = stateBackend;
     }
 
-    public Set<Provider> providers() {
-        if (providers == null) {
-            providers = new HashSet<>();
+    public Set<PluginLoader> plugins() {
+        if (plugins == null) {
+            plugins = new HashSet<>();
         }
 
-        return providers;
+        return plugins;
     }
 
     public Map<String, BeamFile> imports() {
@@ -100,7 +101,7 @@ public class BeamFile extends ResourceContainer {
             BeamFile fileNode = (BeamFile) source;
 
             imports().putAll(fileNode.imports());
-            providers().addAll(fileNode.providers());
+            plugins().addAll(fileNode.plugins());
             stateBackend(fileNode.stateBackend());
         }
     }
@@ -151,8 +152,8 @@ public class BeamFile extends ResourceContainer {
             sb.append("\n");
         }
 
-        for (Provider provider : providers()) {
-            sb.append(provider);
+        for (PluginLoader pluginLoader : plugins()) {
+            sb.append(pluginLoader);
         }
 
         sb.append("\n");

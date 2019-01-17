@@ -19,11 +19,6 @@ public class SecurityGroupIngressRuleResource extends SecurityGroupRuleResource 
     }
 
     @Override
-    public String resourceType() {
-        return "ingress";
-    }
-
-    @Override
     public void create() {
         Ec2Client client = createClient(Ec2Client.class);
         client.authorizeSecurityGroupIngress(r -> r.groupId(getGroupId()).ipPermissions(getIpPermissionRequest()));

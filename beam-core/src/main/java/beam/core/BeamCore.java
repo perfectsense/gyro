@@ -8,12 +8,12 @@ import beam.lang.BeamFile;
 import beam.lang.BeamLanguageException;
 import beam.lang.BeamVisitor;
 import beam.lang.Node;
-import beam.lang.Provider;
 import beam.lang.Resource;
 import beam.lang.StateBackend;
 import beam.lang.listeners.ErrorListener;
-import beam.lang.listeners.ProviderLoadingListener;
+import beam.lang.listeners.PluginLoadingListener;
 import beam.lang.listeners.StateBackendLoadingListener;
+import beam.lang.plugins.PluginLoader;
 import beam.parser.antlr4.BeamLexer;
 import beam.parser.antlr4.BeamParser;
 import beam.parser.antlr4.BeamParser.BeamFileContext;
@@ -33,7 +33,7 @@ public class BeamCore {
 
     private final Map<String, Class<? extends Resource>> resourceTypes = new HashMap<>();
 
-    private ProviderLoadingListener providerListener;
+    private PluginLoadingListener pluginListener;
     private StateBackendLoadingListener stateListener;
 
     private static final ThreadLocalStack<BeamUI> UI = new ThreadLocalStack<>();
@@ -83,8 +83,8 @@ public class BeamCore {
         stateListener = new StateBackendLoadingListener(this, visitor);
         parser.addParseListener(stateListener);
 
-        providerListener = new ProviderLoadingListener(visitor);
-        parser.addParseListener(providerListener);
+        pluginListener = new PluginLoadingListener(visitor);
+        parser.addParseListener(pluginListener);
 
         BeamFileContext context = parser.beamFile();
 
@@ -92,8 +92,8 @@ public class BeamCore {
             throw new BeamLanguageException(errorListener.getSyntaxErrors() + " errors while parsing.");
         }
 
-        for (Provider provider : providerListener.getProviders()) {
-            provider.load();
+        for (PluginLoader pluginLoader : pluginListener.plugins()) {
+            pluginLoader.load();;
         }
 
         // Load initial configuration
@@ -129,7 +129,7 @@ public class BeamCore {
         parser.addErrorListener(errorListener);
 
         parser.addParseListener(stateListener);
-        parser.addParseListener(providerListener);
+        parser.addParseListener(pluginListener);
 
         BeamFileContext context = parser.beamFile();
 
@@ -137,8 +137,8 @@ public class BeamCore {
             throw new BeamLanguageException(errorListener.getSyntaxErrors() + " errors while parsing.");
         }
 
-        for (Provider provider : providerListener.getProviders()) {
-            provider.load();
+        for (PluginLoader pluginLoader : pluginListener.plugins()) {
+            pluginLoader.load();;
         }
 
         // Load configuration

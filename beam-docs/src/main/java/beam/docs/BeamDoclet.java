@@ -4,16 +4,16 @@ import jdk.javadoc.doclet.Doclet;
 import jdk.javadoc.doclet.DocletEnvironment;
 import jdk.javadoc.doclet.Reporter;
 
-import javax.lang.model.SourceVersion;
-import javax.lang.model.element.PackageElement;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.ElementFilter;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import javax.lang.model.SourceVersion;
+import javax.lang.model.element.PackageElement;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.ElementFilter;
 
 public class BeamDoclet implements Doclet {
 
@@ -32,13 +32,13 @@ public class BeamDoclet implements Doclet {
     @Override
     public Set<? extends Option> getSupportedOptions() {
         Doclet.Option[] options = {
-                new BeamDocletOption("-d", 1, "output directory", "path") {
-                    @Override
-                    public boolean process(String opt, List<String> args) {
-                        outputDirectory = args.get(0);
-                        return true;
-                    }
+            new BeamDocletOption("-d", 1, "output directory", "path") {
+                @Override
+                public boolean process(String opt, List<String> args) {
+                    outputDirectory = args.get(0);
+                    return true;
                 }
+            }
         };
 
         Set<BeamDoclet.Option> oset = new HashSet<>();
@@ -55,8 +55,8 @@ public class BeamDoclet implements Doclet {
     @Override
     public boolean run(DocletEnvironment environment) {
         TypeMirror beamResource = null;
-        for (TypeElement classElement : environment.getElementUtils().getAllTypeElements("beam.core.BeamResource")) {
-            if ("beam.core.BeamResource".equals(classElement.getQualifiedName().toString())) {
+        for (TypeElement classElement : environment.getElementUtils().getAllTypeElements("beam.lang.Resource")) {
+            if ("beam.lang.Resource".equals(classElement.getQualifiedName().toString())) {
                 beamResource = classElement.asType();
             }
         }

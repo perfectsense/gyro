@@ -1,4 +1,4 @@
-provider test
+plugin
     artifact: 'beam:beam-test-provider:0.5'
     repositories: [
         'http://repo1.maven.org/maven2/',
