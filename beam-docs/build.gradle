@@ -17,3 +17,5 @@ shadowJar {
     baseName = 'beam-docs'
     classifier = ''
 }
+
+tasks.build.dependsOn tasks.shadowJar
