@@ -37,7 +37,9 @@ public class HealthCheckResource extends AwsResource {
     public HealthCheckResource(){}
 
     @ResourceDiffProperty(updatable = true)
-    public Integer getHealthyThreshold() { return healthyThreshold; }
+    public Integer getHealthyThreshold() {
+        return healthyThreshold;
+    }
 
     public void setHealthyThreshold(Integer healthyThreshold) {
         this.healthyThreshold = healthyThreshold;
