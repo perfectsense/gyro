@@ -9,7 +9,6 @@ import beam.lang.types.ReferenceValue;
 import beam.lang.types.StringExpressionValue;
 import com.google.common.base.Throwables;
 import com.psddev.dari.util.ObjectUtils;
-import org.apache.commons.beanutils.BeanUtils;
 
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
