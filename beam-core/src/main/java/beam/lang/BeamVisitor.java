@@ -22,7 +22,7 @@ import beam.parser.antlr4.BeamParser.KeyValueContext;
 import beam.parser.antlr4.BeamParser.ListItemValueContext;
 import beam.parser.antlr4.BeamParser.ListValueContext;
 import beam.parser.antlr4.BeamParser.MapValueContext;
-import beam.parser.antlr4.BeamParser.ProviderContext;
+import beam.parser.antlr4.BeamParser.PluginContext;
 import beam.parser.antlr4.BeamParser.ReferenceValueContext;
 import beam.parser.antlr4.BeamParser.ResourceBodyContext;
 import beam.parser.antlr4.BeamParser.ResourceContext;
@@ -70,9 +70,9 @@ public class BeamVisitor extends BeamParserBaseVisitor {
             } else if (fileContext.resource() != null) {
                 Resource resource = visitResource(fileContext.resource(), beamFile);
                 beamFile.putResource(resource);
-            } else if (fileContext.provider() != null) {
-                Provider provider = visitProvider(fileContext.provider());
-                beamFile.providers().add(provider);
+            } else if (fileContext.plugin() != null) {
+                PluginLoader loader = visitPlugin(fileContext.plugin());
+                beamFile.plugins().add(loader);
             } else if (fileContext.state() != null) {
                 StateBackend stateBackend = visitState(fileContext.state());
                 beamFile.stateBackend(stateBackend);
@@ -113,23 +113,22 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         return beamFile;
     }
 
-    public Provider visitProvider(ProviderContext context) {
-        Provider provider = new Provider();
-        provider.setName(context.providerName().getText());
-        provider.setCore(core);
+    public PluginLoader visitPlugin(PluginContext context) {
+        PluginLoader loader = new PluginLoader();
+        loader.core(core);
 
-        for (KeySimpleValueContext keyValueContext : context.providerBody().keySimpleValue()) {
+        for (KeySimpleValueContext keyValueContext : context.pluginBody().keySimpleValue()) {
             String key = StringUtils.stripEnd(keyValueContext.key().getText(), ":");
             Value value = parseValue(keyValueContext.simpleValue());
 
             if (key.equalsIgnoreCase("artifact")) {
-                provider.setArtifact(value.getValue().toString());
+                loader.artifact(value.getValue().toString());
             } else if (key.equalsIgnoreCase("repositories")) {
-                provider.setRepositories(((ListValue) value).getValue());
+                loader.repositories(((ListValue) value).getValue());
             }
         }
 
-        return provider;
+        return loader;
     }
 
     public StateBackend visitState(StateContext context) {

@@ -5,12 +5,11 @@ import BeamReferenceParser;
 options { tokenVocab = BeamLexer; }
 
 beamFile : file* EOF;
-file     : (provider | keyValue | resource | forStmt | ifStmt | importStmt | state);
+file     : (plugin | keyValue | resource | forStmt | ifStmt | importStmt | state);
 blockEnd : END;
 
-provider     : PROVIDER providerName providerBody blockEnd;
-providerName : IDENTIFIER;
-providerBody : keySimpleValue*;
+plugin     : PLUGIN pluginBody blockEnd;
+pluginBody : keySimpleValue*;
 
 state     : STATE stateName stateBody blockEnd;
 stateName : IDENTIFIER;
@@ -56,7 +55,7 @@ operator     : EQ | NOTEQ;
 keyValue       : key value;
 keySimpleValue : key simpleValue;
 key            : (IDENTIFIER | STRING_LITERAL | keywords) keyDelimiter;
-keywords       : IMPORT | PROVIDER | AS | STATE;
+keywords       : IMPORT | PLUGIN | AS | STATE;
 keyDelimiter   : COLON;
 
 // -- Value Types
