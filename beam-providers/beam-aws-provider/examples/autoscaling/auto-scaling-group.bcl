@@ -145,4 +145,11 @@ aws::auto-scaling-group auto-scaling-group-example
         $(aws::subnet subnet-auto-scaling-group-example-2 | subnet-id)
     ]
     enable-metrics-collection: false
+    tags: {
+        Name: "auto-scaling-group-example",
+        AutoTag: "propagated from auto-scaling-group-beam-1"
+    }
+    propagate-at-launch-tags: [
+        "AutoTag"
+    ]
 end

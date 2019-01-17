@@ -12,13 +12,17 @@ import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup;
 import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsResponse;
 import software.amazon.awssdk.services.autoscaling.model.EnabledMetric;
 import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateSpecification;
+import software.amazon.awssdk.services.autoscaling.model.Tag;
+import software.amazon.awssdk.services.autoscaling.model.TagDescription;
 import software.amazon.awssdk.services.ec2.model.Ec2Exception;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -70,6 +74,11 @@ public class AutoScalingGroupResource extends AwsResource {
     private String arn;
     private Boolean enableMetricsCollection;
     private List<String> disabledMetrics;
+    private Map<String, String> tags;
+    private List<String> propagateAtLaunchTags;
+    private String serviceLinkedRoleArn;
+    private String placementGroup;
+    private String status;
 
     private final Set<String> masterMetricSet = new HashSet<>(Arrays.asList(
         "GroupMinSize",
@@ -250,7 +259,7 @@ public class AutoScalingGroupResource extends AwsResource {
     /**
      * A list of subnet identifiers. If Availability Zone is provided, subnet's need to be part of that. See `Launching Auto Scaling Instances in a VPC <https://docs.aws.amazon.com/autoscaling/ec2/userguide/asg-in-vpc.html/>`_.
      */
-    @ResourceDiffProperty(updatable = true)
+    @ResourceDiffProperty(updatable = true, nullable = true)
     public List<String> getSubnetIds() {
         if (subnetIds == null) {
             subnetIds = new ArrayList<>();
@@ -270,6 +279,9 @@ public class AutoScalingGroupResource extends AwsResource {
         this.arn = arn;
     }
 
+    /**
+     * Enable/Disable cloud watch metrics for your auto scaling group. Defaults to false. See `Monitoring your Auto Scaling Groups <https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-instance-monitoring.html/>`_.
+     */
     @ResourceDiffProperty(updatable = true)
     public Boolean getEnableMetricsCollection() {
         if (enableMetricsCollection == null) {
@@ -283,6 +295,9 @@ public class AutoScalingGroupResource extends AwsResource {
         this.enableMetricsCollection = enableMetricsCollection;
     }
 
+    /**
+     * One or more names of cloud watch metrics you want to disable. See `Cloud watch metrics <https://docs.aws.amazon.com/autoscaling/ec2/userguide/as-instance-monitoring.html#as-view-group-metrics/>`_.
+     */
     @ResourceDiffProperty(updatable = true, nullable = true)
     public List<String> getDisabledMetrics() {
         if (disabledMetrics == null || disabledMetrics.isEmpty()) {
@@ -294,6 +309,60 @@ public class AutoScalingGroupResource extends AwsResource {
 
     public void setDisabledMetrics(List<String> disabledMetrics) {
         this.disabledMetrics = disabledMetrics;
+    }
+
+    /**
+     * Tags for auto scaling groups. See `Tagging Auto Scaling Groups and Instances <https://docs.aws.amazon.com/autoscaling/ec2/userguide/autoscaling-tagging.html/>`_.
+     */
+    @ResourceDiffProperty(updatable = true, nullable = true)
+    public Map<String, String> getTags() {
+        if (tags == null) {
+            tags = new HashMap<>();
+        }
+        return tags;
+    }
+
+    public void setTags(Map<String, String> tags) {
+        this.tags = tags;
+    }
+
+    /**
+     * Tags in auto scaling groups that you want instances to have as well. See `Tagging Auto Scaling Groups and Instances <https://docs.aws.amazon.com/autoscaling/ec2/userguide/autoscaling-tagging.html/>`
+     */
+    @ResourceDiffProperty(updatable = true, nullable = true)
+    public List<String> getPropagateAtLaunchTags() {
+        if (propagateAtLaunchTags == null) {
+            propagateAtLaunchTags = new ArrayList<>();
+        }
+        return propagateAtLaunchTags;
+    }
+
+    public void setPropagateAtLaunchTags(List<String> propagateAtLaunchTags) {
+        this.propagateAtLaunchTags = propagateAtLaunchTags;
+    }
+
+    public String getServiceLinkedRoleArn() {
+        return serviceLinkedRoleArn;
+    }
+
+    public void setServiceLinkedRoleArn(String serviceLinkedRoleArn) {
+        this.serviceLinkedRoleArn = serviceLinkedRoleArn;
+    }
+
+    public String getPlacementGroup() {
+        return placementGroup;
+    }
+
+    public void setPlacementGroup(String placementGroup) {
+        this.placementGroup = placementGroup;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     @Override
@@ -317,13 +386,18 @@ public class AutoScalingGroupResource extends AwsResource {
         setHealthCheckGracePeriod(autoScalingGroup.healthCheckGracePeriod());
         setLaunchConfigurationName(autoScalingGroup.launchConfigurationName());
         setNewInstancesProtectedFromScaleIn(autoScalingGroup.newInstancesProtectedFromScaleIn());
+        setServiceLinkedRoleArn(autoScalingGroup.serviceLinkedRoleARN());
+        setPlacementGroup(autoScalingGroup.placementGroup());
+        setStatus(autoScalingGroup.status());
         setSubnetIds(autoScalingGroup.vpcZoneIdentifier().equals("")
             ? new ArrayList<>() : Arrays.asList(autoScalingGroup.vpcZoneIdentifier().split(",")));
 
-        setEnableMetricsCollection(!autoScalingGroup.enabledMetrics().isEmpty());
-        Set<String> allMetrics = new HashSet<>(masterMetricSet);
-        allMetrics.removeAll(autoScalingGroup.enabledMetrics().stream().map(EnabledMetric::metric).collect(Collectors.toSet()));
-        setDisabledMetrics(allMetrics.size() == masterMetricSet.size() ? new ArrayList<>() : new ArrayList<>(allMetrics));
+        loadMetrics(autoScalingGroup.enabledMetrics());
+
+        loadTags(autoScalingGroup.tags());
+
+        autoScalingGroup.createdTime();
+
 
         return true;
     }
@@ -335,7 +409,7 @@ public class AutoScalingGroupResource extends AwsResource {
         validate();
 
         client.createAutoScalingGroup(
-            o -> o.autoScalingGroupName(getAutoScalingGroupName())
+            r -> r.autoScalingGroupName(getAutoScalingGroupName())
                 .maxSize(getMaxSize())
                 .minSize(getMinSize())
                 .availabilityZones(getAvailabilityZones())
@@ -347,6 +421,9 @@ public class AutoScalingGroupResource extends AwsResource {
                 .newInstancesProtectedFromScaleIn(getNewInstancesProtectedFromScaleIn())
                 .vpcZoneIdentifier(getSubnetIds().isEmpty() ? " " : StringUtils.join(getSubnetIds(), ","))
                 .launchTemplate(LaunchTemplateSpecification.builder().launchTemplateId(getLaunchTemplateId()).build())
+                .tags(getAutoScaleGroupTags(getTags(), getPropagateAtLaunchTags()))
+                .serviceLinkedRoleARN(getServiceLinkedRoleArn())
+                .placementGroup(getPlacementGroup())
         );
 
         AutoScalingGroup autoScalingGroup = getAutoScalingGroup(client);
@@ -356,7 +433,7 @@ public class AutoScalingGroupResource extends AwsResource {
         }
 
         if (getEnableMetricsCollection()) {
-            enableMonitoring(client);
+            saveMetrics(client);
         }
     }
 
@@ -383,11 +460,23 @@ public class AutoScalingGroupResource extends AwsResource {
 
         if (changedProperties.contains("enable-metrics-collection") || changedProperties.contains("disabled-metrics")) {
             if (getEnableMetricsCollection()) {
-                enableMonitoring(client);
+                saveMetrics(client);
             } else {
                 client.disableMetricsCollection(
                     r -> r.autoScalingGroupName(getAutoScalingGroupName())
                 );
+            }
+        }
+
+        AutoScalingGroupResource oldResource = (AutoScalingGroupResource) current;
+
+        if (changedProperties.contains("tags") || changedProperties.contains("propagate-at-launch-tags")) {
+            if (!getTags().isEmpty()) {
+                saveTags(client, getTags(), getPropagateAtLaunchTags(), false);
+
+                removeStaleTags(client, oldResource);
+            } else {
+                saveTags(client, oldResource.getTags(), oldResource.getPropagateAtLaunchTags(), true);
             }
         }
     }
@@ -404,7 +493,7 @@ public class AutoScalingGroupResource extends AwsResource {
     public String toDisplayString() {
         StringBuilder sb = new StringBuilder();
 
-        sb.append("Auto Scale Group");
+        sb.append("Auto Scaling Group");
 
         if (!ObjectUtils.isBlank(getAutoScalingGroupName())) {
             sb.append(" - ").append(getAutoScalingGroupName());
@@ -412,6 +501,53 @@ public class AutoScalingGroupResource extends AwsResource {
         }
 
         return sb.toString();
+    }
+
+    private List<Tag> getAutoScaleGroupTags(Map<String, String> localTags, List<String> passToInstanceTags) {
+        HashSet<String> passToInstanceTagSet = new HashSet<>(passToInstanceTags);
+
+        List<Tag> tags = new ArrayList<>();
+
+        for (String key : localTags.keySet()) {
+            tags.add(
+                Tag.builder()
+                    .key(key)
+                    .value(localTags.get(key))
+                    .propagateAtLaunch(passToInstanceTagSet.contains(key))
+                    .resourceId(getAutoScalingGroupName())
+                    .resourceType("auto-scaling-group")
+                    .build()
+            );
+        }
+
+        return tags;
+    }
+
+    private void loadTags(List<TagDescription> tags) {
+        for (TagDescription tag : tags) {
+            getTags().put(tag.key(), tag.value());
+
+            if (tag.propagateAtLaunch()) {
+                getPropagateAtLaunchTags().add(tag.key());
+            }
+        }
+    }
+
+    private void saveTags(AutoScalingClient client, Map<String, String> localTags, List<String> passToInstanceTags, boolean isDelete) {
+        List<Tag> tags = getAutoScaleGroupTags(localTags, passToInstanceTags);
+
+        if (!tags.isEmpty()) {
+
+            if (!isDelete) {
+                client.createOrUpdateTags(
+                    r -> r.tags(tags)
+                );
+            } else {
+                client.deleteTags(
+                    r -> r.tags(tags)
+                );
+            }
+        }
     }
 
     private AutoScalingGroup getAutoScalingGroup(AutoScalingClient client) {
@@ -436,6 +572,17 @@ public class AutoScalingGroupResource extends AwsResource {
 
             throw ex;
         }
+    }
+
+    private void removeStaleTags(AutoScalingClient client, AutoScalingGroupResource oldResource) {
+        Map<String, String> staleTags = new HashMap<>();
+        List<String> staleKeys = oldResource.getTags().keySet().stream()
+            .filter(o -> !getTags().keySet().contains(o))
+            .collect(Collectors.toList());
+        for (String key : staleKeys) {
+            staleTags.put(key, oldResource.getTags().get(key));
+        }
+        saveTags(client, staleTags, oldResource.getPropagateAtLaunchTags(), true);
     }
 
     private void validate() {
@@ -476,9 +623,24 @@ public class AutoScalingGroupResource extends AwsResource {
         if (!getEnableMetricsCollection() && !getDisabledMetrics().isEmpty()) {
             throw new BeamException("When Enabled Metrics Collection is set to false, disabled metrics can't have items in it.");
         }
+
+        if (!masterMetricSet.containsAll(getDisabledMetrics())) {
+            throw new BeamException("Invalid values for parameter Disabled Metrics.");
+        }
+
+        if (!new HashSet<>(getTags().keySet()).containsAll(getPropagateAtLaunchTags())) {
+            throw new BeamException("Propagate at launch tags cannot contain keys not mentioned under tags.");
+        }
     }
 
-    private void enableMonitoring(AutoScalingClient client) {
+    private void loadMetrics(List<EnabledMetric> enabledMetrics) {
+        setEnableMetricsCollection(!enabledMetrics.isEmpty());
+        Set<String> allMetrics = new HashSet<>(masterMetricSet);
+        allMetrics.removeAll(enabledMetrics.stream().map(EnabledMetric::metric).collect(Collectors.toSet()));
+        setDisabledMetrics(allMetrics.size() == masterMetricSet.size() ? new ArrayList<>() : new ArrayList<>(allMetrics));
+    }
+
+    private void saveMetrics(AutoScalingClient client) {
         Set<String> metrics = new HashSet<>(masterMetricSet);
         metrics.removeAll(getDisabledMetrics());
 
