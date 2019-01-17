@@ -117,6 +117,8 @@ public class LoadBalancerResource extends AwsResource {
         healthCheckResource.setTarget(healthCheck.target());
         healthCheckResource.setTimeout(healthCheck.timeout());
         healthCheckResource.setUnhealthyThreshold(healthCheck.unhealthyThreshold());
+        healthCheckResource.parent(this);
+        healthCheckResource.setResourceCredentials(getResourceCredentials());
         return healthCheckResource;
     }
 
@@ -173,6 +175,8 @@ public class LoadBalancerResource extends AwsResource {
                     listenerResource.setInstanceProtocol(listener.instanceProtocol());
                     listenerResource.setLoadBalancerPort(listener.loadBalancerPort());
                     listenerResource.setProtocol(listener.protocol());
+                    listenerResource.parent(this);
+                    listenerResource.setResourceCredentials(getResourceCredentials());
                     getListener().add(listenerResource);
                 }
             }
