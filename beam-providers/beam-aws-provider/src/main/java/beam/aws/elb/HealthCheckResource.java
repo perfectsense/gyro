@@ -33,7 +33,9 @@ public class HealthCheckResource extends AwsResource {
     private String target;
     private Integer timeout;
     private Integer unhealthyThreshold;
-    
+
+    public HealthCheckResource(){}
+
     @ResourceDiffProperty(updatable = true)
     public Integer getHealthyThreshold() { return healthyThreshold; }
 
