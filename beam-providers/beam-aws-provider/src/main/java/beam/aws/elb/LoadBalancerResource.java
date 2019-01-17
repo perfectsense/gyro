@@ -5,8 +5,8 @@ import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 import beam.lang.Resource;
 
-import software.amazon.awssdk.services.elasticloadbalancing.model.CreateLoadBalancerResponse;
 import software.amazon.awssdk.services.elasticloadbalancing.ElasticLoadBalancingClient;
+import software.amazon.awssdk.services.elasticloadbalancing.model.CreateLoadBalancerResponse;
 import software.amazon.awssdk.services.elasticloadbalancing.model.DescribeLoadBalancersResponse;
 import software.amazon.awssdk.services.elasticloadbalancing.model.Instance;
 import software.amazon.awssdk.services.elasticloadbalancing.model.Listener;
@@ -31,6 +31,7 @@ import java.util.Set;
  *         instances: ["i-01faa0ea54134538b"]
  *     end
  */
+
 @ResourceName("load-balancer")
 public class LoadBalancerResource extends AwsResource {
 
@@ -162,6 +163,7 @@ public class LoadBalancerResource extends AwsResource {
                     listenerResource.setProtocol(listener.protocol());
                     listenerResource.parent(this);
                     listenerResource.setResourceCredentials(getResourceCredentials());
+                    //listenerResource.setSslCertificateId(listener.sslCertificateId());
                     getListener().add(listenerResource);
                 }
             }
@@ -186,7 +188,7 @@ public class LoadBalancerResource extends AwsResource {
         setDnsName(response.dnsName());
 
         client.registerInstancesWithLoadBalancer(r -> r.instances(toInstances())
-                                    .loadBalancerName(getLoadBalancerName()));
+                .loadBalancerName(getLoadBalancerName()));
     }
 
     @Override
@@ -212,12 +214,12 @@ public class LoadBalancerResource extends AwsResource {
 
         if (!instanceAdditions.isEmpty()) {
             client.registerInstancesWithLoadBalancer(r -> r.instances(instanceAdditions)
-                .loadBalancerName(getLoadBalancerName()));
+                    .loadBalancerName(getLoadBalancerName()));
         }
 
         if (!instanceSubtractions.isEmpty()) {
             client.deregisterInstancesFromLoadBalancer(r -> r.instances(instanceSubtractions)
-                .loadBalancerName(getLoadBalancerName()));
+                    .loadBalancerName(getLoadBalancerName()));
         }
 
         if (!sgAdditions.isEmpty()) {
@@ -226,10 +228,10 @@ public class LoadBalancerResource extends AwsResource {
         }
 
         client.attachLoadBalancerToSubnets(r -> r.subnets(subnetAdditions)
-            .loadBalancerName(getLoadBalancerName()));
+                .loadBalancerName(getLoadBalancerName()));
 
         client.detachLoadBalancerFromSubnets(r -> r.subnets(subnetSubtractions)
-            .loadBalancerName(getLoadBalancerName()));
+                .loadBalancerName(getLoadBalancerName()));
 
     }
 
