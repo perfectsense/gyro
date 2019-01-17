@@ -1,4 +1,4 @@
-package beam.cli;
+package beam.commands;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;

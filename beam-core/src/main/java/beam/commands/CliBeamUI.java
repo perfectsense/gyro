@@ -1,4 +1,4 @@
-package beam.cli;
+package beam.commands;
 
 import beam.core.BeamUI;
 import com.google.common.collect.ImmutableSet;

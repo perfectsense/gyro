@@ -1,5 +1,5 @@
 rootProject.name = 'beam'
 
-include 'beam-core', 'beam-cli', 'beam-providers:beam-aws-provider', 'beam-providers:beam-test-provider'
+include 'beam-core', 'beam-cli', 'beam-providers:beam-aws-provider', 'beam-providers:beam-test-provider', 'beam-plugins:beam-ssh-plugin'
 
 enableFeaturePreview('STABLE_PUBLISHING')

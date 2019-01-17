@@ -77,13 +77,18 @@ subprojects {
 }
 
 project(":beam-cli") {
-
     dependencies {
         compile project(':beam-core')
     }
 
     publish {
         dependsOn assemble
+    }
+}
+
+project(":beam-plugins:beam-ssh-plugin") {
+    dependencies {
+        compile project(':beam-core')
     }
 }
 

@@ -12,92 +12,53 @@ aws::credentials default
     region: "us-east-2"
 end
 
-project: "beam"
-environment: "sandbox"
-serial: "v1"
-
-aws::vpc vpc-instance-example
+aws::vpc vpc
     cidr-block: "10.0.0.0/16"
     provide-ipv6-cidr-block: true
 
     tags: {
-        Name: "vpc-instance-example"
-         }
+        Name: "instance example"
+     }
 end
 
-aws::subnet subnet-instance-example
-    vpc-id: $(aws::vpc vpc-instance-example | vpc-id)
+aws::subnet subnet
+    vpc-id: $(aws::vpc vpc | vpc-id)
     availability-zone: "us-east-2a"
     cidr-block: "10.0.0.0/16"
+    map-public-ip-on-launch: true
 
     tags: {
-        Name: "subnet-instance-example"
+        Name: "instance example"
     }
 end
 
-aws::security-group security-group-instance-example-1
-    group-name: "security-group-instance-example-1"
-    vpc-id: $(aws::vpc vpc-instance-example | vpc-id)
-    description: "security group instance example 1"
+aws::security-group security-group
+    group-name: "instance-example"
+    vpc-id: $(aws::vpc vpc | vpc-id)
+    description: "instance example"
     keep-default-egress-rules: true
 
     ingress
-        description: "allow inbound http traffic, ipv4 only"
+        description: "allow inbound ssh traffic, ipv4 only"
         cidr-blocks: ["0.0.0.0/0"]
         protocol: "TCP"
         from-port: 22
         to-port: 22
     end
 
-    egress
-        description: "allow outbound http traffic, ipv6 only"
-        ipv6-cidr-blocks: ["::/0"]
-        protocol: "TCP"
-        from-port: 22
-        to-port: 22
-    end
-
     tags: {
-        Name: "security-group-instance-example-1"
+        Name: "instance example"
     }
 end
 
-aws::security-group security-group-instance-example-2
-    group-name: "security-group-instance-example-2"
-    vpc-id: $(aws::vpc vpc-instance-example | vpc-id)
-    description: "security group instance example 2"
-    keep-default-egress-rules: true
-
-    ingress
-        description: "allow inbound http traffic, ipv4 only"
-        cidr-blocks: ["0.0.0.0/0"]
-        protocol: "TCP"
-        from-port: 22
-        to-port: 22
-    end
-
-    egress
-        description: "allow outbound http traffic, ipv6 only"
-        ipv6-cidr-blocks: ["::/0"]
-        protocol: "TCP"
-        from-port: 22
-        to-port: 22
-    end
-
-    tags: {
-        Name: "security-group-instance-example-2"
-    }
-end
-
-aws::instance instance
+aws::instance instance-example
     ami-name: "amzn-ami-hvm-2018.03.0.20181129-x86_64-gp2"
     shutdown-behavior: "STOP"
     instance-type: "t2.micro"
-    key-name: "instance-static"
-    subnet-id: $(aws::subnet subnet-instance-example | subnet-id)
+    key-name: "foo"
+    subnet-id: $(aws::subnet subnet | subnet-id)
     security-group-ids: [
-        $(aws::security-group security-group-instance-example-1 | group-id),
-        $(aws::security-group security-group-instance-example-2 | group-id)
+        $(aws::security-group security-group| group-id)
     ]
     disable-api-termination: false
     enable-ena-support: true

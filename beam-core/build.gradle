@@ -18,7 +18,8 @@ dependencies {
     compile 'org.eclipse.aether:aether-transport-http:1.1.0'
     compile 'org.apache.maven:maven-aether-provider:3.3.9'
     compile 'commons-beanutils:commons-beanutils-core:1.8.3'
-
+    compile 'io.airlift:airline:0.8'
+    compile 'org.fusesource.jansi:jansi:1.16'
     compile 'com.psddev:dari-util:3.3.607-xe0f27a'
 
     antlr "org.antlr:antlr4:4.7.1"

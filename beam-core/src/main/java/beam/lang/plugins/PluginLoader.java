@@ -78,6 +78,10 @@ public class PluginLoader {
         this.core = core;
     }
 
+    public List<Class<?>> classes() {
+        return PLUGIN_CLASS_CACHE.getOrDefault(artifact, new ArrayList<>());
+    }
+
     public void load() {
         try {
             List<Artifact> artifacts = artifacts();
@@ -165,7 +169,7 @@ public class PluginLoader {
     }
 
     private void loadClasses(URL[] urls, Artifact artifact) throws Exception {
-        ClassLoader parent = getClass().getClassLoader();
+        ClassLoader parent = core().getClass().getClassLoader();
         URLClassLoader loader = new URLClassLoader(urls, parent);
 
         JarFile jarFile = new JarFile(artifact.getFile());
@@ -238,6 +242,8 @@ public class PluginLoader {
             for (Class loadedClass : cache) {
                 plugin.classLoaded(loadedClass);
             }
+
+            plugin.init();
         } catch (InstantiationException | IllegalAccessException ex) {
             ex.printStackTrace();
         }
