@@ -423,7 +423,7 @@ public class InstanceResource extends Ec2TaggableResource<Instance> implements B
                     setPublicIpAddress(instance.publicIpAddress());
                     setPrivateIpAddress(instance.privateIpAddress());
                     setInstanceState(instance.state().nameAsString());
-                    setInstanceLaunchDate(new Date(instance.launchTime().toEpochMilli()));
+                    setInstanceLaunchDate(Date.from(instance.launchTime()));
 
                     break;
                 }
@@ -492,7 +492,7 @@ public class InstanceResource extends Ec2TaggableResource<Instance> implements B
                 setPublicIpAddress(instance.publicIpAddress());
                 setPrivateIpAddress(instance.privateIpAddress());
                 setInstanceState(instance.state().nameAsString());
-                setInstanceLaunchDate(new Date(instance.launchTime().toEpochMilli()));
+                setInstanceLaunchDate(Date.from(instance.launchTime()));
             }
 
             waitForRunningInstances(client);
@@ -677,9 +677,6 @@ public class InstanceResource extends Ec2TaggableResource<Instance> implements B
                 for (Reservation reservation : client.describeInstances(r -> r.instanceIds(getInstanceId())).reservations()) {
                     for (Instance instance : reservation.instances()) {
                         if ("running".equals(instance.state().nameAsString())) {
-                            //setPublicDnsName(i.getPublicDnsName());
-                            //setPublicIpAddress(i.getPublicIpAddress());
-                            //setPrivateIpAddress(i.getPrivateIpAddress());
                             running = true;
                         }
                     }
