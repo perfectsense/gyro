@@ -1,6 +1,7 @@
 package beam.lang;
 
 import beam.core.LocalStateBackend;
+import beam.lang.plugins.PluginLoader;
 import beam.lang.types.Value;
 
 import java.io.File;

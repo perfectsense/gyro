@@ -1,6 +1,6 @@
 package beam.test;
 
-import beam.lang.Provider;
+import beam.lang.plugins.Provider;
 
 public class TestProvider extends Provider {
 

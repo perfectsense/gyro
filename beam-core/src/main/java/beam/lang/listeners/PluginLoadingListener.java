@@ -1,7 +1,7 @@
 package beam.lang.listeners;
 
 import beam.lang.BeamVisitor;
-import beam.lang.PluginLoader;
+import beam.lang.plugins.PluginLoader;
 import beam.parser.antlr4.BeamParser.PluginContext;
 import beam.parser.antlr4.BeamParserBaseListener;
 

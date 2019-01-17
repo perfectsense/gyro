@@ -1,4 +1,4 @@
-package beam.lang;
+package beam.lang.plugins;
 
 import beam.core.BeamCore;
 

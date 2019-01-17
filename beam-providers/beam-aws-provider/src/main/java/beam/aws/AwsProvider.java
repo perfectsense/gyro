@@ -1,6 +1,6 @@
 package beam.aws;
 
-import beam.lang.Provider;
+import beam.lang.plugins.Provider;
 
 public class AwsProvider extends Provider {
 

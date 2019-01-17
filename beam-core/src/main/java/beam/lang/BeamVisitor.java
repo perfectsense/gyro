@@ -3,6 +3,7 @@ package beam.lang;
 import beam.core.BeamCore;
 import beam.core.BeamException;
 import beam.core.LocalStateBackend;
+import beam.lang.plugins.PluginLoader;
 import beam.lang.types.BooleanValue;
 import beam.lang.types.ListValue;
 import beam.lang.types.MapValue;
