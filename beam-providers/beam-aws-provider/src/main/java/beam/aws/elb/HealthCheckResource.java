@@ -25,6 +25,7 @@ import java.util.Set;
  *        unhealthy-threshold: "2"
  *     end
  */
+
 @ResourceName(parent = "load-balancer", value = "health-check")
 public class HealthCheckResource extends AwsResource {
 
@@ -126,8 +127,12 @@ public class HealthCheckResource extends AwsResource {
 
     @Override
     public String toDisplayString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("load balancer health check");
-        return sb.toString();
+        return String.format(
+                "load balancer health check %d/%d/%s/%d/%d",
+                getHealthyThreshold(),
+                getInterval(),
+                getTarget(),
+                getTimeout(),
+                getUnhealthyThreshold());
     }
 }

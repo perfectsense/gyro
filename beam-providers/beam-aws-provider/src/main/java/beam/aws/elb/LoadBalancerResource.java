@@ -5,9 +5,9 @@ import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 import beam.lang.Resource;
 
+import software.amazon.awssdk.services.elasticloadbalancing.model.CreateLoadBalancerResponse;
 import software.amazon.awssdk.services.elasticloadbalancing.ElasticLoadBalancingClient;
 import software.amazon.awssdk.services.elasticloadbalancing.model.DescribeLoadBalancersResponse;
-import software.amazon.awssdk.services.elasticloadbalancing.model.HealthCheck;
 import software.amazon.awssdk.services.elasticloadbalancing.model.Instance;
 import software.amazon.awssdk.services.elasticloadbalancing.model.Listener;
 import software.amazon.awssdk.services.elasticloadbalancing.model.ListenerDescription;
@@ -34,12 +34,22 @@ import java.util.Set;
 @ResourceName("load-balancer")
 public class LoadBalancerResource extends AwsResource {
 
-    public HealthCheckResource healthCheck;
+    private String dnsName;
+    private HealthCheckResource healthCheck;
     private List<String> instances;
     private List<ListenerResource> listener;
     private String loadBalancerName;
+    private String scheme;
     private List<String> securityGroups;
     private List<String> subnets;
+
+    public String getDnsName() {
+        return dnsName;
+    }
+
+    public void setDnsName(String dnsName) {
+        this.dnsName = dnsName;
+    }
 
     @ResourceDiffProperty(nullable = true, subresource = true)
     public HealthCheckResource getHealthCheck() {
@@ -84,6 +94,14 @@ public class LoadBalancerResource extends AwsResource {
         this.loadBalancerName = loadBalancerName;
     }
 
+    public String getScheme() {
+        return scheme;
+    }
+
+    public void setScheme(String scheme) {
+        this.scheme = scheme;
+    }
+
     @ResourceDiffProperty(updatable = true)
     public List<String> getSecurityGroups() {
         if (securityGroups == null) {
@@ -110,50 +128,6 @@ public class LoadBalancerResource extends AwsResource {
         this.subnets = subnets;
     }
 
-    public HealthCheckResource fromHealthCheck(HealthCheck healthCheck) {
-        HealthCheckResource healthCheckResource = new HealthCheckResource();
-        healthCheckResource.setHealthyThreshold(healthCheck.healthyThreshold());
-        healthCheckResource.setInterval(healthCheck.interval());
-        healthCheckResource.setTarget(healthCheck.target());
-        healthCheckResource.setTimeout(healthCheck.timeout());
-        healthCheckResource.setUnhealthyThreshold(healthCheck.unhealthyThreshold());
-        healthCheckResource.parent(this);
-        healthCheckResource.setResourceCredentials(getResourceCredentials());
-        return healthCheckResource;
-    }
-
-    public List<Instance> toInstances() {
-        List<Instance> instance = new ArrayList<>();
-        for (String resource : getInstances()) {
-            instance.add(Instance.builder().instanceId(resource).build());
-        }
-        return instance;
-    }
-
-    public List<String> fromInstances(List<Instance> instances) {
-        List<String> stringInstances = new ArrayList<>();
-        for (Instance inst : instances) {
-            stringInstances.add(inst.instanceId());
-        }
-        return stringInstances;
-    }
-
-    public List<Listener> toListeners() {
-        List<Listener> listeners = new ArrayList<>();
-        for (ListenerResource resource : getListener()) {
-            Listener newListener = Listener.builder()
-                    .instancePort(resource.getInstancePort())
-                    .instanceProtocol(resource.getInstanceProtocol())
-                    .loadBalancerPort(resource.getLoadBalancerPort())
-                    .protocol(resource.getProtocol())
-                    //.sslCertificateId(resource.getSslCertificateId())
-                    .build();
-            listeners.add(newListener);
-        }
-
-        return listeners;
-    }
-
     @Override
     public boolean refresh() {
         ElasticLoadBalancingClient client = createClient(ElasticLoadBalancingClient.class);
@@ -165,7 +139,18 @@ public class LoadBalancerResource extends AwsResource {
                 setInstances(fromInstances(description.instances()));
                 setSecurityGroups(description.securityGroups());
                 setSubnets(description.subnets());
-                setHealthCheck(fromHealthCheck(description.healthCheck()));
+                setDnsName(description.dnsName());
+                setScheme(description.scheme());
+
+                HealthCheckResource healthCheckResource = new HealthCheckResource();
+                healthCheckResource.setHealthyThreshold(description.healthCheck().healthyThreshold());
+                healthCheckResource.setInterval(description.healthCheck().interval());
+                healthCheckResource.setTarget(description.healthCheck().target());
+                healthCheckResource.setTimeout(description.healthCheck().timeout());
+                healthCheckResource.setUnhealthyThreshold(description.healthCheck().unhealthyThreshold());
+                healthCheckResource.parent(this);
+                healthCheckResource.setResourceCredentials(getResourceCredentials());
+                setHealthCheck(healthCheckResource);
 
                 getListener().clear();
                 for (ListenerDescription listenerDescription : description.listenerDescriptions()) {
@@ -191,11 +176,14 @@ public class LoadBalancerResource extends AwsResource {
     public void create() {
         ElasticLoadBalancingClient client = createClient(ElasticLoadBalancingClient.class);
 
-        client.createLoadBalancer(r -> r.listeners(toListeners())
+        CreateLoadBalancerResponse response = client.createLoadBalancer(r -> r.listeners(toListeners())
                 .securityGroups(getSecurityGroups())
                 .subnets(getSubnets())
                 .loadBalancerName(getLoadBalancerName())
+                .scheme(getScheme())
         );
+
+        setDnsName(response.dnsName());
 
         client.registerInstancesWithLoadBalancer(r -> r.instances(toInstances())
                                     .loadBalancerName(getLoadBalancerName()));
@@ -242,6 +230,7 @@ public class LoadBalancerResource extends AwsResource {
 
         client.detachLoadBalancerFromSubnets(r -> r.subnets(subnetSubtractions)
             .loadBalancerName(getLoadBalancerName()));
+
     }
 
     @Override
@@ -262,5 +251,37 @@ public class LoadBalancerResource extends AwsResource {
         }
 
         return sb.toString();
+    }
+
+    private List<Instance> toInstances() {
+        List<Instance> instance = new ArrayList<>();
+        for (String resource : getInstances()) {
+            instance.add(Instance.builder().instanceId(resource).build());
+        }
+        return instance;
+    }
+
+    private List<String> fromInstances(List<Instance> instances) {
+        List<String> stringInstances = new ArrayList<>();
+        for (Instance inst : instances) {
+            stringInstances.add(inst.instanceId());
+        }
+        return stringInstances;
+    }
+
+    private List<Listener> toListeners() {
+        List<Listener> listeners = new ArrayList<>();
+        for (ListenerResource resource : getListener()) {
+            Listener newListener = Listener.builder()
+                    .instancePort(resource.getInstancePort())
+                    .instanceProtocol(resource.getInstanceProtocol())
+                    .loadBalancerPort(resource.getLoadBalancerPort())
+                    .protocol(resource.getProtocol())
+                    //.sslCertificateId(resource.getSslCertificateId())
+                    .build();
+            listeners.add(newListener);
+        }
+
+        return listeners;
     }
 }
