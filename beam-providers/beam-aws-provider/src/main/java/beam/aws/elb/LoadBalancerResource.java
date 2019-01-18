@@ -27,6 +27,7 @@ import java.util.Set;
  *     aws::elastic-load-balancer elb-example
  *         load-balancer-name: "elb-example"
  *         security-groups: ["sg-3c0dfa46"]
+ *         scheme: "internal"
  *         subnets: ["subnet-04d3e586552ea5fe1"]
  *         instances: ["i-01faa0ea54134538b"]
  *     end
