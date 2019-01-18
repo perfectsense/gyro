@@ -163,7 +163,7 @@ public class LoadBalancerResource extends AwsResource {
                     listenerResource.setProtocol(listener.protocol());
                     listenerResource.parent(this);
                     listenerResource.setResourceCredentials(getResourceCredentials());
-                    //listenerResource.setSslCertificateId(listener.sslCertificateId());
+                    listenerResource.setSslCertificateId(listener.sslCertificateId());
                     getListener().add(listenerResource);
                 }
             }
@@ -279,7 +279,7 @@ public class LoadBalancerResource extends AwsResource {
                     .instanceProtocol(resource.getInstanceProtocol())
                     .loadBalancerPort(resource.getLoadBalancerPort())
                     .protocol(resource.getProtocol())
-                    //.sslCertificateId(resource.getSslCertificateId())
+                    .sslCertificateId(resource.getSslCertificateId())
                     .build();
             listeners.add(newListener);
         }
