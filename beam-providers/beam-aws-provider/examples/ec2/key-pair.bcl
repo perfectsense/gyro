@@ -1,0 +1,18 @@
+plugin
+    artifact: 'beam:beam-aws-provider:0.5'
+    repositories: [
+        'http://repo1.maven.org/maven2/',
+        'https://repo.gradle.org/gradle/libs-releases/',
+        'https://artifactory.psdops.com/public'
+    ]
+end
+
+aws::credentials default
+    profile-name: "psd-beam-sandbox"
+    region: "us-east-2"
+end
+
+aws::key-pair key-pair-example
+    key-name: "key-pair-example"
+    public-key-path: "example-public-key.pub"
+end
