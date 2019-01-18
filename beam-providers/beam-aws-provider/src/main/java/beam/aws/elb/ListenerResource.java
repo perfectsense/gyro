@@ -73,12 +73,12 @@ public class ListenerResource extends AwsResource {
     public void setProtocol(String protocol) {
         this.protocol = protocol;
     }
-    /*
+
     @ResourceDiffProperty(updatable = true)
     public String getSslCertificateId() { return sslCertificateId; }
 
     public void setSslCertificateId(String sslCertificateId) { this.sslCertificateId = sslCertificateId; }
-    */
+
     public String getLoadBalancer() {
         LoadBalancerResource parent = (LoadBalancerResource) parentResource();
 
@@ -95,7 +95,7 @@ public class ListenerResource extends AwsResource {
                     .instanceProtocol(getInstanceProtocol())
                     .loadBalancerPort(getLoadBalancerPort())
                     .protocol(getProtocol())
-                    //.sslCertificateId(resource.getSslCertificateId())
+                    .sslCertificateId(getSslCertificateId())
                     .build();
 
         return newListener;
