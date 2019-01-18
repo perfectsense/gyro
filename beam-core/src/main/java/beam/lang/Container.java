@@ -273,7 +273,7 @@ public class Container extends Node {
     }
 
     String keyFromFieldName(String field) {
-        return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN, field).replaceFirst("get-", "");
+        return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN, field).replaceFirst("^get-", "");
     }
 
     Method readerMethodForKey(String key) {
