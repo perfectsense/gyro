@@ -297,7 +297,6 @@ public class LaunchConfigurationResource extends AwsResource {
     }
 
     private void validate() {
-
         if (ObjectUtils.isBlank(getInstanceId())) {
 
             if (ObjectUtils.isBlank(getInstanceType()) || InstanceType.fromValue(getInstanceType()).equals(InstanceType.UNKNOWN_TO_SDK_VERSION)) {
@@ -307,37 +306,6 @@ public class LaunchConfigurationResource extends AwsResource {
             if (getSecurityGroupIds().isEmpty()) {
                 throw new BeamException("At least one security group is required.");
             }
-
-            /*DescribeImagesRequest amiRequest;
-
-            if (ObjectUtils.isBlank(getAmiId())) {
-                if (ObjectUtils.isBlank(getAmiName())) {
-                    throw new BeamException("AMI name cannot be blank when AMI Id is not provided.");
-                }
-
-                amiRequest = DescribeImagesRequest.builder().filters(
-                    Collections.singletonList(Filter.builder().name("name").values(getAmiName()).build())
-                ).build();
-
-            } else {
-                amiRequest = DescribeImagesRequest.builder().imageIds(getAmiId()).build();
-            }
-
-            try {
-                Ec2Client ec2Client = createClient(Ec2Client.class);
-
-                DescribeImagesResponse response = ec2Client.describeImages(amiRequest);
-                if (response.images().isEmpty()) {
-                    throw new BeamException("No AMI found for value - (" + getAmiName() + ") as an AMI Name.");
-                }
-                setAmiId(response.images().get(0).imageId());
-            } catch (Ec2Exception ex) {
-                if (ex.awsErrorDetails().errorCode().equalsIgnoreCase("InvalidAMIID.Malformed")) {
-                    throw new BeamException("No AMI found for value - (" + getAmiId() + ") as an AMI Id.");
-                }
-
-                throw ex;
-            }*/
         }
     }
 }
