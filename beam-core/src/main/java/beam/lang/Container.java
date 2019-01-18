@@ -2,7 +2,13 @@ package beam.lang;
 
 import beam.core.BeamException;
 import beam.core.diff.ResourceDiffProperty;
+import beam.lang.types.BooleanValue;
+import beam.lang.types.ListValue;
+import beam.lang.types.LiteralValue;
+import beam.lang.types.MapValue;
+import beam.lang.types.NumberValue;
 import beam.lang.types.ReferenceValue;
+import beam.lang.types.StringExpressionValue;
 import beam.lang.types.Value;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Throwables;
@@ -155,9 +161,9 @@ public class Container extends Node {
         StringBuilder sb = new StringBuilder();
 
         for (Map.Entry<String, Object> entry : resolvedKeyValues().entrySet()) {
-            Value sourceValue = get(entry.getKey());
-            Object value = entry.getValue();
-            if (value == null) {
+            Value value = get(entry.getKey());
+            Object output = entry.getValue();
+            if (output == null) {
                 continue;
             }
 
@@ -168,34 +174,23 @@ public class Container extends Node {
             // If no ResourceDiffProperty annotation or if this field is not subresources then skip this field.
             ResourceDiffProperty propertyAnnotation = reader != null ? reader.getAnnotation(ResourceDiffProperty.class) : null;
             if (propertyAnnotation != null && propertyAnnotation.subresource()) {
-                if (value instanceof List) {
-                    for (Object resource : (List) value) {
+                if (output instanceof List) {
+                    for (Object resource : (List) output) {
                         sb.append(((Resource) resource).serialize(indent));
                     }
-                } else if (value instanceof Resource) {
-                    sb.append(((Resource) value).serialize(indent));
+                } else if (output instanceof Resource) {
+                    sb.append(((Resource) output).serialize(indent));
                 }
             } else {
-                if (value instanceof Map && ((Map) value).isEmpty() || value instanceof List && ((List) value).isEmpty()) {
+                if (output instanceof Map && ((Map) output).isEmpty() || output instanceof List && ((List) output).isEmpty()) {
                     continue;
                 }
 
                 sb.append(indent(indent)).append(entry.getKey()).append(": ");
-
-                if (sourceValue instanceof ReferenceValue && ((ReferenceValue) sourceValue).getReferencedContainer() != null) {
-                    sb.append(sourceValue.toString());
-                } else if (value instanceof String) {
-                    sb.append("'").append(entry.getValue()).append("'");
-                } else if (value instanceof Number || value instanceof Boolean) {
-                    sb.append(entry.getValue());
-                } else if (value instanceof Map && !((Map) value).isEmpty()) {
-                    sb.append(mapToString((Map) value, indent));
-                } else if (value instanceof List && !((List) value).isEmpty()) {
-                    sb.append(listToString((List) value, indent));
-                } else if (value instanceof Resource) {
-                    sb.append(((Resource) value).resourceKey());
+                if (value != null) {
+                    sb.append(valueToString(value, indent));
                 } else {
-                    sb.append("'").append(value.toString()).append("'");
+                    sb.append("'").append(output).append("'");
                 }
                 sb.append("\n");
             }
@@ -209,55 +204,63 @@ public class Container extends Node {
         return String.format("Container[key/values: %d, controls: %d]", keys().size(), controls().size());
     }
 
-    protected String valueToString(Object value, int indent) {
+    protected String valueToString(Value value, int indent) {
         StringBuilder sb = new StringBuilder();
 
-        if (value instanceof String) {
-            sb.append("'" + value + "'");
-        } else if (value instanceof Map) {
-            sb.append(mapToString((Map) value, indent));
-        } else if (value instanceof List) {
-            sb.append(listToString((List) value, indent));
+        if (value instanceof ReferenceValue && ((ReferenceValue) value).getReferencedContainer() != null) {
+            sb.append(value.toString());
+        } else if (value instanceof StringExpressionValue) {
+            sb.append("'");
+            sb.append(((StringExpressionValue) value).getValue());
+            sb.append("'");
+        } else if (value instanceof LiteralValue) {
+            sb.append(value.toString());
+        } else if (value instanceof NumberValue || value instanceof BooleanValue) {
+            sb.append(value.getValue());
+        } else if (value instanceof MapValue) {
+            sb.append(mapValueToString((MapValue) value, indent));
+        } else if (value instanceof ListValue) {
+            sb.append(listValueToString((ListValue) value, indent));
+        } else {
+            sb.append("'").append(value.getValue()).append("'");
         }
 
         return sb.toString();
     }
 
-    protected String mapToString(Map map, int indent) {
+    protected String mapValueToString(MapValue mapValue, int indent) {
         StringBuilder sb = new StringBuilder();
+
+        Map<String, Value> map = mapValue.getKeyValues();
 
         sb.append("{").append("\n");
 
-        if (!map.isEmpty()) {
-            for (Object key : map.keySet()) {
-                Object value = map.get(key);
+        for (Object key : map.keySet()) {
+            Value value = map.get(key);
 
-                sb.append(indent(indent + 4));
-                sb.append(key).append(": ");
-                sb.append(valueToString(value, indent));
-                sb.append(",\n");
-            }
-            sb.setLength(sb.length() - 2);
+            sb.append(indent(indent + 4));
+            sb.append(key).append(": ");
+            sb.append(valueToString(value, indent));
+            sb.append(",\n");
         }
+        sb.setLength(sb.length() - 2);
 
         sb.append("\n    }");
 
         return sb.toString();
     }
 
-    protected String listToString(List list, int indent) {
+    protected String listValueToString(ListValue listValue, int indent) {
         StringBuilder sb = new StringBuilder();
 
         sb.append("[").append("\n");
 
-        if (!list.isEmpty()) {
-            for (Object value : list) {
-                sb.append(indent(indent + 4));
-                sb.append(valueToString(value, indent));
-                sb.append(",\n");
-            }
-            sb.setLength(sb.length() - 2);
+        for (Value value : listValue.getValues()) {
+            sb.append(indent(indent + 4));
+            sb.append(valueToString(value, indent));
+            sb.append(",\n");
         }
+        sb.setLength(sb.length() - 2);
 
         sb.append("\n");
         sb.append(indent(indent)).append("]");
