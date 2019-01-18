@@ -42,6 +42,7 @@ public class PluginLoader {
     private String artifact;
     private List<String> repositories;
     private BeamCore core;
+    private static PluginClassLoader classLoader;
 
     private static Map<String, List<Artifact>> ARTIFACTS = new HashMap<>();
     private static Map<String, List<Class<?>>> PLUGIN_CLASS_CACHE = new HashMap<>();
@@ -170,7 +171,11 @@ public class PluginLoader {
 
     private void loadClasses(URL[] urls, Artifact artifact) throws Exception {
         ClassLoader parent = core().getClass().getClassLoader();
-        URLClassLoader loader = new URLClassLoader(urls, parent);
+        if (classLoader == null) {
+            classLoader = new PluginClassLoader(urls, parent);
+        } else {
+            classLoader.addAllUrls(urls);
+        }
 
         JarFile jarFile = new JarFile(artifact.getFile());
         Enumeration<JarEntry> entries = jarFile.entries();
@@ -185,7 +190,7 @@ public class PluginLoader {
 
             Class<?> loadedClass;
             try {
-                loadedClass = loader.loadClass(className);
+                loadedClass = classLoader.loadClass(className);
             } catch (Exception | Error ex) {
                 continue;
             }
