@@ -23,7 +23,6 @@ import java.util.Set;
  *        instance-protocol: "https"
  *        load-balancer-port: "443"
  *        protocol: "https"
- *        ssl-certificate-id: "arn:aws:iam::123456789012:server-certificate/my-server-cert"
  *     end
  */
 
