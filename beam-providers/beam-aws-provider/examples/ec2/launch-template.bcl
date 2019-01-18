@@ -1,4 +1,4 @@
-provider aws
+plugin
     artifact: 'beam:beam-aws-provider:0.5'
     repositories: [
         'http://repo1.maven.org/maven2/',
@@ -11,10 +11,6 @@ aws::credentials default
     profile-name: "psd-beam-sandbox"
     region: "us-east-2"
 end
-
-project: "beam"
-environment: "sandbox"
-serial: "v1"
 
 aws::vpc vpc-launch-template-example
     cidr-block: "10.0.0.0/16"
