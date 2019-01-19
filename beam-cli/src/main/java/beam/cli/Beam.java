@@ -46,20 +46,7 @@ public class Beam {
         Beam beam = new Beam();
         BeamCore.pushUi(new CliBeamUI());
 
-        // Load ~/.beam/plugins.bcl
-        File plugins = Paths.get(getBeamUserHome(), ".beam", "plugins.bcl").toFile();
-        if (plugins.exists() && plugins.isFile()) {
-            BeamCore core = new BeamCore();
-            BeamFile pluginConfig = core.parse(plugins.toString());
-
-            for (PluginLoader loader : pluginConfig.plugins()) {
-                for (Class<?> c : loader.classes()) {
-                    if (BeamCommand.class.isAssignableFrom(c) && !Modifier.isAbstract(c.getModifiers())) {
-                        beam.commands().add(c);
-                    }
-                }
-            }
-        }
+        loadPlugins(beam);
 
         try {
             beam.init(Arrays.asList(arguments));
@@ -121,10 +108,36 @@ public class Beam {
 
         } catch (Throwable error) {
             if (error instanceof BeamException) {
-                BeamCore.ui().writeError(error.getCause(), "\n\n@|red Error: %s|@", error.getMessage());
+                BeamCore.ui().writeError(error.getCause(), "\n@|red Error: %s|@\n", error.getMessage());
 
             } else {
-                BeamCore.ui().writeError(error, "\n\n@|red Unexpected error! Stack trace follows:|@\n");
+                BeamCore.ui().writeError(error, "\n@|red Unexpected error! Stack trace follows:|@\n");
+            }
+        }
+    }
+
+    public static void loadPlugins(Beam beam) {
+        try {
+            // Load ~/.beam/plugins.bcl
+            File plugins = Paths.get(getBeamUserHome(), ".beam", "plugins.bcl").toFile();
+            if (plugins.exists() && plugins.isFile()) {
+                BeamCore core = new BeamCore();
+                BeamFile pluginConfig = core.parse(plugins.toString());
+
+                for (PluginLoader loader : pluginConfig.plugins()) {
+                    for (Class<?> c : loader.classes()) {
+                        if (BeamCommand.class.isAssignableFrom(c) && !Modifier.isAbstract(c.getModifiers())) {
+                            beam.commands().add(c);
+                        }
+                    }
+                }
+            }
+        } catch (Throwable error) {
+            if (error instanceof BeamException) {
+                BeamCore.ui().writeError(error.getCause(), "\n@|red Error: %s|@\n", error.getMessage());
+
+            } else {
+                BeamCore.ui().writeError(error, "\n@|red Unexpected error! Stack trace follows:|@\n");
             }
         }
     }

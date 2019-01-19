@@ -117,7 +117,7 @@ public class PluginLoader {
                 }
             }
         } catch (Exception e) {
-            throw new BeamException("Maven fetch failed!", e);
+            throw new BeamException(e.getMessage());
         }
 
         init();
