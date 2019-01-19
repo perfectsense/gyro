@@ -406,7 +406,7 @@ public class BeamVisitor extends BeamParserBaseVisitor {
             }
         }
 
-        return null;
+        throw new BeamLanguageException("Unknown resource type: " + type);
     }
 
     public Resource createSubresource(Resource parent, String type) {
