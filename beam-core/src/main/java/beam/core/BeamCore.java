@@ -62,13 +62,7 @@ public class BeamCore {
         return resourceTypes.get(key);
     }
 
-    public void init() {
-        resourceTypes.clear();
-    }
-
     public BeamFile parse(String path) throws IOException {
-        init();
-
         // Initial file parse loads state and providers.
         BeamLexer lexer = new BeamLexer(CharStreams.fromFileName(path));
         CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -93,7 +87,7 @@ public class BeamCore {
         }
 
         for (PluginLoader pluginLoader : pluginListener.plugins()) {
-            pluginLoader.load();;
+            pluginLoader.load();
         }
 
         // Load initial configuration
