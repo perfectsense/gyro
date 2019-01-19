@@ -31,18 +31,24 @@ public class EnterpriseApi {
 
     private String enterpriseUrl;
     private String enterpriseUser;
+    private String duoPush;
 
-    public EnterpriseApi(String enterpriseUrl, String enterpriseUser) {
+    public EnterpriseApi(String enterpriseUrl, String enterpriseUser, String duoPush) {
         this.enterpriseUrl = enterpriseUrl;
         this.enterpriseUser = enterpriseUser;
+        this.duoPush = duoPush;
     }
 
-    private String createEnterpriseUrl() {
+    private String enterpriseUrl() {
         return enterpriseUrl;
     }
 
-    public String getEnterpriseUser() {
+    public String enterpriseUser() {
         return enterpriseUser;
+    }
+
+    public String duoPush() {
+        return duoPush;
     }
 
     /**
@@ -56,14 +62,14 @@ public class EnterpriseApi {
     public File prepareLocalFile(String name) throws IOException {
         ErrorUtils.errorIfBlank(name, "name");
 
-        File file = Paths.get(getBeamUserHome(), ".beam", "enterprise", StringUtils.encodeUri(createEnterpriseUrl()), name).toFile();
+        File file = Paths.get(EnterpriseConfig.getUserHome(), ".beam", "enterprise", StringUtils.encodeUri(enterpriseUrl()), name).toFile();
         IoUtils.createParentDirectories(file);
 
         return file;
     }
 
     private String createEndpointUrl(String endpoint) {
-        return createEnterpriseUrl()  + StringUtils.ensureStart(endpoint, "/");
+        return enterpriseUrl()  + StringUtils.ensureStart(endpoint, "/");
     }
 
     /**
@@ -127,7 +133,7 @@ public class EnterpriseApi {
             } else {
 
                 // Not authenticated yet so ask for login and password.
-                String login = getEnterpriseUser();
+                String login = enterpriseUser();
                 String authenticateUrl = createEndpointUrl("/authenticate");
 
                 if (ObjectUtils.isBlank(login)) {
@@ -171,12 +177,14 @@ public class EnterpriseApi {
                         break;
                     } else if ("requires_2fa_enrollment".equals(status)) {
                         DuoApi duo = new DuoApi(this);
+                        duo.setDuoPush(duoPush());
                         duo.setSessionId(sessionId);
                         duo.handleNeedsTwoFactorEnrollment(authMap);
 
                         break;
                     } else if ("requires_2fa".equals(status)) {
                         DuoApi duo = new DuoApi(this);
+                        duo.setDuoPush(duoPush());
                         duo.setSessionId(sessionId);
                         duo.handleNeeds2FA(authMap);
 
@@ -229,15 +237,6 @@ public class EnterpriseApi {
         }
 
         throw new BeamException("Login unsuccessful 3 times!");
-    }
-
-    private String getBeamUserHome() {
-        String userHome = System.getenv("BEAM_USER_HOME");
-        if (ObjectUtils.isBlank(userHome)) {
-            userHome = System.getProperty("user.home");
-        }
-
-        return userHome;
     }
 
 }

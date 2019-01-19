@@ -29,7 +29,10 @@ public class EnterpriseAwsCredentials extends AwsCredentials {
 
     public EnterpriseApi api() {
         if (api == null) {
-            api = new EnterpriseApi(getEnterpriseUrl(), enterpriseUser());
+            String login = EnterpriseConfig.get(String.class, getProject(), "login", System.getProperty("user.name"));
+            String duoPush = EnterpriseConfig.get(String.class, getProject(), "duo-push", "none");
+
+            api = new EnterpriseApi(getEnterpriseUrl(), login, duoPush);
         }
 
         return api;
@@ -57,10 +60,6 @@ public class EnterpriseAwsCredentials extends AwsCredentials {
 
     public void setAccount(String account) {
         this.account = account;
-    }
-
-    public String enterpriseUser() {
-        return System.getProperty("user.name");
     }
 
 }

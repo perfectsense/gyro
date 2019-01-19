@@ -14,6 +14,7 @@ public class DuoApi {
     private String sessionId;
     private boolean success = false;
     private EnterpriseApi api;
+    private String duoPush;
 
     public DuoApi(EnterpriseApi api) {
         this.api = api;
@@ -39,8 +40,16 @@ public class DuoApi {
         return api;
     }
 
-    public void setApi(EnterpriseApi api) {
-        this.api = api;
+    public String getDuoPush() {
+        if (duoPush == null) {
+            return "none";
+        }
+
+        return duoPush;
+    }
+
+    public void setDuoPush(String duoPush) {
+        this.duoPush = duoPush;
     }
 
     public void handleNeeds2FA(Map<String, Object> authMap) {
@@ -53,12 +62,10 @@ public class DuoApi {
             System.exit(1);
         }
 
-        /* TODO: Replace BeamConfig calls
-        String duoPush = BeamConfig.get(String.class, "duoPush", "none");
-        if ("auto".equals(duoPush)) {
+        if ("auto".equals(getDuoPush())) {
             authAuto();
             return;
-        } else if ("yubikey".equals(duoPush)) {
+        } else if ("yubikey".equals(getDuoPush())) {
             for (Map device : devices) {
                 String name = ObjectUtils.to(String.class, device.get("name"));
                 if (name.startsWith("Yubikey")) {
@@ -67,7 +74,6 @@ public class DuoApi {
                 }
             }
         }
-        */
 
         BeamCore.ui().write("\nAccess to Beam Enterprise requires two-factor authentication.\n");
 
