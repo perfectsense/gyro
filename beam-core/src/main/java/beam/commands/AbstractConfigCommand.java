@@ -4,6 +4,7 @@ import beam.core.BeamCore;
 import beam.core.BeamException;
 import beam.lang.BeamFile;
 import beam.lang.BeamLanguageException;
+import beam.lang.Credentials;
 import io.airlift.airline.Arguments;
 
 import java.util.List;
@@ -30,6 +31,10 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             pending = core.parse(configPath);
         } catch (BeamLanguageException ex) {
             throw new BeamException(ex.getMessage());
+        }
+
+        for (Credentials credentials : pending.credentials()) {
+            credentials.findCredentials(true);
         }
 
         doExecute(pending);

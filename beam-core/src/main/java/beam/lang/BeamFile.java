@@ -6,8 +6,10 @@ import beam.lang.types.Value;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -79,6 +81,22 @@ public class BeamFile extends ResourceContainer {
         Path otherPath  = new File(currentPath).getParentFile().toPath();
 
         return otherPath.relativize(importPath).toString().replace(".bcl", "");
+    }
+
+    public List<Credentials> credentials() {
+        List<Credentials> credentials = new ArrayList<>();
+
+        for (Resource resource : resources()) {
+            if (resource instanceof Credentials) {
+                credentials.add((Credentials) resource);
+            }
+        }
+
+        for (BeamFile importFile : imports().values()) {
+            credentials.addAll(importFile.credentials());
+        }
+
+        return credentials;
     }
 
     @Override

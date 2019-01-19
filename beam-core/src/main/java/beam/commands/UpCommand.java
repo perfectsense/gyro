@@ -18,10 +18,8 @@ public class UpCommand extends AbstractConfigCommand {
 
     @Override
     public void doExecute(BeamFile pending) throws Exception {
-
         BeamCore.ui().write("\n@|bold,white Looking for changes...\n\n|@");
         List<ResourceDiff> diffs = core().diff(pending, !skipRefresh);
-        BeamCore.ui().write("\n");
 
         Set<ChangeType> changeTypes = core().writeDiffs(diffs);
 
@@ -51,7 +49,7 @@ public class UpCommand extends AbstractConfigCommand {
         }
 
         if (!hasChanges) {
-            BeamCore.ui().write("@|bold,green No changes.|@\n\n");
+            BeamCore.ui().write("\n@|bold,green No changes.|@\n\n");
         }
 
     }

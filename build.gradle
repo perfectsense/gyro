@@ -92,6 +92,12 @@ project(":beam-plugins:beam-ssh-plugin") {
     }
 }
 
+project(":beam-plugins:beam-enterprise-plugin") {
+    dependencies {
+        compile project(':beam-providers:beam-aws-provider')
+    }
+}
+
 project(":beam-providers:beam-aws-provider") {
     dependencies {
         compile project(':beam-core')
