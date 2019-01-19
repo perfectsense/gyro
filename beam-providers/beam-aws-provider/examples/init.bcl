@@ -1,19 +1,11 @@
 plugin
     artifact: 'beam:beam-aws-provider:0.5'
-    repositories: [
-        'http://repo1.maven.org/maven2/',
-        'https://repo.gradle.org/gradle/libs-releases/',
-        'https://artifactory.psdops.com/public'
-    ]
+    repositories: ['https://artifactory.psdops.com/public']
 end
 
 plugin
     artifact: 'beam:beam-enterprise-plugin:0.5'
-    repositories: [
-        'http://repo1.maven.org/maven2/',
-        'https://repo.gradle.org/gradle/libs-releases/',
-        'https://artifactory.psdops.com/public'
-    ]
+    repositories: ['https://artifactory.psdops.com/public']
 end
 
 project: "beam-sandbox"
