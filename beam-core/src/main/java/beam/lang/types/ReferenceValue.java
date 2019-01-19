@@ -157,7 +157,7 @@ public class ReferenceValue extends Value {
                 // Look for key/value pairs.
                 if (isSimpleValue()) {
                     value = container.get(name);
-                    if (value != null) {
+                    if (value != null && (value != this)) {
                         return true;
                     }
                 }
