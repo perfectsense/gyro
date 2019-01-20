@@ -5,7 +5,7 @@ import BeamReferenceParser;
 options { tokenVocab = BeamLexer; }
 
 beamFile : file* EOF;
-file     : (plugin | keyValue | resource | forStmt | ifStmt | importStmt | state);
+file     : (plugin | keyValue | resource | forStmt | ifStmt | importStmt | state | virtualResource);
 blockEnd : END;
 
 plugin     : PLUGIN pluginBody blockEnd;
@@ -27,6 +27,11 @@ resourceName : IDENTIFIER | stringValue;
 importStmt  : IMPORT importPath AS? importName?;
 importPath  : IDENTIFIER;
 importName  : IDENTIFIER;
+
+virtualResource      : VR virtualResourceName virtualResourceParam* DEFINE virtualResourceBody* blockEnd;
+virtualResourceParam : PARAM IDENTIFIER;
+virtualResourceName  : IDENTIFIER;
+virtualResourceBody  : keyValue | resource | forStmt | ifStmt;
 
 // -- Control Structures
 
@@ -55,7 +60,7 @@ operator     : EQ | NOTEQ;
 keyValue       : key value;
 keySimpleValue : key simpleValue;
 key            : (IDENTIFIER | STRING_LITERAL | keywords) keyDelimiter;
-keywords       : IMPORT | PLUGIN | AS | STATE;
+keywords       : IMPORT | PLUGIN | AS | STATE | VR | PARAM | DEFINE;
 keyDelimiter   : COLON;
 
 // -- Value Types
