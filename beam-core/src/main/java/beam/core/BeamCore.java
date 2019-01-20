@@ -35,6 +35,7 @@ public class BeamCore {
 
     private PluginLoadingListener pluginListener;
     private StateBackendLoadingListener stateListener;
+    private boolean parsingState;
 
     private static final ThreadLocalStack<BeamUI> UI = new ThreadLocalStack<>();
 
@@ -62,7 +63,17 @@ public class BeamCore {
         return resourceTypes.get(key);
     }
 
+    public boolean parsingState() {
+        return parsingState;
+    }
+
     public BeamFile parse(String path) throws IOException {
+        return parse(path, false);
+    }
+
+    public BeamFile parse(String path, boolean state) throws IOException {
+        parsingState = state;
+
         // Initial file parse loads state and providers.
         BeamLexer lexer = new BeamLexer(CharStreams.fromFileName(path));
         CommonTokenStream tokens = new CommonTokenStream(lexer);

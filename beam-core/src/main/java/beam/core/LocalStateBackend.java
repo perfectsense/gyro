@@ -23,7 +23,7 @@ public class LocalStateBackend extends StateBackend {
 
         File stateFile = new File(path);
         if (stateFile.exists() && !stateFile.isDirectory()) {
-            state = core.parse(path);
+            state = core.parse(path, true);
         } else {
             state = new BeamFile();
             state.path(path);
