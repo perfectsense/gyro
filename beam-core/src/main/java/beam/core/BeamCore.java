@@ -11,9 +11,11 @@ import beam.lang.Modification;
 import beam.lang.Node;
 import beam.lang.Resource;
 import beam.lang.StateBackend;
+import beam.lang.VirtualResourceDefinition;
 import beam.lang.listeners.ErrorListener;
 import beam.lang.listeners.PluginLoadingListener;
 import beam.lang.listeners.StateBackendLoadingListener;
+import beam.lang.listeners.VirtualResourceDefinitionListener;
 import beam.lang.plugins.PluginLoader;
 import beam.parser.antlr4.BeamLexer;
 import beam.parser.antlr4.BeamParser;
@@ -37,6 +39,7 @@ public class BeamCore {
 
     private PluginLoadingListener pluginListener;
     private StateBackendLoadingListener stateListener;
+    private VirtualResourceDefinitionListener virtualResourceDefinitionListener;
     private Reflections reflections;
     private boolean parsingState;
 
@@ -66,6 +69,20 @@ public class BeamCore {
         return resourceTypes.get(key);
     }
 
+    public VirtualResourceDefinition getVirtualResource(String name) {
+        return virtualResourceDefinitionListener.virtualResource(name);
+    }
+
+    public ResourceType resourceType(String name) {
+        if (getResourceType(name) != null) {
+            return ResourceType.RESOURCE;
+        } else if (getVirtualResource(name) != null) {
+            return ResourceType.VIRTUAL_RESOURCE;
+        }
+
+        return ResourceType.UNKNOWN;
+    }
+      
     public Reflections reflections() {
         return reflections;
     }
@@ -97,6 +114,9 @@ public class BeamCore {
 
         pluginListener = new PluginLoadingListener(visitor);
         parser.addParseListener(pluginListener);
+
+        virtualResourceDefinitionListener = new VirtualResourceDefinitionListener(visitor);
+        parser.addParseListener(virtualResourceDefinitionListener);
 
         BeamFileContext context = parser.beamFile();
 
@@ -144,6 +164,7 @@ public class BeamCore {
 
         parser.addParseListener(stateListener);
         parser.addParseListener(pluginListener);
+        parser.addParseListener(virtualResourceDefinitionListener);
 
         BeamFileContext context = parser.beamFile();
 
@@ -364,6 +385,12 @@ public class BeamCore {
                 }
             }
         }
+    }
+
+    public enum ResourceType {
+        RESOURCE,
+        VIRTUAL_RESOURCE,
+        UNKNOWN
     }
 
 }

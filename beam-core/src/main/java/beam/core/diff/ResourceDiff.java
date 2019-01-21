@@ -281,6 +281,7 @@ public class ResourceDiff {
 
         Iterable<? extends Resource> pendingResources = getPendingResources();
 
+        boolean refreshed = false;
         if (pendingResources != null) {
             for (Resource pendingResource : pendingResources) {
                 Resource currentResource = currentResourcesByName.remove(pendingResource.primaryKey());
@@ -294,6 +295,8 @@ public class ResourceDiff {
                     }
 
                     BeamCore.ui().write("\n");
+
+                    refreshed = true;
                 }
 
                 pendingResource.syncPropertiesFromResource(currentResource);
@@ -305,6 +308,10 @@ public class ResourceDiff {
                     changes.add(change);
                 }
             }
+        }
+
+        if (refreshed) {
+            BeamCore.ui().write("\n");
         }
 
         if (currentResources != null) {

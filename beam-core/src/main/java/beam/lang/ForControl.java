@@ -1,5 +1,9 @@
 package beam.lang;
 
+import beam.core.BeamCore;
+import beam.core.BeamCore.ResourceType;
+import beam.lang.types.ListValue;
+import beam.lang.types.ReferenceValue;
 import beam.lang.types.Value;
 import beam.parser.antlr4.BeamParser;
 import beam.parser.antlr4.BeamParser.ForStmtContext;
@@ -12,12 +16,15 @@ public class ForControl extends Control {
     private List<String> variables;
     private List<Value> listValues;
     private List<Frame> frames;
+    private ReferenceValue listReference;
 
     private ForStmtContext context;
     private BeamVisitor visitor;
+    private BeamCore core;
     private boolean evaluated;
 
-    public ForControl(BeamVisitor visitor, ForStmtContext  context) {
+    public ForControl(BeamCore core, BeamVisitor visitor, ForStmtContext context) {
+        this.core = core;
         this.visitor = visitor;
         this.context = context;
     }
@@ -58,6 +65,15 @@ public class ForControl extends Control {
         this.frames = frames;
     }
 
+    public ReferenceValue listReference() {
+        return listReference;
+    }
+
+    public void listReference(ReferenceValue listReference) {
+        listReference.parent(this);
+        this.listReference = listReference;
+    }
+
     public boolean evaluated() {
         return evaluated;
     }
@@ -82,6 +98,16 @@ public class ForControl extends Control {
     public void evaluate() {
         if (evaluated()) {
             return;
+        }
+
+        if (listReference() != null) {
+            listReference().resolve();
+            Value value = listReference().getReferenceValue();
+            if (value instanceof ListValue) {
+                listValues = ((ListValue) value).getValues();
+            } else {
+                throw new BeamLanguageException("Reference is not a list.", listReference());
+            }
         }
 
         // Validate there are enough values to evenly loop over the list.
@@ -121,8 +147,15 @@ public class ForControl extends Control {
                     IfControl ifControl = visitor.visitIfStmt(stmtContext.ifStmt(), frame);
                     frame.putControl(ifControl);
                 } else if (stmtContext.resource() != null) {
-                    Resource resource = visitor.visitResource(stmtContext.resource(), frame);
-                    frame.putResource(resource);
+                    String type = stmtContext.resource().resourceType().getText();
+                    ResourceType resourceType = core.resourceType(type);
+                    if (resourceType == ResourceType.RESOURCE) {
+                        Resource resource = visitor.visitResource(stmtContext.resource(), frame);
+                        frame.putResource(resource);
+                    } else if (resourceType == ResourceType.VIRTUAL_RESOURCE) {
+                        VirtualResourceControl virtualResourceControl = visitor.visitVirtualResource(stmtContext.resource(), frame);
+                        frame.putControl(virtualResourceControl);
+                    }
                 } else if (stmtContext.subresource() != null) {
                     Resource resource = visitor.visitSubresource(stmtContext.subresource(), (Resource) parent);
                     frame.putSubresource(resource);

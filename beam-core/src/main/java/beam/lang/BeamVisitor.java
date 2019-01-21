@@ -1,6 +1,7 @@
 package beam.lang;
 
 import beam.core.BeamCore;
+import beam.core.BeamCore.ResourceType;
 import beam.core.BeamException;
 import beam.core.LocalStateBackend;
 import beam.lang.plugins.PluginLoader;
@@ -35,6 +36,8 @@ import beam.parser.antlr4.BeamParser.StringValueContext;
 import beam.parser.antlr4.BeamParser.SubresourceBodyContext;
 import beam.parser.antlr4.BeamParser.SubresourceContext;
 import beam.parser.antlr4.BeamParser.ValueContext;
+import beam.parser.antlr4.BeamParser.VirtualResourceContext;
+import beam.parser.antlr4.BeamParser.VirtualResourceParamContext;
 import beam.parser.antlr4.BeamParserBaseVisitor;
 import org.apache.commons.lang.StringUtils;
 
@@ -69,8 +72,15 @@ public class BeamVisitor extends BeamParserBaseVisitor {
 
                 beamFile.put(key, value);
             } else if (fileContext.resource() != null) {
-                Resource resource = visitResource(fileContext.resource(), beamFile);
-                beamFile.putResource(resource);
+                String type = fileContext.resource().resourceType().getText();
+                ResourceType resourceType = core.resourceType(type);
+                if (resourceType == ResourceType.RESOURCE) {
+                    Resource resource = visitResource(fileContext.resource(), beamFile);
+                    beamFile.putResource(resource);
+                } else if (resourceType == ResourceType.VIRTUAL_RESOURCE) {
+                    VirtualResourceControl virtualResourceControl = visitVirtualResource(fileContext.resource(), beamFile);
+                    beamFile.putControl(virtualResourceControl);
+                }
             } else if (fileContext.plugin() != null) {
                 PluginLoader loader = visitPlugin(fileContext.plugin());
                 beamFile.plugins().add(loader);
@@ -208,7 +218,7 @@ public class BeamVisitor extends BeamParserBaseVisitor {
     }
 
     public ForControl visitForStmt(ForStmtContext context, Node parent) {
-        ForControl forNode = new ForControl(this, context);
+        ForControl forNode = new ForControl(core, this, context);
         forNode.line(context.getStart().getLine());
         forNode.column(context.getStart().getCharPositionInLine());
         forNode.parent(parent);
@@ -217,38 +227,78 @@ public class BeamVisitor extends BeamParserBaseVisitor {
             forNode.variables().add(variableContext.IDENTIFIER().getText());
         }
 
-        for (ListItemValueContext valueContext : context.listValue().listItemValue()) {
-            Value value = null;
+        if (context.listValue() != null) {
+            for (ListItemValueContext valueContext : context.listValue().listItemValue()) {
+                Value value = null;
 
-            if (valueContext.stringValue() != null) {
-                value = parseStringValue(valueContext.stringValue());
-            } else if (valueContext.referenceValue() != null) {
-                value = parseReferenceValue(valueContext.referenceValue());
-            } else if (valueContext.numberValue() != null) {
-                value = new NumberValue(valueContext.numberValue().getText());
-            } else if (valueContext.booleanValue() != null) {
-                value = new BooleanValue(valueContext.booleanValue().getText());
+                if (valueContext.stringValue() != null) {
+                    value = parseStringValue(valueContext.stringValue());
+                } else if (valueContext.referenceValue() != null) {
+                    value = parseReferenceValue(valueContext.referenceValue());
+                } else if (valueContext.numberValue() != null) {
+                    value = new NumberValue(valueContext.numberValue().getText());
+                } else if (valueContext.booleanValue() != null) {
+                    value = new BooleanValue(valueContext.booleanValue().getText());
+                }
+
+                if (value != null) {
+                    value.line(valueContext.getStart().getLine());
+                    value.column(valueContext.getStart().getCharPositionInLine());
+                    value.parent(forNode);
+
+                    forNode.listValues().add(value);
+                }
             }
+        } else if (context.referenceValue() != null) {
+            ReferenceValue value = parseReferenceValue(context.referenceValue());
+            value.line(context.referenceValue().getStart().getLine());
+            value.column(context.referenceValue().getStart().getCharPositionInLine());
 
-            if (value != null) {
-                value.line(valueContext.getStart().getLine());
-                value.column(valueContext.getStart().getCharPositionInLine());
-                value.parent(forNode);
-
-                forNode.listValues().add(value);
-            }
+            forNode.listReference(value);
         }
 
         return forNode;
     }
 
     public IfControl visitIfStmt(IfStmtContext context, Node parent) {
-        IfControl ifStmt = new IfControl(this, context);
+        IfControl ifStmt = new IfControl(core, this, context);
         ifStmt.line(context.getStart().getLine());
         ifStmt.column(context.getStart().getCharPositionInLine());
         ifStmt.parent(parent);
 
         return ifStmt;
+    }
+
+    public VirtualResourceDefinition visitVirtualResourceDefinition(VirtualResourceContext context) {
+        VirtualResourceDefinition virtualResourceDefinition = new VirtualResourceDefinition(core, this, context);
+        virtualResourceDefinition.name(context.virtualResourceName().IDENTIFIER().getText());
+
+        for (VirtualResourceParamContext paramContext : context.virtualResourceParam()) {
+            virtualResourceDefinition.parameters().add(paramContext.IDENTIFIER().getText());
+        }
+
+        return virtualResourceDefinition;
+    }
+
+    public VirtualResourceControl visitVirtualResource(ResourceContext context, Node parent) {
+        Container container = new Container();
+        for (ResourceBodyContext bodyContext : context.resourceBody()) {
+            if (bodyContext.keyValue() != null) {
+                String key = parseKey(bodyContext.keyValue().key());
+                Value value = parseValue(bodyContext.keyValue().value());
+                value.line(bodyContext.keyValue().getStart().getLine());
+                value.column(bodyContext.keyValue().getStart().getCharPositionInLine());
+
+                container.put(key, value);
+            }
+        }
+
+        VirtualResourceDefinition definition = core.getVirtualResource(context.resourceType().getText());
+        VirtualResourceControl control = new VirtualResourceControl(definition, container);
+        control.resourceIdentifier(context.resourceName().getText());
+        control.parent(parent);
+
+        return control;
     }
 
     public static String parseKey(KeyContext keyContext) {
