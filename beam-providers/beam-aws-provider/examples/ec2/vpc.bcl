@@ -1,18 +1,16 @@
 import ../init as _
 
-enterprise::tag-modification tags
+plugin
+    artifact: 'beam:beam-sample-plugin:0.5'
+    repositories: ['https://artifactory.psdops.com/public']
+end
+
+sample::tag-modification tags
     tags: {
         'beam.project': $(project),
         'beam.account': $(account)
     }
 end
-
-#virtual-resource ps::web-layer
-#    parameters name vpc-id subnet-ids min max
-#
-#    aws::auto-scaling-group $(name)
-#    end
-#end
 
 aws::vpc vpc
     cidr-block: "10.0.0.0/16"
@@ -20,6 +18,4 @@ aws::vpc vpc
     tags: {
         Name: "vpc-example"
     }
-
-    gateway: true
 end

@@ -1,4 +1,4 @@
-package beam.plugins.enterprise;
+package beam.plugins.sample;
 
 import beam.aws.ec2.Ec2TaggableResource;
 import beam.core.diff.ResourceName;
