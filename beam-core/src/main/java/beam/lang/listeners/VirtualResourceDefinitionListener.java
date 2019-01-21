@@ -11,20 +11,20 @@ import java.util.Map;
 public class VirtualResourceDefinitionListener extends BeamParserBaseListener {
 
     private BeamVisitor visitor;
-    private Map<String, VirtualResourceDefinition> virturalResources = new HashMap<>();
+    private Map<String, VirtualResourceDefinition> virtualResources = new HashMap<>();
 
     public VirtualResourceDefinitionListener(BeamVisitor visitor) {
         this.visitor = visitor;
     }
 
     public VirtualResourceDefinition virtualResource(String name) {
-        return virturalResources.get(name);
+        return virtualResources.get(name);
     }
 
     @Override
     public void exitVirtualResource(VirtualResourceContext contex) {
         VirtualResourceDefinition virtualResourceDefinition = visitor.visitVirtualResourceDefinition(contex);
-        virturalResources.put(virtualResourceDefinition.name(), virtualResourceDefinition);
+        virtualResources.put(virtualResourceDefinition.name(), virtualResourceDefinition);
     }
 
 }
