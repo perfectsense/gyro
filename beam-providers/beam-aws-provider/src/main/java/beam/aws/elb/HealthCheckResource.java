@@ -37,6 +37,9 @@ public class HealthCheckResource extends AwsResource {
 
     public HealthCheckResource(){}
 
+    /**
+     * The number of health check successes required to move an instance to the 'Healthy' state.
+     */
     @ResourceDiffProperty(updatable = true)
     public Integer getHealthyThreshold() {
         return healthyThreshold;
@@ -46,6 +49,9 @@ public class HealthCheckResource extends AwsResource {
         this.healthyThreshold = healthyThreshold;
     }
 
+    /**
+     * The interval, in seconds, between health checks of an instance
+     */
     @ResourceDiffProperty(updatable = true)
     public Integer getInterval() {
         return interval;
@@ -55,6 +61,9 @@ public class HealthCheckResource extends AwsResource {
         this.interval = interval;
     }
 
+    /**
+     * The instance that is being checked
+     */
     @ResourceDiffProperty(updatable = true)
     public String getTarget() {
         return target;
@@ -64,6 +73,9 @@ public class HealthCheckResource extends AwsResource {
         this.target = target;
     }
 
+    /**
+     * The amount of time, in seconds, a lack of response means a failed health check
+     */
     @ResourceDiffProperty(updatable = true)
     public Integer getTimeout() {
         return timeout;
@@ -73,6 +85,9 @@ public class HealthCheckResource extends AwsResource {
         this.timeout = timeout;
     }
 
+    /**
+     * The number of health check failures required to move an instance to the 'Unhealthy' state.
+     */
     @ResourceDiffProperty(updatable = true)
     public Integer getUnhealthyThreshold() {
         return unhealthyThreshold;
