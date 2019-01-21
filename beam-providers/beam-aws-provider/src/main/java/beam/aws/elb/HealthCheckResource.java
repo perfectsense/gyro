@@ -143,11 +143,7 @@ public class HealthCheckResource extends AwsResource {
     @Override
     public String toDisplayString() {
         return String.format(
-                "load balancer health check %d/%d/%s/%d/%d",
-                getHealthyThreshold(),
-                getInterval(),
-                getTarget(),
-                getTimeout(),
-                getUnhealthyThreshold());
+                "load balancer health check %s",
+                getTarget());
     }
 }
