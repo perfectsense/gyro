@@ -1,9 +1,25 @@
 import ../init as _
 
+enterprise::tag-modification tags
+    tags: {
+        'beam.project': $(project),
+        'beam.account': $(account)
+    }
+end
+
+#virtual-resource ps::web-layer
+#    parameters name vpc-id subnet-ids min max
+#
+#    aws::auto-scaling-group $(name)
+#    end
+#end
+
 aws::vpc vpc
     cidr-block: "10.0.0.0/16"
 
     tags: {
         Name: "vpc-example"
     }
+
+    gateway: true
 end
