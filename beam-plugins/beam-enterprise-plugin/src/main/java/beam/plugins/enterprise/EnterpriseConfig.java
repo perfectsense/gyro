@@ -14,7 +14,7 @@ import java.util.Map;
 
 public class EnterpriseConfig {
 
-    private static final Lazy<Map<String, Object>> CONFIG = new Lazy<>() {
+    private static final Lazy<Map<String, Object>> CONFIG = new Lazy<Map<String, Object>>() {
 
         @Override
         @SuppressWarnings("unchecked")
