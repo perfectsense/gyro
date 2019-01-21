@@ -15,6 +15,7 @@ dependencies {
     compile "software.amazon.awssdk:s3:${aws_sdk2_version}"
     compile "software.amazon.awssdk:iam:${aws_sdk2_version}"
     compile "software.amazon.awssdk:sqs:${aws_sdk2_version}"
+    compile "software.amazon.awssdk:elasticloadbalancing:${aws_sdk2_version}"
     compile "software.amazon.awssdk:autoscaling:${aws_sdk2_version}"
 
     compile 'com.psddev:dari-util:3.3.607-xe0f27a'

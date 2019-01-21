@@ -365,7 +365,7 @@ public abstract class Resource extends Container {
                 if (subResources.size() == 1) {
                     try {
                         writer.invoke(this, subResources.get(0));
-                        return;
+                        continue;
                     } catch (IllegalArgumentException | InvocationTargetException | IllegalAccessException ee) {
                         // Exception is thrown below.
                     }
