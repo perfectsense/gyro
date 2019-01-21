@@ -23,7 +23,7 @@ public class VirtualResourceDefinitionListener extends BeamParserBaseListener {
 
     @Override
     public void exitVirtualResource(VirtualResourceContext contex) {
-        VirtualResourceDefinition virtualResourceDefinition = visitor.visitVirtualResource(contex);
+        VirtualResourceDefinition virtualResourceDefinition = visitor.visitVirtualResourceDefinition(contex);
         virturalResources.put(virtualResourceDefinition.name(), virtualResourceDefinition);
     }
 

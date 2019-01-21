@@ -252,7 +252,7 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         return ifStmt;
     }
 
-    public VirtualResourceDefinition visitVirtualResource(VirtualResourceContext context) {
+    public VirtualResourceDefinition visitVirtualResourceDefinition(VirtualResourceContext context) {
         VirtualResourceDefinition virtualResourceDefinition = new VirtualResourceDefinition(this, context);
         virtualResourceDefinition.name(context.virtualResourceName().IDENTIFIER().getText());
 
