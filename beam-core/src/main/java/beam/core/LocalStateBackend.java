@@ -16,13 +16,14 @@ public class LocalStateBackend extends StateBackend {
     }
 
     @Override
-    public BeamFile load(BeamFile fileNode, BeamCore core) throws IOException {
+    public BeamFile load(BeamFile fileNode) throws IOException {
         String path = fileNode.path().endsWith(".state") ? fileNode.path() : fileNode.path() + ".state";
 
         BeamFile state;
 
         File stateFile = new File(path);
         if (stateFile.exists() && !stateFile.isDirectory()) {
+            BeamCore core = new BeamCore();
             state = core.parse(path);
         } else {
             state = new BeamFile();

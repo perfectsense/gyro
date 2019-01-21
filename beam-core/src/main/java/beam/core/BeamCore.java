@@ -121,7 +121,7 @@ public class BeamCore {
         if (!path.endsWith(".state")) {
             StateBackend backend = stateListener.getStateBackend();
             try {
-                BeamFile stateNode = backend.load(fileNode, this);
+                BeamFile stateNode = backend.load(fileNode);
                 stateNode.copyNonResourceState(fileNode);
 
                 fileNode.state(stateNode);
@@ -168,7 +168,7 @@ public class BeamCore {
         if (!path.endsWith(".state")) {
             StateBackend backend = fileNode.stateBackend();
             try {
-                BeamFile stateNode = backend.load(fileNode, this);
+                BeamFile stateNode = backend.load(fileNode);
                 stateNode.copyNonResourceState(fileNode);
 
                 fileNode.state(stateNode);
