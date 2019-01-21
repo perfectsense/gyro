@@ -89,9 +89,13 @@ public class ListenerResource extends AwsResource {
      * The Amazon Resource Name(ARN) of the server certificate.
      */
     @ResourceDiffProperty(updatable = true)
-    public String getSslCertificateId() { return sslCertificateId; }
+    public String getSslCertificateId() {
+        return sslCertificateId;
+    }
 
-    public void setSslCertificateId(String sslCertificateId) { this.sslCertificateId = sslCertificateId; }
+    public void setSslCertificateId(String sslCertificateId) {
+        this.sslCertificateId = sslCertificateId;
+    }
 
     public String getLoadBalancer() {
         LoadBalancerResource parent = (LoadBalancerResource) parentResource();
