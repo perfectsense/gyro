@@ -35,6 +35,7 @@ import beam.parser.antlr4.BeamParser.StringValueContext;
 import beam.parser.antlr4.BeamParser.SubresourceBodyContext;
 import beam.parser.antlr4.BeamParser.SubresourceContext;
 import beam.parser.antlr4.BeamParser.ValueContext;
+import beam.parser.antlr4.BeamParser.*;
 import beam.parser.antlr4.BeamParserBaseVisitor;
 import org.apache.commons.lang.StringUtils;
 
@@ -249,6 +250,17 @@ public class BeamVisitor extends BeamParserBaseVisitor {
         ifStmt.parent(parent);
 
         return ifStmt;
+    }
+
+    public VirtualResourceDefinition visitVirtualResource(VirtualResourceContext context) {
+        VirtualResourceDefinition virtualResourceDefinition = new VirtualResourceDefinition(this, context);
+        virtualResourceDefinition.name(context.virtualResourceName().IDENTIFIER().getText());
+
+        for (VirtualResourceParamContext paramContext : context.virtualResourceParam()) {
+            virtualResourceDefinition.parameters().add(paramContext.IDENTIFIER().getText());
+        }
+
+        return virtualResourceDefinition;
     }
 
     public static String parseKey(KeyContext keyContext) {

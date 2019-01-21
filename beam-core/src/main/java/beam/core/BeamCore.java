@@ -10,9 +10,11 @@ import beam.lang.BeamVisitor;
 import beam.lang.Node;
 import beam.lang.Resource;
 import beam.lang.StateBackend;
+import beam.lang.VirtualResourceDefinition;
 import beam.lang.listeners.ErrorListener;
 import beam.lang.listeners.PluginLoadingListener;
 import beam.lang.listeners.StateBackendLoadingListener;
+import beam.lang.listeners.VirtualResourceDefinitionListener;
 import beam.lang.plugins.PluginLoader;
 import beam.parser.antlr4.BeamLexer;
 import beam.parser.antlr4.BeamParser;
@@ -35,6 +37,7 @@ public class BeamCore {
 
     private PluginLoadingListener pluginListener;
     private StateBackendLoadingListener stateListener;
+    private VirtualResourceDefinitionListener virtualResourceDefinitionListener;
 
     private static final ThreadLocalStack<BeamUI> UI = new ThreadLocalStack<>();
 
@@ -62,6 +65,10 @@ public class BeamCore {
         return resourceTypes.get(key);
     }
 
+    public VirtualResourceDefinition getVirtualResource(String name) {
+        return virtualResourceDefinitionListener.virtualResource(name);
+    }
+
     public BeamFile parse(String path) throws IOException {
         // Initial file parse loads state and providers.
         BeamLexer lexer = new BeamLexer(CharStreams.fromFileName(path));
@@ -79,6 +86,9 @@ public class BeamCore {
 
         pluginListener = new PluginLoadingListener(visitor);
         parser.addParseListener(pluginListener);
+
+        virtualResourceDefinitionListener = new VirtualResourceDefinitionListener(visitor);
+        parser.addParseListener(virtualResourceDefinitionListener);
 
         BeamFileContext context = parser.beamFile();
 
@@ -124,6 +134,7 @@ public class BeamCore {
 
         parser.addParseListener(stateListener);
         parser.addParseListener(pluginListener);
+        parser.addParseListener(virtualResourceDefinitionListener);
 
         BeamFileContext context = parser.beamFile();
 
