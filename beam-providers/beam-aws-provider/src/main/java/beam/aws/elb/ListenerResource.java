@@ -20,9 +20,9 @@ import java.util.Set;
  *
  *     listener
  *        instance-port: "443"
- *        instance-protocol: "https"
+ *        instance-protocol: "HTTPS"
  *        load-balancer-port: "443"
- *        protocol: "https"
+ *        protocol: "HTTPS"
  *     end
  */
 
@@ -37,6 +37,9 @@ public class ListenerResource extends AwsResource {
 
     public ListenerResource(){}
 
+    /**
+     * The port on which the instance is listening.
+     */
     @ResourceDiffProperty(updatable = true)
     public Integer getInstancePort() {
         return instancePort;
@@ -46,6 +49,9 @@ public class ListenerResource extends AwsResource {
         this.instancePort = instancePort;
     }
 
+    /**
+     * The protocol to use for routing traffic to instances : HTTP, HTTPS, TCP, SSL.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getInstanceProtocol() {
         return instanceProtocol;
@@ -55,6 +61,9 @@ public class ListenerResource extends AwsResource {
         this.instanceProtocol = instanceProtocol;
     }
 
+    /**
+     * The port on which the load balancer is listening.
+     */
     @ResourceDiffProperty(updatable = true)
     public Integer getLoadBalancerPort() {
         return loadBalancerPort;
@@ -64,6 +73,9 @@ public class ListenerResource extends AwsResource {
         this.loadBalancerPort = loadBalancerPort;
     }
 
+    /**
+     * The load balancer transport protocol to use for routing: HTTP, HTTPS, TCP, or SSL.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getProtocol() {
         return protocol;
@@ -73,6 +85,9 @@ public class ListenerResource extends AwsResource {
         this.protocol = protocol;
     }
 
+    /**
+     * The Amazon Resource Name(ARN) of the server certificate.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getSslCertificateId() { return sslCertificateId; }
 
