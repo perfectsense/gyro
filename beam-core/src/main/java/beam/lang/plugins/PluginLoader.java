@@ -46,6 +46,10 @@ public class PluginLoader {
     private static Map<String, List<Artifact>> ARTIFACTS = new HashMap<>();
     private static Map<String, List<Class<?>>> PLUGIN_CLASS_CACHE = new HashMap<>();
 
+    public static PluginClassLoader classLoader() {
+        return classLoader;
+    }
+
     public void artifact(String artifact) {
         this.artifact = artifact;
     }

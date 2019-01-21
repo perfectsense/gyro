@@ -62,6 +62,18 @@ public class BeamFile extends ResourceContainer {
         return plugins;
     }
 
+    public List<Modification> modifications() {
+        List<Modification> modifications = new ArrayList<>();
+
+        for (Resource resource : resources()) {
+            if (resource instanceof Modification) {
+                modifications.add((Modification) resource);
+            }
+        }
+
+        return modifications;
+    }
+
     public Map<String, BeamFile> imports() {
         return imports;
     }

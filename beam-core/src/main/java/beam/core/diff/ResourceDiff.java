@@ -3,6 +3,7 @@ package beam.core.diff;
 import beam.core.BeamCore;
 import beam.lang.BeamFile;
 import beam.lang.Credentials;
+import beam.lang.Modification;
 import beam.lang.Resource;
 
 import java.util.ArrayList;
@@ -346,7 +347,7 @@ public class ResourceDiff {
         while (iter.hasNext()) {
             Resource resource = iter.next();
 
-            if (resource instanceof Credentials) {
+            if (resource instanceof Credentials || resource instanceof Modification) {
                 iter.remove();
             }
         }
