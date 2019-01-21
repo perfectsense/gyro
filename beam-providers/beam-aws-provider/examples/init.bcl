@@ -10,6 +10,7 @@ end
 
 project: "beam-sandbox"
 account: "psd-beam-sandbox"
+environment: "sandbox"
 
 aws::credentials default
     enterprise-url: "https://beam-enterprise.psdops.com"
