@@ -38,7 +38,7 @@ virtualResourceBody  : keyValue | resource | forStmt | ifStmt;
 controlBody  : controlStmts*;
 controlStmts : keyValue | resource | subresource | forStmt | ifStmt;
 
-forStmt      : FOR forVariables IN listValue controlBody blockEnd;
+forStmt      : FOR forVariables IN (listValue | referenceValue) controlBody blockEnd;
 forVariables : forVariable (COMMA forVariable)*;
 forVariable  : IDENTIFIER;
 

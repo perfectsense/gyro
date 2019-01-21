@@ -2,6 +2,8 @@ package beam.lang;
 
 import beam.core.BeamCore;
 import beam.core.BeamCore.ResourceType;
+import beam.lang.types.ListValue;
+import beam.lang.types.ReferenceValue;
 import beam.lang.types.Value;
 import beam.parser.antlr4.BeamParser;
 import beam.parser.antlr4.BeamParser.ForStmtContext;
@@ -14,6 +16,7 @@ public class ForControl extends Control {
     private List<String> variables;
     private List<Value> listValues;
     private List<Frame> frames;
+    private ReferenceValue listReference;
 
     private ForStmtContext context;
     private BeamVisitor visitor;
@@ -62,6 +65,15 @@ public class ForControl extends Control {
         this.frames = frames;
     }
 
+    public ReferenceValue listReference() {
+        return listReference;
+    }
+
+    public void listReference(ReferenceValue listReference) {
+        listReference.parent(this);
+        this.listReference = listReference;
+    }
+
     public boolean evaluated() {
         return evaluated;
     }
@@ -86,6 +98,16 @@ public class ForControl extends Control {
     public void evaluate() {
         if (evaluated()) {
             return;
+        }
+
+        if (listReference() != null) {
+            listReference().resolve();
+            Value value = listReference().getReferenceValue();
+            if (value instanceof ListValue) {
+                listValues = ((ListValue) value).getValues();
+            } else {
+                throw new BeamLanguageException("Reference is not a list.", listReference());
+            }
         }
 
         // Validate there are enough values to evenly loop over the list.

@@ -227,26 +227,34 @@ public class BeamVisitor extends BeamParserBaseVisitor {
             forNode.variables().add(variableContext.IDENTIFIER().getText());
         }
 
-        for (ListItemValueContext valueContext : context.listValue().listItemValue()) {
-            Value value = null;
+        if (context.listValue() != null) {
+            for (ListItemValueContext valueContext : context.listValue().listItemValue()) {
+                Value value = null;
 
-            if (valueContext.stringValue() != null) {
-                value = parseStringValue(valueContext.stringValue());
-            } else if (valueContext.referenceValue() != null) {
-                value = parseReferenceValue(valueContext.referenceValue());
-            } else if (valueContext.numberValue() != null) {
-                value = new NumberValue(valueContext.numberValue().getText());
-            } else if (valueContext.booleanValue() != null) {
-                value = new BooleanValue(valueContext.booleanValue().getText());
+                if (valueContext.stringValue() != null) {
+                    value = parseStringValue(valueContext.stringValue());
+                } else if (valueContext.referenceValue() != null) {
+                    value = parseReferenceValue(valueContext.referenceValue());
+                } else if (valueContext.numberValue() != null) {
+                    value = new NumberValue(valueContext.numberValue().getText());
+                } else if (valueContext.booleanValue() != null) {
+                    value = new BooleanValue(valueContext.booleanValue().getText());
+                }
+
+                if (value != null) {
+                    value.line(valueContext.getStart().getLine());
+                    value.column(valueContext.getStart().getCharPositionInLine());
+                    value.parent(forNode);
+
+                    forNode.listValues().add(value);
+                }
             }
+        } else if (context.referenceValue() != null) {
+            ReferenceValue value = parseReferenceValue(context.referenceValue());
+            value.line(context.referenceValue().getStart().getLine());
+            value.column(context.referenceValue().getStart().getCharPositionInLine());
 
-            if (value != null) {
-                value.line(valueContext.getStart().getLine());
-                value.column(valueContext.getStart().getCharPositionInLine());
-                value.parent(forNode);
-
-                forNode.listValues().add(value);
-            }
+            forNode.listReference(value);
         }
 
         return forNode;
