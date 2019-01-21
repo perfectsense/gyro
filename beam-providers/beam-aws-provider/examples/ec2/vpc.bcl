@@ -1,17 +1,5 @@
 import ../init as _
 
-plugin
-    artifact: 'beam:beam-sample-plugin:0.5'
-    repositories: ['https://artifactory.psdops.com/public']
-end
-
-sample::tag-modification tags
-    tags: {
-        'beam.project': $(project),
-        'beam.account': $(account)
-    }
-end
-
 aws::vpc vpc
     cidr-block: "10.0.0.0/16"
 
