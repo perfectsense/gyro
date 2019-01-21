@@ -98,6 +98,13 @@ project(":beam-plugins:beam-enterprise-plugin") {
     }
 }
 
+project(":beam-plugins:beam-sample-plugin") {
+    dependencies {
+        compile project(':beam-core')
+        compile project(':beam-providers:beam-aws-provider')
+    }
+}
+
 project(":beam-providers:beam-aws-provider") {
     dependencies {
         compile project(':beam-core')

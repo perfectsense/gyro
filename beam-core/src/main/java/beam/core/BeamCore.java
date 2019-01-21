@@ -7,6 +7,7 @@ import beam.core.diff.ResourceName;
 import beam.lang.BeamFile;
 import beam.lang.BeamLanguageException;
 import beam.lang.BeamVisitor;
+import beam.lang.Modification;
 import beam.lang.Node;
 import beam.lang.Resource;
 import beam.lang.StateBackend;
@@ -22,6 +23,7 @@ import beam.parser.antlr4.BeamParser.BeamFileContext;
 import com.psddev.dari.util.ThreadLocalStack;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.reflections.Reflections;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -38,6 +40,8 @@ public class BeamCore {
     private PluginLoadingListener pluginListener;
     private StateBackendLoadingListener stateListener;
     private VirtualResourceDefinitionListener virtualResourceDefinitionListener;
+    private Reflections reflections;
+    private boolean parsingState;
 
     private static final ThreadLocalStack<BeamUI> UI = new ThreadLocalStack<>();
 
@@ -78,8 +82,22 @@ public class BeamCore {
 
         return ResourceType.UNKNOWN;
     }
+      
+    public Reflections reflections() {
+        return reflections;
+    }
+
+    public boolean parsingState() {
+        return parsingState;
+    }
 
     public BeamFile parse(String path) throws IOException {
+        return parse(path, false);
+    }
+
+    public BeamFile parse(String path, boolean state) throws IOException {
+        parsingState = state;
+
         // Initial file parse loads state and providers.
         BeamLexer lexer = new BeamLexer(CharStreams.fromFileName(path));
         CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -116,6 +134,8 @@ public class BeamCore {
         if (!fileNode.resolve()) {
             System.out.println("Unable to resolve config.");
         }
+
+        executeModifications(fileNode);
 
         // Load state, assuming this isn't a state file itself.
         if (!path.endsWith(".state")) {
@@ -163,6 +183,8 @@ public class BeamCore {
         if (!fileNode.resolve()) {
             System.out.println("Unable to resolve config.");
         }
+
+        executeModifications(fileNode);
 
         // Load state, assuming this isn't a state file itself.
         if (!path.endsWith(".state")) {
@@ -342,6 +364,26 @@ public class BeamCore {
 
             default :
                 BeamCore.ui().write(change.toString());
+        }
+    }
+
+    private void executeModifications(BeamFile beamFile) {
+        if (!parsingState()) {
+            reflections = new Reflections("beam", getClass().getClassLoader(), PluginLoader.classLoader());
+
+            for (Modification modification : beamFile.modifications()) {
+                for (Resource resource : beamFile.resources()) {
+                    Class parent = resource.getClass();
+                    while (parent != java.lang.Object.class) {
+                        if (modification.modifies().contains(parent.getName())) {
+                            modification.modify(resource);
+                            break;
+                        }
+
+                        parent = parent.getSuperclass();
+                    }
+                }
+            }
         }
     }
 
