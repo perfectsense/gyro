@@ -45,6 +45,9 @@ public class LoadBalancerResource extends AwsResource {
     private List<String> securityGroups;
     private List<String> subnets;
 
+    /**
+     * The public DNS name of this load balancer.
+     */
     public String getDnsName() {
         return dnsName;
     }
@@ -53,6 +56,9 @@ public class LoadBalancerResource extends AwsResource {
         this.dnsName = dnsName;
     }
 
+    /**
+     * The HealthCheck subresource for this load balancer.
+     */
     @ResourceDiffProperty(nullable = true, subresource = true)
     public HealthCheckResource getHealthCheck() {
         return healthCheck;
@@ -62,6 +68,9 @@ public class LoadBalancerResource extends AwsResource {
         this.healthCheck = healthCheck;
     }
 
+    /**
+     * The instances to associate with this load balancer. (Required)
+     */
     @ResourceDiffProperty(updatable = true)
     public List<String> getInstances() {
         if (instances == null) {
@@ -75,6 +84,9 @@ public class LoadBalancerResource extends AwsResource {
         this.instances = instances;
     }
 
+    /**
+     * The listeners to associate with this load balancer. (Required)
+     */
     @ResourceDiffProperty(nullable = true, subresource = true)
     public List<ListenerResource> getListener() {
         if (listener == null) {
@@ -88,6 +100,9 @@ public class LoadBalancerResource extends AwsResource {
         this.listener = listener;
     }
 
+    /**
+     * The load balancer name. (Required)
+     */
     public String getLoadBalancerName() {
         return loadBalancerName;
     }
@@ -96,6 +111,9 @@ public class LoadBalancerResource extends AwsResource {
         this.loadBalancerName = loadBalancerName;
     }
 
+    /**
+     * The scheme - either internal or internet-facing. (Required)
+     */
     public String getScheme() {
         return scheme;
     }
@@ -104,6 +122,9 @@ public class LoadBalancerResource extends AwsResource {
         this.scheme = scheme;
     }
 
+    /**
+     * The security groups to associate with this load balancer. (Required)
+     */
     @ResourceDiffProperty(updatable = true)
     public List<String> getSecurityGroups() {
         if (securityGroups == null) {
@@ -117,6 +138,9 @@ public class LoadBalancerResource extends AwsResource {
         this.securityGroups = securityGroups;
     }
 
+    /**
+     * Subnet IDs to associate with this load balancer. (Required)
+     */
     @ResourceDiffProperty(updatable = true)
     public List<String> getSubnets() {
         if (subnets == null) {
