@@ -501,7 +501,7 @@ public class AutoScalingGroupResource extends AwsResource {
     public String toDisplayString() {
         StringBuilder sb = new StringBuilder();
 
-        sb.append("Auto Scaling Group");
+        sb.append("auto scaling group");
 
         if (!ObjectUtils.isBlank(getAutoScalingGroupName())) {
             sb.append(" - ").append(getAutoScalingGroupName());

@@ -379,7 +379,7 @@ public class LaunchTemplateResource extends Ec2TaggableResource<LaunchTemplate> 
         StringBuilder sb = new StringBuilder();
         String launchTemplateId = getLaunchTemplateId();
 
-        sb.append("Launch Template");
+        sb.append("launch template");
 
         if (!ObjectUtils.isBlank(launchTemplateId)) {
             sb.append(" - ").append(launchTemplateId);

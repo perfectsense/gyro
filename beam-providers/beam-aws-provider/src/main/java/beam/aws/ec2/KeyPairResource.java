@@ -145,7 +145,7 @@ public class KeyPairResource extends AwsResource {
     public String toDisplayString() {
         StringBuilder sb = new StringBuilder();
 
-        sb.append("Key Pair");
+        sb.append("key pair");
 
         if (!ObjectUtils.isBlank(getKeyName())) {
             sb.append(" - ").append(getKeyName());

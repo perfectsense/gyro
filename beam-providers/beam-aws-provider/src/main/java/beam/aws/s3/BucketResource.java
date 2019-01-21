@@ -222,7 +222,7 @@ public class BucketResource extends AwsResource {
         if (!getName().isEmpty()) {
             sb.append(getName());
         } else {
-            sb.append("Bucket");
+            sb.append("bucket");
         }
 
         return sb.toString();
