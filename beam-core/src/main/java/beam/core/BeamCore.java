@@ -69,6 +69,16 @@ public class BeamCore {
         return virtualResourceDefinitionListener.virtualResource(name);
     }
 
+    public ResourceType resourceType(String name) {
+        if (getResourceType(name) != null) {
+            return ResourceType.RESOURCE;
+        } else if (getVirtualResource(name) != null) {
+            return ResourceType.VIRTUAL_RESOURCE;
+        }
+
+        return ResourceType.UNKNOWN;
+    }
+
     public BeamFile parse(String path) throws IOException {
         // Initial file parse loads state and providers.
         BeamLexer lexer = new BeamLexer(CharStreams.fromFileName(path));
@@ -333,6 +343,12 @@ public class BeamCore {
             default :
                 BeamCore.ui().write(change.toString());
         }
+    }
+
+    public enum ResourceType {
+        RESOURCE,
+        VIRTUAL_RESOURCE,
+        UNKNOWN
     }
 
 }

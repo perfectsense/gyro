@@ -1,5 +1,7 @@
 package beam.lang;
 
+import beam.core.BeamCore;
+import beam.core.BeamCore.ResourceType;
 import beam.lang.types.Value;
 import beam.parser.antlr4.BeamParser;
 import beam.parser.antlr4.BeamParser.ControlBodyContext;
@@ -9,12 +11,14 @@ import beam.parser.antlr4.BeamParser.OperatorContext;
 
 public class IfControl extends Control {
 
+    private BeamCore core;
     private BeamVisitor visitor;
     private IfStmtContext context;
     private BeamParser.ControlBodyContext bodyContext;
     private boolean evaluated;
 
-    public IfControl(BeamVisitor visitor, IfStmtContext context) {
+    public IfControl(BeamCore core, BeamVisitor visitor, IfStmtContext context) {
+        this.core = core;
         this.visitor = visitor;
         this.context = context;
     }
@@ -55,8 +59,15 @@ public class IfControl extends Control {
                     IfControl ifControl = visitor.visitIfStmt(stmtContext.ifStmt(), frame);
                     frame.putControl(ifControl);
                 } else if (stmtContext.resource() != null) {
-                    Resource resource = visitor.visitResource(stmtContext.resource(), frame);
-                    frame.putResource(resource);
+                    String type = stmtContext.resource().resourceType().getText();
+                    ResourceType resourceType = core.resourceType(type);
+                    if (resourceType == ResourceType.RESOURCE) {
+                        Resource resource = visitor.visitResource(stmtContext.resource(), frame);
+                        frame.putResource(resource);
+                    } else if (resourceType == ResourceType.VIRTUAL_RESOURCE) {
+                        VirtualResourceControl virtualResourceControl = visitor.visitVirtualResource(stmtContext.resource(), frame);
+                        frame.putControl(virtualResourceControl);
+                    }
                 } else if (stmtContext.subresource() != null) {
                     Resource resource = visitor.visitSubresource(stmtContext.subresource(), (Resource) parent);
                     frame.putSubresource(resource);
