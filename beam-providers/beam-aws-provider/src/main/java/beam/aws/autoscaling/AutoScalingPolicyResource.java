@@ -77,7 +77,7 @@ public class AutoScalingPolicyResource extends AwsResource {
         this.metricAggregationType = metricAggregationType;
     }
 
-    @ResourceDiffProperty(updatable = true)
+    @ResourceDiffProperty(updatable = true, nullable = true)
     public Integer getMinAdjustmentMagnitude() {
         return minAdjustmentMagnitude;
     }
