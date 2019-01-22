@@ -1,21 +1,21 @@
-provider aws
-    artifact: 'beam:beam-aws-provider:0.5'
-    repositories: [
-        'http://repo1.maven.org/maven2/',
-        'https://repo.gradle.org/gradle/libs-releases/',
-        'https://artifactory.psdops.com/public'
-    ]
-end
+import init as _
 
-aws::credentials default
-    profile-name: "psd-beam-sandbox"
-    region: "us-east-2"
-end
-
-aws::elastic-ip elastic-ip-example
-    is-standard-domain: true
+aws::elastic-ip elastic-ip-example1
+    is-standard-domain: false
+    network-interface-id : "eni-0be88bd89466e3841"
+    allow-reassociation: true
 
     tags: {
-        Name: "elastic-ip-example-modify"
+        Name: "elastic-ip-example1"
+    }
+end
+
+aws::elastic-ip elastic-ip-example2
+    is-standard-domain: false
+    instance-id : "i-0930fe4cd04f6170a"
+    allow-reassociation: true
+
+    tags: {
+        Name: "elastic-ip-example1"
     }
 end
