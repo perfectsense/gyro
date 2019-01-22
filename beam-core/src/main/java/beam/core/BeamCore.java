@@ -120,6 +120,14 @@ public class BeamCore {
 
         BeamFileContext context = parser.beamFile();
 
+        beam.lang.ast.Node rootNode = beam.lang.ast.Node.create(context);
+        System.out.println(">>> ROOT NODE:\n" + rootNode + "\n\n");
+        beam.lang.ast.Scope rootScope = new beam.lang.ast.Scope(null);
+        rootNode.evaluate(rootScope);
+        for (beam.lang.ast.Resource resource : rootScope.getPendingResources().values()) {
+            System.out.println(">>> PENDING RESOURCE: " + resource + "\n");
+        }
+
         if (errorListener.getSyntaxErrors() > 0) {
             throw new BeamLanguageException(errorListener.getSyntaxErrors() + " errors while parsing.");
         }
