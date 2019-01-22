@@ -14,6 +14,12 @@ public class ForNode extends Node {
     private final List<Node> items;
     private final List<Node> body;
 
+    public ForNode(List<String> variables, List<Node> items, List<Node> body) {
+        this.variables = variables;
+        this.items = items;
+        this.body = body;
+    }
+
     public ForNode(BeamParser.ForStmtContext context) {
         variables = context.forVariables()
                 .forVariable()
