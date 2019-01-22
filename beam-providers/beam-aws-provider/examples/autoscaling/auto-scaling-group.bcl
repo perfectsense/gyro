@@ -136,4 +136,22 @@ aws::auto-scaling-group auto-scaling-group-example
     propagate-at-launch-tags: [
         "AutoTag"
     ]
+
+    scaling-policy
+        policy-name: "Simple-Policy-1"
+        adjustment-type: "ExactCapacity"
+        policy-type: "SimpleScaling"
+        cooldown: 3000
+        scaling-adjustment: 5
+        min-adjustment-magnitude: 3
+    end
+
+    scaling-policy
+        policy-name: "Target-Tracking-Scaling-Policy-1"
+        policy-type: "TargetTrackingScaling"
+        estimated-instance-warmup: 50
+        target-value: 25
+        predefined-metric-type: "ASGAverageNetworkIn"
+        disable-scale-in: false
+    end
 end

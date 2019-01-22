@@ -10,8 +10,10 @@ import com.psddev.dari.util.StringUtils;
 import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
 import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup;
 import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsResponse;
+import software.amazon.awssdk.services.autoscaling.model.DescribePoliciesResponse;
 import software.amazon.awssdk.services.autoscaling.model.EnabledMetric;
 import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateSpecification;
+import software.amazon.awssdk.services.autoscaling.model.ScalingPolicy;
 import software.amazon.awssdk.services.autoscaling.model.Tag;
 import software.amazon.awssdk.services.autoscaling.model.TagDescription;
 import software.amazon.awssdk.services.ec2.model.Ec2Exception;
@@ -81,6 +83,7 @@ public class AutoScalingGroupResource extends AwsResource {
     private String placementGroup;
     private String status;
     private Date createdTime;
+    private List<AutoScalingPolicyResource> scalingPolicy;
 
     private final Set<String> masterMetricSet = new HashSet<>(Arrays.asList(
         "GroupMinSize",
@@ -375,6 +378,18 @@ public class AutoScalingGroupResource extends AwsResource {
         this.createdTime = createdTime;
     }
 
+    @ResourceDiffProperty(nullable = true, subresource = true)
+    public List<AutoScalingPolicyResource> getScalingPolicy() {
+        if (scalingPolicy == null) {
+            scalingPolicy = new ArrayList<>();
+        }
+        return scalingPolicy;
+    }
+
+    public void setScalingPolicy(List<AutoScalingPolicyResource> scalingPolicy) {
+        this.scalingPolicy = scalingPolicy;
+    }
+
     @Override
     public boolean refresh() {
         AutoScalingClient client = createClient(AutoScalingClient.class);
@@ -406,6 +421,17 @@ public class AutoScalingGroupResource extends AwsResource {
         loadMetrics(autoScalingGroup.enabledMetrics());
 
         loadTags(autoScalingGroup.tags());
+
+        getScalingPolicy().clear();
+
+        DescribePoliciesResponse rr = client.describePolicies(r -> r.autoScalingGroupName(getAutoScalingGroupName()));
+
+        for (ScalingPolicy scalingPolicy : rr.scalingPolicies()) {
+            AutoScalingPolicyResource autoScalingPolicyResource = new AutoScalingPolicyResource(scalingPolicy);
+            autoScalingPolicyResource.parent(this);
+            autoScalingPolicyResource.setResourceCredentials(getResourceCredentials());
+            getScalingPolicy().add(autoScalingPolicyResource);
+        }
 
         return true;
     }
