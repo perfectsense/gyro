@@ -25,6 +25,9 @@ public abstract class Node {
         } else if (cc.equals(BeamParser.KeyValueContext.class)) {
             return new KeyValueNode((BeamParser.KeyValueContext) context);
 
+        } else if (cc.equals(BeamParser.ImportStmtContext.class)) {
+            return new ImportNode((BeamParser.ImportStmtContext) context);
+
         } else if (cc.equals(BeamParser.ListValueContext.class)) {
             return new ListNode((BeamParser.ListValueContext) context);
 
