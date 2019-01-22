@@ -97,6 +97,7 @@ public class IfControl extends Control {
     }
 
     private boolean evaluateExpression(ExpressionContext expression) {
+        /*
         if (expression.AND() != null || expression.OR() != null) {
             ExpressionContext left = expression.expression(0);
             ExpressionContext right = expression.expression(1);
@@ -127,6 +128,7 @@ public class IfControl extends Control {
                 return !left.equals(right);
             }
         }
+        */
 
         return false;
     }

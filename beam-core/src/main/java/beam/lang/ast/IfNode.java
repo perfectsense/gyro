@@ -1,0 +1,71 @@
+package beam.lang.ast;
+
+import beam.parser.antlr4.BeamParser;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class IfNode extends Node {
+
+    private final List<Node> expressions;
+    private final List<List<Node>> bodies;
+
+    public IfNode(BeamParser.IfStmtContext context) {
+        expressions = context.expression()
+            .stream()
+            .map(e -> Node.create(e))
+            .collect(Collectors.toList());
+
+        bodies = context.controlBody()
+            .stream()
+            .map(cbc -> cbc.controlStmts()
+                .stream()
+                .map(csc -> Node.create(csc.getChild(0)))
+                .collect(Collectors.toList()))
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public Object evaluate(Scope scope) {
+        for (int i = 0; i < expressions.size(); i++) {
+            Node expression = expressions.get(i);
+            Boolean value = (Boolean) expression.evaluate(scope);
+
+            if (value) {
+                for (Node node : bodies.get(i)) {
+                    node.evaluate(scope);
+                }
+
+                return null;
+            }
+        }
+
+        if (bodies.size() > expressions.size()) {
+            for (Node node : bodies.get(bodies.size() - 1)) {
+                node.evaluate(scope);
+            }
+        }
+
+        return null;
+    }
+
+    @Override
+    public void buildString(StringBuilder builder, int indentDepth) {
+        for (int i = 0; i < expressions.size(); i++) {
+            builder.append(i == 0 ? "if " : "else if ");
+            builder.append(expressions.get(i));
+            buildBody(builder, indentDepth + 1, bodies.get(i));
+            buildNewline(builder, indentDepth);
+        }
+
+        if (bodies.size() > expressions.size()) {
+            buildNewline(builder, indentDepth);
+            builder.append("else");
+            buildBody(builder, indentDepth + 1, bodies.get(bodies.size() - 1));
+        }
+
+        buildNewline(builder, indentDepth);
+        builder.append("end");
+    }
+
+}

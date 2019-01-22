@@ -22,6 +22,24 @@ public abstract class Node {
         } else if (cc.equals(BeamParser.ForStmtContext.class)) {
             return new ForNode((BeamParser.ForStmtContext) context);
 
+        } else if (cc.equals(BeamParser.IfStmtContext.class)) {
+            return new IfNode((BeamParser.IfStmtContext) context);
+
+        } else if (cc.equals(BeamParser.ComparisonExpressionContext.class)) {
+            return new ComparisonNode((BeamParser.ComparisonExpressionContext) context);
+
+        } else if (cc.equals(BeamParser.OrExpressionContext.class)) {
+            return new OrNode((BeamParser.OrExpressionContext) context);
+
+        } else if (cc.equals(BeamParser.AndExpressionContext.class)) {
+            return new AndNode((BeamParser.AndExpressionContext) context);
+
+        } else if (cc.equals(BeamParser.ValueExpressionContext.class)) {
+            return new ValueExpressionNode((BeamParser.ValueExpressionContext) context);
+
+        } else if (cc.equals(BeamParser.ValueContext.class)) {
+            return Node.create(context.getChild(0));
+
         } else if (cc.equals(BeamParser.KeyValueContext.class)) {
             return new KeyValueNode((BeamParser.KeyValueContext) context);
 

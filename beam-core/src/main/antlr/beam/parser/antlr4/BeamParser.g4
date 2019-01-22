@@ -44,11 +44,11 @@ forVariable  : IDENTIFIER;
 
 ifStmt       : IF expression controlBody (ELSEIF expression controlBody)* (ELSE controlBody)? blockEnd;
 
-expression   :
-    | value
-    | expression operator expression
-    | expression OR expression
-    | expression AND expression
+expression
+    : value                          # ValueExpression
+    | expression operator expression # ComparisonExpression
+    | expression OR expression       # OrExpression
+    | expression AND expression      # AndExpression
     ;
 
 operator     : EQ | NOTEQ;
