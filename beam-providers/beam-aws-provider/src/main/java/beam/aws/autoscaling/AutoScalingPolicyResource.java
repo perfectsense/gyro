@@ -241,7 +241,7 @@ public class AutoScalingPolicyResource extends AwsResource {
     public String toDisplayString() {
         StringBuilder sb = new StringBuilder();
 
-        sb.append("Auto Scaling Policy");
+        sb.append("auto scaling policy");
 
         if (!ObjectUtils.isBlank(getPolicyName())) {
             sb.append(" - ").append(getPolicyName());
