@@ -7,6 +7,7 @@ import beam.core.diff.ResourceName;
 import beam.lang.Resource;
 import com.psddev.dari.util.ObjectUtils;
 import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
+import software.amazon.awssdk.services.autoscaling.model.PutScalingPolicyResponse;
 import software.amazon.awssdk.services.autoscaling.model.ScalingPolicy;
 import software.amazon.awssdk.services.autoscaling.model.StepAdjustment;
 
@@ -264,8 +265,10 @@ public class AutoScalingPolicyResource extends AwsResource {
     }
 
     private void savePolicy(AutoScalingClient client) {
+        PutScalingPolicyResponse response = null;
+
         if (getPolicyType().equalsIgnoreCase("SimpleScaling")) {
-            client.putScalingPolicy(
+            response = client.putScalingPolicy(
                 r -> r.policyName(getPolicyName())
                     .autoScalingGroupName(getAutoScalingGroupName())
                     .adjustmentType(getAdjustmentType())
@@ -275,7 +278,7 @@ public class AutoScalingPolicyResource extends AwsResource {
                     .minAdjustmentMagnitude(getMinAdjustmentMagnitude())
             );
         } else if (getPolicyType().equalsIgnoreCase("StepScaling")) {
-            client.putScalingPolicy(
+            response = client.putScalingPolicy(
                 r -> r.policyName(getPolicyName())
                     .autoScalingGroupName(getAutoScalingGroupName())
                     .adjustmentType(getAdjustmentType())
@@ -285,7 +288,7 @@ public class AutoScalingPolicyResource extends AwsResource {
                     .stepAdjustments(stepAdjustment.stream().map(AutoScalingPolicyStepAdjustment::getStepPolicyStep).collect(Collectors.toList()))
             );
         } else if (getPolicyType().equalsIgnoreCase("TargetTrackingScaling")) {
-            client.putScalingPolicy(
+            response = client.putScalingPolicy(
                 r -> r.policyName(getPolicyName())
                     .autoScalingGroupName(getAutoScalingGroupName())
                     .policyType(getPolicyType())
@@ -299,6 +302,10 @@ public class AutoScalingPolicyResource extends AwsResource {
                             .disableScaleIn(getDisableScaleIn())
                     )
             );
+        }
+
+        if (response != null) {
+            setPolicyArn(response.policyARN());
         }
     }
 
