@@ -10,8 +10,8 @@ public class AndNode extends ExpressionNode {
 
     @Override
     public Object evaluate(Scope scope) {
-        Boolean leftValue = (Boolean) getLeftNode().evaluate(scope);
-        Boolean rightValue = (Boolean) getRightNode().evaluate(scope);
+        Boolean leftValue = toBoolean(getLeftNode().evaluate(scope));
+        Boolean rightValue = toBoolean(getRightNode().evaluate(scope));
 
         return leftValue && rightValue;
     }

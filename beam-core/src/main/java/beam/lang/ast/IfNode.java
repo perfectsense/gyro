@@ -29,7 +29,7 @@ public class IfNode extends Node {
     public Object evaluate(Scope scope) {
         for (int i = 0; i < expressions.size(); i++) {
             Node expression = expressions.get(i);
-            Boolean value = (Boolean) expression.evaluate(scope);
+            Boolean value = ExpressionNode.toBoolean(expression.evaluate(scope));
 
             if (value) {
                 for (Node node : bodies.get(i)) {

@@ -30,4 +30,15 @@ public abstract class ExpressionNode extends Node {
     public void setRightNode(Node rightNode) {
         this.rightNode = rightNode;
     }
+
+    public static Boolean toBoolean(Object value) {
+        if (value instanceof Boolean) {
+            return (Boolean) value;
+        } else if (value instanceof Number) {
+            return ((Number) value).intValue() == 1;
+        }
+
+        return false;
+    }
+
 }
