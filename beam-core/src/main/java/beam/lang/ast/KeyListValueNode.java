@@ -10,12 +10,13 @@ public class KeyListValueNode extends Node {
     private final String key;
     private final List<Node> body;
 
-    public KeyListValueNode(String key, List<BeamParser.SubresourceBodyContext> body) {
-        this.key = key;
+    public KeyListValueNode(BeamParser.ResourceContext context) {
+        this.key = context.resourceType().getText();
 
-        this.body = body.stream()
-                .map(c -> Node.create(c.getChild(0)))
-                .collect(Collectors.toList());
+        this.body = context.resourceBody()
+            .stream()
+            .map(c -> Node.create(c.getChild(0)))
+            .collect(Collectors.toList());
     }
 
     @Override

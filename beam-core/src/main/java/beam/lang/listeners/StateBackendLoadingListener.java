@@ -4,7 +4,6 @@ import beam.core.BeamCore;
 import beam.core.LocalStateBackend;
 import beam.lang.BeamVisitor;
 import beam.lang.StateBackend;
-import beam.parser.antlr4.BeamParser.StateContext;
 import beam.parser.antlr4.BeamParserBaseListener;
 
 /**
@@ -25,11 +24,6 @@ public class StateBackendLoadingListener extends BeamParserBaseListener {
 
     public StateBackend getStateBackend() {
         return stateBackend;
-    }
-
-    @Override
-    public void exitState(StateContext context) {
-        stateBackend = visitor.visitState(context);
     }
 
 }

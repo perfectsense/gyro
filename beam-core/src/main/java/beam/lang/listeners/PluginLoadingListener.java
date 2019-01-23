@@ -2,7 +2,6 @@ package beam.lang.listeners;
 
 import beam.lang.BeamVisitor;
 import beam.lang.plugins.PluginLoader;
-import beam.parser.antlr4.BeamParser.PluginContext;
 import beam.parser.antlr4.BeamParserBaseListener;
 
 import java.util.ArrayList;
@@ -24,11 +23,6 @@ public class PluginLoadingListener extends BeamParserBaseListener {
 
     public List<PluginLoader> plugins() {
         return plugins;
-    }
-
-    @Override
-    public void exitPlugin(PluginContext context) {
-        plugins().add(visitor.visitPlugin(context));
     }
 
 }

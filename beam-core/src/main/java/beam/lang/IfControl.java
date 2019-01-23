@@ -1,8 +1,6 @@
 package beam.lang;
 
 import beam.core.BeamCore;
-import beam.core.BeamCore.ResourceType;
-import beam.lang.types.Value;
 import beam.parser.antlr4.BeamParser;
 import beam.parser.antlr4.BeamParser.ControlBodyContext;
 import beam.parser.antlr4.BeamParser.ExpressionContext;
@@ -31,50 +29,6 @@ public class IfControl extends Control {
 
     @Override
     public void evaluate() {
-        if (evaluated()) {
-            return;
-        }
-
-        bodyContext = evaluateExpression(context.expression(0)) ? context.controlBody(0) : null;
-        bodyContext = (bodyContext == null) ? evaluateElseIf() : bodyContext;
-        bodyContext = (bodyContext == null && context.ELSE() != null) ? context.controlBody(context.ELSEIF().size() + 1) : bodyContext;
-
-        if (bodyContext != null) {
-            Container parent = (Container) parent();
-            Frame frame = new Frame();
-            frame.parent(parent);
-            parent.frames().add(frame);
-
-            for (BeamParser.ControlStmtsContext stmtContext : bodyContext.controlStmts()) {
-                if (stmtContext.keyValue() != null) {
-                    String key = visitor.parseKey(stmtContext.keyValue().key());
-                    Value value = visitor.parseValue(stmtContext.keyValue().value());
-
-                    parent.put(key, value);
-                } else if (stmtContext.forStmt() != null) {
-                    ForControl forControl = visitor.visitForStmt(stmtContext.forStmt(), frame);
-                    frame.putControl(forControl);
-                } else if (stmtContext.ifStmt() != null) {
-                    IfControl ifControl = visitor.visitIfStmt(stmtContext.ifStmt(), frame);
-                    frame.putControl(ifControl);
-                } else if (stmtContext.resource() != null) {
-                    String type = stmtContext.resource().resourceType().getText();
-                    ResourceType resourceType = core.resourceType(type);
-                    if (resourceType == ResourceType.RESOURCE) {
-                        Resource resource = visitor.visitResource(stmtContext.resource(), frame);
-                        frame.putResource(resource);
-                    } else if (resourceType == ResourceType.VIRTUAL_RESOURCE) {
-                        VirtualResourceControl virtualResourceControl = visitor.visitVirtualResource(stmtContext.resource(), frame);
-                        frame.putControl(virtualResourceControl);
-                    }
-                } else if (stmtContext.subresource() != null) {
-                    Resource resource = visitor.visitSubresource(stmtContext.subresource(), (Resource) parent);
-                    frame.putSubresource(resource);
-                }
-            }
-        }
-
-        evaluated(true);
     }
 
     private ControlBodyContext evaluateElseIf() {
@@ -96,39 +50,6 @@ public class IfControl extends Control {
     }
 
     private boolean evaluateExpression(ExpressionContext expression) {
-        /*
-        if (expression.AND() != null || expression.OR() != null) {
-            ExpressionContext left = expression.expression(0);
-            ExpressionContext right = expression.expression(1);
-
-            boolean leftResult = evaluateExpression(left);
-            boolean rightResult = evaluateExpression(right);
-
-            return expression.OR() != null ? leftResult || rightResult : leftResult && rightResult;
-        } else if (expression.operator() != null) {
-            ExpressionContext leftExpression = expression.expression(0);
-            ExpressionContext rightExpression = expression.expression(1);
-
-            Value leftValue = visitor.parseValue(leftExpression.value());
-            leftValue.parent(parent());
-            leftValue.resolve();
-
-            Value rightValue = visitor.parseValue(rightExpression.value());
-            rightValue.parent(parent());
-            rightValue.resolve();
-
-            Object left = leftValue.getValue();
-            Object right = rightValue.getValue();
-
-            OperatorContext operatorContext = expression.operator();
-            if (operatorContext.EQ() != null) {
-                return left.equals(right);
-            } else if (operatorContext.NOTEQ() != null) {
-                return !left.equals(right);
-            }
-        }
-        */
-
         return false;
     }
 

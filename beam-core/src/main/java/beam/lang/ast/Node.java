@@ -91,17 +91,6 @@ public abstract class Node {
                     ? new StringExpressionNode(sec)
                     : new StringNode(StringUtils.strip(svc.STRING_LITERAL().getText(), "'"));
 
-        } else if (cc.equals(BeamParser.SubresourceContext.class)) {
-            BeamParser.SubresourceContext sc = (BeamParser.SubresourceContext) context;
-            String type = sc.resourceType().getText();
-
-            if (type.contains("::")) {
-                return new UnknownNode(context);
-
-            } else {
-                return new KeyListValueNode(type, sc.subresourceBody());
-            }
-
         } else if (TerminalNode.class.isAssignableFrom(cc)) {
             return new StringNode(context.getText());
 
