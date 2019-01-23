@@ -62,12 +62,12 @@ public class Scope implements Map<String, Object> {
 
     @SuppressWarnings("unchecked")
     public Map<String, Resource> getCurrentResources() {
-        return (Map<String, Resource>) getTop().computeIfAbsent("currentResource", k -> new LinkedHashMap<>());
+        return (Map<String, Resource>) getTop().computeIfAbsent("_current", k -> new LinkedHashMap<>());
     }
 
     @SuppressWarnings("unchecked")
     public Map<String, Resource> getPendingResources() {
-        return (Map<String, Resource>) getTop().computeIfAbsent("pendingResource", k -> new LinkedHashMap<>());
+        return (Map<String, Resource>) getTop().computeIfAbsent("_pending", k -> new LinkedHashMap<>());
     }
 
     @Override
