@@ -1,16 +1,16 @@
 package beam.lang.ast;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Optional;
-
 import beam.core.BeamException;
 import beam.lang.listeners.ErrorListener;
 import beam.parser.antlr4.BeamLexer;
 import beam.parser.antlr4.BeamParser;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
+
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Optional;
 
 public class ImportNode extends Node {
 

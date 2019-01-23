@@ -20,7 +20,7 @@ public class ComparisonNode extends ExpressionNode {
         Object leftValue = getLeftNode().evaluate(scope);
         Object rightValue = getRightNode().evaluate(scope);
 
-        switch(operator) {
+        switch (operator) {
             case "==" : return leftValue.equals(rightValue);
             case "!=" : return !leftValue.equals(rightValue);
             default   : return false;

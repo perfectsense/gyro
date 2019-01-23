@@ -7,7 +7,6 @@ import beam.parser.antlr4.BeamParser;
 import beam.parser.antlr4.BeamParser.ControlBodyContext;
 import beam.parser.antlr4.BeamParser.ExpressionContext;
 import beam.parser.antlr4.BeamParser.IfStmtContext;
-import beam.parser.antlr4.BeamParser.OperatorContext;
 
 public class IfControl extends Control {
 

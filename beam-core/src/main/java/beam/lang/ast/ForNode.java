@@ -1,12 +1,12 @@
 package beam.lang.ast;
 
+import beam.parser.antlr4.BeamParser;
+import beam.util.CascadingMap;
+
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import beam.parser.antlr4.BeamParser;
-import beam.util.CascadingMap;
 
 public class ForNode extends Node {
 
@@ -49,7 +49,7 @@ public class ForNode extends Node {
             Map<String, Object> values = new LinkedHashMap<>();
             Scope bodyScope = new Scope(scope, new CascadingMap<>(scope, values));
 
-            for (int j = 0; j < variablesSize; j ++) {
+            for (int j = 0; j < variablesSize; j++) {
                 int k = i + j;
 
                 values.put(

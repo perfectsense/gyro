@@ -1,10 +1,10 @@
 package beam.lang.ast;
 
+import beam.parser.antlr4.BeamParser;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import beam.parser.antlr4.BeamParser;
 
 public class RootNode extends Node {
 

@@ -1,12 +1,12 @@
 package beam.lang.ast;
 
-import java.util.List;
-import java.util.Optional;
-
 import beam.parser.antlr4.BeamParser;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.apache.commons.lang.StringUtils;
+
+import java.util.List;
+import java.util.Optional;
 
 public abstract class Node {
 
@@ -117,7 +117,7 @@ public abstract class Node {
     protected void buildNewline(StringBuilder builder, int indentDepth) {
         builder.append('\n');
 
-        for (int i = 0; i < indentDepth; i ++) {
+        for (int i = 0; i < indentDepth; i++) {
             builder.append("    ");
         }
     }
