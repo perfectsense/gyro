@@ -20,6 +20,7 @@ import software.amazon.awssdk.services.ec2.model.Filter;
 import software.amazon.awssdk.services.ec2.model.GroupIdentifier;
 import software.amazon.awssdk.services.ec2.model.Instance;
 import software.amazon.awssdk.services.ec2.model.InstanceAttributeName;
+import software.amazon.awssdk.services.ec2.model.InstanceStateName;
 import software.amazon.awssdk.services.ec2.model.InstanceType;
 import software.amazon.awssdk.services.ec2.model.MonitoringState;
 import software.amazon.awssdk.services.ec2.model.Reservation;
@@ -407,6 +408,10 @@ public class InstanceResource extends Ec2TaggableResource<Instance> implements B
             List<Reservation> reservations = response.reservations();
             for (Reservation reservation : reservations) {
                 List<Instance> instances = reservation.instances();
+                if (instances.isEmpty())  {
+                    return false;
+                }
+
                 for (Instance instance : instances) {
                     setAmiId(instance.imageId());
                     setCoreCount(instance.cpuOptions().coreCount());
@@ -424,6 +429,10 @@ public class InstanceResource extends Ec2TaggableResource<Instance> implements B
                     setPrivateIpAddress(instance.privateIpAddress());
                     setInstanceState(instance.state().nameAsString());
                     setInstanceLaunchDate(Date.from(instance.launchTime()));
+
+                    if (instance.state().name() == InstanceStateName.TERMINATED) {
+                        return false;
+                    }
 
                     break;
                 }
