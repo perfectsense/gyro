@@ -43,7 +43,7 @@ public class CloudWatchMetricAlarmResource extends AwsResource {
     private String treatMissingData;
     private String unit;
     private String arn;
-    //private List<MetricDataQueryResource> metrics;
+    private List<MetricDataQueryResource> metrics;
 
     public String getAlarmName() {
         return alarmName;
@@ -243,7 +243,7 @@ public class CloudWatchMetricAlarmResource extends AwsResource {
     public void setArn(String arn) {
         this.arn = arn;
     }
-/*
+
     @ResourceDiffProperty(updatable = true, nullable = true)
     public List<MetricDataQueryResource> getMetrics() {
         return metrics;
@@ -251,7 +251,7 @@ public class CloudWatchMetricAlarmResource extends AwsResource {
 
     public void setMetrics(List<MetricDataQueryResource> metrics) {
         this.metrics = metrics;
-    }*/
+    }
 
     @Override
     public boolean refresh() {
@@ -286,12 +286,12 @@ public class CloudWatchMetricAlarmResource extends AwsResource {
             getDimensions().put(dimension.name(), dimension.value());
         }
 
-        /*setMetrics(new ArrayList<>());
+        setMetrics(new ArrayList<>());
         for (software.amazon.awssdk.services.cloudwatch.model.MetricDataQuery metricDataQuery : metricAlarm.metrics()) {
             MetricDataQueryResource metricDataQueryResource = new MetricDataQueryResource(metricDataQuery);
             getMetrics().add(metricDataQueryResource);
         }
-*/
+
         return true;
     }
 
@@ -374,10 +374,10 @@ public class CloudWatchMetricAlarmResource extends AwsResource {
                 .dimensions(getDimensions().entrySet().stream().map(m -> Dimension.builder()
                     .name(m.getKey()).value(m.getValue()).build()).collect(Collectors.toList()))
 
-                /*.metrics(getMetrics() != null
+                .metrics(getMetrics() != null
                     ? getMetrics().stream()
                     .map(MetricDataQueryResource::getMetricDataQuery)
-                    .collect(Collectors.toList()) : null)*/
+                    .collect(Collectors.toList()) : null)
         );
     }
 }
