@@ -42,15 +42,19 @@ public class ResourceNode extends Node {
                 .orElse(null);
         }
 
+        Scope bodyScope = new Scope(scope);
+
+        for (Node node : body) {
+            node.evaluate(bodyScope);
+        }
+
         if (n != null) {
-            Scope bodyScope = new Scope(scope);
-
-            for (Node node : body) {
-                node.evaluate(bodyScope);
-            }
-
             scope.getCurrentResources().put(n, new Resource(type, n, null));
             scope.getPendingResources().put(n, new Resource(type, n, bodyScope));
+        } else {
+            if ("plugin".equals(type)) {
+                scope.getPlugins().add(new Resource(type, n, bodyScope));
+            }
         }
 
         return null;
