@@ -615,11 +615,9 @@ public class InstanceResource extends Ec2TaggableResource<Instance> implements B
         StringBuilder sb = new StringBuilder();
         String instanceId = getInstanceId();
 
+        sb.append("instance ");
         if (!ObjectUtils.isBlank(instanceId)) {
             sb.append(instanceId);
-
-        } else {
-            sb.append("instance");
         }
 
         return sb.toString();
