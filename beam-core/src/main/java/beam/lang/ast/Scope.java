@@ -1,7 +1,5 @@
 package beam.lang.ast;
 
-import beam.lang.plugins.PluginLoader;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -75,6 +73,15 @@ public class Scope implements Map<String, Object> {
     @SuppressWarnings("unchecked")
     public List<Resource> getPlugins() {
         return (List<Resource>) getTop().computeIfAbsent("_plugins", k -> new ArrayList<>());
+    }
+
+    @SuppressWarnings("unchecked")
+    public Resource getStateBackend() {
+        return (Resource) getTop().get("_stateBackend");
+    }
+
+    public void setStateBackend(Resource resource) {
+        getTop().put("_stateBackend", resource);
     }
 
     @Override

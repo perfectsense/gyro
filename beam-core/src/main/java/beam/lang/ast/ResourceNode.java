@@ -54,6 +54,8 @@ public class ResourceNode extends Node {
         } else {
             if ("plugin".equals(type)) {
                 scope.getPlugins().add(new Resource(type, n, bodyScope));
+            } else if ("state".equals(type)) {
+                scope.setStateBackend(new Resource(type, n, bodyScope));
             }
         }
 
