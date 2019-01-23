@@ -14,10 +14,14 @@ public class KeyValueNode extends Node {
         value = Node.create(context.value().getChild(0));
     }
 
+    public String getKey() {
+        return key;
+    }
+
     @Override
     public Object evaluate(Scope scope) {
         scope.put(key, value.evaluate(scope));
-        return null;
+        return scope.get(key);
     }
 
     @Override

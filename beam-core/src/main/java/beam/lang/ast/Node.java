@@ -49,6 +49,9 @@ public abstract class Node {
         } else if (cc.equals(BeamParser.ListValueContext.class)) {
             return new ListNode((BeamParser.ListValueContext) context);
 
+        } else if (cc.equals(BeamParser.MapValueContext.class)) {
+            return new MapNode((BeamParser.MapValueContext) context);
+
         } else if (cc.equals(BeamParser.NumberValueContext.class)) {
             return new NumberNode((BeamParser.NumberValueContext) context);
 
