@@ -375,8 +375,12 @@ public class InstanceResource extends Ec2TaggableResource<Instance> implements B
     }
 
     @Override
-    public String getLocation() {
-        return "";
+    public String getName() {
+        if (getTags().isEmpty()) {
+            return resourceIdentifier();
+        }
+
+        return getTags().get("Name");
     }
 
     @Override

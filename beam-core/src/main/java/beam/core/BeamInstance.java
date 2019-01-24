@@ -12,7 +12,7 @@ public interface BeamInstance {
 
     public String getHostname();
 
-    public String getLocation();
+    public String getName();
 
     public String getLaunchDate();
 
