@@ -120,7 +120,8 @@ public class CloudWatchMetricAlarmResource extends AwsResource {
     }
 
     /**
-     * The operation to use when comparing using threshold and statistics. Valid values [ GreaterThanOrEqualToThreshold, GreaterThanThreshold, LessThanThreshold, LessThanOrEqualToThreshold ]
+     * The operation to use when comparing using threshold and statistics.
+     * Valid values [ 'GreaterThanOrEqualToThreshold', 'GreaterThanThreshold', 'LessThanThreshold', 'LessThanOrEqualToThreshold' ]
      */
     @ResourceDiffProperty(updatable = true, nullable = true)
     public String getComparisonOperator() {
@@ -160,7 +161,8 @@ public class CloudWatchMetricAlarmResource extends AwsResource {
     }
 
     /**
-     * This value indicates if less data points are present to evaluate a trigger, what should be done. 'ignore' would ignore the data at that point. Valid values [ evaluate, ignore ].
+     * This value indicates if less data points are present to evaluate a trigger, should it ignore or evaluate.
+     * Setting 'ignore' would ignore the data at that point. Valid values [ 'evaluate', 'ignore' ].
      */
     @ResourceDiffProperty(updatable = true, nullable = true)
     public String getEvaluateLowSampleCountPercentile() {
@@ -213,7 +215,8 @@ public class CloudWatchMetricAlarmResource extends AwsResource {
     }
 
     /**
-     * The name of the metric associated with the alarm. See `AWS Services That Publish CloudWatch Metrics <https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/aws-services-cloudwatch-metrics.html/>`_.
+     * The name of the metric associated with the alarm.
+     * See `AWS Services That Publish CloudWatch Metrics <https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/aws-services-cloudwatch-metrics.html/>`_.
      */
     @ResourceDiffProperty(updatable = true, nullable = true)
     public String getMetricName() {
@@ -265,7 +268,8 @@ public class CloudWatchMetricAlarmResource extends AwsResource {
     }
 
     /**
-     * The namespace associated with the metric specified in 'metric-name' provided. Valid values [ SampleCount, Average, Sum, Minimum, Maximum ].
+     * The namespace associated with the metric specified in 'metric-name' provided.
+     * Valid values [ 'SampleCount', 'Average', 'Sum', 'Minimum', 'Maximum' ].
      */
     @ResourceDiffProperty(updatable = true, nullable = true)
     public String getStatistic() {
@@ -289,7 +293,7 @@ public class CloudWatchMetricAlarmResource extends AwsResource {
     }
 
     /**
-     * How the metric handles missing data. Defaults to 'missing'. Valid values [ breaching, notBreaching, ignore, missing ].
+     * How the metric handles missing data. Defaults to 'missing'. Valid values [ 'breaching', 'notBreaching', 'ignore', 'missing' ].
      */
     @ResourceDiffProperty(updatable = true)
     public String getTreatMissingData() {
