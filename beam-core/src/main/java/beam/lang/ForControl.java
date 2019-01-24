@@ -1,15 +1,33 @@
 package beam.lang;
 
+import beam.core.BeamCore;
+import beam.core.BeamCore.ResourceType;
+import beam.lang.types.ListValue;
+import beam.lang.types.ReferenceValue;
 import beam.lang.types.Value;
+import beam.parser.antlr4.BeamParser;
+import beam.parser.antlr4.BeamParser.ForStmtContext;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ForControl extends ControlStructure {
+public class ForControl extends Control {
 
     private List<String> variables;
     private List<Value> listValues;
-    private boolean resolved;
+    private List<Frame> frames;
+    private ReferenceValue listReference;
+
+    private ForStmtContext context;
+    private BeamVisitor visitor;
+    private BeamCore core;
+    private boolean evaluated;
+
+    public ForControl(BeamCore core, BeamVisitor visitor, ForStmtContext context) {
+        this.core = core;
+        this.visitor = visitor;
+        this.context = context;
+    }
 
     public List<String> variables() {
         if (variables == null) {
@@ -35,28 +53,63 @@ public class ForControl extends ControlStructure {
         this.listValues = listValues;
     }
 
-    @Override
-    public boolean resolve() {
-        if (resolved) {
-            return true;
+    public List<Frame> frames() {
+        if (frames == null) {
+            frames = new ArrayList<>();
         }
 
-        evaluate();
+        return frames;
+    }
 
+    public void frames(List<Frame> frames) {
+        this.frames = frames;
+    }
+
+    public ReferenceValue listReference() {
+        return listReference;
+    }
+
+    public void listReference(ReferenceValue listReference) {
+        listReference.parent(this);
+        this.listReference = listReference;
+    }
+
+    public boolean evaluated() {
+        return evaluated;
+    }
+
+    public void evaluated(boolean evaluated) {
+        this.evaluated = evaluated;
+    }
+
+    @Override
+    public boolean resolve() {
         for (Value value : listValues()) {
-            boolean resolved = value.resolve();
-            if (!resolved) {
+            if (!value.resolve()) {
                 throw new BeamLanguageException("Unable to resolve configuration.", value);
             }
         }
 
-        resolved = true;
+        evaluate();
 
-        return super.resolve();
+        return true;
     }
 
-    @Override
     public void evaluate() {
+        if (evaluated()) {
+            return;
+        }
+
+        if (listReference() != null) {
+            listReference().resolve();
+            Value value = listReference().getReferenceValue();
+            if (value instanceof ListValue) {
+                listValues = ((ListValue) value).getValues();
+            } else {
+                throw new BeamLanguageException("Reference is not a list.", listReference());
+            }
+        }
+
         // Validate there are enough values to evenly loop over the list.
         if (listValues().size() % variables().size() != 0) {
             throw new BeamLanguageException("Not enough values to loop", this);
@@ -64,50 +117,53 @@ public class ForControl extends ControlStructure {
 
         int loops = listValues().size() / variables().size();
 
-        Node parent = parentNode();
+        Container parent = (Container) parent();
         for (int i = 0; i < loops; i++) {
-            Container scope = new Container();
-            scope.parentNode(parent);
+            Frame frame = new Frame();
+            frames().add(frame);
+
+            frame.parent(parent);
+            parent.frames().add(frame);
 
             for (int j = 0; j < variables().size(); j++) {
                 int index = (i * variables().size()) + j;
 
                 String variableName = variables().get(index % variables.size());
                 Value value = listValues().get(index);
-                value.parentNode(scope);
 
-                scope.put(variableName, value);
+                frame.put(variableName, value);
             }
 
-            // Copy resource nodes
-            if (parent instanceof ResourceContainer) {
-                ResourceContainer resourceContainerNode = (ResourceContainer) parent;
+            for (BeamParser.ControlStmtsContext stmtContext : context.controlBody().controlStmts()) {
+                if (stmtContext.keyValue() != null) {
+                    String key = visitor.parseKey(stmtContext.keyValue().key());
+                    Value value = visitor.parseValue(stmtContext.keyValue().value());
 
-                for (Resource resource : resources()) {
-                    Resource copy = resource.copy();
-                    copy.parentNode(scope);
-                    copy.resolve();
-
-                    resourceContainerNode.putResourceKeepParent(copy);
-                }
-            }
-
-            // Copy subresource nodes
-            if (parent instanceof Resource) {
-                Resource resource = (Resource) parent;
-
-                for (String fieldName : subResources().keySet()) {
-                    List<Resource> subresources = subResources().get(fieldName);
-
-                    for (Resource subresource : subresources) {
-                        Resource copy = subresource.copy();
-                        copy.parentNode(scope);
-
-                        resource.putSubresource(fieldName, copy);
+                    frame.put(key, value);
+                } else if (stmtContext.forStmt() != null) {
+                    ForControl forControl = visitor.visitForStmt(stmtContext.forStmt(), frame);
+                    frame.putControl(forControl);
+                } else if (stmtContext.ifStmt() != null) {
+                    IfControl ifControl = visitor.visitIfStmt(stmtContext.ifStmt(), frame);
+                    frame.putControl(ifControl);
+                } else if (stmtContext.resource() != null) {
+                    String type = stmtContext.resource().resourceType().getText();
+                    ResourceType resourceType = core.resourceType(type);
+                    if (resourceType == ResourceType.RESOURCE) {
+                        Resource resource = visitor.visitResource(stmtContext.resource(), frame);
+                        frame.putResource(resource);
+                    } else if (resourceType == ResourceType.VIRTUAL_RESOURCE) {
+                        VirtualResourceControl virtualResourceControl = visitor.visitVirtualResource(stmtContext.resource(), frame);
+                        frame.putControl(virtualResourceControl);
                     }
+                } else if (stmtContext.subresource() != null) {
+                    Resource resource = visitor.visitSubresource(stmtContext.subresource(), (Resource) parent);
+                    frame.putSubresource(resource);
                 }
             }
         }
+
+        evaluated(true);
     }
 
 }

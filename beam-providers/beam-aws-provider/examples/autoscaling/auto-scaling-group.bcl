@@ -1,0 +1,139 @@
+import ../init as _
+
+aws::vpc vpc-auto-scaling-group-example
+    cidr-block: "10.0.0.0/16"
+    provide-ipv6-cidr-block: true
+
+    tags: {
+        Name: "vpc-auto-scaling-group-example"
+         }
+end
+
+aws::subnet subnet-auto-scaling-group-example
+    vpc-id: $(aws::vpc vpc-auto-scaling-group-example | vpc-id)
+    availability-zone: "us-east-2a"
+    cidr-block: "10.0.1.0/26"
+
+    tags: {
+        Name: "subnet-auto-scaling-group-example"
+    }
+end
+
+aws::subnet subnet-auto-scaling-group-example-2
+    vpc-id: $(aws::vpc vpc-auto-scaling-group-example | vpc-id)
+    availability-zone: "us-east-2a"
+    cidr-block: "10.0.2.0/26"
+
+    tags: {
+        Name: "subnet-auto-scaling-group-example-2"
+    }
+end
+
+aws::security-group security-group-auto-scaling-group-example-1
+    group-name: "security-group-auto-scaling-group-example-1"
+    vpc-id: $(aws::vpc vpc-auto-scaling-group-example | vpc-id)
+    description: "security group instance example 1"
+    keep-default-egress-rules: true
+
+    ingress
+        description: "allow inbound http traffic, ipv4 only"
+        cidr-blocks: ["0.0.0.0/0"]
+        protocol: "TCP"
+        from-port: 22
+        to-port: 22
+    end
+
+    egress
+        description: "allow outbound http traffic, ipv6 only"
+        ipv6-cidr-blocks: ["::/0"]
+        protocol: "TCP"
+        from-port: 22
+        to-port: 22
+    end
+
+    tags: {
+        Name: "security-group-auto-scaling-group-example-1"
+    }
+end
+
+aws::security-group security-group-auto-scaling-group-example-2
+    group-name: "security-group-auto-scaling-group-example-2"
+    vpc-id: $(aws::vpc vpc-auto-scaling-group-example | vpc-id)
+    description: "security group instance example 2"
+    keep-default-egress-rules: true
+
+    ingress
+        description: "allow inbound http traffic, ipv4 only"
+        cidr-blocks: ["0.0.0.0/0"]
+        protocol: "TCP"
+        from-port: 22
+        to-port: 22
+    end
+
+    egress
+        description: "allow outbound http traffic, ipv6 only"
+        ipv6-cidr-blocks: ["::/0"]
+        protocol: "TCP"
+        from-port: 22
+        to-port: 22
+    end
+
+    tags: {
+        Name: "security-group-auto-scaling-group-example-2"
+    }
+end
+
+aws::instance instance-auto-scaling-group-example
+    ami-name: "amzn-ami-hvm-2018.03.0.20181129-x86_64-gp2"
+    shutdown-behavior: "STOP"
+    instance-type: "t2.micro"
+    key-name: "instance-static"
+    subnet-id: $(aws::subnet subnet-auto-scaling-group-example | subnet-id)
+    security-group-ids: [
+        $(aws::security-group security-group-auto-scaling-group-example-1 | group-id),
+        $(aws::security-group security-group-auto-scaling-group-example-2 | group-id)
+    ]
+    disable-api-termination: false
+    enable-ena-support: true
+    ebs-optimized: false
+    source-dest-check: true
+
+    tags: {
+        Name: "instance-auto-scaling-group-example"
+    }
+end
+
+aws::launch-template launch-template-auto-scaling-group-example
+    launch-template-name: "launch-template-beam-1"
+    instance-id: $(aws::instance instance-auto-scaling-group-example | instance-id)
+
+    tags: {
+        Name: "launch-template-auto-scaling-group-example"
+    }
+end
+
+aws::launch-configuration launch-configuration-auto-scaling-group-example
+    launch-configuration-name: "launch-configuration-beam-1"
+    instance-id: $(aws::instance instance-auto-scaling-group-example | instance-id)
+end
+
+aws::auto-scaling-group auto-scaling-group-example
+    auto-scaling-group-name: "auto-scaling-group-beam-1"
+    #launch-template-id: $(aws::launch-template launch-template-auto-scaling-group-example | launch-template-id)
+    launch-configuration-name: $(aws::launch-configuration launch-configuration-auto-scaling-group-example | launch-configuration-name)
+    availability-zones: [
+        $(aws::subnet subnet-auto-scaling-group-example | availability-zone)
+    ]
+    subnet-ids: [
+        $(aws::subnet subnet-auto-scaling-group-example | subnet-id),
+        $(aws::subnet subnet-auto-scaling-group-example-2 | subnet-id)
+    ]
+    enable-metrics-collection: false
+    tags: {
+        Name: "auto-scaling-group-example",
+        AutoTag: "propagated from auto-scaling-group-beam-1"
+    }
+    propagate-at-launch-tags: [
+        "AutoTag"
+    ]
+end

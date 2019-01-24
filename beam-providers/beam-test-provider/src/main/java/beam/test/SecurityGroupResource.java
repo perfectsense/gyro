@@ -5,6 +5,7 @@ import beam.core.diff.ResourceName;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @ResourceName("security-group")
 public class SecurityGroupResource extends FakeResource {
@@ -115,6 +116,12 @@ public class SecurityGroupResource extends FakeResource {
 
     public void setOwnerId(String ownerId) {
         this.ownerId = ownerId;
+    }
+
+    @Override
+    public void create() {
+        setGroupId("sg-" + UUID.randomUUID().toString().replace("-", "").substring(16));
+        setOwnerId("owner-4a4f49a0b9fe");
     }
 
     @Override

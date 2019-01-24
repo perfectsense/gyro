@@ -5,7 +5,7 @@ import org.apache.commons.lang.StringUtils;
 
 public abstract class Node {
 
-    private transient Node parentNode;
+    private transient Node parent;
     private transient int line;
     private transient int column;
     private BeamCore core;
@@ -15,12 +15,12 @@ public abstract class Node {
 
     public abstract String serialize(int indent);
 
-    public Node parentNode() {
-        return parentNode;
+    public Node parent() {
+        return parent;
     }
 
-    public void parentNode(Node parentNode) {
-        this.parentNode = parentNode;
+    public void parent(Node parent) {
+        this.parent = parent;
     }
 
     public int line() {
@@ -49,10 +49,10 @@ public abstract class Node {
 
     public BeamFile fileNode() {
         if (fileNode == null) {
-            Node parent = parentNode();
+            Node parent = parent();
 
             while (parent != null && !(parent instanceof BeamFile)) {
-                parent = parent.parentNode();
+                parent = parent.parent();
             }
 
             if (parent instanceof BeamFile) {

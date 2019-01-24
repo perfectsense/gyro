@@ -65,6 +65,11 @@ public class AwsCredentials extends Credentials {
 
     @Override
     public Map<String, String> findCredentials(boolean refresh) {
+        return findCredentials(refresh, true);
+    }
+
+    @Override
+    public Map<String, String> findCredentials(boolean refresh, boolean extended) {
         ImmutableMap.Builder<String, String> mapBuilder = new ImmutableMap.Builder<>();
         software.amazon.awssdk.auth.credentials.AwsCredentials creds;
 
@@ -82,11 +87,6 @@ public class AwsCredentials extends Credentials {
         mapBuilder.put("expiration", Long.toString(expiration));
 
         return mapBuilder.build();
-    }
-
-    @Override
-    public Map<String, String> findCredentials(boolean refresh, boolean extended) {
-        return findCredentials(refresh);
     }
 
 }

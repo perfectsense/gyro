@@ -22,28 +22,28 @@ public class ReferenceValue extends Value {
     private Container referencedBlock;
     private Value value;
 
-    public ReferenceValue(BeamParser.Reference_bodyContext context) {
+    public ReferenceValue(BeamParser.ReferenceBodyContext context) {
         // $(reference_type reference_name | reference_attribute)
-        if (context.reference_type() != null) {
-            this.type = context.reference_type().getText();
+        if (context.referenceType() != null) {
+            this.type = context.referenceType().getText();
         }
 
-        if (context.reference_name() != null) {
-            if (context.reference_name().string_expression() != null) {
-                this.nameExpression = BeamVisitor.parseStringExpressionValue(context.reference_name().string_expression());
-                this.nameExpression.parentNode(this);
+        if (context.referenceName() != null) {
+            if (context.referenceName().stringExpression() != null) {
+                this.nameExpression = BeamVisitor.parseStringExpressionValue(context.referenceName().stringExpression());
+                this.nameExpression.parent(this);
             } else {
-                this.name = context.reference_name().getText();
+                this.name = context.referenceName().getText();
             }
         }
 
-        if (context.reference_attribute() != null) {
-            this.attribute = context.reference_attribute().getText();
+        if (context.referenceAttribute() != null) {
+            this.attribute = context.referenceAttribute().getText();
         }
 
         // $(reference_name)
-        if (context.reference_type() != null && context.reference_name() == null) {
-            this.name = context.reference_type().getText();
+        if (context.referenceType() != null && context.referenceName() == null) {
+            this.name = context.referenceType().getText();
             this.type = null;
         }
     }
@@ -86,7 +86,7 @@ public class ReferenceValue extends Value {
         return attribute;
     }
 
-    public Container getReferencedBlock() {
+    public Container getReferencedContainer() {
         return referencedBlock;
     }
 
@@ -100,10 +100,10 @@ public class ReferenceValue extends Value {
 
     @Override
     public Object getValue() {
-        if (getReferencedBlock() != null && getAttribute() == null) {
-            return getReferencedBlock();
-        } else if (getReferencedBlock() != null && getAttribute() != null) {
-            return getReferencedBlock().resolvedKeyValues().get(getAttribute());
+        if (getReferencedContainer() != null && getAttribute() == null) {
+            return getReferencedContainer();
+        } else if (getReferencedContainer() != null && getAttribute() != null) {
+            return getReferencedContainer().resolvedKeyValues().get(getAttribute());
         }
 
         if (getReferenceValue() != null) {
@@ -115,15 +115,15 @@ public class ReferenceValue extends Value {
 
     @Override
     public Value copy() {
-        ReferenceValue referenceNode = new ReferenceValue(getType(), getName(), getAttribute());
-        referenceNode.nameExpression = nameExpression != null ? nameExpression.copy() : null;
-        referenceNode.referencedBlock = referencedBlock;
+        ReferenceValue reference = new ReferenceValue(getType(), getName(), getAttribute());
+        reference.nameExpression = nameExpression != null ? nameExpression.copy() : null;
+        reference.referencedBlock = referencedBlock;
 
-        return referenceNode;
+        return reference;
     }
 
-    public Resource getParentResourceNode() {
-        Node parent = parentNode();
+    public Resource getParentResource() {
+        Node parent = parent();
 
         // Traverse up
         while (parent != null) {
@@ -135,7 +135,7 @@ public class ReferenceValue extends Value {
                 }
             }
 
-            parent = parent.parentNode();
+            parent = parent.parent();
         }
 
         return null;
@@ -143,7 +143,7 @@ public class ReferenceValue extends Value {
 
     @Override
     public boolean resolve() {
-        Node parent = parentNode();
+        Node parent = parent();
 
         if (nameExpression != null) {
             nameExpression.resolve();
@@ -157,23 +157,23 @@ public class ReferenceValue extends Value {
                 // Look for key/value pairs.
                 if (isSimpleValue()) {
                     value = container.get(name);
-                    if (value != null) {
+                    if (value != null && (value != this)) {
                         return true;
                     }
                 }
             }
 
             if (parent instanceof BeamFile) {
-                BeamFile containerNode = (BeamFile) parent;
+                BeamFile container = (BeamFile) parent;
                 String name = getName();
 
                 // Resolve scopes
                 if (getScopes().size() > 1) {
                     name = "";
                     for (String key : getScopes()) {
-                        BeamFile scope = containerNode.importFile(key);
+                        BeamFile scope = container.importFile(key);
                         if (scope != null) {
-                            containerNode = scope;
+                            container = scope;
                         } else {
                             name += key;
                         }
@@ -181,11 +181,11 @@ public class ReferenceValue extends Value {
                 }
 
                 // Look for resources.
-                referencedBlock = containerNode.resource(getType(), name);
+                referencedBlock = container.resource(getType(), name);
 
                 // Only ResourceBlocks have a dependency chain.
-                if (referencedBlock != null  && getParentResourceNode() != null) {
-                    Resource parentRef = getParentResourceNode();
+                if (referencedBlock != null  && getParentResource() != null) {
+                    Resource parentRef = getParentResource();
                     Resource resourceRef = (Resource) referencedBlock;
 
                     if (parentRef != resourceRef) {
@@ -198,14 +198,14 @@ public class ReferenceValue extends Value {
 
                 // Look for key/value pairs.
                 if (isSimpleValue()) {
-                    value = containerNode.get(name);
+                    value = container.get(name);
                     if (value != null) {
                         return true;
                     }
                 }
             }
 
-            parent = parent.parentNode();
+            parent = parent.parent();
         }
 
         throw new BeamLanguageException("Unable to resolve reference.", this);

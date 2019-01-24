@@ -1,0 +1,13 @@
+
+plugins {
+    id 'maven-publish'
+    id 'java'
+}
+
+sourceCompatibility = 1.8
+
+defaultTasks 'build'
+
+dependencies {
+    compile "beam:beam-aws-provider:${version}"
+}

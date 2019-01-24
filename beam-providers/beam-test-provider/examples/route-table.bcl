@@ -1,4 +1,4 @@
-provider test
+plugin
     artifact: 'beam:beam-test-provider:0.5'
     repositories: [
         'http://repo1.maven.org/maven2/',
@@ -20,20 +20,12 @@ test::subnet subnet-public-us-east-2a
     network-id: $(test::network network-example | network-id)
     cidr-block: "10.0.0.0/26"
     availability-zone: "us-east-2a"
-
-    tags: {
-        Name: "subnet-public-us-east-2a"
-    }
 end
 
 test::subnet subnet-public-us-east-2b
     network-id: $(test::network network-example | network-id)
     cidr-block: "10.0.1.0/26"
     availability-zone: "us-east-2b"
-
-    tags: {
-        Name: "subnet-public-us-east-2b"
-    }
 end
 
 test::subnet subnet-public-us-east-2c
@@ -49,14 +41,5 @@ test::route-table route-table-example
         $(test::subnet subnet-public-us-east-2b | subnet-id),
         $(test::subnet subnet-public-us-east-2c | subnet-id)
     ]
-
-    tags: {
-        Name: "route-table-example"
-    }
 end
 
-test::route route-example
-    route-table-id: $(test::route-table route-table-example | route-table-id)
-    destination-cidr-block: "0.0.0.0/0"
-    gateway-id: $(test::internet-gateway ig-example | internet-gateway-id)
-end

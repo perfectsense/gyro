@@ -1,16 +1,4 @@
-provider test
-    artifact: 'beam:beam-test-provider:0.5'
-    repositories: [
-        'http://repo1.maven.org/maven2/',
-        'https://repo.gradle.org/gradle/libs-releases/',
-        'https://artifactory.psdops.com/public'
-    ]
-end
-
-test::credentials default
-    profile-name: "psd-beam-sandbox"
-    region: "us-east-2"
-end
+import ../init as _
 
 test::network network
     cidr-block: "10.0.0.0/16"
@@ -21,5 +9,21 @@ for zone, cidr in ['us-east-2a', '10.0.0.0/24', 'us-east-2b', '10.0.1.0/24']
         network-id: $(test::network network | network-id)
         availability-zone: $(zone)
         cidr-block: $(cidr)
+    end
+
+    test::security-group "security-group-$(zone)"
+        group-name: "$(project) $(environment) $(zone)"
+        network-id: $(test::network network | network-id)
+        description: "Allow web traffic only"
+
+        for port, type in [80, 'http', 443, 'https']
+            ingress
+                description: "allow inbound $(type) traffic"
+                cidr-blocks: ["0.0.0.0/0"]
+                protocol: "TCP"
+                from-port: $(port)
+                to-port: $(port)
+            end
+        end
     end
 end

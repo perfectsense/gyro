@@ -1,7 +1,5 @@
 package beam.lang;
 
-import beam.lang.Resource;
-
 import java.util.Map;
 import java.util.Set;
 

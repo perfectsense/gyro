@@ -1,0 +1,21 @@
+plugin
+    artifact: 'beam:beam-aws-provider:0.5'
+    repositories: ['https://artifactory.psdops.com/public']
+end
+
+plugin
+    artifact: 'beam:beam-enterprise-plugin:0.5'
+    repositories: ['https://artifactory.psdops.com/public']
+end
+
+project: "beam-sandbox"
+account: "psd-beam-sandbox"
+environment: "sandbox"
+
+aws::credentials default
+    enterprise-url: "https://beam-enterprise.psdops.com"
+    project: $(project)
+    account: $(account)
+
+    region: "us-east-2"
+end

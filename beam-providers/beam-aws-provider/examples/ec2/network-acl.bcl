@@ -1,16 +1,4 @@
-provider aws
-    artifact: 'beam:beam-aws-provider:0.5'
-    repositories: [
-        'http://repo1.maven.org/maven2/',
-        'https://repo.gradle.org/gradle/libs-releases/',
-        'https://artifactory.psdops.com/public'
-    ]
-end
-
-aws::credentials default
-    profile-name: "psd-beam-sandbox"
-    region: "us-east-2"
-end
+import ../init as _
 
 aws::vpc vpc-example-for-network-acl
     cidr-block: "10.0.0.0/16"

@@ -16,14 +16,15 @@ public class LocalStateBackend extends StateBackend {
     }
 
     @Override
-    public BeamFile load(BeamFile fileNode, BeamCore core) throws IOException {
+    public BeamFile load(BeamFile fileNode) throws IOException {
         String path = fileNode.path().endsWith(".state") ? fileNode.path() : fileNode.path() + ".state";
 
         BeamFile state;
 
         File stateFile = new File(path);
         if (stateFile.exists() && !stateFile.isDirectory()) {
-            state = core.parse(path);
+            BeamCore core = new BeamCore();
+            state = core.parse(path, true);
         } else {
             state = new BeamFile();
             state.path(path);
@@ -38,9 +39,14 @@ public class LocalStateBackend extends StateBackend {
         try {
             String path = fileNode.path().endsWith(".state") ? fileNode.path() : fileNode.path() + ".state";
 
-            BufferedWriter out = new BufferedWriter(new FileWriter(path));
+            File temp = File.createTempFile("local-state",".bcl");
+
+            BufferedWriter out = new BufferedWriter(new FileWriter(temp));
             out.write(fileNode.serialize(0));
             out.close();
+
+            File stateFile = new File(path);
+            temp.renameTo(stateFile);
         } catch (IOException e) {
             e.printStackTrace();
         }

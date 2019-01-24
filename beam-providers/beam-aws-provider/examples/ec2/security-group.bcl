@@ -1,4 +1,4 @@
-import init as _
+import ../init as _
 
 aws::vpc vpc-security-group-example
     cidr-block: "10.0.0.0/16"

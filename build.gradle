@@ -4,9 +4,6 @@ buildscript {
             url "https://plugins.gradle.org/m2/"
         }
     }
-    dependencies {
-        classpath "gradle.plugin.aspectj:gradle-aspectj:0.1.6"
-    }
 }
 
 plugins {
@@ -18,11 +15,6 @@ defaultTasks 'build', 'checkstyle', 'publish', 'publishToMavenLocal', 'distDir',
 allprojects {
     version = '0.5'
 }
-
-ext {
-    aspectjVersion = '1.9.0'
-}
-
 
 subprojects {
     apply plugin: "idea"
@@ -85,7 +77,6 @@ subprojects {
 }
 
 project(":beam-cli") {
-
     dependencies {
         compile project(':beam-core')
     }
@@ -95,7 +86,32 @@ project(":beam-cli") {
     }
 }
 
+project(":beam-plugins:beam-ssh-plugin") {
+    dependencies {
+        compile project(':beam-core')
+    }
+}
+
+project(":beam-plugins:beam-enterprise-plugin") {
+    dependencies {
+        compile project(':beam-providers:beam-aws-provider')
+    }
+}
+
+project(":beam-plugins:beam-sample-plugin") {
+    dependencies {
+        compile project(':beam-core')
+        compile project(':beam-providers:beam-aws-provider')
+    }
+}
+
 project(":beam-providers:beam-aws-provider") {
+    dependencies {
+        compile project(':beam-core')
+    }
+}
+
+project(":beam-providers:beam-test-provider") {
     dependencies {
         compile project(':beam-core')
     }

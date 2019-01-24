@@ -1,12 +1,15 @@
 package beam.lang;
 
 import beam.core.LocalStateBackend;
+import beam.lang.plugins.PluginLoader;
 import beam.lang.types.Value;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -15,7 +18,7 @@ public class BeamFile extends ResourceContainer {
     private transient String path;
     private transient BeamFile state;
     private StateBackend stateBackend;
-    private Set<Provider> providers;
+    private Set<PluginLoader> plugins;
 
     transient Map<String, BeamFile> imports = new HashMap<>();
 
@@ -51,12 +54,24 @@ public class BeamFile extends ResourceContainer {
         this.stateBackend = stateBackend;
     }
 
-    public Set<Provider> providers() {
-        if (providers == null) {
-            providers = new HashSet<>();
+    public Set<PluginLoader> plugins() {
+        if (plugins == null) {
+            plugins = new HashSet<>();
         }
 
-        return providers;
+        return plugins;
+    }
+
+    public List<Modification> modifications() {
+        List<Modification> modifications = new ArrayList<>();
+
+        for (Resource resource : resources()) {
+            if (resource instanceof Modification) {
+                modifications.add((Modification) resource);
+            }
+        }
+
+        return modifications;
     }
 
     public Map<String, BeamFile> imports() {
@@ -64,7 +79,7 @@ public class BeamFile extends ResourceContainer {
     }
 
     public void putImport(String key, BeamFile fileNode) {
-        fileNode.parentNode(this);
+        fileNode.parent(this);
 
         imports.put(key, fileNode);
     }
@@ -75,9 +90,26 @@ public class BeamFile extends ResourceContainer {
 
     public String importPath(String currentPath) {
         Path importPath = new File(path).toPath();
-        Path otherPath  = new File(currentPath).getParentFile().toPath();
+        File parentFile = new File(currentPath).getParentFile();
+        Path otherPath = parentFile == null ? new File(".").toPath() : parentFile.toPath();
 
         return otherPath.relativize(importPath).toString().replace(".bcl", "");
+    }
+
+    public List<Credentials> credentials() {
+        List<Credentials> credentials = new ArrayList<>();
+
+        for (Resource resource : resources()) {
+            if (resource instanceof Credentials) {
+                credentials.add((Credentials) resource);
+            }
+        }
+
+        for (BeamFile importFile : imports().values()) {
+            credentials.addAll(importFile.credentials());
+        }
+
+        return credentials;
     }
 
     @Override
@@ -100,7 +132,7 @@ public class BeamFile extends ResourceContainer {
             BeamFile fileNode = (BeamFile) source;
 
             imports().putAll(fileNode.imports());
-            providers().addAll(fileNode.providers());
+            plugins().addAll(fileNode.plugins());
             stateBackend(fileNode.stateBackend());
         }
     }
@@ -151,8 +183,8 @@ public class BeamFile extends ResourceContainer {
             sb.append("\n");
         }
 
-        for (Provider provider : providers()) {
-            sb.append(provider);
+        for (PluginLoader pluginLoader : plugins()) {
+            sb.append(pluginLoader);
         }
 
         sb.append("\n");

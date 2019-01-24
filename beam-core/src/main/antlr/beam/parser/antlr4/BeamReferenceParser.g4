@@ -2,24 +2,24 @@ parser grammar BeamReferenceParser;
 
 options { tokenVocab = BeamLexer; }
 
-reference_value
-    : DOLLAR LPAREN reference_body RPAREN
+referenceValue
+    : DOLLAR LPAREN referenceBody RPAREN
     ;
 
-reference_body
-    : (reference_type reference_name?) | (reference_type reference_name PIPE reference_attribute)
+referenceBody
+    : (referenceType referenceName?) | (referenceType referenceName PIPE referenceAttribute)
     ;
 
-reference_type : IDENTIFIER (DOT IDENTIFIER)* ;
-reference_name : (string_expression | IDENTIFIER (DOT IDENTIFIER)*) ;
-reference_attribute : IDENTIFIER (DOT IDENTIFIER)*;
+referenceType : IDENTIFIER (DOT IDENTIFIER)* ;
+referenceName : (stringExpression | IDENTIFIER (DOT IDENTIFIER)*) ;
+referenceAttribute : IDENTIFIER (DOT IDENTIFIER)*;
 
-string_expression
-    : QUOTE string_contents* QUOTE
+stringExpression
+    : QUOTE stringContents* QUOTE
     ;
 
-string_contents
-    : reference_body
+stringContents
+    : referenceBody
     | DOLLAR
     | LPAREN | RPAREN
     | TEXT
