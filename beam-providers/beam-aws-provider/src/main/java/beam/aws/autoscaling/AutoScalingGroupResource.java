@@ -12,10 +12,12 @@ import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup;
 import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsResponse;
 import software.amazon.awssdk.services.autoscaling.model.DescribeLifecycleHooksResponse;
 import software.amazon.awssdk.services.autoscaling.model.DescribePoliciesResponse;
+import software.amazon.awssdk.services.autoscaling.model.DescribeScheduledActionsResponse;
 import software.amazon.awssdk.services.autoscaling.model.EnabledMetric;
 import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateSpecification;
 import software.amazon.awssdk.services.autoscaling.model.LifecycleHook;
 import software.amazon.awssdk.services.autoscaling.model.ScalingPolicy;
+import software.amazon.awssdk.services.autoscaling.model.ScheduledUpdateGroupAction;
 import software.amazon.awssdk.services.autoscaling.model.Tag;
 import software.amazon.awssdk.services.autoscaling.model.TagDescription;
 import software.amazon.awssdk.services.ec2.model.Ec2Exception;
@@ -103,6 +105,7 @@ public class AutoScalingGroupResource extends AwsResource {
     private Date createdTime;
     private List<AutoScalingPolicyResource> scalingPolicy;
     private List<AutoScalingGroupLifecycleHookResource> lifecycleHook;
+    private List<AutoScalingGroupScheduledActionResource> scheduledAction;
 
     private final Set<String> masterMetricSet = new HashSet<>(Arrays.asList(
         "GroupMinSize",
@@ -423,6 +426,19 @@ public class AutoScalingGroupResource extends AwsResource {
         this.lifecycleHook = lifecycleHook;
     }
 
+    @ResourceDiffProperty(nullable = true, subresource = true)
+    public List<AutoScalingGroupScheduledActionResource> getScheduledAction() {
+        if (scheduledAction == null) {
+            scheduledAction = new ArrayList<>();
+        }
+
+        return scheduledAction;
+    }
+
+    public void setScheduledAction(List<AutoScalingGroupScheduledActionResource> scheduledAction) {
+        this.scheduledAction = scheduledAction;
+    }
+
     @Override
     public boolean refresh() {
         AutoScalingClient client = createClient(AutoScalingClient.class);
@@ -458,6 +474,8 @@ public class AutoScalingGroupResource extends AwsResource {
         loadScalingPolicy(client);
 
         loadLifecycleHook(client);
+
+        loadScheduledAction(client);
 
         return true;
     }
@@ -740,6 +758,21 @@ public class AutoScalingGroupResource extends AwsResource {
             lifecycleHookResource.parent(this);
             lifecycleHookResource.setResourceCredentials(getResourceCredentials());
             getLifecycleHook().add(lifecycleHookResource);
+        }
+    }
+
+    private void loadScheduledAction(AutoScalingClient client) {
+        getScheduledAction().clear();
+
+        DescribeScheduledActionsResponse scheduledActionsResponse = client.describeScheduledActions(
+            r -> r.autoScalingGroupName(getAutoScalingGroupName())
+        );
+
+        for (ScheduledUpdateGroupAction scheduledUpdateGroupAction : scheduledActionsResponse.scheduledUpdateGroupActions()) {
+            AutoScalingGroupScheduledActionResource scheduledActionResource = new AutoScalingGroupScheduledActionResource(scheduledUpdateGroupAction);
+            scheduledActionResource.parent(this);
+            scheduledActionResource.setResourceCredentials(getResourceCredentials());
+            getScheduledAction().add(scheduledActionResource);
         }
     }
 }
