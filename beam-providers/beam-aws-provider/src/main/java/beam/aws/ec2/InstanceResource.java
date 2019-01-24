@@ -686,6 +686,12 @@ public class InstanceResource extends Ec2TaggableResource<Instance> implements B
                         if ("running".equals(instance.state().nameAsString())) {
                             running = true;
                         }
+
+                        setPublicDnsName(instance.publicDnsName());
+                        setPublicIpAddress(instance.publicIpAddress());
+                        setPrivateIpAddress(instance.privateIpAddress());
+                        setInstanceState(instance.state().nameAsString());
+                        setInstanceLaunchDate(Date.from(instance.launchTime()));
                     }
                 }
             } catch (Ec2Exception error) {
