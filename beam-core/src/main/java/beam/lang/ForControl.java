@@ -152,6 +152,7 @@ public class ForControl extends Control {
                     if (resourceType == ResourceType.RESOURCE) {
                         Resource resource = visitor.visitResource(stmtContext.resource(), frame);
                         frame.putResource(resource);
+                        resource.resolve();
                     } else if (resourceType == ResourceType.VIRTUAL_RESOURCE) {
                         VirtualResourceControl virtualResourceControl = visitor.visitVirtualResource(stmtContext.resource(), frame);
                         frame.putControl(virtualResourceControl);
@@ -159,6 +160,7 @@ public class ForControl extends Control {
                 } else if (stmtContext.subresource() != null) {
                     Resource resource = visitor.visitSubresource(stmtContext.subresource(), (Resource) parent);
                     frame.putSubresource(resource);
+                    resource.resolve();
                 }
             }
         }
