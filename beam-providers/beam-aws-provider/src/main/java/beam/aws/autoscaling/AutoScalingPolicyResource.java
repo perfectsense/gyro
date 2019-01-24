@@ -19,8 +19,9 @@ import java.util.stream.Collectors;
 @ResourceName(parent = "auto-scaling-group", value = "scaling-policy")
 public class AutoScalingPolicyResource extends AwsResource {
 
-    private String adjustmentType;
     private String policyName;
+    private String autoScalingGroupName;
+    private String adjustmentType;
     private Integer cooldown;
     private Integer estimatedInstanceWarmup;
     private String metricAggregationType;
@@ -32,9 +33,33 @@ public class AutoScalingPolicyResource extends AwsResource {
     private String predefinedMetricType;
     private String predefinedMetricResourceLabel;
     private String policyArn;
-    private String autoScalingGroupName;
     private List<AutoScalingPolicyStepAdjustment> stepAdjustment;
 
+    /**
+     * The name of the policy. (Required)
+     */
+    public String getPolicyName() {
+        return policyName;
+    }
+
+    public void setPolicyName(String policyName) {
+        this.policyName = policyName;
+    }
+
+    /**
+     * The name of the parent auto scaling group. (Required)
+     */
+    public String getAutoScalingGroupName() {
+        return autoScalingGroupName;
+    }
+
+    public void setAutoScalingGroupName(String autoScalingGroupName) {
+        this.autoScalingGroupName = autoScalingGroupName;
+    }
+
+    /**
+     * The adjustment type. Valid values [ 'ChangeInCapacity', 'ExactCapacity', 'PercentChangeInCapacity' ].
+     */
     @ResourceDiffProperty(updatable = true)
     public String getAdjustmentType() {
         return adjustmentType;
@@ -44,14 +69,9 @@ public class AutoScalingPolicyResource extends AwsResource {
         this.adjustmentType = adjustmentType;
     }
 
-    public String getPolicyName() {
-        return policyName;
-    }
-
-    public void setPolicyName(String policyName) {
-        this.policyName = policyName;
-    }
-
+    /**
+     * The amount of time between two scaling events. Valid values [ Integer greater than 0 ].
+     */
     @ResourceDiffProperty(updatable = true)
     public Integer getCooldown() {
         return cooldown;
@@ -61,6 +81,10 @@ public class AutoScalingPolicyResource extends AwsResource {
         this.cooldown = cooldown;
     }
 
+    /**
+     * The estimated time, in seconds, until a newly launched instance can contribute to the CloudWatch metrics.
+     * Valid values [ Integer greater than 0 ].
+     */
     @ResourceDiffProperty(updatable = true)
     public Integer getEstimatedInstanceWarmup() {
         return estimatedInstanceWarmup;
@@ -70,7 +94,15 @@ public class AutoScalingPolicyResource extends AwsResource {
         this.estimatedInstanceWarmup = estimatedInstanceWarmup;
     }
 
+    /**
+     * the aggregation type for cloud watch metrics. Valid values [ 'Minimum', 'Maximum', 'Average' ].
+     */
+    @ResourceDiffProperty(updatable = true)
     public String getMetricAggregationType() {
+        if (metricAggregationType == null) {
+            metricAggregationType = "Average";
+        }
+
         return metricAggregationType;
     }
 
@@ -78,6 +110,9 @@ public class AutoScalingPolicyResource extends AwsResource {
         this.metricAggregationType = metricAggregationType;
     }
 
+    /**
+     * The minimum number of instances to scale.
+     */
     @ResourceDiffProperty(updatable = true, nullable = true)
     public Integer getMinAdjustmentMagnitude() {
         return minAdjustmentMagnitude;
@@ -87,7 +122,13 @@ public class AutoScalingPolicyResource extends AwsResource {
         this.minAdjustmentMagnitude = minAdjustmentMagnitude;
     }
 
+    /**
+     * The type of policy. Defaults to 'SimpleScaling'. Valid values [ 'SimpleScaling', 'StepScaling', 'TargetTrackingScaling' ]. (Required)
+     */
     public String getPolicyType() {
+        if (policyType == null) {
+            policyType = "SimpleScaling";
+        }
         return policyType;
     }
 
@@ -95,6 +136,9 @@ public class AutoScalingPolicyResource extends AwsResource {
         this.policyType = policyType;
     }
 
+    /**
+     * The amount by which the scaling would happen.
+     */
     @ResourceDiffProperty(updatable = true)
     public Integer getScalingAdjustment() {
         return scalingAdjustment;
@@ -104,8 +148,15 @@ public class AutoScalingPolicyResource extends AwsResource {
         this.scalingAdjustment = scalingAdjustment;
     }
 
+    /**
+     * Scaling in by the target tracking policy is enabled/disabled. Defaulted to false.
+     */
     @ResourceDiffProperty(updatable = true)
     public Boolean getDisableScaleIn() {
+        if (disableScaleIn == null) {
+            disableScaleIn = false;
+        }
+
         return disableScaleIn;
     }
 
@@ -113,6 +164,9 @@ public class AutoScalingPolicyResource extends AwsResource {
         this.disableScaleIn = disableScaleIn;
     }
 
+    /**
+     * The target value for the metric.
+     */
     @ResourceDiffProperty(updatable = true)
     public Double getTargetValue() {
         return targetValue;
@@ -122,6 +176,9 @@ public class AutoScalingPolicyResource extends AwsResource {
         this.targetValue = targetValue;
     }
 
+    /**
+     * Predefined metric type.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getPredefinedMetricType() {
         return predefinedMetricType;
@@ -131,6 +188,10 @@ public class AutoScalingPolicyResource extends AwsResource {
         this.predefinedMetricType = predefinedMetricType;
     }
 
+    /**
+     * Predefined defines metric resource label.
+     * Valid values [ 'ASGAverageCPUUtilization', 'ASGAverageNetworkIn', 'ASGAverageNetworkOut', 'ALBRequestCountPerTarget' ].
+     */
     @ResourceDiffProperty(updatable = true)
     public String getPredefinedMetricResourceLabel() {
         return predefinedMetricResourceLabel;
@@ -148,14 +209,9 @@ public class AutoScalingPolicyResource extends AwsResource {
         this.policyArn = policyArn;
     }
 
-    public String getAutoScalingGroupName() {
-        return autoScalingGroupName;
-    }
-
-    public void setAutoScalingGroupName(String autoScalingGroupName) {
-        this.autoScalingGroupName = autoScalingGroupName;
-    }
-
+    /**
+     * A set of adjustments that enable you to scale based on the size of the alarm breach.
+     */
     @ResourceDiffProperty(updatable = true)
     public List<AutoScalingPolicyStepAdjustment> getStepAdjustment() {
         if (stepAdjustment == null) {
@@ -319,10 +375,9 @@ public class AutoScalingPolicyResource extends AwsResource {
 
     private void validate() {
         // policy type validation
-        if (getPolicyType() == null
-            || (!getPolicyType().equals("SimpleScaling")
+        if (!getPolicyType().equals("SimpleScaling")
             && !getPolicyType().equals("StepScaling")
-            && !getPolicyType().equals("TargetTrackingScaling"))) {
+            && !getPolicyType().equals("TargetTrackingScaling")) {
             throw new BeamException("Invalid value '" + getPolicyType() + "' for the param 'policy-type'."
                 + " Valid options ['SimpleScaling', 'StepScaling', 'TargetTrackingScaling'].");
         }
@@ -403,6 +458,13 @@ public class AutoScalingPolicyResource extends AwsResource {
         if (getPolicyType().equals("StepScaling")) {
             if (getStepAdjustment().isEmpty()) {
                 throw new BeamException("the param 'step-adjustment' needs to have at least one step.");
+            }
+
+            if (!getMetricAggregationType().equals("Minimum")
+                && !getMetricAggregationType().equals("Maximum")
+                && !getMetricAggregationType().equals("Average")) {
+                throw new BeamException("Invalid value '" + getMetricAggregationType() + "' for the param 'metric-aggregation-type'."
+                    + " Valid options ['Minimum', 'Maximum', 'Average'].");
             }
         }
 
