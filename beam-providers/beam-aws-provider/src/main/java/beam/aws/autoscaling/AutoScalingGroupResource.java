@@ -11,11 +11,13 @@ import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
 import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup;
 import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsResponse;
 import software.amazon.awssdk.services.autoscaling.model.DescribeLifecycleHooksResponse;
+import software.amazon.awssdk.services.autoscaling.model.DescribeNotificationConfigurationsResponse;
 import software.amazon.awssdk.services.autoscaling.model.DescribePoliciesResponse;
 import software.amazon.awssdk.services.autoscaling.model.DescribeScheduledActionsResponse;
 import software.amazon.awssdk.services.autoscaling.model.EnabledMetric;
 import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateSpecification;
 import software.amazon.awssdk.services.autoscaling.model.LifecycleHook;
+import software.amazon.awssdk.services.autoscaling.model.NotificationConfiguration;
 import software.amazon.awssdk.services.autoscaling.model.ScalingPolicy;
 import software.amazon.awssdk.services.autoscaling.model.ScheduledUpdateGroupAction;
 import software.amazon.awssdk.services.autoscaling.model.Tag;
@@ -77,6 +79,14 @@ import java.util.stream.Collectors;
  *             heartbeat-timeout: 300
  *             lifecycle-transition: "autoscaling:EC2_INSTANCE_LAUNCHING"
  *         end
+ *
+ *         auto-scaling-notification
+ *             topic-arn: "arn:aws:sns:us-west-2:242040583208:beam-instance-state"
+ *             notification-types: [
+ *                 "autoscaling:EC2_INSTANCE_LAUNCH_ERROR"
+ *             ]
+ *         end
+ *
  *     end
  */
 @ResourceName("auto-scaling-group")
@@ -106,6 +116,7 @@ public class AutoScalingGroupResource extends AwsResource {
     private List<AutoScalingPolicyResource> scalingPolicy;
     private List<AutoScalingGroupLifecycleHookResource> lifecycleHook;
     private List<AutoScalingGroupScheduledActionResource> scheduledAction;
+    private List<AutoScalingGroupNotificationResource> autoScalingNotification;
 
     private final Set<String> masterMetricSet = new HashSet<>(Arrays.asList(
         "GroupMinSize",
@@ -439,6 +450,19 @@ public class AutoScalingGroupResource extends AwsResource {
         this.scheduledAction = scheduledAction;
     }
 
+    @ResourceDiffProperty(nullable = true, subresource = true)
+    public List<AutoScalingGroupNotificationResource> getAutoScalingNotification() {
+        if (autoScalingNotification == null) {
+            autoScalingNotification = new ArrayList<>();
+        }
+
+        return autoScalingNotification;
+    }
+
+    public void setAutoScalingNotification(List<AutoScalingGroupNotificationResource> autoScalingNotification) {
+        this.autoScalingNotification = autoScalingNotification;
+    }
+
     @Override
     public boolean refresh() {
         AutoScalingClient client = createClient(AutoScalingClient.class);
@@ -476,6 +500,8 @@ public class AutoScalingGroupResource extends AwsResource {
         loadLifecycleHook(client);
 
         loadScheduledAction(client);
+
+        loadNotification(client);
 
         return true;
     }
@@ -774,5 +800,21 @@ public class AutoScalingGroupResource extends AwsResource {
             scheduledActionResource.setResourceCredentials(getResourceCredentials());
             getScheduledAction().add(scheduledActionResource);
         }
+    }
+
+    private void loadNotification(AutoScalingClient client) {
+        getAutoScalingNotification().clear();
+
+        DescribeNotificationConfigurationsResponse notificationResponse = client.describeNotificationConfigurations(
+            r -> r.autoScalingGroupNames(Collections.singletonList(getAutoScalingGroupName()))
+        );
+
+        for (NotificationConfiguration notificationConfiguration : notificationResponse.notificationConfigurations()) {
+            AutoScalingGroupNotificationResource notificationResource = new AutoScalingGroupNotificationResource(notificationConfiguration);
+            notificationResource.parent(this);
+            notificationResource.setResourceCredentials(getResourceCredentials());
+            getAutoScalingNotification().add(notificationResource);
+        }
+
     }
 }

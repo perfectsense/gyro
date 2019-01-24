@@ -162,4 +162,10 @@ aws::auto-scaling-group auto-scaling-group-example
         lifecycle-transition: "autoscaling:EC2_INSTANCE_LAUNCHING"
     end
 
+    auto-scaling-notification
+        topic-arn: "arn:aws:sns:us-west-2:242040583208:beam-instance-state"
+        notification-types: [
+            "autoscaling:EC2_INSTANCE_LAUNCH_ERROR11"
+        ]
+    end
 end
