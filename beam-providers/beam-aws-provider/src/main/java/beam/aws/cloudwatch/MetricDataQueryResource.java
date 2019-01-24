@@ -98,7 +98,7 @@ public class MetricDataQueryResource {
 
     public Map<String, String> getDimensions() {
         if (dimensions == null) {
-             dimensions = new HashMap<>();
+            dimensions = new HashMap<>();
         }
 
         return dimensions;
