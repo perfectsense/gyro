@@ -90,7 +90,8 @@ public class BeamVisitor extends BeamParserBaseVisitor {
             } else if (fileContext.importStmt() != null) {
                 String path = fileContext.importStmt().importPath().getText();
 
-                Path currentPath = new File(getPath()).getParentFile().toPath();
+                File parentFile = new File(getPath()).getParentFile();
+                Path currentPath = parentFile == null ? new File(".").toPath() : parentFile.toPath();
                 Path importPath = new File(path).toPath();
 
                 String resolvedPath = currentPath.resolve(importPath).toString();

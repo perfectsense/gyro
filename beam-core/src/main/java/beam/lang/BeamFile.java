@@ -90,7 +90,8 @@ public class BeamFile extends ResourceContainer {
 
     public String importPath(String currentPath) {
         Path importPath = new File(path).toPath();
-        Path otherPath  = new File(currentPath).getParentFile().toPath();
+        File parentFile = new File(currentPath).getParentFile();
+        Path otherPath = parentFile == null ? new File(".").toPath() : parentFile.toPath();
 
         return otherPath.relativize(importPath).toString().replace(".bcl", "");
     }
