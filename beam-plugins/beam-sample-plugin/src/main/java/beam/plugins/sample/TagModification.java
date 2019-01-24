@@ -29,8 +29,10 @@ public class TagModification extends Modification {
 
     @Override
     public void modify(Resource resource) {
-        Ec2TaggableResource taggableResource = (Ec2TaggableResource) resource;
-        taggableResource.getTags().putAll(getTags());
+        if (getTags() != null) {
+            Ec2TaggableResource taggableResource = (Ec2TaggableResource) resource;
+            taggableResource.getTags().putAll(getTags());
+        }
     }
 
 }
