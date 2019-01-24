@@ -9,15 +9,7 @@ public class ResourceContainer extends Container {
     transient Map<ResourceKey, Resource> resources = new HashMap<>();
 
     public Collection<Resource> resources() {
-        Map<ResourceKey, Resource> allResources = new HashMap<>(resources);
-
-        for (Frame frame : frames()) {
-            for (Resource resource : frame.resources()) {
-                allResources.put(resource.resourceKey(), resource);
-            }
-        }
-
-        return allResources.values();
+        return resourceMap().values();
     }
 
     public Resource removeResource(Resource resource) {
@@ -37,7 +29,7 @@ public class ResourceContainer extends Container {
     public Resource resource(String type, String key) {
         ResourceKey resourceKey = new ResourceKey(type, key);
 
-        return resources.get(resourceKey);
+        return resourceMap().get(resourceKey);
     }
 
     @Override
@@ -84,6 +76,22 @@ public class ResourceContainer extends Container {
     @Override
     public String toString() {
         return String.format("ResourceContainer[resources: %d]", resources().size());
+    }
+
+    private Map<ResourceKey, Resource> resourceMap() {
+        Map<ResourceKey, Resource> allResources = new HashMap<>();
+
+        for (Resource resource : resources.values()) {
+            allResources.put(resource.resourceKey(), resource);
+        }
+
+        for (Frame frame : frames()) {
+            for (Resource resource : frame.resources()) {
+                allResources.put(resource.resourceKey(), resource);
+            }
+        }
+
+        return allResources;
     }
 
 }
