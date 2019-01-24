@@ -10,9 +10,11 @@ import com.psddev.dari.util.StringUtils;
 import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
 import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup;
 import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsResponse;
+import software.amazon.awssdk.services.autoscaling.model.DescribeLifecycleHooksResponse;
 import software.amazon.awssdk.services.autoscaling.model.DescribePoliciesResponse;
 import software.amazon.awssdk.services.autoscaling.model.EnabledMetric;
 import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateSpecification;
+import software.amazon.awssdk.services.autoscaling.model.LifecycleHook;
 import software.amazon.awssdk.services.autoscaling.model.ScalingPolicy;
 import software.amazon.awssdk.services.autoscaling.model.Tag;
 import software.amazon.awssdk.services.autoscaling.model.TagDescription;
@@ -57,6 +59,22 @@ import java.util.stream.Collectors;
  *             $(aws::subnet subnet-auto-scaling-group-example | availability-zone),
  *             $(aws::subnet subnet-auto-scaling-group-example-2 | availability-zone)
  *         ]
+ *
+ *         scaling-policy
+ *             policy-name: "Simple-Policy-1"
+ *             adjustment-type: "PercentChangeInCapacity"
+ *             policy-type: "SimpleScaling"
+ *             cooldown: 3000
+ *             scaling-adjustment: 5
+ *             min-adjustment-magnitude: 3
+ *         end
+ *
+ *         lifecycle-hook
+ *             lifecycle-hook-name: "Lifecycle-Hook-1"
+ *             default-result: "CONTINUE"
+ *             heartbeat-timeout: 300
+ *             lifecycle-transition: "autoscaling:EC2_INSTANCE_LAUNCHING"
+ *         end
  *     end
  */
 @ResourceName("auto-scaling-group")
@@ -84,6 +102,7 @@ public class AutoScalingGroupResource extends AwsResource {
     private String status;
     private Date createdTime;
     private List<AutoScalingPolicyResource> scalingPolicy;
+    private List<AutoScalingGroupLifecycleHookResource> lifecycleHook;
 
     private final Set<String> masterMetricSet = new HashSet<>(Arrays.asList(
         "GroupMinSize",
@@ -383,11 +402,25 @@ public class AutoScalingGroupResource extends AwsResource {
         if (scalingPolicy == null) {
             scalingPolicy = new ArrayList<>();
         }
+
         return scalingPolicy;
     }
 
     public void setScalingPolicy(List<AutoScalingPolicyResource> scalingPolicy) {
         this.scalingPolicy = scalingPolicy;
+    }
+
+    @ResourceDiffProperty(nullable = true, subresource = true)
+    public List<AutoScalingGroupLifecycleHookResource> getLifecycleHook() {
+        if (lifecycleHook == null) {
+            lifecycleHook = new ArrayList<>();
+        }
+
+        return lifecycleHook;
+    }
+
+    public void setLifecycleHook(List<AutoScalingGroupLifecycleHookResource> lifecycleHook) {
+        this.lifecycleHook = lifecycleHook;
     }
 
     @Override
@@ -422,16 +455,9 @@ public class AutoScalingGroupResource extends AwsResource {
 
         loadTags(autoScalingGroup.tags());
 
-        getScalingPolicy().clear();
+        loadScalingPolicy(client);
 
-        DescribePoliciesResponse rr = client.describePolicies(r -> r.autoScalingGroupName(getAutoScalingGroupName()));
-
-        for (ScalingPolicy scalingPolicy : rr.scalingPolicies()) {
-            AutoScalingPolicyResource autoScalingPolicyResource = new AutoScalingPolicyResource(scalingPolicy);
-            autoScalingPolicyResource.parent(this);
-            autoScalingPolicyResource.setResourceCredentials(getResourceCredentials());
-            getScalingPolicy().add(autoScalingPolicyResource);
-        }
+        loadLifecycleHook(client);
 
         return true;
     }
@@ -688,6 +714,32 @@ public class AutoScalingGroupResource extends AwsResource {
             client.disableMetricsCollection(
                 r -> r.autoScalingGroupName(getAutoScalingGroupName())
                     .metrics(getDisabledMetrics()));
+        }
+    }
+
+    private void loadScalingPolicy(AutoScalingClient client) {
+        getScalingPolicy().clear();
+
+        DescribePoliciesResponse policyResponse = client.describePolicies(r -> r.autoScalingGroupName(getAutoScalingGroupName()));
+
+        for (ScalingPolicy scalingPolicy : policyResponse.scalingPolicies()) {
+            AutoScalingPolicyResource autoScalingPolicyResource = new AutoScalingPolicyResource(scalingPolicy);
+            autoScalingPolicyResource.parent(this);
+            autoScalingPolicyResource.setResourceCredentials(getResourceCredentials());
+            getScalingPolicy().add(autoScalingPolicyResource);
+        }
+    }
+
+    private void loadLifecycleHook(AutoScalingClient client) {
+        getLifecycleHook().clear();
+
+        DescribeLifecycleHooksResponse lifecycleHooksResponse = client.describeLifecycleHooks(r -> r.autoScalingGroupName(getAutoScalingGroupName()));
+
+        for (LifecycleHook lifecycleHook : lifecycleHooksResponse.lifecycleHooks()) {
+            AutoScalingGroupLifecycleHookResource lifecycleHookResource = new AutoScalingGroupLifecycleHookResource(lifecycleHook);
+            lifecycleHookResource.parent(this);
+            lifecycleHookResource.setResourceCredentials(getResourceCredentials());
+            getLifecycleHook().add(lifecycleHookResource);
         }
     }
 }

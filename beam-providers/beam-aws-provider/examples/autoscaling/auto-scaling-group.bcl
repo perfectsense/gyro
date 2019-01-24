@@ -154,4 +154,12 @@ aws::auto-scaling-group auto-scaling-group-example
         predefined-metric-type: "ASGAverageNetworkIn"
         disable-scale-in: false
     end
+
+    lifecycle-hook
+        lifecycle-hook-name: "Lifecycle-Hook-1"
+        default-result: "CONTINUE"
+        heartbeat-timeout: 300
+        lifecycle-transition: "autoscaling:EC2_INSTANCE_LAUNCHING"
+    end
+
 end

@@ -47,7 +47,7 @@ public class AutoScalingPolicyResource extends AwsResource {
     }
 
     /**
-     * The name of the parent auto scaling group. (Required)
+     * The name of the parent auto scaling group. (Auto populated)
      */
     public String getAutoScalingGroupName() {
         return autoScalingGroupName;
