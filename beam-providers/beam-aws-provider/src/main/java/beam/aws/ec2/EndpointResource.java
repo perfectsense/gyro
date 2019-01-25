@@ -58,9 +58,9 @@ import java.util.stream.Collectors;
  *             $(aws::subnet subnet-public-us-east-1c-example-for-endpoint-1 | subnet-id)
  *         ]
  *         security-group-ids: [
- *             'sg-0c6a15d90a475071e',
- *             'sg-0454a5fb5ea3a7a62',
- *             'sg-0da8f2491baf7f0c4'
+ *             $(aws::security-group security-group-example-for-endpoint-1 | group-id),
+ *             $(aws::security-group security-group-example-for-endpoint-2 | group-id),
+ *             $(aws::security-group security-group-example-for-endpoint-3 | group-id)
  *         ]
  *     end
  */
