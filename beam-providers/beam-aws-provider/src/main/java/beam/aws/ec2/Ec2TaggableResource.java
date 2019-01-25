@@ -114,6 +114,7 @@ public abstract class Ec2TaggableResource<T> extends AwsResource {
 
         // Remove tags
         if (!diff.entriesOnlyOnLeft().isEmpty()) {
+            
             List<Tag> tagObjects = new ArrayList<>();
             for (Map.Entry<String, String> entry : diff.entriesOnlyOnLeft().entrySet()) {
                 tagObjects.add(Tag.builder().key(entry.getKey()).value(entry.getValue()).build());
