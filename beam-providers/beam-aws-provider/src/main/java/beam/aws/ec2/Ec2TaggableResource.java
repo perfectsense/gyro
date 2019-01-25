@@ -114,7 +114,6 @@ public abstract class Ec2TaggableResource<T> extends AwsResource {
 
         // Remove tags
         if (!diff.entriesOnlyOnLeft().isEmpty()) {
-            System.out.println("\nI am in remove");
             List<Tag> tagObjects = new ArrayList<>();
             for (Map.Entry<String, String> entry : diff.entriesOnlyOnLeft().entrySet()) {
                 tagObjects.add(Tag.builder().key(entry.getKey()).value(entry.getValue()).build());
@@ -128,7 +127,6 @@ public abstract class Ec2TaggableResource<T> extends AwsResource {
 
         // Add tags
         if (!diff.entriesOnlyOnRight().isEmpty()) {
-            System.out.println("\nI am in add");
             List<Tag> tagObjects = new ArrayList<>();
             for (Map.Entry<String, String> entry : diff.entriesOnlyOnRight().entrySet()) {
                 tagObjects.add(Tag.builder().key(entry.getKey()).value(entry.getValue()).build());
@@ -142,7 +140,6 @@ public abstract class Ec2TaggableResource<T> extends AwsResource {
 
         // Changed tags
         if (!diff.entriesDiffering().isEmpty()) {
-            System.out.println("\nI am in change");
             List<Tag> tagObjects = new ArrayList<>();
 
             for (Map.Entry<String, MapDifference.ValueDifference<String>> entry : diff.entriesDiffering().entrySet()) {
