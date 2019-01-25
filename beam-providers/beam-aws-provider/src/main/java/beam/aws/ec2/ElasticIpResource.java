@@ -1,6 +1,7 @@
 package beam.aws.ec2;
 
 import beam.aws.AwsResource;
+import beam.core.BeamCore;
 import beam.core.BeamException;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
@@ -10,7 +11,6 @@ import software.amazon.awssdk.services.ec2.model.Address;
 import software.amazon.awssdk.services.ec2.model.AllocateAddressResponse;
 import software.amazon.awssdk.services.ec2.model.AssociateAddressResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeAddressesResponse;
-import software.amazon.awssdk.services.ec2.model.DisassociateAddressResponse;
 import software.amazon.awssdk.services.ec2.model.DomainType;
 import software.amazon.awssdk.services.ec2.model.Ec2Exception;
 import software.amazon.awssdk.services.ec2.model.MoveAddressToVpcResponse;
@@ -183,10 +183,11 @@ public class ElasticIpResource extends Ec2TaggableResource<Address> {
                 );
                 setAllocationId(response.allocationId());
 
-                if (instanceId != null || networkInterfaceId != null) {
-                    System.out.println(MessageFormat.format("\nElastic Ip - {0} needs to be updated to get associated", getAllocationId()));
-
+                if (getInstanceId() != null || getNetworkInterfaceId() != null) {
+                    BeamCore.ui().write("\n@|bold,blue Skipping association of elastic IP"
+                        + ", must be updated to associate with a resource|@");
                 }
+
             } catch (Ec2Exception eex) {
                 if (eex.awsErrorDetails().errorCode().equals("InvalidAddress.NotFound")) {
                     throw new BeamException(MessageFormat.format("Elastic Ip - {0} Unavailable/Not found.", getPublicIp()));
@@ -214,43 +215,56 @@ public class ElasticIpResource extends Ec2TaggableResource<Address> {
             }
         }
 
-        if (changedProperties.contains("instance-id")) {
-
-            if (allowReassociation) {
-
-                AssociateAddressResponse resp = client.associateAddress(r -> r.allocationId(getAllocationId())
-                    .instanceId(getInstanceId())
-                    .allowReassociation(getAllowReassociation()));
-                setAssociationId(resp.associationId());
-
-            } else {
-
-                throw new BeamException("Please set the allow re-association to true in order to associate the IP to another instance");
-
+        if (changedProperties.contains("instance-id") || changedProperties.contains("network-interface-id")) {
+            if (!getAllowReassociation()) {
+                throw new BeamException("Please set the allow re-association to true in order for any associations.");
             }
-        } else if (changedProperties.contains("network-interface-id")) {
 
-            if (allowReassociation) {
+            if (changedProperties.contains("instance-id")) {
+                if (getInstanceId() != null) {
+                    AssociateAddressResponse resp = client.associateAddress(r -> r.allocationId(getAllocationId())
+                        .instanceId(getInstanceId())
+                        .allowReassociation(getAllowReassociation()));
+                    setAssociationId(resp.associationId());
+                } else {
+                    if (!changedProperties.contains("network-interface-id")) {
+                        client.disassociateAddress(r -> r.associationId(getAssociationId()));
+                    }
+                }
+            }
 
-                AssociateAddressResponse resp = client.associateAddress(r -> r.allocationId(getAllocationId())
-                    .networkInterfaceId(getNetworkInterfaceId())
-                    .allowReassociation(getAllowReassociation()));
-                setAssociationId(resp.associationId());
-
-            } else {
-
-                throw new BeamException("\nPlease set the allow re-association to true in order to associate the IP to another network interface");
-
+            if (changedProperties.contains("network-interface-id")) {
+                if (getNetworkInterfaceId() != null) {
+                    AssociateAddressResponse resp = client.associateAddress(r -> r.allocationId(getAllocationId())
+                        .networkInterfaceId(getNetworkInterfaceId())
+                        .allowReassociation(getAllowReassociation()));
+                    setAssociationId(resp.associationId());
+                } else {
+                    if (!changedProperties.contains("instance-id")) {
+                        client.disassociateAddress(r -> r.associationId(getAssociationId()));
+                    }
+                }
             }
         }
+        doRefresh();
     }
 
     @Override
     public void delete() {
         Ec2Client client = createClient(Ec2Client.class);
 
-        DisassociateAddressResponse response = getAssociationId() != null
-            ? client.disassociateAddress(r -> r.associationId(getAssociationId())) : null;
+        DescribeAddressesResponse response1 = getPublicIp() == null
+            ? client.describeAddresses() : client.describeAddresses(r -> r.publicIps(getPublicIp()));
+        Address address = response1.addresses().get(0);
+
+        try {
+            if (address.associationId() != null) {
+                client.disassociateAddress(r -> r.associationId(getAssociationId()));
+            }
+        } catch (Ec2Exception e) {
+            throw new BeamException("Unmanaged Associated Resource");
+        }
+
         try {
             client.releaseAddress(r -> r.allocationId(getAllocationId()));
         } catch (Ec2Exception eex) {
