@@ -16,6 +16,7 @@ import software.amazon.awssdk.services.ec2.model.Ec2Exception;
 import software.amazon.awssdk.services.ec2.model.MoveAddressToVpcResponse;
 
 import java.text.MessageFormat;
+import java.util.Collections;
 import java.util.Set;
 
 /**
@@ -138,7 +139,6 @@ public class ElasticIpResource extends Ec2TaggableResource<Address> {
 
     @Override
     protected String getId() {
-        doRefresh();
         return getAllocationId();
     }
 
@@ -146,8 +146,9 @@ public class ElasticIpResource extends Ec2TaggableResource<Address> {
     public boolean doRefresh() {
         Ec2Client client = createClient(Ec2Client.class);
         try {
-            DescribeAddressesResponse response = getPublicIp() == null
-                ? client.describeAddresses() : client.describeAddresses(r -> r.publicIps(getPublicIp()));
+            DescribeAddressesResponse response = client.describeAddresses(
+                r -> r.allocationIds(Collections.singleton(getAllocationId()))
+            );
             Address address = response.addresses().get(0);
             setAllocationId(address.allocationId());
             setIsStandardDomain(address.domain().equals(DomainType.STANDARD));
@@ -176,6 +177,7 @@ public class ElasticIpResource extends Ec2TaggableResource<Address> {
                     .domain(getIsStandardDomain() ? DomainType.STANDARD : DomainType.VPC)
             );
             setAllocationId(response.allocationId());
+            setPublicIp(response.publicIp());
             if (getInstanceId() != null || getNetworkInterfaceId() != null) {
                 BeamCore.ui().write("\n@|bold,blue Skipping association of elastic IP"
                     + ", must be updated to associate with a resource|@");
@@ -234,6 +236,7 @@ public class ElasticIpResource extends Ec2TaggableResource<Address> {
                 }
             }
         }
+
         doRefresh();
     }
 
@@ -241,8 +244,9 @@ public class ElasticIpResource extends Ec2TaggableResource<Address> {
     public void delete() {
         Ec2Client client = createClient(Ec2Client.class);
 
-        DescribeAddressesResponse response = getPublicIp() == null
-            ? client.describeAddresses() : client.describeAddresses(r -> r.publicIps(getPublicIp()));
+        DescribeAddressesResponse response = client.describeAddresses(
+            r -> r.allocationIds(Collections.singleton(getAllocationId()))
+        );
         Address address = response.addresses().get(0);
 
         try {
@@ -250,7 +254,7 @@ public class ElasticIpResource extends Ec2TaggableResource<Address> {
                 client.disassociateAddress(r -> r.associationId(getAssociationId()));
             }
         } catch (Ec2Exception e) {
-            throw new BeamException("Unmanaged Associated Resource");
+            throw new BeamException("Non managed associated resource");
         }
 
         try {
@@ -268,10 +272,10 @@ public class ElasticIpResource extends Ec2TaggableResource<Address> {
     public String toDisplayString() {
         StringBuilder sb = new StringBuilder();
 
+        sb.append("elastic ip");
+
         if (getPublicIp() != null && !getPublicIp().isEmpty()) {
-            sb.append(getPublicIp());
-        } else {
-            sb.append("elastic ip");
+            sb.append(" - ").append(getPublicIp());
         }
 
         return sb.toString();
