@@ -16,6 +16,7 @@ import software.amazon.awssdk.services.ec2.model.SecurityGroupIdentifier;
 import software.amazon.awssdk.services.ec2.model.VpcEndpoint;
 import software.amazon.awssdk.services.ec2.model.VpcEndpointType;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -341,7 +342,8 @@ public class EndpointResource extends AwsResource {
 
     private void setPolicyFromPath() {
         try {
-            setPolicy(new String(Files.readAllBytes(Paths.get(getPolicyDocPath())), StandardCharsets.UTF_8));
+            String dir = fileNode().path().substring(0, fileNode().path().lastIndexOf(File.separator));
+            setPolicy(new String(Files.readAllBytes(Paths.get(dir + File.separator + getPolicyDocPath())), StandardCharsets.UTF_8));
         } catch (IOException ioex) {
             throw new BeamException(MessageFormat
                 .format("Endpoint - {0} policy error. Unable to read policy from path [{1}]", getServiceName(), getPolicyDocPath()));
