@@ -54,7 +54,6 @@ public class ElasticIpResource extends Ec2TaggableResource<Address> {
     /**
      * Requested public ip for acquirement. See `Elastic IP <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html/>`_.
      */
-
     @ResourceDiffProperty
     public String getPublicIp() {
         return publicIp;
@@ -65,9 +64,8 @@ public class ElasticIpResource extends Ec2TaggableResource<Address> {
     }
 
     /**
-     * Network Interface id when the requested public ip is associated with a network interface.
+     * Network Interface id required when the requested public ip is associated with a network interface.
      */
-
     @ResourceDiffProperty(updatable = true)
     public String getNetworkInterfaceId() {
         return networkInterfaceId;
@@ -78,9 +76,8 @@ public class ElasticIpResource extends Ec2TaggableResource<Address> {
     }
 
     /**
-     * Instance id when the requested public ip is associated with an instance.
+     * Instance id required when the requested public ip is associated with an instance.
      */
-
     @ResourceDiffProperty(updatable = true)
     public String getInstanceId() {
         return instanceId;
@@ -103,9 +100,8 @@ public class ElasticIpResource extends Ec2TaggableResource<Address> {
     }
 
     /**
-     * Association id when the requested public ip is associated to an instance or a network interface.
+     * Association id assigned when the requested public ip is associated to an instance or a network interface.
      */
-
     @ResourceDiffProperty
     public String getAssociationId() {
         return associationId;
@@ -118,7 +114,6 @@ public class ElasticIpResource extends Ec2TaggableResource<Address> {
     /**
      * Allows reassociation of elastic Ip with another resource.
      */
-
     @ResourceDiffProperty(updatable = true)
     public Boolean getAllowReassociation() {
         return allowReassociation;
@@ -175,30 +170,23 @@ public class ElasticIpResource extends Ec2TaggableResource<Address> {
     public void doCreate() {
         Ec2Client client = createClient(Ec2Client.class);
 
-        if (client.describeAddresses().addresses().size() < 5) {
-            try {
-                AllocateAddressResponse response = client.allocateAddress(
-                    r -> r.address(getPublicIp())
-                        .domain(getIsStandardDomain() ? DomainType.STANDARD : DomainType.VPC)
-                );
-                setAllocationId(response.allocationId());
-
-                if (getInstanceId() != null || getNetworkInterfaceId() != null) {
-                    BeamCore.ui().write("\n@|bold,blue Skipping association of elastic IP"
-                        + ", must be updated to associate with a resource|@");
-                }
-
-            } catch (Ec2Exception eex) {
-                if (eex.awsErrorDetails().errorCode().equals("InvalidAddress.NotFound")) {
-                    throw new BeamException(MessageFormat.format("Elastic Ip - {0} Unavailable/Not found.", getPublicIp()));
-                } else {
-                    throw eex;
-                }
+        try {
+            AllocateAddressResponse response = client.allocateAddress(
+                r -> r.address(getPublicIp())
+                    .domain(getIsStandardDomain() ? DomainType.STANDARD : DomainType.VPC)
+            );
+            setAllocationId(response.allocationId());
+            if (getInstanceId() != null || getNetworkInterfaceId() != null) {
+                BeamCore.ui().write("\n@|bold,blue Skipping association of elastic IP"
+                    + ", must be updated to associate with a resource|@");
             }
-        } else {
-            throw new BeamException("The maximum number of addresses has been reached.");
+        } catch (Ec2Exception eex) {
+            if (eex.awsErrorDetails().errorCode().equals("InvalidAddress.NotFound")) {
+                throw new BeamException(MessageFormat.format("Elastic Ip - {0} Unavailable/Not found.", getPublicIp()));
+            } else if (eex.awsErrorDetails().errorCode().equals("AddressLimitExceeded")) {
+                throw new BeamException("The maximum number of addresses has been reached.");
+            }
         }
-
     }
 
     @Override
@@ -253,9 +241,9 @@ public class ElasticIpResource extends Ec2TaggableResource<Address> {
     public void delete() {
         Ec2Client client = createClient(Ec2Client.class);
 
-        DescribeAddressesResponse response1 = getPublicIp() == null
+        DescribeAddressesResponse response = getPublicIp() == null
             ? client.describeAddresses() : client.describeAddresses(r -> r.publicIps(getPublicIp()));
-        Address address = response1.addresses().get(0);
+        Address address = response.addresses().get(0);
 
         try {
             if (address.associationId() != null) {

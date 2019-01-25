@@ -153,7 +153,12 @@ public class ResourceChange {
     public static String processAsScalarValue(String key, Object currentValue, Object pendingValue) {
         StringBuilder sb = new StringBuilder();
 
-        if (pendingValue.equals(currentValue)) {
+        if (pendingValue == null && currentValue != null) {
+            sb.append("unsetting ").append(key);
+            return sb.toString();
+        }
+
+        if (pendingValue == null || pendingValue.equals(currentValue)) {
             return sb.toString();
         }
 
