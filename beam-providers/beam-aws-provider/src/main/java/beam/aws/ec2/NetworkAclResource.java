@@ -10,7 +10,7 @@ import software.amazon.awssdk.services.ec2.model.NetworkAcl;
 import java.util.Set;
 
 /**
- * Create Network ACL in the the provided VPC.
+ * Create Network ACL in the provided VPC.
  *
  * Example
  * -------
