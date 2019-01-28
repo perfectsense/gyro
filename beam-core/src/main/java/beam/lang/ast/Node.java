@@ -25,6 +25,12 @@ public abstract class Node {
         } else if (cc.equals(BeamParser.IfStmtContext.class)) {
             return new IfNode((BeamParser.IfStmtContext) context);
 
+        } else if (cc.equals(BeamParser.VirtualResourceContext.class)) {
+            return new VirtualResourceNode((BeamParser.VirtualResourceContext) context);
+
+        } else if (cc.equals(BeamParser.VirtualResourceParamContext.class)) {
+            return new VirtualResourceParamNode((BeamParser.VirtualResourceParamContext) context);
+
         } else if (cc.equals(BeamParser.ComparisonExpressionContext.class)) {
             return new ComparisonNode((BeamParser.ComparisonExpressionContext) context);
 
