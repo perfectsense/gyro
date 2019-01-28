@@ -1,5 +1,6 @@
 package beam.lang.ast;
 
+import beam.lang.plugins.PluginLoader;
 import beam.parser.antlr4.BeamParser;
 
 import java.util.ArrayList;
@@ -53,6 +54,12 @@ public class ResourceNode extends Node {
             scope.getPendingResources().put(n, new Resource(type, n, bodyScope));
         } else {
             if ("plugin".equals(type)) {
+                String artifact = (String) bodyScope.get("artifact");
+                List<String> repositories = (List<String>) bodyScope.get("repositories");
+
+                PluginLoader loader = new PluginLoader(scope, artifact, repositories);
+                loader.load();
+
                 scope.getPlugins().add(new Resource(type, n, bodyScope));
             } else if ("state".equals(type)) {
                 scope.setStateBackend(new Resource(type, n, bodyScope));

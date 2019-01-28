@@ -2,6 +2,7 @@ package beam.lang.plugins;
 
 import beam.core.BeamCore;
 import beam.core.BeamException;
+import beam.lang.ast.Scope;
 import com.psddev.dari.util.StringUtils;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;
@@ -40,7 +41,7 @@ public class PluginLoader {
 
     private String artifact;
     private List<String> repositories;
-    private BeamCore core;
+    private Scope scope;
     private static PluginClassLoader classLoader;
 
     private static Map<String, List<Artifact>> ARTIFACTS = new HashMap<>();
@@ -48,6 +49,12 @@ public class PluginLoader {
 
     public static PluginClassLoader classLoader() {
         return classLoader;
+    }
+
+    public PluginLoader(Scope scope, String artifact, List<String> repositories) {
+        this.scope = scope;
+        this.artifact = artifact;
+        this.repositories = repositories;
     }
 
     public void artifact(String artifact) {
@@ -74,16 +81,12 @@ public class PluginLoader {
         return ARTIFACTS.get(artifact());
     }
 
-    public BeamCore core() {
-        return core;
-    }
-
-    public void core(BeamCore core) {
-        this.core = core;
-    }
-
     public List<Class<?>> classes() {
         return PLUGIN_CLASS_CACHE.getOrDefault(artifact, new ArrayList<>());
+    }
+
+    public Scope scope() {
+        return scope;
     }
 
     public void load() {
@@ -173,7 +176,7 @@ public class PluginLoader {
     }
 
     private void loadClasses(URL[] urls, Artifact artifact) throws Exception {
-        ClassLoader parent = core().getClass().getClassLoader();
+        ClassLoader parent = scope().getClass().getClassLoader();
         if (classLoader == null) {
             classLoader = new PluginClassLoader(urls, parent);
         } else {
@@ -244,7 +247,7 @@ public class PluginLoader {
 
         try {
             Plugin plugin = (Plugin) pluginClass.newInstance();
-            plugin.core(core());
+            plugin.setScope(scope());
             plugin.artifact(artifact());
 
             for (Class loadedClass : cache) {

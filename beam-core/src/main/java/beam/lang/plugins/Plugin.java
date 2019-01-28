@@ -1,11 +1,12 @@
 package beam.lang.plugins;
 
 import beam.core.BeamCore;
+import beam.lang.ast.Scope;
 
 public abstract class Plugin {
 
     private String artifact;
-    private BeamCore core;
+    private Scope scope;
 
     public abstract String name();
 
@@ -25,12 +26,12 @@ public abstract class Plugin {
         return artifact;
     }
 
-    public final BeamCore core() {
-        return core;
+    public Scope getScope() {
+        return scope;
     }
 
-    public final void core(BeamCore core) {
-        this.core = core;
+    public void setScope(Scope scope) {
+        this.scope = scope;
     }
 
 }

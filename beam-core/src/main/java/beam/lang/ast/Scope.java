@@ -2,6 +2,7 @@ package beam.lang.ast;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -73,6 +74,11 @@ public class Scope implements Map<String, Object> {
     @SuppressWarnings("unchecked")
     public List<Resource> getPlugins() {
         return (List<Resource>) getTop().computeIfAbsent("_plugins", k -> new ArrayList<>());
+    }
+
+    @SuppressWarnings("unchecked")
+    public Map<String, Class<?>> getResourceTypes() {
+        return (Map<String, Class<?>>) getTop().computeIfAbsent("_resource_types", k -> new HashMap<>());
     }
 
     @SuppressWarnings("unchecked")

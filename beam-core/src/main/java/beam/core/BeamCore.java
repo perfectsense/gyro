@@ -125,16 +125,6 @@ public class BeamCore {
         beam.lang.ast.Scope rootScope = new beam.lang.ast.Scope(null);
         rootScope.put("_file", path);
         rootNode.evaluate(rootScope);
-
-        for (beam.lang.ast.Resource plugin : rootScope.getPlugins()) {
-            PluginLoader loader = new PluginLoader();
-            loader.core(this);
-
-            loader.artifact((String) plugin.get("artifact"));
-            loader.repositories((List) plugin.get("repositories"));
-            loader.load();
-        }
-
         for (beam.lang.ast.Resource resource : rootScope.getPendingResources().values()) {
             System.out.println(">>> PENDING RESOURCE: " + resource + "\n");
         }

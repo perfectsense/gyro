@@ -11,7 +11,7 @@ public class EnterprisePlugin extends Provider {
 
     @Override
     public void init() {
-        core().addResourceType("aws::credentials", EnterpriseAwsCredentials.class);
+        getScope().getResourceTypes().put("aws::credentials", EnterpriseAwsCredentials.class);
     }
 
 }
