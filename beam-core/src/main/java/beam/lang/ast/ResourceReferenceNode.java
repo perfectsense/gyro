@@ -19,14 +19,14 @@ public class ResourceReferenceNode extends Node {
 
     @Override
     public Object evaluate(Scope scope) {
-        Map<String, Resource> resources = scope.getPendingResources();
+        Map<String, beam.lang.Resource> resources = scope.getPendingResources();
 
         if (name != null) {
             String n = Optional.ofNullable(name.evaluate(scope))
                     .map(Object::toString)
                     .orElse(null);
 
-            Resource resource = resources.get(n);
+            beam.lang.Resource resource = resources.get(n);
 
             if (resource != null) {
                 if (attribute != null) {
@@ -41,9 +41,9 @@ public class ResourceReferenceNode extends Node {
             }
 
         } else {
-            Stream<Resource> s = resources.values()
+            Stream<beam.lang.Resource> s = resources.values()
                     .stream()
-                    .filter(r -> type.equals(r.getType()));
+                    .filter(r -> type.equals(r.resourceType()));
 
             if (attribute != null) {
                 return s.map(r -> r.get(attribute))

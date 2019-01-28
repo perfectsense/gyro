@@ -1,5 +1,7 @@
 package beam.lang.ast;
 
+import beam.lang.BeamLanguageException;
+import beam.lang.Resource;
 import beam.lang.plugins.PluginLoader;
 import beam.parser.antlr4.BeamParser;
 
@@ -50,8 +52,11 @@ public class ResourceNode extends Node {
         }
 
         if (n != null) {
-            scope.getCurrentResources().put(n, new Resource(type, n, null));
-            scope.getPendingResources().put(n, new Resource(type, n, bodyScope));
+            Resource resource = createResource(scope, type);
+
+            scope.getPendingResources().put(n, resource);
+
+            //scope.getCurrentResources().put(n, new Resource(type, n, null));
         } else {
             if ("plugin".equals(type)) {
                 String artifact = (String) bodyScope.get("artifact");
@@ -59,10 +64,8 @@ public class ResourceNode extends Node {
 
                 PluginLoader loader = new PluginLoader(scope, artifact, repositories);
                 loader.load();
-
-                scope.getPlugins().add(new Resource(type, n, bodyScope));
             } else if ("state".equals(type)) {
-                scope.setStateBackend(new Resource(type, n, bodyScope));
+                //scope.setStateBackend(new Resource(type, n, bodyScope));
             }
         }
 
@@ -83,5 +86,21 @@ public class ResourceNode extends Node {
 
         buildNewline(builder, indentDepth);
         builder.append("end");
+    }
+
+    private beam.lang.Resource createResource(Scope scope, String type) {
+        Class klass = scope.getResourceTypes().get(type);
+        if (klass != null) {
+            try {
+                beam.lang.Resource resource = (beam.lang.Resource) klass.newInstance();
+                resource.resourceType(type);
+
+                return resource;
+            } catch (InstantiationException | IllegalAccessException ex) {
+                throw new BeamLanguageException("Unable to instantiate " + klass.getClass().getSimpleName());
+            }
+        }
+
+        throw new BeamLanguageException("Unknown resource type: " + type);
     }
 }

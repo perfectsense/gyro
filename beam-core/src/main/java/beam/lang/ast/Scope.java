@@ -1,5 +1,7 @@
 package beam.lang.ast;
 
+import beam.lang.Resource;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;

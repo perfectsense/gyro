@@ -125,8 +125,8 @@ public class BeamCore {
         beam.lang.ast.Scope rootScope = new beam.lang.ast.Scope(null);
         rootScope.put("_file", path);
         rootNode.evaluate(rootScope);
-        for (beam.lang.ast.Resource resource : rootScope.getPendingResources().values()) {
-            System.out.println(">>> PENDING RESOURCE: " + resource + "\n");
+        for (beam.lang.Resource resource : rootScope.getPendingResources().values()) {
+            System.out.println(">>> PENDING RESOURCE: " + resource.serialize(0) + "\n");
         }
 
         if (errorListener.getSyntaxErrors() > 0) {
