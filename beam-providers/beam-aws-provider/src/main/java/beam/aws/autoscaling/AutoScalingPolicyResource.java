@@ -397,7 +397,7 @@ public class AutoScalingPolicyResource extends AwsResource {
 
         // Attribute validation when not StepScaling
         if (!getPolicyType().equals("StepScaling")) {
-            if (getMetricAggregationType() != null) {
+            if (getMetricAggregationType() != null && !getMetricAggregationType().equalsIgnoreCase("average")) {
                 throw new BeamException("The param 'metric-aggregation-type' is only allowed when"
                     + " 'policy-type' is 'StepScaling'.");
             }
@@ -425,7 +425,7 @@ public class AutoScalingPolicyResource extends AwsResource {
                     + " 'policy-type' is 'TargetTrackingScaling'.");
             }
 
-            if (getDisableScaleIn() != null) {
+            if (getDisableScaleIn()) {
                 throw new BeamException("The param 'disable-scale-in' is only allowed when"
                     + " 'policy-type' is 'TargetTrackingScaling'.");
             }
