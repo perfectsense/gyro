@@ -114,6 +114,7 @@ public class AutoScalingGroupResource extends AwsResource {
     private String instanceId;
     private List<String> loadBalancerNames;
     private List<String> targetGroupArns;
+    private List<String> terminationPolicies;
     private String status;
     private Date createdTime;
     private List<AutoScalingPolicyResource> scalingPolicy;
@@ -432,6 +433,20 @@ public class AutoScalingGroupResource extends AwsResource {
         this.targetGroupArns = targetGroupArns;
     }
 
+    @ResourceDiffProperty(updatable = true, nullable = true)
+    public List<String> getTerminationPolicies() {
+        if (terminationPolicies == null || terminationPolicies.isEmpty()) {
+            terminationPolicies = new ArrayList<>();
+            terminationPolicies.add("Default");
+        }
+
+        return terminationPolicies;
+    }
+
+    public void setTerminationPolicies(List<String> terminationPolicies) {
+        this.terminationPolicies = terminationPolicies;
+    }
+
     public String getStatus() {
         return status;
     }
@@ -530,6 +545,7 @@ public class AutoScalingGroupResource extends AwsResource {
 
         setLoadBalancerNames(autoScalingGroup.loadBalancerNames());
         setTargetGroupArns(autoScalingGroup.targetGroupARNs());
+        setTerminationPolicies(autoScalingGroup.terminationPolicies());
 
         loadMetrics(autoScalingGroup.enabledMetrics());
 
@@ -571,6 +587,7 @@ public class AutoScalingGroupResource extends AwsResource {
                 .loadBalancerNames(getLoadBalancerNames())
                 .targetGroupARNs(getTargetGroupArns())
                 .instanceId(getInstanceId())
+                .terminationPolicies(getTerminationPolicies())
         );
 
         AutoScalingGroup autoScalingGroup = getAutoScalingGroup(client);
@@ -603,6 +620,7 @@ public class AutoScalingGroupResource extends AwsResource {
                 .launchConfigurationName(getLaunchConfigurationName())
                 .newInstancesProtectedFromScaleIn(getNewInstancesProtectedFromScaleIn())
                 .vpcZoneIdentifier(getSubnetIds().isEmpty() ? " " : StringUtils.join(getSubnetIds(), ","))
+                .terminationPolicies(getTerminationPolicies())
         );
 
         if (changedProperties.contains("enable-metrics-collection") || changedProperties.contains("disabled-metrics")) {

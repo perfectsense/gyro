@@ -172,4 +172,8 @@ aws::auto-scaling-group auto-scaling-group-example
             "autoscaling:EC2_INSTANCE_LAUNCH_ERROR"
         ]
     end
+
+    termination-policies: [
+        "Default"
+    ]
 end
