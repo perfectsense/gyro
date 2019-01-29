@@ -73,6 +73,7 @@ public class ResourceNode extends Node {
                 Resource resource = createResource(scope, resourceType);
                 resource.resourceType(type);
                 resource.scope(bodyScope);
+                resource.syncInternalToProperties();
 
                 List<Resource> subresources = (List<Resource>) scope.computeIfAbsent("_subresources", s -> new ArrayList<>());
                 subresources.add(resource);

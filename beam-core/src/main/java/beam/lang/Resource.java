@@ -9,8 +9,10 @@ import beam.lang.ast.Scope;
 import beam.lang.types.ReferenceValue;
 import beam.lang.types.StringExpressionValue;
 import beam.lang.types.Value;
+import com.google.common.base.CaseFormat;
 import com.google.common.base.Throwables;
 import com.psddev.dari.util.ObjectUtils;
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang.StringUtils;
 
 import java.beans.IntrospectionException;
@@ -370,7 +372,27 @@ public abstract class Resource extends Container {
     // -- Internal State
 
     public final void syncInternalToProperties() {
-        super.syncInternalToProperties();
+        for (String key : scope().keySet()) {
+            if (key.startsWith("_")) {
+                continue;
+            }
+
+            Object value = scope().get(key);
+
+            try {
+                String convertedKey = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key);
+
+                if (!BeanUtils.describe(this).containsKey(convertedKey)) {
+                    String message = String.format("invalid attribute '%s'", key);
+
+                    throw new BeamException(message);
+                }
+
+                BeanUtils.setProperty(this, convertedKey, value);
+            } catch (IllegalArgumentException | InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
+                // Ignoring errors from setProperty
+            }
+        }
 
         for (String subResourceField : subResources().keySet()) {
             List<Resource> subResources = subResources().get(subResourceField);
