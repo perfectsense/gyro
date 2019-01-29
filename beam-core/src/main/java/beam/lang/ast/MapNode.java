@@ -20,11 +20,13 @@ public class MapNode extends Node {
 
     @Override
     public Object evaluate(Scope scope) {
+        Scope bodyScope = new Scope(scope);
+
         return entries
             .stream()
             .collect(toMap(
                 e -> e.getKey(),
-                e -> e.evaluate(scope)
+                e -> e.evaluate(bodyScope)
             ));
     }
 
