@@ -211,6 +211,17 @@ public class BeamCore {
         return fileNode;
     }
 
+    public List<ResourceDiff> diff(Scope pendingScope, Scope stateScope, boolean refresh) throws Exception {
+        ResourceDiff diff = new ResourceDiff(stateScope, pendingScope);
+        diff.setRefresh(refresh);
+        diff.diff();
+
+        List<ResourceDiff> diffs = new ArrayList<>();
+        diffs.add(diff);
+
+        return diffs;
+    }
+
     public List<ResourceDiff> diff(BeamFile pending, boolean refresh) throws Exception {
         ResourceDiff diff = new ResourceDiff(pending.state(), pending);
         diff.setRefresh(refresh);

@@ -5,6 +5,7 @@ import beam.lang.BeamFile;
 import beam.lang.Credentials;
 import beam.lang.Modification;
 import beam.lang.Resource;
+import beam.lang.ast.Scope;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,6 +29,11 @@ public class ResourceDiff {
     public ResourceDiff(BeamFile current, BeamFile pending) {
         this.current = current;
         this.pending = pending;
+    }
+
+    public ResourceDiff(Scope current, Scope pending) {
+        this.currentResources = new ArrayList<>(current.getPendingResources().values());
+        this.pendingResources = new ArrayList<>(pending.getPendingResources().values());
     }
 
     public ResourceDiff(List<Resource> currentResources,
