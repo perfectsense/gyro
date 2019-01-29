@@ -90,6 +90,12 @@ public class Scope implements Map<String, Object> {
 
     public void setStateBackend(Resource resource) {
         getTop().put("_stateBackend", resource);
+    public String getPath() {
+        return (String) get("_file");
+    }
+
+    public void setPath(String path) {
+        put("_file", path);
     }
 
     @Override
