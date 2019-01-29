@@ -3,6 +3,7 @@ package beam.plugins.enterprise;
 import beam.core.BeamCore;
 import beam.lang.BeamFile;
 import beam.lang.Resource;
+import beam.lang.ast.Scope;
 import com.psddev.dari.util.CollectionUtils;
 import com.psddev.dari.util.CompactMap;
 import com.psddev.dari.util.Lazy;
@@ -10,6 +11,7 @@ import com.psddev.dari.util.ObjectUtils;
 
 import java.io.File;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.Map;
 
 public class EnterpriseConfig {
@@ -25,10 +27,10 @@ public class EnterpriseConfig {
                 BeamCore core = new BeamCore();
                 core.addResourceType("enterprise::project", EnterpriseProject.class);
 
-                BeamFile config = core.parse(enterpriseConfigFile.toString());
+                Scope config = core.parseScope(enterpriseConfigFile.toString());
 
-                Map<String, Object> keyValues = config.resolvedKeyValues();
-                for (Resource resource : config.resources()) {
+                Map<String, Object> keyValues = new HashMap<>(config);
+                for (Resource resource : config.getPendingResources().values()) {
                     keyValues.put(resource.resourceIdentifier(), resource);
                 }
 
