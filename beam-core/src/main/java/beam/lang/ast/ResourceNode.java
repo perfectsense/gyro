@@ -26,11 +26,7 @@ public class ResourceNode extends Node {
 
         body = new ArrayList<>();
         for (BeamParser.ResourceBodyContext bodyContext : context.resourceBody()) {
-            if (bodyContext.resource() != null) {
-                body.add(new KeyListValueNode(bodyContext.resource()));
-            } else {
-                body.add(Node.create(bodyContext.getChild(0)));
-            }
+            body.add(Node.create(bodyContext.getChild(0)));
         }
     }
 
@@ -46,6 +42,8 @@ public class ResourceNode extends Node {
         }
 
         Scope bodyScope = new Scope(scope);
+        bodyScope.put("_resource_name", n);
+        bodyScope.put("_resource_type", type);
 
         for (Node node : body) {
             node.evaluate(bodyScope);
@@ -53,8 +51,12 @@ public class ResourceNode extends Node {
 
         if (n != null) {
             Resource resource = createResource(scope, type);
+            resource.scope(bodyScope);
+            resource.syncInternalToProperties();
 
-            scope.getPendingResources().put(n, resource);
+            if (!scope.containsKey("_resource_name")) {
+                scope.getPendingResources().put(n, resource);
+            }
 
             //scope.getCurrentResources().put(n, new Resource(type, n, null));
         } else {
@@ -66,6 +68,14 @@ public class ResourceNode extends Node {
                 loader.load();
             } else if ("state".equals(type)) {
                 //scope.setStateBackend(new Resource(type, n, bodyScope));
+            } else {
+                String resourceType = String.format("%s::%s", scope.get("_resource_type"), type);
+                Resource resource = createResource(scope, resourceType);
+                resource.resourceType(type);
+                resource.scope(bodyScope);
+
+                List<Resource> subresources = (List<Resource>) scope.computeIfAbsent("_subresources", s -> new ArrayList<>());
+                subresources.add(resource);
             }
         }
 

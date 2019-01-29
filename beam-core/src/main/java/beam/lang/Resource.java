@@ -5,10 +5,13 @@ import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceDisplayDiff;
 import beam.core.diff.ResourceName;
+import beam.lang.ast.Scope;
 import beam.lang.types.ReferenceValue;
 import beam.lang.types.StringExpressionValue;
+import beam.lang.types.Value;
 import com.google.common.base.Throwables;
 import com.psddev.dari.util.ObjectUtils;
+import org.apache.commons.lang.StringUtils;
 
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -29,6 +32,7 @@ public abstract class Resource extends Container {
     private String type;
     private String name;
     private StringExpressionValue nameExpression;
+    private Scope scope;
 
     // -- Internal
 
@@ -51,6 +55,14 @@ public abstract class Resource extends Container {
     public abstract String toDisplayString();
 
     public abstract Class resourceCredentialsClass();
+
+    public Scope scope() {
+        return scope;
+    }
+
+    public void scope(Scope scope) {
+        this.scope = scope;
+    }
 
     public String resourceCredentialsName() {
         Class c = resourceCredentialsClass();
@@ -109,6 +121,30 @@ public abstract class Resource extends Container {
         }
 
         return dependents;
+    }
+
+    @Override
+    public Map<String, Object> resolvedKeyValues() {
+        Map<String, Object> copy = new HashMap<>(scope);
+
+        try {
+            for (PropertyDescriptor p : Introspector.getBeanInfo(getClass(), Container.class).getPropertyDescriptors()) {
+                Method reader = p.getReadMethod();
+
+                if (reader != null) {
+                    String key = keyFromFieldName(p.getDisplayName());
+                    Object value = reader.invoke(this);
+
+                    copy.put(key, value);
+                }
+            }
+        } catch (IllegalAccessException | IntrospectionException error) {
+            throw new IllegalStateException(error);
+        } catch (InvocationTargetException error) {
+            throw Throwables.propagate(error);
+        }
+
+        return copy;
     }
 
     public void diffOnCreate(ResourceChange change) throws Exception {
@@ -259,17 +295,11 @@ public abstract class Resource extends Container {
     public Map<String, List<Resource>> subResources() {
         if (subResources == null) {
             subResources = new HashMap<>();
-        }
 
-        for (Frame frame : frames()) {
-            for (String fieldName : frame.subResources().keySet()) {
-                List<Resource> fieldResources = subResources.computeIfAbsent(fieldName, r -> new ArrayList<>());
-                List<Resource> frameResources = frame.subResources().get(fieldName);
-                for (Resource resource : frameResources) {
-                    if (!fieldResources.contains(resource)) {
-                        fieldResources.add(resource);
-                    }
-                }
+            List<Resource> resources = (List<Resource>) scope.computeIfAbsent("_subresources", s -> new ArrayList<>());
+            for (Resource resource : resources) {
+                List<Resource> group = subResources.computeIfAbsent(resource.resourceType(), s -> new ArrayList<>());
+                group.add(resource);
             }
         }
 
@@ -277,21 +307,13 @@ public abstract class Resource extends Container {
     }
 
     public void putSubresource(String fieldName, Resource subresource) {
-        List<Resource> resources = subResources().computeIfAbsent(fieldName, r -> new ArrayList<>());
-        resources.add(subresource);
-        dependents().add(subresource);
     }
 
     public void putSubresource(Resource subresource) {
-        subresource.parent(this);
-        String fieldName = subresource.resourceType();
-        List<Resource> resources = subResources().computeIfAbsent(fieldName, r -> new ArrayList<>());
-        resources.add(subresource);
     }
 
     public void removeSubresource(Resource subresource) {
-        String fieldName = subresource.resourceType();
-        List<Resource> resources = subResources().computeIfAbsent(fieldName, r -> new ArrayList<>());
+        List<Resource> resources = (List<Resource>) scope.computeIfAbsent("_subresources", s -> new ArrayList<>());
         resources.remove(subresource);
     }
 
@@ -480,7 +502,58 @@ public abstract class Resource extends Container {
         }
 
         sb.append("\n");
-        sb.append(super.serialize(indent + 4));
+
+        for (String key : scope.keySet()) {
+            if (key.startsWith("_")) {
+                continue;
+            }
+
+            Object value = scope.get(key);
+            if (value != null) {
+                sb.append(indent(indent + 4));
+                sb.append(key).append(": ");
+
+                if (value instanceof List) {
+                    List listValues = (List) value;
+
+                    sb.append("[\n");
+
+                    List<String> out = new ArrayList<>();
+                    for (Object listValue : listValues) {
+                        out.add(indent(indent + 8) + "'" + listValue.toString() + "'");
+                    }
+
+                    sb.append(StringUtils.join(out, ",\n"));
+                    sb.append("\n").append(indent(indent + 4)).append("]\n");
+                } else if (value instanceof Map) {
+                    Map<String, Object> mapValues = (Map<String, Object>) value;
+
+                    sb.append("{\n");
+
+                    List<String> out = new ArrayList<>();
+                    for (String k : mapValues.keySet()) {
+                        out.add(String.format("%s%s: '%s'", indent(indent + 8), k, mapValues.get(k)));
+                    }
+
+                    sb.append(StringUtils.join(out, ",\n"));
+                    sb.append("\n").append(indent(indent + 4)).append("}\n");
+                } else if (value instanceof Number || value instanceof Boolean) {
+                    sb.append(scope.get(key));
+                } else {
+                    sb.append("'").append(scope.get(key)).append("'");
+                }
+
+                sb.append("\n");
+            }
+        }
+
+        for (String key : subResources().keySet()) {
+            List<Resource> subresources = subResources().get(key);
+
+            for (Resource subresource : subresources) {
+                sb.append(subresource.serialize(indent + 4));
+            }
+        }
 
         sb.append(indent(indent));
         sb.append("end\n\n");
