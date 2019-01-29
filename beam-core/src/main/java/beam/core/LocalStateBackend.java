@@ -2,6 +2,7 @@ package beam.core;
 
 import beam.lang.BeamFile;
 import beam.lang.StateBackend;
+import beam.lang.ast.Scope;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -35,6 +36,24 @@ public class LocalStateBackend extends StateBackend {
     }
 
     @Override
+    public Scope load(Scope scope) throws Exception {
+        String path = scope.getPath().endsWith(".state") ? scope.getPath() : scope.getPath() + ".state";
+
+        Scope state;
+
+        File stateFile = new File(path);
+        if (stateFile.exists() && !stateFile.isDirectory()) {
+            BeamCore core = new BeamCore();
+            state = core.parseScope(path, true);
+        } else {
+            state = new Scope(null);
+            state.setPath(path);
+        }
+
+        return state;
+    }
+
+    @Override
     public void save(BeamFile fileNode) {
         try {
             String path = fileNode.path().endsWith(".state") ? fileNode.path() : fileNode.path() + ".state";
@@ -45,6 +64,11 @@ public class LocalStateBackend extends StateBackend {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void save(Scope state) {
+
     }
 
     @Override
