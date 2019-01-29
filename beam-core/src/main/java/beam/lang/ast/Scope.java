@@ -1,6 +1,8 @@
 package beam.lang.ast;
 
+import beam.core.LocalStateBackend;
 import beam.lang.Resource;
+import beam.lang.StateBackend;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -84,12 +86,14 @@ public class Scope implements Map<String, Object> {
     }
 
     @SuppressWarnings("unchecked")
-    public Resource getStateBackend() {
-        return (Resource) getTop().get("_stateBackend");
+    public StateBackend getStateBackend() {
+        return new LocalStateBackend();
     }
 
     public void setStateBackend(Resource resource) {
-        getTop().put("_stateBackend", resource);
+        getTop().put("_state_backend", resource);
+    }
+
     public String getPath() {
         return (String) get("_file");
     }
