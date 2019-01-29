@@ -4,6 +4,7 @@ import beam.core.LocalStateBackend;
 import beam.lang.Credentials;
 import beam.lang.Resource;
 import beam.lang.StateBackend;
+import beam.lang.plugins.PluginLoader;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -81,8 +82,8 @@ public class Scope implements Map<String, Object> {
     }
 
     @SuppressWarnings("unchecked")
-    public List<Resource> getPlugins() {
-        return (List<Resource>) getTop().computeIfAbsent("_plugins", k -> new ArrayList<>());
+    public List<PluginLoader> getPlugins() {
+        return (List<PluginLoader>) getTop().computeIfAbsent("_plugins", k -> new ArrayList<>());
     }
 
     @SuppressWarnings("unchecked")
