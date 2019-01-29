@@ -6,6 +6,7 @@ import beam.core.BeamInstance;
 import beam.lang.BeamFile;
 import beam.lang.Resource;
 import beam.lang.StateBackend;
+import beam.lang.ast.Scope;
 import io.airlift.airline.Option;
 
 import java.util.ArrayList;
@@ -23,12 +24,12 @@ public abstract class AbstractInstanceCommand extends AbstractConfigCommand {
     public abstract void doExecute(List<BeamInstance> instances) throws Exception;
 
     @Override
-    protected void doExecute(BeamFile pending) throws Exception {
+    protected void doExecute(Scope pending, Scope state) throws Exception {
 
         BeamCore.ui().write("\n");
 
         List<BeamInstance> instances = new ArrayList<>();
-        for (Resource resource : pending.state().resources()) {
+        for (Resource resource : state.getPendingResources().values()) {
             if (BeamInstance.class.isAssignableFrom(resource.getClass())) {
                 BeamInstance instance = (BeamInstance) resource;
 
@@ -37,8 +38,8 @@ public abstract class AbstractInstanceCommand extends AbstractConfigCommand {
                 if (refresh()) {
                     BeamCore.ui().write("@|bold,blue Refreshing|@: @|yellow %s|@ -> %s...", resource.resourceType(), resource.resourceIdentifier());
                     resource.refresh();
-                    StateBackend stateBackend = pending.stateBackend();
-                    stateBackend.save(pending.state());
+                    StateBackend stateBackend = pending.getStateBackend();
+                    stateBackend.save(state);
                     BeamCore.ui().write("\n");
                 }
             }

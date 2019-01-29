@@ -1,6 +1,5 @@
 package beam.lang.plugins;
 
-import beam.core.BeamCore;
 import beam.lang.ast.Scope;
 
 public abstract class Plugin {

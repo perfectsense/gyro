@@ -1,6 +1,7 @@
 package beam.lang.ast;
 
 import beam.core.LocalStateBackend;
+import beam.lang.Credentials;
 import beam.lang.Resource;
 import beam.lang.StateBackend;
 
@@ -63,6 +64,10 @@ public class Scope implements Map<String, Object> {
                 top = parent;
             }
         }
+    }
+
+    public List<Credentials> getCredentials() {
+        return new ArrayList<>();
     }
 
     @SuppressWarnings("unchecked")

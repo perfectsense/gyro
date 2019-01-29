@@ -12,6 +12,7 @@ import beam.lang.Node;
 import beam.lang.Resource;
 import beam.lang.StateBackend;
 import beam.lang.VirtualResourceDefinition;
+import beam.lang.ast.Scope;
 import beam.lang.listeners.ErrorListener;
 import beam.lang.listeners.PluginLoadingListener;
 import beam.lang.listeners.StateBackendLoadingListener;
@@ -91,6 +92,34 @@ public class BeamCore {
         return parsingState;
     }
 
+    public Scope parseScope(String path) throws IOException {
+        return parseScope(path, false);
+    }
+
+    public Scope parseScope(String path, boolean state) throws IOException {
+        // Initial file parse loads state and providers.
+        BeamLexer lexer = new BeamLexer(CharStreams.fromFileName(path));
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+
+        BeamParser parser = new BeamParser(tokens);
+        ErrorListener errorListener = new ErrorListener();
+        parser.removeErrorListeners();
+        parser.addErrorListener(errorListener);
+
+        BeamFileContext context = parser.beamFile();
+
+        beam.lang.ast.Node rootNode = beam.lang.ast.Node.create(context);
+        Scope rootScope = new Scope(null);
+        rootScope.put("_file", path);
+        rootNode.evaluate(rootScope);
+
+        if (errorListener.getSyntaxErrors() > 0) {
+            throw new BeamLanguageException(errorListener.getSyntaxErrors() + " errors while parsing.");
+        }
+
+        return rootScope;
+    }
+
     public BeamFile parse(String path) throws IOException {
         return parse(path, false);
     }
@@ -119,15 +148,6 @@ public class BeamCore {
         parser.addParseListener(virtualResourceDefinitionListener);
 
         BeamFileContext context = parser.beamFile();
-
-        beam.lang.ast.Node rootNode = beam.lang.ast.Node.create(context);
-        System.out.println(">>> ROOT NODE:\n" + rootNode + "\n\n");
-        beam.lang.ast.Scope rootScope = new beam.lang.ast.Scope(null);
-        rootScope.put("_file", path);
-        rootNode.evaluate(rootScope);
-        for (beam.lang.Resource resource : rootScope.getPendingResources().values()) {
-            System.out.println(">>> PENDING RESOURCE: " + resource.serialize(0) + "\n");
-        }
 
         if (errorListener.getSyntaxErrors() > 0) {
             throw new BeamLanguageException(errorListener.getSyntaxErrors() + " errors while parsing.");

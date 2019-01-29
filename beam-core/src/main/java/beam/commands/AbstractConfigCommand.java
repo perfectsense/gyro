@@ -2,9 +2,10 @@ package beam.commands;
 
 import beam.core.BeamCore;
 import beam.core.BeamException;
-import beam.lang.BeamFile;
 import beam.lang.BeamLanguageException;
 import beam.lang.Credentials;
+import beam.lang.StateBackend;
+import beam.lang.ast.Scope;
 import io.airlift.airline.Arguments;
 
 import java.util.List;
@@ -16,7 +17,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
     private BeamCore core;
 
-    protected abstract void doExecute(BeamFile beamFile) throws Exception;
+    protected abstract void doExecute(Scope pending, Scope state) throws Exception;
 
     @Override
     protected void doExecute() throws Exception {
@@ -26,18 +27,21 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
         String configPath = arguments().get(0);
         core = new BeamCore();
-        BeamFile pending;
+        Scope pendingScope;
+        Scope stateScope;
         try {
-            pending = core.parse(configPath);
+            pendingScope = core.parseScope(configPath);
+            StateBackend stateBackend = pendingScope.getStateBackend();
+            stateScope = stateBackend.load(pendingScope);
         } catch (BeamLanguageException ex) {
             throw new BeamException(ex.getMessage());
         }
 
-        for (Credentials credentials : pending.credentials()) {
+        for (Credentials credentials : pendingScope.getCredentials()) {
             credentials.findCredentials(true);
         }
 
-        doExecute(pending);
+        doExecute(pendingScope, stateScope);
     }
 
     public List<String> arguments() {

@@ -8,7 +8,6 @@ import beam.core.diff.ResourceName;
 import beam.lang.ast.Scope;
 import beam.lang.types.ReferenceValue;
 import beam.lang.types.StringExpressionValue;
-import beam.lang.types.Value;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Throwables;
 import com.psddev.dari.util.ObjectUtils;
