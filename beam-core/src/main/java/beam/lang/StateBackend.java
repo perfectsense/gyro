@@ -6,8 +6,6 @@ public abstract class StateBackend {
 
     public abstract String name();
 
-    public abstract BeamFile load(BeamFile fileNode) throws Exception;
-
     public abstract Scope load(Scope scope) throws Exception;
 
     public abstract void save(BeamFile state);

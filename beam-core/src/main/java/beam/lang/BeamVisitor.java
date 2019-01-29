@@ -86,6 +86,7 @@ public class BeamVisitor extends BeamParserBaseVisitor {
                     resolvedPath += ".bcl";
                 }
 
+                /*
                 try {
                     String importName = fileContext.importStmt().importName() != null
                         ? fileContext.importStmt().importName().getText()
@@ -98,6 +99,7 @@ public class BeamVisitor extends BeamParserBaseVisitor {
                 } catch (IOException ioe) {
                     throw new BeamException("Failed to import '" + resolvedPath + "'");
                 }
+                */
             } else if (fileContext.forStmt() != null) {
                 ForControl forNode = visitForStmt(fileContext.forStmt(), beamFile);
                 beamFile.putControl(forNode);
@@ -226,12 +228,14 @@ public class BeamVisitor extends BeamParserBaseVisitor {
             }
         }
 
+        /*
         VirtualResourceDefinition definition = core.getVirtualResource(context.resourceType().getText());
         VirtualResourceControl control = new VirtualResourceControl(definition, container);
         control.resourceIdentifier(context.resourceName().getText());
         control.parent(parent);
+        */
 
-        return control;
+        return null;
     }
 
     public static String parseKey(KeyContext keyContext) {

@@ -6,25 +6,17 @@ import beam.core.diff.ResourceDiff;
 import beam.core.diff.ResourceName;
 import beam.lang.BeamFile;
 import beam.lang.BeamLanguageException;
-import beam.lang.BeamVisitor;
-import beam.lang.Modification;
 import beam.lang.Node;
 import beam.lang.Resource;
 import beam.lang.StateBackend;
-import beam.lang.VirtualResourceDefinition;
 import beam.lang.ast.Scope;
 import beam.lang.listeners.ErrorListener;
-import beam.lang.listeners.PluginLoadingListener;
-import beam.lang.listeners.StateBackendLoadingListener;
-import beam.lang.listeners.VirtualResourceDefinitionListener;
-import beam.lang.plugins.PluginLoader;
 import beam.parser.antlr4.BeamLexer;
 import beam.parser.antlr4.BeamParser;
 import beam.parser.antlr4.BeamParser.BeamFileContext;
 import com.psddev.dari.util.ThreadLocalStack;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.reflections.Reflections;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,12 +29,6 @@ import java.util.Set;
 public class BeamCore {
 
     private final Map<String, Class<? extends Resource>> resourceTypes = new HashMap<>();
-
-    private PluginLoadingListener pluginListener;
-    private StateBackendLoadingListener stateListener;
-    private VirtualResourceDefinitionListener virtualResourceDefinitionListener;
-    private Reflections reflections;
-    private boolean parsingState;
 
     private static final ThreadLocalStack<BeamUI> UI = new ThreadLocalStack<>();
 
@@ -70,28 +56,14 @@ public class BeamCore {
         return resourceTypes.get(key);
     }
 
-    public VirtualResourceDefinition getVirtualResource(String name) {
-        return virtualResourceDefinitionListener.virtualResource(name);
-    }
-
     public ResourceType resourceType(String name) {
         if (getResourceType(name) != null) {
             return ResourceType.RESOURCE;
-        } else if (getVirtualResource(name) != null) {
-            return ResourceType.VIRTUAL_RESOURCE;
         }
 
         return ResourceType.UNKNOWN;
     }
       
-    public Reflections reflections() {
-        return reflections;
-    }
-
-    public boolean parsingState() {
-        return parsingState;
-    }
-
     public Scope parseScope(String path) throws IOException {
         return parseScope(path, false);
     }
@@ -118,117 +90,6 @@ public class BeamCore {
         }
 
         return rootScope;
-    }
-
-    public BeamFile parse(String path) throws IOException {
-        return parse(path, false);
-    }
-
-    public BeamFile parse(String path, boolean state) throws IOException {
-        parsingState = state;
-
-        // Initial file parse loads state and providers.
-        BeamLexer lexer = new BeamLexer(CharStreams.fromFileName(path));
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
-
-        BeamParser parser = new BeamParser(tokens);
-        ErrorListener errorListener = new ErrorListener();
-        parser.removeErrorListeners();
-        parser.addErrorListener(errorListener);
-
-        BeamVisitor visitor = new BeamVisitor(this, path);
-
-        stateListener = new StateBackendLoadingListener(this, visitor);
-        parser.addParseListener(stateListener);
-
-        pluginListener = new PluginLoadingListener(visitor);
-        parser.addParseListener(pluginListener);
-
-        virtualResourceDefinitionListener = new VirtualResourceDefinitionListener(visitor);
-        parser.addParseListener(virtualResourceDefinitionListener);
-
-        BeamFileContext context = parser.beamFile();
-
-        if (errorListener.getSyntaxErrors() > 0) {
-            throw new BeamLanguageException(errorListener.getSyntaxErrors() + " errors while parsing.");
-        }
-
-        for (PluginLoader pluginLoader : pluginListener.plugins()) {
-            pluginLoader.load();
-        }
-
-        // Load initial configuration
-        BeamFile fileNode = visitor.visitBeamFile(context);
-
-        if (!fileNode.resolve()) {
-            System.out.println("Unable to resolve config.");
-        }
-
-        executeModifications(fileNode);
-
-        // Load state, assuming this isn't a state file itself.
-        if (!path.endsWith(".state")) {
-            StateBackend backend = stateListener.getStateBackend();
-            try {
-                BeamFile stateNode = backend.load(fileNode);
-                stateNode.copyNonResourceState(fileNode);
-
-                fileNode.state(stateNode);
-            } catch (Exception ex) {
-                throw new BeamLanguageException("Unable to load state.", ex);
-            }
-        }
-
-        return fileNode;
-    }
-
-    public BeamFile parseImport(String path) throws IOException {
-        BeamLexer lexer = new BeamLexer(CharStreams.fromFileName(path));
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
-
-        BeamParser parser = new BeamParser(tokens);
-        ErrorListener errorListener = new ErrorListener();
-        parser.removeErrorListeners();
-        parser.addErrorListener(errorListener);
-
-        parser.addParseListener(stateListener);
-        parser.addParseListener(pluginListener);
-        parser.addParseListener(virtualResourceDefinitionListener);
-
-        BeamFileContext context = parser.beamFile();
-
-        if (errorListener.getSyntaxErrors() > 0) {
-            throw new BeamLanguageException(errorListener.getSyntaxErrors() + " errors while parsing.");
-        }
-
-        for (PluginLoader pluginLoader : pluginListener.plugins()) {
-            pluginLoader.load();
-        }
-
-        // Load configuration
-        BeamVisitor visitor = new BeamVisitor(this, path);
-        BeamFile fileNode = visitor.visitBeamFile(context);
-
-        if (!fileNode.resolve()) {
-            System.out.println("Unable to resolve config.");
-        }
-
-        executeModifications(fileNode);
-
-        // Load state, assuming this isn't a state file itself.
-        if (!path.endsWith(".state")) {
-            StateBackend backend = fileNode.stateBackend();
-            try {
-                BeamFile stateNode = backend.load(fileNode);
-                stateNode.copyNonResourceState(fileNode);
-
-                fileNode.state(stateNode);
-            } catch (Exception ex) {
-                throw new BeamLanguageException("Unable to load state.", ex);
-            }
-        }
-
-        return fileNode;
     }
 
     public List<ResourceDiff> diff(Scope pendingScope, Scope stateScope, boolean refresh) throws Exception {
@@ -404,26 +265,6 @@ public class BeamCore {
 
             default :
                 BeamCore.ui().write(change.toString());
-        }
-    }
-
-    private void executeModifications(BeamFile beamFile) {
-        if (!parsingState()) {
-            reflections = new Reflections("beam", getClass().getClassLoader(), PluginLoader.classLoader());
-
-            for (Modification modification : beamFile.modifications()) {
-                for (Resource resource : beamFile.resources()) {
-                    Class parent = resource.getClass();
-                    while (parent != java.lang.Object.class) {
-                        if (modification.modifies().contains(parent.getName())) {
-                            modification.modify(resource);
-                            break;
-                        }
-
-                        parent = parent.getSuperclass();
-                    }
-                }
-            }
         }
     }
 
