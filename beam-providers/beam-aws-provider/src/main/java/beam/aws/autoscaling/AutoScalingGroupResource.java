@@ -10,8 +10,16 @@ import com.psddev.dari.util.StringUtils;
 import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
 import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup;
 import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsResponse;
+import software.amazon.awssdk.services.autoscaling.model.DescribeLifecycleHooksResponse;
+import software.amazon.awssdk.services.autoscaling.model.DescribeNotificationConfigurationsResponse;
+import software.amazon.awssdk.services.autoscaling.model.DescribePoliciesResponse;
+import software.amazon.awssdk.services.autoscaling.model.DescribeScheduledActionsResponse;
 import software.amazon.awssdk.services.autoscaling.model.EnabledMetric;
 import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateSpecification;
+import software.amazon.awssdk.services.autoscaling.model.LifecycleHook;
+import software.amazon.awssdk.services.autoscaling.model.NotificationConfiguration;
+import software.amazon.awssdk.services.autoscaling.model.ScalingPolicy;
+import software.amazon.awssdk.services.autoscaling.model.ScheduledUpdateGroupAction;
 import software.amazon.awssdk.services.autoscaling.model.Tag;
 import software.amazon.awssdk.services.autoscaling.model.TagDescription;
 import software.amazon.awssdk.services.ec2.model.Ec2Exception;
@@ -55,6 +63,30 @@ import java.util.stream.Collectors;
  *             $(aws::subnet subnet-auto-scaling-group-example | availability-zone),
  *             $(aws::subnet subnet-auto-scaling-group-example-2 | availability-zone)
  *         ]
+ *
+ *         scaling-policy
+ *             policy-name: "Simple-Policy-1"
+ *             adjustment-type: "PercentChangeInCapacity"
+ *             policy-type: "SimpleScaling"
+ *             cooldown: 3000
+ *             scaling-adjustment: 5
+ *             min-adjustment-magnitude: 3
+ *         end
+ *
+ *         lifecycle-hook
+ *             lifecycle-hook-name: "Lifecycle-Hook-1"
+ *             default-result: "CONTINUE"
+ *             heartbeat-timeout: 300
+ *             lifecycle-transition: "autoscaling:EC2_INSTANCE_LAUNCHING"
+ *         end
+ *
+ *         auto-scaling-notification
+ *             topic-arn: "arn:aws:sns:us-west-2:242040583208:beam-instance-state"
+ *             notification-types: [
+ *                 "autoscaling:EC2_INSTANCE_LAUNCH_ERROR"
+ *             ]
+ *         end
+ *
  *     end
  */
 @ResourceName("auto-scaling-group")
@@ -81,6 +113,10 @@ public class AutoScalingGroupResource extends AwsResource {
     private String placementGroup;
     private String status;
     private Date createdTime;
+    private List<AutoScalingPolicyResource> scalingPolicy;
+    private List<AutoScalingGroupLifecycleHookResource> lifecycleHook;
+    private List<AutoScalingGroupScheduledActionResource> scheduledAction;
+    private List<AutoScalingGroupNotificationResource> autoScalingNotification;
 
     private final Set<String> masterMetricSet = new HashSet<>(Arrays.asList(
         "GroupMinSize",
@@ -375,6 +411,58 @@ public class AutoScalingGroupResource extends AwsResource {
         this.createdTime = createdTime;
     }
 
+    @ResourceDiffProperty(nullable = true, subresource = true)
+    public List<AutoScalingPolicyResource> getScalingPolicy() {
+        if (scalingPolicy == null) {
+            scalingPolicy = new ArrayList<>();
+        }
+
+        return scalingPolicy;
+    }
+
+    public void setScalingPolicy(List<AutoScalingPolicyResource> scalingPolicy) {
+        this.scalingPolicy = scalingPolicy;
+    }
+
+    @ResourceDiffProperty(nullable = true, subresource = true)
+    public List<AutoScalingGroupLifecycleHookResource> getLifecycleHook() {
+        if (lifecycleHook == null) {
+            lifecycleHook = new ArrayList<>();
+        }
+
+        return lifecycleHook;
+    }
+
+    public void setLifecycleHook(List<AutoScalingGroupLifecycleHookResource> lifecycleHook) {
+        this.lifecycleHook = lifecycleHook;
+    }
+
+    @ResourceDiffProperty(nullable = true, subresource = true)
+    public List<AutoScalingGroupScheduledActionResource> getScheduledAction() {
+        if (scheduledAction == null) {
+            scheduledAction = new ArrayList<>();
+        }
+
+        return scheduledAction;
+    }
+
+    public void setScheduledAction(List<AutoScalingGroupScheduledActionResource> scheduledAction) {
+        this.scheduledAction = scheduledAction;
+    }
+
+    @ResourceDiffProperty(nullable = true, subresource = true)
+    public List<AutoScalingGroupNotificationResource> getAutoScalingNotification() {
+        if (autoScalingNotification == null) {
+            autoScalingNotification = new ArrayList<>();
+        }
+
+        return autoScalingNotification;
+    }
+
+    public void setAutoScalingNotification(List<AutoScalingGroupNotificationResource> autoScalingNotification) {
+        this.autoScalingNotification = autoScalingNotification;
+    }
+
     @Override
     public boolean refresh() {
         AutoScalingClient client = createClient(AutoScalingClient.class);
@@ -406,6 +494,14 @@ public class AutoScalingGroupResource extends AwsResource {
         loadMetrics(autoScalingGroup.enabledMetrics());
 
         loadTags(autoScalingGroup.tags());
+
+        loadScalingPolicy(client);
+
+        loadLifecycleHook(client);
+
+        loadScheduledAction(client);
+
+        loadNotification(client);
 
         return true;
     }
@@ -663,5 +759,62 @@ public class AutoScalingGroupResource extends AwsResource {
                 r -> r.autoScalingGroupName(getAutoScalingGroupName())
                     .metrics(getDisabledMetrics()));
         }
+    }
+
+    private void loadScalingPolicy(AutoScalingClient client) {
+        getScalingPolicy().clear();
+
+        DescribePoliciesResponse policyResponse = client.describePolicies(r -> r.autoScalingGroupName(getAutoScalingGroupName()));
+
+        for (ScalingPolicy scalingPolicy : policyResponse.scalingPolicies()) {
+            AutoScalingPolicyResource autoScalingPolicyResource = new AutoScalingPolicyResource(scalingPolicy);
+            autoScalingPolicyResource.parent(this);
+            autoScalingPolicyResource.setResourceCredentials(getResourceCredentials());
+            getScalingPolicy().add(autoScalingPolicyResource);
+        }
+    }
+
+    private void loadLifecycleHook(AutoScalingClient client) {
+        getLifecycleHook().clear();
+
+        DescribeLifecycleHooksResponse lifecycleHooksResponse = client.describeLifecycleHooks(r -> r.autoScalingGroupName(getAutoScalingGroupName()));
+
+        for (LifecycleHook lifecycleHook : lifecycleHooksResponse.lifecycleHooks()) {
+            AutoScalingGroupLifecycleHookResource lifecycleHookResource = new AutoScalingGroupLifecycleHookResource(lifecycleHook);
+            lifecycleHookResource.parent(this);
+            lifecycleHookResource.setResourceCredentials(getResourceCredentials());
+            getLifecycleHook().add(lifecycleHookResource);
+        }
+    }
+
+    private void loadScheduledAction(AutoScalingClient client) {
+        getScheduledAction().clear();
+
+        DescribeScheduledActionsResponse scheduledActionsResponse = client.describeScheduledActions(
+            r -> r.autoScalingGroupName(getAutoScalingGroupName())
+        );
+
+        for (ScheduledUpdateGroupAction scheduledUpdateGroupAction : scheduledActionsResponse.scheduledUpdateGroupActions()) {
+            AutoScalingGroupScheduledActionResource scheduledActionResource = new AutoScalingGroupScheduledActionResource(scheduledUpdateGroupAction);
+            scheduledActionResource.parent(this);
+            scheduledActionResource.setResourceCredentials(getResourceCredentials());
+            getScheduledAction().add(scheduledActionResource);
+        }
+    }
+
+    private void loadNotification(AutoScalingClient client) {
+        getAutoScalingNotification().clear();
+
+        DescribeNotificationConfigurationsResponse notificationResponse = client.describeNotificationConfigurations(
+            r -> r.autoScalingGroupNames(Collections.singletonList(getAutoScalingGroupName()))
+        );
+
+        for (NotificationConfiguration notificationConfiguration : notificationResponse.notificationConfigurations()) {
+            AutoScalingGroupNotificationResource notificationResource = new AutoScalingGroupNotificationResource(notificationConfiguration);
+            notificationResource.parent(this);
+            notificationResource.setResourceCredentials(getResourceCredentials());
+            getAutoScalingNotification().add(notificationResource);
+        }
+
     }
 }
