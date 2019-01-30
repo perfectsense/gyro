@@ -7,6 +7,7 @@ import beam.core.diff.ResourceName;
 import beam.lang.BeamLanguageException;
 import beam.lang.Resource;
 import beam.lang.StateBackend;
+import beam.lang.ast.Node;
 import beam.lang.ast.scope.FileScope;
 import beam.lang.ast.scope.ProcessScope;
 import beam.lang.listeners.ErrorListener;
@@ -59,7 +60,7 @@ public class BeamCore {
 
         BeamFileContext context = parser.beamFile();
 
-        beam.lang.ast.Node rootNode = beam.lang.ast.Node.create(context);
+        Node rootNode = Node.create(context);
         ProcessScope processScope = new ProcessScope(null);
         FileScope rootScope = new FileScope(processScope);
         rootScope.setPath(path);

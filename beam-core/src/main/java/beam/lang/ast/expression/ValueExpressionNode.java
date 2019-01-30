@@ -1,4 +1,4 @@
-package beam.lang.ast.types;
+package beam.lang.ast.expression;
 
 import beam.lang.ast.expression.ExpressionNode;
 import beam.lang.ast.scope.Scope;

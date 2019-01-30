@@ -14,7 +14,7 @@ import beam.lang.ast.types.MapNode;
 import beam.lang.ast.types.NumberNode;
 import beam.lang.ast.types.StringExpressionNode;
 import beam.lang.ast.types.StringNode;
-import beam.lang.ast.types.ValueExpressionNode;
+import beam.lang.ast.expression.ValueExpressionNode;
 import beam.lang.ast.types.ValueReferenceNode;
 import beam.parser.antlr4.BeamParser;
 import org.antlr.v4.runtime.tree.ParseTree;
