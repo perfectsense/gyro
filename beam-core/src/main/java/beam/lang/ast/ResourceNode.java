@@ -55,7 +55,7 @@ public class ResourceNode extends Node {
             resource.syncInternalToProperties();
 
             if (!scope.containsKey("_resource_name")) {
-                scope.getPendingResources().put(n, resource);
+                scope.getResources().put(n, resource);
             }
 
             //scope.getCurrentResources().put(n, new Resource(type, n, null));
@@ -67,7 +67,8 @@ public class ResourceNode extends Node {
                 PluginLoader loader = new PluginLoader(scope, artifact, repositories);
                 loader.load();
 
-                List<PluginLoader> plugins = (List<PluginLoader>) scope.computeIfAbsent("_plugins", s -> new ArrayList<>());
+                List<PluginLoader> plugins = scope.getPlugins();
+                plugins.add(loader);
             } else if ("state".equals(type)) {
                 //scope.setStateBackend(new Resource(type, n, bodyScope));
             } else {
@@ -102,7 +103,7 @@ public class ResourceNode extends Node {
     }
 
     private beam.lang.Resource createResource(Scope scope, String type) {
-        Class klass = scope.getResourceTypes().get(type);
+        Class klass = scope.getTypes().get(type);
         if (klass != null) {
             try {
                 beam.lang.Resource resource = (beam.lang.Resource) klass.newInstance();

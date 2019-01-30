@@ -9,6 +9,8 @@ import beam.lang.BeamLanguageException;
 import beam.lang.Node;
 import beam.lang.Resource;
 import beam.lang.StateBackend;
+import beam.lang.ast.FileScope;
+import beam.lang.ast.ProcessScope;
 import beam.lang.ast.Scope;
 import beam.lang.listeners.ErrorListener;
 import beam.parser.antlr4.BeamLexer;
@@ -64,11 +66,11 @@ public class BeamCore {
         return ResourceType.UNKNOWN;
     }
       
-    public Scope parseScope(String path) throws IOException {
+    public FileScope parseScope(String path) throws IOException {
         return parseScope(path, false);
     }
 
-    public Scope parseScope(String path, boolean state) throws IOException {
+    public FileScope parseScope(String path, boolean state) throws IOException {
         // Initial file parse loads state and providers.
         BeamLexer lexer = new BeamLexer(CharStreams.fromFileName(path));
         CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -81,8 +83,9 @@ public class BeamCore {
         BeamFileContext context = parser.beamFile();
 
         beam.lang.ast.Node rootNode = beam.lang.ast.Node.create(context);
-        Scope rootScope = new Scope(null);
-        rootScope.put("_file", path);
+        ProcessScope processScope = new ProcessScope(null);
+        FileScope rootScope = new FileScope(processScope);
+        rootScope.setPath(path);
         rootNode.evaluate(rootScope);
 
         if (errorListener.getSyntaxErrors() > 0) {
@@ -92,8 +95,8 @@ public class BeamCore {
         return rootScope;
     }
 
-    public List<ResourceDiff> diff(Scope pendingScope, Scope stateScope, boolean refresh) throws Exception {
-        ResourceDiff diff = new ResourceDiff(stateScope, pendingScope);
+    public List<ResourceDiff> diff(FileScope pendingScope, boolean refresh) throws Exception {
+        ResourceDiff diff = new ResourceDiff(pendingScope.getState(), pendingScope);
         diff.setRefresh(refresh);
         diff.diff();
 
@@ -208,36 +211,36 @@ public class BeamCore {
         writeChange(change);
         Resource resource = change.executeChange();
 
-        BeamFile stateNode = resource.fileNode().state();
-        StateBackend backend = resource.fileNode().stateBackend();
+        FileScope state = resource.scope().getState();
+        StateBackend backend = resource.scope().getStateBackend();
 
         ResourceName nameAnnotation = resource.getClass().getAnnotation(ResourceName.class);
         boolean isSubresource = nameAnnotation != null && !nameAnnotation.parent().equals("");
 
         if (type == ChangeType.DELETE) {
             if (isSubresource) {
-                Resource parent = resource.parentResource();
-                parent.removeSubresource(resource);
+                //Resource parent = resource.parentResource();
+                //parent.removeSubresource(resource);
 
-                stateNode.putResource(parent);
+                //stateNode.putResource(parent);
             } else {
-                stateNode.removeResource(resource);
+                state.getResources().remove(resource.resourceIdentifier());
             }
         } else {
             if (isSubresource) {
                 // Save parent resource when current resource is a subresource.
-                Resource parent = resource.parentResource();
-                stateNode.putResource(parent);
+                //Resource parent = resource.parentResource();
+                //stateNode.putResource(parent);
             } else {
-                stateNode.putResource(resource);
+                state.getResources().put(resource.resourceIdentifier(), resource);
             }
         }
 
         BeamCore.ui().write(" OK\n");
-        backend.save(stateNode);
+        backend.save(state);
 
-        for (BeamFile importNode : stateNode.imports().values()) {
-            backend.save(importNode);
+        for (FileScope importedScope : state.getImports()) {
+            backend.save(importedScope);
         }
     }
 

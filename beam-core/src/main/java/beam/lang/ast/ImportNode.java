@@ -27,7 +27,7 @@ public class ImportNode extends Node {
 
     @Override
     public Object evaluate(Scope scope) {
-        Path file = Paths.get((String) scope.get("_file")).getParent().resolve(path);
+        Path file = Paths.get(scope.getPath()).getParent().resolve(path);
 
         if (!file.endsWith(".bcl") && !file.endsWith(".bcl.state")) {
             file = Paths.get(file.toString() + ".bcl");
@@ -50,15 +50,20 @@ public class ImportNode extends Node {
         parser.addErrorListener(errorListener);
 
         Node rootNode = Node.create(parser.beamFile());
-        Scope rootScope = new Scope(null);
+        FileScope rootScope = new FileScope(scope.getProcessScope());
 
-        rootScope.put("_file", file.toString());
+        scope.getFileScope().getImports().add(rootScope);
+
+        rootScope.setPath(file.toString());
         rootNode.evaluate(rootScope);
 
         if (name != null) {
             if (name.equals("_")) {
-                scope.putAll(rootScope);
-
+                for (String key : rootScope.keySet()) {
+                    if (!key.startsWith("_")) {
+                        scope.put(key, rootScope.get(key));
+                    }
+                }
             } else {
                 scope.put(name, rootScope);
             }

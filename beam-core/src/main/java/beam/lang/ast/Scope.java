@@ -1,6 +1,6 @@
 package beam.lang.ast;
 
-import beam.core.LocalStateBackend;
+import beam.core.BeamException;
 import beam.lang.Credentials;
 import beam.lang.Resource;
 import beam.lang.StateBackend;
@@ -8,7 +8,6 @@ import beam.lang.plugins.PluginLoader;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,60 +51,64 @@ public class Scope implements Map<String, Object> {
         put(key, list);
     }
 
-    private Scope getTop() {
-        Scope top = this;
-
-        while (true) {
-            Scope parent = top.getParent();
-
-            if (parent == null) {
-                return top;
-
-            } else {
-                top = parent;
-            }
-        }
-    }
-
     public List<Credentials> getCredentials() {
         return new ArrayList<>();
     }
 
-    @SuppressWarnings("unchecked")
-    public Map<String, Resource> getCurrentResources() {
-        return (Map<String, Resource>) getTop().computeIfAbsent("_current", k -> new LinkedHashMap<>());
-    }
-
-    @SuppressWarnings("unchecked")
-    public Map<String, Resource> getPendingResources() {
-        return (Map<String, Resource>) getTop().computeIfAbsent("_pending", k -> new LinkedHashMap<>());
-    }
-
-    @SuppressWarnings("unchecked")
-    public List<PluginLoader> getPlugins() {
-        return (List<PluginLoader>) getTop().computeIfAbsent("_plugins", k -> new ArrayList<>());
-    }
-
-    @SuppressWarnings("unchecked")
-    public Map<String, Class<?>> getResourceTypes() {
-        return (Map<String, Class<?>>) getTop().computeIfAbsent("_resource_types", k -> new HashMap<>());
-    }
-
-    @SuppressWarnings("unchecked")
-    public StateBackend getStateBackend() {
-        return new LocalStateBackend();
-    }
-
-    public void setStateBackend(Resource resource) {
-        getTop().put("_state_backend", resource);
-    }
-
     public String getPath() {
-        return (String) get("_file");
+        FileScope scope = getFileScope();
+        if (scope != null) {
+            return scope.getPath();
+        }
+
+        return null;
     }
 
-    public void setPath(String path) {
-        put("_file", path);
+    public FileScope getState() {
+        FileScope scope = getFileScope();
+        if (scope != null) {
+            return scope.getState();
+        }
+
+        return null;
+    }
+
+    public StateBackend getStateBackend() {
+        FileScope scope = getFileScope();
+        if (scope != null) {
+            return scope.getStateBackend();
+        }
+
+        return null;
+    }
+
+    public List<PluginLoader> getPlugins() {
+        Scope top = getTop();
+
+        if (top instanceof ProcessScope) {
+            return top.getPlugins();
+        }
+
+        return null;
+    }
+
+    public Map<String, Class<?>> getTypes() {
+        Scope top = getTop();
+
+        if (top instanceof ProcessScope) {
+            return top.getTypes();
+        }
+
+        return null;
+    }
+
+    public Map<String, Resource> getResources() {
+        ProcessScope scope = getProcessScope();
+        if (scope != null) {
+            return scope.getResources();
+        }
+
+        return null;
     }
 
     @Override
@@ -182,4 +185,45 @@ public class Scope implements Map<String, Object> {
     public String toString() {
         return values.toString();
     }
+
+    protected Scope getTop() {
+        Scope top = this;
+
+        while (true) {
+            Scope parent = top.getParent();
+
+            if (parent == null) {
+                return top;
+
+            } else {
+                top = parent;
+            }
+        }
+    }
+
+    protected ProcessScope getProcessScope() {
+        Scope top = getTop();
+
+        if (top instanceof ProcessScope) {
+            return (ProcessScope) top;
+        }
+
+        return null;
+    }
+
+    protected FileScope getFileScope() {
+        Scope top = this;
+
+        while (top != null) {
+            if (top instanceof FileScope) {
+                return (FileScope) top;
+
+            }
+
+            top = top.getParent();
+        }
+
+        return null;
+    }
+
 }

@@ -32,8 +32,8 @@ public class ResourceDiff {
     }
 
     public ResourceDiff(Scope current, Scope pending) {
-        this.currentResources = new ArrayList<>(current.getPendingResources().values());
-        this.pendingResources = new ArrayList<>(pending.getPendingResources().values());
+        this.currentResources = new ArrayList<>(current.getResources().values());
+        this.pendingResources = new ArrayList<>(pending.getResources().values());
     }
 
     public ResourceDiff(List<Resource> currentResources,

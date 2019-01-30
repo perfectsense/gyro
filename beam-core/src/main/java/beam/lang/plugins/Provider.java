@@ -32,7 +32,7 @@ public abstract class Provider extends Plugin {
             cache.put(fullName, resourceClass);
         }
 
-        getScope().getResourceTypes().put(fullName, cache.get(fullName));
+        getScope().getTypes().put(fullName, cache.get(fullName));
     }
 
 }

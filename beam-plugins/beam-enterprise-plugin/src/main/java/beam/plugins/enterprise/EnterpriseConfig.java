@@ -1,7 +1,6 @@
 package beam.plugins.enterprise;
 
 import beam.core.BeamCore;
-import beam.lang.BeamFile;
 import beam.lang.Resource;
 import beam.lang.ast.Scope;
 import com.psddev.dari.util.CollectionUtils;
@@ -30,7 +29,7 @@ public class EnterpriseConfig {
                 Scope config = core.parseScope(enterpriseConfigFile.toString());
 
                 Map<String, Object> keyValues = new HashMap<>(config);
-                for (Resource resource : config.getPendingResources().values()) {
+                for (Resource resource : config.getResources().values()) {
                     keyValues.put(resource.resourceIdentifier(), resource);
                 }
 

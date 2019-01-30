@@ -3,7 +3,7 @@ package beam.commands;
 import beam.core.BeamCore;
 import beam.core.diff.ChangeType;
 import beam.core.diff.ResourceDiff;
-import beam.lang.ast.Scope;
+import beam.lang.ast.FileScope;
 import io.airlift.airline.Command;
 import io.airlift.airline.Option;
 
@@ -17,9 +17,9 @@ public class UpCommand extends AbstractConfigCommand {
     public boolean skipRefresh;
 
     @Override
-    public void doExecute(Scope pending, Scope state) throws Exception {
+    public void doExecute(FileScope pending) throws Exception {
         BeamCore.ui().write("\n@|bold,white Looking for changes...\n\n|@");
-        List<ResourceDiff> diffs = core().diff(pending, state, !skipRefresh);
+        List<ResourceDiff> diffs = core().diff(pending, !skipRefresh);
 
         Set<ChangeType> changeTypes = core().writeDiffs(diffs);
 
