@@ -156,7 +156,7 @@ public class KeyPairResource extends AwsResource {
 
     private String getPublicKeyFromPath() {
         try {
-            String dir = fileNode().path().substring(0, fileNode().path().lastIndexOf(File.separator));
+            String dir = scope().getPath().substring(0, scope().getPath().lastIndexOf(File.separator));
             return new String(Files.readAllBytes(Paths.get(dir + File.separator + getPublicKeyPath())), StandardCharsets.UTF_8);
         } catch (IOException ioex) {
             throw new BeamException("Unable to read public key from file.");

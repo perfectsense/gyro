@@ -6,8 +6,6 @@ import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceDisplayDiff;
 import beam.core.diff.ResourceName;
 import beam.lang.ast.Scope;
-import beam.lang.types.ReferenceValue;
-import beam.lang.types.StringExpressionValue;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Throwables;
 import com.psddev.dari.util.ObjectUtils;
@@ -28,12 +26,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-public abstract class Resource extends Container {
+public abstract class Resource {
 
     private String type;
     private String name;
-    private StringExpressionValue nameExpression;
     private Scope scope;
+    private Resource parent;
 
     // -- Internal
 
@@ -63,6 +61,15 @@ public abstract class Resource extends Container {
 
     public void scope(Scope scope) {
         this.scope = scope;
+    }
+
+    public Resource parent() {
+        return parent;
+    }
+
+    public Resource parent(Resource parent) {
+        this.parent = parent;
+        return this;
     }
 
     public String resourceCredentialsName() {
@@ -124,12 +131,11 @@ public abstract class Resource extends Container {
         return dependents;
     }
 
-    @Override
     public Map<String, Object> resolvedKeyValues() {
         Map<String, Object> copy = new HashMap<>(scope);
 
         try {
-            for (PropertyDescriptor p : Introspector.getBeanInfo(getClass(), Container.class).getPropertyDescriptors()) {
+            for (PropertyDescriptor p : Introspector.getBeanInfo(getClass()).getPropertyDescriptors()) {
                 Method reader = p.getReadMethod();
 
                 if (reader != null) {
@@ -251,19 +257,8 @@ public abstract class Resource extends Container {
 
     // -- Base Resource
 
-    public void execute() {
-        if (get("resource-credentials") == null) {
-            ReferenceValue credentialsReference = new ReferenceValue(resourceCredentialsName(), "default");
-            credentialsReference.line(line());
-            credentialsReference.column(column());
-
-            put("resource-credentials", credentialsReference);
-        }
-    }
-
-    public final void executeInternal() {
-        syncInternalToProperties();
-        execute();
+    public Object get(String key) {
+        return scope.get(key);
     }
 
     /**
@@ -332,10 +327,6 @@ public abstract class Resource extends Container {
     }
 
     public String resourceIdentifier() {
-        if (nameExpression != null) {
-            name = nameExpression.getValue();
-        }
-
         return name;
     }
 
@@ -343,29 +334,17 @@ public abstract class Resource extends Container {
         this.name = name;
     }
 
-    public StringExpressionValue resourceIdentifierExpression() {
-        return nameExpression;
-    }
-
-    public void resourceIdentifierExpression(StringExpressionValue nameExpression) {
-        if (nameExpression != null) {
-            this.nameExpression = nameExpression.copy();
-            this.nameExpression.parent(this);
-        }
-    }
-
-    public ResourceKey resourceKey() {
-        return new ResourceKey(resourceType(), resourceIdentifier());
-    }
 
     public Resource parentResource() {
+        /*
         Node parent = parent();
 
         while (parent != null && !(parent instanceof Resource)) {
             parent = parent.parent();
         }
+        */
 
-        return (Resource) parent;
+        return null;
     }
 
     // -- Internal State
@@ -467,29 +446,6 @@ public abstract class Resource extends Container {
     }
 
     @Override
-    public boolean resolve() {
-        boolean resolved = super.resolve();
-
-        if (nameExpression != null) {
-            nameExpression.resolve();
-        }
-
-        for (List<Resource> resources : subResources().values()) {
-            for (Resource resource : resources) {
-                if (!resource.resolve()) {
-                    throw new BeamLanguageException("Unable to resolve configuration.", resource);
-                }
-            }
-        }
-
-        if (resolved) {
-            syncInternalToProperties();
-        }
-
-        return resolved;
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -509,7 +465,6 @@ public abstract class Resource extends Container {
         return Objects.hash(primaryKey());
     }
 
-    @Override
     public String serialize(int indent) {
         StringBuilder sb = new StringBuilder();
 
@@ -589,6 +544,51 @@ public abstract class Resource extends Container {
         }
 
         return String.format("Resource[type: %s, id: %s]", resourceType(), resourceIdentifier());
+    }
+
+    String fieldNameFromKey(String key) {
+        return CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key);
+    }
+
+    String keyFromFieldName(String field) {
+        return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN, field).replaceFirst("^get-", "");
+    }
+
+    Method readerMethodForKey(String key) {
+        PropertyDescriptor p = propertyDescriptorForKey(key);
+        if (p != null) {
+            return p.getReadMethod();
+        }
+
+        return null;
+    }
+
+    Method writerMethodForKey(String key) {
+        PropertyDescriptor p = propertyDescriptorForKey(key);
+        if (p != null) {
+            return p.getWriteMethod();
+        }
+
+        return null;
+    }
+
+    PropertyDescriptor propertyDescriptorForKey(String key) {
+        String convertedKey = fieldNameFromKey(key);
+        try {
+            for (PropertyDescriptor p : Introspector.getBeanInfo(getClass()).getPropertyDescriptors()) {
+                if (p.getDisplayName().equals(convertedKey)) {
+                    return p;
+                }
+            }
+        } catch (IntrospectionException ex) {
+            // Ignoring introspection exceptions
+        }
+
+        return null;
+    }
+
+    protected String indent(int indent) {
+        return StringUtils.repeat(" ", indent);
     }
 
 }

@@ -1,9 +1,6 @@
 package beam.core.diff;
 
 import beam.core.BeamCore;
-import beam.lang.BeamFile;
-import beam.lang.Credentials;
-import beam.lang.Modification;
 import beam.lang.Resource;
 import beam.lang.ast.Scope;
 
@@ -11,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,14 +18,7 @@ public class ResourceDiff {
     private List<Resource> pendingResources;
     private final List<ResourceChange> changes = new ArrayList<>();
 
-    private BeamFile current;
-    private BeamFile pending;
     private boolean refresh;
-
-    public ResourceDiff(BeamFile current, BeamFile pending) {
-        this.current = current;
-        this.pending = pending;
-    }
 
     public ResourceDiff(Scope current, Scope pending) {
         this.currentResources = new ArrayList<>(current.getResources().values());
@@ -56,12 +45,6 @@ public class ResourceDiff {
      * @return May be {@code null} to represent an empty iterable.
      */
     public List<Resource> getCurrentResources() {
-        if (currentResources == null && current != null) {
-            return findResources(current, true);
-        }
-
-        removeBeamCredentials(currentResources);
-
         return currentResources;
     }
 
@@ -71,12 +54,6 @@ public class ResourceDiff {
      * @return May be {@code null} to represent an empty iterable.
      */
     public List<Resource> getPendingResources() {
-        if (pendingResources == null && pending != null) {
-            return findResources(pending, false);
-        }
-
-        removeBeamCredentials(pendingResources);
-
         return pendingResources;
     }
 
@@ -92,7 +69,6 @@ public class ResourceDiff {
 
             @Override
             protected Resource change() {
-                pendingResource.resolve();
                 pendingResource.create();
                 return pendingResource;
             }
@@ -306,7 +282,6 @@ public class ResourceDiff {
                 }
 
                 pendingResource.syncPropertiesFromResource(currentResource);
-                pendingResource.resolve();
 
                 ResourceChange change = currentResource != null ? newUpdate(currentResource, pendingResource) : newCreate(pendingResource);
 
@@ -327,41 +302,6 @@ public class ResourceDiff {
                 if (change != null) {
                     changes.add(change);
                 }
-            }
-        }
-    }
-
-    private List<Resource> findResources(BeamFile fileNode, boolean loadState) {
-        List<Resource> resources = new ArrayList<>();
-
-        for (Resource resource : fileNode.resources()) {
-            resources.add(resource);
-        }
-
-        for (BeamFile importedNode : fileNode.imports().values()) {
-            if (loadState && importedNode.state() != null) {
-                resources.addAll(findResources(importedNode.state(), loadState));
-            } else {
-                resources.addAll(findResources(importedNode, loadState));
-            }
-        }
-
-        removeBeamCredentials(resources);
-
-        return resources;
-    }
-
-    private void removeBeamCredentials(List<Resource> resources) {
-        if (resources == null) {
-            return;
-        }
-
-        Iterator<Resource> iter = resources.iterator();
-        while (iter.hasNext()) {
-            Resource resource = iter.next();
-
-            if (resource instanceof Credentials || resource instanceof Modification) {
-                iter.remove();
             }
         }
     }

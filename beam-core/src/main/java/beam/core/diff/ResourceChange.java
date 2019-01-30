@@ -1,6 +1,5 @@
 package beam.core.diff;
 
-import beam.lang.Node;
 import beam.lang.Resource;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
@@ -84,14 +83,11 @@ public class ResourceChange {
         Set<ResourceChange> dependencies = new HashSet<>();
 
         Resource resource = pendingResource != null ? pendingResource : currentResource;
-        for (Node block : (getType() == ChangeType.DELETE ? resource.dependents() : resource.dependencies())) {
-            if (block instanceof Resource) {
-                Resource r = (Resource) block;
-                ResourceChange c = r.change();
+        for (Resource r : (getType() == ChangeType.DELETE ? resource.dependents() : resource.dependencies())) {
+            ResourceChange c = r.change();
 
-                if (c != null) {
-                    dependencies.add(c);
-                }
+            if (c != null) {
+                dependencies.add(c);
             }
         }
 
@@ -272,7 +268,6 @@ public class ResourceChange {
         ChangeType type = getType();
 
         if (type == ChangeType.UPDATE) {
-            pendingResource.resolve();
             pendingResource.update(currentResource, updatedProperties);
             return pendingResource;
 

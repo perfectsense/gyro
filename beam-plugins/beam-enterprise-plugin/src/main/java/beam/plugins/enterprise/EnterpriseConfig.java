@@ -24,7 +24,7 @@ public class EnterpriseConfig {
 
             if (enterpriseConfigFile.exists()) {
                 BeamCore core = new BeamCore();
-                core.addResourceType("enterprise::project", EnterpriseProject.class);
+                //core.addResourceType("enterprise::project", EnterpriseProject.class);
 
                 Scope config = core.parse(enterpriseConfigFile.toString());
 

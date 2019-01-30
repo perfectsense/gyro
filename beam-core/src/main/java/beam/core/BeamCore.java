@@ -4,9 +4,7 @@ import beam.core.diff.ChangeType;
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiff;
 import beam.core.diff.ResourceName;
-import beam.lang.BeamFile;
 import beam.lang.BeamLanguageException;
-import beam.lang.Node;
 import beam.lang.Resource;
 import beam.lang.StateBackend;
 import beam.lang.ast.FileScope;
@@ -45,26 +43,6 @@ public class BeamCore {
         return UI.pop();
     }
 
-    public void addResourceType(String key, Class<? extends Resource> extension) {
-        resourceTypes.put(key, extension);
-    }
-
-    public boolean hasResourceType(String key) {
-        return resourceTypes.containsKey(key);
-    }
-
-    public Class<? extends Node> getResourceType(String key) {
-        return resourceTypes.get(key);
-    }
-
-    public ResourceType resourceType(String name) {
-        if (getResourceType(name) != null) {
-            return ResourceType.RESOURCE;
-        }
-
-        return ResourceType.UNKNOWN;
-    }
-      
     public FileScope parse(String path) throws IOException {
         return parse(path, false);
     }
@@ -96,17 +74,6 @@ public class BeamCore {
 
     public List<ResourceDiff> diff(FileScope pendingScope, boolean refresh) throws Exception {
         ResourceDiff diff = new ResourceDiff(pendingScope.getState(), pendingScope);
-        diff.setRefresh(refresh);
-        diff.diff();
-
-        List<ResourceDiff> diffs = new ArrayList<>();
-        diffs.add(diff);
-
-        return diffs;
-    }
-
-    public List<ResourceDiff> diff(BeamFile pending, boolean refresh) throws Exception {
-        ResourceDiff diff = new ResourceDiff(pending.state(), pending);
         diff.setRefresh(refresh);
         diff.diff();
 

@@ -1,6 +1,5 @@
 package beam.core;
 
-import beam.lang.BeamFile;
 import beam.lang.Resource;
 import beam.lang.StateBackend;
 import beam.lang.ast.FileScope;
@@ -39,19 +38,6 @@ public class LocalStateBackend extends StateBackend {
         }
 
         return state;
-    }
-
-    @Override
-    public void save(BeamFile fileNode) {
-        try {
-            String path = fileNode.path().endsWith(".state") ? fileNode.path() : fileNode.path() + ".state";
-
-            BufferedWriter out = new BufferedWriter(new FileWriter(path));
-            out.write(fileNode.serialize(0));
-            out.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override

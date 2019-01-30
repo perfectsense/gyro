@@ -1,6 +1,5 @@
 package beam.lang.ast;
 
-import beam.core.BeamException;
 import beam.lang.Credentials;
 import beam.lang.Resource;
 import beam.lang.StateBackend;
