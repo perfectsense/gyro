@@ -2,7 +2,7 @@ package beam.plugins.enterprise;
 
 import beam.core.BeamCore;
 import beam.lang.Resource;
-import beam.lang.ast.Scope;
+import beam.lang.ast.scope.Scope;
 import com.psddev.dari.util.CollectionUtils;
 import com.psddev.dari.util.CompactMap;
 import com.psddev.dari.util.Lazy;

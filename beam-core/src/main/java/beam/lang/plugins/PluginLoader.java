@@ -2,7 +2,7 @@ package beam.lang.plugins;
 
 import beam.core.BeamCore;
 import beam.core.BeamException;
-import beam.lang.ast.Scope;
+import beam.lang.ast.scope.Scope;
 import com.psddev.dari.util.StringUtils;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;

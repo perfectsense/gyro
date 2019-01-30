@@ -1,7 +1,7 @@
 package beam.lang.ast.types;
 
 import beam.lang.ast.Node;
-import beam.lang.ast.Scope;
+import beam.lang.ast.scope.Scope;
 import beam.parser.antlr4.BeamParser;
 import org.apache.commons.lang.math.NumberUtils;
 

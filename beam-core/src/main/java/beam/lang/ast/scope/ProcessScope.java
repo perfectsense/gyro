@@ -1,4 +1,4 @@
-package beam.lang.ast;
+package beam.lang.ast.scope;
 
 import beam.lang.Resource;
 import beam.lang.plugins.PluginLoader;

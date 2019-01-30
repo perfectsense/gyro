@@ -5,7 +5,7 @@ import beam.core.BeamException;
 import beam.lang.BeamLanguageException;
 import beam.lang.Credentials;
 import beam.lang.StateBackend;
-import beam.lang.ast.FileScope;
+import beam.lang.ast.scope.FileScope;
 import io.airlift.airline.Arguments;
 
 import java.util.List;

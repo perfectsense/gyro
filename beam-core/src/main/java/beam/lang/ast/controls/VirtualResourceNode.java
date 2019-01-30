@@ -1,6 +1,8 @@
-package beam.lang.ast;
+package beam.lang.ast.controls;
 
 import beam.lang.BeamLanguageException;
+import beam.lang.ast.Node;
+import beam.lang.ast.scope.Scope;
 
 import java.util.List;
 import java.util.stream.Collectors;

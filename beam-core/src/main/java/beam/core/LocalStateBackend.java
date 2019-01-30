@@ -2,8 +2,8 @@ package beam.core;
 
 import beam.lang.Resource;
 import beam.lang.StateBackend;
-import beam.lang.ast.FileScope;
-import beam.lang.ast.ProcessScope;
+import beam.lang.ast.scope.FileScope;
+import beam.lang.ast.scope.ProcessScope;
 import beam.lang.plugins.PluginLoader;
 
 import java.io.BufferedWriter;

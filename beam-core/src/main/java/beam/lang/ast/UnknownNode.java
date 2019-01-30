@@ -1,5 +1,6 @@
 package beam.lang.ast;
 
+import beam.lang.ast.scope.Scope;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 public class UnknownNode extends Node {

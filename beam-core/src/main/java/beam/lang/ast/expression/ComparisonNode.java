@@ -1,5 +1,6 @@
-package beam.lang.ast;
+package beam.lang.ast.expression;
 
+import beam.lang.ast.scope.Scope;
 import beam.parser.antlr4.BeamParser.ComparisonExpressionContext;
 
 import static beam.parser.antlr4.BeamParser.ExpressionContext;

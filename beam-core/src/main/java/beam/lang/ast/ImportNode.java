@@ -1,6 +1,8 @@
 package beam.lang.ast;
 
 import beam.core.BeamException;
+import beam.lang.ast.scope.FileScope;
+import beam.lang.ast.scope.Scope;
 import beam.lang.listeners.ErrorListener;
 import beam.parser.antlr4.BeamLexer;
 import beam.parser.antlr4.BeamParser;

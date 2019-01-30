@@ -1,5 +1,7 @@
 package beam.lang.ast;
 
+import beam.lang.ast.scope.Scope;
+
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;

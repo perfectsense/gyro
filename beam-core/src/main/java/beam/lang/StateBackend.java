@@ -1,6 +1,6 @@
 package beam.lang;
 
-import beam.lang.ast.FileScope;
+import beam.lang.ast.scope.FileScope;
 
 public abstract class StateBackend {
 

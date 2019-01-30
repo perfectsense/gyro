@@ -5,7 +5,7 @@ import beam.commands.BeamCommand;
 import beam.commands.CliBeamUI;
 import beam.core.BeamCore;
 import beam.core.BeamException;
-import beam.lang.ast.Scope;
+import beam.lang.ast.scope.Scope;
 import beam.lang.plugins.PluginLoader;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;

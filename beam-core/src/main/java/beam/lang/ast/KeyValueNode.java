@@ -1,5 +1,6 @@
 package beam.lang.ast;
 
+import beam.lang.ast.scope.Scope;
 import beam.parser.antlr4.BeamParser;
 import org.antlr.v4.runtime.tree.ParseTree;
 

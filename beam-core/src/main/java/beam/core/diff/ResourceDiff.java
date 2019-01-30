@@ -2,7 +2,7 @@ package beam.core.diff;
 
 import beam.core.BeamCore;
 import beam.lang.Resource;
-import beam.lang.ast.Scope;
+import beam.lang.ast.scope.Scope;
 
 import java.util.ArrayList;
 import java.util.Arrays;

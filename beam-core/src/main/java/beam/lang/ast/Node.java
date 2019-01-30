@@ -1,5 +1,13 @@
 package beam.lang.ast;
 
+import beam.lang.ast.controls.ForNode;
+import beam.lang.ast.controls.IfNode;
+import beam.lang.ast.controls.VirtualResourceNode;
+import beam.lang.ast.controls.VirtualResourceParamNode;
+import beam.lang.ast.expression.AndNode;
+import beam.lang.ast.expression.ComparisonNode;
+import beam.lang.ast.expression.OrNode;
+import beam.lang.ast.scope.Scope;
 import beam.lang.ast.types.BooleanNode;
 import beam.lang.ast.types.ListNode;
 import beam.lang.ast.types.MapNode;

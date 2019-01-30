@@ -1,5 +1,6 @@
-package beam.lang.ast;
+package beam.lang.ast.expression;
 
+import beam.lang.ast.Node;
 import beam.parser.antlr4.BeamParser;
 
 public abstract class ExpressionNode extends Node {

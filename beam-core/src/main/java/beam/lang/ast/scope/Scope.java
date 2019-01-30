@@ -1,4 +1,4 @@
-package beam.lang.ast;
+package beam.lang.ast.scope;
 
 import beam.lang.Credentials;
 import beam.lang.Resource;
@@ -200,7 +200,7 @@ public class Scope implements Map<String, Object> {
         }
     }
 
-    protected ProcessScope getProcessScope() {
+    public ProcessScope getProcessScope() {
         Scope top = getTop();
 
         if (top instanceof ProcessScope) {
@@ -210,7 +210,7 @@ public class Scope implements Map<String, Object> {
         return null;
     }
 
-    protected FileScope getFileScope() {
+    public FileScope getFileScope() {
         Scope top = this;
 
         while (top != null) {

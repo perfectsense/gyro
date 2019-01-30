@@ -2,6 +2,7 @@ package beam.lang.ast;
 
 import beam.lang.BeamLanguageException;
 import beam.lang.Resource;
+import beam.lang.ast.scope.Scope;
 import beam.lang.plugins.PluginLoader;
 import beam.parser.antlr4.BeamParser;
 

@@ -1,7 +1,7 @@
 package beam.lang.ast.types;
 
-import beam.lang.ast.ExpressionNode;
-import beam.lang.ast.Scope;
+import beam.lang.ast.expression.ExpressionNode;
+import beam.lang.ast.scope.Scope;
 import beam.parser.antlr4.BeamParser;
 
 public class ValueExpressionNode extends ExpressionNode {

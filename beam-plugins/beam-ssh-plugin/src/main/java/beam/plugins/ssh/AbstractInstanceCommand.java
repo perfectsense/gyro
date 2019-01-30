@@ -5,7 +5,7 @@ import beam.core.BeamCore;
 import beam.core.BeamInstance;
 import beam.lang.Resource;
 import beam.lang.StateBackend;
-import beam.lang.ast.FileScope;
+import beam.lang.ast.scope.FileScope;
 import io.airlift.airline.Option;
 
 import java.util.ArrayList;

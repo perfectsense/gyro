@@ -1,5 +1,7 @@
 package beam.lang.ast;
 
+import beam.lang.ast.controls.ForNode;
+import beam.lang.ast.scope.Scope;
 import beam.lang.ast.types.StringNode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
