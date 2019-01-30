@@ -52,6 +52,7 @@ public class ResourceNode extends Node {
 
         if (n != null) {
             Resource resource = createResource(scope, type);
+            resource.resourceIdentifier(n);
             resource.scope(bodyScope);
             resource.syncInternalToProperties();
 
