@@ -1,5 +1,7 @@
-package beam.lang.ast;
+package beam.lang.ast.types;
 
+import beam.lang.ast.Node;
+import beam.lang.ast.Scope;
 import beam.parser.antlr4.BeamParser;
 
 import java.util.List;

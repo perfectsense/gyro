@@ -1,4 +1,8 @@
-package beam.lang.ast;
+package beam.lang.ast.types;
+
+import beam.lang.ast.KeyValueNode;
+import beam.lang.ast.Node;
+import beam.lang.ast.Scope;
 
 import java.util.List;
 import java.util.stream.Collectors;

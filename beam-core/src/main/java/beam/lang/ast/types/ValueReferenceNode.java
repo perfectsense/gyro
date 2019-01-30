@@ -1,4 +1,7 @@
-package beam.lang.ast;
+package beam.lang.ast.types;
+
+import beam.lang.ast.Node;
+import beam.lang.ast.Scope;
 
 public class ValueReferenceNode extends Node {
 
