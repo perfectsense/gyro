@@ -26,7 +26,7 @@ public class EnterpriseConfig {
                 BeamCore core = new BeamCore();
                 core.addResourceType("enterprise::project", EnterpriseProject.class);
 
-                Scope config = core.parseScope(enterpriseConfigFile.toString());
+                Scope config = core.parse(enterpriseConfigFile.toString());
 
                 Map<String, Object> keyValues = new HashMap<>(config);
                 for (Resource resource : config.getResources().values()) {

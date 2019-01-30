@@ -6,7 +6,6 @@ import beam.lang.BeamLanguageException;
 import beam.lang.Credentials;
 import beam.lang.StateBackend;
 import beam.lang.ast.FileScope;
-import beam.lang.ast.Scope;
 import io.airlift.airline.Arguments;
 
 import java.util.List;
@@ -31,7 +30,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         FileScope pendingScope;
         FileScope stateScope;
         try {
-            pendingScope = core.parseScope(configPath);
+            pendingScope = core.parse(configPath);
             StateBackend stateBackend = pendingScope.getStateBackend();
             stateScope = stateBackend.load(pendingScope);
 

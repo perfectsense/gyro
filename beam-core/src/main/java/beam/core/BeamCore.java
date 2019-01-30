@@ -11,7 +11,6 @@ import beam.lang.Resource;
 import beam.lang.StateBackend;
 import beam.lang.ast.FileScope;
 import beam.lang.ast.ProcessScope;
-import beam.lang.ast.Scope;
 import beam.lang.listeners.ErrorListener;
 import beam.parser.antlr4.BeamLexer;
 import beam.parser.antlr4.BeamParser;
@@ -66,11 +65,11 @@ public class BeamCore {
         return ResourceType.UNKNOWN;
     }
       
-    public FileScope parseScope(String path) throws IOException {
-        return parseScope(path, false);
+    public FileScope parse(String path) throws IOException {
+        return parse(path, false);
     }
 
-    public FileScope parseScope(String path, boolean state) throws IOException {
+    public FileScope parse(String path, boolean state) throws IOException {
         // Initial file parse loads state and providers.
         BeamLexer lexer = new BeamLexer(CharStreams.fromFileName(path));
         CommonTokenStream tokens = new CommonTokenStream(lexer);

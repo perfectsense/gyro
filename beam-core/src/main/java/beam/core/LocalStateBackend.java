@@ -5,7 +5,6 @@ import beam.lang.Resource;
 import beam.lang.StateBackend;
 import beam.lang.ast.FileScope;
 import beam.lang.ast.ProcessScope;
-import beam.lang.ast.Scope;
 import beam.lang.plugins.PluginLoader;
 
 import java.io.BufferedWriter;
@@ -29,7 +28,7 @@ public class LocalStateBackend extends StateBackend {
         File stateFile = new File(path);
         if (stateFile.exists() && !stateFile.isDirectory()) {
             BeamCore core = new BeamCore();
-            state = core.parseScope(path, true);
+            state = core.parse(path, true);
         } else {
             ProcessScope processScope = new ProcessScope(null);
 
