@@ -11,7 +11,7 @@ import java.util.Map;
 public class GlobalScope extends Scope {
 
     private final List<PluginLoader> pluginLoaders = new ArrayList<>();
-    private final Map<String, Class<?>> types = new HashMap<>();
+    private final Map<String, Class<?>> typeClasses = new HashMap<>();
     private final Map<String, Resource> resources = new HashMap<>();
 
     public GlobalScope() {
@@ -22,13 +22,13 @@ public class GlobalScope extends Scope {
         return pluginLoaders;
     }
 
+    public Map<String, Class<?>> getTypeClasses() {
+        return typeClasses;
+    }
+
     @Override
     public Map<String, Resource> getResources() {
         return resources;
-    }
-
-    public Map<String, Class<?>> getTypes() {
-        return types;
     }
 
 }

@@ -29,14 +29,19 @@ public class Scope implements Map<String, Object> {
         return parent;
     }
 
-    public GlobalScope getGlobalScope() {
+    @SuppressWarnings("unchecked")
+    public <S extends Scope> S getClosest(Class<S> scopeClass) {
         for (Scope s = this; s != null; s = s.getParent()) {
-            if (s instanceof GlobalScope) {
-                return (GlobalScope) s;
+            if (scopeClass.isInstance(s)) {
+                return (S) s;
             }
         }
 
         throw new IllegalStateException();
+    }
+
+    public GlobalScope getGlobalScope() {
+        return getClosest(GlobalScope.class);
     }
 
     @SuppressWarnings("unchecked")
@@ -85,16 +90,6 @@ public class Scope implements Map<String, Object> {
         FileScope scope = getFileScope();
         if (scope != null) {
             return scope.getStateBackend();
-        }
-
-        return null;
-    }
-
-    public Map<String, Class<?>> getTypes() {
-        Scope top = getTop();
-
-        if (top instanceof GlobalScope) {
-            return top.getTypes();
         }
 
         return null;

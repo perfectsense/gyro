@@ -41,7 +41,7 @@ public class ResourceNode extends Node {
             Map.Entry<String, Object> entry = i.next();
             String subresourceType = type + "::" + entry.getKey();
 
-            if (scope.getTypes().get(subresourceType) != null) {
+            if (scope.getGlobalScope().getTypeClasses().get(subresourceType) != null) {
                 Object value = entry.getValue();
 
                 if (!(value instanceof List)) {
@@ -90,7 +90,7 @@ public class ResourceNode extends Node {
     }
 
     private Resource createResource(Scope scope, String type) {
-        Class klass = scope.getTypes().get(type);
+        Class klass = scope.getGlobalScope().getTypeClasses().get(type);
         if (klass != null) {
             try {
                 beam.lang.Resource resource = (beam.lang.Resource) klass.newInstance();
