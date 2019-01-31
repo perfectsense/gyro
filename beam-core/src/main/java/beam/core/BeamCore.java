@@ -61,7 +61,7 @@ public class BeamCore {
         BeamFileContext context = parser.beamFile();
 
         Node rootNode = Node.create(context);
-        GlobalScope globalScope = new GlobalScope(null);
+        GlobalScope globalScope = new GlobalScope();
         FileScope rootScope = new FileScope(globalScope);
         rootScope.setPath(path);
         rootNode.evaluate(rootScope);

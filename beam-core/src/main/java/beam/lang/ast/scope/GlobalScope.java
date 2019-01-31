@@ -14,12 +14,8 @@ public class GlobalScope extends Scope {
     private final Map<String, Class<?>> types = new HashMap<>();
     private final Map<String, Resource> resources = new HashMap<>();
 
-    public GlobalScope(Scope parent, Map<String, Object> values) {
-        super(parent, values);
-    }
-
-    public GlobalScope(Scope parent) {
-        super(parent);
+    public GlobalScope() {
+        super(null);
     }
 
     public List<PluginLoader> getPluginLoaders() {

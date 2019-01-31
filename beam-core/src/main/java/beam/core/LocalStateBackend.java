@@ -29,7 +29,7 @@ public class LocalStateBackend extends StateBackend {
             BeamCore core = new BeamCore();
             state = core.parse(path, true);
         } else {
-            GlobalScope globalScope = new GlobalScope(null);
+            GlobalScope globalScope = new GlobalScope();
 
             state = new FileScope(globalScope);
             state.setPath(path);
