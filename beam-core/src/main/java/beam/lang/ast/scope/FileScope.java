@@ -1,30 +1,31 @@
 package beam.lang.ast.scope;
 
 import beam.core.LocalStateBackend;
-import beam.lang.Resource;
 import beam.lang.StateBackend;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class FileScope extends Scope {
 
+    private final String path;
     private FileScope state;
-    private List<FileScope> imports = new ArrayList<>();
+    private final List<FileScope> imports = new ArrayList<>();
+    private StateBackend stateBackend = new LocalStateBackend();
 
-    public FileScope(Scope parent, Map<String, Object> values) {
-        super(parent, values);
+    public FileScope(Scope parent, String path) {
+        super(parent);
+
+        this.path = path;
     }
 
-    public FileScope(Scope parent) {
-        super(parent);
+    public String getPath() {
+        return path;
     }
 
     public FileScope getState() {
         if (state == null) {
-            state = new FileScope(null);
-            state.setPath(getPath());
+            state = new FileScope(getGlobalScope(), getPath());
         }
 
         return state;
@@ -39,19 +40,11 @@ public class FileScope extends Scope {
     }
 
     public StateBackend getStateBackend() {
-        return new LocalStateBackend();
+        return stateBackend;
     }
 
-    public void setStateBackend(Resource resource) {
-        getTop().put("_state_backend", resource);
-    }
-
-    public String getPath() {
-        return (String) get("_file");
-    }
-
-    public void setPath(String path) {
-        put("_file", path);
+    public void setStateBackend(StateBackend stateBackend) {
+        this.stateBackend = stateBackend;
     }
 
 }

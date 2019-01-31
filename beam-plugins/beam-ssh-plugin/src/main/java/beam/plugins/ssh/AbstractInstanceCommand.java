@@ -28,7 +28,7 @@ public abstract class AbstractInstanceCommand extends AbstractConfigCommand {
         BeamCore.ui().write("\n");
 
         List<BeamInstance> instances = new ArrayList<>();
-        for (Resource resource : pending.getState().getGlobalScope().getResources().values()) {
+        for (Resource resource : pending.getFileScope().getState().getGlobalScope().getResources().values()) {
             if (BeamInstance.class.isAssignableFrom(resource.getClass())) {
                 BeamInstance instance = (BeamInstance) resource;
 
@@ -38,8 +38,8 @@ public abstract class AbstractInstanceCommand extends AbstractConfigCommand {
                     BeamCore.ui().write("@|bold,blue Refreshing|@: @|yellow %s|@ -> %s...", resource.resourceType(), resource.resourceIdentifier());
                     resource.refresh();
 
-                    StateBackend stateBackend = pending.getStateBackend();
-                    stateBackend.save(pending.getState());
+                    StateBackend stateBackend = pending.getFileScope().getStateBackend();
+                    stateBackend.save(pending.getFileScope().getState());
                     BeamCore.ui().write("\n");
                 }
             }

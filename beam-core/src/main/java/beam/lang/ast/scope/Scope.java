@@ -1,8 +1,6 @@
 package beam.lang.ast.scope;
 
 import beam.lang.Credentials;
-import beam.lang.Resource;
-import beam.lang.StateBackend;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -44,6 +42,10 @@ public class Scope implements Map<String, Object> {
         return getClosest(GlobalScope.class);
     }
 
+    public FileScope getFileScope() {
+        return getClosest(FileScope.class);
+    }
+
     @SuppressWarnings("unchecked")
     public void addValue(String key, Object value) {
         Object oldValue = get(key);
@@ -66,33 +68,6 @@ public class Scope implements Map<String, Object> {
 
     public List<Credentials> getCredentials() {
         return new ArrayList<>();
-    }
-
-    public String getPath() {
-        FileScope scope = getFileScope();
-        if (scope != null) {
-            return scope.getPath();
-        }
-
-        return null;
-    }
-
-    public FileScope getState() {
-        FileScope scope = getFileScope();
-        if (scope != null) {
-            return scope.getState();
-        }
-
-        return null;
-    }
-
-    public StateBackend getStateBackend() {
-        FileScope scope = getFileScope();
-        if (scope != null) {
-            return scope.getStateBackend();
-        }
-
-        return null;
     }
 
     @Override
@@ -168,36 +143,6 @@ public class Scope implements Map<String, Object> {
     @Override
     public String toString() {
         return values.toString();
-    }
-
-    protected Scope getTop() {
-        Scope top = this;
-
-        while (true) {
-            Scope parent = top.getParent();
-
-            if (parent == null) {
-                return top;
-
-            } else {
-                top = parent;
-            }
-        }
-    }
-
-    public FileScope getFileScope() {
-        Scope top = this;
-
-        while (top != null) {
-            if (top instanceof FileScope) {
-                return (FileScope) top;
-
-            }
-
-            top = top.getParent();
-        }
-
-        return null;
     }
 
 }

@@ -29,7 +29,7 @@ public class ImportNode extends Node {
 
     @Override
     public Object evaluate(Scope scope) {
-        Path file = Paths.get(scope.getPath()).getParent().resolve(path);
+        Path file = Paths.get(scope.getFileScope().getPath()).getParent().resolve(path);
 
         if (!file.endsWith(".bcl") && !file.endsWith(".bcl.state")) {
             file = Paths.get(file.toString() + ".bcl");
@@ -52,11 +52,10 @@ public class ImportNode extends Node {
         parser.addErrorListener(errorListener);
 
         Node rootNode = Node.create(parser.beamFile());
-        FileScope rootScope = new FileScope(scope.getGlobalScope());
+        FileScope rootScope = new FileScope(scope.getGlobalScope(), file.toString());
 
         scope.getFileScope().getImports().add(rootScope);
 
-        rootScope.setPath(file.toString());
         rootNode.evaluate(rootScope);
 
         if (name != null) {

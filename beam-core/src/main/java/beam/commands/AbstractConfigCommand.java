@@ -31,7 +31,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         FileScope stateScope;
         try {
             pendingScope = core.parse(configPath);
-            StateBackend stateBackend = pendingScope.getStateBackend();
+            StateBackend stateBackend = pendingScope.getFileScope().getStateBackend();
             stateScope = stateBackend.load(pendingScope);
 
             pendingScope.setState(stateScope);

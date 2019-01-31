@@ -20,7 +20,7 @@ public class LocalStateBackend extends StateBackend {
 
     @Override
     public FileScope load(FileScope scope) throws Exception {
-        String path = scope.getPath().endsWith(".state") ? scope.getPath() : scope.getPath() + ".state";
+        String path = scope.getFileScope().getPath().endsWith(".state") ? scope.getPath() : scope.getPath() + ".state";
 
         FileScope state;
 
@@ -30,9 +30,7 @@ public class LocalStateBackend extends StateBackend {
             state = core.parse(path, true);
         } else {
             GlobalScope globalScope = new GlobalScope();
-
-            state = new FileScope(globalScope);
-            state.setPath(path);
+            state = new FileScope(globalScope, path);
 
             state.getGlobalScope().getPluginLoaders().addAll(scope.getGlobalScope().getPluginLoaders());
         }
@@ -43,7 +41,7 @@ public class LocalStateBackend extends StateBackend {
     @Override
     public void save(FileScope state) {
         try {
-            String path = state.getPath().endsWith(".state") ? state.getPath() : state.getPath() + ".state";
+            String path = state.getFileScope().getPath().endsWith(".state") ? state.getPath() : state.getPath() + ".state";
 
             File temp = File.createTempFile("local-state",".bcl");
 

@@ -62,8 +62,7 @@ public class BeamCore {
 
         Node rootNode = Node.create(context);
         GlobalScope globalScope = new GlobalScope();
-        FileScope rootScope = new FileScope(globalScope);
-        rootScope.setPath(path);
+        FileScope rootScope = new FileScope(globalScope, path);
         rootNode.evaluate(rootScope);
 
         if (errorListener.getSyntaxErrors() > 0) {
@@ -74,7 +73,7 @@ public class BeamCore {
     }
 
     public List<ResourceDiff> diff(FileScope pendingScope, boolean refresh) throws Exception {
-        ResourceDiff diff = new ResourceDiff(pendingScope.getState(), pendingScope);
+        ResourceDiff diff = new ResourceDiff(pendingScope.getFileScope().getState(), pendingScope);
         diff.setRefresh(refresh);
         diff.diff();
 
@@ -178,8 +177,8 @@ public class BeamCore {
         writeChange(change);
         Resource resource = change.executeChange();
 
-        FileScope state = resource.scope().getState();
-        StateBackend backend = resource.scope().getStateBackend();
+        FileScope state = resource.scope().getFileScope().getState();
+        StateBackend backend = resource.scope().getFileScope().getStateBackend();
 
         ResourceName nameAnnotation = resource.getClass().getAnnotation(ResourceName.class);
         boolean isSubresource = nameAnnotation != null && !nameAnnotation.parent().equals("");
