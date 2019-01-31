@@ -3,87 +3,72 @@ package beam.lang.ast;
 import beam.lang.BeamLanguageException;
 import beam.lang.Resource;
 import beam.lang.ast.scope.Scope;
-import beam.lang.plugins.PluginLoader;
 import beam.parser.antlr4.BeamParser;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class ResourceNode extends Node {
 
     private final String type;
-    private final Node name;
+    private final Node nameNode;
     private final List<Node> body;
 
     public ResourceNode(BeamParser.ResourceContext context) {
         type = context.resourceType().IDENTIFIER().getText();
+        nameNode = Node.create(context.resourceName().getChild(0));
 
-        if (context.resourceName() != null) {
-            name = Node.create(context.resourceName().getChild(0));
-        } else {
-            name = null;
-        }
-
-        body = new ArrayList<>();
-        for (BeamParser.ResourceBodyContext bodyContext : context.resourceBody()) {
-            body.add(Node.create(bodyContext.getChild(0)));
-        }
+        body = context.resourceBody()
+                .stream()
+                .map(c -> Node.create(c.getChild(0)))
+                .collect(Collectors.toList());
     }
-
 
     @Override
     public Object evaluate(Scope scope) {
-        String n = null;
-
-        if (name != null) {
-            n = Optional.ofNullable(name.evaluate(scope))
-                .map(Object::toString)
-                .orElse(null);
-        }
-
+        String name = (String) nameNode.evaluate(scope);
         Scope bodyScope = new Scope(scope);
-        bodyScope.put("_resource_name", n);
-        bodyScope.put("_resource_type", type);
 
         for (Node node : body) {
             node.evaluate(bodyScope);
         }
 
-        if (n != null) {
-            Resource resource = createResource(scope, type);
-            resource.resourceIdentifier(n);
-            resource.scope(bodyScope);
-            resource.syncInternalToProperties();
+        // Find subresources.
+        for (Iterator<Map.Entry<String, Object>> i = bodyScope.entrySet().iterator(); i.hasNext();) {
+            Map.Entry<String, Object> entry = i.next();
+            String subresourceType = type + "::" + entry.getKey();
 
-            if (!scope.containsKey("_resource_name")) {
-                scope.getResources().put(n, resource);
-            }
+            if (scope.getTypes().get(subresourceType) != null) {
+                Object value = entry.getValue();
 
-            //scope.getCurrentResources().put(n, new Resource(type, n, null));
-        } else {
-            if ("plugin".equals(type)) {
-                String artifact = (String) bodyScope.get("artifact");
-                List<String> repositories = (List<String>) bodyScope.get("repositories");
-
-                PluginLoader loader = new PluginLoader(scope, artifact, repositories);
-                loader.load();
-
-                List<PluginLoader> plugins = scope.getPlugins();
-                plugins.add(loader);
-            } else if ("state".equals(type)) {
-                //scope.setStateBackend(new Resource(type, n, bodyScope));
-            } else {
-                String resourceType = String.format("%s::%s", scope.get("_resource_type"), type);
-                Resource resource = createResource(scope, resourceType);
-                resource.resourceType(type);
-                resource.scope(bodyScope);
-                resource.syncInternalToProperties();
+                if (!(value instanceof List)) {
+                    throw new IllegalArgumentException();
+                }
 
                 List<Resource> subresources = (List<Resource>) scope.computeIfAbsent("_subresources", s -> new ArrayList<>());
-                subresources.add(resource);
+
+                for (Scope subresourceScope : (List<Scope>) value) {
+                    Resource resource = createResource(scope, subresourceType);
+                    resource.resourceType(subresourceType);
+                    resource.scope(subresourceScope);
+                    resource.syncInternalToProperties();
+
+                    subresources.add(resource);
+                }
+
+                i.remove();
             }
         }
+
+        Resource resource = createResource(scope, type);
+
+        resource.resourceIdentifier(name);
+        resource.scope(bodyScope);
+        resource.syncInternalToProperties();
+        scope.getResources().put(name, resource);
 
         return null;
     }
@@ -93,9 +78,9 @@ public class ResourceNode extends Node {
         buildNewline(builder, indentDepth);
         builder.append(type);
 
-        if (name != null) {
+        if (nameNode != null) {
             builder.append(' ');
-            builder.append(name);
+            builder.append(nameNode);
         }
 
         buildBody(builder, indentDepth + 1, body);
@@ -104,7 +89,7 @@ public class ResourceNode extends Node {
         builder.append("end");
     }
 
-    private beam.lang.Resource createResource(Scope scope, String type) {
+    private Resource createResource(Scope scope, String type) {
         Class klass = scope.getTypes().get(type);
         if (klass != null) {
             try {

@@ -100,7 +100,11 @@ public abstract class Node {
             return create(((BeamParser.ReferenceValueContext) context).referenceBody());
 
         } else if (cc.equals(BeamParser.ResourceContext.class)) {
-            return new ResourceNode((BeamParser.ResourceContext) context);
+            BeamParser.ResourceContext rc = (BeamParser.ResourceContext) context;
+
+            return rc.resourceName() != null
+                    ? new ResourceNode(rc)
+                    : new KeyListValueNode(rc);
 
         } else if (cc.equals(BeamParser.StringExpressionContext.class)) {
             return new StringExpressionNode((BeamParser.StringExpressionContext) context);
