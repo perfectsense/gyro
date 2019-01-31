@@ -56,4 +56,6 @@ aws::instance instance-example
     tags: {
         Name: "instance-example"
     }
+
+    capacity-reservation: "none"
 end

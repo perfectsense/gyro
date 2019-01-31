@@ -11,6 +11,7 @@ import org.apache.commons.codec.binary.Base64;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.AttributeBooleanValue;
+import software.amazon.awssdk.services.ec2.model.CapacityReservationSpecification;
 import software.amazon.awssdk.services.ec2.model.DescribeImagesRequest;
 import software.amazon.awssdk.services.ec2.model.DescribeImagesResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeInstanceAttributeResponse;
@@ -82,6 +83,7 @@ public class InstanceResource extends Ec2TaggableResource<Instance> implements B
     private Boolean enableEnaSupport;
     private Boolean sourceDestCheck;
     private String userData;
+    private String capacityReservation;
 
     // -- Readonly
 
@@ -362,6 +364,19 @@ public class InstanceResource extends Ec2TaggableResource<Instance> implements B
         return launchDate;
     }
 
+    @ResourceDiffProperty(updatable = true, nullable = true)
+    public String getCapacityReservation() {
+        if (capacityReservation == null) {
+            capacityReservation = "none";
+        }
+
+        return capacityReservation;
+    }
+
+    public void setCapacityReservation(String capacityReservation) {
+        this.capacityReservation = capacityReservation;
+    }
+
     // -- BeamInstance Implementation
 
     @Override
@@ -433,6 +448,11 @@ public class InstanceResource extends Ec2TaggableResource<Instance> implements B
                     setPrivateIpAddress(instance.privateIpAddress());
                     setInstanceState(instance.state().nameAsString());
                     setInstanceLaunchDate(Date.from(instance.launchTime()));
+                    setCapacityReservation(
+                        instance.capacityReservationSpecification().capacityReservationTarget() != null
+                            ? instance.capacityReservationSpecification().capacityReservationTarget().capacityReservationId()
+                            : instance.capacityReservationSpecification().capacityReservationPreferenceAsString()
+                    );
 
                     if (instance.state().name() == InstanceStateName.TERMINATED) {
                         return false;
@@ -497,6 +517,7 @@ public class InstanceResource extends Ec2TaggableResource<Instance> implements B
                     .subnetId(getSubnetId())
                     .disableApiTermination(getDisableApiTermination())
                     .userData(new String(Base64.encodeBase64(getUserData().trim().getBytes())))
+                    .capacityReservationSpecification(getCapacityReservationSpecification())
             );
 
             for (Instance instance : response.instances()) {
@@ -582,6 +603,14 @@ public class InstanceResource extends Ec2TaggableResource<Instance> implements B
                     .userData(o -> o.value(SdkBytes.fromByteArray(getUserData().getBytes())))
             );
         }
+
+        if (changedProperties.contains("capacity-reservation")
+            && validateInstanceStop(instanceStopped, "capacity-reservation", getCapacityReservation())) {
+            client.modifyInstanceCapacityReservationAttributes(
+                r -> r.instanceId(getInstanceId())
+                    .capacityReservationSpecification(getCapacityReservationSpecification())
+            );
+        }
     }
 
     @Override
@@ -648,6 +677,13 @@ public class InstanceResource extends Ec2TaggableResource<Instance> implements B
 
         if (getSecurityGroupIds().isEmpty()) {
             throw new BeamException("At least one security group is required.");
+        }
+
+        if (!getCapacityReservation().equalsIgnoreCase("none")
+            && !getCapacityReservation().equalsIgnoreCase("open")
+            && !getCapacityReservation().startsWith("cr-")) {
+            throw new BeamException("The value - (" + getCapacityReservation() + ") is invalid for parameter 'capacity-reservation'. "
+                + "Valid values [ 'open', 'none', capacity reservation id like cr-% ]");
         }
 
         DescribeImagesRequest amiRequest;
@@ -735,5 +771,17 @@ public class InstanceResource extends Ec2TaggableResource<Instance> implements B
         }
 
         return false;
+    }
+
+    private CapacityReservationSpecification getCapacityReservationSpecification() {
+        if (getCapacityReservation().equals("none") || getCapacityReservation().equals("open")) {
+            return CapacityReservationSpecification.builder()
+                .capacityReservationPreference(getCapacityReservation().toLowerCase())
+                .build();
+        } else {
+            return CapacityReservationSpecification.builder()
+                .capacityReservationTarget(r -> r.capacityReservationId(getCapacityReservation()))
+                .build();
+        }
     }
 }
