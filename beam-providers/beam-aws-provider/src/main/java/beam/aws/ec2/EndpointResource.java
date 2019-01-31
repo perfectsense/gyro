@@ -16,6 +16,7 @@ import software.amazon.awssdk.services.ec2.model.SecurityGroupIdentifier;
 import software.amazon.awssdk.services.ec2.model.VpcEndpoint;
 import software.amazon.awssdk.services.ec2.model.VpcEndpointType;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -57,9 +58,9 @@ import java.util.stream.Collectors;
  *             $(aws::subnet subnet-public-us-east-1c-example-for-endpoint-1 | subnet-id)
  *         ]
  *         security-group-ids: [
- *             'sg-0c6a15d90a475071e',
- *             'sg-0454a5fb5ea3a7a62',
- *             'sg-0da8f2491baf7f0c4'
+ *             $(aws::security-group security-group-example-for-endpoint-1 | group-id),
+ *             $(aws::security-group security-group-example-for-endpoint-2 | group-id),
+ *             $(aws::security-group security-group-example-for-endpoint-3 | group-id)
  *         ]
  *     end
  */
@@ -121,7 +122,7 @@ public class EndpointResource extends AwsResource {
     /**
      * The list of Route Table ID being associated with the Endpoint. (Required if typeInterface set to true.)
      */
-    @ResourceDiffProperty(updatable = true)
+    @ResourceDiffProperty(updatable = true, nullable = true)
     public List<String> getRouteTableIds() {
         if (routeTableIds == null) {
             routeTableIds = new ArrayList<>();
@@ -137,7 +138,7 @@ public class EndpointResource extends AwsResource {
     /**
      * The list of Subnet ID being associated with the Endpoint. (Required if typeInterface set to false.)
      */
-    @ResourceDiffProperty(updatable = true)
+    @ResourceDiffProperty(updatable = true, nullable = true)
     public List<String> getSubnetIds() {
         if (subnetIds == null) {
             subnetIds = new ArrayList<>();
@@ -187,12 +188,15 @@ public class EndpointResource extends AwsResource {
 
     public void setPolicyDocPath(String policyDocPath) {
         this.policyDocPath = policyDocPath;
-        setPolicyFromPath();
+
+        if (policyDocPath != null) {
+            setPolicyFromPath();
+        }
     }
 
     @ResourceDiffProperty(updatable = true)
     public String getPolicy() {
-        return policy;
+        return policy != null ? policy.replaceAll(System.lineSeparator(), " ").replaceAll("\t", " ").trim().replaceAll(" ", "") : policy;
     }
 
     public void setPolicy(String policy) {
@@ -225,19 +229,22 @@ public class EndpointResource extends AwsResource {
 
     @Override
     public void create() {
+
+        validate();
+
         CreateVpcEndpointRequest.Builder builder = CreateVpcEndpointRequest.builder();
 
         builder.vpcId(getVpcId());
         builder.vpcEndpointType(getTypeInterface() ? VpcEndpointType.INTERFACE : VpcEndpointType.GATEWAY);
-        builder.policyDocument(getPolicy());
         builder.privateDnsEnabled(getEnablePrivateDns());
         builder.serviceName(getServiceName());
 
         if (getTypeInterface()) {
-            builder.subnetIds(getSubnetIds());
-            builder.securityGroupIds(getSecurityGroupIds());
+            builder.subnetIds(getSubnetIds().isEmpty() ? null : getSubnetIds());
+            builder.securityGroupIds(getSecurityGroupIds().isEmpty() ? null : getSecurityGroupIds());
         } else {
-            builder.routeTableIds(getRouteTableIds());
+            builder.routeTableIds(getRouteTableIds().isEmpty() ? null : getRouteTableIds());
+            builder.policyDocument(getPolicy());
         }
 
         Ec2Client client = createClient(Ec2Client.class);
@@ -251,6 +258,9 @@ public class EndpointResource extends AwsResource {
 
     @Override
     public void update(Resource current, Set<String> changedProperties) {
+
+        validate();
+
         ModifyVpcEndpointRequest.Builder builder = ModifyVpcEndpointRequest.builder();
         builder.vpcEndpointId(getEndpointId());
 
@@ -258,7 +268,7 @@ public class EndpointResource extends AwsResource {
         EndpointResource newEndpoint = this;
 
 
-        if (changedProperties.contains("routeTableIds")) {
+        if (changedProperties.contains("route-table-ids")) {
             List<String> removeRouteTableIds = oldEndpoint.getRouteTableIds().stream()
                 .filter(f -> !newEndpoint.getRouteTableIds().contains(f)).collect(Collectors.toList());
             List<String> addRouteTableIds = newEndpoint.getRouteTableIds().stream()
@@ -273,7 +283,7 @@ public class EndpointResource extends AwsResource {
             }
         }
 
-        if (changedProperties.contains("securityGroupIds")) {
+        if (changedProperties.contains("subnet-ids")) {
             List<String> removeSubnetIds = oldEndpoint.getSubnetIds().stream()
                 .filter(f -> !newEndpoint.getSubnetIds().contains(f)).collect(Collectors.toList());
             List<String> addSubnetIds = newEndpoint.getSubnetIds().stream()
@@ -288,7 +298,7 @@ public class EndpointResource extends AwsResource {
             }
         }
 
-        if (changedProperties.contains("subnetIds")) {
+        if (changedProperties.contains("security-group-ids")) {
             List<String> removeSecurityGroupIds = oldEndpoint.getSecurityGroupIds().stream()
                 .filter(f -> !newEndpoint.getSecurityGroupIds().contains(f)).collect(Collectors.toList());
             List<String> addSecurityGroupIds = newEndpoint.getSecurityGroupIds().stream()
@@ -303,7 +313,7 @@ public class EndpointResource extends AwsResource {
             }
         }
 
-        if (changedProperties.contains("policyDocPath")) {
+        if (changedProperties.contains("policy-doc-path")) {
             setPolicyFromPath();
             builder.policyDocument(getPolicy());
         }
@@ -330,10 +340,16 @@ public class EndpointResource extends AwsResource {
     public String toDisplayString() {
         StringBuilder sb = new StringBuilder();
 
+        sb.append("endpoint");
+
         if (!StringUtils.isEmpty(getEndpointId())) {
-            sb.append(getEndpointId());
+            sb.append(" - ").append(getEndpointId());
+        }
+
+        if (getTypeInterface()) {
+            sb.append(" [ Interface ]");
         } else {
-            sb.append("endpoint");
+            sb.append(" [ Gateway ]");
         }
 
         return sb.toString();
@@ -341,10 +357,27 @@ public class EndpointResource extends AwsResource {
 
     private void setPolicyFromPath() {
         try {
-            setPolicy(new String(Files.readAllBytes(Paths.get(getPolicyDocPath())), StandardCharsets.UTF_8));
+            String dir = fileNode().path().substring(0, fileNode().path().lastIndexOf(File.separator));
+            setPolicy(new String(Files.readAllBytes(Paths.get(dir + File.separator + getPolicyDocPath())), StandardCharsets.UTF_8));
         } catch (IOException ioex) {
             throw new BeamException(MessageFormat
                 .format("Endpoint - {0} policy error. Unable to read policy from path [{1}]", getServiceName(), getPolicyDocPath()));
+        }
+    }
+
+    private void validate() {
+        if (getTypeInterface()) {
+            if (!getRouteTableIds().isEmpty()) {
+                throw new BeamException("The param 'route-table-ids' cannot be set when the param 'type-interface' is set to 'True'");
+            }
+        } else {
+            if (!getSecurityGroupIds().isEmpty()) {
+                throw new BeamException("The param 'security-group-ids' cannot be set when the param 'type-interface' is set to 'False'");
+            }
+
+            if (!getSubnetIds().isEmpty()) {
+                throw new BeamException("The param 'subnet-ids' cannot be set when the param 'type-interface' is set to 'False'");
+            }
         }
     }
 }
