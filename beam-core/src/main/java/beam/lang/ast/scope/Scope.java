@@ -38,8 +38,8 @@ public class Scope implements Map<String, Object> {
         throw new IllegalStateException();
     }
 
-    public GlobalScope getGlobalScope() {
-        return getClosest(GlobalScope.class);
+    public RootScope getRootScope() {
+        return getClosest(RootScope.class);
     }
 
     public FileScope getFileScope() {

@@ -124,7 +124,7 @@ public class Beam {
                 BeamCore core = new BeamCore();
                 Scope pluginConfig = core.parse(plugins.toString());
 
-                for (PluginLoader loader : pluginConfig.getGlobalScope().getPluginLoaders()) {
+                for (PluginLoader loader : pluginConfig.getFileScope().getPluginLoaders()) {
                     for (Class<?> c : loader.classes()) {
                         if (BeamCommand.class.isAssignableFrom(c) && !Modifier.isAbstract(c.getModifiers())) {
                             beam.commands().add(c);

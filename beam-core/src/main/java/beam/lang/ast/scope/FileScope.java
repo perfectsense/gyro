@@ -1,10 +1,14 @@
 package beam.lang.ast.scope;
 
 import beam.core.LocalStateBackend;
+import beam.lang.Resource;
 import beam.lang.StateBackend;
+import beam.lang.plugins.PluginLoader;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class FileScope extends Scope {
 
@@ -12,6 +16,8 @@ public class FileScope extends Scope {
     private FileScope state;
     private final List<FileScope> imports = new ArrayList<>();
     private StateBackend stateBackend = new LocalStateBackend();
+    private final List<PluginLoader> pluginLoaders = new ArrayList<>();
+    private final Map<String, Resource> resources = new HashMap<>();
 
     public FileScope(Scope parent, String path) {
         super(parent);
@@ -25,7 +31,7 @@ public class FileScope extends Scope {
 
     public FileScope getState() {
         if (state == null) {
-            state = new FileScope(getGlobalScope(), getPath());
+            state = new FileScope(getFileScope(), getPath());
         }
 
         return state;
@@ -45,6 +51,14 @@ public class FileScope extends Scope {
 
     public void setStateBackend(StateBackend stateBackend) {
         this.stateBackend = stateBackend;
+    }
+
+    public List<PluginLoader> getPluginLoaders() {
+        return pluginLoaders;
+    }
+
+    public Map<String, Resource> getResources() {
+        return resources;
     }
 
 }

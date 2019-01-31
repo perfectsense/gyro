@@ -21,7 +21,7 @@ public class ResourceReferenceNode extends Node {
 
     @Override
     public Object evaluate(Scope scope) {
-        Map<String, beam.lang.Resource> resources = scope.getGlobalScope().getResources();
+        Map<String, beam.lang.Resource> resources = scope.getFileScope().getResources();
 
         if (name != null) {
             String n = Optional.ofNullable(name.evaluate(scope))

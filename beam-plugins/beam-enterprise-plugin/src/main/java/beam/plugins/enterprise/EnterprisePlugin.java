@@ -11,7 +11,7 @@ public class EnterprisePlugin extends Provider {
 
     @Override
     public void init() {
-        getScope().getGlobalScope().getTypeClasses().put("aws::credentials", EnterpriseAwsCredentials.class);
+        getScope().getRootScope().getTypeClasses().put("aws::credentials", EnterpriseAwsCredentials.class);
     }
 
 }

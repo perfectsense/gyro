@@ -9,7 +9,7 @@ import beam.lang.Resource;
 import beam.lang.StateBackend;
 import beam.lang.ast.Node;
 import beam.lang.ast.scope.FileScope;
-import beam.lang.ast.scope.GlobalScope;
+import beam.lang.ast.scope.RootScope;
 import beam.lang.listeners.ErrorListener;
 import beam.parser.antlr4.BeamLexer;
 import beam.parser.antlr4.BeamParser;
@@ -61,8 +61,7 @@ public class BeamCore {
         BeamFileContext context = parser.beamFile();
 
         Node rootNode = Node.create(context);
-        GlobalScope globalScope = new GlobalScope();
-        FileScope rootScope = new FileScope(globalScope, path);
+        RootScope rootScope = new RootScope(path);
         rootNode.evaluate(rootScope);
 
         if (errorListener.getSyntaxErrors() > 0) {
@@ -190,7 +189,7 @@ public class BeamCore {
 
                 //stateNode.putResource(parent);
             } else {
-                state.getGlobalScope().getResources().remove(resource.resourceIdentifier());
+                state.getFileScope().getResources().remove(resource.resourceIdentifier());
             }
         } else {
             if (isSubresource) {
@@ -198,7 +197,7 @@ public class BeamCore {
                 //Resource parent = resource.parentResource();
                 //stateNode.putResource(parent);
             } else {
-                state.getGlobalScope().getResources().put(resource.resourceIdentifier(), resource);
+                state.getFileScope().getResources().put(resource.resourceIdentifier(), resource);
             }
         }
 

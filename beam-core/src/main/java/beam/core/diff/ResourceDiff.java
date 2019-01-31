@@ -21,8 +21,8 @@ public class ResourceDiff {
     private boolean refresh;
 
     public ResourceDiff(Scope current, Scope pending) {
-        this.currentResources = new ArrayList<>(current.getGlobalScope().getResources().values());
-        this.pendingResources = new ArrayList<>(pending.getGlobalScope().getResources().values());
+        this.currentResources = new ArrayList<>(current.getFileScope().getResources().values());
+        this.pendingResources = new ArrayList<>(pending.getFileScope().getResources().values());
     }
 
     public ResourceDiff(List<Resource> currentResources,

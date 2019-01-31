@@ -6,7 +6,6 @@ import beam.lang.ast.scope.Scope;
 import beam.parser.antlr4.BeamParser;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -40,7 +39,7 @@ public class ResourceNode extends Node {
         for (Map.Entry<String, Object> entry : bodyScope.entrySet()) {
             String subresourceType = type + "::" + entry.getKey();
 
-            if (scope.getGlobalScope().getTypeClasses().get(subresourceType) != null) {
+            if (scope.getRootScope().getTypeClasses().get(subresourceType) != null) {
                 Object value = entry.getValue();
 
                 if (!(value instanceof List)) {
@@ -67,7 +66,7 @@ public class ResourceNode extends Node {
         resource.resourceIdentifier(name);
         resource.scope(bodyScope);
         resource.syncInternalToProperties();
-        scope.getGlobalScope().getResources().put(name, resource);
+        scope.getFileScope().getResources().put(name, resource);
 
         return null;
     }
@@ -89,7 +88,7 @@ public class ResourceNode extends Node {
     }
 
     private Resource createResource(Scope scope, String type) {
-        Class klass = scope.getGlobalScope().getTypeClasses().get(type);
+        Class klass = scope.getRootScope().getTypeClasses().get(type);
         if (klass != null) {
             try {
                 beam.lang.Resource resource = (beam.lang.Resource) klass.newInstance();
