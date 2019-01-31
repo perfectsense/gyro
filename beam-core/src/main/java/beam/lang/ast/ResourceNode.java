@@ -27,7 +27,7 @@ public class ResourceNode extends Node {
     }
 
     @Override
-    public Object evaluate(Scope scope) {
+    public Object evaluate(Scope scope) throws Exception {
         String name = (String) nameNode.evaluate(scope);
         Scope bodyScope = new Scope(scope);
 

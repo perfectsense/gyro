@@ -23,7 +23,7 @@ public abstract class AbstractInstanceCommand extends AbstractConfigCommand {
     public abstract void doExecute(List<BeamInstance> instances) throws Exception;
 
     @Override
-    protected void doExecute(FileScope pending) throws Exception {
+    protected void doExecute(FileScope current, FileScope pending) throws Exception {
 
         BeamCore.ui().write("\n");
 

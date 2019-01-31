@@ -22,7 +22,7 @@ public class KeyListValueNode extends Node {
     }
 
     @Override
-    public Object evaluate(Scope scope) {
+    public Object evaluate(Scope scope) throws Exception {
         Scope bodyScope = new Scope(scope);
 
         for (Node node : body) {

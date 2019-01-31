@@ -21,7 +21,7 @@ import static org.mockito.Mockito.verify;
 class ForNodeTest {
 
     @Test
-    void evaluateEmptyBody() {
+    void evaluateEmptyBody() throws Exception {
         Node body = mock(Node.class);
 
         ForNode node = new ForNode(

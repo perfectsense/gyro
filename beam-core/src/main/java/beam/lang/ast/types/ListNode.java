@@ -4,6 +4,7 @@ import beam.lang.ast.Node;
 import beam.lang.ast.scope.Scope;
 import beam.parser.antlr4.BeamParser;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,10 +24,14 @@ public class ListNode extends Node {
     }
 
     @Override
-    public Object evaluate(Scope scope) {
-        return items.stream()
-                .map(n -> n.evaluate(scope))
-                .collect(Collectors.toList());
+    public Object evaluate(Scope scope) throws Exception {
+        List<Object> list = new ArrayList<>();
+
+        for (Node n : items) {
+            list.add(n.evaluate(scope));
+        }
+
+        return list;
     }
 
     @Override

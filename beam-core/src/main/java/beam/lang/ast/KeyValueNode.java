@@ -20,7 +20,7 @@ public class KeyValueNode extends Node {
     }
 
     @Override
-    public Object evaluate(Scope scope) {
+    public Object evaluate(Scope scope) throws Exception {
         scope.put(key, value.evaluate(scope));
         return scope.get(key);
     }

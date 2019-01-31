@@ -20,7 +20,7 @@ public class StringExpressionNode extends Node {
     }
 
     @Override
-    public Object evaluate(Scope scope) {
+    public Object evaluate(Scope scope) throws Exception {
         StringBuilder builder = new StringBuilder();
 
         for (Object item : items) {

@@ -4,21 +4,11 @@ import beam.core.diff.ChangeType;
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiff;
 import beam.core.diff.ResourceName;
-import beam.lang.BeamLanguageException;
 import beam.lang.Resource;
 import beam.lang.StateBackend;
-import beam.lang.ast.Node;
 import beam.lang.ast.scope.FileScope;
-import beam.lang.ast.scope.RootScope;
-import beam.lang.listeners.ErrorListener;
-import beam.parser.antlr4.BeamLexer;
-import beam.parser.antlr4.BeamParser;
-import beam.parser.antlr4.BeamParser.BeamFileContext;
 import com.psddev.dari.util.ThreadLocalStack;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -44,35 +34,8 @@ public class BeamCore {
         return UI.pop();
     }
 
-    public FileScope parse(String path) throws IOException {
-        return parse(path, false);
-    }
-
-    public FileScope parse(String path, boolean state) throws IOException {
-        // Initial file parse loads state and providers.
-        BeamLexer lexer = new BeamLexer(CharStreams.fromFileName(path));
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
-
-        BeamParser parser = new BeamParser(tokens);
-        ErrorListener errorListener = new ErrorListener();
-        parser.removeErrorListeners();
-        parser.addErrorListener(errorListener);
-
-        BeamFileContext context = parser.beamFile();
-
-        Node rootNode = Node.create(context);
-        RootScope rootScope = new RootScope(path);
-        rootNode.evaluate(rootScope);
-
-        if (errorListener.getSyntaxErrors() > 0) {
-            throw new BeamLanguageException(errorListener.getSyntaxErrors() + " errors while parsing.");
-        }
-
-        return rootScope;
-    }
-
-    public List<ResourceDiff> diff(FileScope pendingScope, boolean refresh) throws Exception {
-        ResourceDiff diff = new ResourceDiff(pendingScope.getFileScope().getState(), pendingScope);
+    public List<ResourceDiff> diff(FileScope currentScope, FileScope pendingScope, boolean refresh) throws Exception {
+        ResourceDiff diff = new ResourceDiff(currentScope, pendingScope);
         diff.setRefresh(refresh);
         diff.diff();
 

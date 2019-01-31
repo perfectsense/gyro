@@ -17,9 +17,9 @@ public class UpCommand extends AbstractConfigCommand {
     public boolean skipRefresh;
 
     @Override
-    public void doExecute(FileScope pending) throws Exception {
+    public void doExecute(FileScope current, FileScope pending) throws Exception {
         BeamCore.ui().write("\n@|bold,white Looking for changes...\n\n|@");
-        List<ResourceDiff> diffs = core().diff(pending, !skipRefresh);
+        List<ResourceDiff> diffs = core().diff(current, pending, !skipRefresh);
 
         Set<ChangeType> changeTypes = core().writeDiffs(diffs);
 

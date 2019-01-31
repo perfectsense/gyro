@@ -1,6 +1,6 @@
 package beam.plugins.enterprise;
 
-import beam.core.BeamCore;
+import beam.core.LocalStateBackend;
 import beam.lang.Resource;
 import beam.lang.ast.scope.Scope;
 import com.psddev.dari.util.CollectionUtils;
@@ -23,10 +23,9 @@ public class EnterpriseConfig {
             File enterpriseConfigFile = Paths.get(EnterpriseConfig.getUserHome(), ".beam", "enterprise.bcl").toFile();
 
             if (enterpriseConfigFile.exists()) {
-                BeamCore core = new BeamCore();
                 //core.addResourceType("enterprise::project", EnterpriseProject.class);
 
-                Scope config = core.parse(enterpriseConfigFile.toString());
+                Scope config = new LocalStateBackend().load(null, enterpriseConfigFile.toString());
 
                 Map<String, Object> keyValues = new HashMap<>(config);
                 for (Resource resource : config.getFileScope().getResources().values()) {

@@ -1,6 +1,5 @@
 package beam.lang.ast.expression;
 
-import beam.lang.ast.expression.ExpressionNode;
 import beam.lang.ast.scope.Scope;
 import beam.parser.antlr4.BeamParser;
 
@@ -11,7 +10,7 @@ public class ValueExpressionNode extends ExpressionNode {
     }
 
     @Override
-    public Object evaluate(Scope scope) {
+    public Object evaluate(Scope scope) throws Exception {
         return getLeftNode().evaluate(scope);
     }
 

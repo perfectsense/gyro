@@ -23,7 +23,7 @@ public class RootNode extends Node {
     }
 
     @Override
-    public Object evaluate(Scope scope) {
+    public Object evaluate(Scope scope) throws Exception {
         List<Node> body = getBody();
         int bodySize = body.size();
 

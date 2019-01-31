@@ -20,7 +20,7 @@ public class ResourceReferenceNode extends Node {
     }
 
     @Override
-    public Object evaluate(Scope scope) {
+    public Object evaluate(Scope scope) throws Exception {
         Map<String, beam.lang.Resource> resources = scope.getFileScope().getResources();
 
         if (name != null) {

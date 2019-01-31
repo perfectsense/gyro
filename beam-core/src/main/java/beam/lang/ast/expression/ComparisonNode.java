@@ -17,7 +17,7 @@ public class ComparisonNode extends ExpressionNode {
     }
 
     @Override
-    public Object evaluate(Scope scope) {
+    public Object evaluate(Scope scope) throws Exception {
         Object leftValue = getLeftNode().evaluate(scope);
         Object rightValue = getRightNode().evaluate(scope);
 

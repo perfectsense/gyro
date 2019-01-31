@@ -12,28 +12,26 @@ import java.util.Map;
 
 public class FileScope extends Scope {
 
-    private final String path;
+    private final String file;
     private FileScope state;
     private final List<FileScope> imports = new ArrayList<>();
     private StateBackend stateBackend = new LocalStateBackend();
     private final List<PluginLoader> pluginLoaders = new ArrayList<>();
     private final Map<String, Resource> resources = new HashMap<>();
 
-    public FileScope(Scope parent, String path) {
+    public FileScope(Scope parent, String file) {
         super(parent);
-
-        this.path = path;
+        this.file = file;
     }
 
-    public String getPath() {
-        return path;
+    public String getFile() {
+        return file;
     }
 
     public FileScope getState() {
         if (state == null) {
-            state = new FileScope(getFileScope(), getPath());
+            state = new FileScope(getFileScope(), getFile());
         }
-
         return state;
     }
 

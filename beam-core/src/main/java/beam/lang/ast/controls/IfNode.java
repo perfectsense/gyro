@@ -29,7 +29,7 @@ public class IfNode extends Node {
     }
 
     @Override
-    public Object evaluate(Scope scope) {
+    public Object evaluate(Scope scope) throws Exception {
         for (int i = 0; i < expressions.size(); i++) {
             Node expression = expressions.get(i);
             Boolean value = ExpressionNode.toBoolean(expression.evaluate(scope));

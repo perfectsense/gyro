@@ -2,9 +2,9 @@ package beam.commands;
 
 import beam.core.BeamCore;
 import beam.core.BeamException;
+import beam.core.LocalStateBackend;
 import beam.lang.BeamLanguageException;
 import beam.lang.Credentials;
-import beam.lang.StateBackend;
 import beam.lang.ast.scope.FileScope;
 import io.airlift.airline.Arguments;
 
@@ -17,7 +17,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
     private BeamCore core;
 
-    protected abstract void doExecute(FileScope pending) throws Exception;
+    protected abstract void doExecute(FileScope current, FileScope pending) throws Exception;
 
     @Override
     protected void doExecute() throws Exception {
@@ -25,25 +25,25 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             throw new BeamException("Beam configuration file required.");
         }
 
-        String configPath = arguments().get(0);
         core = new BeamCore();
-        FileScope pendingScope;
-        FileScope stateScope;
-        try {
-            pendingScope = core.parse(configPath);
-            StateBackend stateBackend = pendingScope.getFileScope().getStateBackend();
-            stateScope = stateBackend.load(pendingScope);
 
-            pendingScope.setState(stateScope);
+        String file = arguments().get(0);
+        FileScope pending;
+        FileScope current;
+
+        try {
+            pending = new LocalStateBackend().load(null, file);
+            current = pending.getStateBackend().load(null, pending.getFile() + ".state");
+
         } catch (BeamLanguageException ex) {
             throw new BeamException(ex.getMessage());
         }
 
-        for (Credentials credentials : pendingScope.getCredentials()) {
+        for (Credentials credentials : pending.getCredentials()) {
             credentials.findCredentials(true);
         }
 
-        doExecute(pendingScope);
+        doExecute(current, pending);
     }
 
     public List<String> arguments() {

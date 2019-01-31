@@ -27,7 +27,7 @@ public class VirtualResourceNode extends Node {
     }
 
     @Override
-    public Object evaluate(Scope scope) {
+    public Object evaluate(Scope scope) throws Exception {
         Scope bodyScope = new Scope(null);
 
         for (Node parameterNode : parameters) {

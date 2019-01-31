@@ -43,7 +43,7 @@ public class ForNode extends Node {
     }
 
     @Override
-    public Object evaluate(Scope scope) {
+    public Object evaluate(Scope scope) throws Exception {
         int variablesSize = variables.size();
         int itemsSize = items.size();
 
