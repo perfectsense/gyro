@@ -1,8 +1,8 @@
 package beam.lang.ast.scope;
 
-import beam.core.LocalStateBackend;
+import beam.core.LocalFileBackend;
 import beam.lang.Resource;
-import beam.lang.StateBackend;
+import beam.lang.FileBackend;
 import beam.lang.plugins.PluginLoader;
 
 import java.util.ArrayList;
@@ -15,7 +15,7 @@ public class FileScope extends Scope {
     private final String file;
     private FileScope state;
     private final List<FileScope> imports = new ArrayList<>();
-    private StateBackend stateBackend = new LocalStateBackend();
+    private FileBackend fileBackend = new LocalFileBackend();
     private final List<PluginLoader> pluginLoaders = new ArrayList<>();
     private final Map<String, Resource> resources = new HashMap<>();
 
@@ -43,12 +43,12 @@ public class FileScope extends Scope {
         return imports;
     }
 
-    public StateBackend getStateBackend() {
-        return stateBackend;
+    public FileBackend getFileBackend() {
+        return fileBackend;
     }
 
-    public void setStateBackend(StateBackend stateBackend) {
-        this.stateBackend = stateBackend;
+    public void setFileBackend(FileBackend fileBackend) {
+        this.fileBackend = fileBackend;
     }
 
     public List<PluginLoader> getPluginLoaders() {

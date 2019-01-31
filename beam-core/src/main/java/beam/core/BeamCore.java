@@ -5,7 +5,7 @@ import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiff;
 import beam.core.diff.ResourceName;
 import beam.lang.Resource;
-import beam.lang.StateBackend;
+import beam.lang.FileBackend;
 import beam.lang.ast.scope.FileScope;
 import com.psddev.dari.util.ThreadLocalStack;
 
@@ -140,7 +140,7 @@ public class BeamCore {
         Resource resource = change.executeChange();
 
         FileScope state = resource.scope().getFileScope().getState();
-        StateBackend backend = resource.scope().getFileScope().getStateBackend();
+        FileBackend backend = resource.scope().getFileScope().getFileBackend();
 
         ResourceName nameAnnotation = resource.getClass().getAnnotation(ResourceName.class);
         boolean isSubresource = nameAnnotation != null && !nameAnnotation.parent().equals("");

@@ -2,7 +2,7 @@ package beam.commands;
 
 import beam.core.BeamCore;
 import beam.core.BeamException;
-import beam.core.LocalStateBackend;
+import beam.core.LocalFileBackend;
 import beam.lang.BeamLanguageException;
 import beam.lang.Credentials;
 import beam.lang.ast.scope.FileScope;
@@ -32,8 +32,8 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         FileScope current;
 
         try {
-            pending = new LocalStateBackend().load(null, file);
-            current = pending.getStateBackend().load(null, pending.getFile() + ".state");
+            pending = new LocalFileBackend().load(null, file);
+            current = pending.getFileBackend().load(null, pending.getFile() + ".state");
 
         } catch (BeamLanguageException ex) {
             throw new BeamException(ex.getMessage());

@@ -1,7 +1,7 @@
 package beam.core;
 
 import beam.lang.Resource;
-import beam.lang.StateBackend;
+import beam.lang.FileBackend;
 import beam.lang.ast.Node;
 import beam.lang.ast.scope.FileScope;
 import beam.lang.ast.scope.RootScope;
@@ -15,7 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class LocalStateBackend extends StateBackend {
+public class LocalFileBackend extends FileBackend {
 
     @Override
     public String name() {

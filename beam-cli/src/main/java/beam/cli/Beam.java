@@ -5,7 +5,7 @@ import beam.commands.BeamCommand;
 import beam.commands.CliBeamUI;
 import beam.core.BeamCore;
 import beam.core.BeamException;
-import beam.core.LocalStateBackend;
+import beam.core.LocalFileBackend;
 import beam.lang.ast.scope.Scope;
 import beam.lang.plugins.PluginLoader;
 import ch.qos.logback.classic.Level;
@@ -122,7 +122,7 @@ public class Beam {
             // Load ~/.beam/plugins.bcl
             File plugins = Paths.get(getBeamUserHome(), ".beam", "plugins.bcl").toFile();
             if (plugins.exists() && plugins.isFile()) {
-                Scope pluginConfig = new LocalStateBackend().load(null, plugins.toString());
+                Scope pluginConfig = new LocalFileBackend().load(null, plugins.toString());
 
                 for (PluginLoader loader : pluginConfig.getFileScope().getPluginLoaders()) {
                     for (Class<?> c : loader.classes()) {

@@ -4,7 +4,7 @@ import beam.commands.AbstractConfigCommand;
 import beam.core.BeamCore;
 import beam.core.BeamInstance;
 import beam.lang.Resource;
-import beam.lang.StateBackend;
+import beam.lang.FileBackend;
 import beam.lang.ast.scope.FileScope;
 import io.airlift.airline.Option;
 
@@ -38,8 +38,8 @@ public abstract class AbstractInstanceCommand extends AbstractConfigCommand {
                     BeamCore.ui().write("@|bold,blue Refreshing|@: @|yellow %s|@ -> %s...", resource.resourceType(), resource.resourceIdentifier());
                     resource.refresh();
 
-                    StateBackend stateBackend = pending.getFileScope().getStateBackend();
-                    stateBackend.save(pending.getFileScope().getState());
+                    FileBackend fileBackend = pending.getFileScope().getFileBackend();
+                    fileBackend.save(pending.getFileScope().getState());
                     BeamCore.ui().write("\n");
                 }
             }
