@@ -29,7 +29,7 @@ public class EnterpriseConfig {
                 Scope config = core.parse(enterpriseConfigFile.toString());
 
                 Map<String, Object> keyValues = new HashMap<>(config);
-                for (Resource resource : config.getResources().values()) {
+                for (Resource resource : config.getGlobalScope().getResources().values()) {
                     keyValues.put(resource.resourceIdentifier(), resource);
                 }
 

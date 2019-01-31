@@ -191,7 +191,7 @@ public class BeamCore {
 
                 //stateNode.putResource(parent);
             } else {
-                state.getResources().remove(resource.resourceIdentifier());
+                state.getGlobalScope().getResources().remove(resource.resourceIdentifier());
             }
         } else {
             if (isSubresource) {
@@ -199,7 +199,7 @@ public class BeamCore {
                 //Resource parent = resource.parentResource();
                 //stateNode.putResource(parent);
             } else {
-                state.getResources().put(resource.resourceIdentifier(), resource);
+                state.getGlobalScope().getResources().put(resource.resourceIdentifier(), resource);
             }
         }
 

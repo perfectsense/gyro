@@ -95,15 +95,6 @@ public class Scope implements Map<String, Object> {
         return null;
     }
 
-    public Map<String, Resource> getResources() {
-        GlobalScope scope = getGlobalScope();
-        if (scope != null) {
-            return scope.getResources();
-        }
-
-        return null;
-    }
-
     @Override
     public void clear() {
         values.clear();

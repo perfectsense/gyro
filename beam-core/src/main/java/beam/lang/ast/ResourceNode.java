@@ -68,7 +68,7 @@ public class ResourceNode extends Node {
         resource.resourceIdentifier(name);
         resource.scope(bodyScope);
         resource.syncInternalToProperties();
-        scope.getResources().put(name, resource);
+        scope.getGlobalScope().getResources().put(name, resource);
 
         return null;
     }

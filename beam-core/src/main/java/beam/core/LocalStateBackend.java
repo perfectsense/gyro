@@ -52,7 +52,7 @@ public class LocalStateBackend extends StateBackend {
                 out.write(pluginLoader.toString());
             }
 
-            for (Resource resource : state.getResources().values()) {
+            for (Resource resource : state.getGlobalScope().getResources().values()) {
                 out.write(resource.serialize(0));
             }
             out.close();

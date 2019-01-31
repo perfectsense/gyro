@@ -26,7 +26,6 @@ public class GlobalScope extends Scope {
         return typeClasses;
     }
 
-    @Override
     public Map<String, Resource> getResources() {
         return resources;
     }
