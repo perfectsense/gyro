@@ -30,14 +30,10 @@ public class KeyListValueNode extends Node {
         }
 
         if ("plugin".equals(key)) {
-            String artifact = (String) bodyScope.get("artifact");
-            List<String> repositories = (List<String>) bodyScope.get("repositories");
+            PluginLoader loader = new PluginLoader(bodyScope);
 
-            PluginLoader loader = new PluginLoader(scope, artifact, repositories);
             loader.load();
-
-            List<PluginLoader> plugins = scope.getPlugins();
-            plugins.add(loader);
+            scope.getProcessScope().getPluginLoaders().add(loader);
 
         } else if ("state".equals(key)) {
             //scope.setStateBackend(new Resource(type, n, bodyScope));

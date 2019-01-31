@@ -51,10 +51,11 @@ public class PluginLoader {
         return classLoader;
     }
 
-    public PluginLoader(Scope scope, String artifact, List<String> repositories) {
+    @SuppressWarnings("unchecked")
+    public PluginLoader(Scope scope) {
         this.scope = scope;
-        this.artifact = artifact;
-        this.repositories = repositories;
+        this.artifact = (String) scope.get("artifact");
+        this.repositories = (List<String>) scope.get("repositories");
     }
 
     public void artifact(String artifact) {

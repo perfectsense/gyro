@@ -3,7 +3,6 @@ package beam.lang.ast.scope;
 import beam.lang.Credentials;
 import beam.lang.Resource;
 import beam.lang.StateBackend;
-import beam.lang.plugins.PluginLoader;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,6 +27,16 @@ public class Scope implements Map<String, Object> {
 
     public Scope getParent() {
         return parent;
+    }
+
+    public ProcessScope getProcessScope() {
+        for (Scope s = this; s != null; s = s.getParent()) {
+            if (s instanceof ProcessScope) {
+                return (ProcessScope) s;
+            }
+        }
+
+        throw new IllegalStateException();
     }
 
     @SuppressWarnings("unchecked")
@@ -76,16 +85,6 @@ public class Scope implements Map<String, Object> {
         FileScope scope = getFileScope();
         if (scope != null) {
             return scope.getStateBackend();
-        }
-
-        return null;
-    }
-
-    public List<PluginLoader> getPlugins() {
-        Scope top = getTop();
-
-        if (top instanceof ProcessScope) {
-            return top.getPlugins();
         }
 
         return null;
@@ -198,16 +197,6 @@ public class Scope implements Map<String, Object> {
                 top = parent;
             }
         }
-    }
-
-    public ProcessScope getProcessScope() {
-        Scope top = getTop();
-
-        if (top instanceof ProcessScope) {
-            return (ProcessScope) top;
-        }
-
-        return null;
     }
 
     public FileScope getFileScope() {

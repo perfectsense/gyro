@@ -34,7 +34,7 @@ public class LocalStateBackend extends StateBackend {
             state = new FileScope(processScope);
             state.setPath(path);
 
-            state.getPlugins().addAll(scope.getPlugins());
+            state.getProcessScope().getPluginLoaders().addAll(scope.getProcessScope().getPluginLoaders());
         }
 
         return state;
@@ -48,7 +48,7 @@ public class LocalStateBackend extends StateBackend {
             File temp = File.createTempFile("local-state",".bcl");
 
             BufferedWriter out = new BufferedWriter(new FileWriter(temp));
-            for (PluginLoader pluginLoader : state.getPlugins()) {
+            for (PluginLoader pluginLoader : state.getProcessScope().getPluginLoaders()) {
                 out.write(pluginLoader.toString());
             }
 

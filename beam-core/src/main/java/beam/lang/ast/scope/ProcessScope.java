@@ -10,7 +10,7 @@ import java.util.Map;
 
 public class ProcessScope extends Scope {
 
-    private final List<PluginLoader> plugins = new ArrayList<>();
+    private final List<PluginLoader> pluginLoaders = new ArrayList<>();
     private final Map<String, Class<?>> types = new HashMap<>();
     private final Map<String, Resource> resources = new HashMap<>();
 
@@ -22,8 +22,8 @@ public class ProcessScope extends Scope {
         super(parent);
     }
 
-    public List<PluginLoader> getPlugins() {
-        return plugins;
+    public List<PluginLoader> getPluginLoaders() {
+        return pluginLoaders;
     }
 
     @Override
