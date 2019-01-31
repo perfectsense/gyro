@@ -197,18 +197,20 @@ public class ResourceChange {
         List<String> subtractions = new ArrayList<>(currentValue);
         subtractions.removeAll(pendingValue);
 
-        if (!additions.isEmpty()) {
+        if (!additions.isEmpty() || !subtractions.isEmpty()) {
             sb.append(key);
-            sb.append(": ");
-            sb.append("+[");
-            sb.append(StringUtils.join(additions, ", "));
-            sb.append("]");
-        } else if (!subtractions.isEmpty()) {
-            sb.append(key);
-            sb.append(": ");
-            sb.append("-[");
-            sb.append(StringUtils.join(subtractions, ", "));
-            sb.append("]");
+            sb.append(":");
+            if (!additions.isEmpty()) {
+                sb.append(" +[");
+                sb.append(StringUtils.join(additions, ", "));
+                sb.append("]");
+            }
+
+            if (!subtractions.isEmpty()) {
+                sb.append(" -[");
+                sb.append(StringUtils.join(subtractions, ", "));
+                sb.append("]");
+            }
         }
 
         return sb.toString();

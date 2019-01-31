@@ -9,6 +9,10 @@ aws::vpc vpc-auto-scaling-group-example
          }
 end
 
+aws::internet-gateway internet-gateway-auto-scaling-group-example
+    vpc-id: $(aws::vpc vpc-auto-scaling-group-example | vpc-id)
+end
+
 aws::subnet subnet-auto-scaling-group-example
     vpc-id: $(aws::vpc vpc-auto-scaling-group-example | vpc-id)
     availability-zone: "us-east-2a"
@@ -143,7 +147,6 @@ aws::auto-scaling-group auto-scaling-group-example
         policy-type: "SimpleScaling"
         cooldown: 3000
         scaling-adjustment: 5
-        min-adjustment-magnitude: 3
     end
 
     scaling-policy
@@ -166,6 +169,11 @@ aws::auto-scaling-group auto-scaling-group-example
         topic-arn: "arn:aws:sns:us-west-2:242040583208:beam-instance-state"
         notification-types: [
             "autoscaling:EC2_INSTANCE_LAUNCH_ERROR11"
+            "autoscaling:EC2_INSTANCE_LAUNCH_ERROR"
         ]
     end
+
+    termination-policies: [
+        "Default"
+    ]
 end

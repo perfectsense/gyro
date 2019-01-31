@@ -111,6 +111,10 @@ public class AutoScalingGroupResource extends AwsResource {
     private List<String> propagateAtLaunchTags;
     private String serviceLinkedRoleArn;
     private String placementGroup;
+    private String instanceId;
+    private List<String> loadBalancerNames;
+    private List<String> targetGroupArns;
+    private List<String> terminationPolicies;
     private String status;
     private Date createdTime;
     private List<AutoScalingPolicyResource> scalingPolicy;
@@ -395,6 +399,54 @@ public class AutoScalingGroupResource extends AwsResource {
         this.placementGroup = placementGroup;
     }
 
+    public String getInstanceId() {
+        return instanceId;
+    }
+
+    public void setInstanceId(String instanceId) {
+        this.instanceId = instanceId;
+    }
+
+    @ResourceDiffProperty(updatable = true, nullable = true)
+    public List<String> getLoadBalancerNames() {
+        if (loadBalancerNames == null) {
+            loadBalancerNames = new ArrayList<>();
+        }
+
+        return loadBalancerNames;
+    }
+
+    public void setLoadBalancerNames(List<String> loadBalancerNames) {
+        this.loadBalancerNames = loadBalancerNames;
+    }
+
+    @ResourceDiffProperty(updatable = true, nullable = true)
+    public List<String> getTargetGroupArns() {
+        if (targetGroupArns == null) {
+            targetGroupArns = new ArrayList<>();
+        }
+
+        return targetGroupArns;
+    }
+
+    public void setTargetGroupArns(List<String> targetGroupArns) {
+        this.targetGroupArns = targetGroupArns;
+    }
+
+    @ResourceDiffProperty(updatable = true, nullable = true)
+    public List<String> getTerminationPolicies() {
+        if (terminationPolicies == null || terminationPolicies.isEmpty()) {
+            terminationPolicies = new ArrayList<>();
+            terminationPolicies.add("Default");
+        }
+
+        return terminationPolicies;
+    }
+
+    public void setTerminationPolicies(List<String> terminationPolicies) {
+        this.terminationPolicies = terminationPolicies;
+    }
+
     public String getStatus() {
         return status;
     }
@@ -491,6 +543,10 @@ public class AutoScalingGroupResource extends AwsResource {
         setSubnetIds(autoScalingGroup.vpcZoneIdentifier().equals("")
             ? new ArrayList<>() : Arrays.asList(autoScalingGroup.vpcZoneIdentifier().split(",")));
 
+        setLoadBalancerNames(autoScalingGroup.loadBalancerNames());
+        setTargetGroupArns(autoScalingGroup.targetGroupARNs());
+        setTerminationPolicies(autoScalingGroup.terminationPolicies());
+
         loadMetrics(autoScalingGroup.enabledMetrics());
 
         loadTags(autoScalingGroup.tags());
@@ -528,6 +584,10 @@ public class AutoScalingGroupResource extends AwsResource {
                 .tags(getAutoScaleGroupTags(getTags(), getPropagateAtLaunchTags()))
                 .serviceLinkedRoleARN(getServiceLinkedRoleArn())
                 .placementGroup(getPlacementGroup())
+                .loadBalancerNames(getLoadBalancerNames())
+                .targetGroupARNs(getTargetGroupArns())
+                .instanceId(getInstanceId())
+                .terminationPolicies(getTerminationPolicies())
         );
 
         AutoScalingGroup autoScalingGroup = getAutoScalingGroup(client);
@@ -560,6 +620,7 @@ public class AutoScalingGroupResource extends AwsResource {
                 .launchConfigurationName(getLaunchConfigurationName())
                 .newInstancesProtectedFromScaleIn(getNewInstancesProtectedFromScaleIn())
                 .vpcZoneIdentifier(getSubnetIds().isEmpty() ? " " : StringUtils.join(getSubnetIds(), ","))
+                .terminationPolicies(getTerminationPolicies())
         );
 
         if (changedProperties.contains("enable-metrics-collection") || changedProperties.contains("disabled-metrics")) {
@@ -582,6 +643,14 @@ public class AutoScalingGroupResource extends AwsResource {
             } else {
                 saveTags(client, oldResource.getTags(), oldResource.getPropagateAtLaunchTags(), true);
             }
+        }
+
+        if (changedProperties.contains("load-balancer-names")) {
+            saveLoadBalancerNames(client, oldResource.getLoadBalancerNames());
+        }
+
+        if (changedProperties.contains("target-group-arns")) {
+            saveTargetGroupArns(client, oldResource.getTargetGroupArns());
         }
     }
 
@@ -815,6 +884,49 @@ public class AutoScalingGroupResource extends AwsResource {
             notificationResource.setResourceCredentials(getResourceCredentials());
             getAutoScalingNotification().add(notificationResource);
         }
+    }
 
+    private void saveLoadBalancerNames(AutoScalingClient client, List<String> oldLoadBalancerNames) {
+        List<String> removeLoadBalancerNames = new ArrayList<>(oldLoadBalancerNames);
+
+        removeLoadBalancerNames.removeAll(getLoadBalancerNames());
+
+        if (!removeLoadBalancerNames.isEmpty()) {
+            client.detachLoadBalancers(
+                r -> r.autoScalingGroupName(getAutoScalingGroupName()).loadBalancerNames(removeLoadBalancerNames)
+            );
+        }
+
+        List<String> addLoadbalancerNames = new ArrayList<>(getLoadBalancerNames());
+
+        addLoadbalancerNames.removeAll(oldLoadBalancerNames);
+
+        if (!addLoadbalancerNames.isEmpty()) {
+            client.attachLoadBalancers(
+                r -> r.autoScalingGroupName(getAutoScalingGroupName()).loadBalancerNames(addLoadbalancerNames)
+            );
+        }
+    }
+
+    private void saveTargetGroupArns(AutoScalingClient client, List<String> oldTargetGroupArns) {
+        List<String> removeTargetGroupArns = new ArrayList<>(oldTargetGroupArns);
+
+        removeTargetGroupArns.removeAll(getTargetGroupArns());
+
+        if (!removeTargetGroupArns.isEmpty()) {
+            client.detachLoadBalancerTargetGroups(
+                r -> r.autoScalingGroupName(getAutoScalingGroupName()).targetGroupARNs(removeTargetGroupArns)
+            );
+        }
+
+        List<String> addTargetGroupArns = new ArrayList<>(getTargetGroupArns());
+
+        addTargetGroupArns.removeAll(oldTargetGroupArns);
+
+        if (!addTargetGroupArns.isEmpty()) {
+            client.attachLoadBalancerTargetGroups(
+                r -> r.autoScalingGroupName(getAutoScalingGroupName()).targetGroupARNs(addTargetGroupArns)
+            );
+        }
     }
 }
