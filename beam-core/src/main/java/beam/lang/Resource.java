@@ -37,7 +37,6 @@ public abstract class Resource {
 
     private Set<Resource> dependencies;
     private Set<Resource> dependents;
-    private Map<String, List<Resource>> subResources;
     private Credentials resourceCredentials;
     private ResourceChange change;
 
@@ -288,31 +287,6 @@ public abstract class Resource {
         return keys;
     }
 
-    public Map<String, List<Resource>> subResources() {
-        if (subResources == null) {
-            subResources = new HashMap<>();
-
-            List<Resource> resources = (List<Resource>) scope.computeIfAbsent("_subresources", s -> new ArrayList<>());
-            for (Resource resource : resources) {
-                List<Resource> group = subResources.computeIfAbsent(resource.resourceType(), s -> new ArrayList<>());
-                group.add(resource);
-            }
-        }
-
-        return subResources;
-    }
-
-    public void putSubresource(String fieldName, Resource subresource) {
-    }
-
-    public void putSubresource(Resource subresource) {
-    }
-
-    public void removeSubresource(Resource subresource) {
-        List<Resource> resources = (List<Resource>) scope.computeIfAbsent("_subresources", s -> new ArrayList<>());
-        resources.remove(subresource);
-    }
-
     public String resourceType() {
         if (type == null) {
             ResourceName name = getClass().getAnnotation(ResourceName.class);
@@ -369,31 +343,6 @@ public abstract class Resource {
                 BeanUtils.setProperty(this, convertedKey, value);
             } catch (IllegalArgumentException | InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
                 // Ignoring errors from setProperty
-            }
-        }
-
-        for (String subResourceField : subResources().keySet()) {
-            List<Resource> subResources = subResources().get(subResourceField);
-
-            Method writer = null;
-            try {
-                writer = writerMethodForKey(subResourceField);
-                if (writer == null) {
-                    throw new BeamException("Not setter for subresource field: " + subResourceField);
-                }
-
-                writer.invoke(this, subResources);
-            } catch (IllegalArgumentException | InvocationTargetException | IllegalAccessException e) {
-                if (subResources.size() == 1) {
-                    try {
-                        writer.invoke(this, subResources.get(0));
-                        continue;
-                    } catch (IllegalArgumentException | InvocationTargetException | IllegalAccessException ee) {
-                        // Exception is thrown below.
-                    }
-                }
-
-                throw new BeamException("Unable to set subresource field: " + subResourceField);
             }
         }
     }
@@ -520,14 +469,6 @@ public abstract class Resource {
                 }
 
                 sb.append("\n");
-            }
-        }
-
-        for (String key : subResources().keySet()) {
-            List<Resource> subresources = subResources().get(key);
-
-            for (Resource subresource : subresources) {
-                sb.append(subresource.serialize(indent + 4));
             }
         }
 

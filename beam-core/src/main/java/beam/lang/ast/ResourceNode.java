@@ -37,8 +37,7 @@ public class ResourceNode extends Node {
         }
 
         // Find subresources.
-        for (Iterator<Map.Entry<String, Object>> i = bodyScope.entrySet().iterator(); i.hasNext();) {
-            Map.Entry<String, Object> entry = i.next();
+        for (Map.Entry<String, Object> entry : bodyScope.entrySet()) {
             String subresourceType = type + "::" + entry.getKey();
 
             if (scope.getGlobalScope().getTypeClasses().get(subresourceType) != null) {
@@ -48,18 +47,18 @@ public class ResourceNode extends Node {
                     throw new IllegalArgumentException();
                 }
 
-                List<Resource> subresources = (List<Resource>) scope.computeIfAbsent("_subresources", s -> new ArrayList<>());
+                List<Resource> subresources = new ArrayList<>();
 
                 for (Scope subresourceScope : (List<Scope>) value) {
                     Resource resource = createResource(scope, subresourceType);
-                    resource.resourceType(subresourceType);
+                    resource.resourceType(entry.getKey());
                     resource.scope(subresourceScope);
                     resource.syncInternalToProperties();
 
                     subresources.add(resource);
                 }
 
-                i.remove();
+                entry.setValue(subresources);
             }
         }
 
