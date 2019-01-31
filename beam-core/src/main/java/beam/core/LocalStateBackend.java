@@ -3,7 +3,7 @@ package beam.core;
 import beam.lang.Resource;
 import beam.lang.StateBackend;
 import beam.lang.ast.scope.FileScope;
-import beam.lang.ast.scope.ProcessScope;
+import beam.lang.ast.scope.GlobalScope;
 import beam.lang.plugins.PluginLoader;
 
 import java.io.BufferedWriter;
@@ -29,12 +29,12 @@ public class LocalStateBackend extends StateBackend {
             BeamCore core = new BeamCore();
             state = core.parse(path, true);
         } else {
-            ProcessScope processScope = new ProcessScope(null);
+            GlobalScope globalScope = new GlobalScope(null);
 
-            state = new FileScope(processScope);
+            state = new FileScope(globalScope);
             state.setPath(path);
 
-            state.getProcessScope().getPluginLoaders().addAll(scope.getProcessScope().getPluginLoaders());
+            state.getGlobalScope().getPluginLoaders().addAll(scope.getGlobalScope().getPluginLoaders());
         }
 
         return state;
@@ -48,7 +48,7 @@ public class LocalStateBackend extends StateBackend {
             File temp = File.createTempFile("local-state",".bcl");
 
             BufferedWriter out = new BufferedWriter(new FileWriter(temp));
-            for (PluginLoader pluginLoader : state.getProcessScope().getPluginLoaders()) {
+            for (PluginLoader pluginLoader : state.getGlobalScope().getPluginLoaders()) {
                 out.write(pluginLoader.toString());
             }
 

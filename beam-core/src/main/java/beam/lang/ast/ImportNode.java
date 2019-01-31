@@ -52,7 +52,7 @@ public class ImportNode extends Node {
         parser.addErrorListener(errorListener);
 
         Node rootNode = Node.create(parser.beamFile());
-        FileScope rootScope = new FileScope(scope.getProcessScope());
+        FileScope rootScope = new FileScope(scope.getGlobalScope());
 
         scope.getFileScope().getImports().add(rootScope);
 

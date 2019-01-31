@@ -9,7 +9,7 @@ import beam.lang.Resource;
 import beam.lang.StateBackend;
 import beam.lang.ast.Node;
 import beam.lang.ast.scope.FileScope;
-import beam.lang.ast.scope.ProcessScope;
+import beam.lang.ast.scope.GlobalScope;
 import beam.lang.listeners.ErrorListener;
 import beam.parser.antlr4.BeamLexer;
 import beam.parser.antlr4.BeamParser;
@@ -61,8 +61,8 @@ public class BeamCore {
         BeamFileContext context = parser.beamFile();
 
         Node rootNode = Node.create(context);
-        ProcessScope processScope = new ProcessScope(null);
-        FileScope rootScope = new FileScope(processScope);
+        GlobalScope globalScope = new GlobalScope(null);
+        FileScope rootScope = new FileScope(globalScope);
         rootScope.setPath(path);
         rootNode.evaluate(rootScope);
 

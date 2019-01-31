@@ -8,17 +8,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ProcessScope extends Scope {
+public class GlobalScope extends Scope {
 
     private final List<PluginLoader> pluginLoaders = new ArrayList<>();
     private final Map<String, Class<?>> types = new HashMap<>();
     private final Map<String, Resource> resources = new HashMap<>();
 
-    public ProcessScope(Scope parent, Map<String, Object> values) {
+    public GlobalScope(Scope parent, Map<String, Object> values) {
         super(parent, values);
     }
 
-    public ProcessScope(Scope parent) {
+    public GlobalScope(Scope parent) {
         super(parent);
     }
 

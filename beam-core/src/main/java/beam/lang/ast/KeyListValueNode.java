@@ -33,7 +33,7 @@ public class KeyListValueNode extends Node {
             PluginLoader loader = new PluginLoader(bodyScope);
 
             loader.load();
-            scope.getProcessScope().getPluginLoaders().add(loader);
+            scope.getGlobalScope().getPluginLoaders().add(loader);
 
         } else if ("state".equals(key)) {
             //scope.setStateBackend(new Resource(type, n, bodyScope));

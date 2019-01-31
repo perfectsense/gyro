@@ -29,10 +29,10 @@ public class Scope implements Map<String, Object> {
         return parent;
     }
 
-    public ProcessScope getProcessScope() {
+    public GlobalScope getGlobalScope() {
         for (Scope s = this; s != null; s = s.getParent()) {
-            if (s instanceof ProcessScope) {
-                return (ProcessScope) s;
+            if (s instanceof GlobalScope) {
+                return (GlobalScope) s;
             }
         }
 
@@ -93,7 +93,7 @@ public class Scope implements Map<String, Object> {
     public Map<String, Class<?>> getTypes() {
         Scope top = getTop();
 
-        if (top instanceof ProcessScope) {
+        if (top instanceof GlobalScope) {
             return top.getTypes();
         }
 
@@ -101,7 +101,7 @@ public class Scope implements Map<String, Object> {
     }
 
     public Map<String, Resource> getResources() {
-        ProcessScope scope = getProcessScope();
+        GlobalScope scope = getGlobalScope();
         if (scope != null) {
             return scope.getResources();
         }
