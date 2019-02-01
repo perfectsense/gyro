@@ -3,7 +3,9 @@ package beam.lang.ast.block;
 import beam.lang.BeamLanguageException;
 import beam.lang.Credentials;
 import beam.lang.Resource;
+import beam.lang.ast.KeyValueNode;
 import beam.lang.ast.Node;
+import beam.lang.ast.scope.ResourceScope;
 import beam.lang.ast.scope.Scope;
 import beam.parser.antlr4.BeamParser;
 
@@ -37,7 +39,7 @@ public class ResourceNode extends BlockNode {
     @Override
     public Object evaluate(Scope scope) throws Exception {
         String name = (String) nameNode.evaluate(scope);
-        Scope bodyScope = new Scope(scope);
+        ResourceScope bodyScope = new ResourceScope(scope);
 
         for (Node node : body) {
             node.evaluate(bodyScope);
@@ -61,8 +63,9 @@ public class ResourceNode extends BlockNode {
 
                 List<Resource> subresources = new ArrayList<>();
 
-                for (Scope subresourceScope : (List<Scope>) value) {
+                for (ResourceScope subresourceScope : (List<ResourceScope>) value) {
                     Resource subresource = createResource(scope, subresourceType);
+
                     subresource.parent(resource);
                     subresource.resourceType(entry.getKey());
                     subresource.scope(subresourceScope);

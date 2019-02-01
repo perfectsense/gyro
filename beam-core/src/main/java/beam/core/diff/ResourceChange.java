@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 public class ResourceChange {
@@ -54,7 +55,11 @@ public class ResourceChange {
         return pendingResource;
     }
 
-    public Resource executeChange() {
+    public Resource executeChange() throws Exception {
+        Optional.ofNullable(pendingResource)
+                .orElse(currentResource)
+                .resolveScopeAgain();
+
         if (isChangeable()) {
             return changedResource.get();
 

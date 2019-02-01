@@ -9,6 +9,7 @@ import beam.lang.ast.block.KeyBlockNode;
 import beam.lang.ast.KeyValueNode;
 import beam.lang.ast.Node;
 import beam.lang.ast.block.ResourceNode;
+import beam.lang.ast.scope.ResourceScope;
 import beam.lang.ast.scope.Scope;
 import beam.lang.ast.value.BooleanNode;
 import beam.lang.ast.value.ListNode;
@@ -38,7 +39,7 @@ public abstract class Resource {
 
     private String type;
     private String name;
-    private Scope scope;
+    private ResourceScope scope;
     private Resource parent;
 
     // -- Internal
@@ -61,11 +62,11 @@ public abstract class Resource {
 
     public abstract Class resourceCredentialsClass();
 
-    public Scope scope() {
+    public ResourceScope scope() {
         return scope;
     }
 
-    public void scope(Scope scope) {
+    public void scope(ResourceScope scope) {
         this.scope = scope;
     }
 
@@ -269,6 +270,22 @@ public abstract class Resource {
     // -- Base Resource
 
     public Object get(String key) {
+        try {
+            Object value = BeanUtils.getProperty(
+                    this,
+                    CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key));
+
+            if (value != null) {
+                return value;
+            }
+
+        } catch (IllegalAccessException
+                | InvocationTargetException
+                | NoSuchMethodException error) {
+
+            // Ignore for now.
+        }
+
         return scope.get(key);
     }
 
@@ -334,6 +351,19 @@ public abstract class Resource {
     }
 
     // -- Internal State
+
+    public void resolveScopeAgain() throws Exception {
+        ResourceScope scope = scope();
+
+        if (scope != null) {
+            for (Map.Entry<String, Object> entry : scope.resolve().entrySet()) {
+                BeanUtils.setProperty(
+                        this,
+                        CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, entry.getKey()),
+                        entry.getValue());
+            }
+        }
+    }
 
     public final void syncInternalToProperties() {
         for (String key : scope().keySet()) {

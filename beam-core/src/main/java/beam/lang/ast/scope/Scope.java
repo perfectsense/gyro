@@ -35,7 +35,7 @@ public class Scope implements Map<String, Object> {
             }
         }
 
-        throw new IllegalStateException();
+        return null;
     }
 
     public RootScope getRootScope() {
