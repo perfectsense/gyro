@@ -66,10 +66,6 @@ public class Scope implements Map<String, Object> {
         put(key, list);
     }
 
-    public List<Credentials> getCredentials() {
-        return new ArrayList<>();
-    }
-
     @Override
     public void clear() {
         values.clear();

@@ -1,6 +1,7 @@
 package beam.lang.ast.block;
 
 import beam.lang.BeamLanguageException;
+import beam.lang.Credentials;
 import beam.lang.Resource;
 import beam.lang.ast.Node;
 import beam.lang.ast.scope.Scope;
@@ -75,7 +76,13 @@ public class ResourceNode extends BlockNode {
         }
 
         resource.syncInternalToProperties();
-        scope.getFileScope().getResources().put(name, resource);
+
+        if (resource instanceof Credentials) {
+            scope.getRootScope().getCredentialsList().add((Credentials) resource);
+
+        } else {
+            scope.getFileScope().getResources().put(name, resource);
+        }
 
         return null;
     }
