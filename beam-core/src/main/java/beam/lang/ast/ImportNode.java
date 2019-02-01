@@ -22,8 +22,9 @@ public class ImportNode extends Node {
     @Override
     public Object evaluate(Scope scope) throws Exception {
         FileScope parentFileScope = scope.getFileScope();
-        FileScope fileRootScope = scope.getFileScope().getFileBackend().load(scope.getFileScope(), file);
+        FileScope fileRootScope = new FileScope(parentFileScope, file);
 
+        parentFileScope.getBackend().load(fileRootScope);
         parentFileScope.getImports().add(fileRootScope);
 
         if (name != null) {

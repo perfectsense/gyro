@@ -6,7 +6,7 @@ public abstract class FileBackend {
 
     public abstract String name();
 
-    public abstract FileScope load(FileScope parent, String name) throws Exception;
+    public abstract void load(FileScope scope) throws Exception;
 
     public abstract void save(FileScope state);
 

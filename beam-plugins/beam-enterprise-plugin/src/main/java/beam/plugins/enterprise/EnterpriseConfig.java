@@ -2,7 +2,7 @@ package beam.plugins.enterprise;
 
 import beam.core.LocalFileBackend;
 import beam.lang.Resource;
-import beam.lang.ast.scope.Scope;
+import beam.lang.ast.scope.RootScope;
 import com.psddev.dari.util.CollectionUtils;
 import com.psddev.dari.util.CompactMap;
 import com.psddev.dari.util.Lazy;
@@ -25,7 +25,9 @@ public class EnterpriseConfig {
             if (enterpriseConfigFile.exists()) {
                 //core.addResourceType("enterprise::project", EnterpriseProject.class);
 
-                Scope config = new LocalFileBackend().load(null, enterpriseConfigFile.toString());
+                RootScope config = new RootScope(enterpriseConfigFile.toString());
+
+                new LocalFileBackend().load(config);
 
                 Map<String, Object> keyValues = new HashMap<>(config);
                 for (Resource resource : config.getFileScope().getResources().values()) {

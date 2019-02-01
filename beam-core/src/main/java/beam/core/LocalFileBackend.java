@@ -1,11 +1,16 @@
 package beam.core;
 
+import beam.lang.BeamLanguageException;
 import beam.lang.Resource;
 import beam.lang.FileBackend;
 import beam.lang.ast.Node;
 import beam.lang.ast.scope.FileScope;
-import beam.lang.ast.scope.RootScope;
+import beam.lang.listeners.ErrorListener;
 import beam.lang.plugins.PluginLoader;
+import beam.parser.antlr4.BeamLexer;
+import beam.parser.antlr4.BeamParser;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -23,33 +28,31 @@ public class LocalFileBackend extends FileBackend {
     }
 
     @Override
-    public FileScope load(FileScope parent, String file) throws Exception {
-        if (!file.endsWith(".bcl") && !file.endsWith(".bcl.state")) {
-            file += ".bcl";
+    public void load(FileScope scope) throws Exception {
+        BeamLexer lexer = new BeamLexer(CharStreams.fromFileName(scope.getFile()));
+        CommonTokenStream stream = new CommonTokenStream(lexer);
+        BeamParser parser = new BeamParser(stream);
+        ErrorListener errorListener = new ErrorListener();
+
+        parser.removeErrorListeners();
+        parser.addErrorListener(errorListener);
+
+        BeamParser.BeamFileContext fileContext = parser.beamFile();
+
+        if (errorListener.getSyntaxErrors() > 0) {
+            throw new BeamLanguageException(errorListener.getSyntaxErrors() + " errors while parsing.");
         }
 
-        Path filePath = parent != null
-                ? Paths.get(parent.getFile()).getParent().resolve(file)
-                : Paths.get(file);
-
-        file = filePath.toString();
-
-        if (Files.exists(filePath) && !Files.isDirectory(filePath)) {
-            Node node = Node.parse(file);
-
-            FileScope scope = parent != null
-                    ? new FileScope(parent, file)
-                    : new RootScope(file);
-
-            node.evaluate(scope);
-            return scope;
-
-        } else {
-            FileScope state = new RootScope(file);
-            // state.getFileScope().getPluginLoaders().addAll(parent.getPluginLoaders());
-            return state;
-        }
+        Node.create(fileContext).evaluate(scope);
     }
+
+    @Override
+    public void save(FileScope scope) throws IOException {
+        String file = scope.getFile();
+
+        if (!file.endsWith(".state")) {
+            file += ".state";
+        }
 
     @Override
     public void save(FileScope state) {

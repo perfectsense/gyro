@@ -1,6 +1,5 @@
 package beam.lang.ast;
 
-import beam.lang.BeamLanguageException;
 import beam.lang.ast.controls.ForNode;
 import beam.lang.ast.controls.IfNode;
 import beam.lang.ast.controls.VirtualResourceNode;
@@ -17,38 +16,15 @@ import beam.lang.ast.types.StringExpressionNode;
 import beam.lang.ast.types.StringNode;
 import beam.lang.ast.expression.ValueExpressionNode;
 import beam.lang.ast.types.ValueReferenceNode;
-import beam.lang.listeners.ErrorListener;
-import beam.parser.antlr4.BeamLexer;
 import beam.parser.antlr4.BeamParser;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.apache.commons.lang.StringUtils;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
 public abstract class Node {
-
-    public static Node parse(String file) throws IOException {
-        BeamLexer lexer = new BeamLexer(CharStreams.fromFileName(file));
-        CommonTokenStream stream = new CommonTokenStream(lexer);
-        BeamParser parser = new BeamParser(stream);
-        ErrorListener errorListener = new ErrorListener();
-
-        parser.removeErrorListeners();
-        parser.addErrorListener(errorListener);
-
-        BeamParser.BeamFileContext fileContext = parser.beamFile();
-
-        if (errorListener.getSyntaxErrors() > 0) {
-            throw new BeamLanguageException(errorListener.getSyntaxErrors() + " errors while parsing.");
-        }
-
-        return create(fileContext);
-    }
 
     public static Node create(ParseTree context) {
         Class<? extends ParseTree> cc = context.getClass();

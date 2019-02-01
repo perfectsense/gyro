@@ -6,8 +6,12 @@ import beam.core.LocalFileBackend;
 import beam.lang.BeamLanguageException;
 import beam.lang.Credentials;
 import beam.lang.ast.scope.FileScope;
+import beam.lang.ast.scope.RootScope;
 import io.airlift.airline.Arguments;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 public abstract class AbstractConfigCommand extends AbstractCommand {
@@ -27,13 +31,22 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
         core = new BeamCore();
 
-        String file = arguments().get(0);
         FileScope pending;
         FileScope current;
 
         try {
-            pending = new LocalFileBackend().load(null, file);
-            current = pending.getFileBackend().load(null, pending.getFile() + ".state");
+            String pendingFile = arguments().get(0);
+            pending = new RootScope(pendingFile);
+
+            new LocalFileBackend().load(pending);
+
+            String currentFile = pending.getFile() + ".state";
+            Path currentFilePath = Paths.get(currentFile);
+            current = new RootScope(currentFile);
+
+            if (Files.exists(currentFilePath) && !Files.isDirectory(currentFilePath)) {
+                pending.getBackend().load(current);
+            }
 
         } catch (BeamLanguageException ex) {
             throw new BeamException(ex.getMessage());
