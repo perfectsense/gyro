@@ -19,8 +19,7 @@ public class ImportNode extends Node {
                 .orElse(null);
     }
 
-    @Override
-    public Object evaluate(Scope scope) throws Exception {
+    public void load(Scope scope) throws Exception {
         FileScope parentFileScope = scope.getFileScope();
         FileScope fileRootScope = new FileScope(parentFileScope, file);
 
@@ -42,8 +41,11 @@ public class ImportNode extends Node {
                             .replace(".bcl.state", ""),
                     fileRootScope);
         }
+    }
 
-        return null;
+    @Override
+    public Object evaluate(Scope scope) {
+        throw new IllegalArgumentException();
     }
 
     @Override
@@ -57,4 +59,5 @@ public class ImportNode extends Node {
             builder.append(name);
         }
     }
+
 }

@@ -27,25 +27,37 @@ public class KeyBlockNode extends BlockNode {
         key = context.resourceType().IDENTIFIER().getText();
     }
 
-    @Override
-    public Object evaluate(Scope scope) throws Exception {
+    public String getKey() {
+        return key;
+    }
+
+    private Scope createBodyScope(Scope scope) throws Exception {
         Scope bodyScope = new Scope(scope);
 
         for (Node node : body) {
             node.evaluate(bodyScope);
         }
 
-        if ("plugin".equals(key)) {
-            PluginLoader loader = new PluginLoader(bodyScope);
+        return bodyScope;
+    }
 
-            loader.load();
-            scope.getFileScope().getPluginLoaders().add(loader);
+    public void loadPlugin(Scope scope) throws Exception {
+        PluginLoader loader = new PluginLoader(createBodyScope(scope));
+
+        loader.load();
+        scope.getFileScope().getPluginLoaders().add(loader);
+    }
+
+    @Override
+    public Object evaluate(Scope scope) throws Exception {
+        if ("plugin".equals(key)) {
+            throw new IllegalArgumentException();
 
         } else if ("state".equals(key)) {
-            //scope.setStateBackend(new Resource(type, n, bodyScope));
+            throw new IllegalArgumentException();
 
         } else {
-            scope.addValue(key, bodyScope);
+            scope.addValue(key, createBodyScope(scope));
         }
 
         return null;
@@ -61,4 +73,5 @@ public class KeyBlockNode extends BlockNode {
         buildNewline(builder, indentDepth);
         builder.append("end");
     }
+
 }
