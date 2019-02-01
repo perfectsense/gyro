@@ -99,7 +99,7 @@ public abstract class Resource {
         return c.getSimpleName();
     }
 
-    public Credentials getResourceCredentials() {
+    public Credentials resourceCredentials() {
         for (Resource r = this; r != null; r = r.parent()) {
             Scope scope = scope();
 
