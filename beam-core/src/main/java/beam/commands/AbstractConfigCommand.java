@@ -31,8 +31,8 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
         core = new BeamCore();
 
-        FileScope pending;
-        FileScope current;
+        RootScope pending;
+        RootScope current;
 
         try {
             String pendingFile = arguments().get(0);
@@ -52,9 +52,8 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             throw new BeamException(ex.getMessage());
         }
 
-        for (Credentials credentials : pending.getCredentials()) {
-            credentials.findCredentials(true);
-        }
+        current.getCredentialsMap().values().forEach(c -> c.findCredentials(true));
+        pending.getCredentialsMap().values().forEach(c -> c.findCredentials(true));
 
         doExecute(current, pending);
     }

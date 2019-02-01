@@ -78,7 +78,7 @@ public class ResourceNode extends BlockNode {
         resource.syncInternalToProperties();
 
         if (resource instanceof Credentials) {
-            scope.getRootScope().getCredentialsList().add((Credentials) resource);
+            scope.getRootScope().getCredentialsMap().put(name, (Credentials) resource);
 
         } else {
             scope.getFileScope().getResources().put(name, resource);

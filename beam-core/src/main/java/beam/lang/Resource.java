@@ -45,7 +45,6 @@ public abstract class Resource {
 
     private Set<Resource> dependencies;
     private Set<Resource> dependents;
-    private Credentials resourceCredentials;
     private ResourceChange change;
 
     // -- Resource Implementation API
@@ -101,11 +100,16 @@ public abstract class Resource {
     }
 
     public Credentials getResourceCredentials() {
-        return resourceCredentials;
-    }
+        for (Resource r = this; r != null; r = r.parent()) {
+            Scope scope = scope();
 
-    public void setResourceCredentials(Credentials resourceCredentials) {
-        this.resourceCredentials = resourceCredentials;
+            if (scope != null) {
+                String name = (String) scope().get("resource-credentials");
+                return scope().getRootScope().getCredentialsMap().get(name != null ? name : "default");
+            }
+        }
+
+        throw new IllegalStateException();
     }
 
     // -- Diff Engine

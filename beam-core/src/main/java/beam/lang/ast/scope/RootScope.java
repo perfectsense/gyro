@@ -1,8 +1,6 @@
 package beam.lang.ast.scope;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import beam.lang.Credentials;
@@ -10,7 +8,7 @@ import beam.lang.Credentials;
 public class RootScope extends FileScope {
 
     private final Map<String, Class<?>> resourceClasses = new HashMap<>();
-    private final List<Credentials> credentialsList = new ArrayList<>();
+    private final Map<String, Credentials> credentialsMap = new HashMap<>();
 
     public RootScope(String file) {
         super(null, file);
@@ -20,8 +18,8 @@ public class RootScope extends FileScope {
         return resourceClasses;
     }
 
-    public List<Credentials> getCredentialsList() {
-        return credentialsList;
+    public Map<String, Credentials> getCredentialsMap() {
+        return credentialsMap;
     }
 
 }
