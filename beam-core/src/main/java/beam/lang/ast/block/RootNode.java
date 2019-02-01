@@ -9,24 +9,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class RootNode extends Node {
-
-    private final List<Node> body;
+public class RootNode extends BlockNode {
 
     public RootNode(BeamParser.BeamFileContext context) {
-        body = context.file()
+        super(context.file()
                 .stream()
                 .map(c -> Node.create(c.getChild(0)))
-                .collect(Collectors.toList());
-    }
-
-    public List<Node> getBody() {
-        return body;
+                .collect(Collectors.toList()));
     }
 
     @Override
     public Object evaluate(Scope scope) throws Exception {
-        List<Node> body = getBody();
+        List<Node> body = this.body;
         int bodySize = body.size();
 
         while (true) {

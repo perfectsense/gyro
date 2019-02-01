@@ -1,6 +1,7 @@
 package beam.lang.ast.control;
 
 import beam.lang.ast.Node;
+import beam.lang.ast.block.BlockNode;
 import beam.lang.ast.scope.Scope;
 import beam.parser.antlr4.BeamParser;
 import beam.util.CascadingMap;
@@ -10,19 +11,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class ForNode extends Node {
+public class ForNode extends BlockNode {
 
     private final List<String> variables;
     private final List<Node> items;
-    private final List<Node> body;
 
     public ForNode(List<String> variables, List<Node> items, List<Node> body) {
+        super(body);
+
         this.variables = variables;
         this.items = items;
-        this.body = body;
     }
 
     public ForNode(BeamParser.ForStmtContext context) {
+        super(context.controlBody()
+                .controlStmts()
+                .stream()
+                .map(c -> Node.create(c.getChild(0)))
+                .collect(Collectors.toList()));
+
         variables = context.forVariables()
                 .forVariable()
                 .stream()
@@ -31,12 +38,6 @@ public class ForNode extends Node {
 
         items = context.listValue()
                 .listItemValue()
-                .stream()
-                .map(c -> Node.create(c.getChild(0)))
-                .collect(Collectors.toList());
-
-        body = context.controlBody()
-                .controlStmts()
                 .stream()
                 .map(c -> Node.create(c.getChild(0)))
                 .collect(Collectors.toList());

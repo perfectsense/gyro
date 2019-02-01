@@ -11,26 +11,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class ResourceNode extends Node {
+public class ResourceNode extends BlockNode {
 
     private final String type;
     private final Node nameNode;
-    private final List<Node> body;
 
     public ResourceNode(String type, Node nameNode, List<Node> body) {
+        super(body);
+
         this.type = type;
         this.nameNode = nameNode;
-        this.body = body;
     }
 
     public ResourceNode(BeamParser.ResourceContext context) {
-        type = context.resourceType().IDENTIFIER().getText();
-        nameNode = Node.create(context.resourceName().getChild(0));
-
-        body = context.resourceBody()
+        super(context.resourceBody()
                 .stream()
                 .map(c -> Node.create(c.getChild(0)))
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()));
+
+        type = context.resourceType().IDENTIFIER().getText();
+        nameNode = Node.create(context.resourceName().getChild(0));
     }
 
     @Override

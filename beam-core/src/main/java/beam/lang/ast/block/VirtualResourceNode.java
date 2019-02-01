@@ -9,20 +9,19 @@ import java.util.stream.Collectors;
 
 import static beam.parser.antlr4.BeamParser.VirtualResourceContext;
 
-public class VirtualResourceNode extends Node {
+public class VirtualResourceNode extends BlockNode {
 
     private List<Node> parameters;
-    private List<Node> body;
 
     public VirtualResourceNode(VirtualResourceContext context) {
+        super(context.virtualResourceBody()
+                .stream()
+                .map(b -> Node.create(b))
+                .collect(Collectors.toList()));
+
         parameters = context.virtualResourceParam()
             .stream()
             .map(p -> Node.create(p))
-            .collect(Collectors.toList());
-
-        body = context.virtualResourceBody()
-            .stream()
-            .map(b -> Node.create(b))
             .collect(Collectors.toList());
     }
 

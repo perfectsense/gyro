@@ -8,23 +8,23 @@ import beam.lang.ast.scope.Scope;
 import beam.lang.plugins.PluginLoader;
 import beam.parser.antlr4.BeamParser;
 
-public class KeyBlockNode extends Node {
+public class KeyBlockNode extends BlockNode {
 
     private final String key;
-    private final List<Node> body;
 
     public KeyBlockNode(String key, List<Node> body) {
+        super(body);
+
         this.key = key;
-        this.body = body;
     }
 
     public KeyBlockNode(BeamParser.ResourceContext context) {
-        key = context.resourceType().IDENTIFIER().getText();
-
-        body = context.resourceBody()
+        super(context.resourceBody()
                 .stream()
                 .map(c -> Node.create(c.getChild(0)))
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()));
+
+        key = context.resourceType().IDENTIFIER().getText();
     }
 
     @Override
