@@ -3,9 +3,8 @@ package beam.core;
 import beam.core.diff.ChangeType;
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiff;
-import beam.core.diff.ResourceName;
 import beam.lang.Resource;
-import beam.lang.FileBackend;
+import beam.lang.ast.scope.State;
 import beam.lang.ast.scope.FileScope;
 import com.psddev.dari.util.ThreadLocalStack;
 
@@ -90,7 +89,7 @@ public class BeamCore {
         }
     }
 
-    public void createOrUpdate(List<ResourceDiff> diffs) {
+    public void createOrUpdate(State state, List<ResourceDiff> diffs) throws Exception {
         setChangeable(diffs);
 
         for (ResourceDiff diff : diffs) {
@@ -98,29 +97,29 @@ public class BeamCore {
                 ChangeType type = change.getType();
 
                 if (type == ChangeType.CREATE || type == ChangeType.UPDATE) {
-                    execute(change);
+                    execute(state, change);
                 }
 
-                createOrUpdate(change.getDiffs());
+                createOrUpdate(state, change.getDiffs());
             }
         }
     }
 
-    public void delete(List<ResourceDiff> diffs) {
+    public void delete(State state, List<ResourceDiff> diffs) throws Exception {
         setChangeable(diffs);
 
         for (ResourceDiff diff : diffs) {
             for (ResourceChange change : diff.getChanges()) {
-                delete(change.getDiffs());
+                delete(state, change.getDiffs());
 
                 if (change.getType() == ChangeType.DELETE) {
-                    execute(change);
+                    execute(state, change);
                 }
             }
         }
     }
 
-    public void execute(ResourceChange change) {
+    public void execute(State state, ResourceChange change) throws Exception {
         ChangeType type = change.getType();
 
         if (type == ChangeType.KEEP || type == ChangeType.REPLACE || change.isChanged()) {
@@ -131,45 +130,15 @@ public class BeamCore {
 
         if (dependencies != null && !dependencies.isEmpty()) {
             for (ResourceChange d : dependencies) {
-                execute(d);
+                execute(state, d);
             }
         }
 
         BeamCore.ui().write("Executing: ");
         writeChange(change);
-        Resource resource = change.executeChange();
-
-        FileScope state = resource.scope().getFileScope().getState();
-        FileBackend backend = resource.scope().getFileScope().getFileBackend();
-
-        ResourceName nameAnnotation = resource.getClass().getAnnotation(ResourceName.class);
-        boolean isSubresource = nameAnnotation != null && !nameAnnotation.parent().equals("");
-
-        if (type == ChangeType.DELETE) {
-            if (isSubresource) {
-                //Resource parent = resource.parentResource();
-                //parent.removeSubresource(resource);
-
-                //stateNode.putResource(parent);
-            } else {
-                state.getFileScope().getResources().remove(resource.resourceIdentifier());
-            }
-        } else {
-            if (isSubresource) {
-                // Save parent resource when current resource is a subresource.
-                //Resource parent = resource.parentResource();
-                //stateNode.putResource(parent);
-            } else {
-                state.getFileScope().getResources().put(resource.resourceIdentifier(), resource);
-            }
-        }
-
+        change.executeChange();
         BeamCore.ui().write(" OK\n");
-        backend.save(state);
-
-        for (FileScope importedScope : state.getImports()) {
-            backend.save(importedScope);
-        }
+        state.update(change);
     }
 
     private void writeChange(ResourceChange change) {
