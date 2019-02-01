@@ -50,17 +50,18 @@ public class State {
     }
 
     public void update(ResourceChange change) throws Exception{
-        Resource resource = change.getPendingResource();
+        boolean delete = change.getType() == ChangeType.DELETE;
+        Resource resource = delete ? change.getCurrentResource() : change.getPendingResource();
         String key = resource.resourceIdentifier();
 
         if (key != null) {
-            Map<String, Resource> resources = states.get(resource.scope().getFileScope().getFile()).getResources();
-
-            if (change.getType() == ChangeType.DELETE) {
-                resources.remove(key);
+            if (delete) {
+                states.values().forEach(s -> s.getResources().remove(key));
 
             } else {
-                resources.put(key, resource);
+                states.get(resource.scope().getFileScope().getFile())
+                        .getResources()
+                        .put(key, resource);
             }
         }
 

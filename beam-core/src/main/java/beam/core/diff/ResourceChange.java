@@ -46,6 +46,10 @@ public class ResourceChange {
         this.diff = diff;
     }
 
+    public Resource getCurrentResource() {
+        return currentResource;
+    }
+
     public Resource getPendingResource() {
         return pendingResource;
     }
