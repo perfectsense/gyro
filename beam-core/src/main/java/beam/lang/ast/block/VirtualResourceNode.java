@@ -1,4 +1,4 @@
-package beam.lang.ast.controls;
+package beam.lang.ast.block;
 
 import beam.lang.BeamLanguageException;
 import beam.lang.ast.Node;

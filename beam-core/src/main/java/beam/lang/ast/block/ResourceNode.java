@@ -1,7 +1,8 @@
-package beam.lang.ast;
+package beam.lang.ast.block;
 
 import beam.lang.BeamLanguageException;
 import beam.lang.Resource;
+import beam.lang.ast.Node;
 import beam.lang.ast.scope.Scope;
 import beam.parser.antlr4.BeamParser;
 

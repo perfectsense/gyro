@@ -1,8 +1,8 @@
 package beam.lang.ast;
 
-import beam.lang.ast.controls.ForNode;
+import beam.lang.ast.control.ForNode;
 import beam.lang.ast.scope.Scope;
-import beam.lang.ast.types.StringNode;
+import beam.lang.ast.value.StringNode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;

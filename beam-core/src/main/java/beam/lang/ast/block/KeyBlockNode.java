@@ -1,8 +1,9 @@
-package beam.lang.ast;
+package beam.lang.ast.block;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+import beam.lang.ast.Node;
 import beam.lang.ast.scope.Scope;
 import beam.lang.plugins.PluginLoader;
 import beam.parser.antlr4.BeamParser;

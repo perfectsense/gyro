@@ -1,4 +1,4 @@
-package beam.lang.ast.types;
+package beam.lang.ast.value;
 
 import beam.lang.ast.Node;
 import beam.lang.ast.scope.Scope;

@@ -1,4 +1,4 @@
-package beam.lang.ast.controls;
+package beam.lang.ast.control;
 
 import beam.lang.ast.Node;
 import beam.lang.ast.scope.Scope;

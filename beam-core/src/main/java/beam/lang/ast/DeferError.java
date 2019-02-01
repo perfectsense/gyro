@@ -1,6 +1,6 @@
 package beam.lang.ast;
 
-class DeferError extends Error {
+public class DeferError extends Error {
 
     private final Node node;
 

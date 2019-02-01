@@ -1,14 +1,19 @@
-package beam.lang.ast.types;
+package beam.lang.ast.value;
 
 import beam.lang.ast.Node;
 import beam.lang.ast.scope.Scope;
+import beam.parser.antlr4.BeamParser;
 
-public class StringNode extends Node {
+public class BooleanNode extends Node {
 
-    private final String value;
+    private final boolean value;
 
-    public StringNode(String value) {
+    public BooleanNode(boolean value) {
         this.value = value;
+    }
+
+    public BooleanNode(BeamParser.BooleanValueContext context) {
+        value = context.TRUE() != null;
     }
 
     @Override
@@ -18,8 +23,6 @@ public class StringNode extends Node {
 
     @Override
     public void buildString(StringBuilder builder, int indentDepth) {
-        builder.append('\'');
         builder.append(value);
-        builder.append('\'');
     }
 }
