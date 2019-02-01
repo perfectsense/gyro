@@ -2,6 +2,7 @@ package beam.lang.ast.block;
 
 import beam.lang.ast.DeferError;
 import beam.lang.ast.ImportNode;
+import beam.lang.ast.KeyValueNode;
 import beam.lang.ast.Node;
 import beam.lang.ast.scope.Scope;
 import beam.parser.antlr4.BeamParser;
@@ -24,12 +25,16 @@ public class RootNode extends BlockNode {
 
         // Evaluate imports and plugins first.
         List<ImportNode> imports = new ArrayList<>();
+        List<KeyValueNode> keyValues = new ArrayList<>();
         List<PluginNode> plugins = new ArrayList<>();
         List<Node> body = new ArrayList<>();
 
         for (Node node : this.body) {
             if (node instanceof ImportNode) {
                 imports.add((ImportNode) node);
+
+            } else if (node instanceof KeyValueNode) {
+                keyValues.add((KeyValueNode) node);
 
             } else if (node instanceof PluginNode) {
                 plugins.add((PluginNode) node);
@@ -41,6 +46,10 @@ public class RootNode extends BlockNode {
 
         for (ImportNode i : imports) {
             i.load(scope);
+        }
+
+        for (KeyValueNode kv : keyValues) {
+            kv.evaluate(scope);
         }
 
         for (PluginNode plugin : plugins) {
