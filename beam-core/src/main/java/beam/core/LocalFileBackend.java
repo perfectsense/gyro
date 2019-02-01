@@ -13,12 +13,13 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 
 import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 public class LocalFileBackend extends FileBackend {
 
@@ -54,27 +55,46 @@ public class LocalFileBackend extends FileBackend {
             file += ".state";
         }
 
-    @Override
-    public void save(FileScope state) {
+        Path newFile = Files.createTempFile("local-file-backend-", ".bcl.state");
+
         try {
-            String path = state.getFileScope().getFile().endsWith(".state") ? state.getFile() : state.getFile() + ".state";
+            try (BufferedWriter out = new BufferedWriter(
+                    new OutputStreamWriter(
+                            Files.newOutputStream(newFile),
+                            StandardCharsets.UTF_8))) {
 
-            File temp = File.createTempFile("local-state",".bcl");
+                Path dir = Paths.get(file).getParent();
 
-            BufferedWriter out = new BufferedWriter(new FileWriter(temp));
-            for (PluginLoader pluginLoader : state.getFileScope().getPluginLoaders()) {
-                out.write(pluginLoader.toString());
+                for (FileScope i : scope.getImports()) {
+                    String importFile = i.getFile();
+
+                    if (!importFile.endsWith(".state")) {
+                        importFile += ".state";
+                    }
+
+                    out.write("import ");
+                    out.write(dir.relativize(Paths.get(importFile)).toString());
+                    out.write('\n');
+                }
+
+                for (PluginLoader pluginLoader : scope.getPluginLoaders()) {
+                    out.write(pluginLoader.toString());
+                }
+
+                for (Resource resource : scope.getResources().values()) {
+                    out.write(resource.toResourceNode().toString());
+                }
             }
 
-            for (Resource resource : state.getFileScope().getResources().values()) {
-                out.write(resource.serialize(0));
-            }
-            out.close();
+            Files.move(
+                    newFile,
+                    Paths.get(file),
+                    StandardCopyOption.ATOMIC_MOVE,
+                    StandardCopyOption.REPLACE_EXISTING);
 
-            File stateFile = new File(path);
-            temp.renameTo(stateFile);
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException error) {
+            Files.deleteIfExists(newFile);
+            throw error;
         }
     }
 

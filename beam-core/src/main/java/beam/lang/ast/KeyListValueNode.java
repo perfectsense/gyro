@@ -12,6 +12,11 @@ public class KeyListValueNode extends Node {
     private final String key;
     private final List<Node> body;
 
+    public KeyListValueNode(String key, List<Node> body) {
+        this.key = key;
+        this.body = body;
+    }
+
     public KeyListValueNode(BeamParser.ResourceContext context) {
         key = context.resourceType().IDENTIFIER().getText();
 

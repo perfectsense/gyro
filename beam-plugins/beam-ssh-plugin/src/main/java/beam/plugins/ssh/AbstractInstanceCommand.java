@@ -4,7 +4,6 @@ import beam.commands.AbstractConfigCommand;
 import beam.core.BeamCore;
 import beam.core.BeamInstance;
 import beam.lang.Resource;
-import beam.lang.FileBackend;
 import beam.lang.ast.scope.FileScope;
 import io.airlift.airline.Option;
 
@@ -28,7 +27,7 @@ public abstract class AbstractInstanceCommand extends AbstractConfigCommand {
         BeamCore.ui().write("\n");
 
         List<BeamInstance> instances = new ArrayList<>();
-        for (Resource resource : pending.getFileScope().getState().getFileScope().getResources().values()) {
+        for (Resource resource : current.getResources().values()) {
             if (BeamInstance.class.isAssignableFrom(resource.getClass())) {
                 BeamInstance instance = (BeamInstance) resource;
 
@@ -38,8 +37,7 @@ public abstract class AbstractInstanceCommand extends AbstractConfigCommand {
                     BeamCore.ui().write("@|bold,blue Refreshing|@: @|yellow %s|@ -> %s...", resource.resourceType(), resource.resourceIdentifier());
                     resource.refresh();
 
-                    FileBackend fileBackend = pending.getFileScope().getFileBackend();
-                    fileBackend.save(pending.getFileScope().getState());
+                    pending.getBackend().save(current);
                     BeamCore.ui().write("\n");
                 }
             }

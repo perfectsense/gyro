@@ -8,6 +8,10 @@ public class BooleanNode extends Node {
 
     private final boolean value;
 
+    public BooleanNode(boolean value) {
+        this.value = value;
+    }
+
     public BooleanNode(BeamParser.BooleanValueContext context) {
         value = context.TRUE() != null;
     }

@@ -12,6 +12,10 @@ public class ListNode extends Node {
 
     private final List<Node> items;
 
+    public ListNode(List<Node> items) {
+        this.items = items;
+    }
+
     public ListNode(BeamParser.ListValueContext context) {
         items = context.listItemValue()
                 .stream()

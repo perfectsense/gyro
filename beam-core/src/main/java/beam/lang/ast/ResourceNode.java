@@ -16,6 +16,12 @@ public class ResourceNode extends Node {
     private final Node nameNode;
     private final List<Node> body;
 
+    public ResourceNode(String type, Node nameNode, List<Node> body) {
+        this.type = type;
+        this.nameNode = nameNode;
+        this.body = body;
+    }
+
     public ResourceNode(BeamParser.ResourceContext context) {
         type = context.resourceType().IDENTIFIER().getText();
         nameNode = Node.create(context.resourceName().getChild(0));

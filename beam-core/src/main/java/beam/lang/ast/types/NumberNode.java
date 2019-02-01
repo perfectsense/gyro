@@ -9,6 +9,10 @@ public class NumberNode extends Node {
 
     private final Number value;
 
+    public NumberNode(Number value) {
+        this.value = value;
+    }
+
     public NumberNode(BeamParser.NumberValueContext context) {
         value = NumberUtils.createNumber(context.getText());
     }

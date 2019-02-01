@@ -29,11 +29,8 @@ public class ImportNode extends Node {
 
         if (name != null) {
             if (name.equals("_")) {
-                for (String key : fileRootScope.keySet()) {
-                    if (!key.startsWith("_")) {
-                        scope.put(key, fileRootScope.get(key));
-                    }
-                }
+                scope.putAll(fileRootScope);
+
             } else {
                 scope.put(name, fileRootScope);
             }

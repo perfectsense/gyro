@@ -8,7 +8,7 @@ public abstract class FileBackend {
 
     public abstract void load(FileScope scope) throws Exception;
 
-    public abstract void save(FileScope state);
+    public abstract void save(FileScope scope) throws Exception;
 
     public abstract void delete(String path);
 

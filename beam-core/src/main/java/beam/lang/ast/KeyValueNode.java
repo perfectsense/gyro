@@ -9,6 +9,11 @@ public class KeyValueNode extends Node {
     private final String key;
     private final Node value;
 
+    public KeyValueNode(String key, Node value) {
+        this.key = key;
+        this.value = value;
+    }
+
     public KeyValueNode(BeamParser.KeyValueContext context) {
         ParseTree keyChild = context.key().getChild(0);
         key = (keyChild instanceof BeamParser.KeywordsContext ? keyChild.getChild(0) : keyChild).getText();

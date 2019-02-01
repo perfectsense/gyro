@@ -5,18 +5,26 @@ import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceDisplayDiff;
 import beam.core.diff.ResourceName;
+import beam.lang.ast.KeyListValueNode;
+import beam.lang.ast.KeyValueNode;
+import beam.lang.ast.Node;
+import beam.lang.ast.ResourceNode;
 import beam.lang.ast.scope.Scope;
+import beam.lang.ast.types.BooleanNode;
+import beam.lang.ast.types.ListNode;
+import beam.lang.ast.types.NumberNode;
+import beam.lang.ast.types.StringNode;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Throwables;
 import com.psddev.dari.util.ObjectUtils;
 import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.lang.StringUtils;
 
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -414,68 +422,113 @@ public abstract class Resource {
         return Objects.hash(primaryKey());
     }
 
-    public String serialize(int indent) {
-        StringBuilder sb = new StringBuilder();
+    public ResourceNode toResourceNode() {
+        return new ResourceNode(
+                resourceType(),
+                new StringNode(resourceIdentifier()),
+                toBodyNodes());
+    }
 
-        sb.append(indent(indent));
-        sb.append(resourceType()).append(" ");
+    public List<Node> toBodyNodes() {
+        PropertyDescriptor[] props;
 
-        if (resourceIdentifier() != null) {
-            sb.append('\'');
-            sb.append(resourceIdentifier());
-            sb.append('\'');
+        try {
+            props = Introspector.getBeanInfo(getClass()).getPropertyDescriptors();
+
+        } catch (IntrospectionException error) {
+            throw new RuntimeException(error);
         }
 
-        sb.append("\n");
+        List<Node> body = new ArrayList<>();
 
-        for (String key : scope.keySet()) {
-            if (key.startsWith("_")) {
+        for (PropertyDescriptor prop : props) {
+            Method getter = prop.getReadMethod();
+
+            if (getter == null) {
                 continue;
             }
 
-            Object value = scope.get(key);
-            if (value != null) {
-                sb.append(indent(indent + 4));
-                sb.append(key).append(": ");
+            String name = prop.getName();
 
-                if (value instanceof List) {
-                    List listValues = (List) value;
+            if (name.equals("class")) {
+                continue;
+            }
 
-                    sb.append("[\n");
+            Object value;
 
-                    List<String> out = new ArrayList<>();
-                    for (Object listValue : listValues) {
-                        out.add(indent(indent + 8) + "'" + listValue.toString() + "'");
+            try {
+                value = getter.invoke(this);
+
+            } catch (IllegalAccessException error) {
+                throw new IllegalStateException(error);
+
+            } catch (InvocationTargetException error) {
+                Throwable cause = error.getCause();
+
+                throw cause instanceof RuntimeException
+                        ? (RuntimeException) cause
+                        : new RuntimeException(cause);
+            }
+
+            if (value == null) {
+                continue;
+            }
+
+            String key = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, name);
+
+            if (value instanceof Boolean) {
+                body.add(new KeyValueNode(key, new BooleanNode(Boolean.TRUE.equals(value))));
+
+            } else if (value instanceof Number) {
+                body.add(new KeyValueNode(key, new NumberNode((Number) value)));
+
+            } else if (value instanceof List) {
+                Class<?> itemClass = (Class<?>) ((ParameterizedType) getter.getGenericReturnType()).getActualTypeArguments()[0];
+
+                if (Resource.class.isAssignableFrom(itemClass)) {
+                    for (Object item : (List<?>) value) {
+                        body.add(new KeyListValueNode(key, ((Resource) item).toBodyNodes()));
                     }
 
-                    sb.append(StringUtils.join(out, ",\n"));
-                    sb.append("\n").append(indent(indent + 4)).append("]\n");
-                } else if (value instanceof Map) {
-                    Map<String, Object> mapValues = (Map<String, Object>) value;
-
-                    sb.append("{\n");
-
-                    List<String> out = new ArrayList<>();
-                    for (String k : mapValues.keySet()) {
-                        out.add(String.format("%s%s: '%s'", indent(indent + 8), k, mapValues.get(k)));
-                    }
-
-                    sb.append(StringUtils.join(out, ",\n"));
-                    sb.append("\n").append(indent(indent + 4)).append("}\n");
-                } else if (value instanceof Number || value instanceof Boolean) {
-                    sb.append(scope.get(key));
                 } else {
-                    sb.append("'").append(scope.get(key)).append("'");
+                    List<Node> items = new ArrayList<>();
+
+                    for (Object item : (List<?>) value) {
+                        if (item instanceof Boolean) {
+                            items.add(new BooleanNode(Boolean.TRUE.equals(item)));
+
+                        } else if (item instanceof Number) {
+                            items.add(new NumberNode((Number) item));
+
+                        } else if (item instanceof String) {
+                            items.add(new StringNode((String) item));
+
+                        } else {
+                            throw new UnsupportedOperationException(String.format(
+                                    "Can't convert instance of [%s] in [%s] into a node!",
+                                    item.getClass().getName(),
+                                    name));
+                        }
+                    }
+
+                    body.add(new KeyValueNode(key, new ListNode(items)));
                 }
 
-                sb.append("\n");
+            } else if (value instanceof String) {
+                body.add(new KeyValueNode(key, new StringNode((String) value)));
+
+            } else if (value instanceof Resource) {
+                body.add(new KeyListValueNode(key, ((Resource) value).toBodyNodes()));
+
+            } else {
+                throw new UnsupportedOperationException(String.format(
+                        "Can't convert instance of [%s] in [%s] into a node!",
+                        value.getClass().getName(),
+                        name));
             }
         }
 
-        sb.append(indent(indent));
-        sb.append("end\n\n");
-
-        return sb.toString();
+        return body;
     }
 
     @Override
@@ -526,10 +579,6 @@ public abstract class Resource {
         }
 
         return null;
-    }
-
-    protected String indent(int indent) {
-        return StringUtils.repeat(" ", indent);
     }
 
 }
