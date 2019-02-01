@@ -23,9 +23,8 @@ public class EnterpriseConfig {
             File enterpriseConfigFile = Paths.get(EnterpriseConfig.getUserHome(), ".beam", "enterprise.bcl").toFile();
 
             if (enterpriseConfigFile.exists()) {
-                //core.addResourceType("enterprise::project", EnterpriseProject.class);
-
                 RootScope config = new RootScope(enterpriseConfigFile.toString());
+                config.getRootScope().getResourceClasses().put("enterprise::project", EnterpriseProject.class);
 
                 new LocalFileBackend().load(config);
 
