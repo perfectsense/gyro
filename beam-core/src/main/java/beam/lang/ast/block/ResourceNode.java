@@ -42,6 +42,11 @@ public class ResourceNode extends BlockNode {
             node.evaluate(bodyScope);
         }
 
+        Resource resource = createResource(scope, type);
+
+        resource.resourceIdentifier(name);
+        resource.scope(bodyScope);
+
         // Find subresources.
         for (Map.Entry<String, Object> entry : bodyScope.entrySet()) {
             String subresourceType = type + "::" + entry.getKey();
@@ -56,22 +61,19 @@ public class ResourceNode extends BlockNode {
                 List<Resource> subresources = new ArrayList<>();
 
                 for (Scope subresourceScope : (List<Scope>) value) {
-                    Resource resource = createResource(scope, subresourceType);
-                    resource.resourceType(entry.getKey());
-                    resource.scope(subresourceScope);
-                    resource.syncInternalToProperties();
+                    Resource subresource = createResource(scope, subresourceType);
+                    subresource.parent(resource);
+                    subresource.resourceType(entry.getKey());
+                    subresource.scope(subresourceScope);
+                    subresource.syncInternalToProperties();
 
-                    subresources.add(resource);
+                    subresources.add(subresource);
                 }
 
                 entry.setValue(subresources);
             }
         }
 
-        Resource resource = createResource(scope, type);
-
-        resource.resourceIdentifier(name);
-        resource.scope(bodyScope);
         resource.syncInternalToProperties();
         scope.getFileScope().getResources().put(name, resource);
 
