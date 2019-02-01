@@ -5,7 +5,7 @@ import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceDisplayDiff;
 import beam.core.diff.ResourceName;
-import beam.lang.ast.KeyListValueNode;
+import beam.lang.ast.KeyBlockNode;
 import beam.lang.ast.KeyValueNode;
 import beam.lang.ast.Node;
 import beam.lang.ast.ResourceNode;
@@ -487,7 +487,7 @@ public abstract class Resource {
 
                 if (Resource.class.isAssignableFrom(itemClass)) {
                     for (Object item : (List<?>) value) {
-                        body.add(new KeyListValueNode(key, ((Resource) item).toBodyNodes()));
+                        body.add(new KeyBlockNode(key, ((Resource) item).toBodyNodes()));
                     }
 
                 } else {
@@ -518,7 +518,7 @@ public abstract class Resource {
                 body.add(new KeyValueNode(key, new StringNode((String) value)));
 
             } else if (value instanceof Resource) {
-                body.add(new KeyListValueNode(key, ((Resource) value).toBodyNodes()));
+                body.add(new KeyBlockNode(key, ((Resource) value).toBodyNodes()));
 
             } else {
                 throw new UnsupportedOperationException(String.format(

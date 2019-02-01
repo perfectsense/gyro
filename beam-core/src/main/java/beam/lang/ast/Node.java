@@ -104,7 +104,7 @@ public abstract class Node {
 
             return rc.resourceName() != null
                     ? new ResourceNode(rc)
-                    : new KeyListValueNode(rc);
+                    : new KeyBlockNode(rc);
 
         } else if (cc.equals(BeamParser.StringExpressionContext.class)) {
             return new StringExpressionNode((BeamParser.StringExpressionContext) context);

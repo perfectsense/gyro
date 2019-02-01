@@ -7,17 +7,17 @@ import beam.lang.ast.scope.Scope;
 import beam.lang.plugins.PluginLoader;
 import beam.parser.antlr4.BeamParser;
 
-public class KeyListValueNode extends Node {
+public class KeyBlockNode extends Node {
 
     private final String key;
     private final List<Node> body;
 
-    public KeyListValueNode(String key, List<Node> body) {
+    public KeyBlockNode(String key, List<Node> body) {
         this.key = key;
         this.body = body;
     }
 
-    public KeyListValueNode(BeamParser.ResourceContext context) {
+    public KeyBlockNode(BeamParser.ResourceContext context) {
         key = context.resourceType().IDENTIFIER().getText();
 
         body = context.resourceBody()
