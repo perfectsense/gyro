@@ -16,6 +16,10 @@ public class MapNode extends Node {
 
     private List<KeyValueNode> entries;
 
+    public MapNode(List<KeyValueNode> entries) {
+        this.entries = entries;
+    }
+
     public MapNode(MapValueContext context) {
         entries = context.keyValue()
             .stream()
