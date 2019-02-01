@@ -1,6 +1,7 @@
 package beam.lang.ast;
 
 import beam.lang.ast.block.KeyBlockNode;
+import beam.lang.ast.block.PluginNode;
 import beam.lang.ast.block.ResourceNode;
 import beam.lang.ast.block.RootNode;
 import beam.lang.ast.control.ForNode;
@@ -106,9 +107,19 @@ public abstract class Node {
         } else if (cc.equals(BeamParser.ResourceContext.class)) {
             BeamParser.ResourceContext rc = (BeamParser.ResourceContext) context;
 
-            return rc.resourceName() != null
-                    ? new ResourceNode(rc)
-                    : new KeyBlockNode(rc);
+            if (rc.resourceName() != null) {
+                return new ResourceNode(rc);
+
+            } else {
+                String key = rc.resourceType().IDENTIFIER().getText();
+
+                if ("plugin".equals(key)) {
+                    return new PluginNode(rc);
+
+                } else {
+                    return new KeyBlockNode(rc);
+                }
+            }
 
         } else if (cc.equals(BeamParser.StringExpressionContext.class)) {
             return new StringExpressionNode((BeamParser.StringExpressionContext) context);

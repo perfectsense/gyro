@@ -24,22 +24,15 @@ public class RootNode extends BlockNode {
 
         // Evaluate imports and plugins first.
         List<ImportNode> imports = new ArrayList<>();
-        List<KeyBlockNode> plugins = new ArrayList<>();
+        List<PluginNode> plugins = new ArrayList<>();
         List<Node> body = new ArrayList<>();
 
         for (Node node : this.body) {
             if (node instanceof ImportNode) {
                 imports.add((ImportNode) node);
 
-            } else if (node instanceof KeyBlockNode) {
-                KeyBlockNode plugin = (KeyBlockNode) node;
-
-                if ("plugin".equals(plugin.getKey())) {
-                    plugins.add(plugin);
-
-                } else {
-                    body.add(plugin);
-                }
+            } else if (node instanceof PluginNode) {
+                plugins.add((PluginNode) node);
 
             } else {
                 body.add(node);
@@ -50,8 +43,8 @@ public class RootNode extends BlockNode {
             i.load(scope);
         }
 
-        for (KeyBlockNode plugin : plugins) {
-            plugin.loadPlugin(scope);
+        for (PluginNode plugin : plugins) {
+            plugin.load(scope);
         }
 
         // Then the rest of the body until everything succeeds.
