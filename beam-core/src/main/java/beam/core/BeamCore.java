@@ -3,21 +3,16 @@ package beam.core;
 import beam.core.diff.ChangeType;
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiff;
-import beam.lang.Resource;
 import beam.lang.ast.scope.State;
 import beam.lang.ast.scope.FileScope;
 import com.psddev.dari.util.ThreadLocalStack;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class BeamCore {
-
-    private final Map<String, Class<? extends Resource>> resourceTypes = new HashMap<>();
 
     private static final ThreadLocalStack<BeamUI> UI = new ThreadLocalStack<>();
 

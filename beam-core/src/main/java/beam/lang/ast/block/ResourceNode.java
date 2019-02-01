@@ -51,7 +51,7 @@ public class ResourceNode extends BlockNode {
         for (Map.Entry<String, Object> entry : bodyScope.entrySet()) {
             String subresourceType = type + "::" + entry.getKey();
 
-            if (scope.getRootScope().getTypeClasses().get(subresourceType) != null) {
+            if (scope.getRootScope().getResourceClasses().get(subresourceType) != null) {
                 Object value = entry.getValue();
 
                 if (!(value instanceof List)) {
@@ -97,7 +97,7 @@ public class ResourceNode extends BlockNode {
     }
 
     private Resource createResource(Scope scope, String type) {
-        Class klass = scope.getRootScope().getTypeClasses().get(type);
+        Class klass = scope.getRootScope().getResourceClasses().get(type);
         if (klass != null) {
             try {
                 beam.lang.Resource resource = (beam.lang.Resource) klass.newInstance();
