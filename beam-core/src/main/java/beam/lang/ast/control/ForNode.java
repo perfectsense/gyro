@@ -1,5 +1,6 @@
 package beam.lang.ast.control;
 
+import beam.lang.ast.DeferError;
 import beam.lang.ast.Node;
 import beam.lang.ast.block.BlockNode;
 import beam.lang.ast.scope.Scope;
@@ -62,9 +63,7 @@ public class ForNode extends BlockNode {
                                 : null);
             }
 
-            for (Node node : body) {
-                node.evaluate(bodyScope);
-            }
+            DeferError.evaluate(bodyScope, body);
         }
 
         return null;

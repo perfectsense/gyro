@@ -1,5 +1,6 @@
 package beam.lang.ast.control;
 
+import beam.lang.ast.DeferError;
 import beam.lang.ast.Node;
 import beam.lang.ast.expression.ExpressionNode;
 import beam.lang.ast.scope.Scope;
@@ -35,18 +36,13 @@ public class IfNode extends Node {
             Boolean value = ExpressionNode.toBoolean(expression.evaluate(scope));
 
             if (value) {
-                for (Node node : bodies.get(i)) {
-                    node.evaluate(scope);
-                }
-
+                DeferError.evaluate(scope, bodies.get(i));
                 return null;
             }
         }
 
         if (bodies.size() > expressions.size()) {
-            for (Node node : bodies.get(bodies.size() - 1)) {
-                node.evaluate(scope);
-            }
+            DeferError.evaluate(scope, bodies.get(bodies.size() - 1));
         }
 
         return null;

@@ -56,35 +56,7 @@ public class RootNode extends BlockNode {
             plugin.load(scope);
         }
 
-        // Then the rest of the body until everything succeeds.
-        int bodySize = body.size();
-
-        while (true) {
-            List<DeferError> errors = new ArrayList<>();
-            List<Node> deferred = new ArrayList<>();
-
-            for (Node node : body) {
-                try {
-                    node.evaluate(scope);
-
-                } catch (DeferError error) {
-                    errors.add(error);
-                    deferred.add(node);
-                }
-            }
-
-            if (deferred.isEmpty()) {
-                break;
-
-            } else if (bodySize == deferred.size()) {
-                throw new RuntimeException(errors.toString());
-
-            } else {
-                body = deferred;
-                bodySize = body.size();
-            }
-        }
-
+        DeferError.evaluate(scope, body);
         return null;
     }
 
