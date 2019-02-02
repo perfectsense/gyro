@@ -117,6 +117,12 @@ project(":beam-providers:beam-test-provider") {
     }
 }
 
+project(":beam-providers:beam-rackspace-provider") {
+    dependencies {
+        compile project(':beam-core')
+    }
+}
+
 task distDir {
     doLast {
         mkdir "dist"

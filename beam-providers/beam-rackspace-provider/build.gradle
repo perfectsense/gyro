@@ -1,0 +1,34 @@
+plugins {
+    id 'maven-publish'
+}
+
+sourceCompatibility = 1.8
+
+def jcloud_sdk_version = '1.9.0'
+
+defaultTasks 'build'
+
+dependencies {
+    compile 'com.psddev:dari-util:3.3.607-xe0f27a'
+    compile "com.google.guava:guava:23.0"
+    compile "beam:beam-core:${version}"
+    compile "org.apache.jclouds.driver:jclouds-slf4j:${jcloud_sdk_version}"
+    compile "org.apache.jclouds.labs:rackspace-cloudnetworks-us:${jcloud_sdk_version}"
+    compile "org.apache.jclouds.labs:rackspace-cloudfiles-us:${jcloud_sdk_version}"
+    compile "org.apache.jclouds.labs:rackspace-autoscale-us:${jcloud_sdk_version}"
+    compile "org.apache.jclouds.provider:rackspace-cloudservers-us:${jcloud_sdk_version}"
+    compile "org.apache.jclouds.provider:rackspace-cloudblockstorage-us:${jcloud_sdk_version}"
+    compile "org.apache.jclouds.provider:rackspace-clouddatabases-us:${jcloud_sdk_version}"
+    compile "org.apache.jclouds.provider:rackspace-cloudloadbalancers-us:${jcloud_sdk_version}"
+    compile "org.apache.jclouds.provider:rackspace-clouddns-us:${jcloud_sdk_version}"
+
+    runtimeClasspath files("rackspace-cloudservers-us-1.9.0.jar")
+}
+
+task referenceDocs(type: Javadoc) {
+    title = null // Prevents -doctitle and -windowtitle from being passed to BeamDoclet
+    source = sourceSets.main.allJava
+    classpath = configurations.compile
+    options.doclet = "beam.docs.BeamDoclet"
+    options.docletpath = [file("../../beam-docs/build/libs/beam-docs-0.5.jar")]
+}
