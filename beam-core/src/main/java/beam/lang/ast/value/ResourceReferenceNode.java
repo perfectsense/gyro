@@ -1,5 +1,6 @@
 package beam.lang.ast.value;
 
+import beam.lang.Resource;
 import beam.lang.ast.DeferError;
 import beam.lang.ast.Node;
 import beam.lang.ast.scope.Scope;
@@ -23,14 +24,14 @@ public class ResourceReferenceNode extends Node {
 
     @Override
     public Object evaluate(Scope scope) throws Exception {
-        Map<String, beam.lang.Resource> resources = scope.getFileScope().getResources();
+        Map<String, Resource> resources = scope.getFileScope().getResources();
 
         if (name != null) {
             String n = Optional.ofNullable(name.evaluate(scope))
                     .map(Object::toString)
                     .orElse(null);
 
-            beam.lang.Resource resource = resources.get(n);
+            Resource resource = resources.get(n);
 
             if (resource != null) {
                 if (attribute != null) {
@@ -45,7 +46,7 @@ public class ResourceReferenceNode extends Node {
             }
 
         } else {
-            Stream<beam.lang.Resource> s = resources.values()
+            Stream<Resource> s = resources.values()
                     .stream()
                     .filter(r -> type.equals(r.resourceType()));
 
