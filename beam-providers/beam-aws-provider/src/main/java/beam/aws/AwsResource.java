@@ -15,6 +15,10 @@ public abstract class AwsResource extends Resource {
     private SdkClient client;
 
     protected <T extends SdkClient> T createClient(Class<T> clientClass) {
+        return createClient(clientClass, null);
+    }
+
+    protected <T extends SdkClient> T createClient(Class<T> clientClass, Region region) {
         if (client != null) {
             return (T) client;
         }
@@ -30,7 +34,7 @@ public abstract class AwsResource extends Resource {
             Method method = clientClass.getMethod("builder");
             AwsDefaultClientBuilder builder = (AwsDefaultClientBuilder) method.invoke(null);
             builder.credentialsProvider(provider);
-            builder.region(Region.of(credentials.getRegion()));
+            builder.region(region != null ? region : Region.of(credentials.getRegion()));
             builder.httpClientBuilder(ApacheHttpClient.builder());
 
             client = (T) builder.build();
