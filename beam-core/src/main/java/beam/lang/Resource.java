@@ -103,11 +103,11 @@ public abstract class Resource {
 
     public Credentials resourceCredentials() {
         for (Resource r = this; r != null; r = r.parent()) {
-            Scope scope = scope();
+            Scope scope = r.scope();
 
             if (scope != null) {
-                String name = (String) scope().get("resource-credentials");
-                return scope().getRootScope().getCredentialsMap().get(name != null ? name : "default");
+                String name = (String) scope.get("resource-credentials");
+                return scope.getRootScope().getCredentialsMap().get(name != null ? name : "default");
             }
         }
 
