@@ -4,7 +4,7 @@ import beam.commands.AbstractConfigCommand;
 import beam.core.BeamCore;
 import beam.core.BeamInstance;
 import beam.lang.Resource;
-import beam.lang.ast.scope.FileScope;
+import beam.lang.ast.scope.RootScope;
 import io.airlift.airline.Option;
 
 import java.util.ArrayList;
@@ -22,7 +22,7 @@ public abstract class AbstractInstanceCommand extends AbstractConfigCommand {
     public abstract void doExecute(List<BeamInstance> instances) throws Exception;
 
     @Override
-    protected void doExecute(FileScope current, FileScope pending) throws Exception {
+    protected void doExecute(RootScope current, RootScope pending) throws Exception {
 
         BeamCore.ui().write("\n");
 

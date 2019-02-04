@@ -3,7 +3,7 @@ package beam.core;
 import beam.core.diff.ChangeType;
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiff;
-import beam.lang.ast.scope.FileScope;
+import beam.lang.ast.scope.RootScope;
 import beam.lang.ast.scope.State;
 import com.psddev.dari.util.ThreadLocalStack;
 
@@ -29,7 +29,7 @@ public class BeamCore {
         return UI.pop();
     }
 
-    public List<ResourceDiff> diff(FileScope currentScope, FileScope pendingScope, boolean refresh) throws Exception {
+    public List<ResourceDiff> diff(RootScope currentScope, RootScope pendingScope, boolean refresh) throws Exception {
         ResourceDiff diff = new ResourceDiff(currentScope, pendingScope);
         diff.setRefresh(refresh);
         diff.diff();

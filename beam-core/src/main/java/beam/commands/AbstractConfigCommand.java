@@ -5,7 +5,6 @@ import beam.core.BeamException;
 import beam.core.LocalFileBackend;
 import beam.lang.BeamLanguageException;
 import beam.lang.Credentials;
-import beam.lang.ast.scope.FileScope;
 import beam.lang.ast.scope.RootScope;
 import io.airlift.airline.Arguments;
 
@@ -22,7 +21,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
     private BeamCore core;
 
-    protected abstract void doExecute(FileScope current, FileScope pending) throws Exception;
+    protected abstract void doExecute(RootScope current, RootScope pending) throws Exception;
 
     @Override
     protected void doExecute() throws Exception {
