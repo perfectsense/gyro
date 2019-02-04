@@ -13,6 +13,7 @@ import beam.lang.ast.scope.ResourceScope;
 import beam.lang.ast.scope.Scope;
 import beam.lang.ast.value.BooleanNode;
 import beam.lang.ast.value.ListNode;
+import beam.lang.ast.value.MapNode;
 import beam.lang.ast.value.NumberNode;
 import beam.lang.ast.value.StringNode;
 import com.google.common.base.CaseFormat;
@@ -512,28 +513,11 @@ public abstract class Resource {
                     }
 
                 } else {
-                    List<Node> items = new ArrayList<>();
-
-                    for (Object item : (List<?>) value) {
-                        if (item instanceof Boolean) {
-                            items.add(new BooleanNode(Boolean.TRUE.equals(item)));
-
-                        } else if (item instanceof Number) {
-                            items.add(new NumberNode((Number) item));
-
-                        } else if (item instanceof String) {
-                            items.add(new StringNode((String) item));
-
-                        } else {
-                            throw new UnsupportedOperationException(String.format(
-                                    "Can't convert instance of [%s] in [%s] into a node!",
-                                    item.getClass().getName(),
-                                    name));
-                        }
-                    }
-
-                    body.add(new KeyValueNode(key, new ListNode(items)));
+                    body.add(new KeyValueNode(key, objectToNode(value)));
                 }
+
+            } else if (value instanceof Map) {
+                body.add(new KeyValueNode(key, objectToNode(value)));
 
             } else if (value instanceof String) {
                 body.add(new KeyValueNode(key, new StringNode((String) value)));
@@ -600,6 +584,43 @@ public abstract class Resource {
         }
 
         return null;
+    }
+
+    private Node objectToNode(Object value) {
+        if (value instanceof Boolean) {
+            return new BooleanNode(Boolean.TRUE.equals(value));
+
+        } else if (value instanceof Number) {
+            return new NumberNode((Number) value);
+
+        } else if (value instanceof String) {
+            return new StringNode((String) value);
+
+        } else if (value instanceof Map) {
+            Map map = (Map) value;
+            List<KeyValueNode> entries = new ArrayList<>();
+
+            for (Object key : map.keySet()) {
+                Node valueNode = objectToNode(map.get(key));
+
+                entries.add(new KeyValueNode((String) key, valueNode));
+            }
+
+            return new MapNode(entries);
+        } else if (value instanceof List) {
+            List<Node> items = new ArrayList<>();
+
+            for (Object item : (List<?>) value) {
+                items.add(objectToNode(item));
+            }
+
+            return new ListNode(items);
+        } else {
+            throw new UnsupportedOperationException(String.format(
+                "Can't convert instance of [%s] in [%s] into a node!",
+                value.getClass().getName(),
+                name));
+        }
     }
 
 }
