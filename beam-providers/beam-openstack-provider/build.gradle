@@ -4,7 +4,7 @@ plugins {
 
 sourceCompatibility = 1.8
 
-def jcloud_sdk_version = '1.9.0'
+def jcloud_sdk_version = '2.1.1'
 
 defaultTasks 'build'
 
@@ -13,9 +13,9 @@ dependencies {
     compile "com.google.guava:guava:23.0"
     compile "beam:beam-core:${version}"
     compile "org.apache.jclouds.driver:jclouds-slf4j:${jcloud_sdk_version}"
-    compile "org.apache.jclouds.labs:rackspace-cloudnetworks-us:${jcloud_sdk_version}"
-    compile "org.apache.jclouds.labs:rackspace-cloudfiles-us:${jcloud_sdk_version}"
     compile "org.apache.jclouds.labs:rackspace-autoscale-us:${jcloud_sdk_version}"
+    compile "org.apache.jclouds.provider:rackspace-cloudnetworks-us:${jcloud_sdk_version}"
+    compile "org.apache.jclouds.provider:rackspace-cloudfiles-us:${jcloud_sdk_version}"
     compile "org.apache.jclouds.provider:rackspace-cloudservers-us:${jcloud_sdk_version}"
     compile "org.apache.jclouds.provider:rackspace-cloudblockstorage-us:${jcloud_sdk_version}"
     compile "org.apache.jclouds.provider:rackspace-clouddatabases-us:${jcloud_sdk_version}"
