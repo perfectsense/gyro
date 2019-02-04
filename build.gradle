@@ -117,7 +117,7 @@ project(":beam-providers:beam-test-provider") {
     }
 }
 
-project(":beam-providers:beam-rackspace-provider") {
+project(":beam-providers:beam-openstack-provider") {
     dependencies {
         compile project(':beam-core')
     }

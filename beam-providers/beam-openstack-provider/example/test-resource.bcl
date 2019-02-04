@@ -1,5 +1,5 @@
 plugin
-    artifact: 'beam:beam-rackspace-provider:0.5'
+    artifact: 'beam:beam-openstack-provider:0.5'
     repositories: [
         'http://repo1.maven.org/maven2/',
         'https://repo.gradle.org/gradle/libs-releases/',
@@ -7,11 +7,11 @@ plugin
     ]
 end
 
-rackspace::credentials default
+openstack::credentials default
     profile-name: "psd-beam-sandbox"
     region: "us-east-2"
 end
 
-rackspace::aloha aloha-example
-    name: "aloha-example"
+openstack::test-resource test-resource-example
+    name: "test-resource-example"
 end

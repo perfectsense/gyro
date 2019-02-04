@@ -1,4 +1,4 @@
-package beam.rackspace;
+package beam.openstack;
 
 import beam.core.diff.ResourceName;
 import beam.lang.Credentials;
@@ -7,7 +7,7 @@ import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 
 @ResourceName("credentials")
-public class RackspaceCredentials extends Credentials {
+public class OpenstackCredentials extends Credentials {
 
     private String profileName;
 
@@ -15,7 +15,7 @@ public class RackspaceCredentials extends Credentials {
 
     @Override
     public String getCloudName() {
-        return "rackspace";
+        return "openstack";
     }
 
     public String getProfileName() {
