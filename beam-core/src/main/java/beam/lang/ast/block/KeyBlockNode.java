@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import beam.lang.ast.Node;
+import beam.lang.ast.scope.ResourceScope;
 import beam.lang.ast.scope.Scope;
 import beam.parser.antlr4.BeamParser;
 
@@ -32,7 +33,7 @@ public class KeyBlockNode extends BlockNode {
 
     @Override
     public Object evaluate(Scope scope) throws Exception {
-        Scope bodyScope = new Scope(scope);
+        ResourceScope bodyScope = new ResourceScope(scope);
 
         for (Node node : body) {
             node.evaluate(bodyScope);
