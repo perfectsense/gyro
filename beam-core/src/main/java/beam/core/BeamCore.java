@@ -10,6 +10,7 @@ import com.psddev.dari.util.ThreadLocalStack;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Set;
 
 public class BeamCore {
@@ -103,8 +104,12 @@ public class BeamCore {
     public void delete(State state, List<ResourceDiff> diffs) throws Exception {
         setChangeable(diffs);
 
-        for (ResourceDiff diff : diffs) {
-            for (ResourceChange change : diff.getChanges()) {
+        for (ListIterator<ResourceDiff> i = diffs.listIterator(diffs.size()); i.hasPrevious();) {
+            ResourceDiff diff = i.previous();
+
+            for (ListIterator<ResourceChange> j = diff.getChanges().listIterator(diff.getChanges().size()); j.hasPrevious();) {
+                ResourceChange change = j.previous();
+
                 delete(state, change.getDiffs());
 
                 if (change.getType() == ChangeType.DELETE) {
