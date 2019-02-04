@@ -4,6 +4,7 @@ import beam.lang.ast.scope.FileScope;
 import beam.lang.ast.scope.Scope;
 import beam.parser.antlr4.BeamParser;
 
+import java.nio.file.Paths;
 import java.util.Optional;
 
 public class ImportNode extends Node {
@@ -36,7 +37,9 @@ public class ImportNode extends Node {
 
         } else {
             scope.put(
-                    fileRootScope.getFile()
+                    Paths.get(fileRootScope.getFile())
+                            .getFileName()
+                            .toString()
                             .replace(".bcl", "")
                             .replace(".bcl.state", ""),
                     fileRootScope);
