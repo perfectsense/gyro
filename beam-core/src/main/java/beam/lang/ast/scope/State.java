@@ -39,6 +39,7 @@ public class State {
 
         state.clear();
         state.getImports().clear();
+        state.getPluginLoaders().clear();
         state.getPluginLoaders().addAll(pending.getPluginLoaders());
 
         for (FileScope pendingImport : pending.getImports()) {
