@@ -176,6 +176,8 @@ public class PluginLoader {
         ClassLoader parent = core().getClass().getClassLoader();
         if (classLoader == null) {
             classLoader = new PluginClassLoader(urls, parent);
+
+            Thread.currentThread().setContextClassLoader(classLoader());
         } else {
             classLoader.addAllUrls(urls);
         }
