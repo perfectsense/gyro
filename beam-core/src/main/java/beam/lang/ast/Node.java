@@ -87,9 +87,22 @@ public abstract class Node {
             String type = rbc.referenceType().getText();
 
             if (type.contains("::")) {
-                Node name = Optional.ofNullable(rbc.referenceName())
-                        .map(c -> Node.create(c.getChild(0)))
-                        .orElse(null);
+                BeamParser.ReferenceNameContext rnc = rbc.referenceName();
+                Node name;
+
+                if (rnc != null) {
+                    BeamParser.StringExpressionContext sec = rnc.stringExpression();
+
+                    if (sec != null) {
+                        name = Node.create(sec);
+
+                    } else {
+                        name = new StringNode(rnc.getText());
+                    }
+
+                } else {
+                    name = null;
+                }
 
                 String attribute = Optional.ofNullable(rbc.referenceAttribute())
                         .map(BeamParser.ReferenceAttributeContext::getText)
