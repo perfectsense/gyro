@@ -21,6 +21,10 @@ dependencies {
     compile "org.apache.jclouds.provider:rackspace-clouddatabases-us:${jcloud_sdk_version}"
     compile "org.apache.jclouds.provider:rackspace-cloudloadbalancers-us:${jcloud_sdk_version}"
     compile "org.apache.jclouds.provider:rackspace-clouddns-us:${jcloud_sdk_version}"
+    compile 'javax.xml.bind:jaxb-api:2.2.11'
+    compile 'com.sun.xml.bind:jaxb-core:2.2.11'
+    compile 'com.sun.xml.bind:jaxb-impl:2.2.11'
+    compile 'javax.activation:activation:1.1.1'
 
     runtimeClasspath files("rackspace-cloudservers-us-1.9.0.jar")
 }
