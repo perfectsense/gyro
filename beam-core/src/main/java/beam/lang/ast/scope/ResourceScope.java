@@ -1,9 +1,9 @@
 package beam.lang.ast.scope;
 
+import beam.lang.ast.Node;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import beam.lang.ast.Node;
 
 public class ResourceScope extends Scope {
 

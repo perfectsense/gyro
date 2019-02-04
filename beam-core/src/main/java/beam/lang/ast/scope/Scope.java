@@ -1,7 +1,5 @@
 package beam.lang.ast.scope;
 
-import beam.lang.Credentials;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;

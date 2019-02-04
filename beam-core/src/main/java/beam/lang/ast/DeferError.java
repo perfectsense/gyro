@@ -1,9 +1,9 @@
 package beam.lang.ast;
 
+import beam.lang.ast.scope.Scope;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import beam.lang.ast.scope.Scope;
 
 public class DeferError extends Error {
 

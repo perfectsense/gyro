@@ -1,11 +1,11 @@
 package beam.lang.ast;
 
-import java.util.Optional;
-
 import beam.lang.ast.scope.ResourceScope;
 import beam.lang.ast.scope.Scope;
 import beam.parser.antlr4.BeamParser;
 import org.antlr.v4.runtime.tree.ParseTree;
+
+import java.util.Optional;
 
 public class KeyValueNode extends Node {
 

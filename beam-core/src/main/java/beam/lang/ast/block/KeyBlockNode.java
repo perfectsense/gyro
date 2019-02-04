@@ -1,12 +1,12 @@
 package beam.lang.ast.block;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 import beam.lang.ast.Node;
 import beam.lang.ast.scope.ResourceScope;
 import beam.lang.ast.scope.Scope;
 import beam.parser.antlr4.BeamParser;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class KeyBlockNode extends BlockNode {
 

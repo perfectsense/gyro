@@ -1,9 +1,9 @@
 package beam.lang.ast.scope;
 
+import beam.lang.Credentials;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import beam.lang.Credentials;
 
 public class RootScope extends FileScope {
 

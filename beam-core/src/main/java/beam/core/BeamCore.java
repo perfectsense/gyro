@@ -3,8 +3,8 @@ package beam.core;
 import beam.core.diff.ChangeType;
 import beam.core.diff.ResourceChange;
 import beam.core.diff.ResourceDiff;
-import beam.lang.ast.scope.State;
 import beam.lang.ast.scope.FileScope;
+import beam.lang.ast.scope.State;
 import com.psddev.dari.util.ThreadLocalStack;
 
 import java.util.ArrayList;

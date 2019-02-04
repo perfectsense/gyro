@@ -1,8 +1,8 @@
 package beam.lang.ast.scope;
 
 import beam.core.LocalFileBackend;
-import beam.lang.Resource;
 import beam.lang.FileBackend;
+import beam.lang.Resource;
 import beam.lang.plugins.PluginLoader;
 
 import java.nio.file.Paths;

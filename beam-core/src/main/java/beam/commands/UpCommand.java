@@ -3,8 +3,8 @@ package beam.commands;
 import beam.core.BeamCore;
 import beam.core.diff.ChangeType;
 import beam.core.diff.ResourceDiff;
-import beam.lang.ast.scope.State;
 import beam.lang.ast.scope.FileScope;
+import beam.lang.ast.scope.State;
 import io.airlift.airline.Command;
 import io.airlift.airline.Option;
 

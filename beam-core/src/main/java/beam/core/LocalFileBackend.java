@@ -1,8 +1,8 @@
 package beam.core;
 
 import beam.lang.BeamLanguageException;
-import beam.lang.Resource;
 import beam.lang.FileBackend;
+import beam.lang.Resource;
 import beam.lang.ast.Node;
 import beam.lang.ast.scope.FileScope;
 import beam.lang.listeners.ErrorListener;

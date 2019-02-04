@@ -1,5 +1,11 @@
 package beam.lang.ast.scope;
 
+import beam.core.diff.ChangeType;
+import beam.core.diff.ResourceChange;
+import beam.core.diff.ResourceName;
+import beam.lang.Resource;
+import com.google.common.base.CaseFormat;
+
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.io.FileNotFoundException;
@@ -12,12 +18,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-
-import beam.core.diff.ChangeType;
-import beam.core.diff.ResourceChange;
-import beam.core.diff.ResourceName;
-import beam.lang.Resource;
-import com.google.common.base.CaseFormat;
 
 public class State {
 
