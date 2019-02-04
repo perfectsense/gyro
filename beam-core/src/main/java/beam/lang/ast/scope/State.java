@@ -4,6 +4,7 @@ import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.io.FileNotFoundException;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -14,7 +15,9 @@ import java.util.Map;
 
 import beam.core.diff.ChangeType;
 import beam.core.diff.ResourceChange;
+import beam.core.diff.ResourceName;
 import beam.lang.Resource;
+import com.google.common.base.CaseFormat;
 
 public class State {
 
@@ -107,6 +110,14 @@ public class State {
             Object value = getter.invoke(parent);
 
             if (value instanceof List) {
+                Class<?> itemType = (Class<?>) ((ParameterizedType) getter.getGenericReturnType()).getActualTypeArguments()[0];
+                String itemName = itemType.getAnnotation(ResourceName.class).value();
+                String getterName = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, getter.getName());
+
+                if (!itemName.equals(getterName)) {
+                    continue;
+                }
+
                 @SuppressWarnings("unchecked")
                 List<Object> list = (List<Object>) value;
                 boolean found = false;
