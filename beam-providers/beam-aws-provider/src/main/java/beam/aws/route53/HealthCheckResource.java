@@ -1,15 +1,20 @@
 package beam.aws.route53;
 
 import beam.aws.AwsResource;
+import beam.core.diff.ResourceDiffProperty;
+import beam.core.diff.ResourceName;
 import beam.lang.Resource;
+import com.psddev.dari.util.ObjectUtils;
 import software.amazon.awssdk.services.route53.Route53Client;
 import software.amazon.awssdk.services.route53.model.CreateHealthCheckResponse;
 import software.amazon.awssdk.services.route53.model.GetHealthCheckResponse;
 import software.amazon.awssdk.services.route53.model.HealthCheck;
+import software.amazon.awssdk.services.route53.model.HealthCheckConfig;
 
 import java.util.List;
 import java.util.Set;
 
+@ResourceName("health-check")
 public class HealthCheckResource extends AwsResource {
 
     private String healthCheckId;
@@ -24,7 +29,7 @@ public class HealthCheckResource extends AwsResource {
     private String ipAddress;
     private Boolean measureLatency;
     private Integer port;
-    private List<String> regionsWithStrings;
+    private List<String> regions;
     private Integer requestInterval;
     private String resourcePath;
     private String searchString;
@@ -40,6 +45,7 @@ public class HealthCheckResource extends AwsResource {
         this.healthCheckId = healthCheckId;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public List<String> getChildHealthChecks() {
         return childHealthChecks;
     }
@@ -48,6 +54,7 @@ public class HealthCheckResource extends AwsResource {
         this.childHealthChecks = childHealthChecks;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public Boolean getDisabled() {
         return disabled;
     }
@@ -56,6 +63,7 @@ public class HealthCheckResource extends AwsResource {
         this.disabled = disabled;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public Boolean getEnableSni() {
         return enableSni;
     }
@@ -64,6 +72,7 @@ public class HealthCheckResource extends AwsResource {
         this.enableSni = enableSni;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public Integer getFailureThreshold() {
         return failureThreshold;
     }
@@ -72,6 +81,7 @@ public class HealthCheckResource extends AwsResource {
         this.failureThreshold = failureThreshold;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public String getFullyQualifiedDomainName() {
         return fullyQualifiedDomainName;
     }
@@ -80,6 +90,7 @@ public class HealthCheckResource extends AwsResource {
         this.fullyQualifiedDomainName = fullyQualifiedDomainName;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public Integer getHealthThreshold() {
         return healthThreshold;
     }
@@ -88,6 +99,7 @@ public class HealthCheckResource extends AwsResource {
         this.healthThreshold = healthThreshold;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public String getInsufficientDataHealthStatus() {
         return insufficientDataHealthStatus;
     }
@@ -96,6 +108,7 @@ public class HealthCheckResource extends AwsResource {
         this.insufficientDataHealthStatus = insufficientDataHealthStatus;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public Boolean getInverted() {
         return inverted;
     }
@@ -104,6 +117,7 @@ public class HealthCheckResource extends AwsResource {
         this.inverted = inverted;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public String getIpAddress() {
         return ipAddress;
     }
@@ -120,6 +134,7 @@ public class HealthCheckResource extends AwsResource {
         this.measureLatency = measureLatency;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public Integer getPort() {
         return port;
     }
@@ -128,12 +143,13 @@ public class HealthCheckResource extends AwsResource {
         this.port = port;
     }
 
-    public List<String> getRegionsWithStrings() {
-        return regionsWithStrings;
+    @ResourceDiffProperty(updatable = true)
+    public List<String> getRegions() {
+        return regions;
     }
 
-    public void setRegionsWithStrings(List<String> regionsWithStrings) {
-        this.regionsWithStrings = regionsWithStrings;
+    public void setRegions(List<String> regions) {
+        this.regions = regions;
     }
 
     public Integer getRequestInterval() {
@@ -144,6 +160,7 @@ public class HealthCheckResource extends AwsResource {
         this.requestInterval = requestInterval;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public String getResourcePath() {
         return resourcePath;
     }
@@ -152,6 +169,7 @@ public class HealthCheckResource extends AwsResource {
         this.resourcePath = resourcePath;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public String getSearchString() {
         return searchString;
     }
@@ -168,6 +186,7 @@ public class HealthCheckResource extends AwsResource {
         this.type = type;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public String getAlarmName() {
         return alarmName;
     }
@@ -176,6 +195,7 @@ public class HealthCheckResource extends AwsResource {
         this.alarmName = alarmName;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public String getAlarmRegion() {
         return alarmRegion;
     }
@@ -194,11 +214,32 @@ public class HealthCheckResource extends AwsResource {
         );
 
         HealthCheck healthCheck = response.healthCheck();
-        healthCheck.id();
         healthCheck.cloudWatchAlarmConfiguration();
-        healthCheck.healthCheckConfig();
+        healthCheck.linkedService();
+        HealthCheckConfig healthCheckConfig = healthCheck.healthCheckConfig();
+        setChildHealthChecks(healthCheckConfig.childHealthChecks());
+        setDisabled(healthCheckConfig.disabled());
+        setEnableSni(healthCheckConfig.enableSNI());
+        setFailureThreshold(healthCheckConfig.failureThreshold());
+        setFullyQualifiedDomainName(healthCheckConfig.fullyQualifiedDomainName());
+        setHealthThreshold(healthCheckConfig.healthThreshold());
+        setInsufficientDataHealthStatus(healthCheckConfig.insufficientDataHealthStatusAsString());
+        setInverted(healthCheckConfig.inverted());
+        setIpAddress(healthCheckConfig.ipAddress());
+        setMeasureLatency(healthCheckConfig.measureLatency());
+        setPort(healthCheckConfig.port());
+        setRegions(healthCheckConfig.regionsAsStrings());
+        setRequestInterval(healthCheckConfig.requestInterval());
+        setResourcePath(healthCheckConfig.resourcePath());
+        setSearchString(healthCheckConfig.searchString());
+        setType(healthCheckConfig.typeAsString());
 
-        return false;
+        if (healthCheckConfig.alarmIdentifier() != null) {
+            setAlarmName(healthCheckConfig.alarmIdentifier().name());
+            setAlarmName(healthCheckConfig.alarmIdentifier().regionAsString());
+        }
+
+        return true;
     }
 
     @Override
@@ -218,7 +259,7 @@ public class HealthCheckResource extends AwsResource {
                     .ipAddress(getIpAddress())
                     .measureLatency(getMeasureLatency())
                     .port(getPort())
-                    .regionsWithStrings(getRegionsWithStrings())
+                    .regionsWithStrings(getRegions())
                     .requestInterval(getRequestInterval())
                     .resourcePath(getResourcePath())
                     .searchString(getSearchString())
@@ -250,7 +291,7 @@ public class HealthCheckResource extends AwsResource {
                 .inverted(getInverted())
                 .ipAddress(getIpAddress())
                 .port(getPort())
-                .regionsWithStrings(getRegionsWithStrings())
+                .regionsWithStrings(getRegions())
                 .resourcePath(getResourcePath())
                 .searchString(getSearchString())
                 .alarmIdentifier(
@@ -271,6 +312,14 @@ public class HealthCheckResource extends AwsResource {
 
     @Override
     public String toDisplayString() {
-        return null;
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("health check");
+
+        if (!ObjectUtils.isBlank(getHealthCheckId())) {
+            sb.append(" - ").append(getHealthCheckId());
+        }
+
+        return sb.toString();
     }
 }
