@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 
 public abstract class AbstractConfigCommand extends AbstractCommand {
 
@@ -52,8 +53,12 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             throw new BeamException(ex.getMessage());
         }
 
-        current.getCredentialsMap().values().forEach(c -> c.findCredentials(true));
-        pending.getCredentialsMap().values().forEach(c -> c.findCredentials(true));
+        for (Map.Entry<String, Credentials> entry : pending.getCredentialsMap().entrySet()) {
+            Credentials c = entry.getValue();
+
+            c.findCredentials(true);
+            current.getCredentialsMap().put(entry.getKey(), c);
+        }
 
         doExecute(current, pending);
     }
