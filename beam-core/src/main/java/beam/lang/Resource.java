@@ -337,19 +337,6 @@ public abstract class Resource {
         this.name = name;
     }
 
-
-    public Resource parentResource() {
-        /*
-        Node parent = parent();
-
-        while (parent != null && !(parent instanceof Resource)) {
-            parent = parent.parent();
-        }
-        */
-
-        return null;
-    }
-
     // -- Internal State
 
     public void resolveScopeAgain() throws Exception {

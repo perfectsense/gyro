@@ -98,7 +98,7 @@ public class ListenerResource extends AwsResource {
     }
 
     public String getLoadBalancer() {
-        LoadBalancerResource parent = (LoadBalancerResource) parentResource();
+        LoadBalancerResource parent = (LoadBalancerResource) parent();
 
         if (parent != null) {
             return parent.getLoadBalancerName();
@@ -131,7 +131,7 @@ public class ListenerResource extends AwsResource {
 
     @Override
     public void create() {
-        if (parentResource().change().getType() == ChangeType.CREATE) {
+        if (parent().change().getType() == ChangeType.CREATE) {
             return;
         }
 
@@ -149,7 +149,7 @@ public class ListenerResource extends AwsResource {
 
     @Override
     public void delete() {
-        if (parentResource().change().getType() == ChangeType.DELETE) {
+        if (parent().change().getType() == ChangeType.DELETE) {
             return;
         }
         ElasticLoadBalancingClient client = createClient(ElasticLoadBalancingClient.class);
