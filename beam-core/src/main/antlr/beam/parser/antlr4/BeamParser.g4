@@ -14,7 +14,7 @@ resourceBody : keyValue | resource | forStmt | ifStmt;
 resourceType : IDENTIFIER;
 resourceName : IDENTIFIER | stringValue;
 
-importStmt  : IMPORT importPath AS? importName?;
+importStmt  : IMPORT importPath (AS importName)?;
 importPath  : IDENTIFIER;
 importName  : IDENTIFIER;
 
