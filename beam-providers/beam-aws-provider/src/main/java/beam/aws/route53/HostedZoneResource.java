@@ -1,24 +1,26 @@
 package beam.aws.route53;
 
 import beam.aws.AwsResource;
+import beam.core.BeamException;
+import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 import beam.lang.Resource;
 import com.psddev.dari.util.ObjectUtils;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.route53.Route53Client;
 import software.amazon.awssdk.services.route53.model.CreateHostedZoneResponse;
-import software.amazon.awssdk.services.route53.model.DelegationSet;
 import software.amazon.awssdk.services.route53.model.GetHostedZoneResponse;
 import software.amazon.awssdk.services.route53.model.HostedZone;
-import software.amazon.awssdk.services.route53.model.LinkedService;
-import software.amazon.awssdk.services.route53.model.ListVpcAssociationAuthorizationsResponse;
 import software.amazon.awssdk.services.route53.model.VPC;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 @ResourceName("hosted-zone")
 public class HostedZoneResource extends AwsResource {
 
-    private String callerReference;
     private String delegationSetId;
     private String comment;
     private Boolean privateZone;
@@ -27,16 +29,7 @@ public class HostedZoneResource extends AwsResource {
     private Long resourceRecordSetCount;
     private String description;
     private String servicePrincipal;
-    private String vpcId;
-    private String vpcRegion;
-
-    public String getCallerReference() {
-        return callerReference;
-    }
-
-    public void setCallerReference(String callerReference) {
-        this.callerReference = callerReference;
-    }
+    private List<Route53VpcResource> vpc;
 
     public String getDelegationSetId() {
         return delegationSetId;
@@ -46,6 +39,7 @@ public class HostedZoneResource extends AwsResource {
         this.delegationSetId = delegationSetId;
     }
 
+    @ResourceDiffProperty(updatable = true, nullable = true)
     public String getComment() {
         return comment;
     }
@@ -102,122 +96,87 @@ public class HostedZoneResource extends AwsResource {
         this.servicePrincipal = servicePrincipal;
     }
 
-    public String getVpcId() {
-        return vpcId;
+    @ResourceDiffProperty(nullable = true, subresource = true)
+    public List<Route53VpcResource> getVpc() {
+        if (vpc == null) {
+            vpc = new ArrayList<>();
+        }
+
+        return vpc;
     }
 
-    public void setVpcId(String vpcId) {
-        this.vpcId = vpcId;
-    }
-
-    public String getVpcRegion() {
-        return vpcRegion;
-    }
-
-    public void setVpcRegion(String vpcRegion) {
-        this.vpcRegion = vpcRegion;
+    public void setVpc(List<Route53VpcResource> vpc) {
+        this.vpc = vpc;
     }
 
     @Override
     public boolean refresh() {
-        Route53Client client = createClient(Route53Client.class);
+        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
 
         GetHostedZoneResponse response = client.getHostedZone(
             r -> r.id(getHostedZoneId())
         );
 
-        DelegationSet delegationSet = response.delegationSet();
-        setDelegationSetId(delegationSet.id());
-
+        setDelegationSetId(response.delegationSet() != null ? response.delegationSet().id() : null);
         HostedZone hostedZone = response.hostedZone();
-        setCallerReference(hostedZone.callerReference());
         setComment(hostedZone.config().comment());
         setPrivateZone(hostedZone.config().privateZone());
         setHostedZoneName(hostedZone.name());
         setResourceRecordSetCount(hostedZone.resourceRecordSetCount());
+        setDescription(hostedZone.linkedService() != null ? hostedZone.linkedService().description() : null);
+        setServicePrincipal(hostedZone.linkedService() != null ? hostedZone.linkedService().servicePrincipal() : null);
 
-        LinkedService linkedService = hostedZone.linkedService();
-        setDescription(linkedService.description());
-        setServicePrincipal(linkedService.servicePrincipal());
-
-
-        ListVpcAssociationAuthorizationsResponse vpcResponse = client.listVPCAssociationAuthorizations(
-            r -> r.hostedZoneId(getHostedZoneId())
-        );
-
-        if (!vpcResponse.vpCs().isEmpty()) {
-            VPC vpc = vpcResponse.vpCs().get(0);
-            setVpcId(vpc.vpcId());
-            setVpcRegion(vpc.vpcRegionAsString());
-        }
+        loadVpcs(response.vpCs());
 
         return true;
     }
 
     @Override
     public void create() {
-        Route53Client client = createClient(Route53Client.class);
+        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
+
+        //validate();
 
         CreateHostedZoneResponse response = client.createHostedZone(
             r -> r.name(getHostedZoneName())
-                .callerReference(getCallerReference())
                 .delegationSetId(getDelegationSetId())
                 .hostedZoneConfig(
                     o -> o.comment(getComment())
                         .privateZone(getPrivateZone())
                 )
-                .vpc(
-                    o -> o.vpcId(getVpcId())
-                        .vpcRegion(getVpcRegion())
+                .vpc(!getVpc().isEmpty()
+                        ? VPC.builder()
+                        .vpcId(getVpc().get(0).getVpcId())
+                        .vpcRegion(getVpc().get(0).getVpcRegion())
+                        .build()
+                        : null
                 )
+            .callerReference(UUID.randomUUID().toString())
         );
 
         HostedZone hostedZone = response.hostedZone();
+
         setHostedZoneId(hostedZone.id());
         setResourceRecordSetCount(hostedZone.resourceRecordSetCount());
-
-        LinkedService linkedService = hostedZone.linkedService();
-        setDescription(linkedService.description());
-        setServicePrincipal(linkedService.servicePrincipal());
+        setDescription(hostedZone.linkedService() != null ? hostedZone.linkedService().description() : null);
+        setServicePrincipal(hostedZone.linkedService() != null ? hostedZone.linkedService().servicePrincipal() : null);
     }
 
     @Override
     public void update(Resource current, Set<String> changedProperties) {
-        Route53Client client = createClient(Route53Client.class);
+        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
 
         if (changedProperties.contains("comment")) {
             client.updateHostedZoneComment(
                 r -> r.id(getHostedZoneId())
-                    .comment(getComment())
-            );
-        }
-
-        if (changedProperties.contains("vpc-id") || changedProperties.contains("vpc-region")) {
-            HostedZoneResource oldHostedZoneResource = (HostedZoneResource) current;
-
-            if (!ObjectUtils.isBlank(oldHostedZoneResource.getVpcId())) {
-                client.disassociateVPCFromHostedZone(
-                    r -> r.hostedZoneId(getHostedZoneId())
-                        .vpc(
-                            o -> o.vpcId(oldHostedZoneResource.getVpcId())
-                                .vpcRegion(oldHostedZoneResource.getVpcRegion())
-                        )
-                );
-            }
-
-            client.associateVPCWithHostedZone(
-                r -> r.hostedZoneId(getHostedZoneId())
-                    .vpc(
-                        o -> o.vpcId(getVpcId())
-                            .vpcRegion(getVpcRegion())
-                    )
+                    .comment(getComment() != null ? getComment() : "")
             );
         }
     }
 
     @Override
     public void delete() {
-        Route53Client client = createClient(Route53Client.class);
+        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
 
         client.deleteHostedZone(
             r -> r.id(getHostedZoneId())
@@ -239,5 +198,50 @@ public class HostedZoneResource extends AwsResource {
         }
 
         return sb.toString();
+    }
+
+    private void loadVpcs(List<VPC> vpcs) {
+        getVpc().clear();
+
+        for (VPC vpc :vpcs) {
+            Route53VpcResource route53VpcResource = new Route53VpcResource(vpc.vpcId(), vpc.vpcRegionAsString());
+            route53VpcResource.parent(this);
+            route53VpcResource.setResourceCredentials(getResourceCredentials());
+            getVpc().add(route53VpcResource);
+        }
+    }
+
+    void saveVpc(Route53Client client, String vpcId, String vpcRegion, boolean isAttach) {
+        if (client == null) {
+            client = createClient(Route53Client.class, Region.AWS_GLOBAL);
+        }
+
+        if (isAttach) {
+            client.associateVPCWithHostedZone(
+                r -> r.hostedZoneId(getHostedZoneId())
+                    .vpc(
+                        o -> o.vpcId(vpcId)
+                            .vpcRegion(vpcRegion)
+                    )
+            );
+        } else {
+            client.disassociateVPCFromHostedZone(
+                r -> r.hostedZoneId(getHostedZoneId())
+                    .vpc(
+                        o -> o.vpcId(vpcId)
+                            .vpcRegion(vpcRegion)
+                    )
+            );
+        }
+    }
+
+    private void validate() {
+        if (getPrivateZone() && getVpc().isEmpty()) {
+            throw new BeamException("if param 'private-zone' is set to 'true' at least one vpc needs to be provided.");
+        }
+
+        if (!getPrivateZone() && !getVpc().isEmpty()) {
+            throw new BeamException("if param 'private-zone' is set to 'false' vpc's cannot be set.");
+        }
     }
 }
