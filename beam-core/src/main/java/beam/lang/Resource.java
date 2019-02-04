@@ -145,7 +145,7 @@ public abstract class Resource {
     }
 
     public Map<String, Object> resolvedKeyValues() {
-        Map<String, Object> copy = new HashMap<>(scope);
+        Map<String, Object> copy = scope != null ? new HashMap<>(scope) : new HashMap<>();
 
         try {
             for (PropertyDescriptor p : Introspector.getBeanInfo(getClass()).getPropertyDescriptors()) {
