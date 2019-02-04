@@ -20,6 +20,9 @@ import com.google.common.base.CaseFormat;
 import com.google.common.base.Throwables;
 import com.psddev.dari.util.ObjectUtils;
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.beanutils.ConvertUtils;
+import org.apache.commons.beanutils.converters.DateConverter;
+import org.apache.commons.beanutils.converters.DateTimeConverter;
 
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -29,6 +32,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -48,6 +52,11 @@ public abstract class Resource {
     private Set<Resource> dependencies;
     private Set<Resource> dependents;
     private ResourceChange change;
+
+    static {
+        DateTimeConverter converter = new DateConverter(null);
+        ConvertUtils.register(converter, Date.class);
+    }
 
     // -- Resource Implementation API
 
@@ -524,6 +533,9 @@ public abstract class Resource {
 
             } else if (value instanceof Resource) {
                 body.add(new KeyBlockNode(key, ((Resource) value).toBodyNodes()));
+
+            } else if (value instanceof Date) {
+                body.add(new KeyValueNode(key, new StringNode(value.toString())));
 
             } else {
                 throw new UnsupportedOperationException(String.format(
