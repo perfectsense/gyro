@@ -235,22 +235,22 @@ public abstract class Resource {
 
     public Object get(String key) {
         try {
-            Object value = BeanUtils.getProperty(
-                    this,
-                    CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key));
+            String propName = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key);
 
-            if (value != null) {
-                return value;
+            for (PropertyDescriptor prop : Introspector.getBeanInfo(getClass()).getPropertyDescriptors()) {
+                if (prop.getName().equals(propName)) {
+                    return prop.getReadMethod().invoke(this);
+                }
             }
 
         } catch (IllegalAccessException
-                | InvocationTargetException
-                | NoSuchMethodException error) {
+                | IntrospectionException
+                | InvocationTargetException error) {
 
             // Ignore for now.
         }
 
-        return scope.get(key);
+        return null;
     }
 
     /**
