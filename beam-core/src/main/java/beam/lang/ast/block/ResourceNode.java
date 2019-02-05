@@ -5,7 +5,6 @@ import beam.lang.Credentials;
 import beam.lang.Resource;
 import beam.lang.ast.Node;
 import beam.lang.ast.scope.ResourceScope;
-import beam.lang.ast.scope.RootScope;
 import beam.lang.ast.scope.Scope;
 import beam.parser.antlr4.BeamParser;
 
