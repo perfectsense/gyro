@@ -31,7 +31,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -174,51 +173,6 @@ public abstract class Resource {
         }
 
         return copy;
-    }
-
-    public void diffOnCreate(Change change) throws Exception {
-        Map<String, Object> pendingValues = resolvedKeyValues();
-
-        for (String key : subresourceFields()) {
-            Object pendingValue = pendingValues.get(key);
-
-            if (pendingValue instanceof Collection) {
-                change.create((List) pendingValue);
-            } else {
-                change.createOne((Resource) pendingValue);
-            }
-        }
-    }
-
-    public void diffOnUpdate(Change change, Resource current) throws Exception {
-        Map<String, Object> currentValues = current.resolvedKeyValues();
-        Map<String, Object> pendingValues = resolvedKeyValues();
-
-        for (String key : subresourceFields()) {
-
-            Object currentValue = currentValues.get(key);
-            Object pendingValue = pendingValues.get(key);
-
-            if (pendingValue instanceof Collection) {
-                change.update((List) currentValue, (List) pendingValue);
-            } else {
-                change.updateOne((Resource) currentValue, (Resource) pendingValue);
-            }
-        }
-    }
-
-    public void diffOnDelete(Change change) throws Exception {
-        Map<String, Object> pendingValues = resolvedKeyValues();
-
-        for (String key : subresourceFields()) {
-            Object pendingValue = pendingValues.get(key);
-
-            if (pendingValue instanceof Collection) {
-                change.delete((List) pendingValue);
-            } else {
-                change.deleteOne((Resource) pendingValue);
-            }
-        }
     }
 
     public ResourceDisplayDiff calculateFieldDiffs(Resource current) {

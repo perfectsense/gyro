@@ -100,7 +100,19 @@ public class Diff {
         };
 
         pendingResource.change(create);
-        pendingResource.diffOnCreate(create);
+
+        Map<String, Object> pendingValues = pendingResource.resolvedKeyValues();
+
+        for (String key : pendingResource.subresourceFields()) {
+            Object pendingValue = pendingValues.get(key);
+
+            if (pendingValue instanceof Collection) {
+                create.create((List) pendingValue);
+
+            } else {
+                create.createOne((Resource) pendingValue);
+            }
+        }
 
         return create;
     }
@@ -115,11 +127,25 @@ public class Diff {
      */
     public Change newUpdate(final Resource currentResource, final Resource pendingResource) throws Exception {
         Change update = new Change(this, currentResource, pendingResource);
-        update.calculateFieldDiffs();
 
+        update.calculateFieldDiffs();
         currentResource.change(update);
         pendingResource.change(update);
-        pendingResource.diffOnUpdate(update, currentResource);
+
+        Map<String, Object> currentValues = currentResource.resolvedKeyValues();
+        Map<String, Object> pendingValues = pendingResource.resolvedKeyValues();
+
+        for (String key : pendingResource.subresourceFields()) {
+            Object currentValue = currentValues.get(key);
+            Object pendingValue = pendingValues.get(key);
+
+            if (pendingValue instanceof Collection) {
+                update.update((List) currentValue, (List) pendingValue);
+
+            } else {
+                update.updateOne((Resource) currentValue, (Resource) pendingValue);
+            }
+        }
 
         return update;
     }
@@ -148,7 +174,19 @@ public class Diff {
         };
 
         currentResource.change(delete);
-        currentResource.diffOnDelete(delete);
+
+        Map<String, Object> pendingValues = currentResource.resolvedKeyValues();
+
+        for (String key : currentResource.subresourceFields()) {
+            Object pendingValue = pendingValues.get(key);
+
+            if (pendingValue instanceof Collection) {
+                delete.delete((List) pendingValue);
+
+            } else {
+                delete.deleteOne((Resource) pendingValue);
+            }
+        }
 
         return delete;
     }
