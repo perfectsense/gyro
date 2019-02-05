@@ -2,14 +2,18 @@ package beam.core.diff;
 
 import beam.core.BeamCore;
 import beam.lang.Resource;
+import beam.lang.ast.scope.State;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
+import java.util.Set;
 
 public class Diff {
 
@@ -297,6 +301,130 @@ public class Diff {
                 }
             }
         }
+    }
+
+    private void writeChange(Change change) {
+        switch (change.getType()) {
+            case CREATE :
+                BeamCore.ui().write("@|green + %s|@", change);
+                break;
+
+            case UPDATE :
+                if (change.toString().contains("@|")) {
+                    BeamCore.ui().write(" * %s", change);
+                } else {
+                    BeamCore.ui().write("@|yellow * %s|@", change);
+                }
+                break;
+
+            case REPLACE :
+                BeamCore.ui().write("@|blue * %s|@", change);
+                break;
+
+            case DELETE :
+                BeamCore.ui().write("@|red - %s|@", change);
+                break;
+
+            default :
+                BeamCore.ui().write(change.toString());
+        }
+    }
+
+    public Set<ChangeType> write() {
+        Set<ChangeType> changeTypes = new HashSet<>();
+
+        if (!hasChanges()) {
+            return changeTypes;
+        }
+
+        for (Change change : getChanges()) {
+            ChangeType type = change.getType();
+            List<Diff> changeDiffs = change.getDiffs();
+
+            if (type == ChangeType.KEEP) {
+                boolean hasChanges = false;
+
+                for (Diff changeDiff : changeDiffs) {
+                    if (changeDiff.hasChanges()) {
+                        hasChanges = true;
+                        break;
+                    }
+                }
+
+                if (!hasChanges) {
+                    continue;
+                }
+            }
+
+            changeTypes.add(type);
+            writeChange(change);
+
+            BeamCore.ui().write("\n");
+            BeamCore.ui().indented(() -> changeDiffs.forEach(d -> changeTypes.addAll(d.write())));
+        }
+
+        return changeTypes;
+    }
+
+    private void setChangeable() {
+        for (Change change : getChanges()) {
+            change.setChangeable(true);
+            change.getDiffs().forEach(Diff::setChangeable);
+        }
+    }
+
+    public void executeCreateOrUpdate(State state) throws Exception {
+        setChangeable();
+
+        for (Change change : getChanges()) {
+            ChangeType type = change.getType();
+
+            if (type == ChangeType.CREATE || type == ChangeType.UPDATE) {
+                execute(state, change);
+            }
+
+            for (Diff d : change.getDiffs()) {
+                d.executeCreateOrUpdate(state);
+            }
+        }
+    }
+
+    public void executeDelete(State state) throws Exception {
+        setChangeable();
+
+        for (ListIterator<Change> j = getChanges().listIterator(getChanges().size()); j.hasPrevious();) {
+            Change change = j.previous();
+
+            for (Diff d : change.getDiffs()) {
+                d.executeDelete(state);
+            }
+
+            if (change.getType() == ChangeType.DELETE) {
+                execute(state, change);
+            }
+        }
+    }
+
+    private void execute(State state, Change change) throws Exception {
+        ChangeType type = change.getType();
+
+        if (type == ChangeType.KEEP || type == ChangeType.REPLACE || change.isChanged()) {
+            return;
+        }
+
+        Set<Change> dependencies = change.dependencies();
+
+        if (dependencies != null && !dependencies.isEmpty()) {
+            for (Change d : dependencies) {
+                execute(state, d);
+            }
+        }
+
+        BeamCore.ui().write("Executing: ");
+        writeChange(change);
+        change.executeChange();
+        BeamCore.ui().write(" OK\n");
+        state.update(change);
     }
 
 }

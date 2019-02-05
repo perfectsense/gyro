@@ -8,7 +8,6 @@ import beam.lang.ast.scope.State;
 import io.airlift.airline.Command;
 import io.airlift.airline.Option;
 
-import java.util.List;
 import java.util.Set;
 
 @Command(name = "up", description = "Updates all resources to match the configuration.")
@@ -20,18 +19,27 @@ public class UpCommand extends AbstractConfigCommand {
     @Override
     public void doExecute(RootScope current, RootScope pending) throws Exception {
         BeamCore.ui().write("\n@|bold,white Looking for changes...\n\n|@");
-        List<Diff> diffs = core().diff(current, pending, !skipRefresh);
+
+        Diff diff = new Diff(
+                current.findAllResources(),
+                pending.findAllResources());
+
+        diff.setRefresh(!skipRefresh);
+        diff.diff();
+
+        Set<ChangeType> changeTypes = diff.write();
         State state = new State(pending);
 
-        Set<ChangeType> changeTypes = core().writeDiffs(diffs);
-
         boolean hasChanges = false;
-        if (changeTypes.contains(ChangeType.CREATE) || changeTypes.contains(ChangeType.UPDATE)) {
+
+        if (changeTypes.contains(ChangeType.CREATE)
+                || changeTypes.contains(ChangeType.UPDATE)) {
+
             hasChanges = true;
 
             if (BeamCore.ui().readBoolean(Boolean.FALSE, "\nAre you sure you want to create and/or update resources?")) {
                 BeamCore.ui().write("\n");
-                core().createOrUpdate(state, diffs);
+                diff.executeCreateOrUpdate(state);
             }
         }
 
@@ -40,7 +48,7 @@ public class UpCommand extends AbstractConfigCommand {
 
             if (BeamCore.ui().readBoolean(Boolean.FALSE, "\nAre you sure you want to delete resources?")) {
                 BeamCore.ui().write("\n");
-                core().delete(state, diffs);
+                diff.executeDelete(state);
             }
         }
 
@@ -53,7 +61,6 @@ public class UpCommand extends AbstractConfigCommand {
         if (!hasChanges) {
             BeamCore.ui().write("\n@|bold,green No changes.|@\n\n");
         }
-
     }
 
 }
