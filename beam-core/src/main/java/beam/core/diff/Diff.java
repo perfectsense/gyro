@@ -24,8 +24,31 @@ public class Diff {
     private boolean refresh;
 
     public Diff(List<Resource> currentResources, List<Resource> pendingResources) {
-        this.currentResources = currentResources;
-        this.pendingResources = pendingResources != null ? pendingResources : Collections.EMPTY_LIST;
+        this.currentResources = currentResources != null
+                ? sortResources(currentResources)
+                : Collections.emptyList();
+
+        this.pendingResources = pendingResources != null
+                ? sortResources(pendingResources)
+                : Collections.emptyList();
+    }
+
+    private List<Resource> sortResources(Collection<? extends Resource> resources) {
+        List<Resource> sorted = new ArrayList<>();
+
+        for (Resource resource : resources) {
+            List<Resource> dependencies = new ArrayList<>(resource.dependencies());
+
+            sortResources(dependencies).stream()
+                    .filter(r -> !sorted.contains(r))
+                    .forEach(sorted::add);
+
+            if (!sorted.contains(resource)) {
+                sorted.add(resource);
+            }
+        }
+
+        return sorted;
     }
 
     public boolean shouldRefresh() {
@@ -184,9 +207,43 @@ public class Diff {
     }
 
     public void diff() throws Exception {
-        sortPendingResources();
-        sortCurrentResources();
-        diffResources();
+        Map<String, Resource> currentResources = getCurrentResources().stream().collect(
+                LinkedHashMap::new,
+                (map, r) -> map.put(r.primaryKey(), r),
+                Map::putAll);
+
+        boolean refreshed = false;
+
+        for (Resource pr : getPendingResources()) {
+            Resource cr = currentResources.remove(pr.primaryKey());
+
+            if (cr != null && shouldRefresh()) {
+                BeamCore.ui().write(
+                        "@|bold,blue Refreshing|@: @|yellow %s|@ -> %s...",
+                        cr.resourceType(),
+                        cr.resourceIdentifier());
+
+                if (!cr.refresh()) {
+                    cr = null;
+                }
+
+                BeamCore.ui().write("\n");
+
+                refreshed = true;
+            }
+
+            changes.add(cr != null
+                    ? newUpdate(cr, pr)
+                    : newCreate(pr));
+        }
+
+        if (refreshed) {
+            BeamCore.ui().write("\n");
+        }
+
+        for (Resource resource : currentResources.values()) {
+            changes.add(newDelete(resource));
+        }
     }
 
     public boolean hasChanges() {
@@ -207,96 +264,6 @@ public class Diff {
         }
 
         return false;
-    }
-
-    private List<Resource> sortResources(Collection<? extends Resource> resources) {
-        List<Resource> sorted = new ArrayList<>();
-
-        for (Resource resource : resources) {
-            List<Resource> deps = new ArrayList<>();
-            for (Resource dependency : resource.dependencies()) {
-                deps.add(dependency);
-            }
-
-            for (Resource r : sortResources(deps)) {
-                if (!sorted.contains(r)) {
-                    sorted.add(r);
-                }
-            }
-
-            if (!sorted.contains(resource)) {
-                sorted.add(resource);
-            }
-        }
-
-        return sorted;
-    }
-
-    private void sortPendingResources() {
-        List<Resource> pending = getPendingResources();
-        if (pending != null) {
-            pendingResources = sortResources(pending);
-        }
-    }
-
-    private void sortCurrentResources() {
-        List<Resource> current = getCurrentResources();
-        if (current != null) {
-            currentResources = sortResources(current);
-        }
-    }
-
-    private void diffResources() throws Exception {
-        Map<String, Resource> currentResourcesByName = new LinkedHashMap<>();
-        Iterable<? extends Resource> currentResources = getCurrentResources();
-
-        if (currentResources != null) {
-            for (Resource resource : currentResources) {
-                currentResourcesByName.put(resource.primaryKey(), resource);
-            }
-        }
-
-        Iterable<? extends Resource> pendingResources = getPendingResources();
-
-        boolean refreshed = false;
-        if (pendingResources != null) {
-            for (Resource pendingResource : pendingResources) {
-                Resource currentResource = currentResourcesByName.remove(pendingResource.primaryKey());
-
-                if (currentResource != null && shouldRefresh()) {
-                    BeamCore.ui().write("@|bold,blue Refreshing|@: @|yellow %s|@ -> %s...",
-                        currentResource.resourceType(), currentResource.resourceIdentifier());
-
-                    if (!currentResource.refresh()) {
-                        currentResource = null;
-                    }
-
-                    BeamCore.ui().write("\n");
-
-                    refreshed = true;
-                }
-
-                Change change = currentResource != null ? newUpdate(currentResource, pendingResource) : newCreate(pendingResource);
-
-                if (change != null) {
-                    changes.add(change);
-                }
-            }
-        }
-
-        if (refreshed) {
-            BeamCore.ui().write("\n");
-        }
-
-        if (currentResources != null) {
-            for (Resource resource : currentResourcesByName.values()) {
-                Change change = newDelete(resource);
-
-                if (change != null) {
-                    changes.add(change);
-                }
-            }
-        }
     }
 
     private void writeChange(Change change) {
