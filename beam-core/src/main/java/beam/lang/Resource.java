@@ -37,6 +37,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 public abstract class Resource {
@@ -234,23 +235,9 @@ public abstract class Resource {
     // -- Base Resource
 
     public Object get(String key) {
-        try {
-            String propName = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key);
-
-            for (PropertyDescriptor prop : Introspector.getBeanInfo(getClass()).getPropertyDescriptors()) {
-                if (prop.getName().equals(propName)) {
-                    return prop.getReadMethod().invoke(this);
-                }
-            }
-
-        } catch (IllegalAccessException
-                | IntrospectionException
-                | InvocationTargetException error) {
-
-            // Ignore for now.
-        }
-
-        return null;
+        return Optional.ofNullable(ResourceType.getInstance(getClass()).getFieldByBeamName(key))
+                .map(f -> f.getValue(this))
+                .orElse(null);
     }
 
     /**
@@ -368,51 +355,16 @@ public abstract class Resource {
     }
 
     public List<Node> toBodyNodes() {
-        PropertyDescriptor[] props;
-
-        try {
-            props = Introspector.getBeanInfo(getClass()).getPropertyDescriptors();
-
-        } catch (IntrospectionException error) {
-            throw new RuntimeException(error);
-        }
-
         List<Node> body = new ArrayList<>();
 
-        for (PropertyDescriptor prop : props) {
-            Method getter = prop.getReadMethod();
-
-            if (getter == null) {
-                continue;
-            }
-
-            String name = prop.getName();
-
-            if (name.equals("class")) {
-                continue;
-            }
-
-            Object value;
-
-            try {
-                value = getter.invoke(this);
-
-            } catch (IllegalAccessException error) {
-                throw new IllegalStateException(error);
-
-            } catch (InvocationTargetException error) {
-                Throwable cause = error.getCause();
-
-                throw cause instanceof RuntimeException
-                        ? (RuntimeException) cause
-                        : new RuntimeException(cause);
-            }
+        for (ResourceField field : ResourceType.getInstance(getClass()).getFields()) {
+            Object value = field.getValue(this);
 
             if (value == null) {
                 continue;
             }
 
-            String key = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, name);
+            String key = field.getBeamName();
 
             if (value instanceof Boolean) {
                 body.add(new KeyValueNode(key, new BooleanNode(Boolean.TRUE.equals(value))));
@@ -421,9 +373,7 @@ public abstract class Resource {
                 body.add(new KeyValueNode(key, new NumberNode((Number) value)));
 
             } else if (value instanceof List) {
-                Class<?> itemClass = (Class<?>) ((ParameterizedType) getter.getGenericReturnType()).getActualTypeArguments()[0];
-
-                if (Resource.class.isAssignableFrom(itemClass)) {
+                if (field.getSubresourceClass() != null) {
                     for (Object item : (List<?>) value) {
                         body.add(new KeyBlockNode(key, ((Resource) item).toBodyNodes()));
                     }

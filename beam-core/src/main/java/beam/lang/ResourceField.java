@@ -14,8 +14,9 @@ public class ResourceField {
     private final String beamName;
     private final Method getter;
     private final Method setter;
-    private final boolean subresource;
+    private final Class<? extends Resource> subresourceClass;
 
+    @SuppressWarnings("unchecked")
     protected ResourceField(String javaName, Method getter, Method setter, Type type) {
         this.javaName = javaName;
         this.beamName = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, javaName);
@@ -23,20 +24,22 @@ public class ResourceField {
         this.setter = setter;
 
         if (type instanceof Class) {
-            this.subresource = Resource.class.isAssignableFrom((Class<?>) type);
+            this.subresourceClass = (Class<? extends Resource>) Optional.of((Class<?>) type)
+                    .filter(Resource.class::isAssignableFrom)
+                    .orElse(null);
 
         } else if (type instanceof ParameterizedType) {
-            this.subresource = Optional.of((ParameterizedType) type)
+            this.subresourceClass = (Class<? extends Resource>) Optional.of((ParameterizedType) type)
                     .map(ParameterizedType::getActualTypeArguments)
                     .filter(args -> args.length > 0)
                     .map(args -> args[0])
                     .filter(a0 -> a0 instanceof Class)
                     .map(Class.class::cast)
                     .filter(Resource.class::isAssignableFrom)
-                    .isPresent();
+                    .orElse(null);
 
         } else {
-            this.subresource = false;
+            this.subresourceClass = null;
         }
     }
 
@@ -48,8 +51,8 @@ public class ResourceField {
         return beamName;
     }
 
-    public boolean isSubresource() {
-        return subresource;
+    public Class<? extends Resource> getSubresourceClass() {
+        return subresourceClass;
     }
 
     public Object getValue(Resource resource) {

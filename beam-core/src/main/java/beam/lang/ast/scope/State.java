@@ -4,12 +4,9 @@ import beam.core.diff.ChangeType;
 import beam.core.diff.Change;
 import beam.core.diff.ResourceName;
 import beam.lang.Resource;
-import com.google.common.base.CaseFormat;
+import beam.lang.ResourceField;
+import beam.lang.ResourceType;
 
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -90,22 +87,14 @@ public class State {
         save(root);
     }
 
-    private void updateSubresource(Resource parent, Resource subresource, boolean delete) throws Exception {
-        for (PropertyDescriptor prop : Introspector.getBeanInfo(parent.getClass()).getPropertyDescriptors()) {
-            Method getter = prop.getReadMethod();
-
-            if (getter == null) {
-                continue;
-            }
-
-            Object value = getter.invoke(parent);
+    private void updateSubresource(Resource parent, Resource subresource, boolean delete) {
+        for (ResourceField field : ResourceType.getInstance(parent.getClass()).getFields()) {
+            Object value = field.getValue(parent);
 
             if (value instanceof List) {
-                Class<?> itemType = (Class<?>) ((ParameterizedType) getter.getGenericReturnType()).getActualTypeArguments()[0];
-                String itemName = itemType.getAnnotation(ResourceName.class).value();
-                String getterName = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, getter.getName());
+                String subresourceName = subresource.getClass().getAnnotation(ResourceName.class).value();
 
-                if (!itemName.equals(getterName)) {
+                if (!subresourceName.equals(field.getBeamName())) {
                     continue;
                 }
 
@@ -133,7 +122,7 @@ public class State {
                 }
 
             } else if (value instanceof Resource) {
-                prop.getWriteMethod().invoke(parent, delete ? null : subresource);
+                field.setValue(parent, delete ? null : subresource);
             }
         }
     }
