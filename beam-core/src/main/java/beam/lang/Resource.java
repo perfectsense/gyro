@@ -386,53 +386,6 @@ public abstract class Resource {
         }
     }
 
-    /**
-     * Copy internal values from source to this object. This is used to copy information
-     * from the current state (i.e. a resource loaded from a state file) into a pending
-     * state (i.e. a resource loaded from a config file).
-     */
-    public void syncPropertiesFromResource(Resource source) {
-        syncPropertiesFromResource(source, false);
-    }
-
-    public void syncPropertiesFromResource(Resource source, boolean force) {
-        if (source == null) {
-            return;
-        }
-
-        try {
-            for (PropertyDescriptor p : Introspector.getBeanInfo(getClass()).getPropertyDescriptors()) {
-
-                Method reader = p.getReadMethod();
-
-                if (reader != null) {
-                    Method writer = p.getWriteMethod();
-
-                    ResourceDiffProperty propertyAnnotation = reader.getAnnotation(ResourceDiffProperty.class);
-                    boolean isNullable = false;
-                    if (propertyAnnotation != null) {
-                        isNullable = propertyAnnotation.nullable();
-                    }
-
-                    Object currentValue = reader.invoke(source);
-                    Object pendingValue = reader.invoke(this);
-
-                    boolean isNullOrEmpty = pendingValue == null;
-                    isNullOrEmpty = pendingValue instanceof Collection && ((Collection) pendingValue).isEmpty() ? true : isNullOrEmpty;
-
-                    if (writer != null && (currentValue != null && isNullOrEmpty && (!isNullable || force))) {
-                        writer.invoke(this, reader.invoke(source));
-                    }
-                }
-            }
-
-        } catch (IllegalAccessException | IntrospectionException error) {
-            throw new IllegalStateException(error);
-        } catch (InvocationTargetException error) {
-            throw Throwables.propagate(error);
-        }
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {

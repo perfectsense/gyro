@@ -91,8 +91,6 @@ public class Diff {
      * @return May be {@code null} to indicate no change.
      */
     public Change newUpdate(final Resource currentResource, final Resource pendingResource) throws Exception {
-        pendingResource.syncPropertiesFromResource(currentResource);
-
         Change update = new Change(this, currentResource, pendingResource);
         update.calculateFieldDiffs();
 
@@ -277,8 +275,6 @@ public class Diff {
 
                     refreshed = true;
                 }
-
-                pendingResource.syncPropertiesFromResource(currentResource);
 
                 Change change = currentResource != null ? newUpdate(currentResource, pendingResource) : newCreate(pendingResource);
 
