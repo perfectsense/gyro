@@ -11,6 +11,7 @@ import static beam.parser.antlr4.BeamParser.VirtualResourceContext;
 
 public class VirtualResourceNode extends BlockNode {
 
+    private String name;
     private List<Node> parameters;
 
     public VirtualResourceNode(VirtualResourceContext context) {
@@ -18,6 +19,8 @@ public class VirtualResourceNode extends BlockNode {
                 .stream()
                 .map(b -> Node.create(b))
                 .collect(Collectors.toList()));
+
+        name = context.virtualResourceName().IDENTIFIER().getText();
 
         parameters = context.virtualResourceParam()
             .stream()
@@ -44,6 +47,10 @@ public class VirtualResourceNode extends BlockNode {
         }
 
         return null;
+    }
+
+    public String getName() {
+        return name;
     }
 
     @Override
