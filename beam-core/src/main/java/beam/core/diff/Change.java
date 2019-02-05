@@ -1,6 +1,7 @@
 package beam.core.diff;
 
 import beam.lang.Resource;
+import beam.lang.ast.scope.ResourceScope;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 import com.psddev.dari.util.Lazy;
@@ -12,7 +13,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 public class Change {
@@ -56,9 +56,12 @@ public class Change {
     }
 
     public Resource executeChange() throws Exception {
-        Optional.ofNullable(pendingResource)
-                .orElse(currentResource)
-                .resolveScopeAgain();
+        Resource resource = pendingResource != null ? pendingResource : currentResource;
+        ResourceScope scope = resource.scope();
+
+        if (scope != null) {
+            resource.initialize(scope.resolve());
+        }
 
         if (isChangeable()) {
             return changedResource.get();

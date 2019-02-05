@@ -1,6 +1,5 @@
 package beam.lang;
 
-import beam.core.BeamException;
 import beam.core.diff.Change;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceDisplayDiff;
@@ -19,7 +18,6 @@ import beam.lang.ast.value.StringNode;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Throwables;
 import com.psddev.dari.util.ObjectUtils;
-import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.converters.DateConverter;
 import org.apache.commons.beanutils.converters.DateTimeConverter;
@@ -266,41 +264,12 @@ public abstract class Resource {
         this.name = name;
     }
 
-    // -- Internal State
+    public void initialize(Map<String, Object> values) {
+        for (ResourceField field : ResourceType.getInstance(getClass()).getFields()) {
+            String key = field.getBeamName();
 
-    public void resolveScopeAgain() throws Exception {
-        ResourceScope scope = scope();
-
-        if (scope != null) {
-            for (Map.Entry<String, Object> entry : scope.resolve().entrySet()) {
-                BeanUtils.setProperty(
-                        this,
-                        CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, entry.getKey()),
-                        entry.getValue());
-            }
-        }
-    }
-
-    public final void syncInternalToProperties() {
-        for (String key : scope().keySet()) {
-            if (key.startsWith("_")) {
-                continue;
-            }
-
-            Object value = scope().get(key);
-
-            try {
-                String convertedKey = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key);
-
-                if (!BeanUtils.describe(this).containsKey(convertedKey)) {
-                    String message = String.format("invalid attribute '%s'", key);
-
-                    throw new BeamException(message);
-                }
-
-                BeanUtils.setProperty(this, convertedKey, value);
-            } catch (IllegalArgumentException | InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
-                // Ignoring errors from setProperty
+            if (values.containsKey(key)) {
+                field.setValue(this, values.get(key));
             }
         }
     }

@@ -39,7 +39,7 @@ public class ResourceNode extends BlockNode {
     @Override
     public Object evaluate(Scope scope) throws Exception {
         String name = (String) nameNode.evaluate(scope);
-        ResourceScope bodyScope = new ResourceScope(scope);
+        ResourceScope resourceScope = new ResourceScope(scope);
 
         Optional.ofNullable(scope.getRootScope().getCurrent())
                 .map(s -> s.findResource(name))
@@ -47,22 +47,22 @@ public class ResourceNode extends BlockNode {
                     ResourceScope s = r.scope();
 
                     if (s != null) {
-                        bodyScope.putAll(s);
-                        r.subresourceFields().forEach(bodyScope::remove);
+                        resourceScope.putAll(s);
+                        r.subresourceFields().forEach(resourceScope::remove);
                     }
                 });
 
         for (Node node : body) {
-            node.evaluate(bodyScope);
+            node.evaluate(resourceScope);
         }
 
         Resource resource = createResource(scope, type);
 
         resource.resourceIdentifier(name);
-        resource.scope(bodyScope);
+        resource.scope(resourceScope);
 
         // Find subresources.
-        for (Map.Entry<String, Object> entry : bodyScope.entrySet()) {
+        for (Map.Entry<String, Object> entry : resourceScope.entrySet()) {
             String subresourceType = type + "::" + entry.getKey();
 
             if (scope.getRootScope().getResourceClasses().get(subresourceType) != null) {
@@ -80,7 +80,7 @@ public class ResourceNode extends BlockNode {
                     subresource.parent(resource);
                     subresource.resourceType(entry.getKey());
                     subresource.scope(subresourceScope);
-                    subresource.syncInternalToProperties();
+                    subresource.initialize(subresourceScope);
 
                     subresources.add(subresource);
                 }
@@ -89,7 +89,7 @@ public class ResourceNode extends BlockNode {
             }
         }
 
-        resource.syncInternalToProperties();
+        resource.initialize(resourceScope);
 
         if (resource instanceof Credentials) {
             scope.getRootScope().getCredentialsMap().put(name, (Credentials) resource);
@@ -132,4 +132,5 @@ public class ResourceNode extends BlockNode {
 
         throw new BeamLanguageException("Unknown resource type: " + type);
     }
+
 }
