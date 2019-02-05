@@ -101,10 +101,8 @@ public class Diff {
 
         pendingResource.change(create);
 
-        Map<String, Object> pendingValues = pendingResource.resolvedKeyValues();
-
         for (String key : pendingResource.subresourceFields()) {
-            Object pendingValue = pendingValues.get(key);
+            Object pendingValue = pendingResource.get(key);
 
             if (pendingValue instanceof Collection) {
                 create.create((List) pendingValue);
@@ -132,12 +130,9 @@ public class Diff {
         currentResource.change(update);
         pendingResource.change(update);
 
-        Map<String, Object> currentValues = currentResource.resolvedKeyValues();
-        Map<String, Object> pendingValues = pendingResource.resolvedKeyValues();
-
         for (String key : pendingResource.subresourceFields()) {
-            Object currentValue = currentValues.get(key);
-            Object pendingValue = pendingValues.get(key);
+            Object currentValue = currentResource.get(key);
+            Object pendingValue = pendingResource.get(key);
 
             if (pendingValue instanceof Collection) {
                 update.update((List) currentValue, (List) pendingValue);
@@ -175,10 +170,8 @@ public class Diff {
 
         currentResource.change(delete);
 
-        Map<String, Object> pendingValues = currentResource.resolvedKeyValues();
-
         for (String key : currentResource.subresourceFields()) {
-            Object pendingValue = pendingValues.get(key);
+            Object pendingValue = currentResource.get(key);
 
             if (pendingValue instanceof Collection) {
                 delete.delete((List) pendingValue);
