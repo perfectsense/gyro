@@ -29,7 +29,7 @@ public class EnterpriseConfig {
                 new LocalFileBackend().load(config);
 
                 Map<String, Object> keyValues = new HashMap<>(config);
-                for (Resource resource : config.getFileScope().getResources().values()) {
+                for (Resource resource : config.findAllResources()) {
                     keyValues.put(resource.resourceIdentifier(), resource);
                 }
 

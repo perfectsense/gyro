@@ -30,7 +30,7 @@ public class BeamCore {
     }
 
     public List<ResourceDiff> diff(RootScope currentScope, RootScope pendingScope, boolean refresh) throws Exception {
-        ResourceDiff diff = new ResourceDiff(currentScope, pendingScope);
+        ResourceDiff diff = new ResourceDiff(currentScope.findAllResources(), pendingScope.findAllResources());
         diff.setRefresh(refresh);
         diff.diff();
 

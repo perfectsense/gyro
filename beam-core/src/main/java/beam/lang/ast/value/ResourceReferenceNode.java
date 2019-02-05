@@ -5,7 +5,6 @@ import beam.lang.ast.DeferError;
 import beam.lang.ast.Node;
 import beam.lang.ast.scope.Scope;
 
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -24,29 +23,41 @@ public class ResourceReferenceNode extends Node {
 
     @Override
     public Object evaluate(Scope scope) throws Exception {
-        Map<String, Resource> resources = scope.getFileScope().getResources();
-
         if (name != null) {
             String n = Optional.ofNullable(name.evaluate(scope))
                     .map(Object::toString)
                     .orElse(null);
 
-            Resource resource = resources.get(n);
+            Object value = scope.find(n);
 
-            if (resource != null) {
-                if (attribute != null) {
-                    return resource.get(attribute);
+            if (value == null) {
+                throw new DeferError(this);
 
-                } else {
-                    return resource;
-                }
+            } else if (!(value instanceof Resource)) {
+                throw new IllegalArgumentException(String.format(
+                        "Expected the value named [%s] to be a resource but is an instance of [%s] instead!",
+                        n, value.getClass().getName()));
+            }
+
+            Resource resource = (Resource) value;
+            String resourceType = resource.resourceType();
+
+            if (!type.equals(resourceType)) {
+                throw new IllegalArgumentException(String.format(
+                        "Expected the resource named [%s] to be of [%s] type but is of [%s] type instead!",
+                        n, type, resourceType));
+            }
+
+            if (attribute != null) {
+                return resource.get(attribute);
 
             } else {
-                throw new DeferError(this);
+                return value;
             }
 
         } else {
-            Stream<Resource> s = resources.values()
+            Stream<Resource> s = scope.getRootScope()
+                    .findAllResources()
                     .stream()
                     .filter(r -> type.equals(r.resourceType()));
 

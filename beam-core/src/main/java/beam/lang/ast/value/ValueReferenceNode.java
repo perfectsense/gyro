@@ -5,27 +5,21 @@ import beam.lang.ast.scope.Scope;
 
 public class ValueReferenceNode extends Node {
 
-    private final String name;
+    private final String path;
 
-    public ValueReferenceNode(String name) {
-        this.name = name;
+    public ValueReferenceNode(String path) {
+        this.path = path;
     }
 
     @Override
     public Object evaluate(Scope scope) {
-        for (Scope s = scope; s != null; s = s.getParent()) {
-            if (s.containsKey(name)) {
-                return s.get(name);
-            }
-        }
-
-        return null;
+        return scope.find(path);
     }
 
     @Override
     public void buildString(StringBuilder builder, int indentDepth) {
         builder.append("$(");
-        builder.append(name);
+        builder.append(path);
         builder.append(")");
     }
 }

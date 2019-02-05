@@ -6,8 +6,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
+
+import beam.lang.Resource;
 
 public class Scope implements Map<String, Object> {
+
+    private static final Pattern DOT_PATTERN = Pattern.compile(Pattern.quote("."));
 
     private final Scope parent;
     private final Map<String, Object> values;
@@ -62,6 +67,48 @@ public class Scope implements Map<String, Object> {
 
         list.add(value);
         put(key, list);
+    }
+
+    public Object find(String path) {
+        String[] keys = DOT_PATTERN.split(path);
+        String firstKey = keys[0];
+        Object value = getRootScope().findResource(firstKey);
+
+        if (value == null) {
+            for (Scope s = this; s != null; s = s.parent) {
+                if (s.containsKey(firstKey)) {
+                    value = s.get(firstKey);
+                    break;
+                }
+            }
+
+            if (value == null) {
+                return null;
+            }
+        }
+
+        for (int i = 1, l = keys.length; i < l; i ++) {
+            String key = keys[i];
+
+            if (value instanceof List) {
+                value = ((List<?>) value).get(Integer.parseInt(key));
+
+            } else if (value instanceof Map) {
+                value = ((Map<?, ?>) value).get(key);
+
+            } else if (value instanceof Resource) {
+                value = ((Resource) value).get(key);
+
+            } else {
+                return null;
+            }
+
+            if (value == null) {
+                return null;
+            }
+        }
+
+        return value;
     }
 
     @Override

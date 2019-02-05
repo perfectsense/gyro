@@ -32,14 +32,7 @@ public class State {
 
     private void load(FileScope pending, FileScope state) throws Exception {
         states.put(pending.getFile(), state);
-
-        try {
-            pending.getBackend().load(state);
-
-        } catch (FileNotFoundException | NoSuchFileException error) {
-            // No state file yet because first run.
-        }
-
+        pending.getBackend().load(state);
         state.clear();
         state.getImports().clear();
         state.getPluginLoaders().clear();

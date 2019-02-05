@@ -27,7 +27,7 @@ public abstract class AbstractInstanceCommand extends AbstractConfigCommand {
         BeamCore.ui().write("\n");
 
         List<BeamInstance> instances = new ArrayList<>();
-        for (Resource resource : current.getResources().values()) {
+        for (Resource resource : current.findAllResources()) {
             if (BeamInstance.class.isAssignableFrom(resource.getClass())) {
                 BeamInstance instance = (BeamInstance) resource;
 

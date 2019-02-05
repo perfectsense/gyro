@@ -302,7 +302,7 @@ public abstract class Resource {
     /**
      * Return a list of fields that contain subresources (ResourceDiffProperty(subresource = true)).
      */
-    private List<String> subresourceFields() {
+    public List<String> subresourceFields() {
         List<String> keys = new ArrayList<>();
         Map<String, Object> pendingValues = resolvedKeyValues();
 

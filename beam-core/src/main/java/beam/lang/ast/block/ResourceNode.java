@@ -5,12 +5,14 @@ import beam.lang.Credentials;
 import beam.lang.Resource;
 import beam.lang.ast.Node;
 import beam.lang.ast.scope.ResourceScope;
+import beam.lang.ast.scope.RootScope;
 import beam.lang.ast.scope.Scope;
 import beam.parser.antlr4.BeamParser;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class ResourceNode extends BlockNode {
@@ -39,6 +41,17 @@ public class ResourceNode extends BlockNode {
     public Object evaluate(Scope scope) throws Exception {
         String name = (String) nameNode.evaluate(scope);
         ResourceScope bodyScope = new ResourceScope(scope);
+
+        Optional.ofNullable(scope.getRootScope().getCurrent())
+                .map(s -> s.findResource(name))
+                .ifPresent(r -> {
+                    ResourceScope s = r.scope();
+
+                    if (s != null) {
+                        bodyScope.putAll(s);
+                        r.subresourceFields().forEach(bodyScope::remove);
+                    }
+                });
 
         for (Node node : body) {
             node.evaluate(bodyScope);

@@ -29,8 +29,14 @@ public class LocalFileBackend extends FileBackend {
     }
 
     @Override
-    public void load(FileScope scope) throws Exception {
-        BeamLexer lexer = new BeamLexer(CharStreams.fromFileName(scope.getFile()));
+    public boolean load(FileScope scope) throws Exception {
+        Path file = Paths.get(scope.getFile());
+
+        if (!Files.exists(file) || Files.isDirectory(file)) {
+            return false;
+        }
+
+        BeamLexer lexer = new BeamLexer(CharStreams.fromFileName(file.toString()));
         CommonTokenStream stream = new CommonTokenStream(lexer);
         BeamParser parser = new BeamParser(stream);
         ErrorListener errorListener = new ErrorListener();
@@ -45,6 +51,8 @@ public class LocalFileBackend extends FileBackend {
         }
 
         Node.create(fileContext).evaluate(scope);
+
+        return true;
     }
 
     @Override

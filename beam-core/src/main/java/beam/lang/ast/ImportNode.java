@@ -24,7 +24,12 @@ public class ImportNode extends Node {
         FileScope parentFileScope = scope.getFileScope();
         FileScope fileRootScope = new FileScope(parentFileScope, file);
 
-        parentFileScope.getBackend().load(fileRootScope);
+        if (!parentFileScope.getBackend().load(fileRootScope)) {
+            throw new IllegalArgumentException(String.format(
+                    "Can't find [%s]!",
+                    file));
+        }
+
         parentFileScope.getImports().add(fileRootScope);
 
         if (name != null) {

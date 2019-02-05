@@ -2,7 +2,6 @@ package beam.core.diff;
 
 import beam.core.BeamCore;
 import beam.lang.Resource;
-import beam.lang.ast.scope.Scope;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,13 +19,7 @@ public class ResourceDiff {
 
     private boolean refresh;
 
-    public ResourceDiff(Scope current, Scope pending) {
-        this.currentResources = new ArrayList<>(current.getFileScope().getResources().values());
-        this.pendingResources = new ArrayList<>(pending.getFileScope().getResources().values());
-    }
-
-    public ResourceDiff(List<Resource> currentResources,
-                        List<Resource> pendingResources) {
+    public ResourceDiff(List<Resource> currentResources, List<Resource> pendingResources) {
         this.currentResources = currentResources;
         this.pendingResources = pendingResources != null ? pendingResources : Collections.EMPTY_LIST;
     }

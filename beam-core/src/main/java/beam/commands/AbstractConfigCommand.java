@@ -5,12 +5,11 @@ import beam.core.BeamException;
 import beam.core.LocalFileBackend;
 import beam.lang.BeamLanguageException;
 import beam.lang.Credentials;
+import beam.lang.FileBackend;
 import beam.lang.ast.scope.RootScope;
+import com.psddev.dari.util.StringUtils;
 import io.airlift.airline.Arguments;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
@@ -31,22 +30,18 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
         core = new BeamCore();
 
-        RootScope pending;
-        RootScope current;
+        FileBackend backend = new LocalFileBackend();
+
+        String file = StringUtils.ensureEnd(
+                StringUtils.removeEnd(arguments().get(0), ".bcl"),
+                ".bcl.state");
+
+        RootScope current = new RootScope(file);
+        RootScope pending = new RootScope(current);
 
         try {
-            String pendingFile = arguments().get(0);
-            pending = new RootScope(pendingFile);
-
-            new LocalFileBackend().load(pending);
-
-            String currentFile = pending.getFile() + ".state";
-            Path currentFilePath = Paths.get(currentFile);
-            current = new RootScope(currentFile);
-
-            if (Files.exists(currentFilePath) && !Files.isDirectory(currentFilePath)) {
-                pending.getBackend().load(current);
-            }
+            backend.load(current);
+            backend.load(pending);
 
         } catch (BeamLanguageException ex) {
             throw new BeamException(ex.getMessage());
