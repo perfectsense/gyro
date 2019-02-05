@@ -1,17 +1,15 @@
 package beam.lang.ast.scope;
 
 import beam.core.diff.ChangeType;
-import beam.core.diff.ResourceChange;
+import beam.core.diff.Change;
 import beam.core.diff.ResourceName;
 import beam.lang.Resource;
 import com.google.common.base.CaseFormat;
 
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
-import java.io.FileNotFoundException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -51,7 +49,7 @@ public class State {
         }
     }
 
-    public void update(ResourceChange change) throws Exception {
+    public void update(Change change) throws Exception {
 
         // Delete goes through every state to remove the resource.
         if (change.getType() == ChangeType.DELETE) {

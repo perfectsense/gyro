@@ -1,7 +1,7 @@
 package beam.lang;
 
 import beam.core.BeamException;
-import beam.core.diff.ResourceChange;
+import beam.core.diff.Change;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceDisplayDiff;
 import beam.core.diff.ResourceName;
@@ -51,7 +51,7 @@ public abstract class Resource {
 
     private Set<Resource> dependencies;
     private Set<Resource> dependents;
-    private ResourceChange change;
+    private Change change;
 
     static {
         DateTimeConverter converter = new DateConverter(null);
@@ -129,11 +129,11 @@ public abstract class Resource {
         return String.format("%s %s", resourceType(), resourceIdentifier());
     }
 
-    public ResourceChange change() {
+    public Change change() {
         return change;
     }
 
-    public void change(ResourceChange change) {
+    public void change(Change change) {
         this.change = change;
     }
 
@@ -176,7 +176,7 @@ public abstract class Resource {
         return copy;
     }
 
-    public void diffOnCreate(ResourceChange change) throws Exception {
+    public void diffOnCreate(Change change) throws Exception {
         Map<String, Object> pendingValues = resolvedKeyValues();
 
         for (String key : subresourceFields()) {
@@ -190,7 +190,7 @@ public abstract class Resource {
         }
     }
 
-    public void diffOnUpdate(ResourceChange change, Resource current) throws Exception {
+    public void diffOnUpdate(Change change, Resource current) throws Exception {
         Map<String, Object> currentValues = current.resolvedKeyValues();
         Map<String, Object> pendingValues = resolvedKeyValues();
 
@@ -207,7 +207,7 @@ public abstract class Resource {
         }
     }
 
-    public void diffOnDelete(ResourceChange change) throws Exception {
+    public void diffOnDelete(Change change) throws Exception {
         Map<String, Object> pendingValues = resolvedKeyValues();
 
         for (String key : subresourceFields()) {
@@ -250,11 +250,11 @@ public abstract class Resource {
             if (pendingValue != null || nullable) {
                 String fieldChangeOutput = null;
                 if (pendingValue instanceof List) {
-                    fieldChangeOutput = ResourceChange.processAsListValue(key, (List) currentValue, (List) pendingValue);
+                    fieldChangeOutput = Change.processAsListValue(key, (List) currentValue, (List) pendingValue);
                 } else if (pendingValue instanceof Map) {
-                    fieldChangeOutput = ResourceChange.processAsMapValue(key, (Map) currentValue, (Map) pendingValue);
+                    fieldChangeOutput = Change.processAsMapValue(key, (Map) currentValue, (Map) pendingValue);
                 } else {
-                    fieldChangeOutput = ResourceChange.processAsScalarValue(key, currentValue, pendingValue);
+                    fieldChangeOutput = Change.processAsScalarValue(key, currentValue, pendingValue);
                 }
 
                 if (!ObjectUtils.isBlank(fieldChangeOutput)) {

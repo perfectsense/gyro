@@ -11,15 +11,15 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ResourceDiff {
+public class Diff {
 
     private List<Resource> currentResources;
     private List<Resource> pendingResources;
-    private final List<ResourceChange> changes = new ArrayList<>();
+    private final List<Change> changes = new ArrayList<>();
 
     private boolean refresh;
 
-    public ResourceDiff(List<Resource> currentResources, List<Resource> pendingResources) {
+    public Diff(List<Resource> currentResources, List<Resource> pendingResources) {
         this.currentResources = currentResources;
         this.pendingResources = pendingResources != null ? pendingResources : Collections.EMPTY_LIST;
     }
@@ -57,8 +57,8 @@ public class ResourceDiff {
      * @param pendingResource Can't be {@code null}.
      * @return May be {@code null} to indicate no change.
      */
-    public ResourceChange newCreate(final Resource pendingResource) throws Exception {
-        ResourceChange create = new ResourceChange(this, null, pendingResource) {
+    public Change newCreate(final Resource pendingResource) throws Exception {
+        Change create = new Change(this, null, pendingResource) {
 
             @Override
             protected Resource change() {
@@ -86,10 +86,10 @@ public class ResourceDiff {
      * @param pendingResource Can't be {@code null}.
      * @return May be {@code null} to indicate no change.
      */
-    public ResourceChange newUpdate(final Resource currentResource, final Resource pendingResource) throws Exception {
+    public Change newUpdate(final Resource currentResource, final Resource pendingResource) throws Exception {
         pendingResource.syncPropertiesFromResource(currentResource);
 
-        ResourceChange update = new ResourceChange(this, currentResource, pendingResource);
+        Change update = new Change(this, currentResource, pendingResource);
         update.calculateFieldDiffs();
 
         currentResource.change(update);
@@ -105,8 +105,8 @@ public class ResourceDiff {
      * @param currentResource Can't be {@code null}.
      * @return May be {@code null} to indicate no change.
      */
-    public ResourceChange newDelete(final Resource currentResource) throws Exception {
-        ResourceChange delete = new ResourceChange(this, currentResource, null) {
+    public Change newDelete(final Resource currentResource) throws Exception {
+        Change delete = new Change(this, currentResource, null) {
 
             @Override
             protected Resource change() {
@@ -128,30 +128,30 @@ public class ResourceDiff {
         return delete;
     }
 
-    public void create(ResourceChange change, List<Resource> pendingResources) throws Exception {
-        ResourceDiff diff = new ResourceDiff(null, pendingResources);
+    public void create(Change change, List<Resource> pendingResources) throws Exception {
+        Diff diff = new Diff(null, pendingResources);
         diff.diff();
         change.getDiffs().add(diff);
     }
 
-    public void createOne(ResourceChange change, Resource pendingResource) throws Exception {
+    public void createOne(Change change, Resource pendingResource) throws Exception {
         if (pendingResource != null) {
-            ResourceDiff diff = new ResourceDiff(null, Arrays.asList(pendingResource));
+            Diff diff = new Diff(null, Arrays.asList(pendingResource));
             diff.diff();
             change.getDiffs().add(diff);
         }
     }
 
-    public void update(ResourceChange change, List currentResources, List pendingResources) throws Exception {
-        ResourceDiff diff = new ResourceDiff(currentResources, pendingResources);
+    public void update(Change change, List currentResources, List pendingResources) throws Exception {
+        Diff diff = new Diff(currentResources, pendingResources);
         diff.diff();
         change.getDiffs().add(diff);
     }
 
-    public void updateOne(ResourceChange change, Resource currentResource, Resource pendingResource) throws Exception {
+    public void updateOne(Change change, Resource currentResource, Resource pendingResource) throws Exception {
         if (currentResource != null) {
             if (pendingResource != null) {
-                ResourceDiff diff = new ResourceDiff(Arrays.asList(currentResource), Arrays.asList(pendingResource));
+                Diff diff = new Diff(Arrays.asList(currentResource), Arrays.asList(pendingResource));
                 diff.diff();
                 change.getDiffs().add(diff);
             } else {
@@ -163,21 +163,21 @@ public class ResourceDiff {
         }
     }
 
-    public void delete(ResourceChange change, List<Resource> currentResources) throws Exception {
-        ResourceDiff diff = new ResourceDiff(currentResources, null);
+    public void delete(Change change, List<Resource> currentResources) throws Exception {
+        Diff diff = new Diff(currentResources, null);
         diff.diff();
         change.getDiffs().add(diff);
     }
 
-    public void deleteOne(ResourceChange change, Resource currentResource) throws Exception {
+    public void deleteOne(Change change, Resource currentResource) throws Exception {
         if (currentResource != null) {
-            ResourceDiff diff = new ResourceDiff(Arrays.asList(currentResource), null);
+            Diff diff = new Diff(Arrays.asList(currentResource), null);
             diff.diff();
             change.getDiffs().add(diff);
         }
     }
 
-    public List<ResourceChange> getChanges() {
+    public List<Change> getChanges() {
         return changes;
     }
 
@@ -188,16 +188,16 @@ public class ResourceDiff {
     }
 
     public boolean hasChanges() {
-        List<ResourceChange> changes = getChanges();
+        List<Change> changes = getChanges();
 
-        for (ResourceChange change : changes) {
+        for (Change change : changes) {
             if (change.getType() != ChangeType.KEEP) {
                 return true;
             }
         }
 
-        for (ResourceChange change : changes) {
-            for (ResourceDiff diff : change.getDiffs()) {
+        for (Change change : changes) {
+            for (Diff diff : change.getDiffs()) {
                 if (diff.hasChanges()) {
                     return true;
                 }
@@ -276,7 +276,7 @@ public class ResourceDiff {
 
                 pendingResource.syncPropertiesFromResource(currentResource);
 
-                ResourceChange change = currentResource != null ? newUpdate(currentResource, pendingResource) : newCreate(pendingResource);
+                Change change = currentResource != null ? newUpdate(currentResource, pendingResource) : newCreate(pendingResource);
 
                 if (change != null) {
                     changes.add(change);
@@ -290,7 +290,7 @@ public class ResourceDiff {
 
         if (currentResources != null) {
             for (Resource resource : currentResourcesByName.values()) {
-                ResourceChange change = newDelete(resource);
+                Change change = newDelete(resource);
 
                 if (change != null) {
                     changes.add(change);

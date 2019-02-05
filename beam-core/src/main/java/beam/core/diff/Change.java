@@ -15,13 +15,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-public class ResourceChange {
+public class Change {
 
     private final Resource currentResource;
     private final Resource pendingResource;
 
-    private final ResourceDiff diff;
-    private final List<ResourceDiff> diffs = new ArrayList<>();
+    private final Diff diff;
+    private final List<Diff> diffs = new ArrayList<>();
     private boolean changeable;
     private boolean changed;
 
@@ -41,7 +41,7 @@ public class ResourceChange {
         }
     };
 
-    public ResourceChange(ResourceDiff diff, Resource currentResource, Resource pendingResource) {
+    public Change(Diff diff, Resource currentResource, Resource pendingResource) {
         this.currentResource = currentResource;
         this.pendingResource = pendingResource;
         this.diff = diff;
@@ -92,12 +92,12 @@ public class ResourceChange {
         diff.deleteOne(this, pendingResource);
     }
 
-    public Set<ResourceChange> dependencies() {
-        Set<ResourceChange> dependencies = new HashSet<>();
+    public Set<Change> dependencies() {
+        Set<Change> dependencies = new HashSet<>();
 
         Resource resource = pendingResource != null ? pendingResource : currentResource;
         for (Resource r : (getType() == ChangeType.DELETE ? resource.dependents() : resource.dependencies())) {
-            ResourceChange c = r.change();
+            Change c = r.change();
 
             if (c != null) {
                 dependencies.add(c);
@@ -121,7 +121,7 @@ public class ResourceChange {
         }
     }
 
-    public List<ResourceDiff> getDiffs() {
+    public List<Diff> getDiffs() {
         return diffs;
     }
 

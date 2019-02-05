@@ -1,8 +1,8 @@
 package beam.core;
 
 import beam.core.diff.ChangeType;
-import beam.core.diff.ResourceChange;
-import beam.core.diff.ResourceDiff;
+import beam.core.diff.Change;
+import beam.core.diff.Diff;
 import beam.lang.ast.scope.RootScope;
 import beam.lang.ast.scope.State;
 import com.psddev.dari.util.ThreadLocalStack;
@@ -29,32 +29,32 @@ public class BeamCore {
         return UI.pop();
     }
 
-    public List<ResourceDiff> diff(RootScope currentScope, RootScope pendingScope, boolean refresh) throws Exception {
-        ResourceDiff diff = new ResourceDiff(currentScope.findAllResources(), pendingScope.findAllResources());
+    public List<Diff> diff(RootScope currentScope, RootScope pendingScope, boolean refresh) throws Exception {
+        Diff diff = new Diff(currentScope.findAllResources(), pendingScope.findAllResources());
         diff.setRefresh(refresh);
         diff.diff();
 
-        List<ResourceDiff> diffs = new ArrayList<>();
+        List<Diff> diffs = new ArrayList<>();
         diffs.add(diff);
 
         return diffs;
     }
 
-    public Set<ChangeType> writeDiffs(List<ResourceDiff> diffs) {
+    public Set<ChangeType> writeDiffs(List<Diff> diffs) {
         Set<ChangeType> changeTypes = new HashSet<>();
-        for (ResourceDiff diff : diffs) {
+        for (Diff diff : diffs) {
             if (!diff.hasChanges()) {
                 continue;
             }
 
-            for (ResourceChange change : diff.getChanges()) {
+            for (Change change : diff.getChanges()) {
                 ChangeType type = change.getType();
-                List<ResourceDiff> changeDiffs = change.getDiffs();
+                List<Diff> changeDiffs = change.getDiffs();
 
                 if (type == ChangeType.KEEP) {
                     boolean hasChanges = false;
 
-                    for (ResourceDiff changeDiff : changeDiffs) {
+                    for (Diff changeDiff : changeDiffs) {
                         if (changeDiff.hasChanges()) {
                             hasChanges = true;
                             break;
@@ -76,20 +76,20 @@ public class BeamCore {
         return changeTypes;
     }
 
-    public void setChangeable(List<ResourceDiff> diffs) {
-        for (ResourceDiff diff : diffs) {
-            for (ResourceChange change : diff.getChanges()) {
+    public void setChangeable(List<Diff> diffs) {
+        for (Diff diff : diffs) {
+            for (Change change : diff.getChanges()) {
                 change.setChangeable(true);
                 setChangeable(change.getDiffs());
             }
         }
     }
 
-    public void createOrUpdate(State state, List<ResourceDiff> diffs) throws Exception {
+    public void createOrUpdate(State state, List<Diff> diffs) throws Exception {
         setChangeable(diffs);
 
-        for (ResourceDiff diff : diffs) {
-            for (ResourceChange change : diff.getChanges()) {
+        for (Diff diff : diffs) {
+            for (Change change : diff.getChanges()) {
                 ChangeType type = change.getType();
 
                 if (type == ChangeType.CREATE || type == ChangeType.UPDATE) {
@@ -101,14 +101,14 @@ public class BeamCore {
         }
     }
 
-    public void delete(State state, List<ResourceDiff> diffs) throws Exception {
+    public void delete(State state, List<Diff> diffs) throws Exception {
         setChangeable(diffs);
 
-        for (ListIterator<ResourceDiff> i = diffs.listIterator(diffs.size()); i.hasPrevious();) {
-            ResourceDiff diff = i.previous();
+        for (ListIterator<Diff> i = diffs.listIterator(diffs.size()); i.hasPrevious();) {
+            Diff diff = i.previous();
 
-            for (ListIterator<ResourceChange> j = diff.getChanges().listIterator(diff.getChanges().size()); j.hasPrevious();) {
-                ResourceChange change = j.previous();
+            for (ListIterator<Change> j = diff.getChanges().listIterator(diff.getChanges().size()); j.hasPrevious();) {
+                Change change = j.previous();
 
                 delete(state, change.getDiffs());
 
@@ -119,17 +119,17 @@ public class BeamCore {
         }
     }
 
-    public void execute(State state, ResourceChange change) throws Exception {
+    public void execute(State state, Change change) throws Exception {
         ChangeType type = change.getType();
 
         if (type == ChangeType.KEEP || type == ChangeType.REPLACE || change.isChanged()) {
             return;
         }
 
-        Set<ResourceChange> dependencies = change.dependencies();
+        Set<Change> dependencies = change.dependencies();
 
         if (dependencies != null && !dependencies.isEmpty()) {
-            for (ResourceChange d : dependencies) {
+            for (Change d : dependencies) {
                 execute(state, d);
             }
         }
@@ -141,7 +141,7 @@ public class BeamCore {
         state.update(change);
     }
 
-    private void writeChange(ResourceChange change) {
+    private void writeChange(Change change) {
         switch (change.getType()) {
             case CREATE :
                 BeamCore.ui().write("@|green + %s|@", change);
