@@ -88,27 +88,6 @@ public abstract class Resource {
         return this;
     }
 
-    public String resourceCredentialsName() {
-        Class c = resourceCredentialsClass();
-
-        try {
-            Credentials credentials = (Credentials) c.newInstance();
-
-            String resourceNamespace = credentials.getCloudName();
-            String resourceName = c.getSimpleName();
-            if (c.isAnnotationPresent(ResourceName.class)) {
-                ResourceName name = (ResourceName) c.getAnnotation(ResourceName.class);
-                resourceName = name.value();
-
-                return String.format("%s::%s", resourceNamespace, resourceName);
-            }
-        } catch (Exception ex) {
-            throw new BeamException("Unable to determine credentials resource name.", ex);
-        }
-
-        return c.getSimpleName();
-    }
-
     public Credentials resourceCredentials() {
         for (Resource r = this; r != null; r = r.parent()) {
             Scope scope = r.scope();
