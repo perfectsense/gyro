@@ -20,7 +20,6 @@ public class Change {
     private final Resource currentResource;
     private final Resource pendingResource;
 
-    private final Diff diff;
     private final List<Diff> diffs = new ArrayList<>();
     private boolean changeable;
     private boolean changed;
@@ -41,10 +40,9 @@ public class Change {
         }
     };
 
-    public Change(Diff diff, Resource currentResource, Resource pendingResource) {
+    public Change(Resource currentResource, Resource pendingResource) {
         this.currentResource = currentResource;
         this.pendingResource = pendingResource;
-        this.diff = diff;
     }
 
     public Resource getCurrentResource() {
@@ -69,30 +67,6 @@ public class Change {
         } else {
             throw new IllegalStateException("Can't change yet!");
         }
-    }
-
-    public void create(List<Resource> pendingResources) throws Exception {
-        diff.create(this, pendingResources);
-    }
-
-    public void createOne(Resource pendingResource) throws Exception {
-        diff.createOne(this, pendingResource);
-    }
-
-    public void update(List currentResources, List pendingResources) throws Exception {
-        diff.update(this, currentResources, pendingResources);
-    }
-
-    public void updateOne(Resource currentResource, Resource pendingResource) throws Exception {
-        diff.updateOne(this, currentResource, pendingResource);
-    }
-
-    public void delete(List<Resource> pendingResources) throws Exception {
-        diff.delete(this, pendingResources);
-    }
-
-    public void deleteOne(Resource pendingResource) throws Exception {
-        diff.deleteOne(this, pendingResource);
     }
 
     public Set<Change> dependencies() {

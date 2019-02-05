@@ -5,7 +5,6 @@ import beam.lang.Resource;
 import beam.lang.ast.scope.State;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -85,7 +84,7 @@ public class Diff {
      * @return May be {@code null} to indicate no change.
      */
     public Change newCreate(final Resource pendingResource) throws Exception {
-        Change create = new Change(this, null, pendingResource) {
+        Change create = new Change(null, pendingResource) {
 
             @Override
             protected Resource change() {
@@ -103,12 +102,21 @@ public class Diff {
 
         for (String key : pendingResource.subresourceFields()) {
             Object pendingValue = pendingResource.get(key);
+            Diff diff;
 
-            if (pendingValue instanceof Collection) {
-                create.create((List) pendingValue);
+            if (pendingValue instanceof List) {
+                diff = new Diff(null, (List<Resource>) pendingValue);
+
+            } else if (pendingValue != null) {
+                diff = new Diff(null, Collections.singletonList((Resource) pendingValue));
 
             } else {
-                create.createOne((Resource) pendingValue);
+                diff = null;
+            }
+
+            if (diff != null) {
+                diff.diff();
+                create.getDiffs().add(diff);
             }
         }
 
@@ -124,7 +132,7 @@ public class Diff {
      * @return May be {@code null} to indicate no change.
      */
     public Change newUpdate(final Resource currentResource, final Resource pendingResource) throws Exception {
-        Change update = new Change(this, currentResource, pendingResource);
+        Change update = new Change(currentResource, pendingResource);
 
         update.calculateFieldDiffs();
         currentResource.change(update);
@@ -133,12 +141,29 @@ public class Diff {
         for (String key : pendingResource.subresourceFields()) {
             Object currentValue = currentResource.get(key);
             Object pendingValue = pendingResource.get(key);
+            Diff diff;
 
             if (pendingValue instanceof Collection) {
-                update.update((List) currentValue, (List) pendingValue);
+                diff = new Diff((List<Resource>) currentValue, (List<Resource>) pendingValue);
+
+            } else if (currentValue != null) {
+                if (pendingValue != null) {
+                    diff = new Diff(Collections.singletonList((Resource) currentValue), Collections.singletonList((Resource) pendingValue));
+
+                } else {
+                    diff = new Diff(Collections.singletonList((Resource) currentValue), null);
+                }
+
+            } else if (pendingValue != null) {
+                diff = new Diff(null, Collections.singletonList((Resource) pendingValue));
 
             } else {
-                update.updateOne((Resource) currentValue, (Resource) pendingValue);
+                diff = null;
+            }
+
+            if (diff != null) {
+                diff.diff();
+                update.getDiffs().add(diff);
             }
         }
 
@@ -152,7 +177,7 @@ public class Diff {
      * @return May be {@code null} to indicate no change.
      */
     public Change newDelete(final Resource currentResource) throws Exception {
-        Change delete = new Change(this, currentResource, null) {
+        Change delete = new Change(currentResource, null) {
 
             @Override
             protected Resource change() {
@@ -172,65 +197,25 @@ public class Diff {
 
         for (String key : currentResource.subresourceFields()) {
             Object pendingValue = currentResource.get(key);
+            Diff diff;
 
             if (pendingValue instanceof Collection) {
-                delete.delete((List) pendingValue);
+                diff = new Diff((List<Resource>) pendingValue, null);
+
+            } else if (pendingValue != null) {
+                diff = new Diff(Collections.singletonList((Resource) pendingValue), null);
 
             } else {
-                delete.deleteOne((Resource) pendingValue);
+                diff = null;
+            }
+
+            if (diff != null) {
+                diff.diff();
+                delete.getDiffs().add(diff);
             }
         }
 
         return delete;
-    }
-
-    public void create(Change change, List<Resource> pendingResources) throws Exception {
-        Diff diff = new Diff(null, pendingResources);
-        diff.diff();
-        change.getDiffs().add(diff);
-    }
-
-    public void createOne(Change change, Resource pendingResource) throws Exception {
-        if (pendingResource != null) {
-            Diff diff = new Diff(null, Arrays.asList(pendingResource));
-            diff.diff();
-            change.getDiffs().add(diff);
-        }
-    }
-
-    public void update(Change change, List currentResources, List pendingResources) throws Exception {
-        Diff diff = new Diff(currentResources, pendingResources);
-        diff.diff();
-        change.getDiffs().add(diff);
-    }
-
-    public void updateOne(Change change, Resource currentResource, Resource pendingResource) throws Exception {
-        if (currentResource != null) {
-            if (pendingResource != null) {
-                Diff diff = new Diff(Arrays.asList(currentResource), Arrays.asList(pendingResource));
-                diff.diff();
-                change.getDiffs().add(diff);
-            } else {
-                deleteOne(change, currentResource);
-            }
-
-        } else if (pendingResource != null) {
-            createOne(change, pendingResource);
-        }
-    }
-
-    public void delete(Change change, List<Resource> currentResources) throws Exception {
-        Diff diff = new Diff(currentResources, null);
-        diff.diff();
-        change.getDiffs().add(diff);
-    }
-
-    public void deleteOne(Change change, Resource currentResource) throws Exception {
-        if (currentResource != null) {
-            Diff diff = new Diff(Arrays.asList(currentResource), null);
-            diff.diff();
-            change.getDiffs().add(diff);
-        }
     }
 
     public List<Change> getChanges() {
