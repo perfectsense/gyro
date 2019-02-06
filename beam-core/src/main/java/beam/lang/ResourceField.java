@@ -7,6 +7,7 @@ import java.lang.reflect.Type;
 import java.util.Optional;
 
 import com.google.common.base.CaseFormat;
+import com.psddev.dari.util.ObjectUtils;
 
 public class ResourceField {
 
@@ -73,7 +74,7 @@ public class ResourceField {
 
     public void setValue(Resource resource, Object value) {
         try {
-            setter.invoke(resource, value);
+            setter.invoke(resource, ObjectUtils.to(setter.getGenericParameterTypes()[0], value));
 
         } catch (IllegalAccessException error) {
             throw new IllegalStateException(error);

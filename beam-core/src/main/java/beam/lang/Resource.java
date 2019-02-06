@@ -18,9 +18,6 @@ import beam.lang.ast.value.StringNode;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Throwables;
 import com.psddev.dari.util.ObjectUtils;
-import org.apache.commons.beanutils.ConvertUtils;
-import org.apache.commons.beanutils.converters.DateConverter;
-import org.apache.commons.beanutils.converters.DateTimeConverter;
 
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -49,11 +46,6 @@ public abstract class Resource {
     private Set<Resource> dependencies;
     private Set<Resource> dependents;
     private Change change;
-
-    static {
-        DateTimeConverter converter = new DateConverter(null);
-        ConvertUtils.register(converter, Date.class);
-    }
 
     // -- Resource Implementation API
 
