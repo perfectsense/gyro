@@ -90,7 +90,7 @@ public class LocalFileBackend extends FileBackend {
                 }
 
                 for (Resource resource : scope.getResources().values()) {
-                    out.write(resource.toResourceNode().toString());
+                    out.write(resource.toNode().toString());
                 }
             }
 

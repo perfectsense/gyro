@@ -74,9 +74,9 @@ public class DiffableField {
         return itemClass;
     }
 
-    public Object getValue(Resource resource) {
+    public Object getValue(Diffable diffable) {
         try {
-            return getter.invoke(resource);
+            return getter.invoke(diffable);
 
         } catch (IllegalAccessException error) {
             throw new IllegalStateException(error);
@@ -90,9 +90,9 @@ public class DiffableField {
         }
     }
 
-    public void setValue(Resource resource, Object value) {
+    public void setValue(Diffable diffable, Object value) {
         try {
-            setter.invoke(resource, ObjectUtils.to(setter.getGenericParameterTypes()[0], value));
+            setter.invoke(diffable, ObjectUtils.to(setter.getGenericParameterTypes()[0], value));
 
         } catch (IllegalAccessException error) {
             throw new IllegalStateException(error);
