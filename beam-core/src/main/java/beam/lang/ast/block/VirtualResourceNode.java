@@ -17,7 +17,7 @@ public class VirtualResourceNode extends BlockNode {
     public VirtualResourceNode(VirtualResourceContext context) {
         super(context.virtualResourceBody()
                 .stream()
-                .map(b -> Node.create(b))
+                .map(b -> Node.create(b.getChild(0)))
                 .collect(Collectors.toList()));
 
         name = context.virtualResourceName().IDENTIFIER().getText();
