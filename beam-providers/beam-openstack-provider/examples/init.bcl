@@ -1,0 +1,14 @@
+plugin
+    artifact: 'beam:beam-openstack-provider:0.5'
+    repositories: [
+        'http://repo1.maven.org/maven2/',
+        'https://repo.gradle.org/gradle/libs-releases/',
+        'https://artifactory.psdops.com/public'
+    ]
+end
+
+openstack::credentials default
+    user-name: "beam-perfectsense-deepanjan@brightspot.com"
+    api-key: "fdb709a02ea946f58f4c3d84013fc0bc"
+    region: "IAD"
+end
