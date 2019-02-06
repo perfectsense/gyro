@@ -198,7 +198,7 @@ public abstract class Resource implements Diffable {
                 body.add(new KeyValueNode(key, new NumberNode((Number) value)));
 
             } else if (value instanceof List) {
-                if (field.getSubresourceClass() != null) {
+                if (field.isSubresource()) {
                     for (Object item : (List<?>) value) {
                         body.add(new KeyBlockNode(key, ((Resource) item).toBodyNodes()));
                     }

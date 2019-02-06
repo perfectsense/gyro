@@ -47,7 +47,7 @@ public class ResourceNode extends BlockNode {
                 .map(s -> s.findResource(name))
                 .ifPresent(r -> {
                     for (DiffableField f : DiffableType.getInstance(r.getClass()).getFields()) {
-                        if (f.getSubresourceClass() == null) {
+                        if (!f.isSubresource()) {
                             resourceScope.put(f.getBeamName(), f.getValue(r));
                         }
                     }

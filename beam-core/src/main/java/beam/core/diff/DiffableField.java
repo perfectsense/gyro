@@ -18,9 +18,8 @@ public class DiffableField {
     private final Method setter;
     private final boolean nullable;
     private final boolean updatable;
-    private final Class<? extends Resource> subresourceClass;
+    private final Class<?> itemClass;
 
-    @SuppressWarnings("unchecked")
     protected DiffableField(String javaName, Method getter, Method setter, Type type) {
         this.javaName = javaName;
         this.beamName = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, javaName);
@@ -39,22 +38,19 @@ public class DiffableField {
         }
 
         if (type instanceof Class) {
-            this.subresourceClass = (Class<? extends Resource>) Optional.of((Class<?>) type)
-                    .filter(Resource.class::isAssignableFrom)
-                    .orElse(null);
+            this.itemClass = (Class<?>) type;
 
         } else if (type instanceof ParameterizedType) {
-            this.subresourceClass = (Class<? extends Resource>) Optional.of((ParameterizedType) type)
+            this.itemClass = Optional.of((ParameterizedType) type)
                     .map(ParameterizedType::getActualTypeArguments)
                     .filter(args -> args.length > 0)
                     .map(args -> args[0])
                     .filter(a0 -> a0 instanceof Class)
                     .map(Class.class::cast)
-                    .filter(Resource.class::isAssignableFrom)
-                    .orElse(null);
+                    .orElseThrow(UnsupportedOperationException::new);
 
         } else {
-            this.subresourceClass = null;
+            throw new UnsupportedOperationException();
         }
     }
 
@@ -74,8 +70,8 @@ public class DiffableField {
         return updatable;
     }
 
-    public Class<? extends Resource> getSubresourceClass() {
-        return subresourceClass;
+    public Class<?> getItemClass() {
+        return itemClass;
     }
 
     public Object getValue(Resource resource) {
@@ -108,6 +104,10 @@ public class DiffableField {
                     ? (RuntimeException) cause
                     : new RuntimeException(cause);
         }
+    }
+
+    public boolean isSubresource() {
+        return Resource.class.isAssignableFrom(itemClass);
     }
 
 }

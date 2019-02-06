@@ -120,7 +120,7 @@ public class Diff {
         resource.change(create);
 
         for (DiffableField field : DiffableType.getInstance(resource.getClass()).getFields()) {
-            if (field.getSubresourceClass() == null) {
+            if (!field.isSubresource()) {
                 continue;
             }
 
@@ -167,7 +167,7 @@ public class Diff {
         pendingResource.change(change);
 
         for (DiffableField field : DiffableType.getInstance(currentResource.getClass()).getFields()) {
-            if (field.getSubresourceClass() == null) {
+            if (!field.isSubresource()) {
                 continue;
             }
 
@@ -207,7 +207,7 @@ public class Diff {
         ResourceDisplayDiff displayDiff = new ResourceDisplayDiff();
 
         for (DiffableField field : DiffableType.getInstance(currentResource.getClass()).getFields()) {
-            if (field.getSubresourceClass() != null) {
+            if (field.isSubresource()) {
                 continue;
             }
 
@@ -255,7 +255,7 @@ public class Diff {
         resource.change(delete);
 
         for (DiffableField field : DiffableType.getInstance(resource.getClass()).getFields()) {
-            if (field.getSubresourceClass() == null) {
+            if (!field.isSubresource()) {
                 continue;
             }
 
