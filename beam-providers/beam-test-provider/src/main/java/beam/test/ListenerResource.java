@@ -13,7 +13,7 @@ public class ListenerResource extends FakeResource {
     private String listenerArn;
     private Integer port;
     private String protocol;
-    private List<ListenerActionResource> action;
+    private List<ListenerAction> action;
 
     public String getListenerArn() {
         return listenerArn;
@@ -42,7 +42,7 @@ public class ListenerResource extends FakeResource {
     }
 
     @ResourceDiffProperty(nullable = true)
-    public List<ListenerActionResource> getAction() {
+    public List<ListenerAction> getAction() {
         if (action == null) {
             action = new ArrayList<>();
         }
@@ -50,7 +50,7 @@ public class ListenerResource extends FakeResource {
         return action;
     }
 
-    public void setAction(List<ListenerActionResource> action) {
+    public void setAction(List<ListenerAction> action) {
         this.action = action;
     }
 

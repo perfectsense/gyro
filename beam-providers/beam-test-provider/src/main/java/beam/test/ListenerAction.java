@@ -3,12 +3,12 @@ package beam.test;
 import beam.core.diff.Diffable;
 import beam.core.diff.ResourceDiffProperty;
 
-public class ListenerActionResource extends Diffable {
+public class ListenerAction extends Diffable {
 
     private Integer order;
     private String targetGroupArn;
     private String type;
-    private AuthenticateCognitoConfig cognito;
+    private AuthenticateCognito cognito;
 
     @ResourceDiffProperty(updatable = true)
     public Integer getOrder() {
@@ -37,17 +37,17 @@ public class ListenerActionResource extends Diffable {
     }
 
     @ResourceDiffProperty(nullable = true)
-    public AuthenticateCognitoConfig getCognito() {
+    public AuthenticateCognito getCognito() {
         return cognito;
     }
 
-    public void setCognito(AuthenticateCognitoConfig cognito) {
+    public void setCognito(AuthenticateCognito cognito) {
         this.cognito = cognito;
     }
 
     @Override
     public String primaryKey() {
-        return "action:" + String.valueOf(order);
+        return "action:" + order;
     }
 
     @Override

@@ -6,7 +6,7 @@ import java.util.Map;
 import beam.core.diff.Diffable;
 import beam.core.diff.ResourceDiffProperty;
 
-public class AuthenticateCognitoConfig extends Diffable {
+public class AuthenticateCognito extends Diffable {
 
     private Map<String, String> extraParams;
     private String onUnauthenticatedRequest;
@@ -88,7 +88,7 @@ public class AuthenticateCognitoConfig extends Diffable {
 
     @Override
     public String primaryKey() {
-        return "cognito:" + String.valueOf(userPoolClientId);
+        return "cognito:" + userPoolArn;
     }
 
     @Override
