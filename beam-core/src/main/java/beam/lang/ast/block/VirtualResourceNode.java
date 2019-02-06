@@ -11,13 +11,16 @@ import static beam.parser.antlr4.BeamParser.VirtualResourceContext;
 
 public class VirtualResourceNode extends BlockNode {
 
+    private String name;
     private List<Node> parameters;
 
     public VirtualResourceNode(VirtualResourceContext context) {
         super(context.virtualResourceBody()
                 .stream()
-                .map(b -> Node.create(b))
+                .map(b -> Node.create(b.getChild(0)))
                 .collect(Collectors.toList()));
+
+        name = context.virtualResourceName().IDENTIFIER().getText();
 
         parameters = context.virtualResourceParam()
             .stream()
@@ -27,23 +30,23 @@ public class VirtualResourceNode extends BlockNode {
 
     @Override
     public Object evaluate(Scope scope) throws Exception {
-        Scope bodyScope = new Scope(null);
-
         for (Node parameterNode : parameters) {
             String parameter = ((VirtualResourceParamNode) parameterNode).getName();
 
             if (!scope.containsKey(parameter)) {
                 throw new BeamLanguageException(String.format("Required parameter '%s' is missing.", parameter));
             }
-
-            bodyScope.put(parameter, scope.get(parameter));
         }
 
         for (Node node : body) {
-            node.evaluate(bodyScope);
+            node.evaluate(scope);
         }
 
         return null;
+    }
+
+    public String getName() {
+        return name;
     }
 
     @Override

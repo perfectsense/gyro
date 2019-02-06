@@ -14,6 +14,7 @@ import beam.lang.Resource;
 import beam.lang.ast.Node;
 import beam.lang.ast.scope.DiffableScope;
 import beam.lang.ast.scope.Scope;
+import beam.lang.ast.scope.VirtualResourceScope;
 import beam.parser.antlr4.BeamParser;
 
 public class ResourceNode extends BlockNode {
@@ -58,6 +59,17 @@ public class ResourceNode extends BlockNode {
         }
 
         Resource resource = createResource(scope, type);
+
+        if (resource == null) {
+            VirtualResourceNode virtualResourceNode = scope.getRootScope().getVirtualResources().get(type);
+            if (virtualResourceNode != null) {
+                virtualResourceNode.evaluate(new VirtualResourceScope(resourceScope, name));
+
+                return null;
+            } else {
+                throw new BeamLanguageException("Unknown resource type: " + type);
+            }
+        }
 
         resource.resourceIdentifier(name);
         resource.scope(diffableScope);
@@ -131,7 +143,7 @@ public class ResourceNode extends BlockNode {
             }
         }
 
-        throw new BeamLanguageException("Unknown resource type: " + type);
+        return null;
     }
 
 }
