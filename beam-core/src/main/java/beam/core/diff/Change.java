@@ -45,16 +45,12 @@ public class Change {
         this.pendingResource = pendingResource;
     }
 
-    public Resource getCurrentResource() {
-        return currentResource;
-    }
-
-    public Resource getPendingResource() {
-        return pendingResource;
+    public Resource getResource() {
+        return pendingResource != null ? pendingResource : currentResource;
     }
 
     public Resource executeChange() throws Exception {
-        Resource resource = pendingResource != null ? pendingResource : currentResource;
+        Resource resource = getResource();
         ResourceScope scope = resource.scope();
 
         if (scope != null) {

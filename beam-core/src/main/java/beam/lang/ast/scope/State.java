@@ -47,10 +47,10 @@ public class State {
     }
 
     public void update(Change change) throws Exception {
+        Resource resource = change.getResource();
 
         // Delete goes through every state to remove the resource.
         if (change.getType() == ChangeType.DELETE) {
-            Resource resource = change.getCurrentResource();
             String key = resource.resourceIdentifier();
 
             // Subresource?
@@ -68,7 +68,6 @@ public class State {
             }
 
         } else {
-            Resource resource = change.getPendingResource();
             String key = resource.resourceIdentifier();
             Map<String, Resource> stateResources = states.get(resource.scope().getFileScope().getFile()).getResources();
 
