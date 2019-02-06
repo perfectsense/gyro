@@ -131,23 +131,7 @@ public class Diff {
 
     @SuppressWarnings("unchecked")
     private Change newUpdate(Diffable currentDiffable, Diffable pendingDiffable) throws Exception {
-        ResourceDisplayDiff displayDiff = diffFields(currentDiffable, pendingDiffable);
-        Set<String> changedProperties = displayDiff.getChangedProperties();
-        String changedDisplay = displayDiff.getChangedDisplay().toString();
-        Change change;
-
-        if (changedProperties.isEmpty()) {
-            change = new Keep(pendingDiffable);
-
-        } else if (displayDiff.isReplace()) {
-            change = new Replace(currentDiffable, pendingDiffable, changedProperties, changedDisplay);
-
-        } else {
-            change = new Update(currentDiffable, pendingDiffable, changedProperties, changedDisplay);
-        }
-
-        currentDiffable.change(change);
-        pendingDiffable.change(change);
+        List<Diff> diffs = new ArrayList<>();
 
         for (DiffableField field : DiffableType.getInstance(currentDiffable.getClass()).getFields()) {
             if (!Diffable.class.isAssignableFrom(field.getItemClass())) {
@@ -178,11 +162,48 @@ public class Diff {
 
             if (diff != null) {
                 diff.diff();
-                change.getDiffs().add(diff);
+                diffs.add(diff);
             }
         }
 
+        ResourceDisplayDiff displayDiff = diffFields(currentDiffable, pendingDiffable);
+        Set<String> changedProperties = displayDiff.getChangedProperties();
+        String changedDisplay = displayDiff.getChangedDisplay().toString();
+        Change change;
+
+        if (changedProperties.isEmpty() && !hasNonResourceChanges(diffs)) {
+            change = new Keep(pendingDiffable);
+
+        } else if (displayDiff.isReplace()) {
+            change = new Replace(currentDiffable, pendingDiffable, changedProperties, changedDisplay);
+
+        } else {
+            change = new Update(currentDiffable, pendingDiffable, changedProperties, changedDisplay);
+        }
+
+        currentDiffable.change(change);
+        pendingDiffable.change(change);
+        change.getDiffs().addAll(diffs);
+
         return change;
+    }
+
+    private boolean hasNonResourceChanges(List<Diff> diffs) {
+        for (Diff diff : diffs) {
+            for (Change change : diff.getChanges()) {
+                if (!(change instanceof Keep)
+                        && !(change.getDiffable() instanceof Resource)) {
+
+                    return true;
+                }
+
+                if (hasNonResourceChanges(change.getDiffs())) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private ResourceDisplayDiff diffFields(Diffable currentDiffable, Diffable pendingDiffable) {
