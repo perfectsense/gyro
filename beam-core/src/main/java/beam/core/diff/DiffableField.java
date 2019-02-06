@@ -4,13 +4,22 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.List;
 import java.util.Optional;
 
 import beam.lang.Resource;
 import com.google.common.base.CaseFormat;
-import com.psddev.dari.util.ObjectUtils;
+import com.psddev.dari.util.Converter;
 
 public class DiffableField {
+
+    private static final Converter CONVERTER;
+
+    static {
+        CONVERTER = new Converter();
+        CONVERTER.setThrowError(true);
+        CONVERTER.putAllStandardFunctions();
+    }
 
     private final String javaName;
     private final String beamName;
@@ -92,7 +101,15 @@ public class DiffableField {
 
     public void setValue(Diffable diffable, Object value) {
         try {
-            setter.invoke(diffable, ObjectUtils.to(setter.getGenericParameterTypes()[0], value));
+            if (value instanceof List
+                    && !List.class.isAssignableFrom(setter.getParameterTypes()[0])) {
+
+                value = ((List<?>) value).stream()
+                        .findFirst()
+                        .orElse(null);
+            }
+
+            setter.invoke(diffable, CONVERTER.convert(setter.getGenericParameterTypes()[0], value));
 
         } catch (IllegalAccessException error) {
             throw new IllegalStateException(error);

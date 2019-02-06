@@ -345,7 +345,9 @@ public class Diff {
 
         for (Change change : getChanges()) {
             if (change instanceof Create || change instanceof Update) {
-                execute(state, change);
+                if (change.getDiffable() instanceof Resource) {
+                    execute(state, change);
+                }
             }
 
             for (Diff d : change.getDiffs()) {
@@ -365,7 +367,9 @@ public class Diff {
             }
 
             if (change instanceof Delete) {
-                execute(state, change);
+                if (change.getDiffable() instanceof Resource) {
+                    execute(state, change);
+                }
             }
         }
     }

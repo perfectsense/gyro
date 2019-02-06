@@ -1,13 +1,17 @@
 package beam.core.diff;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import beam.lang.Resource;
 import beam.lang.ast.KeyValueNode;
 import beam.lang.ast.Node;
 import beam.lang.ast.block.KeyBlockNode;
+import beam.lang.ast.scope.DiffableScope;
 import beam.lang.ast.value.BooleanNode;
 import beam.lang.ast.value.ListNode;
 import beam.lang.ast.value.MapNode;
@@ -24,6 +28,74 @@ public abstract class Diffable {
 
     public void change(Change change) {
         this.change = change;
+    }
+
+    public void initialize(Map<String, Object> values) {
+        for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
+            String key = field.getBeamName();
+
+            if (!values.containsKey(key)) {
+                continue;
+            }
+
+            Class<?> itemClass = field.getItemClass();
+            Object value = values.get(key);
+
+            if (Diffable.class.isAssignableFrom(itemClass)) {
+                @SuppressWarnings("unchecked")
+                Class<? extends Diffable> diffableClass = (Class<? extends Diffable>) itemClass;
+
+                if (value instanceof List) {
+                    value = ((List<?>) value).stream()
+                            .map(v -> toDiffable(key, diffableClass, v))
+                            .collect(Collectors.toList());
+
+                } else if (value instanceof DiffableScope) {
+                    value = toDiffable(key, diffableClass, value);
+                }
+            }
+
+            field.setValue(this, value);
+        }
+    }
+
+    private Object toDiffable(String key, Class<? extends Diffable> diffableClass, Object object) {
+        if (!(object instanceof DiffableScope)) {
+            return object;
+        }
+
+        DiffableScope scope = (DiffableScope) object;
+        Diffable diffable;
+
+        try {
+            diffable = diffableClass.getConstructor().newInstance();
+
+        } catch (IllegalAccessException
+                | InstantiationException
+                | NoSuchMethodException error) {
+
+            throw new IllegalStateException(error);
+
+        } catch (InvocationTargetException error) {
+            Throwable cause = error.getCause();
+
+            throw cause instanceof RuntimeException
+                    ? (RuntimeException) cause
+                    : new RuntimeException(cause);
+        }
+
+        if (diffable instanceof Resource) {
+            Resource valueResource = (Resource) diffable;
+
+            valueResource.parent((Resource) this);
+            valueResource.resourceType(key);
+            valueResource.scope(scope);
+            valueResource.initialize(scope);
+        }
+
+        diffable.initialize(scope);
+
+        return diffable;
     }
 
     public abstract String primaryKey();
@@ -58,11 +130,11 @@ public abstract class Diffable {
                     }
 
                 } else {
-                    body.add(new KeyValueNode(key, convert(value)));
+                    body.add(new KeyValueNode(key, toNode(value)));
                 }
 
             } else if (value instanceof Map) {
-                body.add(new KeyValueNode(key, convert(value)));
+                body.add(new KeyValueNode(key, toNode(value)));
 
             } else if (value instanceof Number) {
                 body.add(new KeyValueNode(key, new NumberNode((Number) value)));
@@ -80,7 +152,7 @@ public abstract class Diffable {
         return body;
     }
 
-    private Node convert(Object value) {
+    private Node toNode(Object value) {
         if (value instanceof Boolean) {
             return new BooleanNode(Boolean.TRUE.equals(value));
 
@@ -88,7 +160,7 @@ public abstract class Diffable {
             List<Node> items = new ArrayList<>();
 
             for (Object item : (List<?>) value) {
-                items.add(convert(item));
+                items.add(toNode(item));
             }
 
             return new ListNode(items);
@@ -99,7 +171,7 @@ public abstract class Diffable {
             for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
                 entries.add(new KeyValueNode(
                         (String) entry.getKey(),
-                        convert(entry.getValue())));
+                        toNode(entry.getValue())));
             }
 
             return new MapNode(entries);

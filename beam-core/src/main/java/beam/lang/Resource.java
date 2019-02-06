@@ -98,16 +98,6 @@ public abstract class Resource extends Diffable {
         this.name = name;
     }
 
-    public void initialize(Map<String, Object> values) {
-        for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
-            String key = field.getBeamName();
-
-            if (values.containsKey(key)) {
-                field.setValue(this, values.get(key));
-            }
-        }
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {

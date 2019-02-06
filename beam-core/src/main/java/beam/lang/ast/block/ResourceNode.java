@@ -1,14 +1,12 @@
 package beam.lang.ast.block;
 
-import java.util.ArrayList;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import beam.core.diff.DiffableField;
 import beam.core.diff.DiffableType;
-import beam.lang.BeamLanguageException;
 import beam.lang.Credentials;
 import beam.lang.Resource;
 import beam.lang.ast.Node;
@@ -42,67 +40,64 @@ public class ResourceNode extends BlockNode {
     @Override
     public Object evaluate(Scope scope) throws Exception {
         String name = (String) nameNode.evaluate(scope);
-        DiffableScope diffableScope = new DiffableScope(scope);
+        DiffableScope bodyScope = new DiffableScope(scope);
 
+        // Initialize the bodyScope with the resource values from the current
+        // state scope.
         Optional.ofNullable(scope.getRootScope().getCurrent())
                 .map(s -> s.findResource(name))
                 .ifPresent(r -> {
                     for (DiffableField f : DiffableType.getInstance(r.getClass()).getFields()) {
                         if (!f.isSubresource()) {
-                            diffableScope.put(f.getBeamName(), f.getValue(r));
+                            bodyScope.put(f.getBeamName(), f.getValue(r));
                         }
                     }
                 });
 
         for (Node node : body) {
-            node.evaluate(diffableScope);
+            node.evaluate(bodyScope);
         }
 
-        Resource resource = createResource(scope, type);
+        @SuppressWarnings("unchecked")
+        Class<? extends Resource> resourceClass = (Class<? extends Resource>) scope.getRootScope().getResourceClasses().get(type);
 
-        if (resource == null) {
+        if (resourceClass == null) {
             VirtualResourceNode virtualResourceNode = scope.getRootScope().getVirtualResources().get(type);
+
             if (virtualResourceNode != null) {
-                virtualResourceNode.evaluate(new VirtualResourceScope(resourceScope, name));
-
+                virtualResourceNode.evaluate(new VirtualResourceScope(bodyScope, name));
                 return null;
+
             } else {
-                throw new BeamLanguageException("Unknown resource type: " + type);
+                throw new IllegalArgumentException(String.format(
+                        "Can't create resource of [%s] type!",
+                        type));
             }
         }
 
+        Resource resource;
+
+        try {
+            resource = resourceClass.getConstructor().newInstance();
+
+        } catch (IllegalAccessException
+                | InstantiationException
+                | NoSuchMethodException error) {
+
+            throw new IllegalStateException(error);
+
+        } catch (InvocationTargetException error) {
+            Throwable cause = error.getCause();
+
+            throw cause instanceof RuntimeException
+                    ? (RuntimeException) cause
+                    : new RuntimeException(cause);
+        }
+
+        resource.resourceType(type);
         resource.resourceIdentifier(name);
-        resource.scope(diffableScope);
-
-        // Find subresources.
-        for (Map.Entry<String, Object> entry : diffableScope.entrySet()) {
-            String subresourceType = type + "::" + entry.getKey();
-
-            if (scope.getRootScope().getResourceClasses().get(subresourceType) != null) {
-                Object value = entry.getValue();
-
-                if (!(value instanceof List)) {
-                    throw new IllegalArgumentException();
-                }
-
-                List<Resource> subresources = new ArrayList<>();
-
-                for (DiffableScope subresourceScope : (List<DiffableScope>) value) {
-                    Resource subresource = createResource(scope, subresourceType);
-
-                    subresource.parent(resource);
-                    subresource.resourceType(entry.getKey());
-                    subresource.scope(subresourceScope);
-                    subresource.initialize(subresourceScope);
-
-                    subresources.add(subresource);
-                }
-
-                entry.setValue(subresources);
-            }
-        }
-
-        resource.initialize(diffableScope);
+        resource.scope(bodyScope);
+        resource.initialize(bodyScope);
 
         if (resource instanceof Credentials) {
             scope.getRootScope().getCredentialsMap().put(name, (Credentials) resource);
@@ -128,22 +123,6 @@ public class ResourceNode extends BlockNode {
 
         buildNewline(builder, indentDepth);
         builder.append("end");
-    }
-
-    private Resource createResource(Scope scope, String type) {
-        Class klass = scope.getRootScope().getResourceClasses().get(type);
-        if (klass != null) {
-            try {
-                beam.lang.Resource resource = (beam.lang.Resource) klass.newInstance();
-                resource.resourceType(type);
-
-                return resource;
-            } catch (InstantiationException | IllegalAccessException ex) {
-                throw new BeamLanguageException("Unable to instantiate " + klass.getClass().getSimpleName());
-            }
-        }
-
-        return null;
     }
 
 }
