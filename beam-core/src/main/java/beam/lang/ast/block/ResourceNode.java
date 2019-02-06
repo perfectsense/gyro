@@ -12,7 +12,7 @@ import beam.lang.BeamLanguageException;
 import beam.lang.Credentials;
 import beam.lang.Resource;
 import beam.lang.ast.Node;
-import beam.lang.ast.scope.ResourceScope;
+import beam.lang.ast.scope.DiffableScope;
 import beam.lang.ast.scope.Scope;
 import beam.parser.antlr4.BeamParser;
 
@@ -41,29 +41,29 @@ public class ResourceNode extends BlockNode {
     @Override
     public Object evaluate(Scope scope) throws Exception {
         String name = (String) nameNode.evaluate(scope);
-        ResourceScope resourceScope = new ResourceScope(scope);
+        DiffableScope diffableScope = new DiffableScope(scope);
 
         Optional.ofNullable(scope.getRootScope().getCurrent())
                 .map(s -> s.findResource(name))
                 .ifPresent(r -> {
                     for (DiffableField f : DiffableType.getInstance(r.getClass()).getFields()) {
                         if (!f.isSubresource()) {
-                            resourceScope.put(f.getBeamName(), f.getValue(r));
+                            diffableScope.put(f.getBeamName(), f.getValue(r));
                         }
                     }
                 });
 
         for (Node node : body) {
-            node.evaluate(resourceScope);
+            node.evaluate(diffableScope);
         }
 
         Resource resource = createResource(scope, type);
 
         resource.resourceIdentifier(name);
-        resource.scope(resourceScope);
+        resource.scope(diffableScope);
 
         // Find subresources.
-        for (Map.Entry<String, Object> entry : resourceScope.entrySet()) {
+        for (Map.Entry<String, Object> entry : diffableScope.entrySet()) {
             String subresourceType = type + "::" + entry.getKey();
 
             if (scope.getRootScope().getResourceClasses().get(subresourceType) != null) {
@@ -75,7 +75,7 @@ public class ResourceNode extends BlockNode {
 
                 List<Resource> subresources = new ArrayList<>();
 
-                for (ResourceScope subresourceScope : (List<ResourceScope>) value) {
+                for (DiffableScope subresourceScope : (List<DiffableScope>) value) {
                     Resource subresource = createResource(scope, subresourceType);
 
                     subresource.parent(resource);
@@ -90,7 +90,7 @@ public class ResourceNode extends BlockNode {
             }
         }
 
-        resource.initialize(resourceScope);
+        resource.initialize(diffableScope);
 
         if (resource instanceof Credentials) {
             scope.getRootScope().getCredentialsMap().put(name, (Credentials) resource);

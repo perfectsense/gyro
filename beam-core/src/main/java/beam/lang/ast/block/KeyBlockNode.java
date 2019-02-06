@@ -1,12 +1,12 @@
 package beam.lang.ast.block;
 
-import beam.lang.ast.Node;
-import beam.lang.ast.scope.ResourceScope;
-import beam.lang.ast.scope.Scope;
-import beam.parser.antlr4.BeamParser;
-
 import java.util.List;
 import java.util.stream.Collectors;
+
+import beam.lang.ast.Node;
+import beam.lang.ast.scope.DiffableScope;
+import beam.lang.ast.scope.Scope;
+import beam.parser.antlr4.BeamParser;
 
 public class KeyBlockNode extends BlockNode {
 
@@ -33,7 +33,7 @@ public class KeyBlockNode extends BlockNode {
 
     @Override
     public Object evaluate(Scope scope) throws Exception {
-        ResourceScope bodyScope = new ResourceScope(scope);
+        DiffableScope bodyScope = new DiffableScope(scope);
 
         for (Node node : body) {
             node.evaluate(bodyScope);

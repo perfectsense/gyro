@@ -10,7 +10,7 @@ import beam.core.diff.DiffableField;
 import beam.core.diff.DiffableType;
 import beam.core.diff.ResourceName;
 import beam.lang.ast.block.ResourceNode;
-import beam.lang.ast.scope.ResourceScope;
+import beam.lang.ast.scope.DiffableScope;
 import beam.lang.ast.scope.Scope;
 import beam.lang.ast.value.StringNode;
 
@@ -18,7 +18,7 @@ public abstract class Resource extends Diffable {
 
     private String type;
     private String name;
-    private ResourceScope scope;
+    private DiffableScope scope;
     private Resource parent;
 
     // -- Resource Implementation API
@@ -33,11 +33,11 @@ public abstract class Resource extends Diffable {
 
     public abstract Class resourceCredentialsClass();
 
-    public ResourceScope scope() {
+    public DiffableScope scope() {
         return scope;
     }
 
-    public void scope(ResourceScope scope) {
+    public void scope(DiffableScope scope) {
         this.scope = scope;
     }
 

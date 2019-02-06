@@ -1,18 +1,18 @@
 package beam.core.diff;
 
-import beam.core.BeamUI;
-import beam.lang.Resource;
-import beam.lang.ast.scope.ResourceScope;
-import com.google.common.collect.MapDifference;
-import com.google.common.collect.Maps;
-import com.psddev.dari.util.ObjectUtils;
-import com.psddev.dari.util.StringUtils;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import beam.core.BeamUI;
+import beam.lang.Resource;
+import beam.lang.ast.scope.DiffableScope;
+import com.google.common.collect.MapDifference;
+import com.google.common.collect.Maps;
+import com.psddev.dari.util.ObjectUtils;
+import com.psddev.dari.util.StringUtils;
 
 public abstract class Change {
 
@@ -58,7 +58,7 @@ public abstract class Change {
         }
 
         Resource resource = (Resource) diffable;
-        ResourceScope scope = resource.scope();
+        DiffableScope scope = resource.scope();
 
         if (scope != null) {
             resource.initialize(scope.resolve());

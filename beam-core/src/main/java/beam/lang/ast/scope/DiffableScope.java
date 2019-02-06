@@ -1,15 +1,15 @@
 package beam.lang.ast.scope;
 
-import beam.lang.ast.Node;
-
 import java.util.HashMap;
 import java.util.Map;
 
-public class ResourceScope extends Scope {
+import beam.lang.ast.Node;
+
+public class DiffableScope extends Scope {
 
     private final Map<String, ValueScope> valueScopes = new HashMap<>();
 
-    public ResourceScope(Scope parent) {
+    public DiffableScope(Scope parent) {
         super(parent);
     }
 

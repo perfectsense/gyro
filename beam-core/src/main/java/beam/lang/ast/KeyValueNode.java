@@ -1,11 +1,11 @@
 package beam.lang.ast;
 
-import beam.lang.ast.scope.ResourceScope;
+import java.util.Optional;
+
+import beam.lang.ast.scope.DiffableScope;
 import beam.lang.ast.scope.Scope;
 import beam.parser.antlr4.BeamParser;
 import org.antlr.v4.runtime.tree.ParseTree;
-
-import java.util.Optional;
 
 public class KeyValueNode extends Node {
 
@@ -29,7 +29,7 @@ public class KeyValueNode extends Node {
 
     @Override
     public Object evaluate(Scope scope) throws Exception {
-        Optional.ofNullable(scope.getClosest(ResourceScope.class))
+        Optional.ofNullable(scope.getClosest(DiffableScope.class))
                 .ifPresent(s -> s.add(key, value, scope));
 
         scope.put(key, value.evaluate(scope));
