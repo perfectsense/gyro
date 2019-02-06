@@ -16,8 +16,8 @@ import java.util.Set;
 
 public class Diff {
 
-    private List<Resource> currentResources;
-    private List<Resource> pendingResources;
+    private final List<Resource> currentResources;
+    private final List<Resource> pendingResources;
     private final List<Change> changes = new ArrayList<>();
 
     private boolean refresh;
@@ -56,24 +56,6 @@ public class Diff {
 
     public void setRefresh(boolean refresh) {
         this.refresh = refresh;
-    }
-
-    /**
-     * Returns all resources that are currently running in providers.
-     *
-     * @return May be {@code null} to represent an empty iterable.
-     */
-    public List<Resource> getCurrentResources() {
-        return currentResources;
-    }
-
-    /**
-     * Returns all resources that should be applied from configs.
-     *
-     * @return May be {@code null} to represent an empty iterable.
-     */
-    public List<Resource> getPendingResources() {
-        return pendingResources;
     }
 
     /**
@@ -209,14 +191,14 @@ public class Diff {
     }
 
     public void diff() throws Exception {
-        Map<String, Resource> currentResources = getCurrentResources().stream().collect(
+        Map<String, Resource> currentResources = this.currentResources.stream().collect(
                 LinkedHashMap::new,
                 (map, r) -> map.put(r.primaryKey(), r),
                 Map::putAll);
 
         boolean refreshed = false;
 
-        for (Resource pr : getPendingResources()) {
+        for (Resource pr : pendingResources) {
             Resource cr = currentResources.remove(pr.primaryKey());
 
             if (cr != null && shouldRefresh()) {
