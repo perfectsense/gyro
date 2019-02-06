@@ -8,7 +8,9 @@ import beam.lang.ast.scope.Scope;
 import beam.parser.antlr4.BeamParser;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class RootNode extends BlockNode {
@@ -27,6 +29,7 @@ public class RootNode extends BlockNode {
         List<ImportNode> imports = new ArrayList<>();
         List<KeyValueNode> keyValues = new ArrayList<>();
         List<PluginNode> plugins = new ArrayList<>();
+        Map<String, VirtualResourceNode> virtualResources = scope.getFileScope().getVirtualResources();
         List<Node> body = new ArrayList<>();
 
         for (Node node : this.body) {
@@ -38,6 +41,10 @@ public class RootNode extends BlockNode {
 
             } else if (node instanceof PluginNode) {
                 plugins.add((PluginNode) node);
+
+            } else if (node instanceof VirtualResourceNode) {
+                VirtualResourceNode vrNode = (VirtualResourceNode) node;
+                virtualResources.put(vrNode.getName(), vrNode);
 
             } else {
                 body.add(node);
