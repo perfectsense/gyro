@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 import beam.core.BeamCore;
+import beam.lang.Credentials;
 import beam.lang.Resource;
 import beam.lang.ast.scope.State;
 import com.psddev.dari.util.ObjectUtils;
@@ -19,8 +20,6 @@ public class Diff {
     private final List<Diffable> currentDiffables;
     private final List<Diffable> pendingDiffables;
     private final List<Change> changes = new ArrayList<>();
-
-    private boolean refresh;
 
     public Diff(List<? extends Diffable> currentDiffables, List<? extends Diffable> pendingDiffables) {
         this.currentDiffables = currentDiffables != null
@@ -42,14 +41,6 @@ public class Diff {
                 : Collections.emptyList();
     }
 
-    public boolean shouldRefresh() {
-        return refresh;
-    }
-
-    public void setRefresh(boolean refresh) {
-        this.refresh = refresh;
-    }
-
     public List<Change> getChanges() {
         return changes;
     }
@@ -60,35 +51,12 @@ public class Diff {
                 (map, r) -> map.put(r.primaryKey(), r),
                 Map::putAll);
 
-        boolean refreshed = false;
-
         for (Diffable pendingDiffable : pendingDiffables) {
             Diffable currentDiffable = currentDiffables.remove(pendingDiffable.primaryKey());
-
-            if (currentDiffable instanceof Resource && shouldRefresh()) {
-                Resource currentResource = (Resource) currentDiffable;
-
-                BeamCore.ui().write(
-                        "@|bold,blue Refreshing|@: @|yellow %s|@ -> %s...",
-                        currentResource.resourceType(),
-                        currentResource.resourceIdentifier());
-
-                if (!currentResource.refresh()) {
-                    currentDiffable = null;
-                }
-
-                BeamCore.ui().write("\n");
-
-                refreshed = true;
-            }
 
             changes.add(currentDiffable == null
                     ? newCreate(pendingDiffable)
                     : newUpdate(currentDiffable, pendingDiffable));
-        }
-
-        if (refreshed) {
-            BeamCore.ui().write("\n");
         }
 
         for (Diffable resource : currentDiffables.values()) {
@@ -366,7 +334,9 @@ public class Diff {
 
         for (Change change : getChanges()) {
             if (change instanceof Create || change instanceof Update) {
-                if (change.getDiffable() instanceof Resource) {
+                if (change.getDiffable() instanceof Resource
+                        && !(change.getDiffable() instanceof Credentials)) {
+
                     execute(state, change);
                 }
             }
@@ -388,7 +358,9 @@ public class Diff {
             }
 
             if (change instanceof Delete) {
-                if (change.getDiffable() instanceof Resource) {
+                if (change.getDiffable() instanceof Resource
+                        && !(change.getDiffable() instanceof Credentials)) {
+
                     execute(state, change);
                 }
             }

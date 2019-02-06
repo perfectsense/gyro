@@ -99,13 +99,7 @@ public class ResourceNode extends BlockNode {
         resource.resourceIdentifier(name);
         resource.scope(bodyScope);
         resource.initialize(bodyScope);
-
-        if (resource instanceof Credentials) {
-            scope.getRootScope().getCredentialsMap().put(name, (Credentials) resource);
-
-        } else {
-            scope.getFileScope().getResources().put(name, resource);
-        }
+        scope.getFileScope().getResources().put(name, resource);
 
         return null;
     }

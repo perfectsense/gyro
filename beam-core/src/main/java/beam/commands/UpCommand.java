@@ -6,15 +6,11 @@ import beam.core.diff.Diff;
 import beam.lang.ast.scope.RootScope;
 import beam.lang.ast.scope.State;
 import io.airlift.airline.Command;
-import io.airlift.airline.Option;
 
 import java.util.Set;
 
 @Command(name = "up", description = "Updates all resources to match the configuration.")
 public class UpCommand extends AbstractConfigCommand {
-
-    @Option(name = { "--skip-refresh" })
-    public boolean skipRefresh;
 
     @Override
     public void doExecute(RootScope current, RootScope pending) throws Exception {
@@ -24,7 +20,6 @@ public class UpCommand extends AbstractConfigCommand {
                 current.findAllResources(),
                 pending.findAllResources());
 
-        diff.setRefresh(!skipRefresh);
         diff.diff();
 
         Set<ChangeType> changeTypes = diff.write();

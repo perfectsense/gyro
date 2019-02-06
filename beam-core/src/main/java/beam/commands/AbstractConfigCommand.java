@@ -4,21 +4,34 @@ import beam.core.BeamCore;
 import beam.core.BeamException;
 import beam.core.LocalFileBackend;
 import beam.lang.BeamLanguageException;
-import beam.lang.Credentials;
 import beam.lang.FileBackend;
+import beam.lang.Resource;
 import beam.lang.ast.scope.RootScope;
 import com.psddev.dari.util.StringUtils;
 import io.airlift.airline.Arguments;
+import io.airlift.airline.Option;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 public abstract class AbstractConfigCommand extends AbstractCommand {
 
+    @Option(name = { "--skip-refresh" })
+    public boolean skipRefresh;
+
     @Arguments
     private List<String> arguments;
 
     private BeamCore core;
+
+    public List<String> arguments() {
+        return arguments;
+    }
+
+    public BeamCore core() {
+        return core;
+    }
 
     protected abstract void doExecute(RootScope current, RootScope pending) throws Exception;
 
@@ -41,27 +54,38 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
         try {
             backend.load(current);
+
+        } catch (BeamLanguageException ex) {
+            throw new BeamException(ex.getMessage());
+        }
+
+        if (!skipRefresh) {
+            for (Iterator<Map.Entry<String, Resource>> i = current.getResources().entrySet().iterator(); i.hasNext();) {
+                Resource currentResource = i.next().getValue();
+
+                BeamCore.ui().write(
+                        "@|bold,blue Refreshing|@: @|yellow %s|@ -> %s...",
+                        currentResource.resourceType(),
+                        currentResource.resourceIdentifier());
+
+                if (!currentResource.refresh()) {
+                    i.remove();
+                }
+
+                BeamCore.ui().write("\n");
+            }
+
+            BeamCore.ui().write("\n");
+        }
+
+        try {
             backend.load(pending);
 
         } catch (BeamLanguageException ex) {
             throw new BeamException(ex.getMessage());
         }
 
-        for (Map.Entry<String, Credentials> entry : pending.getCredentialsMap().entrySet()) {
-            Credentials c = entry.getValue();
-
-            c.findCredentials(true);
-            current.getCredentialsMap().put(entry.getKey(), c);
-        }
-
         doExecute(current, pending);
     }
 
-    public List<String> arguments() {
-        return arguments;
-    }
-
-    public BeamCore core() {
-        return core;
-    }
 }
