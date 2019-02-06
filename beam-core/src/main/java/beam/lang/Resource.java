@@ -216,33 +216,6 @@ public abstract class Resource {
                 .orElse(null);
     }
 
-    /**
-     * Return a list of fields that contain subresources (ResourceDiffProperty(subresource = true)).
-     */
-    public List<String> subresourceFields() {
-        List<String> keys = new ArrayList<>();
-        Map<String, Object> pendingValues = resolvedKeyValues();
-
-        for (String key : pendingValues.keySet()) {
-            // If there is no getter for this method then skip this field since there can
-            // be no ResourceDiffProperty annotation.
-            Method reader = readerMethodForKey(key);
-            if (reader == null) {
-                continue;
-            }
-
-            // If no ResourceDiffProperty annotation or if this field is not subresources then skip this field.
-            ResourceDiffProperty propertyAnnotation = reader.getAnnotation(ResourceDiffProperty.class);
-            if (propertyAnnotation == null || !propertyAnnotation.subresource()) {
-                continue;
-            }
-
-            keys.add(key);
-        }
-
-        return keys;
-    }
-
     public String resourceType() {
         if (type == null) {
             ResourceName name = getClass().getAnnotation(ResourceName.class);

@@ -2,6 +2,8 @@ package beam.core.diff;
 
 import beam.core.BeamCore;
 import beam.lang.Resource;
+import beam.lang.ResourceField;
+import beam.lang.ResourceType;
 import beam.lang.ast.scope.State;
 
 import java.util.ArrayList;
@@ -102,13 +104,18 @@ public class Diff {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private Change newCreate(Resource resource) throws Exception {
         Create create = new Create(resource);
 
         resource.change(create);
 
-        for (String key : resource.subresourceFields()) {
-            Object value = resource.get(key);
+        for (ResourceField field : ResourceType.getInstance(resource.getClass()).getFields()) {
+            if (field.getSubresourceClass() == null) {
+                continue;
+            }
+
+            Object value = field.getValue(resource);
             Diff diff;
 
             if (value instanceof List) {
@@ -130,6 +137,7 @@ public class Diff {
         return create;
     }
 
+    @SuppressWarnings("unchecked")
     private Change newUpdate(Resource currentResource, Resource pendingResource) throws Exception {
         ResourceDisplayDiff displayDiff = pendingResource.calculateFieldDiffs(currentResource);
         Set<String> changedProperties = displayDiff.getChangedProperties();
@@ -149,12 +157,16 @@ public class Diff {
         currentResource.change(change);
         pendingResource.change(change);
 
-        for (String key : pendingResource.subresourceFields()) {
-            Object currentValue = currentResource.get(key);
-            Object pendingValue = pendingResource.get(key);
+        for (ResourceField field : ResourceType.getInstance(currentResource.getClass()).getFields()) {
+            if (field.getSubresourceClass() == null) {
+                continue;
+            }
+
+            Object currentValue = field.getValue(currentResource);
+            Object pendingValue = field.getValue(pendingResource);
             Diff diff;
 
-            if (pendingValue instanceof Collection) {
+            if (pendingValue instanceof List) {
                 diff = new Diff((List<Resource>) currentValue, (List<Resource>) pendingValue);
 
             } else if (currentValue != null) {
@@ -181,16 +193,21 @@ public class Diff {
         return change;
     }
 
+    @SuppressWarnings("unchecked")
     private Change newDelete(Resource resource) throws Exception {
         Delete delete = new Delete(resource);
 
         resource.change(delete);
 
-        for (String key : resource.subresourceFields()) {
-            Object value = resource.get(key);
+        for (ResourceField field : ResourceType.getInstance(resource.getClass()).getFields()) {
+            if (field.getSubresourceClass() == null) {
+                continue;
+            }
+
+            Object value = field.getValue(resource);
             Diff diff;
 
-            if (value instanceof Collection) {
+            if (value instanceof List) {
                 diff = new Diff((List<Resource>) value, null);
 
             } else if (value != null) {

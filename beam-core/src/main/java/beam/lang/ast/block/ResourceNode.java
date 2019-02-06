@@ -3,6 +3,8 @@ package beam.lang.ast.block;
 import beam.lang.BeamLanguageException;
 import beam.lang.Credentials;
 import beam.lang.Resource;
+import beam.lang.ResourceField;
+import beam.lang.ResourceType;
 import beam.lang.ast.Node;
 import beam.lang.ast.scope.ResourceScope;
 import beam.lang.ast.scope.Scope;
@@ -44,11 +46,10 @@ public class ResourceNode extends BlockNode {
         Optional.ofNullable(scope.getRootScope().getCurrent())
                 .map(s -> s.findResource(name))
                 .ifPresent(r -> {
-                    ResourceScope s = r.scope();
-
-                    if (s != null) {
-                        resourceScope.putAll(s);
-                        r.subresourceFields().forEach(resourceScope::remove);
+                    for (ResourceField f : ResourceType.getInstance(r.getClass()).getFields()) {
+                        if (f.getSubresourceClass() == null) {
+                            resourceScope.put(f.getBeamName(), f.getValue(r));
+                        }
                     }
                 });
 
