@@ -6,6 +6,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Optional;
 
+import beam.core.diff.ResourceDiffProperty;
 import com.google.common.base.CaseFormat;
 import com.psddev.dari.util.ObjectUtils;
 
@@ -15,6 +16,8 @@ public class ResourceField {
     private final String beamName;
     private final Method getter;
     private final Method setter;
+    private final boolean nullable;
+    private final boolean updatable;
     private final Class<? extends Resource> subresourceClass;
 
     @SuppressWarnings("unchecked")
@@ -23,6 +26,17 @@ public class ResourceField {
         this.beamName = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, javaName);
         this.getter = getter;
         this.setter = setter;
+
+        ResourceDiffProperty annotation = getter.getAnnotation(ResourceDiffProperty.class);
+
+        if (annotation != null) {
+            this.nullable = annotation.nullable();
+            this.updatable = annotation.updatable();
+
+        } else {
+            this.nullable = false;
+            this.updatable = false;
+        }
 
         if (type instanceof Class) {
             this.subresourceClass = (Class<? extends Resource>) Optional.of((Class<?>) type)
@@ -50,6 +64,14 @@ public class ResourceField {
 
     public String getBeamName() {
         return beamName;
+    }
+
+    public boolean isNullable() {
+        return nullable;
+    }
+
+    public boolean isUpdatable() {
+        return updatable;
     }
 
     public Class<? extends Resource> getSubresourceClass() {

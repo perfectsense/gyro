@@ -43,7 +43,7 @@ public class EnterpriseConfig {
     @SuppressWarnings("unchecked")
     public static <T> T get(Class<T> returnClass, String project, String keyPath, T defaultValue) {
         EnterpriseProject projectConfig = (EnterpriseProject) CONFIG.get().get(project);
-        T value = projectConfig != null ? (T) projectConfig.resolvedKeyValues().get(keyPath) : null;
+        T value = projectConfig != null ? (T) projectConfig.get(keyPath) : null;
 
         if (value == null) {
             value = get(returnClass, keyPath, defaultValue);

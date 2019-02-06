@@ -5,6 +5,7 @@ import beam.lang.Resource;
 import beam.lang.ResourceField;
 import beam.lang.ResourceType;
 import beam.lang.ast.scope.State;
+import com.psddev.dari.util.ObjectUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -139,7 +140,7 @@ public class Diff {
 
     @SuppressWarnings("unchecked")
     private Change newUpdate(Resource currentResource, Resource pendingResource) throws Exception {
-        ResourceDisplayDiff displayDiff = pendingResource.calculateFieldDiffs(currentResource);
+        ResourceDisplayDiff displayDiff = diffFields(currentResource, pendingResource);
         Set<String> changedProperties = displayDiff.getChangedProperties();
         String changedDisplay = displayDiff.getChangedDisplay().toString();
         Change change;
@@ -191,6 +192,52 @@ public class Diff {
         }
 
         return change;
+    }
+
+    private ResourceDisplayDiff diffFields(Resource currentResource, Resource pendingResource) {
+        boolean firstField = true;
+        ResourceDisplayDiff displayDiff = new ResourceDisplayDiff();
+
+        for (ResourceField field : ResourceType.getInstance(currentResource.getClass()).getFields()) {
+            if (field.getSubresourceClass() != null) {
+                continue;
+            }
+
+            Object currentValue = field.getValue(currentResource);
+            Object pendingValue = field.getValue(pendingResource);
+
+            if (pendingValue != null || field.isNullable()) {
+                String key = field.getBeamName();
+                String fieldChangeOutput;
+
+                if (pendingValue instanceof List) {
+                    fieldChangeOutput = Change.processAsListValue(key, (List) currentValue, (List) pendingValue);
+
+                } else if (pendingValue instanceof Map) {
+                    fieldChangeOutput = Change.processAsMapValue(key, (Map) currentValue, (Map) pendingValue);
+
+                } else {
+                    fieldChangeOutput = Change.processAsScalarValue(key, currentValue, pendingValue);
+                }
+
+                if (!ObjectUtils.isBlank(fieldChangeOutput)) {
+                    if (!firstField) {
+                        displayDiff.getChangedDisplay().append(", ");
+                    }
+
+                    displayDiff.addChangedProperty(key);
+                    displayDiff.getChangedDisplay().append(fieldChangeOutput);
+
+                    if (!field.isUpdatable()) {
+                        displayDiff.setReplace(true);
+                    }
+
+                    firstField = false;
+                }
+            }
+        }
+
+        return displayDiff;
     }
 
     @SuppressWarnings("unchecked")
