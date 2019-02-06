@@ -9,7 +9,9 @@ import java.util.Map;
 @ResourceName("credentials")
 public class OpenstackCredentials extends Credentials {
 
-    private String profileName;
+    private String userName;
+
+    private String apiKey;
 
     private String region;
 
@@ -18,12 +20,20 @@ public class OpenstackCredentials extends Credentials {
         return "openstack";
     }
 
-    public String getProfileName() {
-        return profileName;
+    public String getUserName() {
+        return userName;
     }
 
-    public void setProfileName(String profileName) {
-        this.profileName = profileName;
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    public String getApiKey() {
+        return apiKey;
+    }
+
+    public void setApiKey(String apiKey) {
+        this.apiKey = apiKey;
     }
 
     public String getRegion() {
@@ -37,9 +47,6 @@ public class OpenstackCredentials extends Credentials {
     @Override
     public Map<String, String> findCredentials(boolean refresh) {
         ImmutableMap.Builder<String, String> mapBuilder = new ImmutableMap.Builder<>();
-
-        mapBuilder.put("accessKeyId", "key");
-        mapBuilder.put("secretKey", "secret");
 
         return mapBuilder.build();
     }
