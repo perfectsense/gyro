@@ -58,27 +58,64 @@ public class Diff {
         this.refresh = refresh;
     }
 
-    /**
-     * Called when a new asset needs to be created based on the given
-     * {@code config}.
-     *
-     * @param pendingResource Can't be {@code null}.
-     * @return May be {@code null} to indicate no change.
-     */
-    public Change newCreate(Resource pendingResource) throws Exception {
-        Create create = new Create(pendingResource);
+    public List<Change> getChanges() {
+        return changes;
+    }
 
-        pendingResource.change(create);
+    public void diff() throws Exception {
+        Map<String, Resource> currentResources = this.currentResources.stream().collect(
+                LinkedHashMap::new,
+                (map, r) -> map.put(r.primaryKey(), r),
+                Map::putAll);
 
-        for (String key : pendingResource.subresourceFields()) {
-            Object pendingValue = pendingResource.get(key);
+        boolean refreshed = false;
+
+        for (Resource pr : pendingResources) {
+            Resource cr = currentResources.remove(pr.primaryKey());
+
+            if (cr != null && shouldRefresh()) {
+                BeamCore.ui().write(
+                        "@|bold,blue Refreshing|@: @|yellow %s|@ -> %s...",
+                        cr.resourceType(),
+                        cr.resourceIdentifier());
+
+                if (!cr.refresh()) {
+                    cr = null;
+                }
+
+                BeamCore.ui().write("\n");
+
+                refreshed = true;
+            }
+
+            changes.add(cr != null
+                    ? newUpdate(cr, pr)
+                    : newCreate(pr));
+        }
+
+        if (refreshed) {
+            BeamCore.ui().write("\n");
+        }
+
+        for (Resource resource : currentResources.values()) {
+            changes.add(newDelete(resource));
+        }
+    }
+
+    private Change newCreate(Resource resource) throws Exception {
+        Create create = new Create(resource);
+
+        resource.change(create);
+
+        for (String key : resource.subresourceFields()) {
+            Object value = resource.get(key);
             Diff diff;
 
-            if (pendingValue instanceof List) {
-                diff = new Diff(null, (List<Resource>) pendingValue);
+            if (value instanceof List) {
+                diff = new Diff(null, (List<Resource>) value);
 
-            } else if (pendingValue != null) {
-                diff = new Diff(null, Collections.singletonList((Resource) pendingValue));
+            } else if (value != null) {
+                diff = new Diff(null, Collections.singletonList((Resource) value));
 
             } else {
                 diff = null;
@@ -93,15 +130,7 @@ public class Diff {
         return create;
     }
 
-    /**
-     * Called when the given {@code asset} needs to be updated based on the
-     * given {@code config}.
-     *
-     * @param currentResource Can't be {@code null}.
-     * @param pendingResource Can't be {@code null}.
-     * @return May be {@code null} to indicate no change.
-     */
-    public Change newUpdate(Resource currentResource, Resource pendingResource) throws Exception {
+    private Change newUpdate(Resource currentResource, Resource pendingResource) throws Exception {
         ResourceDisplayDiff displayDiff = pendingResource.calculateFieldDiffs(currentResource);
         Set<String> changedProperties = displayDiff.getChangedProperties();
         String changedDisplay = displayDiff.getChangedDisplay().toString();
@@ -152,26 +181,20 @@ public class Diff {
         return change;
     }
 
-    /**
-     * Called when the given {@code asset} needs to be deleted.
-     *
-     * @param currentResource Can't be {@code null}.
-     * @return May be {@code null} to indicate no change.
-     */
-    public Change newDelete(Resource currentResource) throws Exception {
-        Delete delete = new Delete(currentResource);
+    private Change newDelete(Resource resource) throws Exception {
+        Delete delete = new Delete(resource);
 
-        currentResource.change(delete);
+        resource.change(delete);
 
-        for (String key : currentResource.subresourceFields()) {
-            Object pendingValue = currentResource.get(key);
+        for (String key : resource.subresourceFields()) {
+            Object value = resource.get(key);
             Diff diff;
 
-            if (pendingValue instanceof Collection) {
-                diff = new Diff((List<Resource>) pendingValue, null);
+            if (value instanceof Collection) {
+                diff = new Diff((List<Resource>) value, null);
 
-            } else if (pendingValue != null) {
-                diff = new Diff(Collections.singletonList((Resource) pendingValue), null);
+            } else if (value != null) {
+                diff = new Diff(Collections.singletonList((Resource) value), null);
 
             } else {
                 diff = null;
@@ -184,50 +207,6 @@ public class Diff {
         }
 
         return delete;
-    }
-
-    public List<Change> getChanges() {
-        return changes;
-    }
-
-    public void diff() throws Exception {
-        Map<String, Resource> currentResources = this.currentResources.stream().collect(
-                LinkedHashMap::new,
-                (map, r) -> map.put(r.primaryKey(), r),
-                Map::putAll);
-
-        boolean refreshed = false;
-
-        for (Resource pr : pendingResources) {
-            Resource cr = currentResources.remove(pr.primaryKey());
-
-            if (cr != null && shouldRefresh()) {
-                BeamCore.ui().write(
-                        "@|bold,blue Refreshing|@: @|yellow %s|@ -> %s...",
-                        cr.resourceType(),
-                        cr.resourceIdentifier());
-
-                if (!cr.refresh()) {
-                    cr = null;
-                }
-
-                BeamCore.ui().write("\n");
-
-                refreshed = true;
-            }
-
-            changes.add(cr != null
-                    ? newUpdate(cr, pr)
-                    : newCreate(pr));
-        }
-
-        if (refreshed) {
-            BeamCore.ui().write("\n");
-        }
-
-        for (Resource resource : currentResources.values()) {
-            changes.add(newDelete(resource));
-        }
     }
 
     public boolean hasChanges() {
