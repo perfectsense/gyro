@@ -87,7 +87,12 @@ public class AuthenticateCognitoConfig extends Diffable {
     }
 
     @Override
-    public String toString() {
+    public String primaryKey() {
+        return "cognito:" + String.valueOf(userPoolClientId);
+    }
+
+    @Override
+    public String toDisplayString() {
         StringBuilder sb = new StringBuilder();
 
         sb.append("cognito ");

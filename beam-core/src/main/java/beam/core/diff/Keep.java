@@ -1,24 +1,23 @@
 package beam.core.diff;
 
 import beam.core.BeamUI;
-import beam.lang.Resource;
 
 public class Keep extends Change {
 
-    private final Resource resource;
+    private final Diffable diffable;
 
-    public Keep(Resource resource) {
-        this.resource = resource;
+    public Keep(Diffable diffable) {
+        this.diffable = diffable;
     }
 
     @Override
-    public Resource getResource() {
-        return resource;
+    public Diffable getDiffable() {
+        return diffable;
     }
 
     @Override
     public void writeTo(BeamUI ui) {
-        ui.write(resource.toDisplayString());
+        ui.write(diffable.toDisplayString());
     }
 
     @Override

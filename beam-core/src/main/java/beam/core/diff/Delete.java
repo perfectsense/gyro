@@ -5,25 +5,27 @@ import beam.lang.Resource;
 
 public class Delete extends Change {
 
-    private final Resource resource;
+    private final Diffable diffable;
 
-    public Delete(Resource resource) {
-        this.resource = resource;
+    public Delete(Diffable diffable) {
+        this.diffable = diffable;
     }
 
     @Override
-    public Resource getResource() {
-        return resource;
+    public Diffable getDiffable() {
+        return diffable;
     }
 
     @Override
     public void writeTo(BeamUI ui) {
-        ui.write("@|red - Delete %s|@", resource.toDisplayString());
+        ui.write("@|red - Delete %s|@", diffable.toDisplayString());
     }
 
     @Override
     protected void doExecute() {
-        resource.delete();
+        if (diffable instanceof Resource) {
+            ((Resource) diffable).delete();
+        }
     }
 
 }

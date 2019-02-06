@@ -16,6 +16,20 @@ import beam.lang.ast.value.StringNode;
 
 public abstract class Diffable {
 
+    private Change change;
+
+    public Change change() {
+        return change;
+    }
+
+    public void change(Change change) {
+        this.change = change;
+    }
+
+    public abstract String primaryKey();
+
+    public abstract String toDisplayString();
+
     public List<Node> toBodyNodes() {
         List<Node> body = new ArrayList<>();
 

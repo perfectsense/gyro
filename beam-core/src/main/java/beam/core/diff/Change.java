@@ -10,10 +10,8 @@ import com.psddev.dari.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class Change {
@@ -38,22 +36,7 @@ public abstract class Change {
         return changed.get();
     }
 
-    public abstract Resource getResource();
-
-    public Set<Change> getDependencies() {
-        Set<Change> dependencies = new HashSet<>();
-
-        Resource resource = getResource();
-        for (Resource r : (this instanceof Delete ? resource.dependents() : resource.dependencies())) {
-            Change c = r.change();
-
-            if (c != null) {
-                dependencies.add(c);
-            }
-        }
-
-        return dependencies;
-    }
+    public abstract Diffable getDiffable();
 
     public abstract void writeTo(BeamUI ui);
 
@@ -68,7 +51,13 @@ public abstract class Change {
             return;
         }
 
-        Resource resource = getResource();
+        Diffable diffable = getDiffable();
+
+        if (!(diffable instanceof Resource)) {
+            return;
+        }
+
+        Resource resource = (Resource) diffable;
         ResourceScope scope = resource.scope();
 
         if (scope != null) {

@@ -9,6 +9,7 @@ import java.util.Map;
 
 import beam.core.diff.Change;
 import beam.core.diff.Delete;
+import beam.core.diff.Diffable;
 import beam.core.diff.DiffableField;
 import beam.core.diff.DiffableType;
 import beam.core.diff.ResourceName;
@@ -47,7 +48,13 @@ public class State {
     }
 
     public void update(Change change) throws Exception {
-        Resource resource = change.getResource();
+        Diffable diffable = change.getDiffable();
+
+        if (!(diffable instanceof Resource)) {
+            return;
+        }
+
+        Resource resource = (Resource) diffable;
 
         // Delete goes through every state to remove the resource.
         if (change instanceof Delete) {

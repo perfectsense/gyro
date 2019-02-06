@@ -5,25 +5,27 @@ import beam.lang.Resource;
 
 public class Create extends Change {
 
-    private final Resource resource;
+    private final Diffable diffable;
 
-    public Create(Resource resource) {
-        this.resource = resource;
+    public Create(Diffable diffable) {
+        this.diffable = diffable;
     }
 
     @Override
-    public Resource getResource() {
-        return resource;
+    public Diffable getDiffable() {
+        return diffable;
     }
 
     @Override
     public void writeTo(BeamUI ui) {
-        ui.write("@|green + Create %s|@", resource.toDisplayString());
+        ui.write("@|green + Create %s|@", diffable.toDisplayString());
     }
 
     @Override
     protected void doExecute() {
-        resource.create();
+        if (diffable instanceof Resource) {
+            ((Resource) diffable).create();
+        }
     }
 
 }

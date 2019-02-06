@@ -46,7 +46,12 @@ public class ListenerActionResource extends Diffable {
     }
 
     @Override
-    public String toString() {
+    public String primaryKey() {
+        return "action:" + String.valueOf(order);
+    }
+
+    @Override
+    public String toDisplayString() {
         StringBuilder sb = new StringBuilder();
 
         sb.append("action ");

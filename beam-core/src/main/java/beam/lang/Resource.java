@@ -1,12 +1,10 @@
 package beam.lang;
 
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-import beam.core.diff.Change;
 import beam.core.diff.Diffable;
 import beam.core.diff.DiffableField;
 import beam.core.diff.DiffableType;
@@ -23,12 +21,6 @@ public abstract class Resource extends Diffable {
     private ResourceScope scope;
     private Resource parent;
 
-    // -- Internal
-
-    private Set<Resource> dependencies;
-    private Set<Resource> dependents;
-    private Change change;
-
     // -- Resource Implementation API
 
     public abstract boolean refresh();
@@ -38,8 +30,6 @@ public abstract class Resource extends Diffable {
     public abstract void update(Resource current, Set<String> changedProperties);
 
     public abstract void delete();
-
-    public abstract String toDisplayString();
 
     public abstract Class resourceCredentialsClass();
 
@@ -77,30 +67,6 @@ public abstract class Resource extends Diffable {
 
     public String primaryKey() {
         return String.format("%s %s", resourceType(), resourceIdentifier());
-    }
-
-    public Change change() {
-        return change;
-    }
-
-    public void change(Change change) {
-        this.change = change;
-    }
-
-    public Set<Resource> dependencies() {
-        if (dependencies == null) {
-            dependencies = new LinkedHashSet<>();
-        }
-
-        return dependencies;
-    }
-
-    public Set<Resource> dependents() {
-        if (dependents == null) {
-            dependents = new LinkedHashSet<>();
-        }
-
-        return dependents;
     }
 
     // -- Base Resource

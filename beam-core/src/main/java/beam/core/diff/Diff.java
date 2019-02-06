@@ -1,7 +1,6 @@
 package beam.core.diff;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -17,48 +16,30 @@ import com.psddev.dari.util.ObjectUtils;
 
 public class Diff {
 
-    private final List<Resource> currentResources;
-    private final List<Resource> pendingResources;
+    private final List<Diffable> currentDiffables;
+    private final List<Diffable> pendingDiffables;
     private final List<Change> changes = new ArrayList<>();
 
     private boolean refresh;
 
-    public Diff(List<Resource> currentResources, List<Resource> pendingResources) {
-        this.currentResources = currentResources != null
-                ? sortResources(currentResources)
+    public Diff(List<? extends Diffable> currentDiffables, List<? extends Diffable> pendingDiffables) {
+        this.currentDiffables = currentDiffables != null
+                ? new ArrayList<>(currentDiffables)
                 : Collections.emptyList();
 
-        this.pendingResources = pendingResources != null
-                ? sortResources(pendingResources)
-                : Collections.emptyList();
-    }
-
-    public Diff(Resource currentResource, Resource pendingResource) {
-        this.currentResources = currentResource != null
-                ? Collections.singletonList(currentResource)
-                : Collections.emptyList();
-
-        this.pendingResources = pendingResource != null
-                ? Collections.singletonList(pendingResource)
+        this.pendingDiffables = pendingDiffables != null
+                ? new ArrayList<>(pendingDiffables)
                 : Collections.emptyList();
     }
 
-    private List<Resource> sortResources(Collection<? extends Resource> resources) {
-        List<Resource> sorted = new ArrayList<>();
+    public Diff(Diffable currentDiffable, Diffable pendingDiffable) {
+        this.currentDiffables = currentDiffable != null
+                ? Collections.singletonList(currentDiffable)
+                : Collections.emptyList();
 
-        for (Resource resource : resources) {
-            List<Resource> dependencies = new ArrayList<>(resource.dependencies());
-
-            sortResources(dependencies).stream()
-                    .filter(r -> !sorted.contains(r))
-                    .forEach(sorted::add);
-
-            if (!sorted.contains(resource)) {
-                sorted.add(resource);
-            }
-        }
-
-        return sorted;
+        this.pendingDiffables = pendingDiffable != null
+                ? Collections.singletonList(pendingDiffable)
+                : Collections.emptyList();
     }
 
     public boolean shouldRefresh() {
@@ -74,24 +55,26 @@ public class Diff {
     }
 
     public void diff() throws Exception {
-        Map<String, Resource> currentResources = this.currentResources.stream().collect(
+        Map<String, Diffable> currentDiffables = this.currentDiffables.stream().collect(
                 LinkedHashMap::new,
                 (map, r) -> map.put(r.primaryKey(), r),
                 Map::putAll);
 
         boolean refreshed = false;
 
-        for (Resource pr : pendingResources) {
-            Resource cr = currentResources.remove(pr.primaryKey());
+        for (Diffable pendingDiffable : pendingDiffables) {
+            Diffable currentDiffable = currentDiffables.remove(pendingDiffable.primaryKey());
 
-            if (cr != null && shouldRefresh()) {
+            if (currentDiffable instanceof Resource && shouldRefresh()) {
+                Resource currentResource = (Resource) currentDiffable;
+
                 BeamCore.ui().write(
                         "@|bold,blue Refreshing|@: @|yellow %s|@ -> %s...",
-                        cr.resourceType(),
-                        cr.resourceIdentifier());
+                        currentResource.resourceType(),
+                        currentResource.resourceIdentifier());
 
-                if (!cr.refresh()) {
-                    cr = null;
+                if (!currentResource.refresh()) {
+                    currentDiffable = null;
                 }
 
                 BeamCore.ui().write("\n");
@@ -99,39 +82,39 @@ public class Diff {
                 refreshed = true;
             }
 
-            changes.add(cr != null
-                    ? newUpdate(cr, pr)
-                    : newCreate(pr));
+            changes.add(currentDiffable == null
+                    ? newCreate(pendingDiffable)
+                    : newUpdate(currentDiffable, pendingDiffable));
         }
 
         if (refreshed) {
             BeamCore.ui().write("\n");
         }
 
-        for (Resource resource : currentResources.values()) {
+        for (Diffable resource : currentDiffables.values()) {
             changes.add(newDelete(resource));
         }
     }
 
     @SuppressWarnings("unchecked")
-    private Change newCreate(Resource resource) throws Exception {
-        Create create = new Create(resource);
+    private Change newCreate(Diffable diffable) throws Exception {
+        Create create = new Create(diffable);
 
-        resource.change(create);
+        diffable.change(create);
 
-        for (DiffableField field : DiffableType.getInstance(resource.getClass()).getFields()) {
-            if (!field.isSubresource()) {
+        for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
+            if (!Diffable.class.isAssignableFrom(field.getItemClass())) {
                 continue;
             }
 
-            Object value = field.getValue(resource);
+            Object value = field.getValue(diffable);
             Diff diff;
 
             if (value instanceof List) {
-                diff = new Diff(null, (List<Resource>) value);
+                diff = new Diff(null, (List<Diffable>) value);
 
             } else if (value != null) {
-                diff = new Diff(null, (Resource) value);
+                diff = new Diff(null, (Diffable) value);
 
             } else {
                 diff = null;
@@ -147,47 +130,47 @@ public class Diff {
     }
 
     @SuppressWarnings("unchecked")
-    private Change newUpdate(Resource currentResource, Resource pendingResource) throws Exception {
-        ResourceDisplayDiff displayDiff = diffFields(currentResource, pendingResource);
+    private Change newUpdate(Diffable currentDiffable, Diffable pendingDiffable) throws Exception {
+        ResourceDisplayDiff displayDiff = diffFields(currentDiffable, pendingDiffable);
         Set<String> changedProperties = displayDiff.getChangedProperties();
         String changedDisplay = displayDiff.getChangedDisplay().toString();
         Change change;
 
         if (changedProperties.isEmpty()) {
-            change = new Keep(pendingResource);
+            change = new Keep(pendingDiffable);
 
         } else if (displayDiff.isReplace()) {
-            change = new Replace(currentResource, pendingResource, changedProperties, changedDisplay);
+            change = new Replace(currentDiffable, pendingDiffable, changedProperties, changedDisplay);
 
         } else {
-            change = new Update(currentResource, pendingResource, changedProperties, changedDisplay);
+            change = new Update(currentDiffable, pendingDiffable, changedProperties, changedDisplay);
         }
 
-        currentResource.change(change);
-        pendingResource.change(change);
+        currentDiffable.change(change);
+        pendingDiffable.change(change);
 
-        for (DiffableField field : DiffableType.getInstance(currentResource.getClass()).getFields()) {
-            if (!field.isSubresource()) {
+        for (DiffableField field : DiffableType.getInstance(currentDiffable.getClass()).getFields()) {
+            if (!Diffable.class.isAssignableFrom(field.getItemClass())) {
                 continue;
             }
 
-            Object currentValue = field.getValue(currentResource);
-            Object pendingValue = field.getValue(pendingResource);
+            Object currentValue = field.getValue(currentDiffable);
+            Object pendingValue = field.getValue(pendingDiffable);
             Diff diff;
 
             if (pendingValue instanceof List) {
-                diff = new Diff((List<Resource>) currentValue, (List<Resource>) pendingValue);
+                diff = new Diff((List<Diffable>) currentValue, (List<Diffable>) pendingValue);
 
             } else if (currentValue != null) {
                 if (pendingValue != null) {
-                    diff = new Diff((Resource) currentValue, (Resource) pendingValue);
+                    diff = new Diff((Diffable) currentValue, (Diffable) pendingValue);
 
                 } else {
-                    diff = new Diff((Resource) currentValue, null);
+                    diff = new Diff((Diffable) currentValue, null);
                 }
 
             } else if (pendingValue != null) {
-                diff = new Diff(null, (Resource) pendingValue);
+                diff = new Diff(null, (Diffable) pendingValue);
 
             } else {
                 diff = null;
@@ -202,17 +185,17 @@ public class Diff {
         return change;
     }
 
-    private ResourceDisplayDiff diffFields(Resource currentResource, Resource pendingResource) {
+    private ResourceDisplayDiff diffFields(Diffable currentDiffable, Diffable pendingDiffable) {
         boolean firstField = true;
         ResourceDisplayDiff displayDiff = new ResourceDisplayDiff();
 
-        for (DiffableField field : DiffableType.getInstance(currentResource.getClass()).getFields()) {
+        for (DiffableField field : DiffableType.getInstance(currentDiffable.getClass()).getFields()) {
             if (field.isSubresource()) {
                 continue;
             }
 
-            Object currentValue = field.getValue(currentResource);
-            Object pendingValue = field.getValue(pendingResource);
+            Object currentValue = field.getValue(currentDiffable);
+            Object pendingValue = field.getValue(pendingDiffable);
 
             if (pendingValue != null || field.isNullable()) {
                 String key = field.getBeamName();
@@ -249,24 +232,24 @@ public class Diff {
     }
 
     @SuppressWarnings("unchecked")
-    private Change newDelete(Resource resource) throws Exception {
-        Delete delete = new Delete(resource);
+    private Change newDelete(Diffable diffable) throws Exception {
+        Delete delete = new Delete(diffable);
 
-        resource.change(delete);
+        diffable.change(delete);
 
-        for (DiffableField field : DiffableType.getInstance(resource.getClass()).getFields()) {
-            if (!field.isSubresource()) {
+        for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
+            if (!Diffable.class.isAssignableFrom(field.getItemClass())) {
                 continue;
             }
 
-            Object value = field.getValue(resource);
+            Object value = field.getValue(diffable);
             Diff diff;
 
             if (value instanceof List) {
-                diff = new Diff((List<Resource>) value, null);
+                diff = new Diff((List<Diffable>) value, null);
 
             } else if (value != null) {
-                diff = new Diff((Resource) value, null);
+                diff = new Diff((Diffable) value, null);
 
             } else {
                 diff = null;
@@ -390,14 +373,6 @@ public class Diff {
     private void execute(State state, Change change) throws Exception {
         if (change instanceof Keep || change instanceof Replace || change.isChanged()) {
             return;
-        }
-
-        Set<Change> dependencies = change.getDependencies();
-
-        if (dependencies != null && !dependencies.isEmpty()) {
-            for (Change d : dependencies) {
-                execute(state, d);
-            }
         }
 
         BeamCore.ui().write("Executing: ");
