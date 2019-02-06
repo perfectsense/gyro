@@ -83,20 +83,8 @@ public class Diff {
      * @param pendingResource Can't be {@code null}.
      * @return May be {@code null} to indicate no change.
      */
-    public Change newCreate(final Resource pendingResource) throws Exception {
-        Change create = new Change(null, pendingResource) {
-
-            @Override
-            protected Resource change() {
-                pendingResource.create();
-                return pendingResource;
-            }
-
-            @Override
-            public String toString() {
-                return String.format("Create %s", pendingResource.toDisplayString());
-            }
-        };
+    public Change newCreate(Resource pendingResource) throws Exception {
+        Create create = new Create(pendingResource);
 
         pendingResource.change(create);
 
@@ -131,12 +119,24 @@ public class Diff {
      * @param pendingResource Can't be {@code null}.
      * @return May be {@code null} to indicate no change.
      */
-    public Change newUpdate(final Resource currentResource, final Resource pendingResource) throws Exception {
-        Change update = new Change(currentResource, pendingResource);
+    public Change newUpdate(Resource currentResource, Resource pendingResource) throws Exception {
+        ResourceDisplayDiff displayDiff = pendingResource.calculateFieldDiffs(currentResource);
+        Set<String> changedProperties = displayDiff.getChangedProperties();
+        String changedDisplay = displayDiff.getChangedDisplay().toString();
+        Change change;
 
-        update.calculateFieldDiffs();
-        currentResource.change(update);
-        pendingResource.change(update);
+        if (changedProperties.isEmpty()) {
+            change = new Keep(pendingResource);
+
+        } else if (displayDiff.isReplace()) {
+            change = new Replace(currentResource, pendingResource, changedProperties, changedDisplay);
+
+        } else {
+            change = new Update(currentResource, pendingResource, changedProperties, changedDisplay);
+        }
+
+        currentResource.change(change);
+        pendingResource.change(change);
 
         for (String key : pendingResource.subresourceFields()) {
             Object currentValue = currentResource.get(key);
@@ -163,11 +163,11 @@ public class Diff {
 
             if (diff != null) {
                 diff.diff();
-                update.getDiffs().add(diff);
+                change.getDiffs().add(diff);
             }
         }
 
-        return update;
+        return change;
     }
 
     /**
@@ -176,22 +176,8 @@ public class Diff {
      * @param currentResource Can't be {@code null}.
      * @return May be {@code null} to indicate no change.
      */
-    public Change newDelete(final Resource currentResource) throws Exception {
-        Change delete = new Change(currentResource, null) {
-
-            @Override
-            protected Resource change() {
-                currentResource.delete();
-                return currentResource;
-            }
-
-            @Override
-            public String toString() {
-                return String.format(
-                    "Delete %s",
-                    currentResource.toDisplayString());
-            }
-        };
+    public Change newDelete(Resource currentResource) throws Exception {
+        Delete delete = new Delete(currentResource);
 
         currentResource.change(delete);
 
@@ -266,7 +252,7 @@ public class Diff {
         List<Change> changes = getChanges();
 
         for (Change change : changes) {
-            if (change.getType() != ChangeType.KEEP) {
+            if (!(change instanceof Keep)) {
                 return true;
             }
         }
@@ -282,33 +268,6 @@ public class Diff {
         return false;
     }
 
-    private void writeChange(Change change) {
-        switch (change.getType()) {
-            case CREATE :
-                BeamCore.ui().write("@|green + %s|@", change);
-                break;
-
-            case UPDATE :
-                if (change.toString().contains("@|")) {
-                    BeamCore.ui().write(" * %s", change);
-                } else {
-                    BeamCore.ui().write("@|yellow * %s|@", change);
-                }
-                break;
-
-            case REPLACE :
-                BeamCore.ui().write("@|blue * %s|@", change);
-                break;
-
-            case DELETE :
-                BeamCore.ui().write("@|red - %s|@", change);
-                break;
-
-            default :
-                BeamCore.ui().write(change.toString());
-        }
-    }
-
     public Set<ChangeType> write() {
         Set<ChangeType> changeTypes = new HashSet<>();
 
@@ -317,10 +276,9 @@ public class Diff {
         }
 
         for (Change change : getChanges()) {
-            ChangeType type = change.getType();
             List<Diff> changeDiffs = change.getDiffs();
 
-            if (type == ChangeType.KEEP) {
+            if (change instanceof Keep) {
                 boolean hasChanges = false;
 
                 for (Diff changeDiff : changeDiffs) {
@@ -335,9 +293,23 @@ public class Diff {
                 }
             }
 
-            changeTypes.add(type);
-            writeChange(change);
+            if (change instanceof Create) {
+                changeTypes.add(ChangeType.CREATE);
 
+            } else if (change instanceof Delete) {
+                changeTypes.add(ChangeType.DELETE);
+
+            } else if (change instanceof Keep) {
+                changeTypes.add(ChangeType.KEEP);
+
+            } else if (change instanceof Replace) {
+                changeTypes.add(ChangeType.REPLACE);
+
+            } else if (change instanceof Update) {
+                changeTypes.add(ChangeType.UPDATE);
+            }
+
+            change.writeTo(BeamCore.ui());
             BeamCore.ui().write("\n");
             BeamCore.ui().indented(() -> changeDiffs.forEach(d -> changeTypes.addAll(d.write())));
         }
@@ -347,7 +319,7 @@ public class Diff {
 
     private void setChangeable() {
         for (Change change : getChanges()) {
-            change.setChangeable(true);
+            change.setExecutable(true);
             change.getDiffs().forEach(Diff::setChangeable);
         }
     }
@@ -356,9 +328,7 @@ public class Diff {
         setChangeable();
 
         for (Change change : getChanges()) {
-            ChangeType type = change.getType();
-
-            if (type == ChangeType.CREATE || type == ChangeType.UPDATE) {
+            if (change instanceof Create || change instanceof Update) {
                 execute(state, change);
             }
 
@@ -378,20 +348,18 @@ public class Diff {
                 d.executeDelete(state);
             }
 
-            if (change.getType() == ChangeType.DELETE) {
+            if (change instanceof Delete) {
                 execute(state, change);
             }
         }
     }
 
     private void execute(State state, Change change) throws Exception {
-        ChangeType type = change.getType();
-
-        if (type == ChangeType.KEEP || type == ChangeType.REPLACE || change.isChanged()) {
+        if (change instanceof Keep || change instanceof Replace || change.isChanged()) {
             return;
         }
 
-        Set<Change> dependencies = change.dependencies();
+        Set<Change> dependencies = change.getDependencies();
 
         if (dependencies != null && !dependencies.isEmpty()) {
             for (Change d : dependencies) {
@@ -400,8 +368,8 @@ public class Diff {
         }
 
         BeamCore.ui().write("Executing: ");
-        writeChange(change);
-        change.executeChange();
+        change.writeTo(BeamCore.ui());
+        change.execute();
         BeamCore.ui().write(" OK\n");
         state.update(change);
     }

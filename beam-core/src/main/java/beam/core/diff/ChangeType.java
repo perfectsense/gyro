@@ -3,8 +3,9 @@ package beam.core.diff;
 public enum ChangeType {
 
     CREATE,
-    UPDATE,
-    REPLACE,
+    DELETE,
     KEEP,
-    DELETE
+    REPLACE,
+    UPDATE
+
 }

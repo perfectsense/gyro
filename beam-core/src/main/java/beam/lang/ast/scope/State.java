@@ -2,6 +2,7 @@ package beam.lang.ast.scope;
 
 import beam.core.diff.ChangeType;
 import beam.core.diff.Change;
+import beam.core.diff.Delete;
 import beam.core.diff.ResourceName;
 import beam.lang.Resource;
 import beam.lang.ResourceField;
@@ -50,7 +51,7 @@ public class State {
         Resource resource = change.getResource();
 
         // Delete goes through every state to remove the resource.
-        if (change.getType() == ChangeType.DELETE) {
+        if (change instanceof Delete) {
             String key = resource.resourceIdentifier();
 
             // Subresource?
