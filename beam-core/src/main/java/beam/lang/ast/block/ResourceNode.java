@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import beam.core.diff.Diffable;
 import beam.core.diff.DiffableField;
 import beam.core.diff.DiffableType;
 import beam.lang.Credentials;
@@ -48,7 +49,7 @@ public class ResourceNode extends BlockNode {
                 .map(s -> s.findResource(name))
                 .ifPresent(r -> {
                     for (DiffableField f : DiffableType.getInstance(r.getClass()).getFields()) {
-                        if (!f.isSubresource()) {
+                        if (!Diffable.class.isAssignableFrom(f.getItemClass())) {
                             bodyScope.put(f.getBeamName(), f.getValue(r));
                         }
                     }

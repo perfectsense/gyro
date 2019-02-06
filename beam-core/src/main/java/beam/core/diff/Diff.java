@@ -190,7 +190,7 @@ public class Diff {
         ResourceDisplayDiff displayDiff = new ResourceDisplayDiff();
 
         for (DiffableField field : DiffableType.getInstance(currentDiffable.getClass()).getFields()) {
-            if (field.isSubresource()) {
+            if (Diffable.class.isAssignableFrom(field.getItemClass())) {
                 continue;
             }
 

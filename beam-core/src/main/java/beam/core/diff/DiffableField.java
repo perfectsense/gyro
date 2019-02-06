@@ -123,8 +123,4 @@ public class DiffableField {
         }
     }
 
-    public boolean isSubresource() {
-        return Resource.class.isAssignableFrom(itemClass);
-    }
-
 }
