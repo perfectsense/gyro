@@ -4,7 +4,6 @@ import beam.lang.Resource;
 import beam.lang.ast.scope.ResourceScope;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
-import com.psddev.dari.util.Lazy;
 import com.psddev.dari.util.ObjectUtils;
 import com.psddev.dari.util.StringUtils;
 
@@ -14,6 +13,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Change {
 
@@ -22,23 +22,12 @@ public class Change {
 
     private final List<Diff> diffs = new ArrayList<>();
     private boolean changeable;
-    private boolean changed;
+    private final AtomicBoolean changed = new AtomicBoolean();
 
     private final Set<String> updatedProperties = new HashSet<>();
     private final StringBuilder updatedPropertiesDisplay = new StringBuilder();
     private final Set<String> replacedProperties = new HashSet<>();
     private final StringBuilder replacedPropertiesDisplay = new StringBuilder();
-
-    private final Lazy<Resource> changedResource = new Lazy<Resource>() {
-
-        @Override
-        public final Resource create() throws Exception {
-            Resource resource = change();
-            changed = true;
-
-            return resource;
-        }
-    };
 
     public Change(Resource currentResource, Resource pendingResource) {
         this.currentResource = currentResource;
@@ -49,7 +38,15 @@ public class Change {
         return pendingResource != null ? pendingResource : currentResource;
     }
 
-    public Resource executeChange() throws Exception {
+    public void executeChange() throws Exception {
+        if (!isChangeable()) {
+            throw new IllegalStateException("Can't change yet!");
+        }
+
+        if (!changed.compareAndSet(false, true)) {
+            return;
+        }
+
         Resource resource = getResource();
         ResourceScope scope = resource.scope();
 
@@ -57,12 +54,7 @@ public class Change {
             resource.initialize(scope.resolve());
         }
 
-        if (isChangeable()) {
-            return changedResource.get();
-
-        } else {
-            throw new IllegalStateException("Can't change yet!");
-        }
+        change();
     }
 
     public Set<Change> dependencies() {
@@ -107,7 +99,7 @@ public class Change {
     }
 
     public boolean isChanged() {
-        return changed;
+        return changed.get();
     }
 
     /**
