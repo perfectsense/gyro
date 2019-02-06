@@ -26,10 +26,13 @@ public class Update extends Change {
 
     @Override
     public void writeTo(BeamUI ui) {
-        String s = String.format(
-                "Update %s (%s)",
-                currentDiffable.toDisplayString(),
-                changedDisplay);
+        String s = "Update " + currentDiffable.toDisplayString();
+
+        if (changedDisplay.length() > 0) {
+            s += " (";
+            s += changedDisplay;
+            s += ")";
+        }
 
         if (s.contains("@|")) {
             ui.write(" * %s", s);
