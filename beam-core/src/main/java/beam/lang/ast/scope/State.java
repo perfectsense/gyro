@@ -1,18 +1,18 @@
 package beam.lang.ast.scope;
 
-import beam.core.diff.ChangeType;
-import beam.core.diff.Change;
-import beam.core.diff.ResourceName;
-import beam.lang.Resource;
-import beam.lang.ResourceField;
-import beam.lang.ResourceType;
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+
+import beam.core.diff.Change;
+import beam.core.diff.Delete;
+import beam.core.diff.DiffableField;
+import beam.core.diff.DiffableType;
+import beam.core.diff.ResourceName;
+import beam.lang.Resource;
 
 public class State {
 
@@ -47,10 +47,10 @@ public class State {
     }
 
     public void update(Change change) throws Exception {
+        Resource resource = change.getResource();
 
         // Delete goes through every state to remove the resource.
-        if (change.getType() == ChangeType.DELETE) {
-            Resource resource = change.getCurrentResource();
+        if (change instanceof Delete) {
             String key = resource.resourceIdentifier();
 
             // Subresource?
@@ -68,7 +68,6 @@ public class State {
             }
 
         } else {
-            Resource resource = change.getPendingResource();
             String key = resource.resourceIdentifier();
             Map<String, Resource> stateResources = states.get(resource.scope().getFileScope().getFile()).getResources();
 
@@ -88,7 +87,7 @@ public class State {
     }
 
     private void updateSubresource(Resource parent, Resource subresource, boolean delete) {
-        for (ResourceField field : ResourceType.getInstance(parent.getClass()).getFields()) {
+        for (DiffableField field : DiffableType.getInstance(parent.getClass()).getFields()) {
             Object value = field.getValue(parent);
 
             if (value instanceof List) {

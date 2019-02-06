@@ -1,9 +1,5 @@
 package beam.core.diff;
 
-import beam.core.BeamCore;
-import beam.lang.Resource;
-import beam.lang.ast.scope.State;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -14,10 +10,15 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
+import beam.core.BeamCore;
+import beam.lang.Resource;
+import beam.lang.ast.scope.State;
+import com.psddev.dari.util.ObjectUtils;
+
 public class Diff {
 
-    private List<Resource> currentResources;
-    private List<Resource> pendingResources;
+    private final List<Resource> currentResources;
+    private final List<Resource> pendingResources;
     private final List<Change> changes = new ArrayList<>();
 
     private boolean refresh;
@@ -29,6 +30,16 @@ public class Diff {
 
         this.pendingResources = pendingResources != null
                 ? sortResources(pendingResources)
+                : Collections.emptyList();
+    }
+
+    public Diff(Resource currentResource, Resource pendingResource) {
+        this.currentResources = currentResource != null
+                ? Collections.singletonList(currentResource)
+                : Collections.emptyList();
+
+        this.pendingResources = pendingResource != null
+                ? Collections.singletonList(pendingResource)
                 : Collections.emptyList();
     }
 
@@ -58,179 +69,19 @@ public class Diff {
         this.refresh = refresh;
     }
 
-    /**
-     * Returns all resources that are currently running in providers.
-     *
-     * @return May be {@code null} to represent an empty iterable.
-     */
-    public List<Resource> getCurrentResources() {
-        return currentResources;
-    }
-
-    /**
-     * Returns all resources that should be applied from configs.
-     *
-     * @return May be {@code null} to represent an empty iterable.
-     */
-    public List<Resource> getPendingResources() {
-        return pendingResources;
-    }
-
-    /**
-     * Called when a new asset needs to be created based on the given
-     * {@code config}.
-     *
-     * @param pendingResource Can't be {@code null}.
-     * @return May be {@code null} to indicate no change.
-     */
-    public Change newCreate(final Resource pendingResource) throws Exception {
-        Change create = new Change(null, pendingResource) {
-
-            @Override
-            protected Resource change() {
-                pendingResource.create();
-                return pendingResource;
-            }
-
-            @Override
-            public String toString() {
-                return String.format("Create %s", pendingResource.toDisplayString());
-            }
-        };
-
-        pendingResource.change(create);
-
-        for (String key : pendingResource.subresourceFields()) {
-            Object pendingValue = pendingResource.get(key);
-            Diff diff;
-
-            if (pendingValue instanceof List) {
-                diff = new Diff(null, (List<Resource>) pendingValue);
-
-            } else if (pendingValue != null) {
-                diff = new Diff(null, Collections.singletonList((Resource) pendingValue));
-
-            } else {
-                diff = null;
-            }
-
-            if (diff != null) {
-                diff.diff();
-                create.getDiffs().add(diff);
-            }
-        }
-
-        return create;
-    }
-
-    /**
-     * Called when the given {@code asset} needs to be updated based on the
-     * given {@code config}.
-     *
-     * @param currentResource Can't be {@code null}.
-     * @param pendingResource Can't be {@code null}.
-     * @return May be {@code null} to indicate no change.
-     */
-    public Change newUpdate(final Resource currentResource, final Resource pendingResource) throws Exception {
-        Change update = new Change(currentResource, pendingResource);
-
-        update.calculateFieldDiffs();
-        currentResource.change(update);
-        pendingResource.change(update);
-
-        for (String key : pendingResource.subresourceFields()) {
-            Object currentValue = currentResource.get(key);
-            Object pendingValue = pendingResource.get(key);
-            Diff diff;
-
-            if (pendingValue instanceof Collection) {
-                diff = new Diff((List<Resource>) currentValue, (List<Resource>) pendingValue);
-
-            } else if (currentValue != null) {
-                if (pendingValue != null) {
-                    diff = new Diff(Collections.singletonList((Resource) currentValue), Collections.singletonList((Resource) pendingValue));
-
-                } else {
-                    diff = new Diff(Collections.singletonList((Resource) currentValue), null);
-                }
-
-            } else if (pendingValue != null) {
-                diff = new Diff(null, Collections.singletonList((Resource) pendingValue));
-
-            } else {
-                diff = null;
-            }
-
-            if (diff != null) {
-                diff.diff();
-                update.getDiffs().add(diff);
-            }
-        }
-
-        return update;
-    }
-
-    /**
-     * Called when the given {@code asset} needs to be deleted.
-     *
-     * @param currentResource Can't be {@code null}.
-     * @return May be {@code null} to indicate no change.
-     */
-    public Change newDelete(final Resource currentResource) throws Exception {
-        Change delete = new Change(currentResource, null) {
-
-            @Override
-            protected Resource change() {
-                currentResource.delete();
-                return currentResource;
-            }
-
-            @Override
-            public String toString() {
-                return String.format(
-                    "Delete %s",
-                    currentResource.toDisplayString());
-            }
-        };
-
-        currentResource.change(delete);
-
-        for (String key : currentResource.subresourceFields()) {
-            Object pendingValue = currentResource.get(key);
-            Diff diff;
-
-            if (pendingValue instanceof Collection) {
-                diff = new Diff((List<Resource>) pendingValue, null);
-
-            } else if (pendingValue != null) {
-                diff = new Diff(Collections.singletonList((Resource) pendingValue), null);
-
-            } else {
-                diff = null;
-            }
-
-            if (diff != null) {
-                diff.diff();
-                delete.getDiffs().add(diff);
-            }
-        }
-
-        return delete;
-    }
-
     public List<Change> getChanges() {
         return changes;
     }
 
     public void diff() throws Exception {
-        Map<String, Resource> currentResources = getCurrentResources().stream().collect(
+        Map<String, Resource> currentResources = this.currentResources.stream().collect(
                 LinkedHashMap::new,
                 (map, r) -> map.put(r.primaryKey(), r),
                 Map::putAll);
 
         boolean refreshed = false;
 
-        for (Resource pr : getPendingResources()) {
+        for (Resource pr : pendingResources) {
             Resource cr = currentResources.remove(pr.primaryKey());
 
             if (cr != null && shouldRefresh()) {
@@ -262,11 +113,179 @@ public class Diff {
         }
     }
 
+    @SuppressWarnings("unchecked")
+    private Change newCreate(Resource resource) throws Exception {
+        Create create = new Create(resource);
+
+        resource.change(create);
+
+        for (DiffableField field : DiffableType.getInstance(resource.getClass()).getFields()) {
+            if (field.getSubresourceClass() == null) {
+                continue;
+            }
+
+            Object value = field.getValue(resource);
+            Diff diff;
+
+            if (value instanceof List) {
+                diff = new Diff(null, (List<Resource>) value);
+
+            } else if (value != null) {
+                diff = new Diff(null, (Resource) value);
+
+            } else {
+                diff = null;
+            }
+
+            if (diff != null) {
+                diff.diff();
+                create.getDiffs().add(diff);
+            }
+        }
+
+        return create;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Change newUpdate(Resource currentResource, Resource pendingResource) throws Exception {
+        ResourceDisplayDiff displayDiff = diffFields(currentResource, pendingResource);
+        Set<String> changedProperties = displayDiff.getChangedProperties();
+        String changedDisplay = displayDiff.getChangedDisplay().toString();
+        Change change;
+
+        if (changedProperties.isEmpty()) {
+            change = new Keep(pendingResource);
+
+        } else if (displayDiff.isReplace()) {
+            change = new Replace(currentResource, pendingResource, changedProperties, changedDisplay);
+
+        } else {
+            change = new Update(currentResource, pendingResource, changedProperties, changedDisplay);
+        }
+
+        currentResource.change(change);
+        pendingResource.change(change);
+
+        for (DiffableField field : DiffableType.getInstance(currentResource.getClass()).getFields()) {
+            if (field.getSubresourceClass() == null) {
+                continue;
+            }
+
+            Object currentValue = field.getValue(currentResource);
+            Object pendingValue = field.getValue(pendingResource);
+            Diff diff;
+
+            if (pendingValue instanceof List) {
+                diff = new Diff((List<Resource>) currentValue, (List<Resource>) pendingValue);
+
+            } else if (currentValue != null) {
+                if (pendingValue != null) {
+                    diff = new Diff((Resource) currentValue, (Resource) pendingValue);
+
+                } else {
+                    diff = new Diff((Resource) currentValue, null);
+                }
+
+            } else if (pendingValue != null) {
+                diff = new Diff(null, (Resource) pendingValue);
+
+            } else {
+                diff = null;
+            }
+
+            if (diff != null) {
+                diff.diff();
+                change.getDiffs().add(diff);
+            }
+        }
+
+        return change;
+    }
+
+    private ResourceDisplayDiff diffFields(Resource currentResource, Resource pendingResource) {
+        boolean firstField = true;
+        ResourceDisplayDiff displayDiff = new ResourceDisplayDiff();
+
+        for (DiffableField field : DiffableType.getInstance(currentResource.getClass()).getFields()) {
+            if (field.getSubresourceClass() != null) {
+                continue;
+            }
+
+            Object currentValue = field.getValue(currentResource);
+            Object pendingValue = field.getValue(pendingResource);
+
+            if (pendingValue != null || field.isNullable()) {
+                String key = field.getBeamName();
+                String fieldChangeOutput;
+
+                if (pendingValue instanceof List) {
+                    fieldChangeOutput = Change.processAsListValue(key, (List) currentValue, (List) pendingValue);
+
+                } else if (pendingValue instanceof Map) {
+                    fieldChangeOutput = Change.processAsMapValue(key, (Map) currentValue, (Map) pendingValue);
+
+                } else {
+                    fieldChangeOutput = Change.processAsScalarValue(key, currentValue, pendingValue);
+                }
+
+                if (!ObjectUtils.isBlank(fieldChangeOutput)) {
+                    if (!firstField) {
+                        displayDiff.getChangedDisplay().append(", ");
+                    }
+
+                    displayDiff.addChangedProperty(key);
+                    displayDiff.getChangedDisplay().append(fieldChangeOutput);
+
+                    if (!field.isUpdatable()) {
+                        displayDiff.setReplace(true);
+                    }
+
+                    firstField = false;
+                }
+            }
+        }
+
+        return displayDiff;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Change newDelete(Resource resource) throws Exception {
+        Delete delete = new Delete(resource);
+
+        resource.change(delete);
+
+        for (DiffableField field : DiffableType.getInstance(resource.getClass()).getFields()) {
+            if (field.getSubresourceClass() == null) {
+                continue;
+            }
+
+            Object value = field.getValue(resource);
+            Diff diff;
+
+            if (value instanceof List) {
+                diff = new Diff((List<Resource>) value, null);
+
+            } else if (value != null) {
+                diff = new Diff((Resource) value, null);
+
+            } else {
+                diff = null;
+            }
+
+            if (diff != null) {
+                diff.diff();
+                delete.getDiffs().add(diff);
+            }
+        }
+
+        return delete;
+    }
+
     public boolean hasChanges() {
         List<Change> changes = getChanges();
 
         for (Change change : changes) {
-            if (change.getType() != ChangeType.KEEP) {
+            if (!(change instanceof Keep)) {
                 return true;
             }
         }
@@ -282,33 +301,6 @@ public class Diff {
         return false;
     }
 
-    private void writeChange(Change change) {
-        switch (change.getType()) {
-            case CREATE :
-                BeamCore.ui().write("@|green + %s|@", change);
-                break;
-
-            case UPDATE :
-                if (change.toString().contains("@|")) {
-                    BeamCore.ui().write(" * %s", change);
-                } else {
-                    BeamCore.ui().write("@|yellow * %s|@", change);
-                }
-                break;
-
-            case REPLACE :
-                BeamCore.ui().write("@|blue * %s|@", change);
-                break;
-
-            case DELETE :
-                BeamCore.ui().write("@|red - %s|@", change);
-                break;
-
-            default :
-                BeamCore.ui().write(change.toString());
-        }
-    }
-
     public Set<ChangeType> write() {
         Set<ChangeType> changeTypes = new HashSet<>();
 
@@ -317,10 +309,9 @@ public class Diff {
         }
 
         for (Change change : getChanges()) {
-            ChangeType type = change.getType();
             List<Diff> changeDiffs = change.getDiffs();
 
-            if (type == ChangeType.KEEP) {
+            if (change instanceof Keep) {
                 boolean hasChanges = false;
 
                 for (Diff changeDiff : changeDiffs) {
@@ -335,9 +326,23 @@ public class Diff {
                 }
             }
 
-            changeTypes.add(type);
-            writeChange(change);
+            if (change instanceof Create) {
+                changeTypes.add(ChangeType.CREATE);
 
+            } else if (change instanceof Delete) {
+                changeTypes.add(ChangeType.DELETE);
+
+            } else if (change instanceof Keep) {
+                changeTypes.add(ChangeType.KEEP);
+
+            } else if (change instanceof Replace) {
+                changeTypes.add(ChangeType.REPLACE);
+
+            } else if (change instanceof Update) {
+                changeTypes.add(ChangeType.UPDATE);
+            }
+
+            change.writeTo(BeamCore.ui());
             BeamCore.ui().write("\n");
             BeamCore.ui().indented(() -> changeDiffs.forEach(d -> changeTypes.addAll(d.write())));
         }
@@ -347,7 +352,7 @@ public class Diff {
 
     private void setChangeable() {
         for (Change change : getChanges()) {
-            change.setChangeable(true);
+            change.setExecutable(true);
             change.getDiffs().forEach(Diff::setChangeable);
         }
     }
@@ -356,9 +361,7 @@ public class Diff {
         setChangeable();
 
         for (Change change : getChanges()) {
-            ChangeType type = change.getType();
-
-            if (type == ChangeType.CREATE || type == ChangeType.UPDATE) {
+            if (change instanceof Create || change instanceof Update) {
                 execute(state, change);
             }
 
@@ -378,20 +381,18 @@ public class Diff {
                 d.executeDelete(state);
             }
 
-            if (change.getType() == ChangeType.DELETE) {
+            if (change instanceof Delete) {
                 execute(state, change);
             }
         }
     }
 
     private void execute(State state, Change change) throws Exception {
-        ChangeType type = change.getType();
-
-        if (type == ChangeType.KEEP || type == ChangeType.REPLACE || change.isChanged()) {
+        if (change instanceof Keep || change instanceof Replace || change.isChanged()) {
             return;
         }
 
-        Set<Change> dependencies = change.dependencies();
+        Set<Change> dependencies = change.getDependencies();
 
         if (dependencies != null && !dependencies.isEmpty()) {
             for (Change d : dependencies) {
@@ -400,8 +401,8 @@ public class Diff {
         }
 
         BeamCore.ui().write("Executing: ");
-        writeChange(change);
-        change.executeChange();
+        change.writeTo(BeamCore.ui());
+        change.execute();
         BeamCore.ui().write(" OK\n");
         state.update(change);
     }

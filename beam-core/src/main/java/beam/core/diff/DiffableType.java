@@ -1,4 +1,4 @@
-package beam.lang;
+package beam.core.diff;
 
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -15,27 +15,26 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
-public class ResourceType<R extends Resource> {
+public class DiffableType<R extends Diffable> {
 
-    private static final LoadingCache<Class<? extends Resource>, ResourceType<? extends Resource>> INSTANCES = CacheBuilder
+    private static final LoadingCache<Class<? extends Diffable>, DiffableType<? extends Diffable>> INSTANCES = CacheBuilder
             .newBuilder()
-            .build(new CacheLoader<Class<? extends Resource>, ResourceType<? extends Resource>>() {
+            .build(new CacheLoader<Class<? extends Diffable>, DiffableType<? extends Diffable>>() {
 
                 @Override
-                public ResourceType<? extends Resource> load(Class<? extends Resource> resourceClass) throws IntrospectionException {
-                    return new ResourceType<>(resourceClass);
+                public DiffableType<? extends Diffable> load(Class<? extends Diffable> diffableClass) throws IntrospectionException {
+                    return new DiffableType<>(diffableClass);
                 }
             });
 
-    private final Class<R> resourceClass;
-    private final List<ResourceField> fields;
-    private final Map<String, ResourceField> fieldByJavaName;
-    private final Map<String, ResourceField> fieldByBeamName;
+    private final List<DiffableField> fields;
+    private final Map<String, DiffableField> fieldByJavaName;
+    private final Map<String, DiffableField> fieldByBeamName;
 
     @SuppressWarnings("unchecked")
-    public static <R extends Resource> ResourceType<R> getInstance(Class<R> resourceClass) {
+    public static <R extends Diffable> DiffableType<R> getInstance(Class<R> diffableClass) {
         try {
-            return (ResourceType<R>) INSTANCES.get(resourceClass);
+            return (DiffableType<R>) INSTANCES.get(diffableClass);
 
         } catch (ExecutionException error) {
             Throwable cause = error.getCause();
@@ -46,14 +45,12 @@ public class ResourceType<R extends Resource> {
         }
     }
 
-    private ResourceType(Class<R> resourceClass) throws IntrospectionException {
-        this.resourceClass = resourceClass;
+    private DiffableType(Class<R> diffableClass) throws IntrospectionException {
+        ImmutableList.Builder<DiffableField> fields = ImmutableList.builder();
+        ImmutableMap.Builder<String, DiffableField> fieldByJavaName = ImmutableMap.builder();
+        ImmutableMap.Builder<String, DiffableField> fieldByBeamName = ImmutableMap.builder();
 
-        ImmutableList.Builder<ResourceField> fields = ImmutableList.builder();
-        ImmutableMap.Builder<String, ResourceField> fieldByJavaName = ImmutableMap.builder();
-        ImmutableMap.Builder<String, ResourceField> fieldByBeamName = ImmutableMap.builder();
-
-        for (PropertyDescriptor prop : Introspector.getBeanInfo(resourceClass).getPropertyDescriptors()) {
+        for (PropertyDescriptor prop : Introspector.getBeanInfo(diffableClass).getPropertyDescriptors()) {
             Method getter = prop.getReadMethod();
             Method setter = prop.getWriteMethod();
 
@@ -62,7 +59,7 @@ public class ResourceType<R extends Resource> {
                 Type setterType = setter.getGenericParameterTypes()[0];
 
                 if (getterType.equals(setterType)) {
-                    ResourceField field = new ResourceField(prop.getName(), getter, setter, getterType);
+                    DiffableField field = new DiffableField(prop.getName(), getter, setter, getterType);
 
                     fields.add(field);
                     fieldByJavaName.put(field.getJavaName(), field);
@@ -76,15 +73,15 @@ public class ResourceType<R extends Resource> {
         this.fieldByBeamName = fieldByBeamName.build();
     }
 
-    public List<ResourceField> getFields() {
+    public List<DiffableField> getFields() {
         return fields;
     }
 
-    public ResourceField getFieldByJavaName(String javaName) {
+    public DiffableField getFieldByJavaName(String javaName) {
         return fieldByJavaName.get(javaName);
     }
 
-    public ResourceField getFieldByBeamName(String beamName) {
+    public DiffableField getFieldByBeamName(String beamName) {
         return fieldByBeamName.get(beamName);
     }
 

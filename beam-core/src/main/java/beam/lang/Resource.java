@@ -1,8 +1,18 @@
 package beam.lang;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+
 import beam.core.diff.Change;
-import beam.core.diff.ResourceDiffProperty;
-import beam.core.diff.ResourceDisplayDiff;
+import beam.core.diff.Diffable;
+import beam.core.diff.DiffableField;
+import beam.core.diff.DiffableType;
 import beam.core.diff.ResourceName;
 import beam.lang.ast.KeyValueNode;
 import beam.lang.ast.Node;
@@ -15,29 +25,8 @@ import beam.lang.ast.value.ListNode;
 import beam.lang.ast.value.MapNode;
 import beam.lang.ast.value.NumberNode;
 import beam.lang.ast.value.StringNode;
-import com.google.common.base.CaseFormat;
-import com.google.common.base.Throwables;
-import com.psddev.dari.util.ObjectUtils;
-import org.apache.commons.beanutils.ConvertUtils;
-import org.apache.commons.beanutils.converters.DateConverter;
-import org.apache.commons.beanutils.converters.DateTimeConverter;
 
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-
-public abstract class Resource {
+public abstract class Resource implements Diffable {
 
     private String type;
     private String name;
@@ -49,11 +38,6 @@ public abstract class Resource {
     private Set<Resource> dependencies;
     private Set<Resource> dependents;
     private Change change;
-
-    static {
-        DateTimeConverter converter = new DateConverter(null);
-        ConvertUtils.register(converter, Date.class);
-    }
 
     // -- Resource Implementation API
 
@@ -129,118 +113,12 @@ public abstract class Resource {
         return dependents;
     }
 
-    public Map<String, Object> resolvedKeyValues() {
-        Map<String, Object> copy = scope != null ? new HashMap<>(scope) : new HashMap<>();
-
-        try {
-            for (PropertyDescriptor p : Introspector.getBeanInfo(getClass()).getPropertyDescriptors()) {
-                Method reader = p.getReadMethod();
-
-                if (reader != null) {
-                    String key = keyFromFieldName(p.getDisplayName());
-                    Object value = reader.invoke(this);
-
-                    copy.put(key, value);
-                }
-            }
-        } catch (IllegalAccessException | IntrospectionException error) {
-            throw new IllegalStateException(error);
-        } catch (InvocationTargetException error) {
-            throw Throwables.propagate(error);
-        }
-
-        return copy;
-    }
-
-    public ResourceDisplayDiff calculateFieldDiffs(Resource current) {
-        boolean firstField = true;
-
-        ResourceDisplayDiff displayDiff = new ResourceDisplayDiff();
-
-        Map<String, Object> currentValues = current.resolvedKeyValues();
-        Map<String, Object> pendingValues = resolvedKeyValues();
-
-        for (String key : pendingValues.keySet()) {
-            // If there is no getter for this method then skip this field since there can
-            // be no ResourceDiffProperty annotation.
-            Method reader = readerMethodForKey(key);
-            if (reader == null) {
-                continue;
-            }
-
-            // If no ResourceDiffProperty annotation or if this field has subresources then skip this field.
-            ResourceDiffProperty propertyAnnotation = reader.getAnnotation(ResourceDiffProperty.class);
-            if (propertyAnnotation == null || propertyAnnotation.subresource()) {
-                continue;
-            }
-            boolean nullable = propertyAnnotation.nullable();
-
-            Object currentValue = currentValues.get(key);
-            Object pendingValue = pendingValues.get(key);
-
-            if (pendingValue != null || nullable) {
-                String fieldChangeOutput = null;
-                if (pendingValue instanceof List) {
-                    fieldChangeOutput = Change.processAsListValue(key, (List) currentValue, (List) pendingValue);
-                } else if (pendingValue instanceof Map) {
-                    fieldChangeOutput = Change.processAsMapValue(key, (Map) currentValue, (Map) pendingValue);
-                } else {
-                    fieldChangeOutput = Change.processAsScalarValue(key, currentValue, pendingValue);
-                }
-
-                if (!ObjectUtils.isBlank(fieldChangeOutput)) {
-                    if (!firstField) {
-                        displayDiff.getChangedDisplay().append(", ");
-                    }
-
-                    displayDiff.addChangedProperty(key);
-                    displayDiff.getChangedDisplay().append(fieldChangeOutput);
-
-                    if (!propertyAnnotation.updatable()) {
-                        displayDiff.setReplace(true);
-                    }
-
-                    firstField = false;
-                }
-            }
-        }
-
-        return displayDiff;
-    }
-
     // -- Base Resource
 
     public Object get(String key) {
-        return Optional.ofNullable(ResourceType.getInstance(getClass()).getFieldByBeamName(key))
+        return Optional.ofNullable(DiffableType.getInstance(getClass()).getFieldByBeamName(key))
                 .map(f -> f.getValue(this))
                 .orElse(null);
-    }
-
-    /**
-     * Return a list of fields that contain subresources (ResourceDiffProperty(subresource = true)).
-     */
-    public List<String> subresourceFields() {
-        List<String> keys = new ArrayList<>();
-        Map<String, Object> pendingValues = resolvedKeyValues();
-
-        for (String key : pendingValues.keySet()) {
-            // If there is no getter for this method then skip this field since there can
-            // be no ResourceDiffProperty annotation.
-            Method reader = readerMethodForKey(key);
-            if (reader == null) {
-                continue;
-            }
-
-            // If no ResourceDiffProperty annotation or if this field is not subresources then skip this field.
-            ResourceDiffProperty propertyAnnotation = reader.getAnnotation(ResourceDiffProperty.class);
-            if (propertyAnnotation == null || !propertyAnnotation.subresource()) {
-                continue;
-            }
-
-            keys.add(key);
-        }
-
-        return keys;
     }
 
     public String resourceType() {
@@ -265,7 +143,7 @@ public abstract class Resource {
     }
 
     public void initialize(Map<String, Object> values) {
-        for (ResourceField field : ResourceType.getInstance(getClass()).getFields()) {
+        for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
             String key = field.getBeamName();
 
             if (values.containsKey(key)) {
@@ -304,7 +182,7 @@ public abstract class Resource {
     public List<Node> toBodyNodes() {
         List<Node> body = new ArrayList<>();
 
-        for (ResourceField field : ResourceType.getInstance(getClass()).getFields()) {
+        for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
             Object value = field.getValue(this);
 
             if (value == null) {
@@ -359,47 +237,6 @@ public abstract class Resource {
         }
 
         return String.format("Resource[type: %s, id: %s]", resourceType(), resourceIdentifier());
-    }
-
-    String fieldNameFromKey(String key) {
-        return CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key);
-    }
-
-    String keyFromFieldName(String field) {
-        return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN, field).replaceFirst("^get-", "");
-    }
-
-    Method readerMethodForKey(String key) {
-        PropertyDescriptor p = propertyDescriptorForKey(key);
-        if (p != null) {
-            return p.getReadMethod();
-        }
-
-        return null;
-    }
-
-    Method writerMethodForKey(String key) {
-        PropertyDescriptor p = propertyDescriptorForKey(key);
-        if (p != null) {
-            return p.getWriteMethod();
-        }
-
-        return null;
-    }
-
-    PropertyDescriptor propertyDescriptorForKey(String key) {
-        String convertedKey = fieldNameFromKey(key);
-        try {
-            for (PropertyDescriptor p : Introspector.getBeanInfo(getClass()).getPropertyDescriptors()) {
-                if (p.getDisplayName().equals(convertedKey)) {
-                    return p;
-                }
-            }
-        } catch (IntrospectionException ex) {
-            // Ignoring introspection exceptions
-        }
-
-        return null;
     }
 
     private Node objectToNode(Object value) {

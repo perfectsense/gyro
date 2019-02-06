@@ -1,5 +1,13 @@
 package beam.lang.ast.block;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import beam.core.diff.DiffableField;
+import beam.core.diff.DiffableType;
 import beam.lang.BeamLanguageException;
 import beam.lang.Credentials;
 import beam.lang.Resource;
@@ -8,12 +16,6 @@ import beam.lang.ast.scope.ResourceScope;
 import beam.lang.ast.scope.Scope;
 import beam.lang.ast.scope.VirtualResourceScope;
 import beam.parser.antlr4.BeamParser;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class ResourceNode extends BlockNode {
 
@@ -45,11 +47,10 @@ public class ResourceNode extends BlockNode {
         Optional.ofNullable(scope.getRootScope().getCurrent())
                 .map(s -> s.findResource(name))
                 .ifPresent(r -> {
-                    ResourceScope s = r.scope();
-
-                    if (s != null) {
-                        resourceScope.putAll(s);
-                        r.subresourceFields().forEach(resourceScope::remove);
+                    for (DiffableField f : DiffableType.getInstance(r.getClass()).getFields()) {
+                        if (f.getSubresourceClass() == null) {
+                            resourceScope.put(f.getBeamName(), f.getValue(r));
+                        }
                     }
                 });
 

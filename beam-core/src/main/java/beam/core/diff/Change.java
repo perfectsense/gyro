@@ -1,10 +1,10 @@
 package beam.core.diff;
 
+import beam.core.BeamUI;
 import beam.lang.Resource;
 import beam.lang.ast.scope.ResourceScope;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
-import com.psddev.dari.util.Lazy;
 import com.psddev.dari.util.ObjectUtils;
 import com.psddev.dari.util.StringUtils;
 
@@ -14,66 +14,37 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-public class Change {
-
-    private final Resource currentResource;
-    private final Resource pendingResource;
+public abstract class Change {
 
     private final List<Diff> diffs = new ArrayList<>();
-    private boolean changeable;
-    private boolean changed;
+    private boolean executable;
+    private final AtomicBoolean changed = new AtomicBoolean();
 
-    private final Set<String> updatedProperties = new HashSet<>();
-    private final StringBuilder updatedPropertiesDisplay = new StringBuilder();
-    private final Set<String> replacedProperties = new HashSet<>();
-    private final StringBuilder replacedPropertiesDisplay = new StringBuilder();
-
-    private final Lazy<Resource> changedResource = new Lazy<Resource>() {
-
-        @Override
-        public final Resource create() throws Exception {
-            Resource resource = change();
-            changed = true;
-
-            return resource;
-        }
-    };
-
-    public Change(Resource currentResource, Resource pendingResource) {
-        this.currentResource = currentResource;
-        this.pendingResource = pendingResource;
+    public List<Diff> getDiffs() {
+        return diffs;
     }
 
-    public Resource getCurrentResource() {
-        return currentResource;
+    public boolean isExecutable() {
+        return executable;
     }
 
-    public Resource getPendingResource() {
-        return pendingResource;
+    public void setExecutable(boolean executable) {
+        this.executable = executable;
     }
 
-    public Resource executeChange() throws Exception {
-        Resource resource = pendingResource != null ? pendingResource : currentResource;
-        ResourceScope scope = resource.scope();
-
-        if (scope != null) {
-            resource.initialize(scope.resolve());
-        }
-
-        if (isChangeable()) {
-            return changedResource.get();
-
-        } else {
-            throw new IllegalStateException("Can't change yet!");
-        }
+    public boolean isChanged() {
+        return changed.get();
     }
 
-    public Set<Change> dependencies() {
+    public abstract Resource getResource();
+
+    public Set<Change> getDependencies() {
         Set<Change> dependencies = new HashSet<>();
 
-        Resource resource = pendingResource != null ? pendingResource : currentResource;
-        for (Resource r : (getType() == ChangeType.DELETE ? resource.dependents() : resource.dependencies())) {
+        Resource resource = getResource();
+        for (Resource r : (this instanceof Delete ? resource.dependents() : resource.dependencies())) {
             Change c = r.change();
 
             if (c != null) {
@@ -84,56 +55,27 @@ public class Change {
         return dependencies;
     }
 
-    public ChangeType getType() {
-        if (pendingResource == null) {
-            return ChangeType.DELETE;
-        } else if (currentResource == null) {
-            return ChangeType.CREATE;
-        } else if (updatedPropertiesDisplay.length() > 0) {
-            return ChangeType.UPDATE;
-        } else if (replacedPropertiesDisplay.length() > 0) {
-            return ChangeType.REPLACE;
-        } else {
-            return ChangeType.KEEP;
+    public abstract void writeTo(BeamUI ui);
+
+    protected abstract void doExecute();
+
+    public final void execute() throws Exception {
+        if (!isExecutable()) {
+            throw new IllegalStateException("Can't change yet!");
         }
-    }
 
-    public List<Diff> getDiffs() {
-        return diffs;
-    }
-
-    public boolean isChangeable() {
-        return changeable;
-    }
-
-    public void setChangeable(boolean changeable) {
-        this.changeable = changeable;
-    }
-
-    public boolean isChanged() {
-        return changed;
-    }
-
-    /**
-     * Calculate the difference between individual fields.
-     *
-     * If a field changed and that field is updatable, it's added to updatedProperties.
-     * If a field changed and that field is not updatable, it's added to replaceProperties.
-     */
-    public void calculateFieldDiffs() {
-        if (currentResource == null || pendingResource == null) {
+        if (!changed.compareAndSet(false, true)) {
             return;
         }
 
-        ResourceDisplayDiff displayDiff = pendingResource.calculateFieldDiffs(currentResource);
+        Resource resource = getResource();
+        ResourceScope scope = resource.scope();
 
-        if (displayDiff.isReplace()) {
-            replacedProperties.addAll(displayDiff.getChangedProperties());
-            replacedPropertiesDisplay.append(displayDiff.getChangedDisplay());
-        } else {
-            updatedProperties.addAll(displayDiff.getChangedProperties());
-            updatedPropertiesDisplay.append(displayDiff.getChangedDisplay());
+        if (scope != null) {
+            resource.initialize(scope.resolve());
         }
+
+        doExecute();
     }
 
     public static String processAsScalarValue(String key, Object currentValue, Object pendingValue) {
@@ -231,42 +173,6 @@ public class Change {
         }
 
         return StringUtils.join(diffs, ", ");
-    }
-
-    @Override
-    public String toString() {
-        ChangeType type = getType();
-
-        if (type == ChangeType.UPDATE) {
-            return String.format(
-                "Update %s (%s)",
-                currentResource.toDisplayString(),
-                updatedPropertiesDisplay);
-
-        } else if (type == ChangeType.REPLACE) {
-            return String.format(
-                "Replace %s (%s)",
-                currentResource.toDisplayString(),
-                replacedPropertiesDisplay);
-
-        } else {
-            return currentResource.toDisplayString();
-        }
-    }
-
-    protected Resource change() {
-        ChangeType type = getType();
-
-        if (type == ChangeType.UPDATE) {
-            pendingResource.update(currentResource, updatedProperties);
-            return pendingResource;
-
-        } else if (type == ChangeType.REPLACE) {
-            return currentResource;
-
-        } else {
-            return currentResource;
-        }
     }
 
 }
