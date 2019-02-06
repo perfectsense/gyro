@@ -20,7 +20,27 @@ import beam.lang.ast.value.StringNode;
 
 public abstract class Diffable {
 
+    private Diffable parent;
     private Change change;
+
+    public Diffable parent() {
+        return parent;
+    }
+
+    public Resource parentResource() {
+        for (Diffable d = parent(); d != null; d = d.parent()) {
+            if (d instanceof Resource) {
+                return (Resource) d;
+            }
+        }
+
+        return null;
+    }
+
+    public Diffable parent(Diffable parent) {
+        this.parent = parent;
+        return this;
+    }
 
     public Change change() {
         return change;

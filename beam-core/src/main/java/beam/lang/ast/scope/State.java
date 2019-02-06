@@ -81,7 +81,7 @@ public class State {
             // Subresource?
             if (key == null) {
                 updateSubresource(
-                        stateResources.get(resource.parent().resourceIdentifier()),
+                        stateResources.get(resource.parentResource().resourceIdentifier()),
                         resource,
                         false);
 

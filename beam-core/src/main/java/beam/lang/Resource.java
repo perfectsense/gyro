@@ -17,7 +17,6 @@ public abstract class Resource extends Diffable {
     private String type;
     private String name;
     private DiffableScope scope;
-    private Resource parent;
 
     // -- Resource Implementation API
 
@@ -39,17 +38,8 @@ public abstract class Resource extends Diffable {
         this.scope = scope;
     }
 
-    public Resource parent() {
-        return parent;
-    }
-
-    public Resource parent(Resource parent) {
-        this.parent = parent;
-        return this;
-    }
-
     public Credentials resourceCredentials() {
-        for (Resource r = this; r != null; r = r.parent()) {
+        for (Resource r = this; r != null; r = r.parentResource()) {
             Scope scope = r.scope();
 
             if (scope != null) {
