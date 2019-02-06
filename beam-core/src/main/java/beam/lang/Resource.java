@@ -1,12 +1,10 @@
 package beam.lang;
 
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
 import beam.core.diff.Diffable;
-import beam.core.diff.DiffableField;
 import beam.core.diff.DiffableType;
 import beam.core.diff.ResourceName;
 import beam.lang.ast.block.ResourceNode;
