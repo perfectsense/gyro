@@ -35,6 +35,16 @@ public class Diff {
                 : Collections.emptyList();
     }
 
+    public Diff(Resource currentResource, Resource pendingResource) {
+        this.currentResources = currentResource != null
+                ? Collections.singletonList(currentResource)
+                : Collections.emptyList();
+
+        this.pendingResources = pendingResource != null
+                ? Collections.singletonList(pendingResource)
+                : Collections.emptyList();
+    }
+
     private List<Resource> sortResources(Collection<? extends Resource> resources) {
         List<Resource> sorted = new ArrayList<>();
 
@@ -123,7 +133,7 @@ public class Diff {
                 diff = new Diff(null, (List<Resource>) value);
 
             } else if (value != null) {
-                diff = new Diff(null, Collections.singletonList((Resource) value));
+                diff = new Diff(null, (Resource) value);
 
             } else {
                 diff = null;
@@ -172,14 +182,14 @@ public class Diff {
 
             } else if (currentValue != null) {
                 if (pendingValue != null) {
-                    diff = new Diff(Collections.singletonList((Resource) currentValue), Collections.singletonList((Resource) pendingValue));
+                    diff = new Diff((Resource) currentValue, (Resource) pendingValue);
 
                 } else {
-                    diff = new Diff(Collections.singletonList((Resource) currentValue), null);
+                    diff = new Diff((Resource) currentValue, null);
                 }
 
             } else if (pendingValue != null) {
-                diff = new Diff(null, Collections.singletonList((Resource) pendingValue));
+                diff = new Diff(null, (Resource) pendingValue);
 
             } else {
                 diff = null;
@@ -258,7 +268,7 @@ public class Diff {
                 diff = new Diff((List<Resource>) value, null);
 
             } else if (value != null) {
-                diff = new Diff(Collections.singletonList((Resource) value), null);
+                diff = new Diff((Resource) value, null);
 
             } else {
                 diff = null;
