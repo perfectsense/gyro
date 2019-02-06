@@ -1,6 +1,5 @@
 package beam.lang.ast.scope;
 
-import beam.lang.Credentials;
 import beam.lang.Resource;
 import com.psddev.dari.util.StringUtils;
 
@@ -13,7 +12,6 @@ public class RootScope extends FileScope {
 
     private final RootScope current;
     private final Map<String, Class<?>> resourceClasses = new HashMap<>();
-    private final Map<String, Credentials> credentialsMap = new HashMap<>();
 
     public RootScope(String file) {
         super(null, file);
@@ -31,10 +29,6 @@ public class RootScope extends FileScope {
 
     public Map<String, Class<?>> getResourceClasses() {
         return resourceClasses;
-    }
-
-    public Map<String, Credentials> getCredentialsMap() {
-        return credentialsMap;
     }
 
     public List<Resource> findAllResources() {
