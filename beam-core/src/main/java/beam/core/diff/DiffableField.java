@@ -1,4 +1,4 @@
-package beam.lang;
+package beam.core.diff;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -6,11 +6,11 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Optional;
 
-import beam.core.diff.ResourceDiffProperty;
+import beam.lang.Resource;
 import com.google.common.base.CaseFormat;
 import com.psddev.dari.util.ObjectUtils;
 
-public class ResourceField {
+public class DiffableField {
 
     private final String javaName;
     private final String beamName;
@@ -21,7 +21,7 @@ public class ResourceField {
     private final Class<? extends Resource> subresourceClass;
 
     @SuppressWarnings("unchecked")
-    protected ResourceField(String javaName, Method getter, Method setter, Type type) {
+    protected DiffableField(String javaName, Method getter, Method setter, Type type) {
         this.javaName = javaName;
         this.beamName = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, javaName);
         this.getter = getter;

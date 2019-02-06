@@ -1,6 +1,18 @@
 package beam.lang;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+
 import beam.core.diff.Change;
+import beam.core.diff.Diffable;
+import beam.core.diff.DiffableField;
+import beam.core.diff.DiffableType;
 import beam.core.diff.ResourceName;
 import beam.lang.ast.KeyValueNode;
 import beam.lang.ast.Node;
@@ -14,16 +26,7 @@ import beam.lang.ast.value.MapNode;
 import beam.lang.ast.value.NumberNode;
 import beam.lang.ast.value.StringNode;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-
-public abstract class Resource {
+public abstract class Resource implements Diffable {
 
     private String type;
     private String name;
@@ -113,7 +116,7 @@ public abstract class Resource {
     // -- Base Resource
 
     public Object get(String key) {
-        return Optional.ofNullable(ResourceType.getInstance(getClass()).getFieldByBeamName(key))
+        return Optional.ofNullable(DiffableType.getInstance(getClass()).getFieldByBeamName(key))
                 .map(f -> f.getValue(this))
                 .orElse(null);
     }
@@ -140,7 +143,7 @@ public abstract class Resource {
     }
 
     public void initialize(Map<String, Object> values) {
-        for (ResourceField field : ResourceType.getInstance(getClass()).getFields()) {
+        for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
             String key = field.getBeamName();
 
             if (values.containsKey(key)) {
@@ -179,7 +182,7 @@ public abstract class Resource {
     public List<Node> toBodyNodes() {
         List<Node> body = new ArrayList<>();
 
-        for (ResourceField field : ResourceType.getInstance(getClass()).getFields()) {
+        for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
             Object value = field.getValue(this);
 
             if (value == null) {

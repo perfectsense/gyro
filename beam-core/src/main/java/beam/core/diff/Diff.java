@@ -1,12 +1,5 @@
 package beam.core.diff;
 
-import beam.core.BeamCore;
-import beam.lang.Resource;
-import beam.lang.ResourceField;
-import beam.lang.ResourceType;
-import beam.lang.ast.scope.State;
-import com.psddev.dari.util.ObjectUtils;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -16,6 +9,11 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
+
+import beam.core.BeamCore;
+import beam.lang.Resource;
+import beam.lang.ast.scope.State;
+import com.psddev.dari.util.ObjectUtils;
 
 public class Diff {
 
@@ -121,7 +119,7 @@ public class Diff {
 
         resource.change(create);
 
-        for (ResourceField field : ResourceType.getInstance(resource.getClass()).getFields()) {
+        for (DiffableField field : DiffableType.getInstance(resource.getClass()).getFields()) {
             if (field.getSubresourceClass() == null) {
                 continue;
             }
@@ -168,7 +166,7 @@ public class Diff {
         currentResource.change(change);
         pendingResource.change(change);
 
-        for (ResourceField field : ResourceType.getInstance(currentResource.getClass()).getFields()) {
+        for (DiffableField field : DiffableType.getInstance(currentResource.getClass()).getFields()) {
             if (field.getSubresourceClass() == null) {
                 continue;
             }
@@ -208,7 +206,7 @@ public class Diff {
         boolean firstField = true;
         ResourceDisplayDiff displayDiff = new ResourceDisplayDiff();
 
-        for (ResourceField field : ResourceType.getInstance(currentResource.getClass()).getFields()) {
+        for (DiffableField field : DiffableType.getInstance(currentResource.getClass()).getFields()) {
             if (field.getSubresourceClass() != null) {
                 continue;
             }
@@ -256,7 +254,7 @@ public class Diff {
 
         resource.change(delete);
 
-        for (ResourceField field : ResourceType.getInstance(resource.getClass()).getFields()) {
+        for (DiffableField field : DiffableType.getInstance(resource.getClass()).getFields()) {
             if (field.getSubresourceClass() == null) {
                 continue;
             }
