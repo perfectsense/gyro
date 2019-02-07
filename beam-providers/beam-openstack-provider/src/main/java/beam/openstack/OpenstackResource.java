@@ -2,6 +2,7 @@ package beam.openstack;
 
 import beam.core.BeamException;
 import beam.lang.Resource;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Module;
 import org.jclouds.Constants;
@@ -10,11 +11,24 @@ import org.jclouds.logging.slf4j.config.SLF4JLoggingModule;
 
 import java.io.Closeable;
 import java.lang.reflect.Method;
+import java.util.Map;
 import java.util.Properties;
 
 public abstract class OpenstackResource extends Resource {
     private Closeable client;
     private String region;
+
+    private static final Map<String, String> clientProviderMap = ImmutableMap.<String, String>builder()
+        .put("AutoscaleApi", "rackspace-autoscale-us")
+        .put("CloudFilesApi", "rackspace-cloudfiles-us")
+        .put("NeutronApi", "rackspace-cloudnetworks-us")
+        .put("NovaApi", "rackspace-cloudservers-us")
+        .put("CinderApi", "rackspace-cloudblockstorage-us")
+        .put("TroveApi", "rackspace-clouddatabases-us")
+        .put("CloudLoadBalancersApi", "rackspace-cloudloadbalancers-us")
+        .put("CloudDNSApi", "rackspace-clouddns-us")
+        .put("PoppyApi", "rackspace-cdn-us")
+        .build();
 
     @Override
     public Class resourceCredentialsClass() {
@@ -26,7 +40,11 @@ public abstract class OpenstackResource extends Resource {
     protected <T> T createClient(Class<T> clientClass) {
         try {
             if (client == null) {
-                createParentClient(getParentClientClass());
+                if (clientProviderMap.containsKey(getClassName(getParentClientClass()))) {
+                    client = createContextBuilder(clientProviderMap.get(getClassName(getParentClientClass()))).buildApi(getParentClientClass());
+                } else {
+                    throw new BeamException("Undefined class in scope of generating client.");
+                }
             }
 
             Class<?>[] paramTypes = {String.class};
@@ -39,39 +57,6 @@ public abstract class OpenstackResource extends Resource {
         }
 
         return null;
-    }
-
-    private <T extends Closeable> T createParentClient(Class<T> clientClass) {
-        if (client == null) {
-            try {
-                switch (getClassName(clientClass)) {
-                    case "AutoscaleApi": client = createContextBuilder("rackspace-autoscale-us").buildApi(clientClass);
-                    break;
-                    case "CloudFilesApi": client = createContextBuilder("rackspace-cloudfiles-us").buildApi(clientClass);
-                    break;
-                    case "NeutronApi": client = createContextBuilder("rackspace-cloudnetworks-us").buildApi(clientClass);
-                    break;
-                    case "NovaApi": client = createContextBuilder("rackspace-cloudservers-us").buildApi(clientClass);
-                    break;
-                    case "CinderApi": client = createContextBuilder("rackspace-cloudblockstorage-us").buildApi(clientClass);
-                    break;
-                    case "TroveApi": client = createContextBuilder("rackspace-clouddatabases-us").buildApi(clientClass);
-                    break;
-                    case "CloudLoadBalancersApi": client = createContextBuilder("rackspace-cloudloadbalancers-us").buildApi(clientClass);
-                    break;
-                    case "CloudDNSApi": client = createContextBuilder("rackspace-clouddns-us").buildApi(clientClass);
-                    break;
-                    case "PoppyApi": client = createContextBuilder("rackspace-cdn-us").buildApi(clientClass);
-                    break;
-                    default: throw new BeamException("Undefined class in scope of generating client.");
-                }
-
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        }
-
-        return (T) client;
     }
 
     private ContextBuilder createContextBuilder(String providerOrApi) {
