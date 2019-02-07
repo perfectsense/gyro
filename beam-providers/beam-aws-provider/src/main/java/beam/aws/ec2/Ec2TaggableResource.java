@@ -40,6 +40,7 @@ public abstract class Ec2TaggableResource<T> extends AwsResource {
         }
     }
 
+    @ResourceDiffProperty(updatable = true)
     public String getName() {
         return getTags().get(NAME_KEY);
     }

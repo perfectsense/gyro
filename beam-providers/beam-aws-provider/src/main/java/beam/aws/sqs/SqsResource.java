@@ -415,7 +415,7 @@ public class SqsResource extends AwsResource {
      * Adding the account number in the config is a temporary fix, need to change when code changes
      */
     private String createQueueArn(String deadLetterQueueName) {
-        Credentials resourceCredentials = this.getResourceCredentials();
+        Credentials resourceCredentials = this.resourceCredentials();
         AwsCredentials awsCredentials = (AwsCredentials) resourceCredentials;
 
         return "arn:aws:sqs:" + awsCredentials.getRegion() + ":" + getAccountNo() + ":" + deadLetterQueueName;
