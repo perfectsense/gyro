@@ -255,3 +255,42 @@ public class KmsResource extends AwsResource {
         }
     }
 
+    @Override
+    public boolean refresh() {
+        KmsClient client = createClient(KmsClient.class);
+
+        DescribeKeyResponse keyResponse = client.describeKey(r -> r.keyId(getKeyId()));
+        if (keyResponse != null) {
+
+            KeyMetadata keyMetadata = keyResponse.keyMetadata();
+            //only load keys that are NOT pending deletion
+            if(!keyMetadata.keyStateAsString().equals("PENDING_DELETION")) {
+
+                setCustomKeyStoreId(keyMetadata.customKeyStoreId());
+                setDescription(keyMetadata.description());
+                setEnabled(keyMetadata.enabled());
+                setKeyManager(keyMetadata.keyManagerAsString());
+                setKeyState(keyMetadata.keyStateAsString());
+                setKeyUsage(keyMetadata.keyUsageAsString());
+                setOrigin(keyMetadata.originAsString());
+
+                getAliases().clear();
+                ListAliasesResponse aliasResponse = client.listAliases(r -> r.keyId(getKeyId()));
+                if (aliasResponse != null) {
+                    for (AliasListEntry alias : aliasResponse.aliases()) {
+                        getAliases().add(alias.aliasName());
+                    }
+                }
+
+                GetKeyPolicyResponse policyResponse = client.getKeyPolicy(r -> r.keyId(getKeyId()).policyName("default"));
+                if (policyResponse != null) {
+                    setPolicyContents(formatPolicy(policyResponse.policy()));
+                }
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
