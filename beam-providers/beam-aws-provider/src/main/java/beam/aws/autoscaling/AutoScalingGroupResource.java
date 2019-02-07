@@ -10,8 +10,16 @@ import com.psddev.dari.util.StringUtils;
 import software.amazon.awssdk.services.autoscaling.AutoScalingClient;
 import software.amazon.awssdk.services.autoscaling.model.AutoScalingGroup;
 import software.amazon.awssdk.services.autoscaling.model.DescribeAutoScalingGroupsResponse;
+import software.amazon.awssdk.services.autoscaling.model.DescribeLifecycleHooksResponse;
+import software.amazon.awssdk.services.autoscaling.model.DescribeNotificationConfigurationsResponse;
+import software.amazon.awssdk.services.autoscaling.model.DescribePoliciesResponse;
+import software.amazon.awssdk.services.autoscaling.model.DescribeScheduledActionsResponse;
 import software.amazon.awssdk.services.autoscaling.model.EnabledMetric;
 import software.amazon.awssdk.services.autoscaling.model.LaunchTemplateSpecification;
+import software.amazon.awssdk.services.autoscaling.model.LifecycleHook;
+import software.amazon.awssdk.services.autoscaling.model.NotificationConfiguration;
+import software.amazon.awssdk.services.autoscaling.model.ScalingPolicy;
+import software.amazon.awssdk.services.autoscaling.model.ScheduledUpdateGroupAction;
 import software.amazon.awssdk.services.autoscaling.model.Tag;
 import software.amazon.awssdk.services.autoscaling.model.TagDescription;
 import software.amazon.awssdk.services.ec2.model.Ec2Exception;
@@ -55,6 +63,30 @@ import java.util.stream.Collectors;
  *             $(aws::subnet subnet-auto-scaling-group-example | availability-zone),
  *             $(aws::subnet subnet-auto-scaling-group-example-2 | availability-zone)
  *         ]
+ *
+ *         scaling-policy
+ *             policy-name: "Simple-Policy-1"
+ *             adjustment-type: "PercentChangeInCapacity"
+ *             policy-type: "SimpleScaling"
+ *             cooldown: 3000
+ *             scaling-adjustment: 5
+ *             min-adjustment-magnitude: 3
+ *         end
+ *
+ *         lifecycle-hook
+ *             lifecycle-hook-name: "Lifecycle-Hook-1"
+ *             default-result: "CONTINUE"
+ *             heartbeat-timeout: 300
+ *             lifecycle-transition: "autoscaling:EC2_INSTANCE_LAUNCHING"
+ *         end
+ *
+ *         auto-scaling-notification
+ *             topic-arn: "arn:aws:sns:us-west-2:242040583208:beam-instance-state"
+ *             notification-types: [
+ *                 "autoscaling:EC2_INSTANCE_LAUNCH_ERROR"
+ *             ]
+ *         end
+ *
  *     end
  */
 @ResourceName("auto-scaling-group")
@@ -79,8 +111,16 @@ public class AutoScalingGroupResource extends AwsResource {
     private List<String> propagateAtLaunchTags;
     private String serviceLinkedRoleArn;
     private String placementGroup;
+    private String instanceId;
+    private List<String> loadBalancerNames;
+    private List<String> targetGroupArns;
+    private List<String> terminationPolicies;
     private String status;
     private Date createdTime;
+    private List<AutoScalingPolicyResource> scalingPolicy;
+    private List<AutoScalingGroupLifecycleHookResource> lifecycleHook;
+    private List<AutoScalingGroupScheduledActionResource> scheduledAction;
+    private List<AutoScalingGroupNotificationResource> autoScalingNotification;
 
     private final Set<String> masterMetricSet = new HashSet<>(Arrays.asList(
         "GroupMinSize",
@@ -359,6 +399,54 @@ public class AutoScalingGroupResource extends AwsResource {
         this.placementGroup = placementGroup;
     }
 
+    public String getInstanceId() {
+        return instanceId;
+    }
+
+    public void setInstanceId(String instanceId) {
+        this.instanceId = instanceId;
+    }
+
+    @ResourceDiffProperty(updatable = true, nullable = true)
+    public List<String> getLoadBalancerNames() {
+        if (loadBalancerNames == null) {
+            loadBalancerNames = new ArrayList<>();
+        }
+
+        return loadBalancerNames;
+    }
+
+    public void setLoadBalancerNames(List<String> loadBalancerNames) {
+        this.loadBalancerNames = loadBalancerNames;
+    }
+
+    @ResourceDiffProperty(updatable = true, nullable = true)
+    public List<String> getTargetGroupArns() {
+        if (targetGroupArns == null) {
+            targetGroupArns = new ArrayList<>();
+        }
+
+        return targetGroupArns;
+    }
+
+    public void setTargetGroupArns(List<String> targetGroupArns) {
+        this.targetGroupArns = targetGroupArns;
+    }
+
+    @ResourceDiffProperty(updatable = true, nullable = true)
+    public List<String> getTerminationPolicies() {
+        if (terminationPolicies == null || terminationPolicies.isEmpty()) {
+            terminationPolicies = new ArrayList<>();
+            terminationPolicies.add("Default");
+        }
+
+        return terminationPolicies;
+    }
+
+    public void setTerminationPolicies(List<String> terminationPolicies) {
+        this.terminationPolicies = terminationPolicies;
+    }
+
     public String getStatus() {
         return status;
     }
@@ -373,6 +461,58 @@ public class AutoScalingGroupResource extends AwsResource {
 
     public void setCreatedTime(Date createdTime) {
         this.createdTime = createdTime;
+    }
+
+    @ResourceDiffProperty(nullable = true, subresource = true)
+    public List<AutoScalingPolicyResource> getScalingPolicy() {
+        if (scalingPolicy == null) {
+            scalingPolicy = new ArrayList<>();
+        }
+
+        return scalingPolicy;
+    }
+
+    public void setScalingPolicy(List<AutoScalingPolicyResource> scalingPolicy) {
+        this.scalingPolicy = scalingPolicy;
+    }
+
+    @ResourceDiffProperty(nullable = true, subresource = true)
+    public List<AutoScalingGroupLifecycleHookResource> getLifecycleHook() {
+        if (lifecycleHook == null) {
+            lifecycleHook = new ArrayList<>();
+        }
+
+        return lifecycleHook;
+    }
+
+    public void setLifecycleHook(List<AutoScalingGroupLifecycleHookResource> lifecycleHook) {
+        this.lifecycleHook = lifecycleHook;
+    }
+
+    @ResourceDiffProperty(nullable = true, subresource = true)
+    public List<AutoScalingGroupScheduledActionResource> getScheduledAction() {
+        if (scheduledAction == null) {
+            scheduledAction = new ArrayList<>();
+        }
+
+        return scheduledAction;
+    }
+
+    public void setScheduledAction(List<AutoScalingGroupScheduledActionResource> scheduledAction) {
+        this.scheduledAction = scheduledAction;
+    }
+
+    @ResourceDiffProperty(nullable = true, subresource = true)
+    public List<AutoScalingGroupNotificationResource> getAutoScalingNotification() {
+        if (autoScalingNotification == null) {
+            autoScalingNotification = new ArrayList<>();
+        }
+
+        return autoScalingNotification;
+    }
+
+    public void setAutoScalingNotification(List<AutoScalingGroupNotificationResource> autoScalingNotification) {
+        this.autoScalingNotification = autoScalingNotification;
     }
 
     @Override
@@ -403,9 +543,21 @@ public class AutoScalingGroupResource extends AwsResource {
         setSubnetIds(autoScalingGroup.vpcZoneIdentifier().equals("")
             ? new ArrayList<>() : Arrays.asList(autoScalingGroup.vpcZoneIdentifier().split(",")));
 
+        setLoadBalancerNames(autoScalingGroup.loadBalancerNames());
+        setTargetGroupArns(autoScalingGroup.targetGroupARNs());
+        setTerminationPolicies(autoScalingGroup.terminationPolicies());
+
         loadMetrics(autoScalingGroup.enabledMetrics());
 
         loadTags(autoScalingGroup.tags());
+
+        loadScalingPolicy(client);
+
+        loadLifecycleHook(client);
+
+        loadScheduledAction(client);
+
+        loadNotification(client);
 
         return true;
     }
@@ -432,6 +584,10 @@ public class AutoScalingGroupResource extends AwsResource {
                 .tags(getAutoScaleGroupTags(getTags(), getPropagateAtLaunchTags()))
                 .serviceLinkedRoleARN(getServiceLinkedRoleArn())
                 .placementGroup(getPlacementGroup())
+                .loadBalancerNames(getLoadBalancerNames())
+                .targetGroupARNs(getTargetGroupArns())
+                .instanceId(getInstanceId())
+                .terminationPolicies(getTerminationPolicies())
         );
 
         AutoScalingGroup autoScalingGroup = getAutoScalingGroup(client);
@@ -464,6 +620,7 @@ public class AutoScalingGroupResource extends AwsResource {
                 .launchConfigurationName(getLaunchConfigurationName())
                 .newInstancesProtectedFromScaleIn(getNewInstancesProtectedFromScaleIn())
                 .vpcZoneIdentifier(getSubnetIds().isEmpty() ? " " : StringUtils.join(getSubnetIds(), ","))
+                .terminationPolicies(getTerminationPolicies())
         );
 
         if (changedProperties.contains("enable-metrics-collection") || changedProperties.contains("disabled-metrics")) {
@@ -486,6 +643,14 @@ public class AutoScalingGroupResource extends AwsResource {
             } else {
                 saveTags(client, oldResource.getTags(), oldResource.getPropagateAtLaunchTags(), true);
             }
+        }
+
+        if (changedProperties.contains("load-balancer-names")) {
+            saveLoadBalancerNames(client, oldResource.getLoadBalancerNames());
+        }
+
+        if (changedProperties.contains("target-group-arns")) {
+            saveTargetGroupArns(client, oldResource.getTargetGroupArns());
         }
     }
 
@@ -662,6 +827,106 @@ public class AutoScalingGroupResource extends AwsResource {
             client.disableMetricsCollection(
                 r -> r.autoScalingGroupName(getAutoScalingGroupName())
                     .metrics(getDisabledMetrics()));
+        }
+    }
+
+    private void loadScalingPolicy(AutoScalingClient client) {
+        getScalingPolicy().clear();
+
+        DescribePoliciesResponse policyResponse = client.describePolicies(r -> r.autoScalingGroupName(getAutoScalingGroupName()));
+
+        for (ScalingPolicy scalingPolicy : policyResponse.scalingPolicies()) {
+            AutoScalingPolicyResource autoScalingPolicyResource = new AutoScalingPolicyResource(scalingPolicy);
+            autoScalingPolicyResource.parent(this);
+            autoScalingPolicyResource.setResourceCredentials(getResourceCredentials());
+            getScalingPolicy().add(autoScalingPolicyResource);
+        }
+    }
+
+    private void loadLifecycleHook(AutoScalingClient client) {
+        getLifecycleHook().clear();
+
+        DescribeLifecycleHooksResponse lifecycleHooksResponse = client.describeLifecycleHooks(r -> r.autoScalingGroupName(getAutoScalingGroupName()));
+
+        for (LifecycleHook lifecycleHook : lifecycleHooksResponse.lifecycleHooks()) {
+            AutoScalingGroupLifecycleHookResource lifecycleHookResource = new AutoScalingGroupLifecycleHookResource(lifecycleHook);
+            lifecycleHookResource.parent(this);
+            lifecycleHookResource.setResourceCredentials(getResourceCredentials());
+            getLifecycleHook().add(lifecycleHookResource);
+        }
+    }
+
+    private void loadScheduledAction(AutoScalingClient client) {
+        getScheduledAction().clear();
+
+        DescribeScheduledActionsResponse scheduledActionsResponse = client.describeScheduledActions(
+            r -> r.autoScalingGroupName(getAutoScalingGroupName())
+        );
+
+        for (ScheduledUpdateGroupAction scheduledUpdateGroupAction : scheduledActionsResponse.scheduledUpdateGroupActions()) {
+            AutoScalingGroupScheduledActionResource scheduledActionResource = new AutoScalingGroupScheduledActionResource(scheduledUpdateGroupAction);
+            scheduledActionResource.parent(this);
+            scheduledActionResource.setResourceCredentials(getResourceCredentials());
+            getScheduledAction().add(scheduledActionResource);
+        }
+    }
+
+    private void loadNotification(AutoScalingClient client) {
+        getAutoScalingNotification().clear();
+
+        DescribeNotificationConfigurationsResponse notificationResponse = client.describeNotificationConfigurations(
+            r -> r.autoScalingGroupNames(Collections.singletonList(getAutoScalingGroupName()))
+        );
+
+        for (NotificationConfiguration notificationConfiguration : notificationResponse.notificationConfigurations()) {
+            AutoScalingGroupNotificationResource notificationResource = new AutoScalingGroupNotificationResource(notificationConfiguration);
+            notificationResource.parent(this);
+            notificationResource.setResourceCredentials(getResourceCredentials());
+            getAutoScalingNotification().add(notificationResource);
+        }
+    }
+
+    private void saveLoadBalancerNames(AutoScalingClient client, List<String> oldLoadBalancerNames) {
+        List<String> removeLoadBalancerNames = new ArrayList<>(oldLoadBalancerNames);
+
+        removeLoadBalancerNames.removeAll(getLoadBalancerNames());
+
+        if (!removeLoadBalancerNames.isEmpty()) {
+            client.detachLoadBalancers(
+                r -> r.autoScalingGroupName(getAutoScalingGroupName()).loadBalancerNames(removeLoadBalancerNames)
+            );
+        }
+
+        List<String> addLoadbalancerNames = new ArrayList<>(getLoadBalancerNames());
+
+        addLoadbalancerNames.removeAll(oldLoadBalancerNames);
+
+        if (!addLoadbalancerNames.isEmpty()) {
+            client.attachLoadBalancers(
+                r -> r.autoScalingGroupName(getAutoScalingGroupName()).loadBalancerNames(addLoadbalancerNames)
+            );
+        }
+    }
+
+    private void saveTargetGroupArns(AutoScalingClient client, List<String> oldTargetGroupArns) {
+        List<String> removeTargetGroupArns = new ArrayList<>(oldTargetGroupArns);
+
+        removeTargetGroupArns.removeAll(getTargetGroupArns());
+
+        if (!removeTargetGroupArns.isEmpty()) {
+            client.detachLoadBalancerTargetGroups(
+                r -> r.autoScalingGroupName(getAutoScalingGroupName()).targetGroupARNs(removeTargetGroupArns)
+            );
+        }
+
+        List<String> addTargetGroupArns = new ArrayList<>(getTargetGroupArns());
+
+        addTargetGroupArns.removeAll(oldTargetGroupArns);
+
+        if (!addTargetGroupArns.isEmpty()) {
+            client.attachLoadBalancerTargetGroups(
+                r -> r.autoScalingGroupName(getAutoScalingGroupName()).targetGroupARNs(addTargetGroupArns)
+            );
         }
     }
 }

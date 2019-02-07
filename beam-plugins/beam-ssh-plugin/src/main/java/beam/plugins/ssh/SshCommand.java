@@ -20,8 +20,8 @@ public class SshCommand extends AbstractInstanceCommand {
     private static final Table SSH_TABLE = new Table()
         .addColumn("#", 3)
         .addColumn("Instance ID", 20)
+        .addColumn("Name", 35)
         .addColumn("State", 12)
-        .addColumn("Launch Date", 35)
         .addColumn("Hostname", 65);
 
     @Option(name = { "-e", "--execute" }, description = "Command to execute on host(s).")
@@ -126,8 +126,8 @@ public class SshCommand extends AbstractInstanceCommand {
                 BeamCore.ui(),
                 index,
                 instance.getInstanceId(),
+                instance.getName(),
                 instance.getState(),
-                instance.getLaunchDate(),
                 instance.getHostname());
         }
 

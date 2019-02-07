@@ -9,6 +9,10 @@ aws::vpc vpc-auto-scaling-group-example
          }
 end
 
+aws::internet-gateway internet-gateway-auto-scaling-group-example
+    vpc-id: $(aws::vpc vpc-auto-scaling-group-example | vpc-id)
+end
+
 aws::subnet subnet-auto-scaling-group-example
     vpc-id: $(aws::vpc vpc-auto-scaling-group-example | vpc-id)
     availability-zone: "us-east-2a"
@@ -135,5 +139,41 @@ aws::auto-scaling-group auto-scaling-group-example
     }
     propagate-at-launch-tags: [
         "AutoTag"
+    ]
+
+    scaling-policy
+        policy-name: "Simple-Policy-1"
+        adjustment-type: "ExactCapacity"
+        policy-type: "SimpleScaling"
+        cooldown: 3000
+        scaling-adjustment: 5
+    end
+
+    scaling-policy
+        policy-name: "Target-Tracking-Scaling-Policy-1"
+        policy-type: "TargetTrackingScaling"
+        estimated-instance-warmup: 50
+        target-value: 25
+        predefined-metric-type: "ASGAverageNetworkIn"
+        disable-scale-in: false
+    end
+
+    lifecycle-hook
+        lifecycle-hook-name: "Lifecycle-Hook-1"
+        default-result: "CONTINUE"
+        heartbeat-timeout: 300
+        lifecycle-transition: "autoscaling:EC2_INSTANCE_LAUNCHING"
+    end
+
+    auto-scaling-notification
+        topic-arn: "arn:aws:sns:us-west-2:242040583208:beam-instance-state"
+        notification-types: [
+            "autoscaling:EC2_INSTANCE_LAUNCH_ERROR11"
+            "autoscaling:EC2_INSTANCE_LAUNCH_ERROR"
+        ]
+    end
+
+    termination-policies: [
+        "Default"
     ]
 end
