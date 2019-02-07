@@ -8,7 +8,7 @@ plugin
 end
 
 openstack::credentials default
-    user-name: "beam-perfectsense-deepanjan@brightspot.com"
-    api-key: "fdb709a02ea946f58f4c3d84013fc0bc"
+    user-name: ""
+    api-key: ""
     region: "IAD"
 end
