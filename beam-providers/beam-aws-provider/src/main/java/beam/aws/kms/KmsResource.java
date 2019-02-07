@@ -25,6 +25,30 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 
+/**
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: beam
+ *
+ *     aws::kms kms-example
+ *         aliases: ["alias/kmsExample", "alias/kmsSecondExample"]
+ *         bypass-policy-lockout-safety-check: "false"
+ *         description: "sample kms key update"
+ *         enabled: "true"
+ *         key-manager: "CUSTOMER"
+ *         key-rotation: "false"
+ *         key-usage: "ENCRYPT_DECRYPT"
+ *         origin: "AWS_KMS"
+ *         pending-window: "7"
+ *         policy: "beam-providers/beam-aws-provider/examples/kms/kms-policy.json"
+ *         tags: {
+ *               Name: "kms-example"
+ *         }
+ * end
+ */
+
 @ResourceName("kms")
 public class KmsResource extends AwsResource {
 
