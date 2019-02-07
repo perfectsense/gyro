@@ -46,8 +46,8 @@ public abstract class OpenstackResource extends Resource {
             .modules(ImmutableSet.<Module>of(new SLF4JLoggingModule()));
 
         Properties overrides = new Properties();
-        overrides.setProperty(Constants.PROPERTY_CONNECTION_TIMEOUT, "20000");
-        overrides.setProperty(Constants.PROPERTY_SO_TIMEOUT, "20000");
+        overrides.setProperty(Constants.PROPERTY_CONNECTION_TIMEOUT, "50000");
+        overrides.setProperty(Constants.PROPERTY_SO_TIMEOUT, "50000");
         contextBuilder.credentials(credentials.getUserName(), credentials.getApiKey());
 
         contextBuilder.overrides(overrides);
