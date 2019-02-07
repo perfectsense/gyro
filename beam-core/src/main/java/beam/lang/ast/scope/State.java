@@ -61,13 +61,13 @@ public class State {
 
             // Subresource?
             if (key == null) {
-                for (FileScope state : states.values()) {
-                    for (Object value : state.values()) {
-                        if (value instanceof Resource) {
-                            updateSubresource((Resource) value, resource, true);
-                        }
-                    }
-                }
+                states.values()
+                        .stream()
+                        .flatMap(s -> s.values().stream())
+                        .filter(Resource.class::isInstance)
+                        .map(Resource.class::cast)
+                        .filter(r -> r.equals(resource.parentResource()))
+                        .forEach(r -> updateSubresource(r, resource, true));
 
             } else {
                 for (FileScope state : states.values()) {
