@@ -411,3 +411,9 @@ public class KmsResource extends AwsResource {
         return sb.toString();
     }
 
+    private List<Tag> toTag() {
+        List<Tag> tag = new ArrayList<>();
+        getTags().forEach((key, value) -> tag.add(Tag.builder().tagKey(key).tagValue(value).build()));
+        return tag;
+    }
+
