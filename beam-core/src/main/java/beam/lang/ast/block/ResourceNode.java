@@ -40,12 +40,13 @@ public class ResourceNode extends BlockNode {
     @Override
     public Object evaluate(Scope scope) throws Exception {
         String name = (String) nameNode.evaluate(scope);
+        String fullName = type + "::" + name;
         DiffableScope bodyScope = new DiffableScope(scope);
 
         // Initialize the bodyScope with the resource values from the current
         // state scope.
         Optional.ofNullable(scope.getRootScope().getCurrent())
-                .map(s -> s.findResource(name))
+                .map(s -> s.findResource(fullName))
                 .ifPresent(r -> {
                     for (DiffableField f : DiffableType.getInstance(r.getClass()).getFields()) {
                         if (!Diffable.class.isAssignableFrom(f.getItemClass())) {
@@ -98,7 +99,7 @@ public class ResourceNode extends BlockNode {
         resource.resourceIdentifier(name);
         resource.scope(bodyScope);
         resource.initialize(bodyScope);
-        scope.getFileScope().put(name, resource);
+        scope.getFileScope().put(fullName, resource);
 
         return null;
     }

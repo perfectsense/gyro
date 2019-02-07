@@ -44,7 +44,20 @@ public abstract class Resource extends Diffable {
 
             if (scope != null) {
                 String name = (String) scope.get("resource-credentials");
-                return (Credentials) scope.getRootScope().findResource(name != null ? name : "default");
+
+                if (name == null) {
+                    name = "default";
+                }
+
+                for (Resource resource : scope.getRootScope().findAllResources()) {
+                    if (resource instanceof Credentials) {
+                        Credentials credentials = (Credentials) resource;
+
+                        if (credentials.resourceIdentifier().equals(name)) {
+                            return credentials;
+                        }
+                    }
+                }
             }
         }
 

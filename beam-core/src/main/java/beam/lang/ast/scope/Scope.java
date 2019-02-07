@@ -72,19 +72,17 @@ public class Scope implements Map<String, Object> {
     public Object find(String path) {
         String[] keys = DOT_PATTERN.split(path);
         String firstKey = keys[0];
-        Object value = getRootScope().findResource(firstKey);
+        Object value = null;
+
+        for (Scope s = this; s != null; s = s.parent) {
+            if (s.containsKey(firstKey)) {
+                value = s.get(firstKey);
+                break;
+            }
+        }
 
         if (value == null) {
-            for (Scope s = this; s != null; s = s.parent) {
-                if (s.containsKey(firstKey)) {
-                    value = s.get(firstKey);
-                    break;
-                }
-            }
-
-            if (value == null) {
-                return null;
-            }
+            return null;
         }
 
         for (int i = 1, l = keys.length; i < l; i ++) {
