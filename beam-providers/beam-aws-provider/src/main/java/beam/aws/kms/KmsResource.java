@@ -337,3 +337,53 @@ public class KmsResource extends AwsResource {
         }
     }
 
+    @Override
+    public void update(Resource current, Set<String> changedProperties) {
+        //Q: would this be a good time to check changed properties?
+        KmsClient client = createClient(KmsClient.class);
+        KmsResource currentResource = (KmsResource) current;
+
+        //update tags
+        client.tagResource(r -> r.tags(toTag())
+                                .keyId(getKeyId()));
+
+        //update description
+        client.updateKeyDescription(r -> r.description(getDescription())
+                                            .keyId(getKeyId()));
+
+        //key rotation
+        if (getKeyRotation() == true && currentResource.getKeyRotation() == false) {
+            client.enableKeyRotation(r -> r.keyId(getKeyId()));
+        } else if (getKeyRotation() == false && currentResource.getKeyRotation() == true) {
+            client.disableKeyRotation(r -> r.keyId(getKeyId()));
+        }
+
+        //enable/disable
+        if (getEnabled() == true && currentResource.getEnabled() == false) {
+            client.enableKey(r -> r.keyId(getKeyId()));
+        } else if (getEnabled() == false && currentResource.getEnabled() == true) {
+            client.disableKey(r -> r.keyId(getKeyId()));
+        }
+
+        //update key policy
+        client.putKeyPolicy(r -> r.policy(getPolicyContents())
+                                    .policyName("default")
+                                    .keyId(getKeyId()));
+
+        //update alias
+        List<String> aliasAdditions = new ArrayList<>(getAliases());
+        aliasAdditions.removeAll(currentResource.getAliases());
+
+        List<String> aliasSubtractions = new ArrayList<>(currentResource.getAliases());
+        aliasSubtractions.removeAll(getAliases());
+
+        for (String add : aliasAdditions) {
+            client.createAlias(r -> r.aliasName(add).targetKeyId(getKeyId()));
+        }
+
+        for (String sub : aliasSubtractions) {
+            client.deleteAlias(
+                    r -> r.aliasName(sub));
+        }
+    }
+
