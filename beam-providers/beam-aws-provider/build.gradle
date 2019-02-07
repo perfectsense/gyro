@@ -18,6 +18,7 @@ dependencies {
     compile "software.amazon.awssdk:elasticloadbalancing:${aws_sdk2_version}"
     compile "software.amazon.awssdk:autoscaling:${aws_sdk2_version}"
     compile "software.amazon.awssdk:cloudwatch:${aws_sdk2_version}"
+    compile "software.amazon.awssdk:kms:${aws_sdk2_version}"
 
     compile 'com.psddev:dari-util:3.3.607-xe0f27a'
     compile "com.google.guava:guava:23.0"
