@@ -417,3 +417,7 @@ public class KmsResource extends AwsResource {
         return tag;
     }
 
+    private String formatPolicy(String policy) {
+        return policy != null ? policy.replaceAll(System.lineSeparator(), " ").replaceAll("\t", " ").trim().replaceAll(" ", "") : policy;
+    }
+}
