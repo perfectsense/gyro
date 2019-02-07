@@ -107,12 +107,12 @@ public abstract class Diffable {
         if (diffable instanceof Resource) {
             Resource valueResource = (Resource) diffable;
 
-            valueResource.parent((Resource) this);
             valueResource.resourceType(key);
             valueResource.scope(scope);
             valueResource.initialize(scope);
         }
 
+        diffable.parent(this);
         diffable.initialize(scope);
 
         return diffable;
