@@ -26,3 +26,208 @@ import java.util.stream.Collectors;
 
 
 @ResourceName("kms")
+public class KmsResource extends AwsResource {
+
+    private List<String> aliases;
+    private Boolean bypassPolicyLockoutSafetyCheck;
+    private String customKeyStoreId;
+    private String description;
+    private Boolean enabled;
+    private String keyId;
+    private String keyManager;
+    private Boolean keyRotation;
+    private String keyState;
+    private String keyUsage;
+    private String origin;
+    private String pendingWindow;
+    private String policy;
+    private String policyContents;
+    private Map<String, String> tags;
+
+    /**
+     * The list of aliases associated with the key.
+     */
+    @ResourceDiffProperty(updatable = true)
+    public List<String> getAliases() {
+        if (aliases == null) {
+            aliases = new ArrayList<>();
+        }
+
+        return aliases;
+    }
+
+    public void setAliases(List<String> aliases) {
+        this.aliases = aliases;
+    }
+
+
+    @ResourceDiffProperty(updatable = true)
+    public Boolean getBypassPolicyLockoutSafetyCheck() {
+        return bypassPolicyLockoutSafetyCheck;
+    }
+
+    public void setBypassPolicyLockoutSafetyCheck(Boolean bypassPolicyLockoutSafetyCheck) {
+        this.bypassPolicyLockoutSafetyCheck = bypassPolicyLockoutSafetyCheck;
+    }
+
+
+    @ResourceDiffProperty(updatable = true)
+    public String getCustomKeyStoreId() {
+        return customKeyStoreId;
+    }
+
+    public void setCustomKeyStoreId(String customKeyStoreId) {
+        this.customKeyStoreId = customKeyStoreId;
+    }
+
+    /**
+     * The description of the key.
+     */
+    @ResourceDiffProperty(updatable = true)
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    /**
+     * Determines whether the key is enabled.
+     */
+    @ResourceDiffProperty(updatable = true)
+    public Boolean getEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    /**
+     * Determines whether the backing key is rotated each year.
+     */
+    @ResourceDiffProperty(updatable = true)
+    public Boolean getKeyRotation() {
+        return keyRotation;
+    }
+
+    public void setKeyRotation(Boolean keyRotation) {
+        this.keyRotation = keyRotation;
+    }
+
+    public String getKeyId() {
+        return keyId;
+    }
+
+    public void setKeyId(String keyId) {
+        this.keyId = keyId;
+    }
+
+
+    @ResourceDiffProperty(updatable = true)
+    public String getKeyManager() {
+        return keyManager;
+    }
+
+    /**
+     * The manager of the key, either AWS or customer. (Optional)
+     */
+    public void setKeyManager(String keyManager) {
+        this.keyManager = keyManager;
+    }
+
+    public String getKeyState() {
+        return keyState;
+    }
+
+    public void setKeyState(String keyState) {
+        this.keyState = keyState;
+    }
+
+    /**
+     * The usage of the key, which is encryption and decryption. (Required)
+     */
+    @ResourceDiffProperty(updatable = true)
+    public String getKeyUsage() {
+        return keyUsage;
+    }
+
+    public void setKeyUsage(String keyUsage) {
+        this.keyUsage = keyUsage;
+    }
+
+    /**
+     * The source of the key material. (Required)
+     */
+    @ResourceDiffProperty(updatable = true)
+    public String getOrigin() {
+        return origin;
+    }
+
+    public void setOrigin(String origin) {
+        this.origin = origin;
+    }
+
+    public String getPendingWindow() {
+        return pendingWindow;
+    }
+
+    public void setPendingWindow(String pendingWindow) {
+        this.pendingWindow = pendingWindow;
+    }
+
+    /**
+     * The policy associated with the key. (Optional)
+     */
+    @ResourceDiffProperty(updatable = true)
+    public String getPolicy() {
+        return policy;
+    }
+
+    public void setPolicy(String policy) {
+        this.policy = policy;
+    }
+
+    @ResourceDiffProperty(updatable = true)
+    private String getPolicyContents() {
+        if (policyContents != null) {
+            return this.policyContents;
+        } else {
+            if (getPolicy() != null) {
+                try {
+                    String encode = new String(Files.readAllBytes(Paths.get(getPolicy())), "UTF-8");
+                    return formatPolicy(encode);
+                } catch (Exception err) {
+                    throw new BeamException(err.getMessage());
+                }
+            } else {
+                return null;
+            }
+        }
+    }
+
+    public void setPolicyContents(String policyContents) {
+        this.policyContents = policyContents;
+    }
+
+    /**
+     * The tags associated with the key. (Optional)
+     */
+    @ResourceDiffProperty(updatable = true)
+    public Map<String, String> getTags() {
+        if (tags == null) {
+            tags = new CompactMap<>();
+        }
+        return tags;
+    }
+
+    public void setTags(Map<String, String> tags) {
+        if (this.tags != null && tags != null) {
+            this.tags.putAll(tags);
+
+        } else {
+            this.tags = tags;
+        }
+    }
+
