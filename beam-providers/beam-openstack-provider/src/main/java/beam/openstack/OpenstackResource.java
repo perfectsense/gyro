@@ -9,6 +9,7 @@ import org.jclouds.ContextBuilder;
 import org.jclouds.logging.slf4j.config.SLF4JLoggingModule;
 
 import java.io.Closeable;
+import java.lang.reflect.Method;
 import java.util.Properties;
 
 public abstract class OpenstackResource extends Resource {
@@ -20,13 +21,47 @@ public abstract class OpenstackResource extends Resource {
         return OpenstackCredentials.class;
     }
 
-    protected <T extends Closeable> T createClient(Class<T> clientClass) {
+    protected abstract Class<? extends Closeable> getParentClientClass();
+
+    protected <T> T createClient(Class<T> clientClass) {
+        try {
+            if (client == null) {
+                createParentClient(getParentClientClass());
+            }
+
+            Class<?>[] paramTypes = {String.class};
+            Method method = client.getClass().getMethod("get" + getClassName(clientClass), paramTypes);
+            Object result = method.invoke(client, getRegion());
+
+            return (T) result;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        return null;
+    }
+
+    private <T extends Closeable> T createParentClient(Class<T> clientClass) {
         if (client == null) {
             try {
-                switch (clientClass.getName().split("\\.")[clientClass.getName().split("\\.").length - 1]) {
+                switch (getClassName(clientClass)) {
                     case "AutoscaleApi": client = createContextBuilder("rackspace-autoscale-us").buildApi(clientClass);
                     break;
                     case "CloudFilesApi": client = createContextBuilder("rackspace-cloudfiles-us").buildApi(clientClass);
+                    break;
+                    case "NeutronApi": client = createContextBuilder("rackspace-cloudnetworks-us").buildApi(clientClass);
+                    break;
+                    case "NovaApi": client = createContextBuilder("rackspace-cloudservers-us").buildApi(clientClass);
+                    break;
+                    case "CinderApi": client = createContextBuilder("rackspace-cloudblockstorage-us").buildApi(clientClass);
+                    break;
+                    case "TroveApi": client = createContextBuilder("rackspace-clouddatabases-us").buildApi(clientClass);
+                    break;
+                    case "CloudLoadBalancersApi": client = createContextBuilder("rackspace-cloudloadbalancers-us").buildApi(clientClass);
+                    break;
+                    case "CloudDNSApi": client = createContextBuilder("rackspace-clouddns-us").buildApi(clientClass);
+                    break;
+                    case "PoppyApi": client = createContextBuilder("rackspace-cdn-us").buildApi(clientClass);
                     break;
                     default: throw new BeamException("Undefined class in scope of generating client.");
                 }
@@ -66,5 +101,9 @@ public abstract class OpenstackResource extends Resource {
 
     private void setRegion(String region) {
         this.region = region;
+    }
+
+    private String getClassName(Class clientClass) {
+        return clientClass.getName().split("\\.")[clientClass.getName().split("\\.").length - 1];
     }
 }
