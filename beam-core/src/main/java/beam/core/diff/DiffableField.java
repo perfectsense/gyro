@@ -7,7 +7,6 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Optional;
 
-import beam.lang.Resource;
 import com.google.common.base.CaseFormat;
 import com.psddev.dari.util.Converter;
 

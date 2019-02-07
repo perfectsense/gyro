@@ -8,7 +8,6 @@ import java.util.stream.Collectors;
 import beam.core.diff.Diffable;
 import beam.core.diff.DiffableField;
 import beam.core.diff.DiffableType;
-import beam.lang.Credentials;
 import beam.lang.Resource;
 import beam.lang.ast.Node;
 import beam.lang.ast.scope.DiffableScope;
