@@ -61,14 +61,12 @@ public class VirtualResourceNode extends BlockNode {
         }
 
         for (Object value : vrScope.values()) {
-            if (value instanceof Resource) {
+            if (value instanceof Resource && !(value instanceof Credentials)) {
                 Resource resource = (Resource) value;
+                String newId = prefix + "." + resource.resourceIdentifier();
 
-                if (!(value instanceof Credentials)) {
-                    resource.resourceIdentifier(prefix + "." + resource.resourceIdentifier());
-                }
-
-                paramFileScope.put(resource.resourceType() + "::" + resource.resourceIdentifier(), resource);
+                resource.resourceIdentifier(newId);
+                paramFileScope.put(resource.resourceType() + "::" + newId, resource);
             }
         }
     }
