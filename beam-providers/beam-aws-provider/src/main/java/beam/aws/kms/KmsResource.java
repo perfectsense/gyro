@@ -387,3 +387,14 @@ public class KmsResource extends AwsResource {
         }
     }
 
+    @Override
+    public void delete() {
+        KmsClient client = createClient(KmsClient.class);
+        //Q: tried to set the pending window, but that isn't possible
+        // how do we let people set this parameter?
+        //schedule key deletion
+        System.out.println("Get pending window " + getPendingWindow());
+        client.scheduleKeyDeletion(r -> r.keyId(getKeyId())
+                                        .pendingWindowInDays(7));
+    }
+
