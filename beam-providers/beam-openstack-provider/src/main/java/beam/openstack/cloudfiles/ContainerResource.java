@@ -19,6 +19,21 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Creates a container.
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: beam
+ *
+ *     openstack::container container-example
+ *         container-name: "container-example"
+ *         enable-cdn: false
+ *         enable-cdn-logging: false
+ *         enable-access-logging: true
+ *     end
+ */
 @ResourceName("container")
 public class ContainerResource extends OpenstackResource {
 
@@ -37,6 +52,9 @@ public class ContainerResource extends OpenstackResource {
     private String sslUri;
     private String iosUri;
 
+    /**
+     * The name of the container. (Required)
+     */
     public String getContainerName() {
         return containerName;
     }
@@ -45,6 +63,9 @@ public class ContainerResource extends OpenstackResource {
         this.containerName = containerName;
     }
 
+    /**
+     * Enable cdn on the container. Defaults to false.
+     */
     @ResourceDiffProperty(updatable = true)
     public Boolean getEnableCdn() {
         if (enableCdn == null) {
@@ -58,6 +79,9 @@ public class ContainerResource extends OpenstackResource {
         this.enableCdn = enableCdn;
     }
 
+    /**
+     * Enable access logging on the container. Defaults to false.
+     */
     @ResourceDiffProperty(updatable = true, nullable = true)
     public Boolean getEnableAccessLogging() {
         if (enableAccessLogging == null) {
@@ -71,6 +95,9 @@ public class ContainerResource extends OpenstackResource {
         this.enableAccessLogging = enableAccessLogging;
     }
 
+    /**
+     * Enable cdn logging on the container. Defaults to false.
+     */
     @ResourceDiffProperty(updatable = true)
     public Boolean getEnableCdnLogging() {
         if (enableCdnLogging == null) {
@@ -84,6 +111,9 @@ public class ContainerResource extends OpenstackResource {
         this.enableCdnLogging = enableCdnLogging;
     }
 
+    /**
+     * Set the ttl value. Required when param 'enable-cdn' is set to true.
+     */
     @ResourceDiffProperty(updatable = true)
     public Integer getTtl() {
         if (ttl == null) {
@@ -97,6 +127,9 @@ public class ContainerResource extends OpenstackResource {
         this.ttl = ttl;
     }
 
+    /**
+     * Enable Static website configuration. Defaults to false.
+     */
     @ResourceDiffProperty(updatable = true, nullable = true)
     public Boolean getEnableStaticWebsite() {
         if (enableStaticWebsite == null) {
@@ -110,6 +143,9 @@ public class ContainerResource extends OpenstackResource {
         this.enableStaticWebsite = enableStaticWebsite;
     }
 
+    /**
+     * Set the error page. Defaults to 'error.html'.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getStaticWebsiteErrorPage() {
         return staticWebsiteErrorPage;
@@ -119,6 +155,9 @@ public class ContainerResource extends OpenstackResource {
         this.staticWebsiteErrorPage = staticWebsiteErrorPage;
     }
 
+    /**
+     * Set the index page. Defaults to 'index.html'.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getStaticWebsiteIndexPage() {
         return staticWebsiteIndexPage;
