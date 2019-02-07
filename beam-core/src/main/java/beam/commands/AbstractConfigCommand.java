@@ -60,19 +60,23 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         }
 
         if (!skipRefresh) {
-            for (Iterator<Map.Entry<String, Resource>> i = current.getResources().entrySet().iterator(); i.hasNext();) {
-                Resource currentResource = i.next().getValue();
+            for (Iterator<Map.Entry<String, Object>> i = current.entrySet().iterator(); i.hasNext();) {
+                Object value = i.next().getValue();
 
-                BeamCore.ui().write(
-                        "@|bold,blue Refreshing|@: @|yellow %s|@ -> %s...",
-                        currentResource.resourceType(),
-                        currentResource.resourceIdentifier());
+                if (value instanceof Resource) {
+                    Resource resource = (Resource) value;
 
-                if (!currentResource.refresh()) {
-                    i.remove();
+                    BeamCore.ui().write(
+                            "@|bold,blue Refreshing|@: @|yellow %s|@ -> %s...",
+                            resource.resourceType(),
+                            resource.resourceIdentifier());
+
+                    if (!resource.refresh()) {
+                        i.remove();
+                    }
+
+                    BeamCore.ui().write("\n");
                 }
-
-                BeamCore.ui().write("\n");
             }
 
             BeamCore.ui().write("\n");

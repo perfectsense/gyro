@@ -99,7 +99,7 @@ public class ResourceNode extends BlockNode {
         resource.resourceIdentifier(name);
         resource.scope(bodyScope);
         resource.initialize(bodyScope);
-        scope.getFileScope().getResources().put(name, resource);
+        scope.getFileScope().put(name, resource);
 
         return null;
     }

@@ -281,6 +281,10 @@ public class Diff {
         }
 
         for (Change change : getChanges()) {
+            if (change.getDiffable() instanceof Credentials) {
+                continue;
+            }
+
             List<Diff> changeDiffs = change.getDiffs();
 
             if (change instanceof Keep) {
@@ -334,10 +338,14 @@ public class Diff {
 
         for (Change change : getChanges()) {
             if (change instanceof Create || change instanceof Update) {
-                if (change.getDiffable() instanceof Resource
-                        && !(change.getDiffable() instanceof Credentials)) {
+                Diffable diffable = change.getDiffable();
 
-                    execute(state, change);
+                if (diffable instanceof Resource) {
+                    if (!(change.getDiffable() instanceof Credentials)) {
+                        execute(change);
+                    }
+
+                    state.update(change);
                 }
             }
 
@@ -358,16 +366,20 @@ public class Diff {
             }
 
             if (change instanceof Delete) {
-                if (change.getDiffable() instanceof Resource
-                        && !(change.getDiffable() instanceof Credentials)) {
+                Diffable diffable = change.getDiffable();
 
-                    execute(state, change);
+                if (diffable instanceof Resource) {
+                    if (!(diffable instanceof Credentials)) {
+                        execute(change);
+                    }
+
+                    state.update(change);
                 }
             }
         }
     }
 
-    private void execute(State state, Change change) throws Exception {
+    private void execute(Change change) throws Exception {
         if (change instanceof Keep || change instanceof Replace || change.isChanged()) {
             return;
         }
@@ -376,7 +388,6 @@ public class Diff {
         change.writeTo(BeamCore.ui());
         change.execute();
         BeamCore.ui().write(" OK\n");
-        state.update(change);
     }
 
 }

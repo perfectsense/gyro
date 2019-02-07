@@ -39,7 +39,12 @@ public class RootScope extends FileScope {
 
     private void addResources(List<Resource> resources, FileScope scope) {
         scope.getImports().forEach(i -> addResources(resources, i));
-        resources.addAll(scope.getResources().values());
+
+        scope.values()
+                .stream()
+                .filter(Resource.class::isInstance)
+                .map(Resource.class::cast)
+                .forEach(resources::add);
     }
 
     public Resource findResource(String name) {
@@ -47,14 +52,14 @@ public class RootScope extends FileScope {
     }
 
     private Resource findResourceInScope(String name, FileScope scope) {
-        Resource resource = scope.getResources().get(name);
+        Object value = scope.get(name);
 
-        if (resource != null) {
-            return resource;
+        if (value instanceof Resource) {
+            return (Resource) value;
         }
 
         for (FileScope s : scope.getImports()) {
-            resource = findResourceInScope(name, s);
+            Resource resource = findResourceInScope(name, s);
 
             if (resource != null) {
                 return resource;

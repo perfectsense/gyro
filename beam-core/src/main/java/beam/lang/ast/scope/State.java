@@ -29,7 +29,6 @@ public class State {
     private void load(FileScope pending, FileScope state) throws Exception {
         states.put(pending.getFile(), state);
         pending.getBackend().load(state);
-        state.clear();
         state.getImports().clear();
         state.getPluginLoaders().clear();
         state.getPluginLoaders().addAll(pending.getPluginLoaders());
@@ -63,30 +62,32 @@ public class State {
             // Subresource?
             if (key == null) {
                 for (FileScope state : states.values()) {
-                    for (Resource parent : state.getResources().values()) {
-                        updateSubresource(parent, resource, true);
+                    for (Object value : state.values()) {
+                        if (value instanceof Resource) {
+                            updateSubresource((Resource) value, resource, true);
+                        }
                     }
                 }
 
             } else {
                 for (FileScope state : states.values()) {
-                    state.getResources().remove(key);
+                    state.remove(key);
                 }
             }
 
         } else {
             String key = resource.resourceIdentifier();
-            Map<String, Resource> stateResources = states.get(resource.scope().getFileScope().getFile()).getResources();
+            FileScope state = states.get(resource.scope().getFileScope().getFile());
 
             // Subresource?
             if (key == null) {
                 updateSubresource(
-                        stateResources.get(resource.parentResource().resourceIdentifier()),
+                        (Resource) state.get(resource.parentResource().resourceIdentifier()),
                         resource,
                         false);
 
             } else {
-                stateResources.put(key, resource);
+                state.put(key, resource);
             }
         }
 

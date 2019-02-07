@@ -89,8 +89,10 @@ public class LocalFileBackend extends FileBackend {
                     out.write(pluginLoader.toString());
                 }
 
-                for (Resource resource : scope.getResources().values()) {
-                    out.write(resource.toNode().toString());
+                for (Object value : scope.values()) {
+                    if (value instanceof Resource) {
+                        out.write(((Resource) value).toNode().toString());
+                    }
                 }
             }
 
