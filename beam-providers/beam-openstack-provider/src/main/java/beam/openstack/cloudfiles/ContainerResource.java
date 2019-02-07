@@ -14,6 +14,7 @@ import org.jclouds.rackspace.cloudfiles.v1.domain.CDNContainer;
 import org.jclouds.rackspace.cloudfiles.v1.features.CDNApi;
 import org.jclouds.rackspace.cloudfiles.v1.options.UpdateCDNContainerOptions;
 
+import java.io.Closeable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -36,11 +37,6 @@ public class ContainerResource extends OpenstackResource {
     private String sslUri;
     private String iosUri;
 
-    //----API clients----//
-    private CloudFilesApi client;
-    private ContainerApi containerApi;
-    private CDNApi cdnApi;
-
     public String getContainerName() {
         return containerName;
     }
@@ -52,7 +48,7 @@ public class ContainerResource extends OpenstackResource {
     @ResourceDiffProperty(updatable = true)
     public Boolean getEnableCdn() {
         if (enableCdn == null) {
-            enableCdn = true;
+            enableCdn = false;
         }
 
         return enableCdn;
@@ -166,13 +162,9 @@ public class ContainerResource extends OpenstackResource {
 
     @Override
     public boolean refresh() {
-        setupClients();
+        CDNApi cdnClient = createClient(CDNApi.class);
 
-        Container container = containerApi.get(getContainerName());
-
-        loadStaticWebsiteConfig(container);
-
-        CDNContainer cdnContainer = cdnApi.get(getContainerName());
+        CDNContainer cdnContainer = cdnClient.get(getContainerName());
 
         setEnableCdn(cdnContainer.isEnabled());
         setEnableCdnLogging(getEnableCdn() && cdnContainer.isLogRetentionEnabled());
@@ -181,6 +173,12 @@ public class ContainerResource extends OpenstackResource {
         setStreamingUri(cdnContainer.getStreamingUri().toString());
         setIosUri(cdnContainer.getIosUri().toString());
         setSslUri(cdnContainer.getSslUri().toString());
+
+        ContainerApi containerClient = createClient(ContainerApi.class);
+
+        Container container = containerClient.get(getContainerName());
+
+        loadStaticWebsiteConfig(container);
 
         setEnableAccessLogging(!getEnableCdn()
             && container.getMetadata().containsKey("access-log-delivery")
@@ -192,25 +190,27 @@ public class ContainerResource extends OpenstackResource {
 
     @Override
     public void create() {
-        setupClients();
+        CDNApi cdnClient = createClient(CDNApi.class);
+
+        ContainerApi containerClient = createClient(ContainerApi.class);
 
         validate();
 
-        containerApi.create(getContainerName());
+        containerClient.create(getContainerName());
 
         try {
             if (getEnableCdn()) {
-                saveCdnOptions();
+                saveCdnOptions(cdnClient);
             } else {
-                cdnApi.disable(getContainerName());
+                cdnClient.disable(getContainerName());
             }
 
             if (getEnableAccessLogging()) {
-                saveAccessLogging();
+                saveAccessLogging(containerClient);
             }
 
             if (getEnableStaticWebsite()) {
-                saveStaticWebsite();
+                saveStaticWebsite(containerClient);
             }
         } catch (Exception ex) {
             BeamCore.ui().write("\n@|red,red Error creating configs for container '%s'.|@", getContainerName());
@@ -221,37 +221,39 @@ public class ContainerResource extends OpenstackResource {
 
     @Override
     public void update(Resource current, Set<String> changedProperties) {
-        setupClients();
+        CDNApi cdnClient = createClient(CDNApi.class);
+
+        ContainerApi containerClient = createClient(ContainerApi.class);
 
         validate();
 
         if (changedProperties.contains("enable-cdn") && !getEnableCdn()) {
-            cdnApi.disable(getContainerName());
+            cdnClient.disable(getContainerName());
         } else if (getEnableCdn()) {
             if (changedProperties.contains("enable-cdn")
                 || changedProperties.contains("enable-cdn-logging")
                 || changedProperties.contains("ttl")) {
 
-                saveCdnOptions();
+                saveCdnOptions(cdnClient);
             }
         }
 
         if (changedProperties.contains("enable-static-website")
             || changedProperties.contains("static-website-error-page")
             || changedProperties.contains("static-website-index-page")) {
-            saveStaticWebsite();
+            saveStaticWebsite(containerClient);
         }
 
         if (changedProperties.contains("enable-access-logging")) {
-            saveAccessLogging();
+            saveAccessLogging(containerClient);
         }
     }
 
     @Override
     public void delete() {
-        setupClients();
+        ContainerApi containerClient = createClient(ContainerApi.class);
 
-        containerApi.deleteIfEmpty(getContainerName());
+        containerClient.deleteIfEmpty(getContainerName());
     }
 
     @Override
@@ -267,21 +269,12 @@ public class ContainerResource extends OpenstackResource {
         return sb.toString();
     }
 
-    private void setupClients() {
-        if (client == null) {
-            client = createClient(CloudFilesApi.class);
-        }
-
-        if (containerApi == null) {
-            containerApi = client.getContainerApi(getRegion());
-        }
-
-        if (cdnApi == null) {
-            cdnApi = client.getCDNApi(getRegion());
-        }
+    @Override
+    protected Class<? extends Closeable> getParentClientClass() {
+        return CloudFilesApi.class;
     }
 
-    private void saveAccessLogging() {
+    private void saveAccessLogging(ContainerApi containerApi) {
         Map<String, String> metadata = new HashMap<>(containerApi.get(getContainerName()).getMetadata());
 
         metadata.put("access-log-delivery", getEnableAccessLogging() ? "true" : "false");
@@ -289,7 +282,7 @@ public class ContainerResource extends OpenstackResource {
         containerApi.updateMetadata(getContainerName(), metadata);
     }
 
-    private void saveStaticWebsite() {
+    private void saveStaticWebsite(ContainerApi containerApi) {
         Map<String, String> metadata = new HashMap<>(containerApi.get(getContainerName()).getMetadata());
 
         if (!getEnableStaticWebsite()) {
@@ -315,7 +308,7 @@ public class ContainerResource extends OpenstackResource {
         }
     }
 
-    private void saveCdnOptions() {
+    private void saveCdnOptions(CDNApi cdnApi) {
         UpdateCDNContainerOptions options = UpdateCDNContainerOptions
             .Builder.enabled(true)
             .logRetention(getEnableCdnLogging())
