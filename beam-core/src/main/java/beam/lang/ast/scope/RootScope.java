@@ -19,11 +19,15 @@ public class RootScope extends FileScope {
     public RootScope(String file) {
         super(null, file);
         this.current = null;
+
+        put("ENV", System.getenv());
     }
 
     public RootScope(RootScope current) {
         super(null, StringUtils.removeEnd(current.getFile(), ".state"));
         this.current = current;
+
+        put("ENV", System.getenv());
     }
 
     public RootScope getCurrent() {
