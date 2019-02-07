@@ -1,14 +1,14 @@
 import ../init as _
 
-#aws::subnet "outside-subnet"
-#    vpc-id: $(aws::vpc network.vpc | vpc-id)
-#    availability-zone: 'us-east-2c'
-#    cidr-block: '10.0.2.0/24'
-#
-#    tags: {
-#        Name: 'outside-subnet'
-#    }
-#end
+aws::subnet "outside-subnet"
+    vpc-id: $(aws::vpc network.vpc | vpc-id)
+    availability-zone: 'us-east-2c'
+    cidr-block: '10.0.2.0/24'
+
+    tags: {
+        Name: 'outside-subnet'
+    }
+end
 
 example::network network
     name: "example network"

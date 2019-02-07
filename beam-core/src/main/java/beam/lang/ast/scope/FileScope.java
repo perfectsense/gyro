@@ -1,15 +1,12 @@
 package beam.lang.ast.scope;
 
-import beam.core.LocalFileBackend;
-import beam.lang.FileBackend;
-import beam.lang.ast.block.VirtualResourceNode;
-import beam.lang.plugins.PluginLoader;
-
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
+
+import beam.core.LocalFileBackend;
+import beam.lang.FileBackend;
+import beam.lang.plugins.PluginLoader;
 
 public class FileScope extends Scope {
 
@@ -19,7 +16,6 @@ public class FileScope extends Scope {
     private FileBackend backend;
     private final List<FileScope> imports = new ArrayList<>();
     private final List<PluginLoader> pluginLoaders = new ArrayList<>();
-    private final Map<String, VirtualResourceNode> virtualResources = new LinkedHashMap<>();
 
     public FileScope(FileScope parent, String file) {
         super(parent);
@@ -60,7 +56,4 @@ public class FileScope extends Scope {
         return pluginLoaders;
     }
 
-    public Map<String, VirtualResourceNode> getVirtualResources() {
-        return virtualResources;
-    }
 }

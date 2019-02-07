@@ -12,7 +12,6 @@ import beam.lang.Resource;
 import beam.lang.ast.Node;
 import beam.lang.ast.scope.DiffableScope;
 import beam.lang.ast.scope.Scope;
-import beam.lang.ast.scope.VirtualResourceScope;
 import beam.parser.antlr4.BeamParser;
 
 public class ResourceNode extends BlockNode {
@@ -63,10 +62,10 @@ public class ResourceNode extends BlockNode {
         Class<? extends Resource> resourceClass = (Class<? extends Resource>) scope.getRootScope().getResourceClasses().get(type);
 
         if (resourceClass == null) {
-            VirtualResourceNode virtualResourceNode = scope.getRootScope().getVirtualResources().get(type);
+            VirtualResourceNode vrNode = scope.getRootScope().getVirtualResourceNodes().get(type);
 
-            if (virtualResourceNode != null) {
-                virtualResourceNode.evaluate(new VirtualResourceScope(bodyScope, name));
+            if (vrNode != null) {
+                vrNode.createResources(name, bodyScope);
                 return null;
 
             } else {

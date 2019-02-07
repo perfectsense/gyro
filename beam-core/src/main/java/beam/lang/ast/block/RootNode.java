@@ -1,17 +1,16 @@
 package beam.lang.ast.block;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import beam.lang.ast.DeferError;
 import beam.lang.ast.ImportNode;
 import beam.lang.ast.KeyValueNode;
 import beam.lang.ast.Node;
 import beam.lang.ast.scope.Scope;
 import beam.parser.antlr4.BeamParser;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 public class RootNode extends BlockNode {
 
@@ -29,7 +28,7 @@ public class RootNode extends BlockNode {
         List<ImportNode> imports = new ArrayList<>();
         List<KeyValueNode> keyValues = new ArrayList<>();
         List<PluginNode> plugins = new ArrayList<>();
-        Map<String, VirtualResourceNode> virtualResources = scope.getFileScope().getVirtualResources();
+        Map<String, VirtualResourceNode> virtualResourceNodes = scope.getRootScope().getVirtualResourceNodes();
         List<Node> body = new ArrayList<>();
 
         for (Node node : this.body) {
@@ -44,7 +43,7 @@ public class RootNode extends BlockNode {
 
             } else if (node instanceof VirtualResourceNode) {
                 VirtualResourceNode vrNode = (VirtualResourceNode) node;
-                virtualResources.put(vrNode.getName(), vrNode);
+                virtualResourceNodes.put(vrNode.getName(), vrNode);
 
             } else {
                 body.add(node);
@@ -71,4 +70,5 @@ public class RootNode extends BlockNode {
     public void buildString(StringBuilder builder, int indentDepth) {
         buildBody(builder, indentDepth, body);
     }
+
 }

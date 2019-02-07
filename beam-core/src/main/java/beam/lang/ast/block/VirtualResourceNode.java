@@ -1,18 +1,22 @@
 package beam.lang.ast.block;
 
-import beam.lang.BeamLanguageException;
-import beam.lang.ast.Node;
-import beam.lang.ast.scope.Scope;
-
 import java.util.List;
 import java.util.stream.Collectors;
+
+import beam.lang.BeamLanguageException;
+import beam.lang.Credentials;
+import beam.lang.Resource;
+import beam.lang.ast.Node;
+import beam.lang.ast.scope.FileScope;
+import beam.lang.ast.scope.RootScope;
+import beam.lang.ast.scope.Scope;
 
 import static beam.parser.antlr4.BeamParser.VirtualResourceContext;
 
 public class VirtualResourceNode extends BlockNode {
 
     private String name;
-    private List<Node> parameters;
+    private List<VirtualResourceParam> params;
 
     public VirtualResourceNode(VirtualResourceContext context) {
         super(context.virtualResourceBody()
@@ -22,27 +26,56 @@ public class VirtualResourceNode extends BlockNode {
 
         name = context.virtualResourceName().IDENTIFIER().getText();
 
-        parameters = context.virtualResourceParam()
-            .stream()
-            .map(p -> Node.create(p))
-            .collect(Collectors.toList());
+        params = context.virtualResourceParam()
+                .stream()
+                .map(VirtualResourceParam::new)
+                .collect(Collectors.toList());
     }
 
-    @Override
-    public Object evaluate(Scope scope) throws Exception {
-        for (Node parameterNode : parameters) {
-            String parameter = ((VirtualResourceParamNode) parameterNode).getName();
+    public void createResources(String prefix, Scope paramScope) throws Exception {
+        FileScope paramFileScope = paramScope.getFileScope();
+        RootScope vrScope = new RootScope(paramFileScope.getFile());
 
-            if (!scope.containsKey(parameter)) {
-                throw new BeamLanguageException(String.format("Required parameter '%s' is missing.", parameter));
+        for (VirtualResourceParam param : params) {
+            String paramName = param.getName();
+
+            if (!paramScope.containsKey(paramName)) {
+                throw new BeamLanguageException(String.format("Required parameter '%s' is missing.", paramName));
+
+            } else {
+                vrScope.put(paramName, paramScope.get(paramName));
             }
         }
 
+        RootScope paramRootScope = paramScope.getRootScope();
+
+        vrScope.getResourceClasses().putAll(paramRootScope.getResourceClasses());
+
+        paramRootScope.findAllResources()
+                .stream()
+                .filter(Credentials.class::isInstance)
+                .forEach(c -> vrScope.put(c.resourceType() + "::" + c.resourceIdentifier(), c));
+
         for (Node node : body) {
-            node.evaluate(scope);
+            node.evaluate(vrScope);
         }
 
-        return null;
+        for (Object value : vrScope.values()) {
+            if (value instanceof Resource) {
+                Resource resource = (Resource) value;
+
+                if (!(value instanceof Credentials)) {
+                    resource.resourceIdentifier(prefix + "." + resource.resourceIdentifier());
+                }
+
+                paramFileScope.put(resource.resourceType() + "::" + resource.resourceIdentifier(), resource);
+            }
+        }
+    }
+
+    @Override
+    public Object evaluate(Scope scope) {
+        throw new UnsupportedOperationException();
     }
 
     public String getName() {

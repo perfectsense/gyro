@@ -1,17 +1,20 @@
 package beam.lang.ast.scope;
 
-import beam.lang.Resource;
-import com.psddev.dari.util.StringUtils;
-
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import beam.lang.Resource;
+import beam.lang.ast.block.VirtualResourceNode;
+import com.psddev.dari.util.StringUtils;
 
 public class RootScope extends FileScope {
 
     private final RootScope current;
     private final Map<String, Class<?>> resourceClasses = new HashMap<>();
+    private final Map<String, VirtualResourceNode> virtualResourceNodes = new LinkedHashMap<>();
 
     public RootScope(String file) {
         super(null, file);
@@ -29,6 +32,10 @@ public class RootScope extends FileScope {
 
     public Map<String, Class<?>> getResourceClasses() {
         return resourceClasses;
+    }
+
+    public Map<String, VirtualResourceNode> getVirtualResourceNodes() {
+        return virtualResourceNodes;
     }
 
     public List<Resource> findAllResources() {

@@ -1,11 +1,13 @@
 package beam.lang.ast;
 
+import java.util.List;
+import java.util.Optional;
+
 import beam.lang.ast.block.KeyBlockNode;
 import beam.lang.ast.block.PluginNode;
 import beam.lang.ast.block.ResourceNode;
 import beam.lang.ast.block.RootNode;
 import beam.lang.ast.block.VirtualResourceNode;
-import beam.lang.ast.block.VirtualResourceParamNode;
 import beam.lang.ast.control.ForNode;
 import beam.lang.ast.control.IfNode;
 import beam.lang.ast.expression.AndNode;
@@ -26,9 +28,6 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.List;
-import java.util.Optional;
-
 public abstract class Node {
 
     public static Node create(ParseTree context) {
@@ -48,9 +47,6 @@ public abstract class Node {
 
         } else if (cc.equals(BeamParser.VirtualResourceContext.class)) {
             return new VirtualResourceNode((BeamParser.VirtualResourceContext) context);
-
-        } else if (cc.equals(BeamParser.VirtualResourceParamContext.class)) {
-            return new VirtualResourceParamNode((BeamParser.VirtualResourceParamContext) context);
 
         } else if (cc.equals(BeamParser.ComparisonExpressionContext.class)) {
             return new ComparisonNode((BeamParser.ComparisonExpressionContext) context);
