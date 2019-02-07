@@ -398,3 +398,16 @@ public class KmsResource extends AwsResource {
                                         .pendingWindowInDays(7));
     }
 
+    @Override
+    public String toDisplayString() {
+        StringBuilder sb = new StringBuilder();
+
+        if (getKeyId() != null) {
+            sb.append("kms key " + getKeyId());
+        } else {
+            sb.append("kms key ");
+        }
+
+        return sb.toString();
+    }
+
