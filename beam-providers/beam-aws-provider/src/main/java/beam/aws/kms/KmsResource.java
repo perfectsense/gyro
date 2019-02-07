@@ -294,3 +294,46 @@ public class KmsResource extends AwsResource {
         return false;
     }
 
+    @Override
+    public void create() {
+        KmsClient client = createClient(KmsClient.class);
+
+        List<String> newList = getAliases().stream()
+                .distinct()
+                .collect(Collectors.toList());
+
+        if (newList.size() == getAliases().size()) {
+
+            CreateKeyResponse response = client.createKey(
+                    r -> r.bypassPolicyLockoutSafetyCheck(getBypassPolicyLockoutSafetyCheck())
+                            .customKeyStoreId(getCustomKeyStoreId())
+                            .description(getDescription())
+                            .keyUsage(getKeyUsage())
+                            .origin(getOrigin())
+                            .policy(getPolicyContents())
+                            .tags(toTag())
+            );
+
+            setKeyId(response.keyMetadata().keyId());
+            setKeyManager(response.keyMetadata().keyManagerAsString());
+            setKeyState(response.keyMetadata().keyStateAsString());
+
+            if (getAliases() != null) {
+                for (String alias : getAliases()) {
+                    client.createAlias(r -> r.aliasName(alias).targetKeyId(getKeyId()));
+                }
+            }
+
+            if (getKeyRotation() != null && getKeyRotation() == true) {
+                client.enableKeyRotation(r -> r.keyId(getKeyId()));
+            }
+
+            if (getEnabled() == false) {
+                client.disableKey(r -> r.keyId(getKeyId()));
+            }
+
+        } else {
+            throw new BeamException("Duplicate aliases are not allowed in the same region");
+        }
+    }
+
