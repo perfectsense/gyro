@@ -67,9 +67,6 @@ mapValue
 
 listValue
     : LBRACKET listItemValue? (COMMA listItemValue)* RBRACKET
-    | LBRACKET listItemValue? (COMMA listItemValue)* {
-        notifyErrorListeners("Extra ',' in list");
-      } COMMA RBRACKET
     ;
 
 listItemValue : stringValue | booleanValue | numberValue | referenceValue;
