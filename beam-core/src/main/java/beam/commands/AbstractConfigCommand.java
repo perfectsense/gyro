@@ -4,8 +4,10 @@ import beam.core.BeamCore;
 import beam.core.BeamException;
 import beam.core.LocalFileBackend;
 import beam.lang.BeamLanguageException;
+import beam.lang.Credentials;
 import beam.lang.FileBackend;
 import beam.lang.Resource;
+import beam.lang.ast.scope.FileScope;
 import beam.lang.ast.scope.RootScope;
 import com.psddev.dari.util.StringUtils;
 import io.airlift.airline.Arguments;
@@ -59,26 +61,10 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             throw new BeamException(ex.getMessage());
         }
 
+        refreshCredentials(current);
+
         if (!skipRefresh) {
-            for (Iterator<Map.Entry<String, Object>> i = current.entrySet().iterator(); i.hasNext();) {
-                Object value = i.next().getValue();
-
-                if (value instanceof Resource) {
-                    Resource resource = (Resource) value;
-
-                    BeamCore.ui().write(
-                            "@|bold,blue Refreshing|@: @|yellow %s|@ -> %s...",
-                            resource.resourceType(),
-                            resource.resourceIdentifier());
-
-                    if (!resource.refresh()) {
-                        i.remove();
-                    }
-
-                    BeamCore.ui().write("\n");
-                }
-            }
-
+            refreshResources(current);
             BeamCore.ui().write("\n");
         }
 
@@ -90,6 +76,39 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         }
 
         doExecute(current, pending);
+    }
+
+    private void refreshCredentials(FileScope scope) {
+        scope.getImports().forEach(this::refreshCredentials);
+
+        scope.values()
+                .stream()
+                .filter(Credentials.class::isInstance)
+                .map(Credentials.class::cast)
+                .forEach(c -> c.findCredentials(true));
+    }
+
+    private void refreshResources(FileScope scope) {
+        scope.getImports().forEach(this::refreshResources);
+
+        for (Iterator<Map.Entry<String, Object>> i = scope.entrySet().iterator(); i.hasNext();) {
+            Object value = i.next().getValue();
+
+            if (value instanceof Resource && !(value instanceof Credentials)) {
+                Resource resource = (Resource) value;
+
+                BeamCore.ui().write(
+                        "@|bold,blue Refreshing|@: @|yellow %s|@ -> %s...",
+                        resource.resourceType(),
+                        resource.resourceIdentifier());
+
+                if (!resource.refresh()) {
+                    i.remove();
+                }
+
+                BeamCore.ui().write("\n");
+            }
+        }
     }
 
 }
