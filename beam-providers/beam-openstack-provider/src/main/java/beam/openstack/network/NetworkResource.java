@@ -242,7 +242,7 @@ public class NetworkResource extends OpenstackResource {
         setMemberSegments(network.getMemberSegments());
         setMulticastIp(network.getMulticastIp());
         setNetworkFlavor(network.getNetworkFlavor());
-        setNetworkType(network.getNetworkType().toString());
+        setNetworkType(network.getNetworkType() != null ? network.getNetworkType().toString() : null);
         setPhysicalNetworkName(network.getPhysicalNetworkName());
         setPortSecurity(network.getPortSecurity());
         setProfileId(network.getProfileId());
@@ -250,7 +250,7 @@ public class NetworkResource extends OpenstackResource {
         setSegmentationId(network.getSegmentationId());
         setSegmentDel(network.getSegmentDel());
         setShared(network.getShared());
-        setStatus(network.getStatus().toString());
+        setStatus(network.getStatus() != null ? network.getStatus().toString() : null);
         setTenantId(network.getTenantId());
     }
 }
