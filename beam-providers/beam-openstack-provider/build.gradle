@@ -14,6 +14,7 @@ dependencies {
     compile "beam:beam-core:${version}"
     compile "org.apache.jclouds.driver:jclouds-slf4j:${jcloud_sdk_version}"
     compile "org.apache.jclouds.labs:rackspace-autoscale-us:${jcloud_sdk_version}"
+    compile "org.apache.jclouds.labs:openstack-poppy:${jcloud_sdk_version}"
     compile "org.apache.jclouds.provider:rackspace-cloudnetworks-us:${jcloud_sdk_version}"
     compile "org.apache.jclouds.provider:rackspace-cloudfiles-us:${jcloud_sdk_version}"
     compile "org.apache.jclouds.provider:rackspace-cloudservers-us:${jcloud_sdk_version}"
@@ -21,6 +22,7 @@ dependencies {
     compile "org.apache.jclouds.provider:rackspace-clouddatabases-us:${jcloud_sdk_version}"
     compile "org.apache.jclouds.provider:rackspace-cloudloadbalancers-us:${jcloud_sdk_version}"
     compile "org.apache.jclouds.provider:rackspace-clouddns-us:${jcloud_sdk_version}"
+    compile 'org.apache.jclouds.labs:openstack-neutron:2.0.3'
     compile 'javax.xml.bind:jaxb-api:2.2.11'
     compile 'com.sun.xml.bind:jaxb-core:2.2.11'
     compile 'com.sun.xml.bind:jaxb-impl:2.2.11'
