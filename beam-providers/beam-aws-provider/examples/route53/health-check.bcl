@@ -1,5 +1,23 @@
 import ../init as _
 
-aws::health-check health-check-example
+aws::health-check health-check-example-cloud-watch
+    type: "clOUDWATCH_METRIC"
+    inverted: false
+    disabled: false
+    insufficient-data-health-status: "Healthy"
+    alarm-name: "hc-example-alarm"
+    alarm-region: "us-east-1"
+    tags: {
+        Name: "health-check-example-cloud-watch"
+    }
+end
+
+aws::health-check health-check-example-calculated
+    type: "calculated"
+    inverted: false
+    disabled: false
     health-threshold: 0
+    tags: {
+        Name: "health-check-example-calculated"
+    }
 end
