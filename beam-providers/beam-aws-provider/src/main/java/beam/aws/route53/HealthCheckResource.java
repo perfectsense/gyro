@@ -5,6 +5,7 @@ import beam.core.BeamException;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 import beam.lang.Resource;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 import com.psddev.dari.util.ObjectUtils;
@@ -15,6 +16,7 @@ import software.amazon.awssdk.services.route53.model.CreateHealthCheckResponse;
 import software.amazon.awssdk.services.route53.model.GetHealthCheckResponse;
 import software.amazon.awssdk.services.route53.model.HealthCheck;
 import software.amazon.awssdk.services.route53.model.HealthCheckConfig;
+import software.amazon.awssdk.services.route53.model.HealthCheckRegion;
 import software.amazon.awssdk.services.route53.model.HealthCheckType;
 import software.amazon.awssdk.services.route53.model.InsufficientDataHealthStatus;
 import software.amazon.awssdk.services.route53.model.ListTagsForResourceResponse;
@@ -39,7 +41,7 @@ public class HealthCheckResource extends AwsResource {
     private Boolean disabled;
     private Boolean enableSni;
     private Integer failureThreshold;
-    private String fullyQualifiedDomainName;
+    private String domainName;
     private Integer healthThreshold;
     private String insufficientDataHealthStatus;
     private Boolean inverted;
@@ -54,6 +56,11 @@ public class HealthCheckResource extends AwsResource {
     private String alarmName;
     private String alarmRegion;
     private Map<String, String> tags;
+
+    private static final Set<String> regionSet = ImmutableSet.copyOf(
+        HealthCheckRegion.knownValues().stream()
+            .map(HealthCheckRegion::toString).collect(Collectors.toList())
+    );
 
     public String getHealthCheckId() {
         return healthCheckId;
@@ -104,12 +111,12 @@ public class HealthCheckResource extends AwsResource {
     }
 
     @ResourceDiffProperty(updatable = true)
-    public String getFullyQualifiedDomainName() {
-        return fullyQualifiedDomainName;
+    public String getDomainName() {
+        return domainName;
     }
 
-    public void setFullyQualifiedDomainName(String fullyQualifiedDomainName) {
-        this.fullyQualifiedDomainName = fullyQualifiedDomainName;
+    public void setDomainName(String domainName) {
+        this.domainName = domainName;
     }
 
     @ResourceDiffProperty(updatable = true)
@@ -167,6 +174,15 @@ public class HealthCheckResource extends AwsResource {
 
     @ResourceDiffProperty(updatable = true)
     public List<String> getRegions() {
+        if (regions == null) {
+            regions = new ArrayList<>();
+        }
+
+        if (regions.isEmpty() && getType() != null
+            && !getType().equals("CALCULATED") && !getType().equals("CLOUDWATCH_METRIC")) {
+            regions = new ArrayList<>(regionSet);
+        }
+
         return regions;
     }
 
@@ -184,6 +200,9 @@ public class HealthCheckResource extends AwsResource {
 
     @ResourceDiffProperty(updatable = true)
     public String getResourcePath() {
+        if (!ObjectUtils.isBlank(resourcePath)) {
+            resourcePath = (resourcePath.startsWith("/") ? "" : "/") + resourcePath;
+        }
         return resourcePath;
     }
 
@@ -249,25 +268,33 @@ public class HealthCheckResource extends AwsResource {
         );
 
         HealthCheck healthCheck = response.healthCheck();
-        healthCheck.cloudWatchAlarmConfiguration();
-        healthCheck.linkedService();
         HealthCheckConfig healthCheckConfig = healthCheck.healthCheckConfig();
         setChildHealthChecks(healthCheckConfig.childHealthChecks());
         setDisabled(healthCheckConfig.disabled());
         setEnableSni(healthCheckConfig.enableSNI());
         setFailureThreshold(healthCheckConfig.failureThreshold());
-        setFullyQualifiedDomainName(healthCheckConfig.fullyQualifiedDomainName());
+        setDomainName(healthCheckConfig.fullyQualifiedDomainName());
         setHealthThreshold(healthCheckConfig.healthThreshold());
         setInsufficientDataHealthStatus(healthCheckConfig.insufficientDataHealthStatusAsString());
         setInverted(healthCheckConfig.inverted());
         setIpAddress(healthCheckConfig.ipAddress());
         setMeasureLatency(healthCheckConfig.measureLatency());
         setPort(healthCheckConfig.port());
-        setRegions(healthCheckConfig.regionsAsStrings());
+
         setRequestInterval(healthCheckConfig.requestInterval());
         setResourcePath(healthCheckConfig.resourcePath());
         setSearchString(healthCheckConfig.searchString());
         setType(healthCheckConfig.typeAsString());
+
+        if (getType().equals("CALCULATED") || getType().equals("CLOUDWATCH_METRIC")) {
+            setRegions(new ArrayList<>());
+        } else {
+            if (healthCheckConfig.regionsAsStrings().isEmpty()) {
+                setRegions(new ArrayList<>(regionSet));
+            } else {
+                setRegions(healthCheckConfig.regionsAsStrings());
+            }
+        }
 
         if (healthCheckConfig.alarmIdentifier() != null) {
             setAlarmName(healthCheckConfig.alarmIdentifier().name());
@@ -281,6 +308,8 @@ public class HealthCheckResource extends AwsResource {
 
     @Override
     public void create() {
+        validate();
+
         Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
 
         CreateHealthCheckResponse response = client.createHealthCheck(
@@ -289,13 +318,10 @@ public class HealthCheckResource extends AwsResource {
         );
 
         HealthCheck healthCheck = response.healthCheck();
+
         setHealthCheckId(healthCheck.id());
+
         saveTags(client, new HashMap<>());
-
-        /*setHealthCheckId("a998c083-4560-4a8d-8a3c-5df57967219d");
-        refresh();
-
-        throw new BeamException("Testing");*/
     }
 
     @Override
@@ -365,18 +391,17 @@ public class HealthCheckResource extends AwsResource {
                 .disabled(getDisabled())
                 .enableSNI(getEnableSni())
                 .failureThreshold(getFailureThreshold())
-                .fullyQualifiedDomainName(getFullyQualifiedDomainName())
+                .fullyQualifiedDomainName(getDomainName())
                 .healthThreshold(getHealthThreshold())
-                .insufficientDataHealthStatus(getInsufficientDataHealthStatus())
                 .inverted(getInverted())
                 .ipAddress(getIpAddress())
                 .measureLatency(getMeasureLatency())
                 .port(getPort())
-                .regionsWithStrings(getRegions())
                 .requestInterval(getRequestInterval())
                 .resourcePath(getResourcePath())
                 .searchString(getSearchString())
                 .type(getType())
+                .regionsWithStrings(getRegions())
                 .build();
         }
     }
@@ -404,7 +429,17 @@ public class HealthCheckResource extends AwsResource {
         } else {
             return UpdateHealthCheckRequest.builder()
                 .healthCheckId(getHealthCheckId())
-
+                .disabled(getDisabled())
+                .enableSNI(getEnableSni())
+                .failureThreshold(getFailureThreshold())
+                .fullyQualifiedDomainName(getDomainName())
+                .healthThreshold(getHealthThreshold())
+                .inverted(getInverted())
+                .ipAddress(getIpAddress())
+                .port(getPort())
+                .resourcePath(getResourcePath())
+                .searchString(getSearchString())
+                .regionsWithStrings(getRegions())
                 .build();
         }
     }
@@ -515,7 +550,7 @@ public class HealthCheckResource extends AwsResource {
         if (getType().equals("CALCULATED")) {
             if (ObjectUtils.isBlank(getHealthThreshold()) || getHealthThreshold() < 0) {
                 throw new BeamException("The value - (" + getHealthThreshold()
-                    + ") is invalid for parameter Health Check Grace period. Integer value grater or equal to 0.");
+                    + ") is invalid for parameter 'health-threshold'. Valid values [ Integer value grater or equal to 0. ]");
             }
         }
 
@@ -529,6 +564,89 @@ public class HealthCheckResource extends AwsResource {
                     Stream.of(InsufficientDataHealthStatus.values())
                         .filter(o -> !o.equals(InsufficientDataHealthStatus.UNKNOWN_TO_SDK_VERSION))
                         .map(Enum::toString).collect(Collectors.joining("', '"))));
+            }
+        }
+
+        //Attribute validation when type is CALCULATED or CLOUDWATCH_METRIC
+        if (getType().equals("CALCULATED") && getType().equals("CLOUDWATCH_METRIC")) {
+            if (!getRegions().isEmpty()) {
+                throw new BeamException("The param 'regions' is not allowed when"
+                    + " 'type' is 'CALCULATED' or 'CLOUDWATCH_METRIC'.");
+            }
+
+            if (!ObjectUtils.isBlank(getRequestInterval())) {
+                throw new BeamException("The param 'request-interval' is not allowed when"
+                    + " 'type' is 'CALCULATED' or 'CLOUDWATCH_METRIC'.");
+            }
+
+            if (!ObjectUtils.isBlank(getResourcePath())) {
+                throw new BeamException("The param 'resource-path' is not allowed when"
+                    + " 'type' is 'CALCULATED' or 'CLOUDWATCH_METRIC'.");
+            }
+
+            if (!ObjectUtils.isBlank(getIpAddress())) {
+                throw new BeamException("The param 'ip-address' is not allowed when"
+                    + " 'type' is 'CALCULATED' or 'CLOUDWATCH_METRIC'.");
+            }
+
+            if (!ObjectUtils.isBlank(getDomainName())) {
+                throw new BeamException("The param 'domain-name' is not allowed when"
+                    + " 'type' is 'CALCULATED' or 'CLOUDWATCH_METRIC'.");
+            }
+
+            if (getMeasureLatency() != null) {
+                throw new BeamException("The param 'measure-latency' is not allowed when"
+                    + " 'type' is 'CALCULATED' or 'CLOUDWATCH_METRIC'.");
+            }
+
+            if (getPort() != null) {
+                throw new BeamException("The param 'port' is not allowed when"
+                    + " 'type' is 'CALCULATED' or 'CLOUDWATCH_METRIC'.");
+            }
+
+            if (getFailureThreshold() != null) {
+                throw new BeamException("The param 'failure-threshold' is not allowed when"
+                    + " 'type' is 'CALCULATED' or 'CLOUDWATCH_METRIC'.");
+            }
+        }
+
+        //Attribute validation when type is HTTP_STR_MATCH or HTTPS_STR_MATCH
+        if (!getType().equals("HTTP_STR_MATCH") && !getType().equals("HTTPS_STR_MATCH")) {
+            if (getSearchString() != null) {
+                throw new BeamException("The param 'search-string' is only allowed when"
+                    + " 'type' is 'HTTP_STR_MATCH' or 'HTTPS_STR_MATCH'.");
+            }
+        }
+
+        //Attribute validation when type is HTTPS or HTTPS_STR_MATCH
+        if (!getType().equals("HTTPS") && !getType().equals("HTTPS_STR_MATCH")) {
+            if (getEnableSni() != null) {
+                throw new BeamException("The param 'enable-sni' is only allowed when"
+                    + " 'type' is 'HTTPS' or 'HTTPS_STR_MATCH'.");
+            }
+        }
+
+        //Attribute validation when type is not CALCULATED or CLOUDWATCH_METRIC
+        if (!getType().equals("CALCULATED") && !getType().equals("CLOUDWATCH_METRIC")) {
+            if (ObjectUtils.isBlank(getRequestInterval())
+                || (getRequestInterval() != 10 && getRequestInterval() != 30)) {
+                throw new BeamException("The value - (" + getRequestInterval()
+                    + ") is invalid for parameter 'request-interval'. Valid values [ 10, 30 ].");
+            }
+
+            if (!getRegions().isEmpty() && !regionSet.containsAll(getRegions())) {
+                throw new BeamException(String.format("Invalid values [ '%s' ] for param 'regions'."
+                        + " Valid values [ '%s' ]",
+                    getRegions().stream().filter(o -> !regionSet.contains(o)).collect(Collectors.joining("', '")),
+                    String.join("', '", regionSet)));
+            }
+        }
+
+        //Attribute validation when type is not CALCULATED or CLOUDWATCH_METRIC
+        if (getType().equals("TCP")) {
+            if ((!ObjectUtils.isBlank(getIpAddress()) && !ObjectUtils.isBlank(getDomainName()))
+                || (ObjectUtils.isBlank(getIpAddress()) && ObjectUtils.isBlank(getDomainName()))) {
+                throw new BeamException("When parameter 'type' is 'TCP' either param 'ip-address' or 'domain-name' needs to be specified.");
             }
         }
     }
