@@ -47,9 +47,10 @@ public class Diff {
 
     public void diff() throws Exception {
         Map<String, Diffable> currentDiffables = this.currentDiffables.stream().collect(
-                LinkedHashMap::new,
-                (map, r) -> map.put(r.primaryKey(), r),
-                Map::putAll);
+            LinkedHashMap::new,
+            (map, r) -> map.put(r.primaryKey(), r),
+            Map::putAll
+        );
 
         for (Diffable pendingDiffable : pendingDiffables) {
             Diffable currentDiffable = currentDiffables.remove(pendingDiffable.primaryKey());

@@ -1,7 +1,6 @@
 package beam.aws.elb;
 
 import beam.aws.AwsResource;
-import beam.core.diff.ChangeType;
 import beam.core.diff.Create;
 import beam.core.diff.Delete;
 import beam.core.diff.ResourceDiffProperty;
