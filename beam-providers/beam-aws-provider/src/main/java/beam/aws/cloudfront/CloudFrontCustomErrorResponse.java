@@ -1,6 +1,7 @@
 package beam.aws.cloudfront;
 
 import beam.core.diff.Diffable;
+import software.amazon.awssdk.services.cloudfront.model.CustomErrorResponse;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -54,6 +55,14 @@ public class CloudFrontCustomErrorResponse extends Diffable {
 
     public void setCustomizeErrorResponse(Boolean customizeErrorResponse) {
         this.customizeErrorResponse = customizeErrorResponse;
+    }
+
+    public CustomErrorResponse toCustomErrorResponse() {
+        return CustomErrorResponse.builder()
+            .errorCachingMinTTL(getTtl())
+            .errorCode(getErrorCode())
+            .responseCode(getResponseCode().toString())
+            .responsePagePath(getResponsePagePath()).build();
     }
 
     @Override

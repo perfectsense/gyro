@@ -1,6 +1,7 @@
 package beam.aws.cloudfront;
 
 import beam.core.diff.Diffable;
+import software.amazon.awssdk.services.cloudfront.model.LoggingConfig;
 
 public class CloudFrontLogging extends Diffable {
 
@@ -39,6 +40,14 @@ public class CloudFrontLogging extends Diffable {
 
     public void setIncludeCookies(Boolean includeCookies) {
         this.includeCookies = includeCookies;
+    }
+
+    public LoggingConfig toLoggingConfig() {
+        return LoggingConfig.builder()
+            .bucket(getBucket())
+            .prefix(getBucketPrefix())
+            .includeCookies(getIncludeCookies())
+            .enabled(getEnabled()).build();
     }
 
     @Override

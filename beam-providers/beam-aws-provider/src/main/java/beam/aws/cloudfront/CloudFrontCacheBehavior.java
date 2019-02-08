@@ -1,6 +1,10 @@
 package beam.aws.cloudfront;
 
 import beam.core.diff.Diffable;
+import software.amazon.awssdk.services.cloudfront.model.CacheBehavior;
+import software.amazon.awssdk.services.cloudfront.model.DefaultCacheBehavior;
+import software.amazon.awssdk.services.cloudfront.model.ForwardedValues;
+import software.amazon.awssdk.services.cloudfront.model.TrustedSigners;
 
 import java.util.List;
 
@@ -22,6 +26,7 @@ public class CloudFrontCacheBehavior extends Diffable {
     private boolean queryString;
     private List<String> queryStringCacheKeys;
     private List<String> trustedSigners;
+    private String fieldLevelEncryptionId;
 
     public String getTargetOriginId() {
         return targetOriginId;
@@ -149,6 +154,73 @@ public class CloudFrontCacheBehavior extends Diffable {
 
     public void setTrustedSigners(List<String> trustedSigners) {
         this.trustedSigners = trustedSigners;
+    }
+
+    public String getFieldLevelEncryptionId() {
+        return fieldLevelEncryptionId;
+    }
+
+    public void setFieldLevelEncryptionId(String fieldLevelEncryptionId) {
+        this.fieldLevelEncryptionId = fieldLevelEncryptionId;
+    }
+
+    public DefaultCacheBehavior toDefaultCacheBehavior() {
+        ForwardedValues forwardedValues = ForwardedValues.builder()
+            .headers(h -> h.items(getHeaders()).quantity(getHeaders().size()))
+            .cookies(c -> c.forward(getForwardCookies()).whitelistedNames(w -> w.items(getCookies()).quantity(getCookies().size())))
+            .queryString(isQueryString())
+            .queryStringCacheKeys(q -> q.items(getQueryStringCacheKeys()).quantity(getQueryStringCacheKeys().size()))
+            .build();
+
+        TrustedSigners trustedSigners = TrustedSigners.builder()
+            .items(getTrustedSigners())
+            .quantity(getTrustedSigners().size())
+            .enabled(!getTrustedSigners().isEmpty())
+            .build();
+
+        return DefaultCacheBehavior.builder()
+            .allowedMethods(am -> am.itemsWithStrings(getAllowedMethods()))
+            .defaultTTL(getDefaultTtl())
+            .maxTTL(getMaxTtl())
+            .minTTL(getMinTtl())
+            .smoothStreaming(isSmoothStreaming())
+            .targetOriginId(getTargetOriginId())
+            .forwardedValues(forwardedValues)
+            .trustedSigners(trustedSigners)
+            .viewerProtocolPolicy(getViewerProtocolPolicy())
+            .fieldLevelEncryptionId(getFieldLevelEncryptionId())
+            .compress(isCompress())
+            .build();
+    }
+
+    public CacheBehavior toCachBehavior() {
+        ForwardedValues forwardedValues = ForwardedValues.builder()
+            .headers(h -> h.items(getHeaders()).quantity(getHeaders().size()))
+            .cookies(c -> c.forward(getForwardCookies()).whitelistedNames(w -> w.items(getCookies()).quantity(getCookies().size())))
+            .queryString(isQueryString())
+            .queryStringCacheKeys(q -> q.items(getQueryStringCacheKeys()).quantity(getQueryStringCacheKeys().size()))
+            .build();
+
+        TrustedSigners trustedSigners = TrustedSigners.builder()
+            .items(getTrustedSigners())
+            .quantity(getTrustedSigners().size())
+            .enabled(!getTrustedSigners().isEmpty())
+            .build();
+
+        return CacheBehavior.builder()
+            .allowedMethods(am -> am.itemsWithStrings(getAllowedMethods()))
+            .defaultTTL(getDefaultTtl())
+            .maxTTL(getMaxTtl())
+            .minTTL(getMinTtl())
+            .smoothStreaming(isSmoothStreaming())
+            .targetOriginId(getTargetOriginId())
+            .pathPattern(getPathPattern())
+            .forwardedValues(forwardedValues)
+            .trustedSigners(trustedSigners)
+            .viewerProtocolPolicy(getViewerProtocolPolicy())
+            .fieldLevelEncryptionId(getFieldLevelEncryptionId())
+            .compress(isCompress())
+            .build();
     }
 
     @Override

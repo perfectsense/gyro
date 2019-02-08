@@ -1,7 +1,9 @@
 package beam.aws.cloudfront;
 
 import beam.core.diff.Diffable;
+import software.amazon.awssdk.services.cloudfront.model.Restrictions;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class CloudFrontGeoRestriction extends Diffable {
@@ -18,11 +20,22 @@ public class CloudFrontGeoRestriction extends Diffable {
     }
 
     public List<String> getRestrictions() {
+        if (restrictions == null) {
+            restrictions = new ArrayList<>();
+        }
+
         return restrictions;
     }
 
     public void setRestrictions(List<String> restrictions) {
         this.restrictions = restrictions;
+    }
+
+    public Restrictions toRestrictions() {
+        return Restrictions.builder()
+            .geoRestriction(r -> r.restrictionType(getType())
+                .items(getRestrictions())
+                .quantity(getRestrictions().size())).build();
     }
 
     @Override

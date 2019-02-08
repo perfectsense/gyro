@@ -1,6 +1,7 @@
 package beam.aws.cloudfront;
 
 import beam.core.diff.Diffable;
+import software.amazon.awssdk.services.cloudfront.model.ViewerCertificate;
 
 public class CloudFrontViewCertificate extends Diffable {
 
@@ -53,6 +54,16 @@ public class CloudFrontViewCertificate extends Diffable {
     public CloudFrontViewCertificate setSslSupportMethod(String sslSupportMethod) {
         this.sslSupportMethod = sslSupportMethod;
         return this;
+    }
+
+    public ViewerCertificate toViewerCertificate() {
+        return ViewerCertificate.builder()
+            .acmCertificateArn(getAcmCertificateArn())
+            .iamCertificateId(getIamCertificateId())
+            .minimumProtocolVersion(getMinimumProtocolVersion())
+            .sslSupportMethod(getSslSupportMethod())
+            .cloudFrontDefaultCertificate(isCloudfrontDefaultCertificate())
+            .build();
     }
 
     @Override

@@ -4,13 +4,20 @@ import beam.aws.AwsResource;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 import beam.lang.Resource;
+import software.amazon.awssdk.services.cloudfront.model.CacheBehavior;
+import software.amazon.awssdk.services.cloudfront.model.CacheBehaviors;
+import software.amazon.awssdk.services.cloudfront.model.CustomErrorResponse;
+import software.amazon.awssdk.services.cloudfront.model.CustomErrorResponses;
+import software.amazon.awssdk.services.cloudfront.model.DistributionConfig;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @ResourceName("cloudfront")
 public class CloudFrontResource extends AwsResource {
@@ -290,6 +297,66 @@ public class CloudFrontResource extends AwsResource {
     @Override
     public String toDisplayString() {
         return "cloudfront";
+    }
+
+    private DistributionConfig distributionConfig() {
+        DistributionConfig.Builder builder = DistributionConfig.builder();
+
+        List<CustomErrorResponse> errorResponses = getCustomErrorResponse()
+            .stream()
+            .map(e -> e.toCustomErrorResponse())
+            .collect(Collectors.toList());
+
+        CustomErrorResponses customErrorResponses = CustomErrorResponses.builder()
+            .items(errorResponses)
+            .quantity(errorResponses.size())
+            .build();
+
+        List<CacheBehavior> behaviors = getBehavior()
+            .stream()
+            .map(c -> c.toCachBehavior())
+            .collect(Collectors.toList());
+
+        CacheBehaviors cacheBehaviors = CacheBehaviors.builder()
+            .items(behaviors)
+            .quantity(behaviors.size())
+            .build();
+
+        CloudFrontViewCertificate viewerCertificate = getViewerCertificate();
+        if (viewerCertificate == null) {
+            viewerCertificate = new CloudFrontViewCertificate();
+            viewerCertificate.setCloudfrontDefaultCertificate(true);
+        }
+
+        CloudFrontLogging logging = getLogging();
+        if (logging == null) {
+            logging = new CloudFrontLogging();
+            logging.setEnabled(false);
+            logging.setIncludeCookies(false);
+        }
+
+        CloudFrontCacheBehavior defaultCacheBehavior = getDefaultCacheBehavior();
+        if (defaultCacheBehavior == null) {
+            defaultCacheBehavior = new CloudFrontCacheBehavior();
+        }
+
+        builder.enabled(isEnabled())
+            .comment(getComment())
+            .httpVersion(getHttpVersion())
+            .priceClass(getPriceClass())
+            .defaultRootObject(getDefaultRootObject())
+            .isIPV6Enabled(isIpv6Enabled())
+            .webACLId(getWaf())
+            .aliases(a -> a.items(getCnames()).quantity(getCnames().size()))
+            .restrictions(getGeoRestriction().toRestrictions())
+            .customErrorResponses(customErrorResponses)
+            .defaultCacheBehavior(defaultCacheBehavior.toDefaultCacheBehavior())
+            .cacheBehaviors(cacheBehaviors)
+            .logging(logging.toLoggingConfig())
+            .viewerCertificate(viewerCertificate.toViewerCertificate())
+            .callerReference(getCallerReference() != null ? getCallerReference() : Long.toString(new Date().getTime()));
+
+        return builder.build();
     }
 
 }
