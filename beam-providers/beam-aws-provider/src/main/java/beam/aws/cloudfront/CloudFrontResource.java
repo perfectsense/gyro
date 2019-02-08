@@ -1,11 +1,14 @@
 package beam.aws.cloudfront;
 
+import beam.aws.AwsCredentials;
 import beam.aws.AwsResource;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 import beam.lang.Resource;
+import software.amazon.awssdk.services.cloudfront.CloudFrontClient;
 import software.amazon.awssdk.services.cloudfront.model.CacheBehavior;
 import software.amazon.awssdk.services.cloudfront.model.CacheBehaviors;
+import software.amazon.awssdk.services.cloudfront.model.CreateDistributionResponse;
 import software.amazon.awssdk.services.cloudfront.model.CustomErrorResponse;
 import software.amazon.awssdk.services.cloudfront.model.CustomErrorResponses;
 import software.amazon.awssdk.services.cloudfront.model.DistributionConfig;
@@ -283,7 +286,14 @@ public class CloudFrontResource extends AwsResource {
 
     @Override
     public void create() {
+        CloudFrontClient client = createClient(CloudFrontClient.class, "us-east-1", "https://cloudfront.amazonaws.com");
 
+        CreateDistributionResponse response = client.createDistribution(c -> c.distributionConfig(distributionConfig()));
+        setId(response.distribution().id());
+        setArn(response.distribution().arn());
+        setDomainName(response.distribution().domainName());
+
+        //applyTags(client);
     }
 
     @Override
@@ -343,8 +353,6 @@ public class CloudFrontResource extends AwsResource {
         CloudFrontLogging logging = getLogging();
         if (logging == null) {
             logging = new CloudFrontLogging();
-            logging.setEnabled(false);
-            logging.setIncludeCookies(false);
         }
 
         CloudFrontCacheBehavior defaultCacheBehavior = getDefaultCacheBehavior();

@@ -10,6 +10,13 @@ public class CloudFrontLogging extends Diffable {
     private String bucketPrefix;
     private Boolean includeCookies;
 
+    public CloudFrontLogging() {
+        setEnabled(false);
+        setIncludeCookies(false);
+        setBucket("");
+        setBucketPrefix("");
+    }
+
     public Boolean getEnabled() {
         return enabled;
     }
