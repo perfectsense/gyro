@@ -1,0 +1,38 @@
+plugin
+    artifact: 'beam:beam-test-provider:0.5'
+    repositories: [
+        'http://repo1.maven.org/maven2/',
+        'https://repo.gradle.org/gradle/libs-releases/',
+        'https://artifactory.psdops.com/public'
+    ]
+end
+
+test::credentials default
+    profile-name: "psd-beam-sandbox"
+    region: "us-east-2"
+end
+
+test::listener listener-example
+    port: 80
+    protocol: "TCP"
+
+    action
+        order: 1
+        type: "foo"
+
+        cognito
+            user-pool-arn: "foo"
+            user-pool-client-id: "foo-cognito"
+        end
+    end
+
+    action
+        order: 2
+        type: "bar"
+
+        cognito
+            user-pool-arn: "bar"
+            user-pool-client-id: "bar-cognito"
+        end
+    end
+end

@@ -1,12 +1,10 @@
 lexer grammar BeamLexer;
 
 IMPORT : 'import' -> pushMode(IN_IMPORT);
-PLUGIN : 'plugin';
 DEFINE : 'define';
 VR    : 'virtual-resource';
 PARAM : 'param';
 AS    : 'as';
-STATE : 'state';
 FOR   : 'for';
 IN    : 'in';
 END   : 'end';

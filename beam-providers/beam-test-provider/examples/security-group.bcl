@@ -1,4 +1,4 @@
-import ../init as _
+import init as _
 
 test::network network-security-group-example
     cidr-block: "10.0.0.0/16"
@@ -13,7 +13,7 @@ test::security-group security-group-example
     for port, type in [80, 'http', 443, 'https']
         ingress
             description: "allow inbound $(type) traffic"
-            cidr-blocks: ["0.0.0.0/0"]
+            cidr-blocks: ["0.0.0.0/0", "10.0.0.0/24"]
             protocol: "TCP"
             from-port: $(port)
             to-port: $(port)
@@ -27,4 +27,9 @@ test::security-group security-group-example
         from-port: 80
         to-port: 80
     end
+
+    tags: {
+        Foo: "1",
+        Bar: "2"
+    }
 end

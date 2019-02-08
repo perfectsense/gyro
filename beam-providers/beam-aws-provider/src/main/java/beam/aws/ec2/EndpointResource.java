@@ -357,7 +357,7 @@ public class EndpointResource extends AwsResource {
 
     private void setPolicyFromPath() {
         try {
-            String dir = fileNode().path().substring(0, fileNode().path().lastIndexOf(File.separator));
+            String dir = scope().getFileScope().getFile().substring(0, scope().getFileScope().getFile().lastIndexOf(File.separator));
             setPolicy(new String(Files.readAllBytes(Paths.get(dir + File.separator + getPolicyDocPath())), StandardCharsets.UTF_8));
         } catch (IOException ioex) {
             throw new BeamException(MessageFormat

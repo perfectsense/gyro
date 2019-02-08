@@ -110,7 +110,7 @@ public class HealthCheckResource extends AwsResource {
     }
 
     public String getLoadBalancer() {
-        LoadBalancerResource parent = (LoadBalancerResource) parentResource();
+        LoadBalancerResource parent = (LoadBalancerResource) parent();
         if (parent != null) {
             return parent.getLoadBalancerName();
         }

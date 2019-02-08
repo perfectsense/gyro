@@ -1,7 +1,8 @@
 package beam.aws.elb;
 
 import beam.aws.AwsResource;
-import beam.core.diff.ChangeType;
+import beam.core.diff.Create;
+import beam.core.diff.Delete;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 
@@ -98,7 +99,7 @@ public class ListenerResource extends AwsResource {
     }
 
     public String getLoadBalancer() {
-        LoadBalancerResource parent = (LoadBalancerResource) parentResource();
+        LoadBalancerResource parent = (LoadBalancerResource) parent();
 
         if (parent != null) {
             return parent.getLoadBalancerName();
@@ -131,7 +132,7 @@ public class ListenerResource extends AwsResource {
 
     @Override
     public void create() {
-        if (parentResource().change().getType() == ChangeType.CREATE) {
+        if (parent().change() instanceof Create) {
             return;
         }
 
@@ -149,7 +150,7 @@ public class ListenerResource extends AwsResource {
 
     @Override
     public void delete() {
-        if (parentResource().change().getType() == ChangeType.DELETE) {
+        if (parent().change() instanceof Delete) {
             return;
         }
         ElasticLoadBalancingClient client = createClient(ElasticLoadBalancingClient.class);

@@ -6,7 +6,7 @@ aws::vpc vpc-auto-scaling-group-example
 
     tags: {
         Name: "vpc-auto-scaling-group-example"
-         }
+    }
 end
 
 aws::internet-gateway internet-gateway-auto-scaling-group-example
@@ -168,7 +168,7 @@ aws::auto-scaling-group auto-scaling-group-example
     auto-scaling-notification
         topic-arn: "arn:aws:sns:us-west-2:242040583208:beam-instance-state"
         notification-types: [
-            "autoscaling:EC2_INSTANCE_LAUNCH_ERROR11"
+            "autoscaling:EC2_INSTANCE_LAUNCH_ERROR11",
             "autoscaling:EC2_INSTANCE_LAUNCH_ERROR"
         ]
     end

@@ -1,8 +1,8 @@
 package beam.plugins.enterprise;
 
-import beam.core.BeamCore;
-import beam.lang.BeamFile;
+import beam.core.LocalFileBackend;
 import beam.lang.Resource;
+import beam.lang.ast.scope.RootScope;
 import com.psddev.dari.util.CollectionUtils;
 import com.psddev.dari.util.CompactMap;
 import com.psddev.dari.util.Lazy;
@@ -10,6 +10,7 @@ import com.psddev.dari.util.ObjectUtils;
 
 import java.io.File;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.Map;
 
 public class EnterpriseConfig {
@@ -22,13 +23,13 @@ public class EnterpriseConfig {
             File enterpriseConfigFile = Paths.get(EnterpriseConfig.getUserHome(), ".beam", "enterprise.bcl").toFile();
 
             if (enterpriseConfigFile.exists()) {
-                BeamCore core = new BeamCore();
-                core.addResourceType("enterprise::project", EnterpriseProject.class);
+                RootScope config = new RootScope(enterpriseConfigFile.toString());
+                config.getRootScope().getResourceClasses().put("enterprise::project", EnterpriseProject.class);
 
-                BeamFile config = core.parse(enterpriseConfigFile.toString());
+                new LocalFileBackend().load(config);
 
-                Map<String, Object> keyValues = config.resolvedKeyValues();
-                for (Resource resource : config.resources()) {
+                Map<String, Object> keyValues = new HashMap<>(config);
+                for (Resource resource : config.findAllResources()) {
                     keyValues.put(resource.resourceIdentifier(), resource);
                 }
 
@@ -42,7 +43,7 @@ public class EnterpriseConfig {
     @SuppressWarnings("unchecked")
     public static <T> T get(Class<T> returnClass, String project, String keyPath, T defaultValue) {
         EnterpriseProject projectConfig = (EnterpriseProject) CONFIG.get().get(project);
-        T value = projectConfig != null ? (T) projectConfig.resolvedKeyValues().get(keyPath) : null;
+        T value = projectConfig != null ? (T) projectConfig.get(keyPath) : null;
 
         if (value == null) {
             value = get(returnClass, keyPath, defaultValue);
