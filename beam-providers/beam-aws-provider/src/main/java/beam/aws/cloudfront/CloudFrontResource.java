@@ -364,6 +364,7 @@ public class CloudFrontResource extends AwsResource {
             .customErrorResponses(customErrorResponses)
             .defaultCacheBehavior(defaultCacheBehavior.toDefaultCacheBehavior())
             .cacheBehaviors(cacheBehaviors)
+            .origins(origins)
             .logging(logging.toLoggingConfig())
             .viewerCertificate(viewerCertificate.toViewerCertificate())
             .callerReference(getCallerReference() != null ? getCallerReference() : Long.toString(new Date().getTime()));
