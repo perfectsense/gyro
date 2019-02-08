@@ -33,6 +33,25 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Creates a heath Check resource.
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: beam
+ *
+ *     aws::health-check health-check-example-calculated
+ *         type: "CALCULATED"
+ *         inverted: false
+ *         disabled: false
+ *         health-threshold: 0
+ *         tags: {
+ *             Name: "health-check-example-calculated"
+ *         }
+ *     end
+ *
+ */
 @ResourceName("health-check")
 public class HealthCheckResource extends AwsResource {
 
@@ -70,6 +89,9 @@ public class HealthCheckResource extends AwsResource {
         this.healthCheckId = healthCheckId;
     }
 
+    /**
+     * A list of children health check ids.
+     */
     @ResourceDiffProperty(updatable = true, nullable = true)
     public List<String> getChildHealthChecks() {
         if (childHealthChecks == null) {
@@ -83,6 +105,9 @@ public class HealthCheckResource extends AwsResource {
         this.childHealthChecks = childHealthChecks;
     }
 
+    /**
+     * Disable the health check.
+     */
     @ResourceDiffProperty(updatable = true)
     public Boolean getDisabled() {
         return disabled;
@@ -92,6 +117,9 @@ public class HealthCheckResource extends AwsResource {
         this.disabled = disabled;
     }
 
+    /**
+     * Enable SNI on the health check.
+     */
     @ResourceDiffProperty(updatable = true)
     public Boolean getEnableSni() {
         return enableSni;
@@ -101,6 +129,9 @@ public class HealthCheckResource extends AwsResource {
         this.enableSni = enableSni;
     }
 
+    /**
+     * Set the failure threshold upon which the health check changes its status.
+     */
     @ResourceDiffProperty(updatable = true)
     public Integer getFailureThreshold() {
         return failureThreshold;
@@ -110,6 +141,9 @@ public class HealthCheckResource extends AwsResource {
         this.failureThreshold = failureThreshold;
     }
 
+    /**
+     * The domain name to monitor for the health check.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getDomainName() {
         return domainName;
@@ -119,6 +153,9 @@ public class HealthCheckResource extends AwsResource {
         this.domainName = domainName;
     }
 
+    /**
+     *
+     */
     @ResourceDiffProperty(updatable = true)
     public Integer getHealthThreshold() {
         return healthThreshold;
@@ -128,6 +165,9 @@ public class HealthCheckResource extends AwsResource {
         this.healthThreshold = healthThreshold;
     }
 
+    /**
+     * What status to give if there is insufficient data for the health check to analyze.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getInsufficientDataHealthStatus() {
         return insufficientDataHealthStatus;
@@ -137,6 +177,9 @@ public class HealthCheckResource extends AwsResource {
         this.insufficientDataHealthStatus = insufficientDataHealthStatus;
     }
 
+    /**
+     * Invert the health check.
+     */
     @ResourceDiffProperty(updatable = true)
     public Boolean getInverted() {
         return inverted;
@@ -146,6 +189,9 @@ public class HealthCheckResource extends AwsResource {
         this.inverted = inverted;
     }
 
+    /**
+     * The ip to monitor for the health check.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getIpAddress() {
         return ipAddress;
@@ -155,6 +201,9 @@ public class HealthCheckResource extends AwsResource {
         this.ipAddress = ipAddress;
     }
 
+    /**
+     * Enable latency measurement.
+     */
     public Boolean getMeasureLatency() {
         return measureLatency;
     }
@@ -163,6 +212,9 @@ public class HealthCheckResource extends AwsResource {
         this.measureLatency = measureLatency;
     }
 
+    /**
+     * The port for the domain name and/or ip address to monitor for the health check.
+     */
     @ResourceDiffProperty(updatable = true)
     public Integer getPort() {
         return port;
@@ -172,6 +224,10 @@ public class HealthCheckResource extends AwsResource {
         this.port = port;
     }
 
+    /**
+     * Set the regions where the health check would be active.
+     * For types that support it, having an empty region would default to all regions being selected.
+     */
     @ResourceDiffProperty(updatable = true)
     public List<String> getRegions() {
         if (regions == null) {
@@ -190,6 +246,9 @@ public class HealthCheckResource extends AwsResource {
         this.regions = regions;
     }
 
+    /**
+     * The request interval upon which the health check would work.
+     */
     public Integer getRequestInterval() {
         return requestInterval;
     }
@@ -198,6 +257,9 @@ public class HealthCheckResource extends AwsResource {
         this.requestInterval = requestInterval;
     }
 
+    /**
+     * The resource path attached at the end of domain name and/or ip address to monitor for the health check.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getResourcePath() {
         if (!ObjectUtils.isBlank(resourcePath)) {
@@ -210,6 +272,9 @@ public class HealthCheckResource extends AwsResource {
         this.resourcePath = resourcePath;
     }
 
+    /**
+     * The search string if types 'HTTP_STR_MATCH' or 'HTTPS_STR_MATCH' is selected.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getSearchString() {
         return searchString;
@@ -219,6 +284,9 @@ public class HealthCheckResource extends AwsResource {
         this.searchString = searchString;
     }
 
+    /**
+     * The type of health check being created.
+     */
     public String getType() {
         return type != null ? type.toUpperCase() : null;
     }
@@ -227,6 +295,9 @@ public class HealthCheckResource extends AwsResource {
         this.type = type;
     }
 
+    /**
+     * The alarm name to attach with the health check if type 'CLOUDWATCH_METRIC' selected.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getAlarmName() {
         return alarmName;
@@ -236,6 +307,9 @@ public class HealthCheckResource extends AwsResource {
         this.alarmName = alarmName;
     }
 
+    /**
+     * The alarm region to attach with the health check if type 'CLOUDWATCH_METRIC' selected.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getAlarmRegion() {
         return alarmRegion;

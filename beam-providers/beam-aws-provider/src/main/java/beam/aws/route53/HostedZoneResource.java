@@ -18,6 +18,25 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+/**
+ * Creates a Hosted Zone.
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: beam
+ *
+ *     aws::hosted-zone hosted-zone-example
+ *         hosted-zone-name: "hosted-zone-example.com"
+ *         private-zone: true
+ *         vpc
+ *             vpc-id: $(aws::vpc vpc-hosted-zone-example | vpc-id)
+ *             vpc-region: $(aws::credentials default | region)
+ *         end
+ *         comment: "hosted-zone-example.co comment modified"
+ *     end
+ *
+ */
 @ResourceName("hosted-zone")
 public class HostedZoneResource extends AwsResource {
 
@@ -31,6 +50,9 @@ public class HostedZoneResource extends AwsResource {
     private String servicePrincipal;
     private List<Route53VpcResource> vpc;
 
+    /**
+     * The id of a delegation set.
+     */
     public String getDelegationSetId() {
         return delegationSetId;
     }
@@ -39,6 +61,9 @@ public class HostedZoneResource extends AwsResource {
         this.delegationSetId = delegationSetId;
     }
 
+    /**
+     * Comment for the hosted Zone.
+     */
     @ResourceDiffProperty(updatable = true, nullable = true)
     public String getComment() {
         return comment;
@@ -48,6 +73,9 @@ public class HostedZoneResource extends AwsResource {
         this.comment = comment;
     }
 
+    /**
+     * Is the the hosted zone private.
+     */
     public Boolean getPrivateZone() {
         return privateZone;
     }
@@ -64,6 +92,9 @@ public class HostedZoneResource extends AwsResource {
         this.hostedZoneId = hostedZoneId;
     }
 
+    /**
+     * The name of the hosted zone.
+     */
     public String getHostedZoneName() {
         return hostedZoneName;
     }
@@ -210,10 +241,8 @@ public class HostedZoneResource extends AwsResource {
         }
     }
 
-    void saveVpc(Route53Client client, String vpcId, String vpcRegion, boolean isAttach) {
-        if (client == null) {
-            client = createClient(Route53Client.class, Region.AWS_GLOBAL);
-        }
+    void saveVpc(String vpcId, String vpcRegion, boolean isAttach) {
+        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
 
         if (isAttach) {
             client.associateVPCWithHostedZone(

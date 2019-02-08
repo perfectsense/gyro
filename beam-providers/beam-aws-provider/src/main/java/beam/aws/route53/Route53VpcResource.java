@@ -49,7 +49,7 @@ public class Route53VpcResource extends AwsResource {
         HostedZoneResource parent = getParent();
 
         try {
-            parent.saveVpc(null, getVpcId(), getVpcRegion(), true);
+            parent.saveVpc(getVpcId(), getVpcRegion(), true);
         } catch (Route53Exception ex) {
             if (!ex.awsErrorDetails().errorCode().equalsIgnoreCase("ConflictingDomainExists")) {
                 throw ex;
@@ -67,7 +67,7 @@ public class Route53VpcResource extends AwsResource {
         HostedZoneResource parent = getParent();
 
         try {
-            parent.saveVpc(null, getVpcId(), getVpcRegion(), false);
+            parent.saveVpc(getVpcId(), getVpcRegion(), false);
         } catch (Route53Exception ex) {
             if (!ex.awsErrorDetails().errorCode().equalsIgnoreCase("LastVpcAssociation")) {
                 throw ex;
