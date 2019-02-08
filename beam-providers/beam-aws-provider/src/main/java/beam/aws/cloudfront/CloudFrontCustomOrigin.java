@@ -1,6 +1,7 @@
 package beam.aws.cloudfront;
 
 import beam.core.diff.Diffable;
+import software.amazon.awssdk.services.cloudfront.model.CustomOriginConfig;
 
 import java.util.Arrays;
 import java.util.List;
@@ -69,6 +70,17 @@ public class CloudFrontCustomOrigin extends Diffable {
 
     public void setOriginSslProtocols(List<String> originSslProtocols) {
         this.originSslProtocols = originSslProtocols;
+    }
+
+    public CustomOriginConfig toCustomOriginConfig() {
+        return CustomOriginConfig.builder()
+            .httpPort(getHttpPort())
+            .httpsPort(getHttpsPort())
+            .originKeepaliveTimeout(getOriginKeepAliveTimeout())
+            .originProtocolPolicy(getOriginProtocolPolicy())
+            .originReadTimeout(getOriginReadTimeout())
+            .originSslProtocols(o -> o.itemsWithStrings(getOriginSslProtocols()).quantity(getOriginSslProtocols().size()))
+            .build();
     }
 
     @Override

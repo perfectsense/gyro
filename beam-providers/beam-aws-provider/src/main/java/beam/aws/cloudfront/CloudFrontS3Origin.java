@@ -1,6 +1,7 @@
 package beam.aws.cloudfront;
 
 import beam.core.diff.Diffable;
+import software.amazon.awssdk.services.cloudfront.model.S3OriginConfig;
 
 public class CloudFrontS3Origin extends Diffable {
 
@@ -12,6 +13,12 @@ public class CloudFrontS3Origin extends Diffable {
 
     public void setOriginAccessIdentity(String originAccessIdentity) {
         this.originAccessIdentity = originAccessIdentity;
+    }
+
+    public S3OriginConfig toS3OriginConfig() {
+        return S3OriginConfig.builder()
+            .originAccessIdentity(getOriginAccessIdentity())
+            .build();
     }
 
     @Override
