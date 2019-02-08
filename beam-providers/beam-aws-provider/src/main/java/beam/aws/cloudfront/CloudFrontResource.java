@@ -9,6 +9,8 @@ import software.amazon.awssdk.services.cloudfront.model.CacheBehaviors;
 import software.amazon.awssdk.services.cloudfront.model.CustomErrorResponse;
 import software.amazon.awssdk.services.cloudfront.model.CustomErrorResponses;
 import software.amazon.awssdk.services.cloudfront.model.DistributionConfig;
+import software.amazon.awssdk.services.cloudfront.model.Origin;
+import software.amazon.awssdk.services.cloudfront.model.Origins;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -320,6 +322,16 @@ public class CloudFrontResource extends AwsResource {
         CacheBehaviors cacheBehaviors = CacheBehaviors.builder()
             .items(behaviors)
             .quantity(behaviors.size())
+            .build();
+
+        List<Origin> origin = getOrigin()
+            .stream()
+            .map(o -> o.toOrigin())
+            .collect(Collectors.toList());
+
+        Origins origins = Origins.builder()
+            .items(origin)
+            .quantity(origin.size())
             .build();
 
         CloudFrontViewCertificate viewerCertificate = getViewerCertificate();
