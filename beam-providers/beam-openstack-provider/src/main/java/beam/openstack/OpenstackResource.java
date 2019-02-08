@@ -60,7 +60,7 @@ public abstract class OpenstackResource extends Resource {
     }
 
     private ContextBuilder createContextBuilder(String providerOrApi) {
-        OpenstackCredentials credentials = (OpenstackCredentials) getResourceCredentials();
+        OpenstackCredentials credentials = (OpenstackCredentials) resourceCredentials();
         setRegion(credentials.getRegion());
         ContextBuilder contextBuilder = ContextBuilder.newBuilder(providerOrApi)
             .modules(ImmutableSet.<Module>of(new SLF4JLoggingModule()));
@@ -77,7 +77,7 @@ public abstract class OpenstackResource extends Resource {
 
     public String getRegion() {
         if (region == null) {
-            OpenstackCredentials credentials = (OpenstackCredentials) getResourceCredentials();
+            OpenstackCredentials credentials = (OpenstackCredentials) resourceCredentials();
             setRegion(credentials != null ? credentials.getRegion() : null);
         }
 
