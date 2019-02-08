@@ -27,6 +27,11 @@ public abstract class Diffable {
         return parent;
     }
 
+    public Diffable parent(Diffable parent) {
+        this.parent = parent;
+        return this;
+    }
+
     public Resource parentResource() {
         for (Diffable d = parent(); d != null; d = d.parent()) {
             if (d instanceof Resource) {
@@ -35,11 +40,6 @@ public abstract class Diffable {
         }
 
         return null;
-    }
-
-    public Diffable parent(Diffable parent) {
-        this.parent = parent;
-        return this;
     }
 
     public Change change() {

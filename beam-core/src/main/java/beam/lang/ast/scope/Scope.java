@@ -85,7 +85,7 @@ public class Scope implements Map<String, Object> {
             return null;
         }
 
-        for (int i = 1, l = keys.length; i < l; i ++) {
+        for (int i = 1, l = keys.length; i < l; i++) {
             String key = keys[i];
 
             if (value instanceof List) {
