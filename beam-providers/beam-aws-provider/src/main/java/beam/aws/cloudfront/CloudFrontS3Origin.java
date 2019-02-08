@@ -8,6 +8,10 @@ public class CloudFrontS3Origin extends Diffable {
     private String originAccessIdentity;
 
     public String getOriginAccessIdentity() {
+        if (originAccessIdentity == null) {
+            return "";
+        }
+
         return originAccessIdentity;
     }
 

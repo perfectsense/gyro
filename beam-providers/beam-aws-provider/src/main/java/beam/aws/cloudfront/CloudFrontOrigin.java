@@ -4,6 +4,7 @@ import beam.core.diff.Diffable;
 import software.amazon.awssdk.services.cloudfront.model.CustomHeaders;
 import software.amazon.awssdk.services.cloudfront.model.Origin;
 import software.amazon.awssdk.services.cloudfront.model.OriginCustomHeader;
+import software.amazon.awssdk.services.cloudfront.model.S3OriginConfig;
 
 import java.util.HashMap;
 import java.util.List;
@@ -17,7 +18,7 @@ public class CloudFrontOrigin extends Diffable {
     private String domainName;
     private String originPath;
     private Map<String, String> customHeaders;
-    private CloudFrontS3Origin s3origin;
+    private CloudFrontS3Origin s3Origin;
     private CloudFrontCustomOrigin customOrigin;
 
     public String getId() {
@@ -56,12 +57,12 @@ public class CloudFrontOrigin extends Diffable {
         this.customHeaders = customHeaders;
     }
 
-    public CloudFrontS3Origin getS3origin() {
-        return s3origin;
+    public CloudFrontS3Origin getS3Origin() {
+        return s3Origin;
     }
 
-    public void setS3origin(CloudFrontS3Origin s3origin) {
-        this.s3origin = s3origin;
+    public void setS3Origin(CloudFrontS3Origin s3Origin) {
+        this.s3Origin = s3Origin;
     }
 
     public CloudFrontCustomOrigin getCustomOrigin() {
@@ -83,12 +84,16 @@ public class CloudFrontOrigin extends Diffable {
             .quantity(headers.size())
             .build();
 
+        if (getCustomOrigin() == null && getS3Origin() == null) {
+            setS3Origin(new CloudFrontS3Origin());
+        }
+
         return Origin.builder()
             .id(getId())
             .domainName(getDomainName())
             .originPath(getOriginPath())
             .customHeaders(customHeaders)
-            .s3OriginConfig(getS3origin() != null ? getS3origin().toS3OriginConfig() : null)
+            .s3OriginConfig(getS3Origin() != null ? getS3Origin().toS3OriginConfig() : null)
             .customOriginConfig(getCustomOrigin() != null ? getCustomOrigin().toCustomOriginConfig() : null)
             .build();
     }
