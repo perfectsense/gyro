@@ -6,6 +6,7 @@ import software.amazon.awssdk.services.cloudfront.model.DefaultCacheBehavior;
 import software.amazon.awssdk.services.cloudfront.model.ForwardedValues;
 import software.amazon.awssdk.services.cloudfront.model.TrustedSigners;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class CloudFrontCacheBehavior extends Diffable {
@@ -61,6 +62,10 @@ public class CloudFrontCacheBehavior extends Diffable {
     }
 
     public List<String> getAllowedMethods() {
+        if (allowedMethods == null) {
+            allowedMethods = new ArrayList<>();
+        }
+
         return allowedMethods;
     }
 
@@ -77,6 +82,10 @@ public class CloudFrontCacheBehavior extends Diffable {
     }
 
     public List<String> getHeaders() {
+        if (headers == null) {
+            headers = new ArrayList<>();
+        }
+
         return headers;
     }
 
@@ -93,6 +102,10 @@ public class CloudFrontCacheBehavior extends Diffable {
     }
 
     public List<String> getCookies() {
+        if (cookies == null) {
+            cookies = new ArrayList<>();
+        }
+
         return cookies;
     }
 
@@ -141,6 +154,10 @@ public class CloudFrontCacheBehavior extends Diffable {
     }
 
     public List<String> getQueryStringCacheKeys() {
+        if (queryStringCacheKeys == null) {
+            queryStringCacheKeys = new ArrayList<>();
+        }
+
         return queryStringCacheKeys;
     }
 
@@ -149,6 +166,10 @@ public class CloudFrontCacheBehavior extends Diffable {
     }
 
     public List<String> getTrustedSigners() {
+        if (trustedSigners == null) {
+            trustedSigners = new ArrayList<>();
+        }
+
         return trustedSigners;
     }
 

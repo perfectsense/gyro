@@ -61,7 +61,7 @@ public class CloudFrontCustomErrorResponse extends Diffable {
         return CustomErrorResponse.builder()
             .errorCachingMinTTL(getTtl())
             .errorCode(getErrorCode())
-            .responseCode(getResponseCode().toString())
+            .responseCode(getResponseCode() != null ? getResponseCode().toString() : null)
             .responsePagePath(getResponsePagePath()).build();
     }
 
