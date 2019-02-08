@@ -2,6 +2,7 @@ package beam.aws.cloudfront;
 
 import beam.aws.AwsCredentials;
 import beam.aws.AwsResource;
+import beam.core.BeamException;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 import beam.lang.Resource;
@@ -12,6 +13,8 @@ import software.amazon.awssdk.services.cloudfront.model.CreateDistributionRespon
 import software.amazon.awssdk.services.cloudfront.model.CustomErrorResponse;
 import software.amazon.awssdk.services.cloudfront.model.CustomErrorResponses;
 import software.amazon.awssdk.services.cloudfront.model.DistributionConfig;
+import software.amazon.awssdk.services.cloudfront.model.GetDistributionRequest;
+import software.amazon.awssdk.services.cloudfront.model.GetDistributionResponse;
 import software.amazon.awssdk.services.cloudfront.model.Origin;
 import software.amazon.awssdk.services.cloudfront.model.Origins;
 
@@ -281,6 +284,9 @@ public class CloudFrontResource extends AwsResource {
 
     @Override
     public boolean refresh() {
+        CloudFrontClient client = createClient(CloudFrontClient.class, "us-east-1", "https://cloudfront.amazonaws.com");
+
+
         return false;
     }
 
@@ -298,12 +304,42 @@ public class CloudFrontResource extends AwsResource {
 
     @Override
     public void update(Resource current, Set<String> changedProperties) {
+        CloudFrontClient client = createClient(CloudFrontClient.class, "us-east-1", "https://cloudfront.amazonaws.com");
 
+        client.updateDistribution(r -> r.distributionConfig(distributionConfig())
+            .id(getId())
+            .ifMatch(getEtag()));
     }
 
     @Override
     public void delete() {
+        CloudFrontClient client = createClient(CloudFrontClient.class, "us-east-1", "https://cloudfront.amazonaws.com");
 
+        if (isEnabled()) {
+            setEnabled(false);
+
+            client.updateDistribution(r -> r.distributionConfig(distributionConfig())
+                .id(getId())
+                .ifMatch(getEtag()));
+
+            boolean deploying = true;
+            do {
+                GetDistributionResponse response = client.getDistribution(r -> r.id(getId()));
+                setEtag(response.eTag());
+
+                if (response.distribution().status().equals("Deployed")) {
+                    deploying = false;
+                } else {
+                    try {
+                        Thread.sleep(60000);
+                    } catch (InterruptedException ie) {
+                        throw new BeamException(ie.getMessage());
+                    }
+                }
+            } while (deploying);
+        }
+
+        client.deleteDistribution(r -> r.id(getId()).ifMatch(getEtag()));
     }
 
     @Override
