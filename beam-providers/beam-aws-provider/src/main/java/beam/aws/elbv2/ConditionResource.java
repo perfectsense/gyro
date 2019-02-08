@@ -111,7 +111,7 @@ public class ConditionResource extends AwsResource {
 
     @Override
     public String toDisplayString() {
-        return "listener rule condition - field:" + getField();
+        return "rule condition - field: " + getField();
     }
 
     public RuleCondition toCondition() {

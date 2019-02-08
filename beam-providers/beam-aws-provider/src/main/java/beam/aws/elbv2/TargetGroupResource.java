@@ -356,7 +356,7 @@ public class TargetGroupResource extends AwsResource {
         StringBuilder sb = new StringBuilder();
 
         if (getTargetGroupName() != null) {
-            sb.append("target group " + getTargetGroupName());
+            sb.append("target group - " + getTargetGroupName());
 
         } else {
             sb.append("target group ");

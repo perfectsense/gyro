@@ -122,7 +122,8 @@ public class TargetResource extends AwsResource {
         if (getId() != null) {
             sb.append("target " + getId());
         } else {
-            sb.append("target ");
+            sb.append("target - port: ");
+            sb.append(getPort());
         }
 
         return sb.toString();

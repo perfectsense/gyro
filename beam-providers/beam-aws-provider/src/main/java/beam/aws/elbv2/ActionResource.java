@@ -217,9 +217,9 @@ public class ActionResource extends NetworkActionResource {
         StringBuilder sb = new StringBuilder();
 
         if (parentResource() instanceof ListenerResource) {
-            sb.append("listener default action");
+            sb.append("default action");
         } else {
-            sb.append("listener rule action - type:" + getType());
+            sb.append("rule action - type: " + getType());
         }
 
         return sb.toString();

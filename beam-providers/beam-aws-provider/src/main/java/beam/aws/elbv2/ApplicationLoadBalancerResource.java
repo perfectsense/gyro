@@ -122,7 +122,7 @@ public class ApplicationLoadBalancerResource extends LoadBalancerResource {
     @Override
     public String toDisplayString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("application load balancer " + getLoadBalancerName());
+        sb.append("application load balancer - " + getLoadBalancerName());
         return sb.toString();
     }
 }
