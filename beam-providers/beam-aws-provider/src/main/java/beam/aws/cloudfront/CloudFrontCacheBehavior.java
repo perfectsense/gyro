@@ -29,6 +29,12 @@ public class CloudFrontCacheBehavior extends Diffable {
     private List<String> trustedSigners;
     private String fieldLevelEncryptionId;
 
+    public CloudFrontCacheBehavior() {
+        setDefaultTtl(86400L);
+        setMaxTtl(31536000L);
+        setMinTtl(0L);
+    }
+
     public String getTargetOriginId() {
         return targetOriginId;
     }
@@ -94,7 +100,11 @@ public class CloudFrontCacheBehavior extends Diffable {
     }
 
     public String getForwardCookies() {
-        return forwardCookies;
+        if (forwardCookies != null) {
+            return forwardCookies.toLowerCase();
+        }
+
+        return "none";
     }
 
     public void setForwardCookies(String forwardCookies) {
@@ -200,7 +210,7 @@ public class CloudFrontCacheBehavior extends Diffable {
             .build();
 
         return DefaultCacheBehavior.builder()
-            .allowedMethods(am -> am.itemsWithStrings(getAllowedMethods()))
+            .allowedMethods(am -> am.itemsWithStrings(getAllowedMethods()).quantity(getAllowedMethods().size()))
             .defaultTTL(getDefaultTtl())
             .maxTTL(getMaxTtl())
             .minTTL(getMinTtl())
@@ -229,7 +239,7 @@ public class CloudFrontCacheBehavior extends Diffable {
             .build();
 
         return CacheBehavior.builder()
-            .allowedMethods(am -> am.itemsWithStrings(getAllowedMethods()))
+            .allowedMethods(am -> am.itemsWithStrings(getAllowedMethods()).quantity(getAllowedMethods().size()))
             .defaultTTL(getDefaultTtl())
             .maxTTL(getMaxTtl())
             .minTTL(getMinTtl())
