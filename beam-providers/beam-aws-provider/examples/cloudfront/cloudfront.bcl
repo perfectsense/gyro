@@ -10,13 +10,6 @@ aws::cloudfront cloudfront-example
         "cdn.$(project).psdops.com"
     ]
 
-    logging
-        enabled: true
-        bucket: "$(project)-aws-logs"
-        bucket-prefix: "/cloudfront/$(project)-cdn"
-        include-cookies: false
-    end
-
     origin
         id: "S3-$(project)-brightspot"
         domain-name: "$(project)-brightspot.s3.us-east-1.amazonaws.com"
@@ -24,7 +17,7 @@ aws::cloudfront cloudfront-example
 
     origin
         id: "elb-$(project)-web"
-        domain-name: "$(project)-web-5819838443.us-east-2.elb.amazonaws.com"
+        domain-name: "www.google.com"
 
         custom-origin
             http-port: 80
@@ -41,7 +34,7 @@ aws::cloudfront cloudfront-example
 
     behavior
         path-pattern: "/dims?/*"
-        target-origin-id: "ELB-web-1-us-east-2"
+        target-origin-id: "elb-$(project)-web"
         viewer-protocol-policy: "allow-all"
         allowed-methods: ["GET", "HEAD"]
         query-string: true
