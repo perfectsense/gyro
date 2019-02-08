@@ -24,7 +24,7 @@ public abstract class AwsResource extends Resource {
         }
 
         try {
-            AwsCredentials credentials = (AwsCredentials) getResourceCredentials();
+            AwsCredentials credentials = (AwsCredentials) resourceCredentials();
             if (credentials == null) {
                 throw new BeamException("No credentials associated with the resource.");
             }

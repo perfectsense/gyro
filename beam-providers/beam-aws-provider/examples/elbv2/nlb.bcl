@@ -1,0 +1,141 @@
+import ../init.bcl as _
+
+aws::nlb nlb-example
+    load-balancer-name: "nlb-example"
+    ip-address-type: "ipv4"
+    scheme: "internet-facing"
+
+    subnet-mapping
+        subnet-id: $(aws::subnet subnet-us-east-2a | subnet-id)
+    end
+
+    subnet-mapping
+        subnet-id: $(aws::subnet subnet-us-east-2b | subnet-id)
+    end
+
+    tags: {
+            Name: "nlb-example"
+        }
+end
+
+aws::nlb-listener listener-example
+    port: "80"
+    protocol: "TCP"
+    load-balancer-arn: $(aws::nlb nlb-example | load-balancer-arn)
+
+    default-action
+        target-group-arn: $(aws::target-group target-group-example | target-group-arn)
+        type: "forward"
+    end
+end
+
+aws::target-group target-group-example
+    target-group-name: "test-target-group"
+    health-check-enabled: "true"
+    port: "80"
+    protocol: "TCP"
+    target-type: "instance"
+    vpc-id: $(aws::vpc vpc | vpc-id)
+
+    target
+        id: $(aws::instance instance-us-east-2a | instance-id)
+        port: "80"
+    end
+
+    target
+        id: $(aws::instance instance-us-east-2b | instance-id)
+        port: "443"
+    end
+
+    tags: {
+        Name: "nlb-example-target-group"
+    }
+end
+
+aws::vpc vpc
+    cidr-block: "10.0.0.0/16"
+    provide-ipv6-cidr-block: true
+
+    tags: {
+        Name: "nlb-example"
+    }
+end
+
+aws::subnet subnet-us-east-2a
+    vpc-id: $(aws::vpc vpc | vpc-id)
+    availability-zone: 'us-east-2a'
+    cidr-block: '10.0.0.0/24'
+
+    tags: {
+        Name: "nlb example us-east-2a"
+    }
+end
+
+aws::instance instance-us-east-2a
+    ami-name: "amzn-ami-hvm-2018.03.0.20181129-x86_64-gp2"
+    shutdown-behavior: "STOP"
+    instance-type: "t2.micro"
+    key-name: "jc-pair-example"
+    subnet-id: $(aws::subnet "subnet-us-east-2a" | subnet-id)
+    security-group-ids: [
+        $(aws::security-group security-group | group-id)
+    ]
+    disable-api-termination: false
+    enable-ena-support: true
+    ebs-optimized: false
+    source-dest-check: true
+
+    tags: {
+        Name: "nlb example - us-east-2a"
+    }
+end
+
+aws::subnet subnet-us-east-2b
+    vpc-id: $(aws::vpc vpc | vpc-id)
+    availability-zone: 'us-east-2b'
+    cidr-block: '10.0.1.0/24'
+
+    tags: {
+        Name: "nlb example us-east-2b"
+    }
+end
+
+aws::instance instance-us-east-2b
+    ami-name: "amzn-ami-hvm-2018.03.0.20181129-x86_64-gp2"
+    shutdown-behavior: "STOP"
+    instance-type: "t2.micro"
+    key-name: "jc-pair-example"
+    subnet-id: $(aws::subnet "subnet-us-east-2b" | subnet-id)
+    security-group-ids: [
+        $(aws::security-group security-group | group-id)
+    ]
+    disable-api-termination: false
+    enable-ena-support: true
+    ebs-optimized: false
+    source-dest-check: true
+
+    tags: {
+        Name: "nlb example - us-east-2b"
+    }
+end
+
+aws::security-group security-group
+    group-name: "nlb example - allow web traffic"
+    vpc-id: $(aws::vpc vpc | vpc-id)
+    description: "Allow web traffic only"
+    keep-default-egress-rules: true
+
+    for port, type in [80, 'http', 443, 'https']
+        ingress
+            description: "allow inbound $(type) traffic, ipv4 only"
+            cidr-blocks: ["0.0.0.0/0"]
+            protocol: "TCP"
+            from-port: $(port)
+            to-port: $(port)
+        end
+    end
+end
+
+aws::internet-gateway internet-gateway
+    vpc-id: $(aws::vpc vpc | vpc-id)
+end

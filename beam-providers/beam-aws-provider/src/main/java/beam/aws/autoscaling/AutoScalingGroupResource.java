@@ -838,7 +838,6 @@ public class AutoScalingGroupResource extends AwsResource {
         for (ScalingPolicy scalingPolicy : policyResponse.scalingPolicies()) {
             AutoScalingPolicyResource autoScalingPolicyResource = new AutoScalingPolicyResource(scalingPolicy);
             autoScalingPolicyResource.parent(this);
-            autoScalingPolicyResource.setResourceCredentials(getResourceCredentials());
             getScalingPolicy().add(autoScalingPolicyResource);
         }
     }
@@ -851,7 +850,6 @@ public class AutoScalingGroupResource extends AwsResource {
         for (LifecycleHook lifecycleHook : lifecycleHooksResponse.lifecycleHooks()) {
             AutoScalingGroupLifecycleHookResource lifecycleHookResource = new AutoScalingGroupLifecycleHookResource(lifecycleHook);
             lifecycleHookResource.parent(this);
-            lifecycleHookResource.setResourceCredentials(getResourceCredentials());
             getLifecycleHook().add(lifecycleHookResource);
         }
     }
@@ -866,7 +864,6 @@ public class AutoScalingGroupResource extends AwsResource {
         for (ScheduledUpdateGroupAction scheduledUpdateGroupAction : scheduledActionsResponse.scheduledUpdateGroupActions()) {
             AutoScalingGroupScheduledActionResource scheduledActionResource = new AutoScalingGroupScheduledActionResource(scheduledUpdateGroupAction);
             scheduledActionResource.parent(this);
-            scheduledActionResource.setResourceCredentials(getResourceCredentials());
             getScheduledAction().add(scheduledActionResource);
         }
     }
@@ -881,7 +878,6 @@ public class AutoScalingGroupResource extends AwsResource {
         for (NotificationConfiguration notificationConfiguration : notificationResponse.notificationConfigurations()) {
             AutoScalingGroupNotificationResource notificationResource = new AutoScalingGroupNotificationResource(notificationConfiguration);
             notificationResource.parent(this);
-            notificationResource.setResourceCredentials(getResourceCredentials());
             getAutoScalingNotification().add(notificationResource);
         }
     }

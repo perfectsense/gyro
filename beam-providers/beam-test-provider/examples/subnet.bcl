@@ -1,20 +1,14 @@
-import ../init as _
+import init as _
 
 test::network network
     cidr-block: "10.0.0.0/16"
 end
 
 for zone, cidr in ['us-east-2a', '10.0.0.0/24', 'us-east-2b', '10.0.1.0/24']
-    test::subnet "subnet-$(zone)"
-        network-id: $(test::network network | network-id)
-        availability-zone: $(zone)
-        cidr-block: $(cidr)
-    end
-
     test::security-group "security-group-$(zone)"
         group-name: "$(project) $(environment) $(zone)"
         network-id: $(test::network network | network-id)
-        description: "Allow web traffic only"
+        description: "Allow web traffic only in CIDR - $(test::subnet "subnet-$(zone)" | cidr-block)"
 
         for port, type in [80, 'http', 443, 'https']
             ingress
@@ -25,5 +19,11 @@ for zone, cidr in ['us-east-2a', '10.0.0.0/24', 'us-east-2b', '10.0.1.0/24']
                 to-port: $(port)
             end
         end
+    end
+
+    test::subnet "subnet-$(zone)"
+        network-id: $(test::network network | network-id)
+        availability-zone: $(zone)
+        cidr-block: $(cidr)
     end
 end

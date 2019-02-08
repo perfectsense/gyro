@@ -23,11 +23,6 @@ public abstract class Credentials extends Resource {
     }
 
     @Override
-    public final void execute() {
-
-    }
-
-    @Override
     public final boolean refresh() {
         return false;
     }

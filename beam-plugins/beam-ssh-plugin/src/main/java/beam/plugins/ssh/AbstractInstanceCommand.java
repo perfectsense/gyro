@@ -3,9 +3,8 @@ package beam.plugins.ssh;
 import beam.commands.AbstractConfigCommand;
 import beam.core.BeamCore;
 import beam.core.BeamInstance;
-import beam.lang.BeamFile;
 import beam.lang.Resource;
-import beam.lang.StateBackend;
+import beam.lang.ast.scope.RootScope;
 import io.airlift.airline.Option;
 
 import java.util.ArrayList;
@@ -23,12 +22,12 @@ public abstract class AbstractInstanceCommand extends AbstractConfigCommand {
     public abstract void doExecute(List<BeamInstance> instances) throws Exception;
 
     @Override
-    protected void doExecute(BeamFile pending) throws Exception {
+    protected void doExecute(RootScope current, RootScope pending) throws Exception {
 
         BeamCore.ui().write("\n");
 
         List<BeamInstance> instances = new ArrayList<>();
-        for (Resource resource : pending.state().resources()) {
+        for (Resource resource : current.findAllResources()) {
             if (BeamInstance.class.isAssignableFrom(resource.getClass())) {
                 BeamInstance instance = (BeamInstance) resource;
 
@@ -37,8 +36,8 @@ public abstract class AbstractInstanceCommand extends AbstractConfigCommand {
                 if (refresh()) {
                     BeamCore.ui().write("@|bold,blue Refreshing|@: @|yellow %s|@ -> %s...", resource.resourceType(), resource.resourceIdentifier());
                     resource.refresh();
-                    StateBackend stateBackend = pending.stateBackend();
-                    stateBackend.save(pending.state());
+
+                    pending.getBackend().save(current);
                     BeamCore.ui().write("\n");
                 }
             }

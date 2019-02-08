@@ -16,6 +16,7 @@ dependencies {
     compile "software.amazon.awssdk:iam:${aws_sdk2_version}"
     compile "software.amazon.awssdk:sqs:${aws_sdk2_version}"
     compile "software.amazon.awssdk:elasticloadbalancing:${aws_sdk2_version}"
+    compile "software.amazon.awssdk:elasticloadbalancingv2:${aws_sdk2_version}"
     compile "software.amazon.awssdk:autoscaling:${aws_sdk2_version}"
     compile "software.amazon.awssdk:cloudwatch:${aws_sdk2_version}"
     compile "software.amazon.awssdk:route53:${aws_sdk2_version}"

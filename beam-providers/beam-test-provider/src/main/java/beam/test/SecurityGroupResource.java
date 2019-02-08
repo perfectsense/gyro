@@ -5,6 +5,7 @@ import beam.core.diff.ResourceName;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @ResourceName("security-group")
@@ -15,6 +16,7 @@ public class SecurityGroupResource extends FakeResource {
     private String description;
     private List<SecurityGroupIngressRuleResource> ingress;
     private List<SecurityGroupEgressRuleResource> egress;
+    private Map<String, Object> tags;
     private Boolean keepDefaultEgressRules;
     private String groupId;
     private String ownerId;
@@ -100,6 +102,14 @@ public class SecurityGroupResource extends FakeResource {
 
     public void setKeepDefaultEgressRules(boolean keepDefaultEgressRules) {
         this.keepDefaultEgressRules = keepDefaultEgressRules;
+    }
+
+    public Map<String, Object> getTags() {
+        return tags;
+    }
+
+    public void setTags(Map<String, Object> tags) {
+        this.tags = tags;
     }
 
     public String getGroupId() {

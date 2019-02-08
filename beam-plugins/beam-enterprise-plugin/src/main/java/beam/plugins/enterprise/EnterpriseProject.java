@@ -1,10 +1,12 @@
 package beam.plugins.enterprise;
 
 import beam.core.diff.ResourceName;
-import beam.lang.ConfigResource;
+import beam.lang.Resource;
+
+import java.util.Set;
 
 @ResourceName("project")
-public class EnterpriseProject extends ConfigResource {
+public class EnterpriseProject extends Resource {
 
     private String login;
     private String duoPush;
@@ -23,6 +25,36 @@ public class EnterpriseProject extends ConfigResource {
 
     public void setDuoPush(String duoPush) {
         this.duoPush = duoPush;
+    }
+
+    @Override
+    public boolean refresh() {
+        return false;
+    }
+
+    @Override
+    public void create() {
+
+    }
+
+    @Override
+    public void update(Resource current, Set<String> changedProperties) {
+
+    }
+
+    @Override
+    public void delete() {
+
+    }
+
+    @Override
+    public String toDisplayString() {
+        return null;
+    }
+
+    @Override
+    public Class resourceCredentialsClass() {
+        return null;
     }
 
 }

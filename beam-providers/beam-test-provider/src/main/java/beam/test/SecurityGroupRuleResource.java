@@ -14,7 +14,7 @@ public abstract class SecurityGroupRuleResource extends FakeResource {
     private Integer toPort;
 
     public String getGroupId() {
-        SecurityGroupResource parent = (SecurityGroupResource) parentResource();
+        SecurityGroupResource parent = (SecurityGroupResource) parent();
         if (parent != null) {
             return parent.getGroupId();
         }
