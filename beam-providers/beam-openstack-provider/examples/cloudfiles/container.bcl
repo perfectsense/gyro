@@ -1,0 +1,8 @@
+import ../init as _
+
+openstack::container container-example
+    container-name: "container-example"
+    enable-cdn: false
+    enable-cdn-logging: false
+    enable-access-logging: false
+end
