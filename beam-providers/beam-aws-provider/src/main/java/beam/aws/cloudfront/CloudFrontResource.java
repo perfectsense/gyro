@@ -26,6 +26,33 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Create a CloudFront distribution.
+ *
+ * aws::cloudfront cloudfront-example
+ *     name: "static asset cache"
+ *     enabled: true
+ *     ipv6-enabled: false
+ *
+ *     origin
+ *         id: "S3-my-bucket"
+ *         domain-name: "my-bucket.s3.us-east-1.amazonaws.com"
+ *     end
+ *
+ *     default-cache-behavior
+ *         target-origin-id: "S3-my-bucket-brightspot"
+ *         viewer-protocol-policy: "allow-all"
+ *         allowed-methods: ["GET", "HEAD"]
+ *         cached-methods: ["GET", "HEAD"]
+ *         headers: ["Origin"]
+ *     end
+ *
+ *     geo-restriction
+ *         type: "whitelist"
+ *         restrictions: ["US"]
+ *     end
+ * end
+ */
 @ResourceName("cloudfront")
 public class CloudFrontResource extends AwsResource {
 
@@ -61,7 +88,9 @@ public class CloudFrontResource extends AwsResource {
         setViewerCertificate(new CloudFrontViewerCertificate());
     }
 
-
+    /**
+     * The id of the CloudFront distribution. (Read-only)
+     */
     public String getId() {
         return id;
     }
@@ -70,6 +99,9 @@ public class CloudFrontResource extends AwsResource {
         this.id = id;
     }
 
+    /**
+     * The arn of the CloudFront distribution. (Read-only)
+     */
     public String getArn() {
         return arn;
     }
@@ -78,6 +110,9 @@ public class CloudFrontResource extends AwsResource {
         this.arn = arn;
     }
 
+    /**
+     * Enable or disable this distribution without deleting it.
+     */
     @ResourceDiffProperty(updatable = true)
     public boolean isEnabled() {
         return enabled;
@@ -87,6 +122,9 @@ public class CloudFrontResource extends AwsResource {
         this.enabled = enabled;
     }
 
+    /**
+     * Specify a comment for this distribution.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getComment() {
         if (comment == null) {
@@ -100,6 +138,9 @@ public class CloudFrontResource extends AwsResource {
         this.comment = comment;
     }
 
+    /**
+     * CNAMES (aliases) for which this distribution will listen for.
+     */
     @ResourceDiffProperty(updatable = true)
     public List<String> getCnames() {
         if (cnames == null) {
@@ -115,6 +156,9 @@ public class CloudFrontResource extends AwsResource {
         this.cnames = cnames;
     }
 
+    /**
+     * The maximum http version that users can request on this distribution. Valid values are "HTTP1_1" or "HTTP2".
+     */
     @ResourceDiffProperty(updatable = true)
     public String getHttpVersion() {
         return httpVersion;
@@ -124,6 +168,9 @@ public class CloudFrontResource extends AwsResource {
         this.httpVersion = httpVersion;
     }
 
+    /**
+     * The maximum price you want to pay for CloudFront. Valid values are "PriceClass_All", "PriceClass_200", and "PriceClass_100". For information on pricing see `Price classes <https://aws.amazon.com/cloudfront/pricing/#On-demand_Pricing />_`.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getPriceClass() {
         if (priceClass == null) {
@@ -137,6 +184,9 @@ public class CloudFrontResource extends AwsResource {
         this.priceClass = priceClass;
     }
 
+    /**
+     * The object to request from the origin when a user requests the root URL (i.e. http://www.example.com/).
+     */
     @ResourceDiffProperty(updatable = true)
     public String getDefaultRootObject() {
         if (defaultRootObject == null) {
@@ -150,6 +200,9 @@ public class CloudFrontResource extends AwsResource {
         this.defaultRootObject = defaultRootObject;
     }
 
+    /**
+     * The origins for this distribution.
+     */
     public List<CloudFrontOrigin> getOrigin() {
         if (origin == null) {
             origin = new ArrayList<>();
@@ -162,6 +215,9 @@ public class CloudFrontResource extends AwsResource {
         this.origin = origin;
     }
 
+    /**
+     * The cache behaviors for this distribution.
+     */
     public List<CloudFrontCacheBehavior> getBehavior() {
         if (behavior == null) {
             behavior = new ArrayList<>();
@@ -185,6 +241,9 @@ public class CloudFrontResource extends AwsResource {
         defaultCacheBehavior.setPathPattern("*");
     }
 
+    /**
+     * Configuration for logging access logs to S3.
+     */
     @ResourceDiffProperty(updatable = true)
     public CloudFrontLogging getLogging() {
         return logging;
@@ -223,6 +282,9 @@ public class CloudFrontResource extends AwsResource {
         this.callerReference = callerReference;
     }
 
+    /**
+     * Enable IPv6 support for this distribution.
+     */
     @ResourceDiffProperty(updatable = true)
     public boolean isIpv6Enabled() {
         return isIpv6Enabled;
@@ -232,6 +294,9 @@ public class CloudFrontResource extends AwsResource {
         isIpv6Enabled = ipv6Enabled;
     }
 
+    /**
+     * SSL certification configuration.
+     */
     @ResourceDiffProperty(updatable = true)
     public CloudFrontViewerCertificate getViewerCertificate() {
         return viewerCertificate;
@@ -241,6 +306,9 @@ public class CloudFrontResource extends AwsResource {
         this.viewerCertificate = viewerCertificate;
     }
 
+    /**
+     * The Web ACL (WAF) ID to associate with this distribution.
+     */
     @ResourceDiffProperty(updatable = true, nullable = true)
     public String getWebAclId() {
         if (webAclId == null) {
@@ -262,6 +330,9 @@ public class CloudFrontResource extends AwsResource {
         this.domainName = domainName;
     }
 
+    /**
+     * Replace HTTP codes with custom error responses as well as define cache TTLs for error responses.
+     */
     @ResourceDiffProperty(updatable = true, nullable = true)
     public List<CloudFrontCustomErrorResponse> getCustomErrorResponse() {
         if (customErrorResponse == null) {
@@ -275,6 +346,9 @@ public class CloudFrontResource extends AwsResource {
         this.customErrorResponse = customErrorResponses;
     }
 
+    /**
+     * Restriction access to this distribution by country.
+     */
     @ResourceDiffProperty(updatable = true, nullable = true)
     public CloudFrontGeoRestriction getGeoRestriction() {
         return geoRestriction;
