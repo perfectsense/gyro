@@ -8,6 +8,7 @@ import software.amazon.awssdk.services.cloudfront.model.ForwardedValues;
 import software.amazon.awssdk.services.cloudfront.model.TrustedSigners;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class CloudFrontCacheBehavior extends Diffable {
@@ -58,6 +59,7 @@ public class CloudFrontCacheBehavior extends Diffable {
         setQueryStringCacheKeys(cacheBehavior.forwardedValues().queryStringCacheKeys().items());
 
         setAllowedMethods(cacheBehavior.allowedMethods().itemsAsStrings());
+        setCachedMethods(cacheBehavior.allowedMethods().cachedMethods().itemsAsStrings());
         setCompress(cacheBehavior.compress());
         setFieldLevelEncryptionId(cacheBehavior.fieldLevelEncryptionId());
         setSmoothStreaming(cacheBehavior.smoothStreaming());
@@ -84,6 +86,7 @@ public class CloudFrontCacheBehavior extends Diffable {
         setQueryStringCacheKeys(cacheBehavior.forwardedValues().queryStringCacheKeys().items());
 
         setAllowedMethods(cacheBehavior.allowedMethods().itemsAsStrings());
+        setCachedMethods(cacheBehavior.allowedMethods().cachedMethods().itemsAsStrings());
         setCompress(cacheBehavior.compress());
         setFieldLevelEncryptionId(cacheBehavior.fieldLevelEncryptionId());
         setSmoothStreaming(cacheBehavior.smoothStreaming());
@@ -130,6 +133,8 @@ public class CloudFrontCacheBehavior extends Diffable {
             allowedMethods = new ArrayList<>();
         }
 
+        //Collections.sort(allowedMethods);
+
         return allowedMethods;
     }
 
@@ -138,6 +143,12 @@ public class CloudFrontCacheBehavior extends Diffable {
     }
 
     public List<String> getCachedMethods() {
+        if (cachedMethods == null || cachedMethods.isEmpty()) {
+            return getAllowedMethods();
+        }
+
+        //Collections.sort(cachedMethods);
+
         return cachedMethods;
     }
 
@@ -283,7 +294,10 @@ public class CloudFrontCacheBehavior extends Diffable {
             .build();
 
         return DefaultCacheBehavior.builder()
-            .allowedMethods(am -> am.itemsWithStrings(getAllowedMethods()).quantity(getAllowedMethods().size()))
+            .allowedMethods(am -> am.itemsWithStrings(getAllowedMethods())
+                .quantity(getAllowedMethods().size())
+                .cachedMethods(cm -> cm.itemsWithStrings(getCachedMethods()).quantity(getCachedMethods().size()))
+            )
             .defaultTTL(getDefaultTtl())
             .maxTTL(getMaxTtl())
             .minTTL(getMinTtl())
@@ -312,7 +326,10 @@ public class CloudFrontCacheBehavior extends Diffable {
             .build();
 
         return CacheBehavior.builder()
-            .allowedMethods(am -> am.itemsWithStrings(getAllowedMethods()).quantity(getAllowedMethods().size()))
+            .allowedMethods(am -> am.itemsWithStrings(getAllowedMethods())
+                .quantity(getAllowedMethods().size())
+                .cachedMethods(cm -> cm.itemsWithStrings(getCachedMethods()).quantity(getCachedMethods().size()))
+            )
             .defaultTTL(getDefaultTtl())
             .maxTTL(getMaxTtl())
             .minTTL(getMinTtl())
