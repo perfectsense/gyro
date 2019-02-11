@@ -361,48 +361,61 @@ public class KmsResource extends AwsResource {
         KmsClient client = createClient(KmsClient.class);
         KmsResource currentResource = (KmsResource) current;
 
-        //update tags
-        client.tagResource(r -> r.tags(toTag())
-                                .keyId(getKeyId()));
-
-        //update description
-        client.updateKeyDescription(r -> r.description(getDescription())
-                                            .keyId(getKeyId()));
-
-        //key rotation
-        if (getKeyRotation() == true && currentResource.getKeyRotation() == false) {
-            client.enableKeyRotation(r -> r.keyId(getKeyId()));
-        } else if (getKeyRotation() == false && currentResource.getKeyRotation() == true) {
-            client.disableKeyRotation(r -> r.keyId(getKeyId()));
+        try {
+            if (getEnabled() == true && currentResource.getEnabled() == false) {
+                client.enableKey(r -> r.keyId(getKeyId()));
+            } else if (getEnabled() == false && currentResource.getEnabled() == true) {
+                client.disableKey(r -> r.keyId(getKeyId()));
+            }
+        } catch (KmsInvalidStateException ex) {
+            throw new BeamException("This key is either pending import or pending deletion. It must be "
+                    + "disabled or enabled to perform this operation");
         }
 
-        //enable/disable
-        if (getEnabled() == true && currentResource.getEnabled() == false) {
-            client.enableKey(r -> r.keyId(getKeyId()));
-        } else if (getEnabled() == false && currentResource.getEnabled() == true) {
-            client.disableKey(r -> r.keyId(getKeyId()));
+        try {
+            if (getKeyRotation() == true && currentResource.getKeyRotation() == false) {
+                client.enableKeyRotation(r -> r.keyId(getKeyId()));
+            } else if (getKeyRotation() == false && currentResource.getKeyRotation() == true) {
+                client.disableKeyRotation(r -> r.keyId(getKeyId()));
+            }
+        } catch (KmsException ex) {
+            throw new BeamException("This key must be enabled to update key rotation.");
         }
 
-        //update key policy
-        client.putKeyPolicy(r -> r.policy(getPolicyContents())
-                                    .policyName("default")
-                                    .keyId(getKeyId()));
+        try {
+            List<String> aliasAdditions = new ArrayList<>(getAliases());
+            aliasAdditions.removeAll(currentResource.getAliases());
 
-        //update alias
-        List<String> aliasAdditions = new ArrayList<>(getAliases());
-        aliasAdditions.removeAll(currentResource.getAliases());
+            try {
+                for (String add : aliasAdditions) {
+                    client.createAlias(r -> r.aliasName(add).targetKeyId(getKeyId()));
+                }
+
+            } catch (AlreadyExistsException ex) {
+                throw new BeamException(ex.getMessage());
+            }
+
+            client.tagResource(r -> r.tags(toTag())
+                    .keyId(getKeyArn())
+            );
+
+            client.updateKeyDescription(r -> r.description(getDescription())
+                    .keyId(getKeyId()));
+        } catch (KmsInvalidStateException ex) {
+            throw new BeamException("This key is pending deletion. This operation is not supported in this state");
+        }
 
         List<String> aliasSubtractions = new ArrayList<>(currentResource.getAliases());
         aliasSubtractions.removeAll(getAliases());
 
-        for (String add : aliasAdditions) {
-            client.createAlias(r -> r.aliasName(add).targetKeyId(getKeyId()));
-        }
-
         for (String sub : aliasSubtractions) {
             client.deleteAlias(
-                    r -> r.aliasName(sub));
+                r -> r.aliasName(sub));
         }
+
+        client.putKeyPolicy(r -> r.policy(getPolicyContents())
+                .policyName("default")
+                .keyId(getKeyId()));
     }
 
     @Override
