@@ -47,7 +47,7 @@ public class CloudFrontResource extends AwsResource {
     private String callerReference;
     private boolean isIpv6Enabled;
     private CloudFrontViewerCertificate viewerCertificate;
-    private String waf;
+    private String webAclId;
     private String domainName;
     private List<CloudFrontCustomErrorResponse> customErrorResponse;
     private CloudFrontGeoRestriction geoRestriction;
@@ -249,16 +249,16 @@ public class CloudFrontResource extends AwsResource {
     }
 
     @ResourceDiffProperty(updatable = true, nullable = true)
-    public String getWaf() {
-        if (waf == null) {
+    public String getWebAclId() {
+        if (webAclId == null) {
             return "";
         }
 
-        return waf;
+        return webAclId;
     }
 
-    public void setWaf(String waf) {
-        this.waf = waf;
+    public void setWebAclId(String webAclId) {
+        this.webAclId = webAclId;
     }
 
     public String getDomainName() {
@@ -462,7 +462,7 @@ public class CloudFrontResource extends AwsResource {
             .priceClass(getPriceClass())
             .defaultRootObject(getDefaultRootObject())
             .isIPV6Enabled(isIpv6Enabled())
-            .webACLId(getWaf())
+            .webACLId(getWebAclId())
             .aliases(a -> a.items(getCnames()).quantity(getCnames().size()))
             .restrictions(getGeoRestriction().toRestrictions())
             .customErrorResponses(customErrorResponses)
