@@ -85,6 +85,9 @@ public class KmsResource extends AwsResource {
     }
 
 
+    /**
+     * Determines whether to bypass the key policy lockout safety check.
+     */
     @ResourceDiffProperty(updatable = true)
     public Boolean getBypassPolicyLockoutSafetyCheck() {
         return bypassPolicyLockoutSafetyCheck;
@@ -95,6 +98,9 @@ public class KmsResource extends AwsResource {
     }
 
 
+    /**
+     * Creates the key in the specified custom key store.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getCustomKeyStoreId() {
         return customKeyStoreId;
@@ -149,6 +155,9 @@ public class KmsResource extends AwsResource {
     }
 
 
+    /**
+     * The manager of the key, either AWS or customer. (Optional)
+     */
     @ResourceDiffProperty(updatable = true)
     public String getKeyManager() {
         return keyManager;
@@ -193,6 +202,9 @@ public class KmsResource extends AwsResource {
         this.origin = origin;
     }
 
+    /**
+     * The number of days until the key will be deleted. (Required)
+     */
     public String getPendingWindow() {
         return pendingWindow;
     }
