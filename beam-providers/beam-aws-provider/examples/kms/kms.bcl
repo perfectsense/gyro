@@ -1,7 +1,7 @@
 import ../init as _
 
 aws::kms kms-example
-    aliases: ["alias/kmsExample", "alias/kmsSecondExample"]
+    aliases: ["alias/kms_example", "alias/kms_example_1"]
     bypass-policy-lockout-safety-check: "false"
     description: "sample kms key"
     enabled: "true"
