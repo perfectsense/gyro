@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
  *     aws::kms kms-example
  *         aliases: ["alias/kmsExample", "alias/kmsSecondExample"]
  *         bypass-policy-lockout-safety-check: "false"
+ *         description: "sample kms key"
  *         enabled: "true"
  *         key-manager: "CUSTOMER"
  *         key-rotation: "false"
