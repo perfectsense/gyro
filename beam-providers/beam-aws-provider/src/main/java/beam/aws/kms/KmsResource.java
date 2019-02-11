@@ -422,13 +422,7 @@ public class KmsResource extends AwsResource {
     @Override
     public String toDisplayString() {
         StringBuilder sb = new StringBuilder();
-
-        if (getKeyId() != null) {
-            sb.append("kms key " + getKeyId());
-        } else {
-            sb.append("kms key ");
-        }
-
+        sb.append("kms key with alias " + getAliases().get(0));
         return sb.toString();
     }
 
