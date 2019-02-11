@@ -44,6 +44,10 @@ public class CloudFrontCustomErrorResponse extends Diffable {
     }
 
     public String getResponseCode() {
+        if (responseCode == null) {
+            return "";
+        }
+
         return responseCode;
     }
 
@@ -52,6 +56,10 @@ public class CloudFrontCustomErrorResponse extends Diffable {
     }
 
     public String getResponsePagePath() {
+        if (responsePagePath == null) {
+            responsePagePath = "";
+        }
+
         return responsePagePath;
     }
 
@@ -60,6 +68,10 @@ public class CloudFrontCustomErrorResponse extends Diffable {
     }
 
     public Boolean getCustomizeErrorResponse() {
+        if (customizeErrorResponse == null) {
+            customizeErrorResponse = false;
+        }
+
         return customizeErrorResponse;
     }
 
