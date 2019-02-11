@@ -28,9 +28,8 @@ public class CloudFrontViewerCertificate extends Diffable {
         return cloudfrontDefaultCertificate;
     }
 
-    public CloudFrontViewerCertificate setCloudfrontDefaultCertificate(boolean cloudfrontDefaultCertificate) {
+    public void setCloudfrontDefaultCertificate(boolean cloudfrontDefaultCertificate) {
         this.cloudfrontDefaultCertificate = cloudfrontDefaultCertificate;
-        return this;
     }
 
     @ResourceDiffProperty(updatable = true)
@@ -38,9 +37,8 @@ public class CloudFrontViewerCertificate extends Diffable {
         return acmCertificateArn;
     }
 
-    public CloudFrontViewerCertificate setAcmCertificateArn(String acmCertificateArn) {
+    public void setAcmCertificateArn(String acmCertificateArn) {
         this.acmCertificateArn = acmCertificateArn;
-        return this;
     }
 
     @ResourceDiffProperty(updatable = true)
@@ -48,9 +46,8 @@ public class CloudFrontViewerCertificate extends Diffable {
         return iamCertificateId;
     }
 
-    public CloudFrontViewerCertificate setIamCertificateId(String iamCertificateId) {
+    public void setIamCertificateId(String iamCertificateId) {
         this.iamCertificateId = iamCertificateId;
-        return this;
     }
 
     @ResourceDiffProperty(updatable = true)
@@ -62,9 +59,8 @@ public class CloudFrontViewerCertificate extends Diffable {
         return minimumProtocolVersion;
     }
 
-    public CloudFrontViewerCertificate setMinimumProtocolVersion(String minimumProtocolVersion) {
+    public void setMinimumProtocolVersion(String minimumProtocolVersion) {
         this.minimumProtocolVersion = minimumProtocolVersion;
-        return this;
     }
 
     @ResourceDiffProperty(updatable = true)
@@ -78,9 +74,8 @@ public class CloudFrontViewerCertificate extends Diffable {
         return sslSupportMethod;
     }
 
-    public CloudFrontViewerCertificate setSslSupportMethod(String sslSupportMethod) {
+    public void setSslSupportMethod(String sslSupportMethod) {
         this.sslSupportMethod = sslSupportMethod;
-        return this;
     }
 
     public ViewerCertificate toViewerCertificate() {
