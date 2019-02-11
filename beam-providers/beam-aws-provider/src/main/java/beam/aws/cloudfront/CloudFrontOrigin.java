@@ -54,6 +54,10 @@ public class CloudFrontOrigin extends Diffable {
 
     @ResourceDiffProperty(updatable = true)
     public String getOriginPath() {
+        if (originPath == null) {
+            return "";
+        }
+
         return originPath;
     }
 
