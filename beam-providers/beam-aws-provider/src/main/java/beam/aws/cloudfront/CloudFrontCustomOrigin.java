@@ -25,6 +25,15 @@ public class CloudFrontCustomOrigin extends Diffable {
         setOriginSslProtocols(Arrays.asList("TLSv1", "TLSv1.1", "TLSv1.2"));
     }
 
+    public CloudFrontCustomOrigin(CustomOriginConfig originConfig) {
+        setHttpPort(originConfig.httpPort());
+        setHttpsPort(originConfig.httpsPort());
+        setOriginKeepAliveTimeout(originConfig.originKeepaliveTimeout());
+        setOriginProtocolPolicy(originConfig.originProtocolPolicyAsString());
+        setOriginReadTimeout(originConfig.originReadTimeout());
+        setOriginSslProtocols(originConfig.originSslProtocols().itemsAsStrings());
+    }
+
     @ResourceDiffProperty(updatable = true)
     public Integer getHttpPort() {
         return httpPort;
