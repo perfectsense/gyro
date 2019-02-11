@@ -324,7 +324,7 @@ public class KmsResource extends AwsResource {
         if (newList.size() == getAliases().size()) {
 
             CreateKeyResponse response = client.createKey(
-                    r -> r.bypassPolicyLockoutSafetyCheck(getBypassPolicyLockoutSafetyCheck())
+                r -> r.bypassPolicyLockoutSafetyCheck(getBypassPolicyLockoutSafetyCheck())
                             .customKeyStoreId(getCustomKeyStoreId())
                             .description(getDescription())
                             .keyUsage(getKeyUsage())
@@ -338,17 +338,23 @@ public class KmsResource extends AwsResource {
             setKeyManager(response.keyMetadata().keyManagerAsString());
             setKeyState(response.keyMetadata().keyStateAsString());
 
-            if (getAliases() != null) {
-                for (String alias : getAliases()) {
-                    client.createAlias(r -> r.aliasName(alias).targetKeyId(getKeyId()));
+            try {
+                if (getAliases() != null) {
+                    for (String alias : getAliases()) {
+                        client.createAlias(r -> r.aliasName(alias).targetKeyId(getKeyId()));
+                    }
                 }
+
+            } catch (AlreadyExistsException ex) {
+                delete();
+                throw new BeamException(ex.getMessage());
             }
 
             if (getKeyRotation() != null && getKeyRotation() == true) {
                 client.enableKeyRotation(r -> r.keyId(getKeyId()));
             }
 
-            if (getEnabled() == false) {
+            if (getEnabled() != null && getEnabled() == false) {
                 client.disableKey(r -> r.keyId(getKeyId()));
             }
         } else {
