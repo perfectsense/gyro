@@ -57,6 +57,7 @@ public class KmsResource extends AwsResource {
     private String customKeyStoreId;
     private String description;
     private Boolean enabled;
+    private String keyArn;
     private String keyId;
     private String keyManager;
     private Boolean keyRotation;
@@ -144,6 +145,14 @@ public class KmsResource extends AwsResource {
 
     public void setKeyRotation(Boolean keyRotation) {
         this.keyRotation = keyRotation;
+    }
+
+    public String getKeyArn() {
+        return keyArn;
+    }
+
+    public void setKeyArn(String keyArn) {
+        this.keyArn = keyArn;
     }
 
     public String getKeyId() {
