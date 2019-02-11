@@ -428,7 +428,7 @@ public class KmsResource extends AwsResource {
     public void delete() {
         KmsClient client = createClient(KmsClient.class);
         client.scheduleKeyDeletion(r -> r.keyId(getKeyId())
-                                        .pendingWindowInDays(7));
+                                        .pendingWindowInDays(Integer.valueOf(getPendingWindow())));
     }
 
     @Override
