@@ -29,7 +29,6 @@ import java.util.stream.Collectors;
 @ResourceName("cloudfront")
 public class CloudFrontResource extends AwsResource {
 
-    private String name;
     private boolean enabled;
     private String comment;
     private List<String> cnames;
@@ -77,14 +76,6 @@ public class CloudFrontResource extends AwsResource {
 
     public void setArn(String arn) {
         this.arn = arn;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     @ResourceDiffProperty(updatable = true)
