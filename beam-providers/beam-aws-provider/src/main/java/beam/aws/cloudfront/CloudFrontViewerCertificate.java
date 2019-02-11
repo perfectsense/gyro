@@ -55,6 +55,10 @@ public class CloudFrontViewerCertificate extends Diffable {
 
     @ResourceDiffProperty(updatable = true)
     public String getMinimumProtocolVersion() {
+        if (!isCloudfrontDefaultCertificate() && minimumProtocolVersion == null) {
+            minimumProtocolVersion = "TLSv1_2016";
+        }
+
         return minimumProtocolVersion;
     }
 
@@ -65,6 +69,12 @@ public class CloudFrontViewerCertificate extends Diffable {
 
     @ResourceDiffProperty(updatable = true)
     public String getSslSupportMethod() {
+        if (isCloudfrontDefaultCertificate())  {
+            return null;
+        } else if (sslSupportMethod == null) {
+            return "sni-only";
+        }
+
         return sslSupportMethod;
     }
 
