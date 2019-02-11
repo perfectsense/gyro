@@ -14,6 +14,7 @@ public class CloudFrontViewerCertificate extends Diffable {
 
     public CloudFrontViewerCertificate() {
         setCloudfrontDefaultCertificate(true);
+        setMinimumProtocolVersion("TLSv1");
     }
 
     public CloudFrontViewerCertificate(ViewerCertificate viewerCertificate) {
@@ -53,10 +54,6 @@ public class CloudFrontViewerCertificate extends Diffable {
 
     @ResourceDiffProperty(updatable = true)
     public String getMinimumProtocolVersion() {
-        if (!isCloudfrontDefaultCertificate() && minimumProtocolVersion == null) {
-            minimumProtocolVersion = "TLSv1_2016";
-        }
-
         return minimumProtocolVersion;
     }
 
