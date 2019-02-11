@@ -14,9 +14,12 @@ import software.amazon.awssdk.services.cloudfront.model.CustomErrorResponses;
 import software.amazon.awssdk.services.cloudfront.model.Distribution;
 import software.amazon.awssdk.services.cloudfront.model.DistributionConfig;
 import software.amazon.awssdk.services.cloudfront.model.GetDistributionResponse;
+import software.amazon.awssdk.services.cloudfront.model.ListTagsForResourceResponse;
 import software.amazon.awssdk.services.cloudfront.model.NoSuchDistributionException;
 import software.amazon.awssdk.services.cloudfront.model.Origin;
 import software.amazon.awssdk.services.cloudfront.model.Origins;
+import software.amazon.awssdk.services.cloudfront.model.Tag;
+import software.amazon.awssdk.services.cloudfront.model.Tags;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -414,6 +417,10 @@ public class CloudFrontResource extends AwsResource {
                 getCustomErrorResponse().add(customErrorResponse);
             }
 
+            ListTagsForResourceResponse tagsForResource = client.listTagsForResource(r -> r.resource(getArn()));
+            for (Tag tag: tagsForResource.tags().items()) {
+                getTags().put(tag.key(), tag.value());
+            }
         } catch (NoSuchDistributionException ex) {
             return false;
         }
@@ -430,7 +437,7 @@ public class CloudFrontResource extends AwsResource {
         setArn(response.distribution().arn());
         setDomainName(response.distribution().domainName());
 
-        //applyTags(client);
+        applyTags(client);
     }
 
     @Override
@@ -440,6 +447,10 @@ public class CloudFrontResource extends AwsResource {
         client.updateDistribution(r -> r.distributionConfig(distributionConfig())
             .id(getId())
             .ifMatch(getEtag()));
+
+        if (changedProperties.contains("tags")) {
+            applyTags(client);
+        }
     }
 
     @Override
@@ -476,6 +487,16 @@ public class CloudFrontResource extends AwsResource {
     @Override
     public String toDisplayString() {
         return "cloudfront";
+    }
+
+    private void applyTags(CloudFrontClient client) {
+        List<Tag> tags = new ArrayList<>();
+        for (String key : getTags().keySet()) {
+            Tag tag = Tag.builder().key(key).value(getTags().get(key)).build();
+            tags.add(tag);
+        }
+
+        client.tagResource(r -> r.tags(Tags.builder().items(tags).build()).resource(getArn()));
     }
 
     private DistributionConfig distributionConfig() {
