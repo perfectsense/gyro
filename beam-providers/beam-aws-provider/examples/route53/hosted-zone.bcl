@@ -15,5 +15,85 @@ aws::hosted-zone hosted-zone-example
         vpc-id: $(aws::vpc vpc-hosted-zone-example | vpc-id)
         vpc-region: $(aws::credentials default | region)
     end
-    comment: "hosted-zone-example.co comment modified"
+    comment: "hosted-zone-example.co comment"
+
+    record-set
+        name: ""
+        type: "A"
+
+        comment: "q"
+        continentCode: "q"
+        countryCode: "q"
+        dnsName: "q"
+        evaluateTargetHealth: false
+        failover: "q"
+        hostedZoneId: "q"
+        hostedZoneName: "q"
+        healthCheckId: "q"
+        multiValueAnswer: false
+        region: "q"
+        setIdentifier: "q"
+        subdivisionCode: "q"
+        trafficPolicyInstanceId: "q"
+        ttl: 26
+        weight: 0
+    end
+
+    record-set
+        name: "a.n.s.2."
+        type: "CNAME"
+        records: [
+            "192.0.2.235"
+        ]
+        ttl: 26
+    end
+
+    record-set
+        name: "a.n.f."
+        type: "A"
+    end
+
+    record-set
+        name: "a.n.g."
+        type: "A"
+        records: [
+            "192.0.2.235",
+            "192.0.2.236"
+        ]
+    end
+
+    record-set
+        name: "a.n.l."
+        type: "A"
+        records: [
+            "192.0.2.235",
+            "192.0.2.236"
+        ]
+    end
+
+    record-set
+        name: "a.n.m."
+        type: "A"
+        records: [
+            "192.0.2.235"
+        ]
+    end
+
+    record-set
+        name: "a.n.s."
+        type: "A"
+        records: [
+            "192.0.2.235",
+            "192.0.2.236"
+        ]
+    end
+
+    record-set
+        name: "a.n.w."
+        type: "A"
+        records: [
+            "192.0.2.235",
+            "192.0.2.236"
+        ]
+    end
 end
