@@ -286,6 +286,7 @@ public class KmsResource extends AwsResource {
                 setCustomKeyStoreId(keyMetadata.customKeyStoreId());
                 setDescription(keyMetadata.description());
                 setEnabled(keyMetadata.enabled());
+                setKeyArn(keyMetadata.arn());
                 setKeyManager(keyMetadata.keyManagerAsString());
                 setKeyState(keyMetadata.keyStateAsString());
                 setKeyUsage(keyMetadata.keyUsageAsString());
@@ -332,6 +333,7 @@ public class KmsResource extends AwsResource {
                             .tags(toTag())
             );
 
+            setKeyArn(response.keyMetadata().arn());
             setKeyId(response.keyMetadata().keyId());
             setKeyManager(response.keyMetadata().keyManagerAsString());
             setKeyState(response.keyMetadata().keyStateAsString());
