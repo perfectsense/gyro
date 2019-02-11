@@ -41,10 +41,6 @@ public class CloudFrontOrigin extends Diffable {
         if (origin.s3OriginConfig() != null) {
             setS3Origin(new CloudFrontS3Origin(origin.s3OriginConfig()));
         }
-
-        if (origin.s3OriginConfig() == null && origin.customOriginConfig() == null) {
-            setS3Origin(new CloudFrontS3Origin());
-        }
     }
 
     public String getId() {
