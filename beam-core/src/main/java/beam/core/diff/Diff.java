@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import beam.core.BeamCore;
@@ -177,46 +178,59 @@ public class Diff {
 
     private ResourceDisplayDiff diffFields(Diffable currentDiffable, Diffable pendingDiffable) {
         Set<String> currentConfiguredFields = currentDiffable.configuredFields();
-        boolean firstField = true;
         ResourceDisplayDiff displayDiff = new ResourceDisplayDiff();
 
         for (DiffableField field : DiffableType.getInstance(currentDiffable.getClass()).getFields()) {
+
+            // Skip nested diffables since they're handled by the diff system.
             if (Diffable.class.isAssignableFrom(field.getItemClass())) {
                 continue;
             }
 
+            Object currentValue = field.getValue(currentDiffable);
             Object pendingValue = field.getValue(pendingDiffable);
+
+            // Skip if the value didn't change.
+            if (Objects.equals(currentValue, pendingValue)) {
+                continue;
+            }
+
             String key = field.getBeamName();
 
-            if (pendingValue != null || currentConfiguredFields.contains(key)) {
-                Object currentValue = field.getValue(currentDiffable);
-                String fieldChangeOutput;
+            // Skip if there isn't a pending value and the field wasn't
+            // previously configured. This means that a field was
+            // automatically populated in code so we should keep it as is.
+            if (pendingValue == null && currentConfiguredFields.contains(key)) {
+                continue;
+            }
 
-                if (pendingValue instanceof List) {
-                    fieldChangeOutput = Change.processAsListValue(key, (List) currentValue, (List) pendingValue);
+            String output;
 
-                } else if (pendingValue instanceof Map) {
-                    fieldChangeOutput = Change.processAsMapValue(key, (Map) currentValue, (Map) pendingValue);
+            if (pendingValue instanceof List) {
+                output = Change.processAsListValue(key, (List) currentValue, (List) pendingValue);
 
-                } else {
-                    fieldChangeOutput = Change.processAsScalarValue(key, currentValue, pendingValue);
-                }
+            } else if (pendingValue instanceof Map) {
+                output = Change.processAsMapValue(key, (Map) currentValue, (Map) pendingValue);
 
-                if (!ObjectUtils.isBlank(fieldChangeOutput)) {
-                    if (!firstField) {
-                        displayDiff.getChangedDisplay().append(", ");
-                    }
+            } else {
+                output = Change.processAsScalarValue(key, currentValue, pendingValue);
+            }
 
-                    displayDiff.addChangedProperty(key);
-                    displayDiff.getChangedDisplay().append(fieldChangeOutput);
+            if (output.length() > 0) {
+                displayDiff.addChangedProperty(key);
+                displayDiff.getChangedDisplay().append(output).append(", ");
 
-                    if (!field.isUpdatable()) {
-                        displayDiff.setReplace(true);
-                    }
-
-                    firstField = false;
+                if (!field.isUpdatable()) {
+                    displayDiff.setReplace(true);
                 }
             }
+        }
+
+        StringBuilder display = displayDiff.getChangedDisplay();
+        int displayLength = display.length();
+
+        if (displayLength > 0) {
+            display.setLength(displayLength - 2);
         }
 
         return displayDiff;
