@@ -278,12 +278,10 @@ public class KmsResource extends AwsResource {
     public boolean refresh() {
         KmsClient client = createClient(KmsClient.class);
 
-        DescribeKeyResponse keyResponse = client.describeKey(r -> r.keyId(getKeyId()));
-        if (keyResponse != null) {
-
+        try {
+            DescribeKeyResponse keyResponse = client.describeKey(r -> r.keyId(getKeyId()));
             KeyMetadata keyMetadata = keyResponse.keyMetadata();
-            //only load keys that are NOT pending deletion
-            if(!keyMetadata.keyStateAsString().equals("PENDING_DELETION")) {
+            if (!keyMetadata.keyStateAsString().equals("PENDING_DELETION")) {
 
                 setCustomKeyStoreId(keyMetadata.customKeyStoreId());
                 setDescription(keyMetadata.description());
@@ -309,7 +307,9 @@ public class KmsResource extends AwsResource {
 
             return true;
 
-        return false;
+        } catch (NotFoundException ex) {
+            return false;
+        }
     }
 
     @Override
