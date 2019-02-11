@@ -35,7 +35,6 @@ import java.util.stream.Collectors;
  *     aws::kms kms-example
  *         aliases: ["alias/kmsExample", "alias/kmsSecondExample"]
  *         bypass-policy-lockout-safety-check: "false"
- *         description: "sample kms key update"
  *         enabled: "true"
  *         key-manager: "CUSTOMER"
  *         key-rotation: "false"
@@ -85,7 +84,6 @@ public class KmsResource extends AwsResource {
         this.aliases = aliases;
     }
 
-
     /**
      * Determines whether to bypass the key policy lockout safety check.
      */
@@ -97,7 +95,6 @@ public class KmsResource extends AwsResource {
     public void setBypassPolicyLockoutSafetyCheck(Boolean bypassPolicyLockoutSafetyCheck) {
         this.bypassPolicyLockoutSafetyCheck = bypassPolicyLockoutSafetyCheck;
     }
-
 
     /**
      * Creates the key in the specified custom key store.
@@ -163,7 +160,6 @@ public class KmsResource extends AwsResource {
         this.keyId = keyId;
     }
 
-
     /**
      * The manager of the key, either AWS or customer. (Optional)
      */
@@ -172,9 +168,6 @@ public class KmsResource extends AwsResource {
         return keyManager;
     }
 
-    /**
-     * The manager of the key, either AWS or customer. (Optional)
-     */
     public void setKeyManager(String keyManager) {
         this.keyManager = keyManager;
     }
@@ -310,7 +303,6 @@ public class KmsResource extends AwsResource {
             }
 
             return true;
-        }
 
         return false;
     }
@@ -352,7 +344,6 @@ public class KmsResource extends AwsResource {
             if (getEnabled() == false) {
                 client.disableKey(r -> r.keyId(getKeyId()));
             }
-
         } else {
             throw new BeamException("Duplicate aliases are not allowed in the same region");
         }
@@ -360,7 +351,6 @@ public class KmsResource extends AwsResource {
 
     @Override
     public void update(Resource current, Set<String> changedProperties) {
-        //Q: would this be a good time to check changed properties?
         KmsClient client = createClient(KmsClient.class);
         KmsResource currentResource = (KmsResource) current;
 
@@ -411,10 +401,6 @@ public class KmsResource extends AwsResource {
     @Override
     public void delete() {
         KmsClient client = createClient(KmsClient.class);
-        //Q: tried to set the pending window, but that isn't possible
-        // how do we let people set this parameter?
-        //schedule key deletion
-        System.out.println("Get pending window " + getPendingWindow());
         client.scheduleKeyDeletion(r -> r.keyId(getKeyId())
                                         .pendingWindowInDays(7));
     }
