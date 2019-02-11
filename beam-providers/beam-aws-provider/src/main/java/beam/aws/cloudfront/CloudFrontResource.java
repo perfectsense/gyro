@@ -250,6 +250,10 @@ public class CloudFrontResource extends AwsResource {
 
     @ResourceDiffProperty(updatable = true, nullable = true)
     public String getWaf() {
+        if (waf == null) {
+            return "";
+        }
+
         return waf;
     }
 
