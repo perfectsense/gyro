@@ -131,7 +131,7 @@ public class CloudFrontOrigin extends Diffable {
 
     @Override
     public String primaryKey() {
-        return getDomainName();
+        return getId();
     }
 
     @Override
