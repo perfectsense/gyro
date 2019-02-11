@@ -257,6 +257,10 @@ public class CloudFrontCacheBehavior extends Diffable {
 
     @ResourceDiffProperty(updatable = true)
     public String getFieldLevelEncryptionId() {
+        if (fieldLevelEncryptionId == null) {
+            return "";
+        }
+
         return fieldLevelEncryptionId;
     }
 
