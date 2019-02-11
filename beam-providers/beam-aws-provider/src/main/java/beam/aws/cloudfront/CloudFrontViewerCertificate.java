@@ -3,7 +3,7 @@ package beam.aws.cloudfront;
 import beam.core.diff.Diffable;
 import software.amazon.awssdk.services.cloudfront.model.ViewerCertificate;
 
-public class CloudFrontViewCertificate extends Diffable {
+public class CloudFrontViewerCertificate extends Diffable {
 
     private boolean cloudfrontDefaultCertificate;
     private String acmCertificateArn;
@@ -15,7 +15,7 @@ public class CloudFrontViewCertificate extends Diffable {
         return cloudfrontDefaultCertificate;
     }
 
-    public CloudFrontViewCertificate setCloudfrontDefaultCertificate(boolean cloudfrontDefaultCertificate) {
+    public CloudFrontViewerCertificate setCloudfrontDefaultCertificate(boolean cloudfrontDefaultCertificate) {
         this.cloudfrontDefaultCertificate = cloudfrontDefaultCertificate;
         return this;
     }
@@ -24,7 +24,7 @@ public class CloudFrontViewCertificate extends Diffable {
         return acmCertificateArn;
     }
 
-    public CloudFrontViewCertificate setAcmCertificateArn(String acmCertificateArn) {
+    public CloudFrontViewerCertificate setAcmCertificateArn(String acmCertificateArn) {
         this.acmCertificateArn = acmCertificateArn;
         return this;
     }
@@ -33,7 +33,7 @@ public class CloudFrontViewCertificate extends Diffable {
         return iamCertificateId;
     }
 
-    public CloudFrontViewCertificate setIamCertificateId(String iamCertificateId) {
+    public CloudFrontViewerCertificate setIamCertificateId(String iamCertificateId) {
         this.iamCertificateId = iamCertificateId;
         return this;
     }
@@ -42,7 +42,7 @@ public class CloudFrontViewCertificate extends Diffable {
         return minimumProtocolVersion;
     }
 
-    public CloudFrontViewCertificate setMinimumProtocolVersion(String minimumProtocolVersion) {
+    public CloudFrontViewerCertificate setMinimumProtocolVersion(String minimumProtocolVersion) {
         this.minimumProtocolVersion = minimumProtocolVersion;
         return this;
     }
@@ -51,7 +51,7 @@ public class CloudFrontViewCertificate extends Diffable {
         return sslSupportMethod;
     }
 
-    public CloudFrontViewCertificate setSslSupportMethod(String sslSupportMethod) {
+    public CloudFrontViewerCertificate setSslSupportMethod(String sslSupportMethod) {
         this.sslSupportMethod = sslSupportMethod;
         return this;
     }
