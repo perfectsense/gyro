@@ -88,6 +88,10 @@ public class CloudFrontOrigin extends Diffable {
 
     @ResourceDiffProperty(updatable = true)
     public CloudFrontS3Origin getS3Origin() {
+        if (s3Origin == null && customOrigin == null) {
+            return new CloudFrontS3Origin();
+        }
+
         return s3Origin;
     }
 
