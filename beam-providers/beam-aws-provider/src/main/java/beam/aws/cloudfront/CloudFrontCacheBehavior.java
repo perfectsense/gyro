@@ -5,11 +5,12 @@ import beam.core.diff.ResourceDiffProperty;
 import software.amazon.awssdk.services.cloudfront.model.CacheBehavior;
 import software.amazon.awssdk.services.cloudfront.model.DefaultCacheBehavior;
 import software.amazon.awssdk.services.cloudfront.model.ForwardedValues;
+import software.amazon.awssdk.services.cloudfront.model.LambdaFunctionAssociations;
 import software.amazon.awssdk.services.cloudfront.model.TrustedSigners;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class CloudFrontCacheBehavior extends Diffable {
 
@@ -30,7 +31,7 @@ public class CloudFrontCacheBehavior extends Diffable {
     private List<String> queryStringCacheKeys;
     private List<String> trustedSigners;
     private String fieldLevelEncryptionId;
-
+    private List<CloudFrontCacheBehaviorLambdaFunction> lambdaFunctions;
 
     public CloudFrontCacheBehavior() {
         setDefaultTtl(86400L);
@@ -279,6 +280,18 @@ public class CloudFrontCacheBehavior extends Diffable {
         this.fieldLevelEncryptionId = fieldLevelEncryptionId;
     }
 
+    @ResourceDiffProperty(updatable = true)
+    public List<CloudFrontCacheBehaviorLambdaFunction> getLambdaFunctions() {
+        if (lambdaFunctions == null) {
+            lambdaFunctions = new ArrayList<>();
+        }
+        return lambdaFunctions;
+    }
+
+    public void setLambdaFunctions(List<CloudFrontCacheBehaviorLambdaFunction> lambdaFunctions) {
+        this.lambdaFunctions = lambdaFunctions;
+    }
+
     public DefaultCacheBehavior toDefaultCacheBehavior() {
         ForwardedValues forwardedValues = ForwardedValues.builder()
             .headers(h -> h.items(getHeaders()).quantity(getHeaders().size()))
@@ -293,6 +306,11 @@ public class CloudFrontCacheBehavior extends Diffable {
             .enabled(!getTrustedSigners().isEmpty())
             .build();
 
+        LambdaFunctionAssociations lambdaFunctionAssociations = LambdaFunctionAssociations.builder()
+            .items(getLambdaFunctions().stream().map(l -> l.toLambdaFunctionAssociation()).collect(Collectors.toList()))
+            .quantity(getLambdaFunctions().size())
+            .build();
+
         return DefaultCacheBehavior.builder()
             .allowedMethods(am -> am.itemsWithStrings(getAllowedMethods())
                 .quantity(getAllowedMethods().size())
@@ -305,6 +323,7 @@ public class CloudFrontCacheBehavior extends Diffable {
             .targetOriginId(getTargetOriginId())
             .forwardedValues(forwardedValues)
             .trustedSigners(trustedSigners)
+            .lambdaFunctionAssociations(lambdaFunctionAssociations)
             .viewerProtocolPolicy(getViewerProtocolPolicy())
             .fieldLevelEncryptionId(getFieldLevelEncryptionId())
             .compress(isCompress())
@@ -325,6 +344,11 @@ public class CloudFrontCacheBehavior extends Diffable {
             .enabled(!getTrustedSigners().isEmpty())
             .build();
 
+        LambdaFunctionAssociations lambdaFunctionAssociations = LambdaFunctionAssociations.builder()
+            .items(getLambdaFunctions().stream().map(l -> l.toLambdaFunctionAssociation()).collect(Collectors.toList()))
+            .quantity(getLambdaFunctions().size())
+            .build();
+
         return CacheBehavior.builder()
             .allowedMethods(am -> am.itemsWithStrings(getAllowedMethods())
                 .quantity(getAllowedMethods().size())
@@ -338,6 +362,7 @@ public class CloudFrontCacheBehavior extends Diffable {
             .pathPattern(getPathPattern())
             .forwardedValues(forwardedValues)
             .trustedSigners(trustedSigners)
+            .lambdaFunctionAssociations(lambdaFunctionAssociations)
             .viewerProtocolPolicy(getViewerProtocolPolicy())
             .fieldLevelEncryptionId(getFieldLevelEncryptionId())
             .compress(isCompress())
