@@ -29,8 +29,6 @@ import java.util.stream.Collectors;
 @ResourceName("cloudfront")
 public class CloudFrontResource extends AwsResource {
 
-    private String id;
-    private String arn;
     private String name;
     private boolean enabled;
     private String comment;
@@ -48,9 +46,13 @@ public class CloudFrontResource extends AwsResource {
     private boolean isIpv6Enabled;
     private CloudFrontViewerCertificate viewerCertificate;
     private String webAclId;
-    private String domainName;
     private List<CloudFrontCustomErrorResponse> customErrorResponse;
     private CloudFrontGeoRestriction geoRestriction;
+
+    // -- Read only
+    private String id;
+    private String arn;
+    private String domainName;
 
     public CloudFrontResource() {
         setEnabled(true);
