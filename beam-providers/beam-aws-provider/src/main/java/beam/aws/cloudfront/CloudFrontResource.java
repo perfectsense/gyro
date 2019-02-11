@@ -305,6 +305,7 @@ public class CloudFrontResource extends AwsResource {
             setCallerReference(config.callerReference());
             setIpv6Enabled(config.isIPV6Enabled());
             setDomainName(distribution.domainName());
+            setEtag(response.eTag());
 
             if (config.origins() != null) {
                 for (Origin origin : config.origins().items()) {
