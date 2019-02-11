@@ -13,6 +13,7 @@ public class CloudFrontViewerCertificate extends Diffable {
     private String sslSupportMethod;
 
     public CloudFrontViewerCertificate() {
+        setCloudfrontDefaultCertificate(true);
     }
 
     public CloudFrontViewerCertificate(ViewerCertificate viewerCertificate) {
