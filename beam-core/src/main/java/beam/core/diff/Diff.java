@@ -176,6 +176,7 @@ public class Diff {
     }
 
     private ResourceDisplayDiff diffFields(Diffable currentDiffable, Diffable pendingDiffable) {
+        Set<String> currentConfiguredFields = currentDiffable.configuredFields();
         boolean firstField = true;
         ResourceDisplayDiff displayDiff = new ResourceDisplayDiff();
 
@@ -184,11 +185,11 @@ public class Diff {
                 continue;
             }
 
-            Object currentValue = field.getValue(currentDiffable);
             Object pendingValue = field.getValue(pendingDiffable);
+            String key = field.getBeamName();
 
-            if (pendingValue != null || field.isNullable()) {
-                String key = field.getBeamName();
+            if (pendingValue != null || currentConfiguredFields.contains(key)) {
+                Object currentValue = field.getValue(currentDiffable);
                 String fieldChangeOutput;
 
                 if (pendingValue instanceof List) {
