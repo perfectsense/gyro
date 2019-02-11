@@ -186,7 +186,7 @@ public class Diff {
             Object currentValue = field.getValue(currentDiffable);
             Object pendingValue = field.getValue(pendingDiffable);
 
-            if (pendingValue != null || field.isNullable()) {
+            if (pendingValue != null || (field.isNullable() && currentValue != null)) {
                 String key = field.getBeamName();
                 String fieldChangeOutput;
 
