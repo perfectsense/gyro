@@ -351,6 +351,10 @@ public class CloudFrontResource extends AwsResource {
      */
     @ResourceDiffProperty(updatable = true, nullable = true)
     public CloudFrontGeoRestriction getGeoRestriction() {
+        if (geoRestriction == null) {
+            return new CloudFrontGeoRestriction();
+        }
+
         return geoRestriction;
     }
 

@@ -14,6 +14,7 @@ public class CloudFrontGeoRestriction extends Diffable {
     private List<String> restrictions;
 
     public CloudFrontGeoRestriction() {
+        setType("none");
     }
 
     public CloudFrontGeoRestriction(GeoRestriction geoRestriction) {
