@@ -103,11 +103,23 @@ public abstract class Change {
     public static String processAsListValue(String key, List currentValue, List pendingValue) {
         StringBuilder sb = new StringBuilder();
 
-        List<String> additions = new ArrayList<>(pendingValue);
-        additions.removeAll(currentValue);
+        List<String> additions = new ArrayList<>();
+        if (pendingValue != null) {
+            additions.addAll(pendingValue);
 
-        List<String> subtractions = new ArrayList<>(currentValue);
-        subtractions.removeAll(pendingValue);
+            if (currentValue != null) {
+                additions.removeAll(currentValue);
+            }
+        }
+
+        List<String> subtractions = new ArrayList<>();
+        if (currentValue != null) {
+            subtractions.addAll(currentValue);
+
+            if (pendingValue != null) {
+                subtractions.removeAll(pendingValue);
+            }
+        }
 
         if (!additions.isEmpty()) {
             sb.append(key);
