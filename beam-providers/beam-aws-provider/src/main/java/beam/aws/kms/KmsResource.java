@@ -233,7 +233,7 @@ public class KmsResource extends AwsResource {
     }
 
     @ResourceDiffProperty(updatable = true)
-    private String getPolicyContents() {
+    public String getPolicyContents() {
         if (policyContents != null) {
             return this.policyContents;
         } else {
