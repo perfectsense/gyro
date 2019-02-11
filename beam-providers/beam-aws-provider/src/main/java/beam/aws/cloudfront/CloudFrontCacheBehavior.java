@@ -1,6 +1,7 @@
 package beam.aws.cloudfront;
 
 import beam.core.diff.Diffable;
+import beam.core.diff.ResourceDiffProperty;
 import software.amazon.awssdk.services.cloudfront.model.CacheBehavior;
 import software.amazon.awssdk.services.cloudfront.model.DefaultCacheBehavior;
 import software.amazon.awssdk.services.cloudfront.model.ForwardedValues;
@@ -29,10 +30,63 @@ public class CloudFrontCacheBehavior extends Diffable {
     private List<String> trustedSigners;
     private String fieldLevelEncryptionId;
 
+
     public CloudFrontCacheBehavior() {
         setDefaultTtl(86400L);
         setMaxTtl(31536000L);
         setMinTtl(0L);
+    }
+
+    public CloudFrontCacheBehavior(CacheBehavior cacheBehavior) {
+        setTargetOriginId(cacheBehavior.targetOriginId());
+        setPathPattern(cacheBehavior.pathPattern());
+        setViewerProtocolPolicy(cacheBehavior.viewerProtocolPolicyAsString());
+        setTrustedSigners(cacheBehavior.trustedSigners().items());
+
+        // -- TTLs
+        setDefaultTtl(cacheBehavior.defaultTTL());
+        setMinTtl(cacheBehavior.minTTL());
+        setMaxTtl(cacheBehavior.maxTTL());
+
+        // -- Forwarded Values
+        setForwardCookies(cacheBehavior.forwardedValues().cookies().forwardAsString());
+        if (!getForwardCookies().equals("none")) {
+            setCookies(cacheBehavior.forwardedValues().cookies().whitelistedNames().items());
+        }
+        setHeaders(cacheBehavior.forwardedValues().headers().items());
+        setQueryString(cacheBehavior.forwardedValues().queryString());
+        setQueryStringCacheKeys(cacheBehavior.forwardedValues().queryStringCacheKeys().items());
+
+        setAllowedMethods(cacheBehavior.allowedMethods().itemsAsStrings());
+        setCompress(cacheBehavior.compress());
+        setFieldLevelEncryptionId(cacheBehavior.fieldLevelEncryptionId());
+        setSmoothStreaming(cacheBehavior.smoothStreaming());
+    }
+
+    public CloudFrontCacheBehavior(DefaultCacheBehavior cacheBehavior) {
+        setTargetOriginId(cacheBehavior.targetOriginId());
+        setPathPattern("*");
+        setViewerProtocolPolicy(cacheBehavior.viewerProtocolPolicyAsString());
+        setTrustedSigners(cacheBehavior.trustedSigners().items());
+
+        // -- TTLs
+        setDefaultTtl(cacheBehavior.defaultTTL());
+        setMinTtl(cacheBehavior.minTTL());
+        setMaxTtl(cacheBehavior.maxTTL());
+
+        // -- Forwarded Values
+        setForwardCookies(cacheBehavior.forwardedValues().cookies().forwardAsString());
+        if (!getForwardCookies().equals("none")) {
+            setCookies(cacheBehavior.forwardedValues().cookies().whitelistedNames().items());
+        }
+        setHeaders(cacheBehavior.forwardedValues().headers().items());
+        setQueryString(cacheBehavior.forwardedValues().queryString());
+        setQueryStringCacheKeys(cacheBehavior.forwardedValues().queryStringCacheKeys().items());
+
+        setAllowedMethods(cacheBehavior.allowedMethods().itemsAsStrings());
+        setCompress(cacheBehavior.compress());
+        setFieldLevelEncryptionId(cacheBehavior.fieldLevelEncryptionId());
+        setSmoothStreaming(cacheBehavior.smoothStreaming());
     }
 
     public String getTargetOriginId() {
@@ -43,6 +97,7 @@ public class CloudFrontCacheBehavior extends Diffable {
         this.targetOriginId = targetOriginId;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public String getPathPattern() {
         return pathPattern;
     }
@@ -51,6 +106,7 @@ public class CloudFrontCacheBehavior extends Diffable {
         this.pathPattern = pathPattern;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public String getViewerProtocolPolicy() {
         return viewerProtocolPolicy;
     }
@@ -59,6 +115,7 @@ public class CloudFrontCacheBehavior extends Diffable {
         this.viewerProtocolPolicy = viewerProtocolPolicy;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public Long getMinTtl() {
         return minTtl;
     }
@@ -67,6 +124,7 @@ public class CloudFrontCacheBehavior extends Diffable {
         this.minTtl = minTtl;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public List<String> getAllowedMethods() {
         if (allowedMethods == null) {
             allowedMethods = new ArrayList<>();
@@ -87,6 +145,7 @@ public class CloudFrontCacheBehavior extends Diffable {
         this.cachedMethods = cachedMethods;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public List<String> getHeaders() {
         if (headers == null) {
             headers = new ArrayList<>();
@@ -99,6 +158,7 @@ public class CloudFrontCacheBehavior extends Diffable {
         this.headers = headers;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public String getForwardCookies() {
         if (forwardCookies != null) {
             return forwardCookies.toLowerCase();
@@ -111,6 +171,7 @@ public class CloudFrontCacheBehavior extends Diffable {
         this.forwardCookies = forwardCookies;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public List<String> getCookies() {
         if (cookies == null) {
             cookies = new ArrayList<>();
@@ -123,6 +184,7 @@ public class CloudFrontCacheBehavior extends Diffable {
         this.cookies = cookies;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public boolean isSmoothStreaming() {
         return smoothStreaming;
     }
@@ -131,6 +193,7 @@ public class CloudFrontCacheBehavior extends Diffable {
         this.smoothStreaming = smoothStreaming;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public Long getDefaultTtl() {
         return defaultTtl;
     }
@@ -139,6 +202,7 @@ public class CloudFrontCacheBehavior extends Diffable {
         this.defaultTtl = defaultTtl;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public Long getMaxTtl() {
         return maxTtl;
     }
@@ -147,6 +211,7 @@ public class CloudFrontCacheBehavior extends Diffable {
         this.maxTtl = maxTtl;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public boolean isCompress() {
         return compress;
     }
@@ -155,6 +220,7 @@ public class CloudFrontCacheBehavior extends Diffable {
         this.compress = compress;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public boolean isQueryString() {
         return queryString;
     }
@@ -163,6 +229,7 @@ public class CloudFrontCacheBehavior extends Diffable {
         this.queryString = queryString;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public List<String> getQueryStringCacheKeys() {
         if (queryStringCacheKeys == null) {
             queryStringCacheKeys = new ArrayList<>();
@@ -175,6 +242,7 @@ public class CloudFrontCacheBehavior extends Diffable {
         this.queryStringCacheKeys = queryStringCacheKeys;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public List<String> getTrustedSigners() {
         if (trustedSigners == null) {
             trustedSigners = new ArrayList<>();
@@ -187,6 +255,7 @@ public class CloudFrontCacheBehavior extends Diffable {
         this.trustedSigners = trustedSigners;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public String getFieldLevelEncryptionId() {
         return fieldLevelEncryptionId;
     }
@@ -256,7 +325,7 @@ public class CloudFrontCacheBehavior extends Diffable {
 
     @Override
     public String primaryKey() {
-        return null;
+        return getPathPattern();
     }
 
     @Override

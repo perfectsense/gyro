@@ -11,11 +11,21 @@ public class CloudFrontCustomErrorResponse extends Diffable {
 
     private long ttl;
     private Integer errorCode;
-    private Integer responseCode;
+    private String responseCode;
     private String responsePagePath;
     private Boolean customizeErrorResponse;
 
     private static final Set<Integer> ERROR_CODE_LIST = new HashSet<>(Arrays.asList(400,403,404,405,414,416,500,501,502,503,504));
+
+    public CloudFrontCustomErrorResponse() {
+    }
+
+    public CloudFrontCustomErrorResponse(CustomErrorResponse errorResponse) {
+        setTtl(errorResponse.errorCachingMinTTL());
+        setErrorCode(errorResponse.errorCode());
+        setResponseCode(errorResponse.responseCode());
+        setResponsePagePath(errorResponse.responsePagePath());
+    }
 
     public long getTtl() {
         return ttl;
@@ -33,11 +43,11 @@ public class CloudFrontCustomErrorResponse extends Diffable {
         this.errorCode = errorCode;
     }
 
-    public Integer getResponseCode() {
+    public String getResponseCode() {
         return responseCode;
     }
 
-    public void setResponseCode(Integer responseCode) {
+    public void setResponseCode(String responseCode) {
         this.responseCode = responseCode;
     }
 
@@ -61,7 +71,7 @@ public class CloudFrontCustomErrorResponse extends Diffable {
         return CustomErrorResponse.builder()
             .errorCachingMinTTL(getTtl())
             .errorCode(getErrorCode())
-            .responseCode(getResponseCode() != null ? getResponseCode().toString() : null)
+            .responseCode(getResponseCode())
             .responsePagePath(getResponsePagePath()).build();
     }
 

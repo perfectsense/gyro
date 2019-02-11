@@ -1,6 +1,7 @@
 package beam.aws.cloudfront;
 
 import beam.core.diff.Diffable;
+import beam.core.diff.ResourceDiffProperty;
 import software.amazon.awssdk.services.cloudfront.model.ViewerCertificate;
 
 public class CloudFrontViewerCertificate extends Diffable {
@@ -11,6 +12,18 @@ public class CloudFrontViewerCertificate extends Diffable {
     private String minimumProtocolVersion;
     private String sslSupportMethod;
 
+    public CloudFrontViewerCertificate() {
+    }
+
+    public CloudFrontViewerCertificate(ViewerCertificate viewerCertificate) {
+        setCloudfrontDefaultCertificate(viewerCertificate.cloudFrontDefaultCertificate());
+        setAcmCertificateArn(viewerCertificate.acmCertificateArn());
+        setIamCertificateId(viewerCertificate.iamCertificateId());
+        setMinimumProtocolVersion(viewerCertificate.minimumProtocolVersionAsString());
+        setSslSupportMethod(viewerCertificate.sslSupportMethodAsString());
+    }
+
+    @ResourceDiffProperty(updatable = true)
     public boolean isCloudfrontDefaultCertificate() {
         return cloudfrontDefaultCertificate;
     }
@@ -20,6 +33,7 @@ public class CloudFrontViewerCertificate extends Diffable {
         return this;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public String getAcmCertificateArn() {
         return acmCertificateArn;
     }
@@ -29,6 +43,7 @@ public class CloudFrontViewerCertificate extends Diffable {
         return this;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public String getIamCertificateId() {
         return iamCertificateId;
     }
@@ -38,6 +53,7 @@ public class CloudFrontViewerCertificate extends Diffable {
         return this;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public String getMinimumProtocolVersion() {
         return minimumProtocolVersion;
     }
@@ -47,6 +63,7 @@ public class CloudFrontViewerCertificate extends Diffable {
         return this;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public String getSslSupportMethod() {
         return sslSupportMethod;
     }

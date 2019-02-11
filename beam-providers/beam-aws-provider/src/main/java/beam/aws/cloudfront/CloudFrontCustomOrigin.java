@@ -1,6 +1,7 @@
 package beam.aws.cloudfront;
 
 import beam.core.diff.Diffable;
+import beam.core.diff.ResourceDiffProperty;
 import software.amazon.awssdk.services.cloudfront.model.CustomOriginConfig;
 
 import java.util.Arrays;
@@ -24,6 +25,7 @@ public class CloudFrontCustomOrigin extends Diffable {
         setOriginSslProtocols(Arrays.asList("TLSv1", "TLSv1.1", "TLSv1.2"));
     }
 
+    @ResourceDiffProperty(updatable = true)
     public Integer getHttpPort() {
         return httpPort;
     }
@@ -32,6 +34,7 @@ public class CloudFrontCustomOrigin extends Diffable {
         this.httpPort = httpPort;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public Integer getHttpsPort() {
         return httpsPort;
     }
@@ -40,6 +43,7 @@ public class CloudFrontCustomOrigin extends Diffable {
         this.httpsPort = httpsPort;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public Integer getOriginKeepAliveTimeout() {
         return originKeepAliveTimeout;
     }
@@ -48,6 +52,7 @@ public class CloudFrontCustomOrigin extends Diffable {
         this.originKeepAliveTimeout = originKeepAliveTimeout;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public Integer getOriginReadTimeout() {
         return originReadTimeout;
     }
@@ -56,6 +61,7 @@ public class CloudFrontCustomOrigin extends Diffable {
         this.originReadTimeout = originReadTimeout;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public String getOriginProtocolPolicy() {
         return originProtocolPolicy;
     }
@@ -64,6 +70,7 @@ public class CloudFrontCustomOrigin extends Diffable {
         this.originProtocolPolicy = originProtocolPolicy;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public List<String> getOriginSslProtocols() {
         return originSslProtocols;
     }
@@ -90,6 +97,6 @@ public class CloudFrontCustomOrigin extends Diffable {
 
     @Override
     public String toDisplayString() {
-        return "custom origin";
+        return "custom origin config";
     }
 }

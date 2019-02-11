@@ -17,6 +17,13 @@ public class CloudFrontLogging extends Diffable {
         setBucketPrefix("");
     }
 
+    public CloudFrontLogging(LoggingConfig loggingConfig) {
+        setBucket(loggingConfig.bucket());
+        setBucketPrefix(loggingConfig.prefix());
+        setEnabled(loggingConfig.enabled());
+        setIncludeCookies(loggingConfig.includeCookies());
+    }
+
     public Boolean getEnabled() {
         return enabled;
     }

@@ -1,15 +1,14 @@
 package beam.aws.cloudfront;
 
 import beam.core.diff.Diffable;
+import beam.core.diff.ResourceDiffProperty;
 import software.amazon.awssdk.services.cloudfront.model.CustomHeaders;
 import software.amazon.awssdk.services.cloudfront.model.Origin;
 import software.amazon.awssdk.services.cloudfront.model.OriginCustomHeader;
-import software.amazon.awssdk.services.cloudfront.model.S3OriginConfig;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 public class CloudFrontOrigin extends Diffable {
@@ -21,6 +20,21 @@ public class CloudFrontOrigin extends Diffable {
     private CloudFrontS3Origin s3Origin;
     private CloudFrontCustomOrigin customOrigin;
 
+    public CloudFrontOrigin() {
+    }
+
+    public CloudFrontOrigin(Origin origin) {
+        setId(origin.id());
+        setDomainName(origin.domainName());
+        setOriginPath(origin.originPath());
+
+        if (origin.customHeaders().quantity() > 0) {
+            for (OriginCustomHeader header : origin.customHeaders().items()) {
+                getCustomHeaders().put(header.headerName(), header.headerValue());
+            }
+        }
+    }
+
     public String getId() {
         return id;
     }
@@ -29,6 +43,7 @@ public class CloudFrontOrigin extends Diffable {
         this.id = id;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public String getDomainName() {
         return domainName;
     }
@@ -37,6 +52,7 @@ public class CloudFrontOrigin extends Diffable {
         this.domainName = domainName;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public String getOriginPath() {
         return originPath;
     }
@@ -45,6 +61,7 @@ public class CloudFrontOrigin extends Diffable {
         this.originPath = originPath;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public Map<String, String> getCustomHeaders() {
         if (customHeaders == null) {
             return new HashMap<>();
@@ -57,6 +74,7 @@ public class CloudFrontOrigin extends Diffable {
         this.customHeaders = customHeaders;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public CloudFrontS3Origin getS3Origin() {
         return s3Origin;
     }
@@ -65,6 +83,7 @@ public class CloudFrontOrigin extends Diffable {
         this.s3Origin = s3Origin;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public CloudFrontCustomOrigin getCustomOrigin() {
         return customOrigin;
     }
@@ -105,6 +124,6 @@ public class CloudFrontOrigin extends Diffable {
 
     @Override
     public String toDisplayString() {
-        return "origin";
+        return "origin - targetId: " + getId();
     }
 }

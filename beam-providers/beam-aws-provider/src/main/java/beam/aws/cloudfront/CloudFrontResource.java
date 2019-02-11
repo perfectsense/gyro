@@ -1,6 +1,5 @@
 package beam.aws.cloudfront;
 
-import beam.aws.AwsCredentials;
 import beam.aws.AwsResource;
 import beam.core.BeamException;
 import beam.core.diff.ResourceDiffProperty;
@@ -12,14 +11,14 @@ import software.amazon.awssdk.services.cloudfront.model.CacheBehaviors;
 import software.amazon.awssdk.services.cloudfront.model.CreateDistributionResponse;
 import software.amazon.awssdk.services.cloudfront.model.CustomErrorResponse;
 import software.amazon.awssdk.services.cloudfront.model.CustomErrorResponses;
+import software.amazon.awssdk.services.cloudfront.model.Distribution;
 import software.amazon.awssdk.services.cloudfront.model.DistributionConfig;
-import software.amazon.awssdk.services.cloudfront.model.GetDistributionRequest;
 import software.amazon.awssdk.services.cloudfront.model.GetDistributionResponse;
+import software.amazon.awssdk.services.cloudfront.model.NoSuchDistributionException;
 import software.amazon.awssdk.services.cloudfront.model.Origin;
 import software.amazon.awssdk.services.cloudfront.model.Origins;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -47,7 +46,7 @@ public class CloudFrontResource extends AwsResource {
     private String etag;
     private String callerReference;
     private boolean isIpv6Enabled;
-    private CloudFrontViewCertificate viewerCertificate;
+    private CloudFrontViewerCertificate viewerCertificate;
     private String waf;
     private String domainName;
     private List<CloudFrontCustomErrorResponse> customErrorResponse;
@@ -57,6 +56,8 @@ public class CloudFrontResource extends AwsResource {
         setEnabled(true);
         setIpv6Enabled(false);
         setHttpVersion("http1.1");
+        setLogging(new CloudFrontLogging());
+        setViewerCertificate(new CloudFrontViewerCertificate());
     }
 
 
@@ -112,7 +113,7 @@ public class CloudFrontResource extends AwsResource {
             cnames = new ArrayList<>();
         }
 
-        Collections.sort(cnames);
+        //Collections.sort(cnames);
 
         return cnames;
     }
@@ -180,6 +181,7 @@ public class CloudFrontResource extends AwsResource {
         this.behavior = behavior;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public CloudFrontCacheBehavior getDefaultCacheBehavior() {
         return defaultCacheBehavior;
     }
@@ -190,6 +192,7 @@ public class CloudFrontResource extends AwsResource {
         defaultCacheBehavior.setPathPattern("*");
     }
 
+    @ResourceDiffProperty(updatable = true)
     public CloudFrontLogging getLogging() {
         return logging;
     }
@@ -236,11 +239,12 @@ public class CloudFrontResource extends AwsResource {
         isIpv6Enabled = ipv6Enabled;
     }
 
-    public CloudFrontViewCertificate getViewerCertificate() {
+    @ResourceDiffProperty(updatable = true)
+    public CloudFrontViewerCertificate getViewerCertificate() {
         return viewerCertificate;
     }
 
-    public void setViewerCertificate(CloudFrontViewCertificate viewerCertificate) {
+    public void setViewerCertificate(CloudFrontViewerCertificate viewerCertificate) {
         this.viewerCertificate = viewerCertificate;
     }
 
@@ -261,6 +265,7 @@ public class CloudFrontResource extends AwsResource {
         this.domainName = domainName;
     }
 
+    @ResourceDiffProperty(updatable = true, nullable = true)
     public List<CloudFrontCustomErrorResponse> getCustomErrorResponse() {
         if (customErrorResponse == null) {
             customErrorResponse = new ArrayList<>();
@@ -270,10 +275,10 @@ public class CloudFrontResource extends AwsResource {
     }
 
     public void setCustomErrorResponse(List<CloudFrontCustomErrorResponse> customErrorResponses) {
-        this.customErrorResponse
-            = customErrorResponses;
+        this.customErrorResponse = customErrorResponses;
     }
 
+    @ResourceDiffProperty(updatable = true, nullable = true)
     public CloudFrontGeoRestriction getGeoRestriction() {
         return geoRestriction;
     }
@@ -286,8 +291,58 @@ public class CloudFrontResource extends AwsResource {
     public boolean refresh() {
         CloudFrontClient client = createClient(CloudFrontClient.class, "us-east-1", "https://cloudfront.amazonaws.com");
 
+        try {
+            GetDistributionResponse response = client.getDistribution(r -> r.id(getId()));
 
-        return false;
+            Distribution distribution = response.distribution();
+            DistributionConfig config = distribution.distributionConfig();
+
+            setEnabled(config.enabled());
+            setComment(config.comment());
+            setCnames(config.aliases().items());
+            setHttpVersion(config.httpVersionAsString());
+            setPriceClass(config.priceClassAsString());
+            setCallerReference(config.callerReference());
+            setIpv6Enabled(config.isIPV6Enabled());
+            setDomainName(distribution.domainName());
+
+            if (config.origins() != null) {
+                for (Origin origin : config.origins().items()) {
+                    CloudFrontOrigin originResource = new CloudFrontOrigin(origin);
+                    getOrigin().add(originResource);
+                }
+            }
+
+            if (config.cacheBehaviors() != null) {
+                for (CacheBehavior behavior : config.cacheBehaviors().items()) {
+                    CloudFrontCacheBehavior cacheBehavior = new CloudFrontCacheBehavior(behavior);
+                    getBehavior().add(cacheBehavior);
+                }
+            }
+
+            CloudFrontCacheBehavior defaultCacheBehavior = new CloudFrontCacheBehavior(config.defaultCacheBehavior());
+            setDefaultCacheBehavior(defaultCacheBehavior);
+
+            CloudFrontLogging logging = config.logging() == null ? new CloudFrontLogging() : new CloudFrontLogging(config.logging());
+            setLogging(logging);
+
+            CloudFrontViewerCertificate viewerCertificate = config.viewerCertificate() == null
+                ? new CloudFrontViewerCertificate() : new CloudFrontViewerCertificate(config.viewerCertificate());
+            setViewerCertificate(viewerCertificate);
+
+            CloudFrontGeoRestriction geoRestriction = new CloudFrontGeoRestriction(config.restrictions().geoRestriction());
+            setGeoRestriction(geoRestriction);
+
+            for (CustomErrorResponse errorResponse : config.customErrorResponses().items()) {
+                CloudFrontCustomErrorResponse customErrorResponse = new CloudFrontCustomErrorResponse(errorResponse);
+                getCustomErrorResponse().add(customErrorResponse);
+            }
+
+        } catch (NoSuchDistributionException ex) {
+            return false;
+        }
+
+        return true;
     }
 
     @Override
@@ -380,9 +435,9 @@ public class CloudFrontResource extends AwsResource {
             .quantity(origin.size())
             .build();
 
-        CloudFrontViewCertificate viewerCertificate = getViewerCertificate();
+        CloudFrontViewerCertificate viewerCertificate = getViewerCertificate();
         if (viewerCertificate == null) {
-            viewerCertificate = new CloudFrontViewCertificate();
+            viewerCertificate = new CloudFrontViewerCertificate();
             viewerCertificate.setCloudfrontDefaultCertificate(true);
         }
 
