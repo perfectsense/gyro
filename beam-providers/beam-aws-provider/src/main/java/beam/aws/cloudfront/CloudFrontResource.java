@@ -418,6 +418,7 @@ public class CloudFrontResource extends AwsResource {
             }
 
             ListTagsForResourceResponse tagsForResource = client.listTagsForResource(r -> r.resource(getArn()));
+            getTags().clear();
             for (Tag tag: tagsForResource.tags().items()) {
                 getTags().put(tag.key(), tag.value());
             }
