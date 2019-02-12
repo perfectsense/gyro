@@ -21,20 +21,17 @@ aws::hosted-zone hosted-zone-example
         name: ""
         type: "A"
 
-        comment: "q"
-        continentCode: "q"
-        countryCode: "q"
-        dnsName: "q"
-        evaluateTargetHealth: false
+        continent-code: "q"
+        country-code: "q"
+        dns-name: "q"
+        evaluate-target-health: false
         failover: "q"
-        hostedZoneId: "q"
-        hostedZoneName: "q"
-        healthCheckId: "q"
-        multiValueAnswer: false
+        health-check-id: "q"
+        multi-value-answer: false
         region: "q"
-        setIdentifier: "q"
-        subdivisionCode: "q"
-        trafficPolicyInstanceId: "q"
+        set-identifier: "q"
+        subdivision-code: "q"
+        traffic-policy-instance-id: "q"
         ttl: 26
         weight: 0
     end
@@ -45,7 +42,15 @@ aws::hosted-zone hosted-zone-example
         records: [
             "192.0.2.235"
         ]
-        ttl: 26
+    end
+
+    record-set #create
+        name: "a.n.s.2.create."
+        type: "CNAME"
+        records: [
+            "192.0.2.235"
+        ]
+        ttl: 300
     end
 
     record-set

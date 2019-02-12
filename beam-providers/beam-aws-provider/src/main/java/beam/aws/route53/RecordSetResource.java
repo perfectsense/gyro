@@ -245,52 +245,43 @@ public class RecordSetResource extends AwsResource {
 
     @Override
     public boolean refresh() {
-        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
-
-        ListResourceRecordSetsResponse response = client.listResourceRecordSets(
-            r -> r.hostedZoneId(getHostedZoneId())
-        );
-
-        List<ResourceRecordSet> resourceRecordSets = response.resourceRecordSets();
-
-        throw new BeamException("testing");
-
-        //return true;
-
-        // name, type and set make it unique
+        return false;
     }
 
     @Override
     public void create() {
-        refresh();
+        HostedZoneResource parent = (HostedZoneResource) parentResource();
+        setHostedZoneName(parent.getHostedZoneName());
+        setHostedZoneId(parent.getHostedZoneId());
 
-        /*Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
+        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
 
         Change change = Change.builder()
             .action(ChangeAction.CREATE)
             .resourceRecordSet(
-                rr -> rr.aliasTarget(
-                        a -> a.dnsName(getDnsName())
-                        .evaluateTargetHealth(getEvaluateTargetHealth())
-                        .hostedZoneId(getHostedZoneId()))
+                rr -> rr.name(getName()+getHostedZoneName())
                     .failover(getFailover())
-                    .geoLocation(g -> g
-                        .continentCode(getContinentCode())
-                        .countryCode(getCountryCode())
-                        .subdivisionCode(getSubdivisionCode()))
                     .healthCheckId(getHealthCheckId())
                     .multiValueAnswer(getMultiValueAnswer())
                     .region(getRegion())
-                    .resourceRecords(
-                        getRecords().stream()
-                            .map(o -> ResourceRecord.builder().value(o).build())
-                            .collect(Collectors.toList()))
                     .setIdentifier(getSetIdentifier())
-                    .name(getName())
                     .trafficPolicyInstanceId(getTrafficPolicyInstanceId())
                     .ttl(getTtl())
                     .type(getType())
                     .weight(getWeight())
+                    /*.aliasTarget(
+                        a -> a.dnsName(getDnsName())
+                            .evaluateTargetHealth(getEvaluateTargetHealth())
+                            .hostedZoneId(getHostedZoneId()))*/
+                    .resourceRecords(
+                        getRecords().stream()
+                            .map(o -> ResourceRecord.builder().value(o).build())
+                            .collect(Collectors.toList()))
+                    /*.geoLocation(g -> g
+                        .continentCode(getContinentCode())
+                        .countryCode(getCountryCode())
+                        .subdivisionCode(getSubdivisionCode()))*/
+
             )
             .build();
 
@@ -300,7 +291,7 @@ public class RecordSetResource extends AwsResource {
                     c -> c.comment(getComment())
                         .changes(change)
                 )
-        );*/
+        );
     }
 
     @Override
