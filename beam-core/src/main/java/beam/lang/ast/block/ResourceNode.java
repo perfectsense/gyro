@@ -3,6 +3,7 @@ package beam.lang.ast.block;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import beam.core.diff.Diffable;
@@ -47,10 +48,26 @@ public class ResourceNode extends BlockNode {
         Optional.ofNullable(scope.getRootScope().getCurrent())
                 .map(s -> s.findResource(fullName))
                 .ifPresent(r -> {
+                    Set<String> configuredFields = r.configuredFields();
+
                     for (DiffableField f : DiffableType.getInstance(r.getClass()).getFields()) {
-                        if (!Diffable.class.isAssignableFrom(f.getItemClass())) {
-                            bodyScope.put(f.getBeamName(), f.getValue(r));
+
+                        // Don't copy nested diffables since they're handled
+                        // by the diff system.
+                        if (Diffable.class.isAssignableFrom(f.getItemClass())) {
+                            continue;
                         }
+
+                        String key = f.getBeamName();
+
+                        // Skip over fields that were previously configured
+                        // so that their removals can be detected by the
+                        // diff system.
+                        if (configuredFields.contains(key)) {
+                            continue;
+                        }
+
+                        bodyScope.put(key, f.getValue(r));
                     }
                 });
 
