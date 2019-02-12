@@ -70,10 +70,6 @@ public abstract class Change {
     public static String processAsScalarValue(String key, Object currentValue, Object pendingValue) {
         StringBuilder sb = new StringBuilder();
 
-        if (pendingValue.equals(currentValue)) {
-            return sb.toString();
-        }
-
         sb.append(key);
         sb.append(": ");
         if (ObjectUtils.isBlank(currentValue)) {

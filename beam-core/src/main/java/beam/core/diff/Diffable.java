@@ -2,9 +2,12 @@ package beam.core.diff;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import beam.lang.Resource;
@@ -17,11 +20,13 @@ import beam.lang.ast.value.ListNode;
 import beam.lang.ast.value.MapNode;
 import beam.lang.ast.value.NumberNode;
 import beam.lang.ast.value.StringNode;
+import com.google.common.collect.ImmutableSet;
 
 public abstract class Diffable {
 
     private Diffable parent;
     private Change change;
+    private Set<String> configuredFields;
 
     public Diffable parent() {
         return parent;
@@ -50,7 +55,33 @@ public abstract class Diffable {
         this.change = change;
     }
 
+    public Set<String> configuredFields() {
+        return configuredFields != null ? configuredFields : Collections.emptySet();
+    }
+
     public void initialize(Map<String, Object> values) {
+        if (configuredFields == null) {
+
+            // Current state contains an explicit list of configured fields
+            // that were in the original diffable definition.
+            @SuppressWarnings("unchecked")
+            Collection<String> cf = (Collection<String>) values.get("_configured-fields");
+
+            if (cf == null) {
+
+                // Only save fields that are in the diffable definition and
+                // exclude the ones that were copied from the current state.
+                if (values instanceof DiffableScope) {
+                    cf = ((DiffableScope) values).getAddedKeys();
+
+                } else {
+                    cf = values.keySet();
+                }
+            }
+
+            configuredFields = ImmutableSet.copyOf(cf);
+        }
+
         for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
             String key = field.getBeamName();
 
@@ -109,7 +140,6 @@ public abstract class Diffable {
 
             valueResource.resourceType(key);
             valueResource.scope(scope);
-            valueResource.initialize(scope);
         }
 
         diffable.parent(this);
@@ -124,6 +154,13 @@ public abstract class Diffable {
 
     public List<Node> toBodyNodes() {
         List<Node> body = new ArrayList<>();
+
+        if (configuredFields != null) {
+            body.add(new KeyValueNode("_configured-fields",
+                    new ListNode(configuredFields.stream()
+                            .map(StringNode::new)
+                            .collect(Collectors.toList()))));
+        }
 
         for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
             Object value = field.getValue(this);

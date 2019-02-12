@@ -24,7 +24,6 @@ public class DiffableField {
     private final String beamName;
     private final Method getter;
     private final Method setter;
-    private final boolean nullable;
     private final boolean updatable;
     private final Class<?> itemClass;
 
@@ -37,11 +36,9 @@ public class DiffableField {
         ResourceDiffProperty annotation = getter.getAnnotation(ResourceDiffProperty.class);
 
         if (annotation != null) {
-            this.nullable = annotation.nullable();
             this.updatable = annotation.updatable();
 
         } else {
-            this.nullable = false;
             this.updatable = false;
         }
 
@@ -68,10 +65,6 @@ public class DiffableField {
 
     public String getBeamName() {
         return beamName;
-    }
-
-    public boolean isNullable() {
-        return nullable;
     }
 
     public boolean isUpdatable() {
