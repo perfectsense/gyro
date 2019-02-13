@@ -147,7 +147,7 @@ public class ResourceDocGenerator {
 
                         ClassDoc subresourceDoc = root.classNamed(tag.text());
                         if (subresourceDoc != null) {
-                            generateAttributes(subresourceDoc, sb, 4);
+                            generateAttributes(subresourceDoc, sb, indent + 4);
                         }
 
                         isSubresource = true;
@@ -158,11 +158,37 @@ public class ResourceDocGenerator {
                     sb.append(repeat(" ", indent));
                     sb.append(String.format("`%s <#%s>`_", attributeName, attributeName));
                     sb.append(" - ");
-                    sb.append(methodDoc.commentText());
+                    sb.append(firstSentence(methodDoc.commentText()));
+
+                    String rest = comment(methodDoc.commentText(), indent);
+                    if (!ObjectUtils.isBlank(rest)) {
+                        sb.append(rest);
+                    }
+
                     sb.append("\n\n");
                 }
             }
         }
+    }
+
+    private String firstSentence(String commentText) {
+        return commentText.split("\n")[0];
+    }
+
+    private String comment(String commentText, int indent) {
+        StringBuilder sb = new StringBuilder();
+
+        String[] parts = commentText.split("\n");
+        if (parts.length > 1) {
+            sb.append("\n");
+            for (int i = 1; i < parts.length; i++) {
+                sb.append(repeat(" ", indent));
+                sb.append(parts[i]);
+                sb.append("\n");
+            }
+        }
+
+        return sb.toString();
     }
 
 }
