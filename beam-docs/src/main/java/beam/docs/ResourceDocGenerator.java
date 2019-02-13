@@ -7,6 +7,10 @@ import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.MethodDoc;
 import com.sun.javadoc.PackageDoc;
 import com.sun.javadoc.RootDoc;
+import com.sun.javadoc.Tag;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ResourceDocGenerator {
 
@@ -16,6 +20,7 @@ public class ResourceDocGenerator {
     private String name;
     private String groupName;
     private String providerPackage;
+    private List<String> subresources = new ArrayList<>();
     private boolean isSubresource = false;
 
     public ResourceDocGenerator(RootDoc root, ClassDoc doc) {
@@ -62,8 +67,10 @@ public class ResourceDocGenerator {
 
         StringBuilder sb = new StringBuilder();
 
+        System.out.println("Generating documentation for: " + resourceName());
+
         generateHeader(sb);
-        generateAttributes(doc, sb);
+        generateAttributes(doc, sb, 0);
 
         return sb.toString();
     }
@@ -120,11 +127,11 @@ public class ResourceDocGenerator {
         sb.append("\n\n");
     }
 
-    private void generateAttributes(ClassDoc classDoc, StringBuilder sb) {
+    private void generateAttributes(ClassDoc classDoc, StringBuilder sb, int indent) {
         // `auto-scaling-group-name <#auto-scaling-group-name>`_ - The name of the auto scaling group, also served as its identifier and thus unique. (Required)
 
         if (classDoc.superclass() != null && !classDoc.superclass().name().equals("Resource")) {
-            generateAttributes(classDoc.superclass(), sb);
+            generateAttributes(classDoc.superclass(), sb, indent);
         }
 
         for (MethodDoc methodDoc : classDoc.methods()) {
@@ -132,10 +139,28 @@ public class ResourceDocGenerator {
                 String attributeName = methodDoc.name();
                 attributeName = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN, attributeName).replaceFirst("get-", "");
 
-                sb.append(String.format("`%s <#%s>`_", attributeName, attributeName));
-                sb.append(" - ");
-                sb.append(methodDoc.commentText());
-                sb.append("\n\n");
+                boolean isSubresource = false;
+                for (Tag tag : methodDoc.tags()) {
+                    if (tag.name().equals("@subresource"))  {
+                        sb.append(String.format("**%s** is a subresource with the following attributes:", attributeName));
+                        sb.append("\n\n");
+
+                        ClassDoc subresourceDoc = root.classNamed(tag.text());
+                        if (subresourceDoc != null) {
+                            generateAttributes(subresourceDoc, sb, 4);
+                        }
+
+                        isSubresource = true;
+                    }
+                }
+
+                if (!isSubresource) {
+                    sb.append(repeat(" ", indent));
+                    sb.append(String.format("`%s <#%s>`_", attributeName, attributeName));
+                    sb.append(" - ");
+                    sb.append(methodDoc.commentText());
+                    sb.append("\n\n");
+                }
             }
         }
     }
