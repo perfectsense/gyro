@@ -9,6 +9,7 @@
    writing-a-command-plugin/index
 
 .. toctree::
-   :caption: Providers
+    :caption: Providers
+    :maxdepth: 3
 
    providers/aws/index
