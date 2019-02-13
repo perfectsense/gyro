@@ -32,29 +32,31 @@ import java.util.stream.Collectors;
 /**
  * Create a CloudFront distribution.
  *
- * aws::cloudfront cloudfront-example
- *     name: "static asset cache"
- *     enabled: true
- *     ipv6-enabled: false
+ * .. code-block:: beam
  *
- *     origin
- *         id: "S3-my-bucket"
- *         domain-name: "my-bucket.s3.us-east-1.amazonaws.com"
- *     end
+ *    aws::cloudfront cloudfront-example
+ *        name: "static asset cache"
+ *        enabled: true
+ *        ipv6-enabled: false
  *
- *     default-cache-behavior
- *         target-origin-id: "S3-my-bucket-brightspot"
- *         viewer-protocol-policy: "allow-all"
- *         allowed-methods: ["GET", "HEAD"]
- *         cached-methods: ["GET", "HEAD"]
- *         headers: ["Origin"]
- *     end
+ *        origin
+ *            id: "S3-my-bucket"
+ *            domain-name: "my-bucket.s3.us-east-1.amazonaws.com"
+ *        end
  *
- *     geo-restriction
- *         type: "whitelist"
- *         restrictions: ["US"]
- *     end
- * end
+ *        default-cache-behavior
+ *            target-origin-id: "S3-my-bucket-brightspot"
+ *            viewer-protocol-policy: "allow-all"
+ *            allowed-methods: ["GET", "HEAD"]
+ *            cached-methods: ["GET", "HEAD"]
+ *            headers: ["Origin"]
+ *        end
+ *
+ *        geo-restriction
+ *            type: "whitelist"
+ *            restrictions: ["US"]
+ *        end
+ *    end
  */
 @ResourceName("cloudfront")
 public class CloudFrontResource extends AwsResource {
