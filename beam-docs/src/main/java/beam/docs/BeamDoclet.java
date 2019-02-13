@@ -2,6 +2,7 @@ package beam.docs;
 
 import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.Doclet;
+import com.sun.javadoc.PackageDoc;
 import com.sun.javadoc.RootDoc;
 
 import java.io.File;
@@ -10,8 +11,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class BeamDoclet extends Doclet {
 
@@ -33,6 +36,7 @@ public class BeamDoclet extends Doclet {
 
         // group -> "resource -> rst"
         Map<String, Map<String, String>> docs = new HashMap<>();
+        String providerPackage = "";
 
         for (ClassDoc doc : root.classes()) {
             if (doc.isAbstract()) {
@@ -44,8 +48,21 @@ public class BeamDoclet extends Doclet {
             Map<String, String> groupDocs = docs.computeIfAbsent(generator.getGroupName(), m -> new HashMap());
             groupDocs.put(generator.getName(), generator.generate());
 
+            providerPackage = generator.getProviderPackage();
         }
 
+        /*
+        AWS Provider
+        ------------
+
+        .. toctree::
+            :hidden:
+
+           autoscaling-groups/index
+           ec2/index
+         */
+
+        List<String> groupDirs = new ArrayList<>();
         for (String group : docs.keySet()) {
             if (group != null) {
                 String groupDir = group.toLowerCase().replaceAll(" ", "-");
@@ -70,7 +87,31 @@ public class BeamDoclet extends Doclet {
                 } catch (IOException ioe) {
                     ioe.printStackTrace();
                 }
+
+                groupDirs.add(groupDir);
             }
+        }
+
+        // Output provider index
+        StringBuilder providerIndex = new StringBuilder();
+        PackageDoc rootPackageDoc = root.packageNamed(providerPackage);
+        providerIndex.append(rootPackageDoc.commentText());
+        providerIndex.append("\n\n");
+        providerIndex.append(".. toctree::\n");
+        providerIndex.append("    :hidden:\n\n");
+
+        Collections.sort(groupDirs);
+
+        for (String groupDir : groupDirs) {
+            providerIndex.append("    ");
+            providerIndex.append(groupDir);
+            providerIndex.append("/index\n");
+        }
+
+        try (FileWriter writer = new FileWriter(outputDirectory + File.separator + "index.rst")) {
+            writer.write(providerIndex.toString());
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
         }
 
         return true;

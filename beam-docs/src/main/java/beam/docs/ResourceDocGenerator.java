@@ -15,6 +15,7 @@ public class ResourceDocGenerator {
     private String namespace;
     private String name;
     private String groupName;
+    private String providerPackage;
 
     public ResourceDocGenerator(RootDoc root, ClassDoc doc) {
         this.root = root;
@@ -37,8 +38,8 @@ public class ResourceDocGenerator {
             name = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN, doc.name().replace("Resource", ""));
         }
 
-        String parentPackageName = packageDoc.name().substring(0, packageDoc.name().lastIndexOf('.'));
-        PackageDoc rootPackageDoc = root.packageNamed(parentPackageName);
+        providerPackage = packageDoc.name().substring(0, packageDoc.name().lastIndexOf('.'));
+        PackageDoc rootPackageDoc = root.packageNamed(providerPackage);
         for (AnnotationDesc annotationDesc : rootPackageDoc.annotations()) {
             if (annotationDesc.annotationType().name().equals("DocNamespace")) {
                 namespace = (String) annotationDesc.elementValues()[0].value().value();
@@ -53,6 +54,10 @@ public class ResourceDocGenerator {
         generateAttributes(sb);
 
         return sb.toString();
+    }
+
+    public String getProviderPackage() {
+        return providerPackage;
     }
 
     public String getNamespace() {
