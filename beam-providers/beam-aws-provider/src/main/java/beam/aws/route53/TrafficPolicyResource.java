@@ -18,6 +18,21 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Set;
 
+/**
+ * Creates a Traffic Policy resource.
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: beam
+ *
+ *     aws::traffic-policy traffic-policy-example
+ *         name: "traffic-policy-example"
+ *         comment: "traffic-policy-example Comment"
+ *         document-path: "policy.json"
+ *     end
+ *
+ */
 @ResourceName("traffic-policy")
 public class TrafficPolicyResource extends AwsResource {
     private String name;
@@ -26,6 +41,9 @@ public class TrafficPolicyResource extends AwsResource {
     private String documentPath;
     private String trafficPolicyId;
 
+    /**
+     * The name of the traffic policy. (Required)
+     */
     public String getName() {
         return name;
     }
@@ -34,6 +52,9 @@ public class TrafficPolicyResource extends AwsResource {
         this.name = name;
     }
 
+    /**
+     * The comment you want to put with the policy.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getComment() {
         return comment;
@@ -43,6 +64,9 @@ public class TrafficPolicyResource extends AwsResource {
         this.comment = comment;
     }
 
+    /**
+     * The policy document. Required unless document path provided.
+     */
     public String getDocument() {
         return document;
     }
@@ -51,6 +75,9 @@ public class TrafficPolicyResource extends AwsResource {
         this.document = document;
     }
 
+    /**
+     * The policy document file path. Required unless document provided.
+     */
     public String getDocumentPath() {
         return documentPath;
     }
