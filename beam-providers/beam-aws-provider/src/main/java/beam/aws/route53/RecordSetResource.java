@@ -5,12 +5,14 @@ import beam.core.BeamException;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 import beam.lang.Resource;
+import com.google.common.collect.ImmutableSet;
 import com.psddev.dari.util.ObjectUtils;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.route53.Route53Client;
 import software.amazon.awssdk.services.route53.model.Change;
 import software.amazon.awssdk.services.route53.model.ChangeAction;
 import software.amazon.awssdk.services.route53.model.ListResourceRecordSetsResponse;
+import software.amazon.awssdk.services.route53.model.RRType;
 import software.amazon.awssdk.services.route53.model.ResourceRecord;
 import software.amazon.awssdk.services.route53.model.ResourceRecordSet;
 
@@ -18,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @ResourceName("record-set")
 public class RecordSetResource extends AwsResource {
@@ -43,6 +46,9 @@ public class RecordSetResource extends AwsResource {
     private String routingPolicy;
     private Boolean enableAlias;
     private String aliasHostedZoneId;
+
+    private static final Set<String> RoutingPolicySet = ImmutableSet.of("geolocation","failover","multivalue","weighted","latency","simple");
+
 
     public String getComment() {
         return comment;
@@ -226,7 +232,7 @@ public class RecordSetResource extends AwsResource {
             routingPolicy = "simple";
         }
 
-        return routingPolicy;
+        return routingPolicy.toLowerCase();
     }
 
     public void setRoutingPolicy(String routingPolicy) {
@@ -272,19 +278,29 @@ public class RecordSetResource extends AwsResource {
 
     @Override
     public void create() {
+        validate();
+
         Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
 
-        saveResourceRecordSet(client,this, ChangeAction.CREATE);
+        if (getType().equals("NS") || getType().equals("SOA")) {
+            saveResourceRecordSet(client,this, ChangeAction.UPSERT);
+        } else {
+            saveResourceRecordSet(client,this, ChangeAction.CREATE);
+        }
 
         refresh();
     }
 
     @Override
     public void update(Resource current, Set<String> changedProperties) {
+        validate();
+
         Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
 
-        if (changedProperties.contains("name")) {
-            saveResourceRecordSet(client, (RecordSetResource) current, ChangeAction.DELETE);
+        RecordSetResource oldResource = (RecordSetResource) current;
+
+        if (changedProperties.contains("name") || changedProperties.contains("set-identifier")) {
+            saveResourceRecordSet(client, oldResource, ChangeAction.DELETE);
         }
 
         saveResourceRecordSet(client, this, ChangeAction.UPSERT);
@@ -394,13 +410,7 @@ public class RecordSetResource extends AwsResource {
             case "latency":
                 recordSetBuilder.region(recordSetResource.getRegion());
                 break;
-            default:
-                //simple
-
-                if (!getRoutingPolicy().equals("simple")) {
-                    throw new BeamException("Invalid Type");
-                }
-                break;
+            default: break;
         }
 
         Change change = Change.builder()
@@ -415,5 +425,114 @@ public class RecordSetResource extends AwsResource {
                         .changes(change)
                 )
         );
+    }
+
+    private void validate() {
+        if (! RoutingPolicySet.contains(getRoutingPolicy())) {
+            throw new BeamException(String.format("The value - (%s) is invalid for parameter 'routing-policy'."
+                + " Valid values [ '%s' ].",getRoutingPolicy(),String.join("', '",RoutingPolicySet)));
+        }
+
+        if (ObjectUtils.isBlank(getType())
+            || RRType.fromValue(getType())
+            .equals(RRType.UNKNOWN_TO_SDK_VERSION)) {
+            throw new BeamException(String.format("Invalid value '%s' for param 'insufficient-data-health-status'."
+                    + " Valid values [ '%s' ]", getType(),
+                Stream.of(RRType.values())
+                    .filter(o -> !o.equals(RRType.UNKNOWN_TO_SDK_VERSION))
+                    .map(Enum::toString).collect(Collectors.joining("', '"))));
+        }
+
+        if (getEnableAlias()) {
+            if (!ObjectUtils.isBlank(getTtl())) {
+                throw new BeamException("The param 'ttl' is not allowed when 'enable-alias' is set to 'true'.");
+            }
+
+            if (!getRecords().isEmpty()) {
+                throw new BeamException("The param 'records' is not allowed when 'enable-alias' is set to 'true'.");
+            }
+
+            if (getEvaluateTargetHealth() == null) {
+                throw new BeamException("The param 'evaluate-target-health' is required when 'enable-alias' is set to 'true'.");
+            }
+
+            if (ObjectUtils.isBlank(getDnsName())) {
+                throw new BeamException("The param 'dns-name' is required when 'enable-alias' is set to 'true'.");
+            }
+
+            if (ObjectUtils.isBlank(getAliasHostedZoneId())) {
+                throw new BeamException("The param 'alias-hosted-zone-id' is required when 'enable-alias' is set to 'true'.");
+            }
+        } else {
+            if (getEvaluateTargetHealth() != null) {
+                throw new BeamException("The param 'evaluate-target-health' is not allowed when 'enable-alias' is set to 'false' or not set.");
+            }
+
+            if (getDnsName() != null) {
+                throw new BeamException("The param 'dns-name' is not allowed when 'enable-alias' is set to 'false' or not set.");
+            }
+
+            if (getAliasHostedZoneId() != null) {
+                throw new BeamException("The param 'alias-hosted-zone-id' is not allowed when 'enable-alias' is set to 'false' or not set.");
+            }
+
+            if (ObjectUtils.isBlank(getTtl()) || getTtl() < 0) {
+                throw new BeamException("The param 'ttl' is required when 'enable-alias' is set to 'false' or not set."
+                    + " Valid values [ Integer greater than 0 ].");
+            }
+
+            if (getRecords().isEmpty()) {
+                throw new BeamException("The param 'records' is required when 'enable-alias' is set to 'false' or not set.");
+            }
+        }
+
+        if (!getRoutingPolicy().equals("geolocation")) {
+            if (!ObjectUtils.isBlank(getContinentCode())) {
+                throw new BeamException("The param 'continent-code' is not allowed when 'routing-policy' is not set to 'geolocation'.");
+            }
+
+            if (!ObjectUtils.isBlank(getCountryCode())) {
+                throw new BeamException("The param 'country-code' is not allowed when 'routing-policy' is not set to 'geolocation'.");
+            }
+
+            if (!ObjectUtils.isBlank(getSubdivisionCode())) {
+                throw new BeamException("The param 'subdivision-code' is not allowed when 'routing-policy' is not set to 'geolocation'.");
+            }
+        } else {
+            if (ObjectUtils.isBlank(getContinentCode()) && ObjectUtils.isBlank(getCountryCode()) && ObjectUtils.isBlank(getSubdivisionCode())) {
+                throw new BeamException("At least one of the param [ 'continent-code', 'country-code', 'subdivision-code']"
+                    + " is required when 'routing-policy' is set to 'geolocation'.");
+            }
+        }
+
+        if (!getRoutingPolicy().equals("failover") && getFailover() != null) {
+            throw new BeamException("The param 'failover' is not allowed when 'routing-policy' is not set to 'failover'.");
+        } else if (getRoutingPolicy().equals("failover") && ObjectUtils.isBlank(getFailover())) {
+            throw new BeamException("The param 'failover' is required when 'routing-policy' is set to 'failover'.");
+        }
+
+        if (!getRoutingPolicy().equals("multivalue") && getMultiValueAnswer() != null) {
+            throw new BeamException("The param 'multi-value-answer' is not allowed when 'routing-policy' is not set to 'multivalue'.");
+        } else if (getRoutingPolicy().equals("multivalue")) {
+            if (getMultiValueAnswer() == null) {
+                throw new BeamException("The param 'multi-value-answer' is required when 'routing-policy' is set to 'multivalue'.");
+            }
+
+            if (getRecords().size() > 1) {
+                throw new BeamException("The param 'records' can only have one value when 'routing-policy' is set to 'multivalue'.");
+            }
+        }
+
+        if (!getRoutingPolicy().equals("weighted") && getWeight() != null) {
+            throw new BeamException("The param 'weight' is not allowed when 'routing-policy' is not set to 'weighted'.");
+        } else if (getRoutingPolicy().equals("weighted") && getWeight() == null) {
+            throw new BeamException("The param 'weight' is required when 'routing-policy' is set to 'weighted'.");
+        }
+
+        if (!getRoutingPolicy().equals("latency") && getRegion() != null) {
+            throw new BeamException("The param 'region' is not allowed when 'routing-policy' is not set to 'latency'.");
+        } else if (getRoutingPolicy().equals("latency") && ObjectUtils.isBlank(getRegion())) {
+            throw new BeamException("The param 'region' is required when 'routing-policy' is set to 'latency'.");
+        }
     }
 }
