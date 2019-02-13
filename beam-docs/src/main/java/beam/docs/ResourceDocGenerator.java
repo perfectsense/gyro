@@ -63,6 +63,25 @@ public class ResourceDocGenerator {
         return groupName;
     }
 
+    public static String trim(String s) {
+        StringBuilder sb = new StringBuilder();
+
+        for (String line : s.split("\n")) {
+            if (line.startsWith(" ")) {
+                sb.append(line.substring(1));
+            } else {
+                sb.append(line);
+            }
+            sb.append("\n");
+        }
+
+        return sb.toString();
+    }
+
+    public static String repeat(String c, int r) {
+        return new String(new char[r]).replace("\0", c);
+    }
+
     private String resourceName() {
         return String.format("%s::%s", namespace, name);
     }
@@ -88,7 +107,7 @@ public class ResourceDocGenerator {
                 String attributeName = methodDoc.name().toString();
                 attributeName = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN, attributeName).replaceFirst("get-", "");
 
-                sb.append(String.format("`%s` <#%s>`_", attributeName, attributeName));
+                sb.append(String.format("`%s <#%s>`_", attributeName, attributeName));
                 sb.append(" - ");
                 sb.append(methodDoc.commentText());
                 sb.append("\n\n");
@@ -96,22 +115,4 @@ public class ResourceDocGenerator {
         }
     }
 
-    private String trim(String s) {
-        StringBuilder sb = new StringBuilder();
-
-        for (String line : s.split("\n")) {
-            if (line.startsWith(" ")) {
-                sb.append(line.substring(1));
-            } else {
-                sb.append(line);
-            }
-            sb.append("\n");
-        }
-
-        return sb.toString();
-    }
-
-    private String repeat(String c, int r) {
-        return new String(new char[r]).replace("\0", c);
-    }
 }

@@ -45,6 +45,7 @@ public class BeamDoclet extends Doclet {
 
                 new File(outputDirectory + File.separator + groupDir).mkdirs();
 
+                // Output individual resource files.
                 Map<String, String> resources = docs.get(group);
                 for (String resource : resources.keySet()) {
                     String rst = resources.get(resource);
@@ -54,6 +55,13 @@ public class BeamDoclet extends Doclet {
                     } catch (IOException ioe) {
                         ioe.printStackTrace();
                     }
+                }
+
+                // Output group index
+                try (FileWriter writer = new FileWriter(outputDirectory + File.separator + groupDir + File.separator + "index.rst")) {
+                    writer.write(generateGroupIndex(group, resources));
+                } catch (IOException ioe) {
+                    ioe.printStackTrace();
                 }
             }
         }
@@ -67,6 +75,37 @@ public class BeamDoclet extends Doclet {
         }
 
         return 0;
+    }
+
+    private static String generateGroupIndex(String groupName, Map<String, String> resources) {
+        StringBuilder sb = new StringBuilder();
+
+        /*
+        Autoscaling Groups
+        ==================
+
+        .. toctree::
+
+            auto-scaling-group
+            launch-configuration
+        */
+
+        sb.append(groupName).append("\n");
+        sb.append(ResourceDocGenerator.repeat("=", groupName.length()));
+        sb.append("\n\n");
+        sb.append(".. toctree::");
+        sb.append("\n");
+        sb.append("    :hidden:");
+        sb.append("\n\n");
+
+        for (String resource : resources.keySet()) {
+            if (resource != null) {
+                sb.append("    ").append(resource);
+                sb.append("\n");
+            }
+        }
+
+        return sb.toString();
     }
 
 }
