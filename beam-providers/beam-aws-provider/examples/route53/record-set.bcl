@@ -70,7 +70,7 @@ aws::record-set record-set-example-3
     routing-policy: "latency"
 end
 
-aws::record-set record-set-example-4 #check health check id
+aws::record-set record-set-example-4
     hosted-zone-name: $(aws::hosted-zone hosted-zone-record-set-example | hosted-zone-name)
     hosted-zone-id: $(aws::hosted-zone hosted-zone-record-set-example | hosted-zone-id)
     name: "a.n.f.s."

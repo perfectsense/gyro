@@ -52,7 +52,7 @@ public class RecordSetResource extends AwsResource {
         this.comment = comment;
     }
 
-    @ResourceDiffProperty(updatable = true)
+    @ResourceDiffProperty(updatable = true, nullable = true)
     public String getContinentCode() {
         return continentCode != null ? continentCode.toUpperCase() : null;
     }
@@ -61,7 +61,7 @@ public class RecordSetResource extends AwsResource {
         this.continentCode = continentCode;
     }
 
-    @ResourceDiffProperty(updatable = true)
+    @ResourceDiffProperty(updatable = true, nullable = true)
     public String getCountryCode() {
         return countryCode != null ? countryCode.toUpperCase() : null;
     }
@@ -70,7 +70,7 @@ public class RecordSetResource extends AwsResource {
         this.countryCode = countryCode;
     }
 
-    @ResourceDiffProperty(updatable = true)
+    @ResourceDiffProperty(updatable = true, nullable = true)
     public String getDnsName() {
         if (dnsName != null) {
             dnsName += dnsName.endsWith(".") ? "" : ".";
@@ -83,7 +83,7 @@ public class RecordSetResource extends AwsResource {
         this.dnsName = dnsName;
     }
 
-    @ResourceDiffProperty(updatable = true)
+    @ResourceDiffProperty(updatable = true, nullable = true)
     public Boolean getEvaluateTargetHealth() {
         return evaluateTargetHealth;
     }
@@ -92,7 +92,7 @@ public class RecordSetResource extends AwsResource {
         this.evaluateTargetHealth = evaluateTargetHealth;
     }
 
-    @ResourceDiffProperty(updatable = true)
+    @ResourceDiffProperty(updatable = true, nullable = true)
     public String getFailover() {
         return failover != null ? failover.toUpperCase() : null;
     }
@@ -126,7 +126,7 @@ public class RecordSetResource extends AwsResource {
         this.healthCheckId = healthCheckId;
     }
 
-    @ResourceDiffProperty(updatable = true)
+    @ResourceDiffProperty(updatable = true, nullable = true)
     public Boolean getMultiValueAnswer() {
         return multiValueAnswer;
     }
@@ -144,7 +144,7 @@ public class RecordSetResource extends AwsResource {
         this.name = name;
     }
 
-    @ResourceDiffProperty(updatable = true)
+    @ResourceDiffProperty(updatable = true, nullable = true)
     public String getRegion() {
         return region;
     }
@@ -162,7 +162,7 @@ public class RecordSetResource extends AwsResource {
         this.setIdentifier = setIdentifier;
     }
 
-    @ResourceDiffProperty(updatable = true)
+    @ResourceDiffProperty(updatable = true, nullable = true)
     public String getSubdivisionCode() {
         return subdivisionCode != null ? subdivisionCode.toUpperCase() : null;
     }
@@ -171,7 +171,7 @@ public class RecordSetResource extends AwsResource {
         this.subdivisionCode = subdivisionCode;
     }
 
-    @ResourceDiffProperty(updatable = true)
+    @ResourceDiffProperty(updatable = true, nullable = true)
     public String getTrafficPolicyInstanceId() {
         return trafficPolicyInstanceId;
     }
@@ -180,7 +180,7 @@ public class RecordSetResource extends AwsResource {
         this.trafficPolicyInstanceId = trafficPolicyInstanceId;
     }
 
-    @ResourceDiffProperty(updatable = true)
+    @ResourceDiffProperty(updatable = true, nullable = true)
     public Long getTtl() {
         return ttl;
     }
@@ -189,7 +189,7 @@ public class RecordSetResource extends AwsResource {
         this.ttl = ttl;
     }
 
-    @ResourceDiffProperty(updatable = true)
+    @ResourceDiffProperty(updatable = true, nullable = true)
     public String getType() {
         return type;
     }
@@ -198,7 +198,7 @@ public class RecordSetResource extends AwsResource {
         this.type = type;
     }
 
-    @ResourceDiffProperty(updatable = true)
+    @ResourceDiffProperty(updatable = true, nullable = true)
     public Long getWeight() {
         return weight;
     }
@@ -207,7 +207,7 @@ public class RecordSetResource extends AwsResource {
         this.weight = weight;
     }
 
-    @ResourceDiffProperty(updatable = true)
+    @ResourceDiffProperty(updatable = true, nullable = true)
     public List<String> getRecords() {
         if (records == null) {
             records = new ArrayList<>();
@@ -220,7 +220,7 @@ public class RecordSetResource extends AwsResource {
         this.records = records;
     }
 
-    @ResourceDiffProperty(updatable = true)
+    @ResourceDiffProperty(updatable = true, nullable = true)
     public String getRoutingPolicy() {
         if (routingPolicy == null) {
             routingPolicy = "simple";
@@ -274,7 +274,7 @@ public class RecordSetResource extends AwsResource {
     public void create() {
         Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
 
-        saveResourceRecordSet(client, ChangeAction.CREATE);
+        saveResourceRecordSet(client,this, ChangeAction.CREATE);
 
         refresh();
     }
@@ -283,14 +283,18 @@ public class RecordSetResource extends AwsResource {
     public void update(Resource current, Set<String> changedProperties) {
         Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
 
-        saveResourceRecordSet(client, ChangeAction.UPSERT);
+        if (changedProperties.contains("name")) {
+            saveResourceRecordSet(client, (RecordSetResource) current, ChangeAction.DELETE);
+        }
+
+        saveResourceRecordSet(client, this, ChangeAction.UPSERT);
     }
 
     @Override
     public void delete() {
         Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
 
-        saveResourceRecordSet(client, ChangeAction.DELETE);
+        saveResourceRecordSet(client, this, ChangeAction.DELETE);
     }
 
     @Override
@@ -351,45 +355,52 @@ public class RecordSetResource extends AwsResource {
         return response.resourceRecordSets().get(0);
     }
 
-    private void saveResourceRecordSet(Route53Client client, ChangeAction changeAction) {
+    private void saveResourceRecordSet(Route53Client client, RecordSetResource recordSetResource, ChangeAction changeAction) {
         ResourceRecordSet.Builder recordSetBuilder = ResourceRecordSet.builder()
-            .name(getName() + getHostedZoneName())
-            .healthCheckId(getHealthCheckId())
-            .setIdentifier(getSetIdentifier())
-            .trafficPolicyInstanceId(getTrafficPolicyInstanceId())
-            .type(getType());
+            .name(recordSetResource.getName() + recordSetResource.getHostedZoneName())
+            .healthCheckId(recordSetResource.getHealthCheckId())
+            .setIdentifier(recordSetResource.getSetIdentifier())
+            .trafficPolicyInstanceId(recordSetResource.getTrafficPolicyInstanceId())
+            .type(recordSetResource.getType());
 
-        if (getEnableAlias()) {
+        if (recordSetResource.getEnableAlias()) {
             recordSetBuilder.aliasTarget(
-                a -> a.dnsName(getDnsName())
-                    .evaluateTargetHealth(getEvaluateTargetHealth())
-                    .hostedZoneId(getAliasHostedZoneId()));
+                a -> a.dnsName(recordSetResource.getDnsName())
+                    .evaluateTargetHealth(recordSetResource.getEvaluateTargetHealth())
+                    .hostedZoneId(recordSetResource.getAliasHostedZoneId()));
         } else {
-            recordSetBuilder.resourceRecords(getRecords().stream()
+            recordSetBuilder.resourceRecords(recordSetResource.getRecords().stream()
                 .map(o -> ResourceRecord.builder().value(o).build())
                 .collect(Collectors.toList()))
-                .ttl(getTtl());
+                .ttl(recordSetResource.getTtl());
         }
 
-        if (getRoutingPolicy().equals("geolocation")) {
-            recordSetBuilder.geoLocation(
-                g -> g.continentCode(getContinentCode())
-                    .countryCode(getCountryCode())
-                    .subdivisionCode(getSubdivisionCode()));
-        } else if (getRoutingPolicy().equals("failover")) {
-            recordSetBuilder.failover(getFailover());
-        } else if (getRoutingPolicy().equals("multivalue")) {
-            recordSetBuilder.multiValueAnswer(getMultiValueAnswer());
-        } else if (getRoutingPolicy().equals("weighted")) {
-            recordSetBuilder.weight(getWeight());
-        } else if (getRoutingPolicy().equals("latency")) {
-            recordSetBuilder.region(getRegion());
-        } else {
-            //simple
+        switch (recordSetResource.getRoutingPolicy()) {
+            case "geolocation":
+                recordSetBuilder.geoLocation(
+                    g -> g.continentCode(recordSetResource.getContinentCode())
+                        .countryCode(recordSetResource.getCountryCode())
+                        .subdivisionCode(recordSetResource.getSubdivisionCode()));
+                break;
+            case "failover":
+                recordSetBuilder.failover(recordSetResource.getFailover());
+                break;
+            case "multivalue":
+                recordSetBuilder.multiValueAnswer(recordSetResource.getMultiValueAnswer());
+                break;
+            case "weighted":
+                recordSetBuilder.weight(recordSetResource.getWeight());
+                break;
+            case "latency":
+                recordSetBuilder.region(recordSetResource.getRegion());
+                break;
+            default:
+                //simple
 
-            if (!getRoutingPolicy().equals("simple")) {
-                throw new BeamException("Invalid Type");
-            }
+                if (!getRoutingPolicy().equals("simple")) {
+                    throw new BeamException("Invalid Type");
+                }
+                break;
         }
 
         Change change = Change.builder()
@@ -398,9 +409,9 @@ public class RecordSetResource extends AwsResource {
             .build();
 
         client.changeResourceRecordSets(
-            r -> r.hostedZoneId(getHostedZoneId())
+            r -> r.hostedZoneId(recordSetResource.getHostedZoneId())
                 .changeBatch(
-                    c -> c.comment(getComment())
+                    c -> c.comment(recordSetResource.getComment())
                         .changes(change)
                 )
         );
