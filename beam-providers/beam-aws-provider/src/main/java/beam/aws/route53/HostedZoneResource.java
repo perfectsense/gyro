@@ -11,8 +11,6 @@ import software.amazon.awssdk.services.route53.Route53Client;
 import software.amazon.awssdk.services.route53.model.CreateHostedZoneResponse;
 import software.amazon.awssdk.services.route53.model.GetHostedZoneResponse;
 import software.amazon.awssdk.services.route53.model.HostedZone;
-import software.amazon.awssdk.services.route53.model.ListResourceRecordSetsResponse;
-import software.amazon.awssdk.services.route53.model.ResourceRecordSet;
 import software.amazon.awssdk.services.route53.model.VPC;
 
 import java.util.ArrayList;
@@ -51,7 +49,6 @@ public class HostedZoneResource extends AwsResource {
     private String description;
     private String servicePrincipal;
     private List<Route53VpcResource> vpc;
-    private List<RecordSetResource> recordSet;
 
     /**
      * The id of a delegation set.
@@ -147,19 +144,6 @@ public class HostedZoneResource extends AwsResource {
         this.vpc = vpc;
     }
 
-    @ResourceDiffProperty(nullable = true, subresource = true)
-    public List<RecordSetResource> getRecordSet() {
-        if (recordSet == null) {
-            recordSet = new ArrayList<>();
-        }
-
-        return recordSet;
-    }
-
-    public void setRecordSet(List<RecordSetResource> recordSet) {
-        this.recordSet = recordSet;
-    }
-
     @Override
     public boolean refresh() {
         Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
@@ -178,8 +162,6 @@ public class HostedZoneResource extends AwsResource {
         setServicePrincipal(hostedZone.linkedService() != null ? hostedZone.linkedService().servicePrincipal() : null);
 
         loadVpcs(response.vpCs());
-
-        loadRecordSets(client);
 
         return true;
     }
@@ -282,26 +264,6 @@ public class HostedZoneResource extends AwsResource {
                             .vpcRegion(vpcRegion)
                     )
             );
-        }
-    }
-
-    private void loadRecordSets(Route53Client client) {
-        getRecordSet().clear();
-
-        ListResourceRecordSetsResponse response = client.listResourceRecordSets(
-            r -> r.hostedZoneId(getHostedZoneId())
-        );
-
-        for (ResourceRecordSet recordSet : response.resourceRecordSets()) {
-            if (recordSet.name().equals(getHostedZoneName())
-                && (recordSet.typeAsString().equals("SOA") || recordSet.typeAsString().equals("NS"))) {
-                // ready made record set
-                // resolve later
-            } else {
-                RecordSetResource recordSetResource = new RecordSetResource(recordSet, getHostedZoneName());
-                recordSetResource.parent(this);
-                getRecordSet().add(recordSetResource);
-            }
         }
     }
 

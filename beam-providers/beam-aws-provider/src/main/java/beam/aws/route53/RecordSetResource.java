@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@ResourceName(parent = "hosted-zone", value = "record-set")
+@ResourceName("record-set")
 public class RecordSetResource extends AwsResource {
     private String comment;
     private String continentCode;
@@ -40,6 +40,9 @@ public class RecordSetResource extends AwsResource {
     private String type;
     private Long weight;
     private List<String> records;
+    private String routingPolicy;
+    private Boolean enableAlias;
+    private String aliasHostedZoneId;
 
     public String getComment() {
         return comment;
@@ -51,7 +54,7 @@ public class RecordSetResource extends AwsResource {
 
     @ResourceDiffProperty(updatable = true)
     public String getContinentCode() {
-        return continentCode;
+        return continentCode != null ? continentCode.toUpperCase() : null;
     }
 
     public void setContinentCode(String continentCode) {
@@ -60,7 +63,7 @@ public class RecordSetResource extends AwsResource {
 
     @ResourceDiffProperty(updatable = true)
     public String getCountryCode() {
-        return countryCode;
+        return countryCode != null ? countryCode.toUpperCase() : null;
     }
 
     public void setCountryCode(String countryCode) {
@@ -69,6 +72,10 @@ public class RecordSetResource extends AwsResource {
 
     @ResourceDiffProperty(updatable = true)
     public String getDnsName() {
+        if (dnsName != null) {
+            dnsName += dnsName.endsWith(".") ? "" : ".";
+        }
+
         return dnsName;
     }
 
@@ -87,7 +94,7 @@ public class RecordSetResource extends AwsResource {
 
     @ResourceDiffProperty(updatable = true)
     public String getFailover() {
-        return failover;
+        return failover != null ? failover.toUpperCase() : null;
     }
 
     public void setFailover(String failover) {
@@ -110,7 +117,7 @@ public class RecordSetResource extends AwsResource {
         this.hostedZoneName = hostedZoneName;
     }
 
-    @ResourceDiffProperty(updatable = true)
+    @ResourceDiffProperty(updatable = true, nullable = true)
     public String getHealthCheckId() {
         return healthCheckId;
     }
@@ -157,7 +164,7 @@ public class RecordSetResource extends AwsResource {
 
     @ResourceDiffProperty(updatable = true)
     public String getSubdivisionCode() {
-        return subdivisionCode;
+        return subdivisionCode != null ? subdivisionCode.toUpperCase() : null;
     }
 
     public void setSubdivisionCode(String subdivisionCode) {
@@ -213,108 +220,77 @@ public class RecordSetResource extends AwsResource {
         this.records = records;
     }
 
-    public RecordSetResource() {
+    @ResourceDiffProperty(updatable = true)
+    public String getRoutingPolicy() {
+        if (routingPolicy == null) {
+            routingPolicy = "simple";
+        }
 
+        return routingPolicy;
     }
 
-    public RecordSetResource(ResourceRecordSet recordSet, String hostedZoneName) {
-        setFailover(recordSet.failoverAsString());
-        setHealthCheckId(recordSet.healthCheckId());
-        setMultiValueAnswer(recordSet.multiValueAnswer());
-        setName(recordSet.name().replaceAll(hostedZoneName + "$",""));
-        setRegion(recordSet.regionAsString());
-        setWeight(recordSet.weight());
-        setTrafficPolicyInstanceId(recordSet.trafficPolicyInstanceId());
-        setTtl(recordSet.ttl());
-        setType(recordSet.typeAsString());
-        setRecords(recordSet.resourceRecords().stream().map(ResourceRecord::value).collect(Collectors.toList()));
-        setHostedZoneName(hostedZoneName);
+    public void setRoutingPolicy(String routingPolicy) {
+        this.routingPolicy = routingPolicy;
+    }
 
-        if (recordSet.aliasTarget() != null) {
-            setDnsName(recordSet.aliasTarget().dnsName());
-            setEvaluateTargetHealth(recordSet.aliasTarget().evaluateTargetHealth());
-            setHostedZoneId(recordSet.aliasTarget().hostedZoneId());
+    @ResourceDiffProperty(updatable = true, nullable = true)
+    public Boolean getEnableAlias() {
+        if (enableAlias == null) {
+            enableAlias = false;
         }
 
-        if (recordSet.geoLocation() != null) {
-            setCountryCode(recordSet.geoLocation().countryCode());
-            setContinentCode(recordSet.geoLocation().continentCode());
-            setSubdivisionCode(recordSet.geoLocation().subdivisionCode());
-        }
+        return enableAlias;
+    }
+
+    public void setEnableAlias(Boolean enableAlias) {
+        this.enableAlias = enableAlias;
+    }
+
+    @ResourceDiffProperty(updatable = true, nullable = true)
+    public String getAliasHostedZoneId() {
+        return aliasHostedZoneId;
+    }
+
+    public void setAliasHostedZoneId(String aliasHostedZoneId) {
+        this.aliasHostedZoneId = aliasHostedZoneId;
     }
 
     @Override
     public boolean refresh() {
-        return false;
+        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
+
+        ResourceRecordSet recordSet = getResourceRecordSet(client);
+
+        if (recordSet == null) {
+            return false;
+        }
+
+        loadRecordSet(recordSet);
+
+        return true;
     }
 
     @Override
     public void create() {
-        HostedZoneResource parent = (HostedZoneResource) parentResource();
-        setHostedZoneName(parent.getHostedZoneName());
-        setHostedZoneId(parent.getHostedZoneId());
-
         Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
 
-        Change change = Change.builder()
-            .action(ChangeAction.CREATE)
-            .resourceRecordSet(
-                rr -> rr.name(getName()+getHostedZoneName())
-                    .failover(getFailover())
-                    .healthCheckId(getHealthCheckId())
-                    .multiValueAnswer(getMultiValueAnswer())
-                    .region(getRegion())
-                    .setIdentifier(getSetIdentifier())
-                    .trafficPolicyInstanceId(getTrafficPolicyInstanceId())
-                    .ttl(getTtl())
-                    .type(getType())
-                    .weight(getWeight())
-                    /*.aliasTarget(
-                        a -> a.dnsName(getDnsName())
-                            .evaluateTargetHealth(getEvaluateTargetHealth())
-                            .hostedZoneId(getHostedZoneId()))*/
-                    .resourceRecords(
-                        getRecords().stream()
-                            .map(o -> ResourceRecord.builder().value(o).build())
-                            .collect(Collectors.toList()))
-                    /*.geoLocation(g -> g
-                        .continentCode(getContinentCode())
-                        .countryCode(getCountryCode())
-                        .subdivisionCode(getSubdivisionCode()))*/
+        saveResourceRecordSet(client, ChangeAction.CREATE);
 
-            )
-            .build();
-
-        client.changeResourceRecordSets(
-            r -> r.hostedZoneId(getHostedZoneId())
-                .changeBatch(
-                    c -> c.comment(getComment())
-                        .changes(change)
-                )
-        );
+        refresh();
     }
 
     @Override
     public void update(Resource current, Set<String> changedProperties) {
+        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
 
+        saveResourceRecordSet(client, ChangeAction.UPSERT);
     }
 
     @Override
     public void delete() {
         Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
 
-        Change change = Change.builder()
-            .action(ChangeAction.DELETE)
-            .resourceRecordSet(rr -> rr.name(getName()))
-            .build();
-
-        client.changeResourceRecordSets(
-            r -> r.hostedZoneId(getHostedZoneId())
-                .changeBatch(
-                    c -> c.comment(getComment())
-                        .changes(change)
-                )
-        );
+        saveResourceRecordSet(client, ChangeAction.DELETE);
     }
 
     @Override
@@ -332,19 +308,101 @@ public class RecordSetResource extends AwsResource {
         }
 
         if (!ObjectUtils.isBlank(getType())) {
-            sb.append(" [ ").append(getType()).append(" ]");
+            sb.append(" type [ ").append(getType()).append(" ]");
+        }
+
+        if (!ObjectUtils.isBlank(getRoutingPolicy())) {
+            sb.append(" routing policy [ ").append(getRoutingPolicy()).append(" ]");
         }
 
         return sb.toString();
     }
 
-    @Override
-    public String primaryKey() {
-        return String.format("%s %s", getName(), getType());
+    private void loadRecordSet(ResourceRecordSet recordSet) {
+        setFailover(recordSet.failoverAsString());
+        setHealthCheckId(recordSet.healthCheckId());
+        setMultiValueAnswer(recordSet.multiValueAnswer());
+        setRegion(recordSet.regionAsString());
+        setWeight(recordSet.weight());
+        setTrafficPolicyInstanceId(recordSet.trafficPolicyInstanceId());
+        setTtl(recordSet.ttl());
+        setRecords(recordSet.resourceRecords().stream().map(ResourceRecord::value).collect(Collectors.toList()));
+
+        if (recordSet.aliasTarget() != null) {
+            setDnsName(recordSet.aliasTarget().dnsName());
+            setEvaluateTargetHealth(recordSet.aliasTarget().evaluateTargetHealth());
+            setAliasHostedZoneId(recordSet.aliasTarget().hostedZoneId());
+        }
+
+        if (recordSet.geoLocation() != null) {
+            setCountryCode(recordSet.geoLocation().countryCode());
+            setContinentCode(recordSet.geoLocation().continentCode());
+            setSubdivisionCode(recordSet.geoLocation().subdivisionCode());
+        }
     }
 
-    @Override
-    public String resourceIdentifier() {
-        return null;
+    private ResourceRecordSet getResourceRecordSet(Route53Client client) {
+        ListResourceRecordSetsResponse response = client.listResourceRecordSets(
+            r -> r.hostedZoneId(getHostedZoneId())
+                .startRecordName(getName() + getHostedZoneName())
+                .startRecordType(getType())
+        );
+
+        return response.resourceRecordSets().get(0);
+    }
+
+    private void saveResourceRecordSet(Route53Client client, ChangeAction changeAction) {
+        ResourceRecordSet.Builder recordSetBuilder = ResourceRecordSet.builder()
+            .name(getName() + getHostedZoneName())
+            .healthCheckId(getHealthCheckId())
+            .setIdentifier(getSetIdentifier())
+            .trafficPolicyInstanceId(getTrafficPolicyInstanceId())
+            .type(getType());
+
+        if (getEnableAlias()) {
+            recordSetBuilder.aliasTarget(
+                a -> a.dnsName(getDnsName())
+                    .evaluateTargetHealth(getEvaluateTargetHealth())
+                    .hostedZoneId(getAliasHostedZoneId()));
+        } else {
+            recordSetBuilder.resourceRecords(getRecords().stream()
+                .map(o -> ResourceRecord.builder().value(o).build())
+                .collect(Collectors.toList()))
+                .ttl(getTtl());
+        }
+
+        if (getRoutingPolicy().equals("geolocation")) {
+            recordSetBuilder.geoLocation(
+                g -> g.continentCode(getContinentCode())
+                    .countryCode(getCountryCode())
+                    .subdivisionCode(getSubdivisionCode()));
+        } else if (getRoutingPolicy().equals("failover")) {
+            recordSetBuilder.failover(getFailover());
+        } else if (getRoutingPolicy().equals("multivalue")) {
+            recordSetBuilder.multiValueAnswer(getMultiValueAnswer());
+        } else if (getRoutingPolicy().equals("weighted")) {
+            recordSetBuilder.weight(getWeight());
+        } else if (getRoutingPolicy().equals("latency")) {
+            recordSetBuilder.region(getRegion());
+        } else {
+            //simple
+
+            if (!getRoutingPolicy().equals("simple")) {
+                throw new BeamException("Invalid Type");
+            }
+        }
+
+        Change change = Change.builder()
+            .action(changeAction)
+            .resourceRecordSet(recordSetBuilder.build())
+            .build();
+
+        client.changeResourceRecordSets(
+            r -> r.hostedZoneId(getHostedZoneId())
+                .changeBatch(
+                    c -> c.comment(getComment())
+                        .changes(change)
+                )
+        );
     }
 }
