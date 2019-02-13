@@ -31,6 +31,4 @@ public interface BeamUI {
 
     void writeError(Throwable error, String message, Object... arguments);
 
-    String dump(String message, Object... arguments);
-
 }
