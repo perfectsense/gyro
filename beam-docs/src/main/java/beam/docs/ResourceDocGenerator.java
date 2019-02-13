@@ -16,6 +16,7 @@ public class ResourceDocGenerator {
     private String name;
     private String groupName;
     private String providerPackage;
+    private boolean isSubresource = false;
 
     public ResourceDocGenerator(RootDoc root, ClassDoc doc) {
         this.root = root;
@@ -30,7 +31,14 @@ public class ResourceDocGenerator {
 
         for (AnnotationDesc annotationDesc : doc.annotations()) {
             if (annotationDesc.annotationType().name().equals("ResourceName")) {
-                name = (String) annotationDesc.elementValues()[0].value().value();
+                for (AnnotationDesc.ElementValuePair pair : annotationDesc.elementValues()) {
+                    if (pair.element().name().equals("value")) {
+                        name = (String) pair.value().value();
+                        break;
+                    } else if (pair.element().name().equals("parent") && pair.value().value() != null) {
+                        isSubresource = true;
+                    }
+                }
             }
         }
 
@@ -48,6 +56,10 @@ public class ResourceDocGenerator {
     }
 
     public String generate() {
+        if (isSubresource) {
+            return "";
+        }
+
         StringBuilder sb = new StringBuilder();
 
         generateHeader(sb);
