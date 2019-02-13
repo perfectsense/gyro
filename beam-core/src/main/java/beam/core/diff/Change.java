@@ -50,14 +50,30 @@ public abstract class Change {
             return;
         }
 
-        Diffable diffable = getDiffable();
-        DiffableScope scope = diffable.scope();
-
-        if (scope != null) {
-            diffable.initialize(scope.resolve());
-        }
-
+        resolve(getDiffable());
         doExecute();
+    }
+
+    private void resolve(Object object) throws Exception {
+        if (object instanceof Diffable) {
+            Diffable diffable = (Diffable) object;
+            DiffableScope scope = diffable.scope();
+
+            if (scope != null) {
+                diffable.initialize(scope.resolve());
+            }
+
+            for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
+                if (Diffable.class.isAssignableFrom(field.getItemClass())) {
+                    resolve(field.getValue(diffable));
+                }
+            }
+
+        } else if (object instanceof List) {
+            for (Object item : (List<?>) object) {
+                resolve(item);
+            }
+        }
     }
 
     public static String processAsScalarValue(String key, Object currentValue, Object pendingValue) {
