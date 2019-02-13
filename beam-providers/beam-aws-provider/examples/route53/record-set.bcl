@@ -37,6 +37,6 @@ aws::record-set record-set-example
     failover: "secondary"
     set-identifier: "set_id"
     routing-policy: "failover"
-    #health-check-id: $(aws::health-check health-check-record-set-example-calculated-alpha | health-check-id)
+    health-check-id: $(aws::health-check health-check-record-set-example-calculated-alpha | health-check-id)
     # commenting the health check id field after creation should trigger an update which is not triggered
 end
