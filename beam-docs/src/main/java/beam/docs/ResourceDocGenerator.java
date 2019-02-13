@@ -33,6 +33,10 @@ public class ResourceDocGenerator {
             }
         }
 
+        if (name == null) {
+            name = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN, doc.name().replace("Resource", ""));
+        }
+
         String parentPackageName = packageDoc.name().substring(0, packageDoc.name().lastIndexOf('.'));
         PackageDoc rootPackageDoc = root.packageNamed(parentPackageName);
         for (AnnotationDesc annotationDesc : rootPackageDoc.annotations()) {
@@ -104,7 +108,7 @@ public class ResourceDocGenerator {
 
         for (MethodDoc methodDoc : doc.methods()) {
             if (!ObjectUtils.isBlank(methodDoc.commentText())) {
-                String attributeName = methodDoc.name().toString();
+                String attributeName = methodDoc.name();
                 attributeName = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN, attributeName).replaceFirst("get-", "");
 
                 sb.append(String.format("`%s <#%s>`_", attributeName, attributeName));
