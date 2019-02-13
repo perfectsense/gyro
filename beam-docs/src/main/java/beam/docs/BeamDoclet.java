@@ -7,7 +7,10 @@ import com.sun.javadoc.RootDoc;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class BeamDoclet extends Doclet {
@@ -102,7 +105,10 @@ public class BeamDoclet extends Doclet {
         sb.append("    :hidden:");
         sb.append("\n\n");
 
-        for (String resource : resources.keySet()) {
+        List<String> keys = new ArrayList<>(resources.keySet());
+        Collections.sort(keys);
+
+        for (String resource : keys) {
             if (resource != null) {
                 sb.append("    ").append(resource);
                 sb.append("\n");
