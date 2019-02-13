@@ -200,7 +200,7 @@ public class Diff {
             // Skip if there isn't a pending value and the field wasn't
             // previously configured. This means that a field was
             // automatically populated in code so we should keep it as is.
-            if (pendingValue == null && currentConfiguredFields.contains(key)) {
+            if (pendingValue == null && !currentConfiguredFields.contains(key)) {
                 continue;
             }
 
