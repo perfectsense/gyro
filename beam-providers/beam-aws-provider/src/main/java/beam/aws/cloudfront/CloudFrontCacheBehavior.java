@@ -93,6 +93,9 @@ public class CloudFrontCacheBehavior extends Diffable {
         setSmoothStreaming(cacheBehavior.smoothStreaming());
     }
 
+    /**
+     * The ID for the origin to route requests to when the path pattern matches this cache behavior.
+     */
     public String getTargetOriginId() {
         return targetOriginId;
     }
@@ -101,6 +104,9 @@ public class CloudFrontCacheBehavior extends Diffable {
         this.targetOriginId = targetOriginId;
     }
 
+    /**
+     * The URL pattern to match against this pattern. (i.e. ``/dims?/*``).
+     */
     @ResourceDiffProperty(updatable = true)
     public String getPathPattern() {
         return pathPattern;
@@ -110,6 +116,9 @@ public class CloudFrontCacheBehavior extends Diffable {
         this.pathPattern = pathPattern;
     }
 
+    /**
+     * The protocol the user is allowed to access resources that match this cache behavior.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getViewerProtocolPolicy() {
         return viewerProtocolPolicy;
@@ -119,6 +128,9 @@ public class CloudFrontCacheBehavior extends Diffable {
         this.viewerProtocolPolicy = viewerProtocolPolicy;
     }
 
+    /**
+     * The minimum time objects will be cached in this distribution.
+     */
     @ResourceDiffProperty(updatable = true)
     public Long getMinTtl() {
         return minTtl;
@@ -128,6 +140,9 @@ public class CloudFrontCacheBehavior extends Diffable {
         this.minTtl = minTtl;
     }
 
+    /**
+     * HTTP methods (i.e. ``GET``, ``POST``) that you want to forward to the origin.
+     */
     @ResourceDiffProperty(updatable = true)
     public List<String> getAllowedMethods() {
         if (allowedMethods == null) {
@@ -143,6 +158,9 @@ public class CloudFrontCacheBehavior extends Diffable {
         this.allowedMethods = allowedMethods;
     }
 
+    /**
+     * HTTP methods (i.e. ``GET``, ``POST``) that you want to cache responses from.
+     */
     public List<String> getCachedMethods() {
         if (cachedMethods == null || cachedMethods.isEmpty()) {
             return getAllowedMethods();
@@ -157,6 +175,9 @@ public class CloudFrontCacheBehavior extends Diffable {
         this.cachedMethods = cachedMethods;
     }
 
+    /**
+     * Headers to include the cache key for an object.
+     */
     @ResourceDiffProperty(updatable = true)
     public List<String> getHeaders() {
         if (headers == null) {
@@ -170,6 +191,9 @@ public class CloudFrontCacheBehavior extends Diffable {
         this.headers = headers;
     }
 
+    /**
+     * Whether to forward to cookies to the origin.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getForwardCookies() {
         if (forwardCookies != null) {
@@ -183,6 +207,9 @@ public class CloudFrontCacheBehavior extends Diffable {
         this.forwardCookies = forwardCookies;
     }
 
+    /**
+     * Whitelist of cookies to include the cache key for an object.
+     */
     @ResourceDiffProperty(updatable = true)
     public List<String> getCookies() {
         if (cookies == null) {
@@ -196,6 +223,9 @@ public class CloudFrontCacheBehavior extends Diffable {
         this.cookies = cookies;
     }
 
+    /**
+     * Whether you want to distribute media files in the Microsoft Smooth Streaming format.
+     */
     @ResourceDiffProperty(updatable = true)
     public boolean isSmoothStreaming() {
         return smoothStreaming;
@@ -205,6 +235,9 @@ public class CloudFrontCacheBehavior extends Diffable {
         this.smoothStreaming = smoothStreaming;
     }
 
+    /**
+     * The time objects will be cached in this distribution. Only applies when one of ``Cache-Control: max-age``, ``Cache-Control: s-maxage``, or ``Expires`` are not returned by the origin.
+     */
     @ResourceDiffProperty(updatable = true)
     public Long getDefaultTtl() {
         return defaultTtl;
@@ -214,6 +247,9 @@ public class CloudFrontCacheBehavior extends Diffable {
         this.defaultTtl = defaultTtl;
     }
 
+    /**
+     * The maximum time objects will be cached in this distribution.
+     */
     @ResourceDiffProperty(updatable = true)
     public Long getMaxTtl() {
         return maxTtl;
@@ -223,8 +259,11 @@ public class CloudFrontCacheBehavior extends Diffable {
         this.maxTtl = maxTtl;
     }
 
+    /**
+     * Whether to compress files from origin.
+     */
     @ResourceDiffProperty(updatable = true)
-    public boolean isCompress() {
+    public boolean getCompress() {
         return compress;
     }
 
@@ -232,8 +271,11 @@ public class CloudFrontCacheBehavior extends Diffable {
         this.compress = compress;
     }
 
+    /**
+     * Whether to forward query strings to origin. If true, query string parameters become part of the cache key.
+     */
     @ResourceDiffProperty(updatable = true)
-    public boolean isQueryString() {
+    public boolean getQueryString() {
         return queryString;
     }
 
@@ -241,6 +283,9 @@ public class CloudFrontCacheBehavior extends Diffable {
         this.queryString = queryString;
     }
 
+    /**
+     * Query string parameters that should be used in the cache key.
+     */
     @ResourceDiffProperty(updatable = true)
     public List<String> getQueryStringCacheKeys() {
         if (queryStringCacheKeys == null) {
@@ -254,6 +299,9 @@ public class CloudFrontCacheBehavior extends Diffable {
         this.queryStringCacheKeys = queryStringCacheKeys;
     }
 
+    /**
+     * A list of AWS account numbers that are allowed to generate signed URLs for private content.
+     */
     @ResourceDiffProperty(updatable = true)
     public List<String> getTrustedSigners() {
         if (trustedSigners == null) {
@@ -296,7 +344,7 @@ public class CloudFrontCacheBehavior extends Diffable {
         ForwardedValues forwardedValues = ForwardedValues.builder()
             .headers(h -> h.items(getHeaders()).quantity(getHeaders().size()))
             .cookies(c -> c.forward(getForwardCookies()).whitelistedNames(w -> w.items(getCookies()).quantity(getCookies().size())))
-            .queryString(isQueryString())
+            .queryString(getQueryString())
             .queryStringCacheKeys(q -> q.items(getQueryStringCacheKeys()).quantity(getQueryStringCacheKeys().size()))
             .build();
 
@@ -326,7 +374,7 @@ public class CloudFrontCacheBehavior extends Diffable {
             .lambdaFunctionAssociations(lambdaFunctionAssociations)
             .viewerProtocolPolicy(getViewerProtocolPolicy())
             .fieldLevelEncryptionId(getFieldLevelEncryptionId())
-            .compress(isCompress())
+            .compress(getCompress())
             .build();
     }
 
@@ -334,7 +382,7 @@ public class CloudFrontCacheBehavior extends Diffable {
         ForwardedValues forwardedValues = ForwardedValues.builder()
             .headers(h -> h.items(getHeaders()).quantity(getHeaders().size()))
             .cookies(c -> c.forward(getForwardCookies()).whitelistedNames(w -> w.items(getCookies()).quantity(getCookies().size())))
-            .queryString(isQueryString())
+            .queryString(getQueryString())
             .queryStringCacheKeys(q -> q.items(getQueryStringCacheKeys()).quantity(getQueryStringCacheKeys().size()))
             .build();
 
@@ -365,7 +413,7 @@ public class CloudFrontCacheBehavior extends Diffable {
             .lambdaFunctionAssociations(lambdaFunctionAssociations)
             .viewerProtocolPolicy(getViewerProtocolPolicy())
             .fieldLevelEncryptionId(getFieldLevelEncryptionId())
-            .compress(isCompress())
+            .compress(getCompress())
             .build();
     }
 

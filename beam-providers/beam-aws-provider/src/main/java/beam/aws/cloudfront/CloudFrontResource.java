@@ -222,6 +222,8 @@ public class CloudFrontResource extends AwsResource {
 
     /**
      * The cache behaviors for this distribution.
+     *
+     * @subresource beam.aws.cloudfront.CloudFrontCacheBehavior
      */
     public List<CloudFrontCacheBehavior> getBehavior() {
         if (behavior == null) {
@@ -235,6 +237,11 @@ public class CloudFrontResource extends AwsResource {
         this.behavior = behavior;
     }
 
+    /**
+     * The default cache behavior for this distribution.
+     *
+     * @subresource beam.aws.cloudfront.CloudFrontCacheBehavior
+     */
     @ResourceDiffProperty(updatable = true)
     public CloudFrontCacheBehavior getDefaultCacheBehavior() {
         return defaultCacheBehavior;
