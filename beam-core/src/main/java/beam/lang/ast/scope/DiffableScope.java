@@ -2,6 +2,7 @@ package beam.lang.ast.scope;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import beam.lang.ast.Node;
 
@@ -15,6 +16,10 @@ public class DiffableScope extends Scope {
 
     public void add(String key, Node value, Scope scope) {
         valueScopes.put(key, new ValueScope(value, scope));
+    }
+
+    public Set<String> getAddedKeys() {
+        return valueScopes.keySet();
     }
 
     public Map<String, Object> resolve() throws Exception {

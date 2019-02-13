@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import beam.core.BeamCore;
@@ -47,9 +48,10 @@ public class Diff {
 
     public void diff() throws Exception {
         Map<String, Diffable> currentDiffables = this.currentDiffables.stream().collect(
-                LinkedHashMap::new,
-                (map, r) -> map.put(r.primaryKey(), r),
-                Map::putAll);
+            LinkedHashMap::new,
+            (map, r) -> map.put(r.primaryKey(), r),
+            Map::putAll
+        );
 
         for (Diffable pendingDiffable : pendingDiffables) {
             Diffable currentDiffable = currentDiffables.remove(pendingDiffable.primaryKey());
@@ -175,10 +177,12 @@ public class Diff {
     }
 
     private ResourceDisplayDiff diffFields(Diffable currentDiffable, Diffable pendingDiffable) {
-        boolean firstField = true;
+        Set<String> currentConfiguredFields = currentDiffable.configuredFields();
         ResourceDisplayDiff displayDiff = new ResourceDisplayDiff();
 
         for (DiffableField field : DiffableType.getInstance(currentDiffable.getClass()).getFields()) {
+
+            // Skip nested diffables since they're handled by the diff system.
             if (Diffable.class.isAssignableFrom(field.getItemClass())) {
                 continue;
             }
@@ -186,35 +190,47 @@ public class Diff {
             Object currentValue = field.getValue(currentDiffable);
             Object pendingValue = field.getValue(pendingDiffable);
 
-            if (pendingValue != null || (field.isNullable() && currentValue != null)) {
-                String key = field.getBeamName();
-                String fieldChangeOutput;
+            // Skip if the value didn't change.
+            if (Objects.equals(currentValue, pendingValue)) {
+                continue;
+            }
 
-                if (pendingValue instanceof List) {
-                    fieldChangeOutput = Change.processAsListValue(key, (List) currentValue, (List) pendingValue);
+            String key = field.getBeamName();
 
-                } else if (pendingValue instanceof Map) {
-                    fieldChangeOutput = Change.processAsMapValue(key, (Map) currentValue, (Map) pendingValue);
+            // Skip if there isn't a pending value and the field wasn't
+            // previously configured. This means that a field was
+            // automatically populated in code so we should keep it as is.
+            if (pendingValue == null && currentConfiguredFields.contains(key)) {
+                continue;
+            }
 
-                } else {
-                    fieldChangeOutput = Change.processAsScalarValue(key, currentValue, pendingValue);
-                }
+            String output;
 
-                if (!ObjectUtils.isBlank(fieldChangeOutput)) {
-                    if (!firstField) {
-                        displayDiff.getChangedDisplay().append(", ");
-                    }
+            if (pendingValue instanceof List) {
+                output = Change.processAsListValue(key, (List) currentValue, (List) pendingValue);
 
-                    displayDiff.addChangedProperty(key);
-                    displayDiff.getChangedDisplay().append(fieldChangeOutput);
+            } else if (pendingValue instanceof Map) {
+                output = Change.processAsMapValue(key, (Map) currentValue, (Map) pendingValue);
 
-                    if (!field.isUpdatable()) {
-                        displayDiff.setReplace(true);
-                    }
+            } else {
+                output = Change.processAsScalarValue(key, currentValue, pendingValue);
+            }
 
-                    firstField = false;
+            if (output.length() > 0) {
+                displayDiff.addChangedProperty(key);
+                displayDiff.getChangedDisplay().append(output).append(", ");
+
+                if (!field.isUpdatable()) {
+                    displayDiff.setReplace(true);
                 }
             }
+        }
+
+        StringBuilder display = displayDiff.getChangedDisplay();
+        int displayLength = display.length();
+
+        if (displayLength > 0) {
+            display.setLength(displayLength - 2);
         }
 
         return displayDiff;
