@@ -20,20 +20,21 @@ import java.util.Set;
  * Example
  * -------
  *
- * .. code:: beam
- *    aws::security-group security-group-example
- *        group-name: "security-group-example"
- *        vpc-id: $(aws::vpc vpc-security-group-example | vpc-id)
- *        description: "security group example"
+ * .. code-block:: beam
  *
- *        ingress
- *            description: "allow inbound http traffic"
- *            cidr-blocks: ["0.0.0.0/0"]
- *            protocol: "TCP"
- *            from-port: 80
- *            to-port: 80
- *        end
- *    end
+ *     aws::security-group security-group-example
+ *         group-name: "security-group-example"
+ *         vpc-id: $(aws::vpc vpc-security-group-example | vpc-id)
+ *         description: "security group example"
+ *
+ *         ingress
+ *             description: "allow inbound http traffic"
+ *             cidr-blocks: ["0.0.0.0/0"]
+ *             protocol: "TCP"
+ *             from-port: 80
+ *             to-port: 80
+ *         end
+ *     end
  */
 @ResourceName("security-group")
 public class SecurityGroupResource extends Ec2TaggableResource<SecurityGroup> {
