@@ -1,76 +1,51 @@
 package beam.docs;
 
-import jdk.javadoc.doclet.Doclet;
-import jdk.javadoc.doclet.DocletEnvironment;
-import jdk.javadoc.doclet.Reporter;
+import com.sun.javadoc.ClassDoc;
+import com.sun.javadoc.Doclet;
+import com.sun.javadoc.PackageDoc;
+import com.sun.javadoc.RootDoc;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-import javax.lang.model.SourceVersion;
-import javax.lang.model.element.PackageElement;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.ElementFilter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
-public class BeamDoclet implements Doclet {
+public class BeamDoclet extends Doclet {
 
-    private String outputDirectory;
+    public static boolean start(RootDoc root) {
+        // Generate rst file for each resource.
+        // Generate index for each group (i.e. java package) of resources.
+        // Generate index for all groups.
 
-    @Override
-    public void init(Locale locale, Reporter reporter) {
+        String outputDirectory = ".";
+        for (int i = 0; i < root.options().length; i++) {
+            String[] optionArray = root.options()[i];
+            String option = optionArray[0];
 
-    }
-
-    @Override
-    public String getName() {
-        return "Beam Reference Documentation Doclet";
-    }
-
-    @Override
-    public Set<? extends Option> getSupportedOptions() {
-        Doclet.Option[] options = {
-            new BeamDocletOption("-d", 1, "output directory", "path") {
-                @Override
-                public boolean process(String opt, List<String> args) {
-                    outputDirectory = args.get(0);
-                    return true;
-                }
+            if (option.equals("-d")) {
+                outputDirectory = optionArray[1];
             }
-        };
 
-        Set<BeamDoclet.Option> oset = new HashSet<>();
-        oset.addAll(Arrays.asList(options));
-
-        return oset;
-    }
-
-    @Override
-    public SourceVersion getSupportedSourceVersion() {
-        return SourceVersion.latest();
-    }
-
-    @Override
-    public boolean run(DocletEnvironment environment) {
-        TypeMirror beamResource = null;
-        for (TypeElement classElement : environment.getElementUtils().getAllTypeElements("beam.lang.Resource")) {
-            if ("beam.lang.Resource".equals(classElement.getQualifiedName().toString())) {
-                beamResource = classElement.asType();
-            }
         }
 
-        for (PackageElement packageElement : ElementFilter.packagesIn(environment.getIncludedElements())) {
-            for (TypeElement classElement : ElementFilter.typesIn(packageElement.getEnclosedElements())) {
-                if (environment.getTypeUtils().isAssignable(classElement.asType(), beamResource)) {
-                    BeamResourceDoc doc = new BeamResourceDoc(environment, classElement, outputDirectory);
-                    doc.generate();
-                }
+        for (ClassDoc doc : root.classes()) {
+            ResourceDocGenerator generator = new ResourceDocGenerator(root, doc);
+
+            try (FileWriter writer = new FileWriter(outputDirectory + File.separator + generator.name() + ".rst")) {
+                writer.write(generator.generate());
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
             }
         }
 
         return true;
+    }
+
+    public static int optionLength(String option) {
+        if (option.equals("-d")) {
+            return 2;
+        }
+
+        return 0;
     }
 
 }
