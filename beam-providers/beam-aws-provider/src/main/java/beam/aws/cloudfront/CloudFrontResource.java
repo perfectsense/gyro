@@ -207,6 +207,8 @@ public class CloudFrontResource extends AwsResource {
 
     /**
      * The origins for this distribution.
+     *
+     * @subresource beam.aws.cloudfront.CloudFrontOrigin
      */
     public List<CloudFrontOrigin> getOrigin() {
         if (origin == null) {
