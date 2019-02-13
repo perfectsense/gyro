@@ -1,13 +1,7 @@
 package beam.aws.elbv2;
 
-import beam.aws.AwsResource;
-import beam.core.diff.Create;
-import beam.core.diff.Delete;
-import beam.core.diff.ResourceName;
-import beam.lang.Resource;
+import beam.core.diff.Diffable;
 import software.amazon.awssdk.services.elasticloadbalancingv2.model.SubnetMapping;
-
-import java.util.Set;
 
 /**
  *
@@ -23,8 +17,7 @@ import java.util.Set;
  *     end
  */
 
-@ResourceName(parent = "nlb", value = "subnet-mapping")
-public class SubnetMappingResource extends AwsResource {
+public class SubnetMappings extends Diffable {
 
     private String allocationId;
     private String ipAddress;
@@ -67,30 +60,6 @@ public class SubnetMappingResource extends AwsResource {
         return String.format("%s/%s/%s", getAllocationId(), getIpAddress(), getSubnetId());
     }
 
-    @Override
-    public boolean refresh() {
-        return true;
-    }
-
-    @Override
-    public void create() {
-        if (parentResource().change() instanceof Create) {
-            return;
-        }
-    }
-
-    @Override
-    public void update(Resource current, Set<String> changedProperties) {
-    }
-
-    @Override
-    public void delete() {
-        if (parentResource().change() instanceof Delete) {
-            return;
-        }
-    }
-
-    @Override
     public String toDisplayString() {
         StringBuilder sb = new StringBuilder();
 
@@ -103,7 +72,7 @@ public class SubnetMappingResource extends AwsResource {
         return sb.toString();
     }
 
-    public SubnetMapping toSubnetMapping() {
+    public SubnetMapping toSubnetMappings() {
         return SubnetMapping.builder()
                 .allocationId(getAllocationId())
                 .subnetId(getSubnetId())
