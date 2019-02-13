@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import beam.core.BeamUI;
-import beam.lang.Resource;
 import beam.lang.ast.scope.DiffableScope;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
@@ -51,20 +50,30 @@ public abstract class Change {
             return;
         }
 
-        Diffable diffable = getDiffable();
-
-        if (!(diffable instanceof Resource)) {
-            return;
-        }
-
-        Resource resource = (Resource) diffable;
-        DiffableScope scope = resource.scope();
-
-        if (scope != null) {
-            resource.initialize(scope.resolve());
-        }
-
+        resolve(getDiffable());
         doExecute();
+    }
+
+    private void resolve(Object object) throws Exception {
+        if (object instanceof Diffable) {
+            Diffable diffable = (Diffable) object;
+            DiffableScope scope = diffable.scope();
+
+            if (scope != null) {
+                diffable.initialize(scope.resolve());
+            }
+
+            for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
+                if (Diffable.class.isAssignableFrom(field.getItemClass())) {
+                    resolve(field.getValue(diffable));
+                }
+            }
+
+        } else if (object instanceof List) {
+            for (Object item : (List<?>) object) {
+                resolve(item);
+            }
+        }
     }
 
     public static String processAsScalarValue(String key, Object currentValue, Object pendingValue) {
