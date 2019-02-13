@@ -32,6 +32,10 @@ public class BeamDoclet extends Doclet {
         Map<String, Map<String, String>> docs = new HashMap<>();
 
         for (ClassDoc doc : root.classes()) {
+            if (doc.isAbstract()) {
+                continue;
+            }
+
             ResourceDocGenerator generator = new ResourceDocGenerator(root, doc);
 
             Map<String, String> groupDocs = docs.computeIfAbsent(generator.getGroupName(), m -> new HashMap());
