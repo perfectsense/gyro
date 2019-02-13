@@ -51,8 +51,16 @@ public class ResourceDocGenerator {
         return sb.toString();
     }
 
-    public String name() {
+    public String getNamespace() {
+        return namespace;
+    }
+
+    public String getName() {
         return name;
+    }
+
+    public String getGroupName() {
+        return groupName;
     }
 
     private String resourceName() {
