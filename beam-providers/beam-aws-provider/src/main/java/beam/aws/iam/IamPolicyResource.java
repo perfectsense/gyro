@@ -34,6 +34,7 @@ import java.util.Set;
 
 @ResourceName("iam-policy")
 public class IamPolicyResource extends AwsResource {
+
     private String policyName;
     private String description;
     private String pastVersionId;
