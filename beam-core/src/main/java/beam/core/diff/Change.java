@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import beam.core.BeamUI;
-import beam.lang.Resource;
 import beam.lang.ast.scope.DiffableScope;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
@@ -52,16 +51,10 @@ public abstract class Change {
         }
 
         Diffable diffable = getDiffable();
-
-        if (!(diffable instanceof Resource)) {
-            return;
-        }
-
-        Resource resource = (Resource) diffable;
-        DiffableScope scope = resource.scope();
+        DiffableScope scope = diffable.scope();
 
         if (scope != null) {
-            resource.initialize(scope.resolve());
+            diffable.initialize(scope.resolve());
         }
 
         doExecute();
