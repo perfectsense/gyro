@@ -19,8 +19,19 @@ public class CliBeamUI implements BeamUI {
 
     private static final Pattern NEWLINES = Pattern.compile("([\r\n]+)");
 
-    private int indentLevel;
+    private boolean verbose;
     private int indentSize = 4;
+    private int indentLevel;
+
+    @Override
+    public boolean isVerbose() {
+        return verbose;
+    }
+
+    @Override
+    public void setVerbose(boolean verbose) {
+        this.verbose = verbose;
+    }
 
     public int getIndentSize() {
         return indentSize;

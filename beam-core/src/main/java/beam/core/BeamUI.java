@@ -2,6 +2,10 @@ package beam.core;
 
 public interface BeamUI {
 
+    boolean isVerbose();
+
+    void setVerbose(boolean verbose);
+
     boolean readBoolean(Boolean defaultValue, String message, Object... arguments);
 
     void readEnter(String message, Object... arguments);
