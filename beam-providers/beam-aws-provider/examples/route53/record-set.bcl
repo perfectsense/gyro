@@ -1,79 +1,33 @@
 import ../init as _
 
-aws::vpc vpc-record-set-example
+aws::vpc vpc-record-set-example-alpha
     cidr-block: "10.0.0.0/16"
 
     tags: {
-        Name: "vpc-record-set-example"
+        Name: "vpc-record-set-example-alpha"
     }
 end
 
-aws::hosted-zone hosted-zone-record-set-example
-    hosted-zone-name: "hosted-zone-record-set-example.com"
-    private-zone: true
-    vpc
-        vpc-id: $(aws::vpc vpc-record-set-example | vpc-id)
-        vpc-region: $(aws::credentials default | region)
-    end
-    comment: "hosted-zone-record-set-example.com comment"
+aws::hosted-zone hosted-zone-record-set-example-alpha
+    hosted-zone-name: "hosted-zone-record-set-example-alpha.com"
+    private-zone: false
+    comment: "hosted-zone-record-set-example-alpha.com comment"
 end
 
-aws::health-check health-check-record-set-example-calculated
+aws::health-check health-check-record-set-example-calculated-alpha
     type: "CALCULATED"
     inverted: false
     disabled: false
     health-threshold: 0
     tags: {
-        Name: "health-check-record-set-example-calculated"
+        Name: "health-check-record-set-example-calculated-alpha"
     }
 end
 
-aws::record-set record-set-example-1
-    hosted-zone-name: $(aws::hosted-zone hosted-zone-record-set-example | hosted-zone-name)
-    hosted-zone-id: $(aws::hosted-zone hosted-zone-record-set-example | hosted-zone-id)
-    name: "a.n.s."
-    type: "A"
-    ttl: 300
-    records: [
-        "192.0.2.235",
-        "192.0.2.236"
-    ]
-end
-
-aws::record-set record-set-example-2
-    hosted-zone-name: $(aws::hosted-zone hosted-zone-record-set-example | hosted-zone-name)
-    hosted-zone-id: $(aws::hosted-zone hosted-zone-record-set-example | hosted-zone-id)
-    name: "a.n.w."
-    type: "A"
-    ttl: 300
-    records: [
-        "192.0.2.235",
-        "192.0.2.236"
-    ]
-    weight: 50
-    set-identifier: "set_id"
-    routing-policy: "weighted"
-end
-
-aws::record-set record-set-example-3
-    hosted-zone-name: $(aws::hosted-zone hosted-zone-record-set-example | hosted-zone-name)
-    hosted-zone-id: $(aws::hosted-zone hosted-zone-record-set-example | hosted-zone-id)
-    name: "a.n.l."
-    type: "A"
-    ttl: 300
-    records: [
-        "192.0.2.235",
-        "192.0.2.236"
-    ]
-    region: "us-west-1"
-    set-identifier: "set_id"
-    routing-policy: "latency"
-end
-
-aws::record-set record-set-example-4
-    hosted-zone-name: $(aws::hosted-zone hosted-zone-record-set-example | hosted-zone-name)
-    hosted-zone-id: $(aws::hosted-zone hosted-zone-record-set-example | hosted-zone-id)
-    name: "a.n.f.s."
+aws::record-set record-set-example
+    hosted-zone-name: $(aws::hosted-zone hosted-zone-record-set-example-alpha | hosted-zone-name)
+    hosted-zone-id: $(aws::hosted-zone hosted-zone-record-set-example-alpha | hosted-zone-id)
+    name: "record-set-example."
     type: "A"
     ttl: 300
     records: [
@@ -83,62 +37,6 @@ aws::record-set record-set-example-4
     failover: "secondary"
     set-identifier: "set_id"
     routing-policy: "failover"
-end
-
-aws::record-set record-set-example-5
-    hosted-zone-name: $(aws::hosted-zone hosted-zone-record-set-example | hosted-zone-name)
-    hosted-zone-id: $(aws::hosted-zone hosted-zone-record-set-example | hosted-zone-id)
-    name: "a.n.f.p."
-    type: "A"
-    ttl: 300
-    records: [
-        "192.0.2.235",
-        "192.0.2.236"
-    ]
-    failover: "primary"
-    set-identifier: "set_id"
-    routing-policy: "failover"
-    health-check-id: $(aws::health-check health-check-record-set-example-calculated | health-check-id)
-end
-
-aws::record-set record-set-example-6
-    hosted-zone-name: $(aws::hosted-zone hosted-zone-record-set-example | hosted-zone-name)
-    hosted-zone-id: $(aws::hosted-zone hosted-zone-record-set-example | hosted-zone-id)
-    name: "a.n.m."
-    type: "A"
-    ttl: 300
-    records: [
-        "192.0.2.235"
-    ]
-    multi-value-answer: true
-    set-identifier: "set_id"
-    routing-policy: "multivalue"
-end
-
-aws::record-set record-set-example-7
-    hosted-zone-name: $(aws::hosted-zone hosted-zone-record-set-example | hosted-zone-name)
-    hosted-zone-id: $(aws::hosted-zone hosted-zone-record-set-example | hosted-zone-id)
-    name: "a.n.g."
-    type: "A"
-    ttl: 300
-    records: [
-        "192.0.2.235"
-    ]
-    set-identifier: "set_id"
-    continent-code: "af"
-    routing-policy: "geolocation"
-end
-
-aws::record-set record-set-example-8
-    hosted-zone-name: $(aws::hosted-zone hosted-zone-record-set-example | hosted-zone-name)
-    hosted-zone-id: $(aws::hosted-zone hosted-zone-record-set-example | hosted-zone-id)
-    name: "a.a.g."
-    type: "A"
-    set-identifier: "set_id"
-    enable-alias: true
-    evaluate-target-health: true
-    dns-name: "lb-test-3e504e02e4ca7b26.elb.us-east-2.amazonaws.com"
-    continent-code: "af"
-    routing-policy: "geolocation"
-    alias-hosted-zone-id: "ZLMOA37VPKANP"
+    #health-check-id: $(aws::health-check health-check-record-set-example-calculated-alpha | health-check-id)
+    # commenting the health check id field after creation should trigger an update which is not triggered
 end
