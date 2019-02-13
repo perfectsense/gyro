@@ -1,6 +1,6 @@
 /**
- * Autoscaling Groups
- * ------------------
+ * AWS Provider
+ * ------------
  */
 @DocNamespace("aws")
 package beam.aws;
