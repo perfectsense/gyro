@@ -51,7 +51,7 @@ public class ResourceDocGenerator {
         StringBuilder sb = new StringBuilder();
 
         generateHeader(sb);
-        generateAttributes(sb);
+        generateAttributes(doc, sb);
 
         return sb.toString();
     }
@@ -108,10 +108,14 @@ public class ResourceDocGenerator {
         sb.append("\n\n");
     }
 
-    private void generateAttributes(StringBuilder sb) {
+    private void generateAttributes(ClassDoc classDoc, StringBuilder sb) {
         // `auto-scaling-group-name <#auto-scaling-group-name>`_ - The name of the auto scaling group, also served as its identifier and thus unique. (Required)
 
-        for (MethodDoc methodDoc : doc.methods()) {
+        if (classDoc.superclass() != null && !classDoc.superclass().name().equals("Resource")) {
+            generateAttributes(classDoc.superclass(), sb);
+        }
+
+        for (MethodDoc methodDoc : classDoc.methods()) {
             if (!ObjectUtils.isBlank(methodDoc.commentText())) {
                 String attributeName = methodDoc.name();
                 attributeName = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN, attributeName).replaceFirst("get-", "");
