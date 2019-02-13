@@ -58,6 +58,10 @@ public class ResourceDocGenerator {
                 namespace = (String) annotationDesc.elementValues()[0].value().value();
             }
         }
+
+        if (doc.superclass() != null && doc.superclass().name().equals("Diffable")) {
+            isSubresource = true;
+        }
     }
 
     public String generate() {
