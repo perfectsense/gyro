@@ -1,0 +1,8 @@
+fontsAlias:
+    stdFont: Roboto-Regular
+    stdBold: Roboto-Bold
+    stdSans: OpenSans-Regular
+    stdSansBold: OpenSans-Bold
+    stdItalic: Roboto-Italic
+    stdSansItalic: OpenSans-Italic
+    stdSansBoldItalic: OpenSans-BoldItalic
