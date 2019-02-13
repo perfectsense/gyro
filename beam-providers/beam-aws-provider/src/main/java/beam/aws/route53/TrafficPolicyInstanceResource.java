@@ -12,6 +12,24 @@ import software.amazon.awssdk.services.route53.model.TrafficPolicyInstance;
 
 import java.util.Set;
 
+/**
+ * Creates a Traffic Policy Instance resource.
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: beam
+ *
+ *     aws::traffic-policy-instance traffic-policy-instance-example
+ *         name: "traffic-policy-instance-example"
+ *         comment: "traffic-policy-instance-example Comment"
+ *         version: 1
+ *         ttl: 900
+ *         hosted-zone-id: $(aws::hosted-zone hosted-zone-record-set-example-alpha | hosted-zone-id)
+ *         traffic-policy-id: $(aws::traffic-policy traffic-policy-example-instance | traffic-policy-id)
+ *     end
+ *
+ */
 @ResourceName("traffic-policy-instance")
 public class TrafficPolicyInstanceResource extends AwsResource {
     private String name;
@@ -24,6 +42,9 @@ public class TrafficPolicyInstanceResource extends AwsResource {
     private Integer version;
     private String trafficPolicyInstanceId;
 
+    /**
+     * Name of the traffic policy instance. (Required)
+     */
     public String getName() {
         return name;
     }
@@ -40,6 +61,9 @@ public class TrafficPolicyInstanceResource extends AwsResource {
         this.message = message;
     }
 
+    /**
+     * Id of the associated hosted zone. (Required)
+     */
     public String getHostedZoneId() {
         return hostedZoneId;
     }
@@ -48,6 +72,9 @@ public class TrafficPolicyInstanceResource extends AwsResource {
         this.hostedZoneId = hostedZoneId;
     }
 
+    /**
+     * Id of a traffic policy to be associated. (Required)
+     */
     @ResourceDiffProperty(updatable = true)
     public String getTrafficPolicyId() {
         return trafficPolicyId;
@@ -65,6 +92,9 @@ public class TrafficPolicyInstanceResource extends AwsResource {
         this.type = type;
     }
 
+    /**
+     * The TTL that you want to assign to all of the resource record sets that the policy creates in the specified hosted zone.
+     */
     @ResourceDiffProperty(updatable = true)
     public Long getTtl() {
         return ttl;
@@ -82,6 +112,9 @@ public class TrafficPolicyInstanceResource extends AwsResource {
         this.state = state;
     }
 
+    /**
+     * The version of the traffic policy which will be used to create the resource records.
+     */
     @ResourceDiffProperty(updatable = true)
     public Integer getVersion() {
         return version;
