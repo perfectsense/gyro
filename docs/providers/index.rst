@@ -1,8 +1,5 @@
-
-.. title:: Providers
-
-Providers
-=========
+AWS Provider
+============
 
 .. toctree::
 

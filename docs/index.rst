@@ -12,4 +12,4 @@
     :caption: Providers
     :maxdepth: 3
 
-   providers/aws/index
+    providers/index
