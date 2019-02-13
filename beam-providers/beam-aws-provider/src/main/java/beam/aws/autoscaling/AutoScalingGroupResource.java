@@ -145,8 +145,7 @@ public class AutoScalingGroupResource extends AwsResource {
     }
 
     /**
-     * The ID of an launched template that would be used as a skeleton to create the Auto scaling group.
-     * Required if launch configuration name not provided.
+     * The ID of an launched template that would be used as a skeleton to create the Auto scaling group. Required if launch configuration name not provided.
      */
     @ResourceDiffProperty(updatable = true)
     public String getLaunchTemplateId() {
@@ -270,8 +269,7 @@ public class AutoScalingGroupResource extends AwsResource {
     }
 
     /**
-     * The name of a launched configuration that would be used as a skeleton to create the Auto scaling group.
-     * Required if launch template Id is not provided.
+     * The name of a launched configuration that would be used as a skeleton to create the Auto scaling group. Required if launch template Id is not provided.
      */
     @ResourceDiffProperty(updatable = true)
     public String getLaunchConfigurationName() {
@@ -463,6 +461,11 @@ public class AutoScalingGroupResource extends AwsResource {
         this.createdTime = createdTime;
     }
 
+    /**
+     * A policy for triggering scaling this group.
+     *
+     * @subresource beam.aws.autoscaling.AutoScalingPolicyResource
+     */
     @ResourceDiffProperty(nullable = true, subresource = true)
     public List<AutoScalingPolicyResource> getScalingPolicy() {
         if (scalingPolicy == null) {
@@ -476,6 +479,10 @@ public class AutoScalingGroupResource extends AwsResource {
         this.scalingPolicy = scalingPolicy;
     }
 
+    /**
+     *
+     * @subresource beam.aws.autoscaling.AutoScalingGroupLifecycleHookResource
+     */
     @ResourceDiffProperty(nullable = true, subresource = true)
     public List<AutoScalingGroupLifecycleHookResource> getLifecycleHook() {
         if (lifecycleHook == null) {
@@ -489,6 +496,10 @@ public class AutoScalingGroupResource extends AwsResource {
         this.lifecycleHook = lifecycleHook;
     }
 
+    /**
+     *
+     * @subresource beam.aws.autoscaling.AutoScalingGroupScheduledActionResource
+     */
     @ResourceDiffProperty(nullable = true, subresource = true)
     public List<AutoScalingGroupScheduledActionResource> getScheduledAction() {
         if (scheduledAction == null) {
@@ -502,6 +513,10 @@ public class AutoScalingGroupResource extends AwsResource {
         this.scheduledAction = scheduledAction;
     }
 
+    /**
+     *
+     * @subresource beam.aws.autoscaling.AutoScalingGroupNotificationResource
+     */
     @ResourceDiffProperty(nullable = true, subresource = true)
     public List<AutoScalingGroupNotificationResource> getAutoScalingNotification() {
         if (autoScalingNotification == null) {
