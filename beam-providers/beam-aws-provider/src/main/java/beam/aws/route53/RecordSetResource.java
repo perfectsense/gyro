@@ -22,6 +22,30 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Creates a record set in the given hosted zone.
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: beam
+ *
+ *     aws::record-set record-set-example
+ *         hosted-zone-name: $(aws::hosted-zone hosted-zone-record-set-example-alpha | hosted-zone-name)
+ *         hosted-zone-id: $(aws::hosted-zone hosted-zone-record-set-example-alpha | hosted-zone-id)
+ *         name: "record-set-example."
+ *         type: "A"
+ *         ttl: 300
+ *         records: [
+ *             "192.0.2.235",
+ *             "192.0.2.236"
+ *         ]
+ *         failover: "secondary"
+ *         set-identifier: "set_id"
+ *         routing-policy: "failover"
+ *         health-check-id: $(aws::health-check health-check-record-set-example-calculated-alpha | health-check-id)
+ *     end
+ */
 @ResourceName("record-set")
 public class RecordSetResource extends AwsResource {
     private String comment;
@@ -49,7 +73,9 @@ public class RecordSetResource extends AwsResource {
 
     private static final Set<String> RoutingPolicySet = ImmutableSet.of("geolocation","failover","multivalue","weighted","latency","simple");
 
-
+    /**
+     * A comment when creating/updating/deleting a record set.
+     */
     public String getComment() {
         return comment;
     }
@@ -58,6 +84,9 @@ public class RecordSetResource extends AwsResource {
         this.comment = comment;
     }
 
+    /**
+     * The continent code. At least one of continent code, country code or subdivision code required if type selected as 'geolocation'.
+     */
     @ResourceDiffProperty(updatable = true, nullable = true)
     public String getContinentCode() {
         return continentCode != null ? continentCode.toUpperCase() : null;
@@ -67,6 +96,9 @@ public class RecordSetResource extends AwsResource {
         this.continentCode = continentCode;
     }
 
+    /**
+     * The country code. At least one of continent code, country code or subdivision code required if 'type' selected as 'geolocation'.
+     */
     @ResourceDiffProperty(updatable = true, nullable = true)
     public String getCountryCode() {
         return countryCode != null ? countryCode.toUpperCase() : null;
@@ -76,6 +108,9 @@ public class RecordSetResource extends AwsResource {
         this.countryCode = countryCode;
     }
 
+    /**
+     * Dns name to associate with this record set. Required if 'enable alias' is set to 'true'.
+     */
     @ResourceDiffProperty(updatable = true, nullable = true)
     public String getDnsName() {
         if (dnsName != null) {
@@ -89,6 +124,9 @@ public class RecordSetResource extends AwsResource {
         this.dnsName = dnsName;
     }
 
+    /**
+     * Enable target health evaluation with this record set. Required if 'enable alias' is set to 'true'.
+     */
     @ResourceDiffProperty(updatable = true, nullable = true)
     public Boolean getEvaluateTargetHealth() {
         return evaluateTargetHealth;
@@ -98,6 +136,9 @@ public class RecordSetResource extends AwsResource {
         this.evaluateTargetHealth = evaluateTargetHealth;
     }
 
+    /**
+     * The failover value. Valid values [ Primary, Secondary]. Required if 'route policy' set to 'failover'.
+     */
     @ResourceDiffProperty(updatable = true, nullable = true)
     public String getFailover() {
         return failover != null ? failover.toUpperCase() : null;
@@ -107,6 +148,9 @@ public class RecordSetResource extends AwsResource {
         this.failover = failover;
     }
 
+    /**
+     * The id of the hosted zone under which the the record set is to be created. (Required)
+     */
     public String getHostedZoneId() {
         return hostedZoneId;
     }
@@ -115,6 +159,9 @@ public class RecordSetResource extends AwsResource {
         this.hostedZoneId = hostedZoneId;
     }
 
+    /**
+     * The name of the hosted zone under which the the record set is to be created. (Required)
+     */
     public String getHostedZoneName() {
         return hostedZoneName;
     }
@@ -123,6 +170,9 @@ public class RecordSetResource extends AwsResource {
         this.hostedZoneName = hostedZoneName;
     }
 
+    /**
+     * The id of a health check to be associated with the record set. Required if 'failover' is set to 'primary'.
+     */
     @ResourceDiffProperty(updatable = true, nullable = true)
     public String getHealthCheckId() {
         return healthCheckId;
@@ -132,6 +182,9 @@ public class RecordSetResource extends AwsResource {
         this.healthCheckId = healthCheckId;
     }
 
+    /**
+     * Needs to be enabled if routing policy is 'multivalue'. Required if 'route policy' set to 'multivalue'.
+     */
     @ResourceDiffProperty(updatable = true, nullable = true)
     public Boolean getMultiValueAnswer() {
         return multiValueAnswer;
@@ -141,6 +194,9 @@ public class RecordSetResource extends AwsResource {
         this.multiValueAnswer = multiValueAnswer;
     }
 
+    /**
+     * The name of the record set being created. (Required)
+     */
     @ResourceDiffProperty(updatable = true)
     public String getName() {
         return name;
@@ -150,6 +206,9 @@ public class RecordSetResource extends AwsResource {
         this.name = name;
     }
 
+    /**
+     * The region where the records mentioned resides. Required if 'route policy' set to 'latency'.
+     */
     @ResourceDiffProperty(updatable = true, nullable = true)
     public String getRegion() {
         return region;
@@ -159,6 +218,9 @@ public class RecordSetResource extends AwsResource {
         this.region = region;
     }
 
+    /**
+     * a set identifier that differentiates this from other record set of the same type and routing policy. Required if 'enable alias' is set to 'false'.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getSetIdentifier() {
         return setIdentifier;
@@ -168,6 +230,9 @@ public class RecordSetResource extends AwsResource {
         this.setIdentifier = setIdentifier;
     }
 
+    /**
+     * The sub division code. At least one of continent code, country code or subdivision code required if type selected as 'geolocation'.
+     */
     @ResourceDiffProperty(updatable = true, nullable = true)
     public String getSubdivisionCode() {
         return subdivisionCode != null ? subdivisionCode.toUpperCase() : null;
@@ -177,6 +242,9 @@ public class RecordSetResource extends AwsResource {
         this.subdivisionCode = subdivisionCode;
     }
 
+    /**
+     * The id of a traffic policy instance to be associated with the record set.
+     */
     @ResourceDiffProperty(updatable = true, nullable = true)
     public String getTrafficPolicyInstanceId() {
         return trafficPolicyInstanceId;
@@ -186,6 +254,9 @@ public class RecordSetResource extends AwsResource {
         this.trafficPolicyInstanceId = trafficPolicyInstanceId;
     }
 
+    /**
+     * The resource record cache time to live. Valid values [ 0 - 172800]. Required if 'enable alias' is set to 'false'.
+     */
     @ResourceDiffProperty(updatable = true, nullable = true)
     public Long getTtl() {
         return ttl;
@@ -195,6 +266,9 @@ public class RecordSetResource extends AwsResource {
         this.ttl = ttl;
     }
 
+    /**
+     * The type of record set being created. Valid values [ SOA, A, TXT, NS, CNAME, MX, NAPTR, PTR, SRV, SPF, AAAA, CAA ]. (Required)
+     */
     @ResourceDiffProperty(updatable = true, nullable = true)
     public String getType() {
         return type;
@@ -204,6 +278,9 @@ public class RecordSetResource extends AwsResource {
         this.type = type;
     }
 
+    /**
+     * The weight value determines the probability of a record being selected. Valid values [ 0 - 255]. Required if 'route policy' set to 'weighted'.
+     */
     @ResourceDiffProperty(updatable = true, nullable = true)
     public Long getWeight() {
         return weight;
@@ -213,6 +290,9 @@ public class RecordSetResource extends AwsResource {
         this.weight = weight;
     }
 
+    /**
+     * A list of ip addresses for the record set. Required if 'enable alias' is set to 'false'.
+     */
     @ResourceDiffProperty(updatable = true, nullable = true)
     public List<String> getRecords() {
         if (records == null) {
@@ -226,6 +306,9 @@ public class RecordSetResource extends AwsResource {
         this.records = records;
     }
 
+    /**
+     * Routing policy type the record set is going to be. Defaults to Simple. Valid Values [ 'geolocation', 'failover', 'multivalue', 'weighted', 'latency', 'simple' ].
+     */
     @ResourceDiffProperty(updatable = true, nullable = true)
     public String getRoutingPolicy() {
         if (routingPolicy == null) {
@@ -239,6 +322,9 @@ public class RecordSetResource extends AwsResource {
         this.routingPolicy = routingPolicy;
     }
 
+    /**
+     * Enable alias. Defaults to false.
+     */
     @ResourceDiffProperty(updatable = true, nullable = true)
     public Boolean getEnableAlias() {
         if (enableAlias == null) {
@@ -252,6 +338,9 @@ public class RecordSetResource extends AwsResource {
         this.enableAlias = enableAlias;
     }
 
+    /**
+     * The hosted zone where the 'dns name' belongs as configured. Required if 'enable alias' is set to 'true'.
+     */
     @ResourceDiffProperty(updatable = true, nullable = true)
     public String getAliasHostedZoneId() {
         return aliasHostedZoneId;
@@ -476,9 +565,9 @@ public class RecordSetResource extends AwsResource {
                 throw new BeamException("The param 'alias-hosted-zone-id' is not allowed when 'enable-alias' is set to 'false' or not set.");
             }
 
-            if (ObjectUtils.isBlank(getTtl()) || getTtl() < 0) {
+            if (ObjectUtils.isBlank(getTtl()) || getTtl() < 0 || getTtl() > 172800) {
                 throw new BeamException("The param 'ttl' is required when 'enable-alias' is set to 'false' or not set."
-                    + " Valid values [ Integer greater than 0 ].");
+                    + " Valid values [ Long 0 - 172800 ].");
             }
 
             if (getRecords().isEmpty()) {
@@ -507,8 +596,10 @@ public class RecordSetResource extends AwsResource {
 
         if (!getRoutingPolicy().equals("failover") && getFailover() != null) {
             throw new BeamException("The param 'failover' is not allowed when 'routing-policy' is not set to 'failover'.");
-        } else if (getRoutingPolicy().equals("failover") && ObjectUtils.isBlank(getFailover())) {
-            throw new BeamException("The param 'failover' is required when 'routing-policy' is set to 'failover'.");
+        } else if (getRoutingPolicy().equals("failover")
+            && (ObjectUtils.isBlank(getFailover()) || (!getFailover().equals("PRIMARY") && !getFailover().equals("SECONDARY")))) {
+            throw new BeamException("The param 'failover' is required when 'routing-policy' is set to 'failover'."
+                + " Valid values [ PRIMARY, SECONDARY ].");
         }
 
         if (!getRoutingPolicy().equals("multivalue") && getMultiValueAnswer() != null) {
@@ -525,8 +616,10 @@ public class RecordSetResource extends AwsResource {
 
         if (!getRoutingPolicy().equals("weighted") && getWeight() != null) {
             throw new BeamException("The param 'weight' is not allowed when 'routing-policy' is not set to 'weighted'.");
-        } else if (getRoutingPolicy().equals("weighted") && getWeight() == null) {
-            throw new BeamException("The param 'weight' is required when 'routing-policy' is set to 'weighted'.");
+        } else if (getRoutingPolicy().equals("weighted")
+            && (getWeight() == null) || getWeight() < 0 || getWeight() > 255) {
+            throw new BeamException("The param 'weight' is required when 'routing-policy' is set to 'weighted'."
+                + " Valid values [ Long 0 - 255 ].");
         }
 
         if (!getRoutingPolicy().equals("latency") && getRegion() != null) {
