@@ -118,7 +118,6 @@ public class VpcEndpointServiceResource extends AwsResource {
 
     @Override
     public void update(Resource current, Set<String> changedProperties) {
-        //associate/dissociate load balancers
         Ec2Client client = createClient(Ec2Client.class);
 
         VpcEndpointServiceResource currentResource = (VpcEndpointServiceResource) current;
@@ -129,20 +128,33 @@ public class VpcEndpointServiceResource extends AwsResource {
         List<String> dissociateLoadBalancers = new ArrayList<>(currentResource.getNetworkLoadBalancerArns());
         dissociateLoadBalancers.removeAll(getNetworkLoadBalancerArns());
 
-        client.modifyVpcEndpointServiceConfiguration(r -> r.addNetworkLoadBalancerArns(associateLoadBalancers)
-                                                            .removeNetworkLoadBalancerArns(dissociateLoadBalancers)
-                                                            .serviceId(getServiceId())
-                                                            .acceptanceRequired(getAcceptanceRequired()));
-        //principals
+        if (!associateLoadBalancers.isEmpty()) {
+            client.modifyVpcEndpointServiceConfiguration(r -> r.addNetworkLoadBalancerArns(associateLoadBalancers)
+                    .serviceId(getServiceId())
+                    .acceptanceRequired(getAcceptanceRequired()));
+        }
+
+        if (!dissociateLoadBalancers.isEmpty()) {
+            client.modifyVpcEndpointServiceConfiguration(r -> r.removeNetworkLoadBalancerArns(dissociateLoadBalancers)
+                    .serviceId(getServiceId())
+                    .acceptanceRequired(getAcceptanceRequired()));
+        }
+
         List<String> associatePrincipals = new ArrayList<>(getPrincipals());
         associatePrincipals.removeAll(currentResource.getPrincipals());
 
         List<String> dissociatePrincipals = new ArrayList<>(currentResource.getPrincipals());
         dissociatePrincipals.removeAll(getPrincipals());
 
-        client.modifyVpcEndpointServicePermissions(r -> r.addAllowedPrincipals(associatePrincipals)
-                                                            .removeAllowedPrincipals(dissociatePrincipals)
-                                                            .serviceId(getServiceId()));
+        if (!associatePrincipals.isEmpty()) {
+            client.modifyVpcEndpointServicePermissions(r -> r.addAllowedPrincipals(associatePrincipals)
+                    .serviceId(getServiceId()));
+        }
+
+        if (!dissociatePrincipals.isEmpty()) {
+            client.modifyVpcEndpointServicePermissions(r -> r.removeAllowedPrincipals(dissociatePrincipals)
+                    .serviceId(getServiceId()));
+        }
     }
 
     @Override
