@@ -83,7 +83,7 @@ public class CloudFrontOrigin extends Diffable {
     }
 
     /**
-     * Custom headers to send the origin on every request.
+     * A map of custom headers to send the origin on every request.
      */
     @ResourceDiffProperty(updatable = true)
     public Map<String, String> getCustomHeaders() {
@@ -98,6 +98,11 @@ public class CloudFrontOrigin extends Diffable {
         this.customHeaders = customHeaders;
     }
 
+    /**
+     * S3 configuration for this origin.
+     *
+     * @subresource beam.aws.cloudfront.CloudFrontS3Origin
+     */
     @ResourceDiffProperty(updatable = true)
     public CloudFrontS3Origin getS3Origin() {
         if (s3Origin == null && customOrigin == null) {
@@ -111,6 +116,11 @@ public class CloudFrontOrigin extends Diffable {
         this.s3Origin = s3Origin;
     }
 
+    /**
+     * Custom configuration for this origin.
+     *
+     * @subresource beam.aws.cloudfront.CloudFrontCustomOrigin
+     */
     @ResourceDiffProperty(updatable = true)
     public CloudFrontCustomOrigin getCustomOrigin() {
         return customOrigin;

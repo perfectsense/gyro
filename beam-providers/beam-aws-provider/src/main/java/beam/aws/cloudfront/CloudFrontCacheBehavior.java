@@ -227,7 +227,7 @@ public class CloudFrontCacheBehavior extends Diffable {
      * Whether you want to distribute media files in the Microsoft Smooth Streaming format.
      */
     @ResourceDiffProperty(updatable = true)
-    public boolean isSmoothStreaming() {
+    public boolean getSmoothStreaming() {
         return smoothStreaming;
     }
 
@@ -367,7 +367,7 @@ public class CloudFrontCacheBehavior extends Diffable {
             .defaultTTL(getDefaultTtl())
             .maxTTL(getMaxTtl())
             .minTTL(getMinTtl())
-            .smoothStreaming(isSmoothStreaming())
+            .smoothStreaming(getSmoothStreaming())
             .targetOriginId(getTargetOriginId())
             .forwardedValues(forwardedValues)
             .trustedSigners(trustedSigners)
@@ -405,7 +405,7 @@ public class CloudFrontCacheBehavior extends Diffable {
             .defaultTTL(getDefaultTtl())
             .maxTTL(getMaxTtl())
             .minTTL(getMinTtl())
-            .smoothStreaming(isSmoothStreaming())
+            .smoothStreaming(getSmoothStreaming())
             .targetOriginId(getTargetOriginId())
             .pathPattern(getPathPattern())
             .forwardedValues(forwardedValues)

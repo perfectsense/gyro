@@ -34,6 +34,9 @@ public class CloudFrontCustomOrigin extends Diffable {
         setOriginSslProtocols(originConfig.originSslProtocols().itemsAsStrings());
     }
 
+    /**
+     * The port the origin listens for http.
+     */
     @ResourceDiffProperty(updatable = true)
     public Integer getHttpPort() {
         return httpPort;
@@ -43,6 +46,9 @@ public class CloudFrontCustomOrigin extends Diffable {
         this.httpPort = httpPort;
     }
 
+    /**
+     * The port the origin listens for https.
+     */
     @ResourceDiffProperty(updatable = true)
     public Integer getHttpsPort() {
         return httpsPort;
@@ -52,6 +58,9 @@ public class CloudFrontCustomOrigin extends Diffable {
         this.httpsPort = httpsPort;
     }
 
+    /**
+     * The amount of time to keep an idle connection to the origin.
+     */
     @ResourceDiffProperty(updatable = true)
     public Integer getOriginKeepAliveTimeout() {
         return originKeepAliveTimeout;
@@ -61,6 +70,9 @@ public class CloudFrontCustomOrigin extends Diffable {
         this.originKeepAliveTimeout = originKeepAliveTimeout;
     }
 
+    /**
+     * The max amount of a time CloudFront will wait, in seconds, for an initial connection, and subsequent reads. Valid values are between 4 and 60.
+     */
     @ResourceDiffProperty(updatable = true)
     public Integer getOriginReadTimeout() {
         return originReadTimeout;
@@ -70,6 +82,9 @@ public class CloudFrontCustomOrigin extends Diffable {
         this.originReadTimeout = originReadTimeout;
     }
 
+    /**
+     * The protocol CloudFront should use to connect to the origin. Valid values are ``http-only``, ``https-only``, or ``match-viewer``.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getOriginProtocolPolicy() {
         return originProtocolPolicy;
@@ -79,6 +94,9 @@ public class CloudFrontCustomOrigin extends Diffable {
         this.originProtocolPolicy = originProtocolPolicy;
     }
 
+    /**
+     * SSL protocols CloudFront is allow to connect to the origin with. Valid values are ``SSLv3``, ``TLSv1``, ``TLSv1.1``, ``TLSv1.2``.
+     */
     @ResourceDiffProperty(updatable = true)
     public List<String> getOriginSslProtocols() {
         return originSslProtocols;

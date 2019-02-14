@@ -27,6 +27,9 @@ public class CloudFrontCustomErrorResponse extends Diffable {
         setResponsePagePath(errorResponse.responsePagePath());
     }
 
+    /**
+     * The minimum amount of time to cache this error code.
+     */
     public long getTtl() {
         return ttl;
     }
@@ -35,6 +38,9 @@ public class CloudFrontCustomErrorResponse extends Diffable {
         this.ttl = ttl;
     }
 
+    /**
+     * HTTP error code to return a custom response for.
+     */
     public Integer getErrorCode() {
         return errorCode;
     }
@@ -43,6 +49,9 @@ public class CloudFrontCustomErrorResponse extends Diffable {
         this.errorCode = errorCode;
     }
 
+    /**
+     * Custom HTTP status code to return.
+     */
     public String getResponseCode() {
         if (responseCode == null) {
             return "";
@@ -55,6 +64,9 @@ public class CloudFrontCustomErrorResponse extends Diffable {
         this.responseCode = responseCode;
     }
 
+    /**
+     * Path to a custom error page.
+     */
     public String getResponsePagePath() {
         if (responsePagePath == null) {
             responsePagePath = "";

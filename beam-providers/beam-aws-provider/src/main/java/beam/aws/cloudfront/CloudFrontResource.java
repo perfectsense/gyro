@@ -67,16 +67,16 @@ public class CloudFrontResource extends AwsResource {
     private String httpVersion;
     private String priceClass;
     private String defaultRootObject;
-    private CloudFrontLogging logging;
+    private String etag;
+    private String callerReference;
+    private boolean isIpv6Enabled;
+    private String webAclId;
     private Map<String, String> tags;
     private List<CloudFrontOrigin> origin;
     private List<CloudFrontCacheBehavior> behavior;
     private CloudFrontCacheBehavior defaultCacheBehavior;
-    private String etag;
-    private String callerReference;
-    private boolean isIpv6Enabled;
     private CloudFrontViewerCertificate viewerCertificate;
-    private String webAclId;
+    private CloudFrontLogging logging;
     private List<CloudFrontCustomErrorResponse> customErrorResponse;
     private CloudFrontGeoRestriction geoRestriction;
 
@@ -119,7 +119,7 @@ public class CloudFrontResource extends AwsResource {
      * Enable or disable this distribution without deleting it.
      */
     @ResourceDiffProperty(updatable = true)
-    public boolean isEnabled() {
+    public boolean getEnabled() {
         return enabled;
     }
 
@@ -128,7 +128,7 @@ public class CloudFrontResource extends AwsResource {
     }
 
     /**
-     * Specify a comment for this distribution.
+     * A comment for this distribution.
      */
     @ResourceDiffProperty(updatable = true)
     public String getComment() {
@@ -162,7 +162,7 @@ public class CloudFrontResource extends AwsResource {
     }
 
     /**
-     * The maximum http version that users can request on this distribution. Valid values are "HTTP1_1" or "HTTP2".
+     * The maximum http version that users can request on this distribution. Valid values are ``HTTP1_1`` or ``HTTP2``.
      */
     @ResourceDiffProperty(updatable = true)
     public String getHttpVersion() {
@@ -174,7 +174,7 @@ public class CloudFrontResource extends AwsResource {
     }
 
     /**
-     * The maximum price you want to pay for CloudFront. Valid values are "PriceClass_All", "PriceClass_200", and "PriceClass_100". For information on pricing see `Price classes <https://aws.amazon.com/cloudfront/pricing/#On-demand_Pricing />_`.
+     * The maximum price you want to pay for CloudFront. Valid values are ``PriceClass_All``, ``PriceClass_200`` and ``PriceClass_100``. For information on pricing see `Price classes <https://aws.amazon.com/cloudfront/pricing/#On-demand_Pricing>`_.
      */
     @ResourceDiffProperty(updatable = true)
     public String getPriceClass() {
@@ -205,8 +205,76 @@ public class CloudFrontResource extends AwsResource {
         this.defaultRootObject = defaultRootObject;
     }
 
+    public String getEtag() {
+        return etag;
+    }
+
+    public void setEtag(String etag) {
+        this.etag = etag;
+    }
+
+    public String getCallerReference() {
+        return callerReference;
+    }
+
+    public void setCallerReference(String callerReference) {
+        this.callerReference = callerReference;
+    }
+
     /**
-     * The origins for this distribution.
+     * Enable IPv6 support for this distribution.
+     */
+    @ResourceDiffProperty(updatable = true)
+    public boolean getIpv6Enabled() {
+        return isIpv6Enabled;
+    }
+
+    public void setIpv6Enabled(boolean ipv6Enabled) {
+        isIpv6Enabled = ipv6Enabled;
+    }
+
+    /**
+     * The Web ACL (WAF) ID to associate with this distribution.
+     */
+    @ResourceDiffProperty(updatable = true, nullable = true)
+    public String getWebAclId() {
+        if (webAclId == null) {
+            return "";
+        }
+
+        return webAclId;
+    }
+
+    public void setWebAclId(String webAclId) {
+        this.webAclId = webAclId;
+    }
+
+    public String getDomainName() {
+        return domainName;
+    }
+
+    public void setDomainName(String domainName) {
+        this.domainName = domainName;
+    }
+
+    /**
+     * A map of tags to apply to this distribution.
+     */
+    @ResourceDiffProperty(updatable = true)
+    public Map<String, String> getTags() {
+        if (tags == null) {
+            tags = new HashMap<>();
+        }
+
+        return tags;
+    }
+
+    public void setTags(Map<String, String> tags) {
+        this.tags = tags;
+    }
+
+    /**
+     * List of origins for this distribution.
      *
      * @subresource beam.aws.cloudfront.CloudFrontOrigin
      */
@@ -223,7 +291,7 @@ public class CloudFrontResource extends AwsResource {
     }
 
     /**
-     * The cache behaviors for this distribution.
+     * List of cache behaviors for this distribution.
      *
      * @subresource beam.aws.cloudfront.CloudFrontCacheBehavior
      */
@@ -256,60 +324,9 @@ public class CloudFrontResource extends AwsResource {
     }
 
     /**
-     * Configuration for logging access logs to S3.
-     */
-    @ResourceDiffProperty(updatable = true)
-    public CloudFrontLogging getLogging() {
-        return logging;
-    }
-
-    public void setLogging(CloudFrontLogging logging) {
-        this.logging = logging;
-    }
-
-    @ResourceDiffProperty(updatable = true)
-    public Map<String, String> getTags() {
-        if (tags == null) {
-            tags = new HashMap<>();
-        }
-
-        return tags;
-    }
-
-    public void setTags(Map<String, String> tags) {
-        this.tags = tags;
-    }
-
-    public String getEtag() {
-        return etag;
-    }
-
-    public void setEtag(String etag) {
-        this.etag = etag;
-    }
-
-    public String getCallerReference() {
-        return callerReference;
-    }
-
-    public void setCallerReference(String callerReference) {
-        this.callerReference = callerReference;
-    }
-
-    /**
-     * Enable IPv6 support for this distribution.
-     */
-    @ResourceDiffProperty(updatable = true)
-    public boolean isIpv6Enabled() {
-        return isIpv6Enabled;
-    }
-
-    public void setIpv6Enabled(boolean ipv6Enabled) {
-        isIpv6Enabled = ipv6Enabled;
-    }
-
-    /**
-     * SSL certification configuration.
+     * SSL certificate configuration.
+     *
+     * @subresource beam.aws.cloudfront.CloudFrontViewerCertificate
      */
     @ResourceDiffProperty(updatable = true)
     public CloudFrontViewerCertificate getViewerCertificate() {
@@ -321,31 +338,23 @@ public class CloudFrontResource extends AwsResource {
     }
 
     /**
-     * The Web ACL (WAF) ID to associate with this distribution.
+     * Configure logging access logs to S3.
+     *
+     * @subresource beam.aws.cloudfront.CloudFrontLogging
      */
-    @ResourceDiffProperty(updatable = true, nullable = true)
-    public String getWebAclId() {
-        if (webAclId == null) {
-            return "";
-        }
-
-        return webAclId;
+    @ResourceDiffProperty(updatable = true)
+    public CloudFrontLogging getLogging() {
+        return logging;
     }
 
-    public void setWebAclId(String webAclId) {
-        this.webAclId = webAclId;
-    }
-
-    public String getDomainName() {
-        return domainName;
-    }
-
-    public void setDomainName(String domainName) {
-        this.domainName = domainName;
+    public void setLogging(CloudFrontLogging logging) {
+        this.logging = logging;
     }
 
     /**
      * Replace HTTP codes with custom error responses as well as define cache TTLs for error responses.
+     *
+     * @subresource beam.aws.cloudfront.CloudFrontCustomErrorResponse
      */
     @ResourceDiffProperty(updatable = true, nullable = true)
     public List<CloudFrontCustomErrorResponse> getCustomErrorResponse() {
@@ -361,7 +370,9 @@ public class CloudFrontResource extends AwsResource {
     }
 
     /**
-     * Restriction access to this distribution by country.
+     * Restrict or allow access to this distribution by country.
+     *
+     * @subresource beam.aws.cloudfront.CloudFrontGeoRestriction
      */
     @ResourceDiffProperty(updatable = true, nullable = true)
     public CloudFrontGeoRestriction getGeoRestriction() {
@@ -469,7 +480,7 @@ public class CloudFrontResource extends AwsResource {
     public void delete() {
         CloudFrontClient client = createClient(CloudFrontClient.class, "us-east-1", "https://cloudfront.amazonaws.com");
 
-        if (isEnabled()) {
+        if (getEnabled()) {
             setEnabled(false);
 
             client.updateDistribution(r -> r.distributionConfig(distributionConfig())
@@ -560,12 +571,12 @@ public class CloudFrontResource extends AwsResource {
             defaultCacheBehavior = new CloudFrontCacheBehavior();
         }
 
-        builder.enabled(isEnabled())
+        builder.enabled(getEnabled())
             .comment(getComment())
             .httpVersion(getHttpVersion())
             .priceClass(getPriceClass())
             .defaultRootObject(getDefaultRootObject())
-            .isIPV6Enabled(isIpv6Enabled())
+            .isIPV6Enabled(getIpv6Enabled())
             .webACLId(getWebAclId())
             .aliases(a -> a.items(getCnames()).quantity(getCnames().size()))
             .restrictions(getGeoRestriction().toRestrictions())
