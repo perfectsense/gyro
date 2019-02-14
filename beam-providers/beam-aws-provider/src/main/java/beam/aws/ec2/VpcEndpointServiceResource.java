@@ -26,6 +26,7 @@ public class VpcEndpointServiceResource extends AwsResource {
     private String endpointId;
     private String serviceName;
 
+    @ResourceDiffProperty(updatable = true)
     public Boolean getAcceptanceRequired() {
         return acceptanceRequired;
     }
@@ -34,6 +35,7 @@ public class VpcEndpointServiceResource extends AwsResource {
         this.acceptanceRequired = acceptanceRequired;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public List<String> getNetworkLoadBalancerArns() {
         if (networkLoadBalancerArns == null) {
             networkLoadBalancerArns = new ArrayList<>();
@@ -46,6 +48,7 @@ public class VpcEndpointServiceResource extends AwsResource {
         this.networkLoadBalancerArns = networkLoadBalancerArns;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public List<String> getPrincipals() {
         if (principals == null) {
             principals = new ArrayList<>();
