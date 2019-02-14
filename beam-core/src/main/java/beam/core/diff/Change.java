@@ -74,10 +74,10 @@ public abstract class Change {
                 writeMapRemove(ui, diff.entriesOnlyOnLeft());
 
                 writeMap(
-                        ui,
-                        " @|yellow ⟳ {|@ %s @|yellow }|@",
-                        diff.entriesDiffering(),
-                        e -> String.format("%s → %s", e.leftValue(), e.rightValue()));
+                    ui,
+                    " @|yellow ⟳ {|@ %s @|yellow }|@",
+                    diff.entriesDiffering(),
+                    e -> String.format("%s → %s", e.leftValue(), e.rightValue()));
 
                 writeMapPut(ui, diff.entriesOnlyOnRight());
             }
