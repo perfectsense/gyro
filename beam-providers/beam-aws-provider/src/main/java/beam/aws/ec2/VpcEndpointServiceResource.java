@@ -24,6 +24,7 @@ public class VpcEndpointServiceResource extends AwsResource {
     private List<String> principals;
     private String serviceId;
     private String endpointId;
+    private String serviceName;
 
     public Boolean getAcceptanceRequired() {
         return acceptanceRequired;
@@ -63,6 +64,14 @@ public class VpcEndpointServiceResource extends AwsResource {
 
     public void setServiceId(String serviceId) {
         this.serviceId = serviceId;
+    }
+
+    public String getServiceName() {
+        return serviceName;
+    }
+
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
     }
 
     @Override
@@ -111,6 +120,7 @@ public class VpcEndpointServiceResource extends AwsResource {
                                                             .networkLoadBalancerArns(getNetworkLoadBalancerArns()));
 
         setServiceId(createResponse.serviceConfiguration().serviceId());
+        setServiceName(createResponse.serviceConfiguration().serviceName());
 
         client.modifyVpcEndpointServicePermissions(r -> r.addAllowedPrincipals(getPrincipals())
                                                         .serviceId(getServiceId()));
