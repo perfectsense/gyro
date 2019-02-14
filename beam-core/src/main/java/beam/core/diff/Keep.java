@@ -16,12 +16,17 @@ public class Keep extends Change {
     }
 
     @Override
-    public void writeTo(BeamUI ui) {
-        ui.write(diffable.toDisplayString());
+    public void writePlan(BeamUI ui) {
+        ui.write("= Keep %s", diffable.toDisplayString());
     }
 
     @Override
-    protected void doExecute() {
+    public void writeExecution(BeamUI ui) {
+        ui.write("= Keeping %s", diffable.toDisplayString());
+    }
+
+    @Override
+    public void execute() {
     }
 
 }

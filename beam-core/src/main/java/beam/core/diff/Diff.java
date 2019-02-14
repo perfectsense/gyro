@@ -4,17 +4,18 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import beam.core.BeamCore;
+import beam.core.BeamUI;
 import beam.lang.Credentials;
 import beam.lang.Resource;
+import beam.lang.ast.scope.DiffableScope;
 import beam.lang.ast.scope.State;
-import com.psddev.dari.util.ObjectUtils;
 
 public class Diff {
 
@@ -136,19 +137,17 @@ public class Diff {
             }
         }
 
-        ResourceDisplayDiff displayDiff = diffFields(currentDiffable, pendingDiffable);
-        Set<String> changedProperties = displayDiff.getChangedProperties();
-        String changedDisplay = displayDiff.getChangedDisplay().toString();
+        Set<DiffableField> changedFields = diffFields(currentDiffable, pendingDiffable);
         Change change;
 
-        if (changedProperties.isEmpty() && !hasNonResourceChanges(diffs)) {
+        if (changedFields.isEmpty() && !hasNonResourceChanges(diffs)) {
             change = new Keep(pendingDiffable);
 
-        } else if (displayDiff.isReplace()) {
-            change = new Replace(currentDiffable, pendingDiffable, changedProperties, changedDisplay);
+        } else if (changedFields.stream().allMatch(DiffableField::isUpdatable)) {
+            change = new Update(currentDiffable, pendingDiffable, changedFields);
 
         } else {
-            change = new Update(currentDiffable, pendingDiffable, changedProperties, changedDisplay);
+            change = new Replace(currentDiffable, pendingDiffable, changedFields);
         }
 
         currentDiffable.change(change);
@@ -176,9 +175,9 @@ public class Diff {
         return false;
     }
 
-    private ResourceDisplayDiff diffFields(Diffable currentDiffable, Diffable pendingDiffable) {
+    private Set<DiffableField> diffFields(Diffable currentDiffable, Diffable pendingDiffable) {
         Set<String> currentConfiguredFields = currentDiffable.configuredFields();
-        ResourceDisplayDiff displayDiff = new ResourceDisplayDiff();
+        Set<DiffableField> changedFields = new LinkedHashSet<>();
 
         for (DiffableField field : DiffableType.getInstance(currentDiffable.getClass()).getFields()) {
 
@@ -204,36 +203,10 @@ public class Diff {
                 continue;
             }
 
-            String output;
-
-            if (pendingValue instanceof List) {
-                output = Change.processAsListValue(key, (List) currentValue, (List) pendingValue);
-
-            } else if (pendingValue instanceof Map) {
-                output = Change.processAsMapValue(key, (Map) currentValue, (Map) pendingValue);
-
-            } else {
-                output = Change.processAsScalarValue(key, currentValue, pendingValue);
-            }
-
-            if (output.length() > 0) {
-                displayDiff.addChangedProperty(key);
-                displayDiff.getChangedDisplay().append(output).append(", ");
-
-                if (!field.isUpdatable()) {
-                    displayDiff.setReplace(true);
-                }
-            }
+            changedFields.add(field);
         }
 
-        StringBuilder display = displayDiff.getChangedDisplay();
-        int displayLength = display.length();
-
-        if (displayLength > 0) {
-            display.setLength(displayLength - 2);
-        }
-
-        return displayDiff;
+        return changedFields;
     }
 
     @SuppressWarnings("unchecked")
@@ -289,7 +262,7 @@ public class Diff {
         return false;
     }
 
-    public Set<ChangeType> write() {
+    public Set<ChangeType> write(BeamUI ui) {
         Set<ChangeType> changeTypes = new HashSet<>();
 
         if (!hasChanges()) {
@@ -334,9 +307,12 @@ public class Diff {
                 changeTypes.add(ChangeType.UPDATE);
             }
 
-            change.writeTo(BeamCore.ui());
-            BeamCore.ui().write("\n");
-            BeamCore.ui().indented(() -> changeDiffs.forEach(d -> changeTypes.addAll(d.write())));
+            if (!change.getDiffable().writePlan(ui, change)) {
+                change.writePlan(ui);
+            }
+
+            ui.write(ui.isVerbose() ? "\n\n" : "\n");
+            ui.indented(() -> change.getDiffs().forEach(d -> d.write(ui)));
         }
 
         return changeTypes;
@@ -344,12 +320,12 @@ public class Diff {
 
     private void setChangeable() {
         for (Change change : getChanges()) {
-            change.setExecutable(true);
+            change.executable = true;
             change.getDiffs().forEach(Diff::setChangeable);
         }
     }
 
-    public void executeCreateOrUpdate(State state) throws Exception {
+    public void executeCreateOrUpdate(BeamUI ui, State state) throws Exception {
         setChangeable();
 
         for (Change change : getChanges()) {
@@ -358,7 +334,7 @@ public class Diff {
 
                 if (diffable instanceof Resource) {
                     if (!(change.getDiffable() instanceof Credentials)) {
-                        execute(change);
+                        execute(ui, change);
                     }
 
                     state.update(change);
@@ -366,19 +342,19 @@ public class Diff {
             }
 
             for (Diff d : change.getDiffs()) {
-                d.executeCreateOrUpdate(state);
+                d.executeCreateOrUpdate(ui, state);
             }
         }
     }
 
-    public void executeDelete(State state) throws Exception {
+    public void executeDelete(BeamUI ui, State state) throws Exception {
         setChangeable();
 
         for (ListIterator<Change> j = getChanges().listIterator(getChanges().size()); j.hasPrevious();) {
             Change change = j.previous();
 
             for (Diff d : change.getDiffs()) {
-                d.executeDelete(state);
+                d.executeDelete(ui, state);
             }
 
             if (change instanceof Delete) {
@@ -386,7 +362,7 @@ public class Diff {
 
                 if (diffable instanceof Resource) {
                     if (!(diffable instanceof Credentials)) {
-                        execute(change);
+                        execute(ui, change);
                     }
 
                     state.update(change);
@@ -395,15 +371,57 @@ public class Diff {
         }
     }
 
-    private void execute(Change change) throws Exception {
-        if (change instanceof Keep || change instanceof Replace || change.isChanged()) {
+    private void execute(BeamUI ui, Change change) throws Exception {
+        if (change instanceof Keep || change instanceof Replace || change.changed.get()) {
             return;
         }
 
-        BeamCore.ui().write("Executing: ");
-        change.writeTo(BeamCore.ui());
-        change.execute();
-        BeamCore.ui().write(" OK\n");
+        if (!change.executable) {
+            throw new IllegalStateException("Can't change yet!");
+        }
+
+        if (!change.changed.compareAndSet(false, true)) {
+            return;
+        }
+
+        Diffable diffable = change.getDiffable();
+
+        resolve(diffable);
+
+        if (!diffable.writeExecution(ui, change)) {
+            change.writeExecution(ui);
+        }
+
+        try {
+            change.execute();
+            ui.write(ui.isVerbose() ? "\n@|bold,green OK|@\n\n" : " @|bold,green OK|@\n");
+
+        } catch (Exception error) {
+            ui.write(ui.isVerbose() ? "\n@|bold,red ERROR|@\n\n" : " @|bold,red ERROR|@\n");
+            ui.writeError(error, "");
+        }
+    }
+
+    private void resolve(Object object) throws Exception {
+        if (object instanceof Diffable) {
+            Diffable diffable = (Diffable) object;
+            DiffableScope scope = diffable.scope();
+
+            if (scope != null) {
+                diffable.initialize(scope.resolve());
+            }
+
+            for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
+                if (Diffable.class.isAssignableFrom(field.getItemClass())) {
+                    resolve(field.getValue(diffable));
+                }
+            }
+
+        } else if (object instanceof List) {
+            for (Object item : (List<?>) object) {
+                resolve(item);
+            }
+        }
     }
 
 }

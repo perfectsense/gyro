@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import beam.core.BeamUI;
 import beam.lang.Resource;
 import beam.lang.ast.KeyValueNode;
 import beam.lang.ast.Node;
@@ -158,6 +159,14 @@ public abstract class Diffable {
     public abstract String primaryKey();
 
     public abstract String toDisplayString();
+
+    public boolean writePlan(BeamUI ui, Change change) {
+        return false;
+    }
+
+    public boolean writeExecution(BeamUI ui, Change change) {
+        return false;
+    }
 
     public List<Node> toBodyNodes() {
         List<Node> body = new ArrayList<>();
