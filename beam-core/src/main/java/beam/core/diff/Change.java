@@ -3,6 +3,7 @@ package beam.core.diff;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -43,21 +44,32 @@ public abstract class Change {
         if ((currentValue == null || currentValue instanceof List)
                 && (pendingValue == null || pendingValue instanceof List)) {
 
-            List<?> currentList = (List<?>) currentValue;
-            List<?> pendingList = (List<?>) pendingValue;
-            List<?> removed = currentList != null ? new ArrayList<>(currentList) : new ArrayList<>();
-            List<?> added = pendingList != null ? new ArrayList<>(pendingList) : new ArrayList<>();
+            List<?> currentList = currentValue != null ? new ArrayList<>((List<?>) currentValue) : new ArrayList<>();
+            List<?> pendingList = pendingValue != null ? new ArrayList<>((List<?>) pendingValue) : new ArrayList<>();
+            int currentListSize = currentList.size();
+            int pendingListSize = pendingList.size();
 
-            if (pendingList != null) {
-                removed.removeAll(pendingList);
+            for (int i = 0, l = Math.max(currentListSize, pendingListSize); i < l; ++i) {
+                Object c = i < currentListSize ? currentList.get(i) : null;
+                Object p = i < pendingListSize ? pendingList.get(i) : null;
+
+                if (Objects.equals(c, p)) {
+                    ui.write(String.valueOf(c));
+
+                } else if (c == null) {
+                    ui.write(" @|green +|@ %s", c);
+
+                } else if (p == null) {
+                    ui.write(" @|red -|@ %s", p);
+
+                } else {
+                    ui.write(" @|yellow ⟳|@ %s → %s", c, p);
+                }
+
+                if (i < l - 1) {
+                    ui.write(",");
+                }
             }
-
-            if (currentList != null) {
-                added.removeAll(currentList);
-            }
-
-            writeList(ui, " @|red -[|@ %s @|red ]|@", removed);
-            writeList(ui, " @|green +[|@ %s @|green ]|@", added);
 
         } else if ((currentValue == null || currentValue instanceof Map)
                 && (pendingValue == null || pendingValue instanceof Map)) {
