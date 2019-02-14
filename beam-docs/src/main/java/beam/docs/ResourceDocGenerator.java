@@ -146,6 +146,7 @@ public class ResourceDocGenerator {
                 boolean isSubresource = false;
                 for (Tag tag : methodDoc.tags()) {
                     if (tag.name().equals("@subresource"))  {
+                        sb.append(repeat(" ", indent));
                         sb.append(String.format("**%s** is a subresource with the following attributes:", attributeName));
                         sb.append("\n\n");
                         sb.append(repeat(" ", indent + 4));
