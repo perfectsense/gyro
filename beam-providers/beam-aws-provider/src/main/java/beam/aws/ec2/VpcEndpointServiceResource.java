@@ -98,7 +98,7 @@ public class VpcEndpointServiceResource extends AwsResource {
 
             return true;
 
-        } catch (Exception ex) {
+        } catch (Ec2Exception ex) {
             ex.printStackTrace();
             return false;
         }
