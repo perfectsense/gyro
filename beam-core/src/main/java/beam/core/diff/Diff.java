@@ -312,7 +312,12 @@ public class Diff {
             }
 
             ui.write(ui.isVerbose() ? "\n\n" : "\n");
-            ui.indented(() -> change.getDiffs().forEach(d -> d.write(ui)));
+
+            ui.indented(() -> {
+                for (Diff d : change.getDiffs()) {
+                    changeTypes.addAll(d.write(ui));
+                }
+            });
         }
 
         return changeTypes;
