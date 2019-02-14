@@ -96,14 +96,6 @@ public class VpcEndpointServiceResource extends AwsResource {
                 }
             }
 
-            Filter filter = Filter.builder().name("vpc-endpoint-state")
-                    .values("pendingAcceptance").build();
-            DescribeVpcEndpointConnectionsResponse connectionsResponse =
-                    client.describeVpcEndpointConnections(r -> r.filters(filter));
-            if (connectionsResponse != null) {
-            //accept or reject connections - neccessary?
-            }
-
             return true;
 
         } catch (Exception ex) {
