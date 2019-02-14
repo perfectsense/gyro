@@ -57,10 +57,10 @@ public abstract class Change {
                     ui.write(String.valueOf(c));
 
                 } else if (c == null) {
-                    ui.write(" @|green +|@ %s", c);
+                    ui.write(" @|green +|@ %s", p);
 
                 } else if (p == null) {
-                    ui.write(" @|red -|@ %s", p);
+                    ui.write(" @|red -|@ %s", c);
 
                 } else {
                     ui.write(" @|yellow ⟳|@ %s → %s", c, p);
