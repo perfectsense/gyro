@@ -148,6 +148,11 @@ public class ResourceDocGenerator {
                     if (tag.name().equals("@subresource"))  {
                         sb.append(String.format("**%s** is a subresource with the following attributes:", attributeName));
                         sb.append("\n\n");
+                        sb.append(repeat(" ", indent + 4));
+                        sb.append("*");
+                        sb.append(firstSentence(methodDoc.commentText()));
+                        sb.append("*");
+                        sb.append("\n\n");
 
                         ClassDoc subresourceDoc = root.classNamed(tag.text());
                         if (subresourceDoc != null) {
