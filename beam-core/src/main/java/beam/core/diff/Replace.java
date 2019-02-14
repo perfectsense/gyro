@@ -40,7 +40,7 @@ public class Replace extends Change {
                 } else {
                     ui.write("\n· %s: %s",
                             field.getBeamName(),
-                            field.getValue(pendingDiffable));
+                            stringify(field.getValue(pendingDiffable)));
                 }
             }
         }
