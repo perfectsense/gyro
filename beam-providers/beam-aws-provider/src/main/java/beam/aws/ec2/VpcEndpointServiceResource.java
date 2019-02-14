@@ -23,7 +23,6 @@ public class VpcEndpointServiceResource extends AwsResource {
     private List<String> networkLoadBalancerArns;
     private List<String> principals;
     private String serviceId;
-    private String endpointId;
     private String serviceName;
 
     @ResourceDiffProperty(updatable = true)
