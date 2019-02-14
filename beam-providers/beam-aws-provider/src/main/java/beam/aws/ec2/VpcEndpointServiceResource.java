@@ -1,15 +1,15 @@
 package beam.aws.ec2;
 
 import beam.aws.AwsResource;
+import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 import beam.lang.Resource;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.AllowedPrincipal;
 import software.amazon.awssdk.services.ec2.model.CreateVpcEndpointServiceConfigurationResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeVpcEndpointServiceConfigurationsResponse;
-import software.amazon.awssdk.services.ec2.model.DescribeVpcEndpointConnectionsResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeVpcEndpointServicePermissionsResponse;
-import software.amazon.awssdk.services.ec2.model.Filter;
+import software.amazon.awssdk.services.ec2.model.Ec2Exception;
 import software.amazon.awssdk.services.ec2.model.ServiceConfiguration;
 
 import java.util.ArrayList;
