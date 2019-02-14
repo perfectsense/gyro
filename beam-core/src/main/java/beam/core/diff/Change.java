@@ -99,16 +99,6 @@ public abstract class Change {
         }
     }
 
-    private void writeList(BeamUI ui, String message, List<?> list) {
-        if (list.isEmpty()) {
-            return;
-        }
-
-        ui.write(message, list.stream()
-                .map(String::valueOf)
-                .collect(Collectors.joining(", ")));
-    }
-
     private <V> void writeMap(BeamUI ui, String message, Map<?, V> map, Function<V, String> valueFunction) {
         if (map.isEmpty()) {
             return;
