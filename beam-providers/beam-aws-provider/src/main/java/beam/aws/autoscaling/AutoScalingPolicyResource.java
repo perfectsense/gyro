@@ -190,7 +190,8 @@ public class AutoScalingPolicyResource extends AwsResource {
 
     /**
      * Predefined defines metric resource label.
-     * Valid values [ 'ASGAverageCPUUtilization', 'ASGAverageNetworkIn', 'ASGAverageNetworkOut', 'ALBRequestCountPerTarget' ].
+     *
+     * Valid values are ``ASGAverageCPUUtilization``, ``ASGAverageNetworkIn``, ``ASGAverageNetworkOut``, ``ALBRequestCountPerTarget``.
      */
     @ResourceDiffProperty(updatable = true)
     public String getPredefinedMetricResourceLabel() {

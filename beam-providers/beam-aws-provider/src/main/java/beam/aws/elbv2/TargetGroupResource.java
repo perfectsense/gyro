@@ -223,7 +223,7 @@ public class TargetGroupResource extends AwsResource {
                     TargetDescription description = targetHealthDescription.target();
                     TargetResource target = new TargetResource(description);
                     target.parent(this);
-                    getTarget().add(new TargetResource(description));
+                    getTarget().add(target);
                 }
             }
 

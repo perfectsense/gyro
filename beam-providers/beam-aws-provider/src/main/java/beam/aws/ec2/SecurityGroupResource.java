@@ -20,19 +20,21 @@ import java.util.Set;
  * Example
  * -------
  *
- * aws::security-group security-group-example
- *     group-name: "security-group-example"
- *     vpc-id: $(aws::vpc vpc-security-group-example | vpc-id)
- *     description: "security group example"
+ * .. code-block:: beam
  *
- *     ingress
- *         description: "allow inbound http traffic"
- *         cidr-blocks: ["0.0.0.0/0"]
- *         protocol: "TCP"
- *         from-port: 80
- *         to-port: 80
+ *     aws::security-group security-group-example
+ *         group-name: "security-group-example"
+ *         vpc-id: $(aws::vpc vpc-security-group-example | vpc-id)
+ *         description: "security group example"
+ *
+ *         ingress
+ *             description: "allow inbound http traffic"
+ *             cidr-blocks: ["0.0.0.0/0"]
+ *             protocol: "TCP"
+ *             from-port: 80
+ *             to-port: 80
+ *         end
  *     end
- * end
  */
 @ResourceName("security-group")
 public class SecurityGroupResource extends Ec2TaggableResource<SecurityGroup> {
@@ -84,6 +86,8 @@ public class SecurityGroupResource extends Ec2TaggableResource<SecurityGroup> {
 
     /**
      * A list of ingress rules to block inbound traffic.
+     *
+     * @subresource beam.aws.ec2.SecurityGroupIngressRuleResource
      */
     @ResourceDiffProperty(nullable = true, subresource = true)
     public List<SecurityGroupIngressRuleResource> getIngress() {
@@ -100,6 +104,8 @@ public class SecurityGroupResource extends Ec2TaggableResource<SecurityGroup> {
 
     /**
      * A list of egress rules to block outbound traffic.
+     *
+     * @subresource beam.aws.ec2.SecurityGroupEgressRuleResource
      */
     @ResourceDiffProperty(nullable = true, subresource = true)
     public List<SecurityGroupEgressRuleResource> getEgress() {

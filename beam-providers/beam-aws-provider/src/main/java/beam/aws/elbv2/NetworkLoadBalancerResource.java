@@ -48,7 +48,9 @@ public class NetworkLoadBalancerResource extends LoadBalancerResource {
     private List<SubnetMappings> subnetMappings;
 
     /**
-     *  The list of subnet mappings associated with the nlb (Required)
+     * The list of subnet mappings associated with the nlb (Required)
+     *
+     * @subresource beam.aws.elbv2.SubnetMappingResource
      */
     //@ResourceDiffProperty(subresource = true, nullable = true, updatable = true)
     public List<SubnetMappings> getSubnetMappings() {

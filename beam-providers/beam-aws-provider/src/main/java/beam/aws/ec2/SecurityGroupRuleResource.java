@@ -50,6 +50,9 @@ public abstract class SecurityGroupRuleResource extends AwsResource {
         return null;
     }
 
+    /**
+     * Protocol for this rule. `-1` is equivalent to "all". Other valid values are "tcp", "udp", or "icmp".
+     */
     @ResourceDiffProperty(updatable = true)
     public String getProtocol() {
         if (protocol != null) {
@@ -63,6 +66,9 @@ public abstract class SecurityGroupRuleResource extends AwsResource {
         this.protocol = protocol;
     }
 
+    /**
+     * Description for this security group rule.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getDescription() {
         return description;
@@ -72,6 +78,9 @@ public abstract class SecurityGroupRuleResource extends AwsResource {
         this.description = description;
     }
 
+    /**
+     * Starting port for this rule.
+     */
     @ResourceDiffProperty(updatable = true)
     public Integer getFromPort() {
         return fromPort;
@@ -81,6 +90,9 @@ public abstract class SecurityGroupRuleResource extends AwsResource {
         this.fromPort = fromPort;
     }
 
+    /**
+     * Ending port for this rule.
+     */
     @ResourceDiffProperty(updatable = true)
     public Integer getToPort() {
         return toPort;
@@ -90,6 +102,9 @@ public abstract class SecurityGroupRuleResource extends AwsResource {
         this.toPort = toPort;
     }
 
+    /**
+     * List of IPv4 cidr blocks to apply this rule to.
+     */
     @ResourceDiffProperty(updatable = true)
     public List<String> getCidrBlocks() {
         if (cidrBlocks == null) {
@@ -103,6 +118,9 @@ public abstract class SecurityGroupRuleResource extends AwsResource {
         this.cidrBlocks = cidrBlocks;
     }
 
+    /**
+     * List of IPv6 cidr blocks to apply this rule to.
+     */
     @ResourceDiffProperty(updatable = true)
     public List<String> getIpv6CidrBlocks() {
         if (ipv6CidrBlocks == null) {
