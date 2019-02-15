@@ -74,7 +74,18 @@ public class ResourceDocGenerator {
         System.out.println("Generating documentation for: " + resourceName());
 
         generateHeader(sb);
+
+        sb.append("Attributes\n");
+        sb.append(repeat("-", 10));
+        sb.append("\n\n");
+
         generateAttributes(doc, sb, 0);
+
+        sb.append("Outputs\n");
+        sb.append(repeat("-", 7));
+        sb.append("\n\n");
+
+        generateOutputs(doc, sb, 0);
 
         return sb.toString();
     }
@@ -119,21 +130,17 @@ public class ResourceDocGenerator {
     }
 
     private void generateHeader(StringBuilder sb) {
-
         sb.append(resourceName());
         sb.append("\n");
         sb.append(repeat("=", resourceName().length()));
         sb.append("\n\n");
         sb.append(trim(doc.commentText()));
         sb.append("\n\n");
-        sb.append("Attributes\n");
-        sb.append(repeat("-", 10));
-        sb.append("\n\n");
     }
 
     private void generateAttributes(ClassDoc classDoc, StringBuilder sb, int indent) {
-        // `auto-scaling-group-name <#auto-scaling-group-name>`_ - The name of the auto scaling group, also served as its identifier and thus unique. (Required)
 
+        // Output superclass attributes.
         if (classDoc.superclass() != null && !classDoc.superclass().name().equals("Resource")) {
             generateAttributes(classDoc.superclass(), sb, indent);
         }
@@ -144,6 +151,7 @@ public class ResourceDocGenerator {
                 attributeName = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN, attributeName).replaceFirst("get-", "");
 
                 boolean isSubresource = false;
+                boolean isOutput = false;
                 for (Tag tag : methodDoc.tags()) {
                     if (tag.name().equals("@subresource"))  {
                         sb.append(repeat(" ", indent));
@@ -161,24 +169,55 @@ public class ResourceDocGenerator {
                         }
 
                         isSubresource = true;
+                    } else if (tag.name().equals("@output")) {
+                        isOutput = true;
                     }
                 }
 
-                if (!isSubresource) {
-                    sb.append(repeat(" ", indent));
-                    sb.append(String.format("`%s <#%s>`_", attributeName, attributeName));
-                    sb.append(" - ");
-                    sb.append(firstSentence(methodDoc.commentText()));
-
-                    String rest = comment(methodDoc.commentText(), indent);
-                    if (!ObjectUtils.isBlank(rest)) {
-                        sb.append(rest);
-                    }
-
-                    sb.append("\n\n");
+                if (!isSubresource && !isOutput) {
+                    writeAttribute(sb, methodDoc, indent);
                 }
             }
         }
+    }
+
+    private void generateOutputs(ClassDoc classDoc, StringBuilder sb, int indent) {
+        // Output superclass attributes.
+        if (classDoc.superclass() != null && !classDoc.superclass().name().equals("Resource")) {
+            generateAttributes(classDoc.superclass(), sb, indent);
+        }
+
+        for (MethodDoc methodDoc : classDoc.methods()) {
+            if (!ObjectUtils.isBlank(methodDoc.commentText())) {
+                boolean isOutput = false;
+                for (Tag tag : methodDoc.tags()) {
+                    if (tag.name().equals("@output")) {
+                        isOutput = true;
+                    }
+                }
+
+                if (isOutput) {
+                    writeAttribute(sb, methodDoc, indent);
+                }
+            }
+        }
+    }
+
+    private void writeAttribute(StringBuilder sb, MethodDoc methodDoc, int indent) {
+        String attributeName = methodDoc.name();
+        attributeName = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN, attributeName).replaceFirst("get-", "");
+
+        sb.append(repeat(" ", indent));
+        sb.append(String.format("`%s <#%s>`_", attributeName, attributeName));
+        sb.append(" - ");
+        sb.append(firstSentence(methodDoc.commentText()));
+
+        String rest = comment(methodDoc.commentText(), indent);
+        if (!ObjectUtils.isBlank(rest)) {
+            sb.append(rest);
+        }
+
+        sb.append("\n\n");
     }
 
     private String firstSentence(String commentText) {
