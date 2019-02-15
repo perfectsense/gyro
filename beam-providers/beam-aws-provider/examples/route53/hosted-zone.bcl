@@ -16,23 +16,4 @@ aws::hosted-zone hosted-zone-example
         vpc-region: $(aws::credentials default | region)
     end
     comment: "hosted-zone-example.co comment"
-
-    record-set
-        name: ""
-        type: "A"
-
-        continent-code: "q"
-        country-code: "q"
-        dns-name: "q"
-        evaluate-target-health: false
-        failover: "q"
-        health-check-id: "q"
-        multi-value-answer: false
-        region: "q"
-        set-identifier: "q"
-        subdivision-code: "q"
-        traffic-policy-instance-id: "q"
-        ttl: 26
-        weight: 0
-    end
 end
