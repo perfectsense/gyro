@@ -9,6 +9,7 @@ import software.amazon.awssdk.services.cloudfront.model.LambdaFunctionAssociatio
 import software.amazon.awssdk.services.cloudfront.model.TrustedSigners;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -43,7 +44,7 @@ public class CloudFrontCacheBehavior extends Diffable {
         setTargetOriginId(cacheBehavior.targetOriginId());
         setPathPattern(cacheBehavior.pathPattern());
         setViewerProtocolPolicy(cacheBehavior.viewerProtocolPolicyAsString());
-        setTrustedSigners(cacheBehavior.trustedSigners().items());
+        setTrustedSigners(new ArrayList<>(cacheBehavior.trustedSigners().items()));
 
         // -- TTLs
         setDefaultTtl(cacheBehavior.defaultTTL());
@@ -53,11 +54,11 @@ public class CloudFrontCacheBehavior extends Diffable {
         // -- Forwarded Values
         setForwardCookies(cacheBehavior.forwardedValues().cookies().forwardAsString());
         if (!getForwardCookies().equals("none")) {
-            setCookies(cacheBehavior.forwardedValues().cookies().whitelistedNames().items());
+            setCookies(new ArrayList<>(cacheBehavior.forwardedValues().cookies().whitelistedNames().items()));
         }
-        setHeaders(cacheBehavior.forwardedValues().headers().items());
+        setHeaders(new ArrayList<>(cacheBehavior.forwardedValues().headers().items()));
         setQueryString(cacheBehavior.forwardedValues().queryString());
-        setQueryStringCacheKeys(cacheBehavior.forwardedValues().queryStringCacheKeys().items());
+        setQueryStringCacheKeys(new ArrayList<>(cacheBehavior.forwardedValues().queryStringCacheKeys().items()));
 
         setAllowedMethods(cacheBehavior.allowedMethods().itemsAsStrings());
         setCachedMethods(cacheBehavior.allowedMethods().cachedMethods().itemsAsStrings());
@@ -70,7 +71,7 @@ public class CloudFrontCacheBehavior extends Diffable {
         setTargetOriginId(cacheBehavior.targetOriginId());
         setPathPattern("*");
         setViewerProtocolPolicy(cacheBehavior.viewerProtocolPolicyAsString());
-        setTrustedSigners(cacheBehavior.trustedSigners().items());
+        setTrustedSigners(new ArrayList<>(cacheBehavior.trustedSigners().items()));
 
         // -- TTLs
         setDefaultTtl(cacheBehavior.defaultTTL());
@@ -80,11 +81,11 @@ public class CloudFrontCacheBehavior extends Diffable {
         // -- Forwarded Values
         setForwardCookies(cacheBehavior.forwardedValues().cookies().forwardAsString());
         if (!getForwardCookies().equals("none")) {
-            setCookies(cacheBehavior.forwardedValues().cookies().whitelistedNames().items());
+            setCookies(new ArrayList<>(cacheBehavior.forwardedValues().cookies().whitelistedNames().items()));
         }
-        setHeaders(cacheBehavior.forwardedValues().headers().items());
+        setHeaders(new ArrayList<>(cacheBehavior.forwardedValues().headers().items()));
         setQueryString(cacheBehavior.forwardedValues().queryString());
-        setQueryStringCacheKeys(cacheBehavior.forwardedValues().queryStringCacheKeys().items());
+        setQueryStringCacheKeys(new ArrayList<>(cacheBehavior.forwardedValues().queryStringCacheKeys().items()));
 
         setAllowedMethods(cacheBehavior.allowedMethods().itemsAsStrings());
         setCachedMethods(cacheBehavior.allowedMethods().cachedMethods().itemsAsStrings());
@@ -149,9 +150,10 @@ public class CloudFrontCacheBehavior extends Diffable {
             allowedMethods = new ArrayList<>();
         }
 
-        //Collections.sort(allowedMethods);
+        List<String> sorted = new ArrayList<>(allowedMethods);
+        Collections.sort(sorted);
 
-        return allowedMethods;
+        return sorted;
     }
 
     public void setAllowedMethods(List<String> allowedMethods) {
@@ -161,14 +163,16 @@ public class CloudFrontCacheBehavior extends Diffable {
     /**
      * HTTP methods (i.e. ``GET``, ``POST``) that you want to cache responses from.
      */
+    @ResourceDiffProperty(updatable = true)
     public List<String> getCachedMethods() {
         if (cachedMethods == null || cachedMethods.isEmpty()) {
             return getAllowedMethods();
         }
 
-        //Collections.sort(cachedMethods);
+        List<String> sorted = new ArrayList<>(cachedMethods);
+        Collections.sort(sorted);
 
-        return cachedMethods;
+        return sorted;
     }
 
     public void setCachedMethods(List<String> cachedMethods) {

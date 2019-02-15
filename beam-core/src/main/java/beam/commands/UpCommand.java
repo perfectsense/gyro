@@ -1,6 +1,7 @@
 package beam.commands;
 
 import beam.core.BeamCore;
+import beam.core.BeamUI;
 import beam.core.diff.ChangeType;
 import beam.core.diff.Diff;
 import beam.lang.ast.scope.RootScope;
@@ -14,7 +15,9 @@ public class UpCommand extends AbstractConfigCommand {
 
     @Override
     public void doExecute(RootScope current, RootScope pending) throws Exception {
-        BeamCore.ui().write("\n@|bold,white Looking for changes...\n\n|@");
+        BeamUI ui = BeamCore.ui();
+
+        ui.write("\n@|bold,white Looking for changes...\n\n|@");
 
         Diff diff = new Diff(
                 current.findAllResources(),
@@ -22,7 +25,7 @@ public class UpCommand extends AbstractConfigCommand {
 
         diff.diff();
 
-        Set<ChangeType> changeTypes = diff.write();
+        Set<ChangeType> changeTypes = diff.write(ui);
         State state = new State(pending);
 
         boolean hasChanges = false;
@@ -32,29 +35,29 @@ public class UpCommand extends AbstractConfigCommand {
 
             hasChanges = true;
 
-            if (BeamCore.ui().readBoolean(Boolean.FALSE, "\nAre you sure you want to create and/or update resources?")) {
-                BeamCore.ui().write("\n");
-                diff.executeCreateOrUpdate(state);
+            if (ui.readBoolean(Boolean.FALSE, "\nAre you sure you want to create and/or update resources?")) {
+                ui.write("\n");
+                diff.executeCreateOrUpdate(ui, state);
             }
         }
 
         if (changeTypes.contains(ChangeType.DELETE)) {
             hasChanges = true;
 
-            if (BeamCore.ui().readBoolean(Boolean.FALSE, "\nAre you sure you want to delete resources?")) {
-                BeamCore.ui().write("\n");
-                diff.executeDelete(state);
+            if (ui.readBoolean(Boolean.FALSE, "\nAre you sure you want to delete resources?")) {
+                ui.write("\n");
+                diff.executeDelete(ui, state);
             }
         }
 
         if (changeTypes.contains(ChangeType.REPLACE)) {
-            BeamCore.ui().write("\n");
+            ui.write("\n");
 
             hasChanges = true;
         }
 
         if (!hasChanges) {
-            BeamCore.ui().write("\n@|bold,green No changes.|@\n\n");
+            ui.write("\n@|bold,green No changes.|@\n\n");
         }
     }
 

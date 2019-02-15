@@ -16,16 +16,35 @@ public class Create extends Change {
         return diffable;
     }
 
-    @Override
-    public void writeTo(BeamUI ui) {
-        ui.write("@|green + Create %s|@", diffable.toDisplayString());
+    private void writeFields(BeamUI ui) {
+        for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
+            if (!Diffable.class.isAssignableFrom(field.getItemClass())) {
+                ui.write("\n· %s: %s", field.getBeamName(), stringify(field.getValue(diffable)));
+            }
+        }
     }
 
     @Override
-    protected void doExecute() {
-        if (diffable instanceof Resource) {
-            ((Resource) diffable).create();
+    public void writePlan(BeamUI ui) {
+        ui.write("@|green + Create %s|@", diffable.toDisplayString());
+
+        if (ui.isVerbose()) {
+            writeFields(ui);
         }
+    }
+
+    @Override
+    public void writeExecution(BeamUI ui) {
+        ui.write("@|magenta + Creating %s|@", diffable.toDisplayString());
+
+        if (ui.isVerbose()) {
+            writeFields(ui);
+        }
+    }
+
+    @Override
+    public void execute() {
+        ((Resource) diffable).create();
     }
 
 }
