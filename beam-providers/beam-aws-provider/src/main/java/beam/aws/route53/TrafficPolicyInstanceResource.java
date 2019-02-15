@@ -5,6 +5,7 @@ import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 import beam.lang.Resource;
 import com.psddev.dari.util.ObjectUtils;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.route53.Route53Client;
 import software.amazon.awssdk.services.route53.model.CreateTrafficPolicyInstanceResponse;
 import software.amazon.awssdk.services.route53.model.GetTrafficPolicyInstanceResponse;
@@ -26,6 +27,7 @@ import java.util.Set;
  *         version: 1
  *         ttl: 900
  *         hosted-zone-id: $(aws::hosted-zone hosted-zone-record-set-example-alpha | hosted-zone-id)
+ *         hosted-zone-name: $(aws::hosted-zone hosted-zone-record-set-example-alpha | hosted-zone-name)
  *         traffic-policy-id: $(aws::traffic-policy traffic-policy-example-instance | traffic-policy-id)
  *     end
  *
@@ -35,6 +37,7 @@ public class TrafficPolicyInstanceResource extends AwsResource {
     private String name;
     private String message;
     private String hostedZoneId;
+    private String hostedZoneName;
     private String trafficPolicyId;
     private String type;
     private Long ttl;
@@ -70,6 +73,17 @@ public class TrafficPolicyInstanceResource extends AwsResource {
 
     public void setHostedZoneId(String hostedZoneId) {
         this.hostedZoneId = hostedZoneId;
+    }
+
+    /**
+     * Name of the associated hosted zone. (Required)
+     */
+    public String getHostedZoneName() {
+        return hostedZoneName;
+    }
+
+    public void setHostedZoneName(String hostedZoneName) {
+        this.hostedZoneName = hostedZoneName;
     }
 
     /**
@@ -134,14 +148,13 @@ public class TrafficPolicyInstanceResource extends AwsResource {
 
     @Override
     public boolean refresh() {
-        Route53Client client = createClient(Route53Client.class);
+        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
 
         GetTrafficPolicyInstanceResponse response = client.getTrafficPolicyInstance(
             r -> r.id(getTrafficPolicyInstanceId())
         );
 
         TrafficPolicyInstance trafficPolicyInstance = response.trafficPolicyInstance();
-        setName(trafficPolicyInstance.name());
         setMessage(trafficPolicyInstance.message());
         setHostedZoneId(trafficPolicyInstance.hostedZoneId());
         setType(trafficPolicyInstance.trafficPolicyTypeAsString());
@@ -155,10 +168,10 @@ public class TrafficPolicyInstanceResource extends AwsResource {
 
     @Override
     public void create() {
-        Route53Client client = createClient(Route53Client.class);
+        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
 
         CreateTrafficPolicyInstanceResponse response = client.createTrafficPolicyInstance(
-            r -> r.name(getName())
+            r -> r.name(getName() + getHostedZoneName())
                 .hostedZoneId(getHostedZoneId())
                 .trafficPolicyId(getTrafficPolicyId())
                 .trafficPolicyVersion(getVersion())
@@ -171,7 +184,7 @@ public class TrafficPolicyInstanceResource extends AwsResource {
 
     @Override
     public void update(Resource current, Set<String> changedProperties) {
-        Route53Client client = createClient(Route53Client.class);
+        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
 
         client.updateTrafficPolicyInstance(
             r -> r.id(getTrafficPolicyInstanceId())
@@ -183,7 +196,7 @@ public class TrafficPolicyInstanceResource extends AwsResource {
 
     @Override
     public void delete() {
-        Route53Client client = createClient(Route53Client.class);
+        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
 
         client.deleteTrafficPolicyInstance(
             r -> r.id(getTrafficPolicyInstanceId())
@@ -194,7 +207,15 @@ public class TrafficPolicyInstanceResource extends AwsResource {
     public String toDisplayString() {
         StringBuilder sb = new StringBuilder();
 
-        sb.append("traffic policy instance");
+        sb.append("traffic policy instance - ");
+
+        if (!ObjectUtils.isBlank(getName())) {
+            sb.append(getName());
+        }
+
+        if (!ObjectUtils.isBlank(getHostedZoneName())) {
+            sb.append(getHostedZoneName());
+        }
 
         if (!ObjectUtils.isBlank(getTrafficPolicyInstanceId())) {
             sb.append(" - ").append(getTrafficPolicyInstanceId());
