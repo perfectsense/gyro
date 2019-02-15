@@ -16,6 +16,24 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+/**
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: beam
+ *
+ *     aws::vpc-endpoint-service vpc-endpoint-service-example
+ *         acceptance-required: "false"
+ *         network-load-balancer-arns: [
+ *             $(aws::nlb nlb-example | load-balancer-arn)
+ *         ]
+ *         principals: [
+ *             $(aws::iam-role example-role | role-arn)
+ *         ]
+ *     end
+ */
+
 @ResourceName("vpc-endpoint-service")
 public class VpcEndpointServiceResource extends AwsResource {
 
@@ -25,6 +43,9 @@ public class VpcEndpointServiceResource extends AwsResource {
     private String serviceId;
     private String serviceName;
 
+    /**
+     *  Determines whether requests to create an endpoint to this service must be accepted
+     */
     @ResourceDiffProperty(updatable = true)
     public Boolean getAcceptanceRequired() {
         return acceptanceRequired;
@@ -34,6 +55,9 @@ public class VpcEndpointServiceResource extends AwsResource {
         this.acceptanceRequired = acceptanceRequired;
     }
 
+    /**
+     *  The load balancer arns connected to the service
+     */
     @ResourceDiffProperty(updatable = true)
     public List<String> getNetworkLoadBalancerArns() {
         if (networkLoadBalancerArns == null) {
@@ -47,6 +71,9 @@ public class VpcEndpointServiceResource extends AwsResource {
         this.networkLoadBalancerArns = networkLoadBalancerArns;
     }
 
+    /**
+     *  The service consumers connected to the service
+     */
     @ResourceDiffProperty(updatable = true)
     public List<String> getPrincipals() {
         if (principals == null) {
