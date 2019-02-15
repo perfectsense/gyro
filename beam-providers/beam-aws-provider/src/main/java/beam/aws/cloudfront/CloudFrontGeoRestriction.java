@@ -22,6 +22,9 @@ public class CloudFrontGeoRestriction extends Diffable {
         setRestrictions(geoRestriction.items());
     }
 
+    /**
+     * Type of restriction. Valid values are ``Whitelist`` or ``Blacklist``.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getType() {
         return type;
@@ -31,6 +34,9 @@ public class CloudFrontGeoRestriction extends Diffable {
         this.type = type;
     }
 
+    /**
+     * List of countries to whitelist or blacklist. Uses two letter country codes (i.e. US).
+     */
     @ResourceDiffProperty(updatable = true)
     public List<String> getRestrictions() {
         if (restrictions == null) {

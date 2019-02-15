@@ -24,6 +24,9 @@ public class CloudFrontLogging extends Diffable {
         setIncludeCookies(loggingConfig.includeCookies());
     }
 
+    /**
+     * Enable or disable logging for this distribution.
+     */
     public Boolean getEnabled() {
         return enabled;
     }
@@ -32,6 +35,9 @@ public class CloudFrontLogging extends Diffable {
         this.enabled = enabled;
     }
 
+    /**
+     * Name of bucket to save access logs.
+     */
     public String getBucket() {
         return bucket;
     }
@@ -40,6 +46,9 @@ public class CloudFrontLogging extends Diffable {
         this.bucket = bucket;
     }
 
+    /**
+     * Directory within bucket ot save access logs.
+     */
     public String getBucketPrefix() {
         return bucketPrefix;
     }
@@ -48,6 +57,9 @@ public class CloudFrontLogging extends Diffable {
         this.bucketPrefix = bucketPrefix;
     }
 
+    /**
+     * Whether to include cookies logs.
+     */
     public Boolean getIncludeCookies() {
         return includeCookies;
     }

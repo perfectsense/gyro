@@ -121,7 +121,8 @@ public class CloudWatchMetricAlarmResource extends AwsResource {
 
     /**
      * The operation to use when comparing using threshold and statistics.
-     * Valid values [ 'GreaterThanOrEqualToThreshold', 'GreaterThanThreshold', 'LessThanThreshold', 'LessThanOrEqualToThreshold' ]
+     *
+     * Valid values are ``GreaterThanOrEqualToThreshold``, ``GreaterThanThreshold``, ``LessThanThreshold``, ``LessThanOrEqualToThreshold``.
      */
     @ResourceDiffProperty(updatable = true, nullable = true)
     public String getComparisonOperator() {

@@ -43,6 +43,9 @@ public class CloudFrontOrigin extends Diffable {
         }
     }
 
+    /**
+     * A unique ID for this origin.
+     */
     public String getId() {
         return id;
     }
@@ -51,6 +54,9 @@ public class CloudFrontOrigin extends Diffable {
         this.id = id;
     }
 
+    /**
+     * The DNS name of the origin.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getDomainName() {
         return domainName;
@@ -60,6 +66,9 @@ public class CloudFrontOrigin extends Diffable {
         this.domainName = domainName;
     }
 
+    /**
+     * Optional path to request content from a specific directory of the origin.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getOriginPath() {
         if (originPath == null) {
@@ -73,6 +82,9 @@ public class CloudFrontOrigin extends Diffable {
         this.originPath = originPath;
     }
 
+    /**
+     * A map of custom headers to send the origin on every request.
+     */
     @ResourceDiffProperty(updatable = true)
     public Map<String, String> getCustomHeaders() {
         if (customHeaders == null) {
@@ -86,6 +98,11 @@ public class CloudFrontOrigin extends Diffable {
         this.customHeaders = customHeaders;
     }
 
+    /**
+     * S3 configuration for this origin.
+     *
+     * @subresource beam.aws.cloudfront.CloudFrontS3Origin
+     */
     @ResourceDiffProperty(updatable = true)
     public CloudFrontS3Origin getS3Origin() {
         if (s3Origin == null && customOrigin == null) {
@@ -99,6 +116,11 @@ public class CloudFrontOrigin extends Diffable {
         this.s3Origin = s3Origin;
     }
 
+    /**
+     * Custom configuration for this origin.
+     *
+     * @subresource beam.aws.cloudfront.CloudFrontCustomOrigin
+     */
     @ResourceDiffProperty(updatable = true)
     public CloudFrontCustomOrigin getCustomOrigin() {
         return customOrigin;

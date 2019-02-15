@@ -14,6 +14,9 @@ public class CloudFrontS3Origin extends Diffable {
         setOriginAccessIdentity(s3OriginConfig.originAccessIdentity());
     }
 
+    /**
+     * Origin access identity for serving private content through S3.
+     */
     public String getOriginAccessIdentity() {
         if (originAccessIdentity == null) {
             return "";

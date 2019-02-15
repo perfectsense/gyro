@@ -32,29 +32,31 @@ import java.util.stream.Collectors;
 /**
  * Create a CloudFront distribution.
  *
- * aws::cloudfront cloudfront-example
- *     name: "static asset cache"
- *     enabled: true
- *     ipv6-enabled: false
+ * .. code-block:: beam
  *
- *     origin
- *         id: "S3-my-bucket"
- *         domain-name: "my-bucket.s3.us-east-1.amazonaws.com"
- *     end
+ *    aws::cloudfront cloudfront-example
+ *        name: "static asset cache"
+ *        enabled: true
+ *        ipv6-enabled: false
  *
- *     default-cache-behavior
- *         target-origin-id: "S3-my-bucket-brightspot"
- *         viewer-protocol-policy: "allow-all"
- *         allowed-methods: ["GET", "HEAD"]
- *         cached-methods: ["GET", "HEAD"]
- *         headers: ["Origin"]
- *     end
+ *        origin
+ *            id: "S3-my-bucket"
+ *            domain-name: "my-bucket.s3.us-east-1.amazonaws.com"
+ *        end
  *
- *     geo-restriction
- *         type: "whitelist"
- *         restrictions: ["US"]
- *     end
- * end
+ *        default-cache-behavior
+ *            target-origin-id: "S3-my-bucket-brightspot"
+ *            viewer-protocol-policy: "allow-all"
+ *            allowed-methods: ["GET", "HEAD"]
+ *            cached-methods: ["GET", "HEAD"]
+ *            headers: ["Origin"]
+ *        end
+ *
+ *        geo-restriction
+ *            type: "whitelist"
+ *            restrictions: ["US"]
+ *        end
+ *    end
  */
 @ResourceName("cloudfront")
 public class CloudFrontResource extends AwsResource {
@@ -65,16 +67,16 @@ public class CloudFrontResource extends AwsResource {
     private String httpVersion;
     private String priceClass;
     private String defaultRootObject;
-    private CloudFrontLogging logging;
+    private String etag;
+    private String callerReference;
+    private boolean isIpv6Enabled;
+    private String webAclId;
     private Map<String, String> tags;
     private List<CloudFrontOrigin> origin;
     private List<CloudFrontCacheBehavior> behavior;
     private CloudFrontCacheBehavior defaultCacheBehavior;
-    private String etag;
-    private String callerReference;
-    private boolean isIpv6Enabled;
     private CloudFrontViewerCertificate viewerCertificate;
-    private String webAclId;
+    private CloudFrontLogging logging;
     private List<CloudFrontCustomErrorResponse> customErrorResponse;
     private CloudFrontGeoRestriction geoRestriction;
 
@@ -117,7 +119,7 @@ public class CloudFrontResource extends AwsResource {
      * Enable or disable this distribution without deleting it.
      */
     @ResourceDiffProperty(updatable = true)
-    public boolean isEnabled() {
+    public boolean getEnabled() {
         return enabled;
     }
 
@@ -126,7 +128,7 @@ public class CloudFrontResource extends AwsResource {
     }
 
     /**
-     * Specify a comment for this distribution.
+     * A comment for this distribution.
      */
     @ResourceDiffProperty(updatable = true)
     public String getComment() {
@@ -160,7 +162,7 @@ public class CloudFrontResource extends AwsResource {
     }
 
     /**
-     * The maximum http version that users can request on this distribution. Valid values are "HTTP1_1" or "HTTP2".
+     * The maximum http version that users can request on this distribution. Valid values are ``HTTP1_1`` or ``HTTP2``.
      */
     @ResourceDiffProperty(updatable = true)
     public String getHttpVersion() {
@@ -172,7 +174,7 @@ public class CloudFrontResource extends AwsResource {
     }
 
     /**
-     * The maximum price you want to pay for CloudFront. Valid values are "PriceClass_All", "PriceClass_200", and "PriceClass_100". For information on pricing see `Price classes <https://aws.amazon.com/cloudfront/pricing/#On-demand_Pricing />_`.
+     * The maximum price you want to pay for CloudFront. Valid values are ``PriceClass_All``, ``PriceClass_200`` and ``PriceClass_100``. For information on pricing see `Price classes <https://aws.amazon.com/cloudfront/pricing/#On-demand_Pricing>`_.
      */
     @ResourceDiffProperty(updatable = true)
     public String getPriceClass() {
@@ -203,72 +205,6 @@ public class CloudFrontResource extends AwsResource {
         this.defaultRootObject = defaultRootObject;
     }
 
-    /**
-     * The origins for this distribution.
-     */
-    public List<CloudFrontOrigin> getOrigin() {
-        if (origin == null) {
-            origin = new ArrayList<>();
-        }
-
-        return origin;
-    }
-
-    public void setOrigin(List<CloudFrontOrigin> origin) {
-        this.origin = origin;
-    }
-
-    /**
-     * The cache behaviors for this distribution.
-     */
-    public List<CloudFrontCacheBehavior> getBehavior() {
-        if (behavior == null) {
-            behavior = new ArrayList<>();
-        }
-
-        return behavior;
-    }
-
-    public void setBehavior(List<CloudFrontCacheBehavior> behavior) {
-        this.behavior = behavior;
-    }
-
-    @ResourceDiffProperty(updatable = true)
-    public CloudFrontCacheBehavior getDefaultCacheBehavior() {
-        return defaultCacheBehavior;
-    }
-
-    public void setDefaultCacheBehavior(CloudFrontCacheBehavior defaultCacheBehavior) {
-        this.defaultCacheBehavior = defaultCacheBehavior;
-
-        defaultCacheBehavior.setPathPattern("*");
-    }
-
-    /**
-     * Configuration for logging access logs to S3.
-     */
-    @ResourceDiffProperty(updatable = true)
-    public CloudFrontLogging getLogging() {
-        return logging;
-    }
-
-    public void setLogging(CloudFrontLogging logging) {
-        this.logging = logging;
-    }
-
-    @ResourceDiffProperty(updatable = true)
-    public Map<String, String> getTags() {
-        if (tags == null) {
-            tags = new HashMap<>();
-        }
-
-        return tags;
-    }
-
-    public void setTags(Map<String, String> tags) {
-        this.tags = tags;
-    }
-
     public String getEtag() {
         return etag;
     }
@@ -289,24 +225,12 @@ public class CloudFrontResource extends AwsResource {
      * Enable IPv6 support for this distribution.
      */
     @ResourceDiffProperty(updatable = true)
-    public boolean isIpv6Enabled() {
+    public boolean getIpv6Enabled() {
         return isIpv6Enabled;
     }
 
     public void setIpv6Enabled(boolean ipv6Enabled) {
         isIpv6Enabled = ipv6Enabled;
-    }
-
-    /**
-     * SSL certification configuration.
-     */
-    @ResourceDiffProperty(updatable = true)
-    public CloudFrontViewerCertificate getViewerCertificate() {
-        return viewerCertificate;
-    }
-
-    public void setViewerCertificate(CloudFrontViewerCertificate viewerCertificate) {
-        this.viewerCertificate = viewerCertificate;
     }
 
     /**
@@ -334,7 +258,103 @@ public class CloudFrontResource extends AwsResource {
     }
 
     /**
+     * A map of tags to apply to this distribution.
+     */
+    @ResourceDiffProperty(updatable = true)
+    public Map<String, String> getTags() {
+        if (tags == null) {
+            tags = new HashMap<>();
+        }
+
+        return tags;
+    }
+
+    public void setTags(Map<String, String> tags) {
+        this.tags = tags;
+    }
+
+    /**
+     * List of origins for this distribution.
+     *
+     * @subresource beam.aws.cloudfront.CloudFrontOrigin
+     */
+    public List<CloudFrontOrigin> getOrigin() {
+        if (origin == null) {
+            origin = new ArrayList<>();
+        }
+
+        return origin;
+    }
+
+    public void setOrigin(List<CloudFrontOrigin> origin) {
+        this.origin = origin;
+    }
+
+    /**
+     * List of cache behaviors for this distribution.
+     *
+     * @subresource beam.aws.cloudfront.CloudFrontCacheBehavior
+     */
+    public List<CloudFrontCacheBehavior> getBehavior() {
+        if (behavior == null) {
+            behavior = new ArrayList<>();
+        }
+
+        return behavior;
+    }
+
+    public void setBehavior(List<CloudFrontCacheBehavior> behavior) {
+        this.behavior = behavior;
+    }
+
+    /**
+     * The default cache behavior for this distribution.
+     *
+     * @subresource beam.aws.cloudfront.CloudFrontCacheBehavior
+     */
+    @ResourceDiffProperty(updatable = true)
+    public CloudFrontCacheBehavior getDefaultCacheBehavior() {
+        return defaultCacheBehavior;
+    }
+
+    public void setDefaultCacheBehavior(CloudFrontCacheBehavior defaultCacheBehavior) {
+        this.defaultCacheBehavior = defaultCacheBehavior;
+
+        defaultCacheBehavior.setPathPattern("*");
+    }
+
+    /**
+     * SSL certificate configuration.
+     *
+     * @subresource beam.aws.cloudfront.CloudFrontViewerCertificate
+     */
+    @ResourceDiffProperty(updatable = true)
+    public CloudFrontViewerCertificate getViewerCertificate() {
+        return viewerCertificate;
+    }
+
+    public void setViewerCertificate(CloudFrontViewerCertificate viewerCertificate) {
+        this.viewerCertificate = viewerCertificate;
+    }
+
+    /**
+     * Configure logging access logs to S3.
+     *
+     * @subresource beam.aws.cloudfront.CloudFrontLogging
+     */
+    @ResourceDiffProperty(updatable = true)
+    public CloudFrontLogging getLogging() {
+        return logging;
+    }
+
+    public void setLogging(CloudFrontLogging logging) {
+        this.logging = logging;
+    }
+
+    /**
      * Replace HTTP codes with custom error responses as well as define cache TTLs for error responses.
+     *
+     * @subresource beam.aws.cloudfront.CloudFrontCustomErrorResponse
      */
     @ResourceDiffProperty(updatable = true, nullable = true)
     public List<CloudFrontCustomErrorResponse> getCustomErrorResponse() {
@@ -350,7 +370,9 @@ public class CloudFrontResource extends AwsResource {
     }
 
     /**
-     * Restriction access to this distribution by country.
+     * Restrict or allow access to this distribution by country.
+     *
+     * @subresource beam.aws.cloudfront.CloudFrontGeoRestriction
      */
     @ResourceDiffProperty(updatable = true, nullable = true)
     public CloudFrontGeoRestriction getGeoRestriction() {
@@ -458,7 +480,7 @@ public class CloudFrontResource extends AwsResource {
     public void delete() {
         CloudFrontClient client = createClient(CloudFrontClient.class, "us-east-1", "https://cloudfront.amazonaws.com");
 
-        if (isEnabled()) {
+        if (getEnabled()) {
             setEnabled(false);
 
             client.updateDistribution(r -> r.distributionConfig(distributionConfig())
@@ -549,12 +571,12 @@ public class CloudFrontResource extends AwsResource {
             defaultCacheBehavior = new CloudFrontCacheBehavior();
         }
 
-        builder.enabled(isEnabled())
+        builder.enabled(getEnabled())
             .comment(getComment())
             .httpVersion(getHttpVersion())
             .priceClass(getPriceClass())
             .defaultRootObject(getDefaultRootObject())
-            .isIPV6Enabled(isIpv6Enabled())
+            .isIPV6Enabled(getIpv6Enabled())
             .webACLId(getWebAclId())
             .aliases(a -> a.items(getCnames()).quantity(getCnames().size()))
             .restrictions(getGeoRestriction().toRestrictions())

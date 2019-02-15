@@ -25,8 +25,11 @@ public class CloudFrontViewerCertificate extends Diffable {
         setSslSupportMethod(viewerCertificate.sslSupportMethodAsString());
     }
 
+    /**
+     * Use the default CloudFront SSL certificate (i.e. ``*.cloudfront.net``).
+     */
     @ResourceDiffProperty(updatable = true)
-    public boolean isCloudfrontDefaultCertificate() {
+    public boolean getCloudfrontDefaultCertificate() {
         return cloudfrontDefaultCertificate;
     }
 
@@ -34,6 +37,9 @@ public class CloudFrontViewerCertificate extends Diffable {
         this.cloudfrontDefaultCertificate = cloudfrontDefaultCertificate;
     }
 
+    /**
+     * ARN for an ACM generated certificate.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getAcmCertificateArn() {
         return acmCertificateArn;
@@ -43,6 +49,9 @@ public class CloudFrontViewerCertificate extends Diffable {
         this.acmCertificateArn = acmCertificateArn;
     }
 
+    /**
+     * ID for certificated uploaded to IAM.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getIamCertificateId() {
         return iamCertificateId;
@@ -52,6 +61,9 @@ public class CloudFrontViewerCertificate extends Diffable {
         this.iamCertificateId = iamCertificateId;
     }
 
+    /**
+     * Minimum SSL protocol. Valid valies are ``SSLv3``, ``TLSv1``, ``TLSv1_2016``, ``TLSv1.1_2016``, ``TLSv1.2_2018``.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getMinimumProtocolVersion() {
         return minimumProtocolVersion;
@@ -61,9 +73,12 @@ public class CloudFrontViewerCertificate extends Diffable {
         this.minimumProtocolVersion = minimumProtocolVersion;
     }
 
+    /**
+     * Whether CloudFront uses a dedicated IP or SNI for serving SSL traffic. Valid values are ``vip`` or ``sni-only``. There is a significant additional monthly charge for ``vip`.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getSslSupportMethod() {
-        if (isCloudfrontDefaultCertificate())  {
+        if (getCloudfrontDefaultCertificate())  {
             return null;
         } else if (sslSupportMethod == null) {
             return "sni-only";
@@ -82,7 +97,7 @@ public class CloudFrontViewerCertificate extends Diffable {
             .iamCertificateId(getIamCertificateId())
             .minimumProtocolVersion(getMinimumProtocolVersion())
             .sslSupportMethod(getSslSupportMethod())
-            .cloudFrontDefaultCertificate(isCloudfrontDefaultCertificate())
+            .cloudFrontDefaultCertificate(getCloudfrontDefaultCertificate())
             .build();
     }
 
