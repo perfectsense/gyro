@@ -146,7 +146,7 @@ public class HostedZoneResource extends AwsResource {
 
     @Override
     public boolean refresh() {
-        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
+        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL.toString(), null);
 
         GetHostedZoneResponse response = client.getHostedZone(
             r -> r.id(getHostedZoneId())
@@ -168,7 +168,7 @@ public class HostedZoneResource extends AwsResource {
 
     @Override
     public void create() {
-        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
+        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL.toString(), null);
 
         //validate();
 
@@ -199,7 +199,7 @@ public class HostedZoneResource extends AwsResource {
 
     @Override
     public void update(Resource current, Set<String> changedProperties) {
-        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
+        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL.toString(), null);
 
         if (changedProperties.contains("comment")) {
             client.updateHostedZoneComment(
@@ -211,7 +211,7 @@ public class HostedZoneResource extends AwsResource {
 
     @Override
     public void delete() {
-        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
+        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL.toString(), null);
 
         client.deleteHostedZone(
             r -> r.id(getHostedZoneId())
@@ -246,7 +246,7 @@ public class HostedZoneResource extends AwsResource {
     }
 
     void saveVpc(String vpcId, String vpcRegion, boolean isAttach) {
-        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
+        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL.toString(), null);
 
         if (isAttach) {
             client.associateVPCWithHostedZone(

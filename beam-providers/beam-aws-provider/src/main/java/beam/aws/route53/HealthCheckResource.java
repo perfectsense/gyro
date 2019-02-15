@@ -334,8 +334,7 @@ public class HealthCheckResource extends AwsResource {
 
     @Override
     public boolean refresh() {
-
-        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
+        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL.toString(), null);
 
         GetHealthCheckResponse response = client.getHealthCheck(
             r -> r.healthCheckId(getHealthCheckId())
@@ -384,7 +383,7 @@ public class HealthCheckResource extends AwsResource {
     public void create() {
         validate();
 
-        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
+        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL.toString(), null);
 
         CreateHealthCheckResponse response = client.createHealthCheck(
             r -> r.callerReference(UUID.randomUUID().toString())
@@ -402,7 +401,7 @@ public class HealthCheckResource extends AwsResource {
     public void update(Resource current, Set<String> changedProperties) {
         validate();
 
-        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
+        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL.toString(), null);
 
         if (changedProperties.contains("tags")) {
             HealthCheckResource oldResource = (HealthCheckResource) current;
@@ -414,7 +413,7 @@ public class HealthCheckResource extends AwsResource {
 
     @Override
     public void delete() {
-        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
+        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL.toString(), null);
 
         client.deleteHealthCheck(
             r -> r.healthCheckId(getHealthCheckId())

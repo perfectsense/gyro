@@ -352,7 +352,7 @@ public class RecordSetResource extends AwsResource {
 
     @Override
     public boolean refresh() {
-        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
+        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL.toString(), null);
 
         ResourceRecordSet recordSet = getResourceRecordSet(client);
 
@@ -369,7 +369,7 @@ public class RecordSetResource extends AwsResource {
     public void create() {
         validate();
 
-        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
+        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL.toString(), null);
 
         if (getType().equals("NS") || getType().equals("SOA")) {
             saveResourceRecordSet(client,this, ChangeAction.UPSERT);
@@ -384,7 +384,7 @@ public class RecordSetResource extends AwsResource {
     public void update(Resource current, Set<String> changedProperties) {
         validate();
 
-        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
+        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL.toString(), null);
 
         RecordSetResource oldResource = (RecordSetResource) current;
 
@@ -397,7 +397,7 @@ public class RecordSetResource extends AwsResource {
 
     @Override
     public void delete() {
-        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
+        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL.toString(), null);
 
         saveResourceRecordSet(client, this, ChangeAction.DELETE);
     }

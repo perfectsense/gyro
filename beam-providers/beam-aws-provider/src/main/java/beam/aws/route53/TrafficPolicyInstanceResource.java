@@ -148,7 +148,7 @@ public class TrafficPolicyInstanceResource extends AwsResource {
 
     @Override
     public boolean refresh() {
-        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
+        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL.toString(), null);
 
         GetTrafficPolicyInstanceResponse response = client.getTrafficPolicyInstance(
             r -> r.id(getTrafficPolicyInstanceId())
@@ -168,7 +168,7 @@ public class TrafficPolicyInstanceResource extends AwsResource {
 
     @Override
     public void create() {
-        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
+        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL.toString(), null);
 
         CreateTrafficPolicyInstanceResponse response = client.createTrafficPolicyInstance(
             r -> r.name(getName() + getHostedZoneName())
@@ -184,7 +184,7 @@ public class TrafficPolicyInstanceResource extends AwsResource {
 
     @Override
     public void update(Resource current, Set<String> changedProperties) {
-        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
+        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL.toString(), null);
 
         client.updateTrafficPolicyInstance(
             r -> r.id(getTrafficPolicyInstanceId())
@@ -196,7 +196,7 @@ public class TrafficPolicyInstanceResource extends AwsResource {
 
     @Override
     public void delete() {
-        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
+        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL.toString(), null);
 
         client.deleteTrafficPolicyInstance(
             r -> r.id(getTrafficPolicyInstanceId())

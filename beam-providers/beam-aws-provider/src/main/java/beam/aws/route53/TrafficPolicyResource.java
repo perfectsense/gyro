@@ -111,7 +111,7 @@ public class TrafficPolicyResource extends AwsResource {
 
     @Override
     public boolean refresh() {
-        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
+        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL.toString(), null);
 
         GetTrafficPolicyResponse response = client.getTrafficPolicy(
             r -> r.id(getTrafficPolicyId()).version(getVersion())
@@ -129,7 +129,7 @@ public class TrafficPolicyResource extends AwsResource {
     public void create() {
         validate(true);
 
-        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
+        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL.toString(), null);
 
         TrafficPolicy trafficPolicy = null;
 
@@ -161,7 +161,7 @@ public class TrafficPolicyResource extends AwsResource {
     public void update(Resource current, Set<String> changedProperties) {
         validate(false);
 
-        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
+        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL.toString(), null);
 
         client.updateTrafficPolicyComment(
             r -> r.id(getTrafficPolicyId())
@@ -172,7 +172,7 @@ public class TrafficPolicyResource extends AwsResource {
 
     @Override
     public void delete() {
-        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
+        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL.toString(), null);
 
         client.deleteTrafficPolicy(
             r -> r.id(getTrafficPolicyId())
