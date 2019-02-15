@@ -329,6 +329,11 @@ public class InstanceResource extends Ec2TaggableResource<Instance> implements B
         this.userData = userData;
     }
 
+    /**
+     * The private IP of this instance.
+     *
+     * @output
+     */
     public String getPrivateIpAddress() {
         return privateIpAddress;
     }
@@ -337,6 +342,11 @@ public class InstanceResource extends Ec2TaggableResource<Instance> implements B
         this.privateIpAddress = privateIpAddress;
     }
 
+    /**
+     * The public IP of this instance, if launched in a public subnet.
+     *
+     * @output
+     */
     public String getPublicIpAddress() {
         return publicIpAddress;
     }
@@ -345,6 +355,11 @@ public class InstanceResource extends Ec2TaggableResource<Instance> implements B
         this.publicIpAddress = publicIpAddress;
     }
 
+    /**
+     * The public dns name of this instance, if launched in a public subnet.
+     *
+     * @output
+     */
     public String getPublicDnsName() {
         return publicDnsName;
     }
@@ -353,6 +368,11 @@ public class InstanceResource extends Ec2TaggableResource<Instance> implements B
         this.publicDnsName = publicDnsName;
     }
 
+    /**
+     * Current state of this instance (running, pending, terminated, stopped).
+     *
+     * @output
+     */
     public String getInstanceState() {
         return instanceState;
     }
@@ -365,6 +385,11 @@ public class InstanceResource extends Ec2TaggableResource<Instance> implements B
         this.launchDate = launchDate;
     }
 
+    /**
+     * The date and time this instance was launched.
+     *
+     * @output
+     */
     public Date getInstanceLaunchDate() {
         return launchDate;
     }
