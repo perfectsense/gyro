@@ -16,10 +16,6 @@ public abstract class AwsResource extends Resource {
     private SdkClient client;
 
     protected <T extends SdkClient> T createClient(Class<T> clientClass) {
-        return createClient(clientClass, null);
-    }
-
-    protected <T extends SdkClient> T createClient(Class<T> clientClass, Region region) {
         return createClient(clientClass, null, null);
     }
 
