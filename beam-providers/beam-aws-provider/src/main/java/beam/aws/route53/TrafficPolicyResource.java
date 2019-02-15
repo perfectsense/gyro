@@ -6,8 +6,10 @@ import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 import beam.lang.Resource;
 import com.psddev.dari.util.ObjectUtils;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.route53.Route53Client;
 import software.amazon.awssdk.services.route53.model.CreateTrafficPolicyResponse;
+import software.amazon.awssdk.services.route53.model.CreateTrafficPolicyVersionResponse;
 import software.amazon.awssdk.services.route53.model.GetTrafficPolicyResponse;
 import software.amazon.awssdk.services.route53.model.TrafficPolicy;
 
@@ -40,6 +42,7 @@ public class TrafficPolicyResource extends AwsResource {
     private String document;
     private String documentPath;
     private String trafficPolicyId;
+    private Integer version;
 
     /**
      * The name of the traffic policy. (Required)
@@ -98,12 +101,20 @@ public class TrafficPolicyResource extends AwsResource {
         this.trafficPolicyId = trafficPolicyId;
     }
 
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
+    }
+
     @Override
     public boolean refresh() {
-        Route53Client client = createClient(Route53Client.class);
+        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
 
         GetTrafficPolicyResponse response = client.getTrafficPolicy(
-            r -> r.id(getTrafficPolicyId())
+            r -> r.id(getTrafficPolicyId()).version(getVersion())
         );
 
         TrafficPolicy trafficPolicy = response.trafficPolicy();
@@ -116,34 +127,56 @@ public class TrafficPolicyResource extends AwsResource {
 
     @Override
     public void create() {
-        Route53Client client = createClient(Route53Client.class);
+        validate(true);
 
-        CreateTrafficPolicyResponse response = client.createTrafficPolicy(
-            r -> r.name(getName())
-                .comment(getComment())
-                .document(getDocument())
-        );
+        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
 
-        TrafficPolicy trafficPolicy = response.trafficPolicy();
+        TrafficPolicy trafficPolicy = null;
+
+        if (ObjectUtils.isBlank(getTrafficPolicyId())) {
+            CreateTrafficPolicyResponse response = client.createTrafficPolicy(
+                r -> r.name(getName())
+                    .comment(getComment())
+                    .document(getDocument())
+            );
+
+            trafficPolicy = response.trafficPolicy();
+
+        } else {
+            CreateTrafficPolicyVersionResponse response = client.createTrafficPolicyVersion(
+                r -> r.comment(getComment())
+                    .id(getTrafficPolicyId())
+                    .document(getDocument())
+            );
+
+            trafficPolicy = response.trafficPolicy();
+        }
+
         setTrafficPolicyId(trafficPolicy.id());
+        setVersion(trafficPolicy.version());
+        setName(trafficPolicy.name());
     }
 
     @Override
     public void update(Resource current, Set<String> changedProperties) {
-        Route53Client client = createClient(Route53Client.class);
+        validate(false);
+
+        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
 
         client.updateTrafficPolicyComment(
             r -> r.id(getTrafficPolicyId())
                 .comment(getComment())
+                .version(getVersion())
         );
     }
 
     @Override
     public void delete() {
-        Route53Client client = createClient(Route53Client.class);
+        Route53Client client = createClient(Route53Client.class, Region.AWS_GLOBAL);
 
         client.deleteTrafficPolicy(
             r -> r.id(getTrafficPolicyId())
+                .version(getVersion())
         );
     }
 
@@ -153,9 +186,18 @@ public class TrafficPolicyResource extends AwsResource {
 
         sb.append("traffic policy");
 
-        if (!ObjectUtils.isBlank(getTrafficPolicyId())) {
-            sb.append(" - ").append(getTrafficPolicyId());
+        if (!ObjectUtils.isBlank(getName())) {
+            sb.append(" - ").append(getName());
+        }
 
+        if (getVersion() != null) {
+            sb.append(" - version: ").append(getVersion());
+        }
+
+        if (ObjectUtils.isBlank(getName()) && !ObjectUtils.isBlank(getTrafficPolicyId())) {
+            sb.append(" [ from - ").append(getTrafficPolicyId()).append(" ]");
+        } else if (!ObjectUtils.isBlank(getTrafficPolicyId())) {
+            sb.append(" - ").append(getTrafficPolicyId());
         }
 
         return sb.toString();
@@ -168,6 +210,13 @@ public class TrafficPolicyResource extends AwsResource {
         } catch (IOException ioex) {
             throw new BeamException(String.format("traffic policy - %s document error."
                 + " Unable to read document from path [%s]", getName(), getDocument()));
+        }
+    }
+
+    private void validate(boolean isCreate) {
+        if ((ObjectUtils.isBlank(getName()) && ObjectUtils.isBlank(getTrafficPolicyId()))
+            || (isCreate && !ObjectUtils.isBlank(getName()) && !ObjectUtils.isBlank(getTrafficPolicyId()))) {
+            throw new BeamException("Either param 'name' or 'traffic-policy-id' need to be provided, but not both.");
         }
     }
 }
