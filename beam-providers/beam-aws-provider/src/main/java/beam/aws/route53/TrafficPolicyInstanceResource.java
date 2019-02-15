@@ -26,8 +26,8 @@ import java.util.Set;
  *         comment: "traffic-policy-instance-example Comment"
  *         version: 1
  *         ttl: 900
- *         hosted-zone-id: $(aws::hosted-zone hosted-zone-record-set-example-alpha | hosted-zone-id)
- *         hosted-zone-name: $(aws::hosted-zone hosted-zone-record-set-example-alpha | hosted-zone-name)
+ *         hosted-zone-id: $(aws::hosted-zone hosted-zone-record-set-example | hosted-zone-id)
+ *         hosted-zone-name: $(aws::hosted-zone hosted-zone-record-set-example | hosted-zone-name)
  *         traffic-policy-id: $(aws::traffic-policy traffic-policy-example-instance | traffic-policy-id)
  *     end
  *
