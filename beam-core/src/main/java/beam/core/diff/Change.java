@@ -15,7 +15,6 @@ import com.google.common.collect.Maps;
 public abstract class Change {
 
     private final List<Diff> diffs = new ArrayList<>();
-    boolean executable;
     final AtomicBoolean changed = new AtomicBoolean();
 
     public List<Diff> getDiffs() {

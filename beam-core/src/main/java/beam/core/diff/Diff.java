@@ -323,16 +323,7 @@ public class Diff {
         return changeTypes;
     }
 
-    private void setChangeable() {
-        for (Change change : getChanges()) {
-            change.executable = true;
-            change.getDiffs().forEach(Diff::setChangeable);
-        }
-    }
-
     public void executeCreateOrUpdate(BeamUI ui, State state) throws Exception {
-        setChangeable();
-
         for (Change change : getChanges()) {
             if (change instanceof Create || change instanceof Update) {
                 Diffable diffable = change.getDiffable();
@@ -353,7 +344,6 @@ public class Diff {
     }
 
     public void executeDelete(BeamUI ui, State state) throws Exception {
-        setChangeable();
 
         for (ListIterator<Change> j = getChanges().listIterator(getChanges().size()); j.hasPrevious();) {
             Change change = j.previous();
@@ -379,10 +369,6 @@ public class Diff {
     private void execute(BeamUI ui, Change change) throws Exception {
         if (change instanceof Keep || change instanceof Replace || change.changed.get()) {
             return;
-        }
-
-        if (!change.executable) {
-            throw new IllegalStateException("Can't change yet!");
         }
 
         if (!change.changed.compareAndSet(false, true)) {
