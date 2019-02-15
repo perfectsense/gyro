@@ -30,6 +30,26 @@ public abstract class Change {
 
     public abstract void execute();
 
+    protected String stringify(Object value) {
+        if (value instanceof List) {
+            return "[ " + ((List<?>) value).stream()
+                    .map(this::stringify)
+                    .collect(Collectors.joining(", ")) + " ]";
+
+        } else if (value instanceof Map) {
+            return "{ " + ((Map<?, ?>) value).entrySet()
+                    .stream()
+                    .map(e -> e.getKey() + ": " + stringify(e.getValue()))
+                    .collect(Collectors.joining(", ")) + " }";
+
+        } else if (value instanceof String) {
+            return "'" + value + "'";
+
+        } else {
+            return String.valueOf(value);
+        }
+    }
+
     protected void writeDifference(
             BeamUI ui,
             DiffableField field,
@@ -54,16 +74,16 @@ public abstract class Change {
                 Object p = i < pendingListSize ? pendingList.get(i) : null;
 
                 if (Objects.equals(c, p)) {
-                    ui.write(String.valueOf(c));
+                    ui.write(stringify(c));
 
                 } else if (c == null) {
-                    ui.write(" @|green +|@ %s", p);
+                    ui.write(" @|green +|@ %s", stringify(p));
 
                 } else if (p == null) {
-                    ui.write(" @|red -|@ %s", c);
+                    ui.write(" @|red -|@ %s", stringify(c));
 
                 } else {
-                    ui.write(" @|yellow ⟳|@ %s → %s", c, p);
+                    ui.write(" @|yellow ⟳|@ %s → %s", stringify(c), stringify(p));
                 }
 
                 if (i < l - 1) {
@@ -89,24 +109,17 @@ public abstract class Change {
                     ui,
                     " @|yellow ⟳ {|@ %s @|yellow }|@",
                     diff.entriesDiffering(),
-                    e -> String.format("%s → %s", e.leftValue(), e.rightValue()));
+                    e -> String.format(
+                            "%s → %s",
+                            stringify(e.leftValue()),
+                            stringify(e.rightValue())));
 
                 writeMapPut(ui, diff.entriesOnlyOnRight());
             }
 
         } else {
-            ui.write(" %s → %s", currentValue, pendingValue);
+            ui.write(" %s → %s", stringify(currentValue), stringify(pendingValue));
         }
-    }
-
-    private void writeList(BeamUI ui, String message, List<?> list) {
-        if (list.isEmpty()) {
-            return;
-        }
-
-        ui.write(message, list.stream()
-                .map(String::valueOf)
-                .collect(Collectors.joining(", ")));
     }
 
     private <V> void writeMap(BeamUI ui, String message, Map<?, V> map, Function<V, String> valueFunction) {
@@ -121,11 +134,11 @@ public abstract class Change {
     }
 
     private void writeMapPut(BeamUI ui, Map<?, ?> map) {
-        writeMap(ui, " @|green +{|@ %s @|green }|@", map, String::valueOf);
+        writeMap(ui, " @|green +{|@ %s @|green }|@", map, this::stringify);
     }
 
     private void writeMapRemove(BeamUI ui, Map<?, ?> map) {
-        writeMap(ui, " @|red -{|@ %s @|red }|@", map, String::valueOf);
+        writeMap(ui, " @|red -{|@ %s @|red }|@", map, this::stringify);
     }
 
 }
