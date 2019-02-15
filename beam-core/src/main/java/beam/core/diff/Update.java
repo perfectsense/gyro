@@ -49,7 +49,7 @@ public class Update extends Change {
     }
 
     @Override
-    public void execute() {
+    public void execute(BeamUI ui) {
         ((Resource) pendingDiffable).update(
                 (Resource) currentDiffable,
                 changedFields.stream()

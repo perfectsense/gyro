@@ -26,7 +26,7 @@ public class Keep extends Change {
     }
 
     @Override
-    public void execute() {
+    public void execute(BeamUI ui) {
     }
 
 }

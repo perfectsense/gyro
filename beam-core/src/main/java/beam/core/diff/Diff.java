@@ -398,7 +398,7 @@ public class Diff {
         }
 
         try {
-            change.execute();
+            change.execute(ui);
             ui.write(ui.isVerbose() ? "\n@|bold,green OK|@\n\n" : " @|bold,green OK|@\n");
 
         } catch (Exception error) {

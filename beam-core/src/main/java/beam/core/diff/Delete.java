@@ -27,7 +27,7 @@ public class Delete extends Change {
     }
 
     @Override
-    public void execute() {
+    public void execute(BeamUI ui) {
         ((Resource) diffable).delete();
     }
 

@@ -43,7 +43,7 @@ public class Create extends Change {
     }
 
     @Override
-    public void execute() {
+    public void execute(BeamUI ui) {
         ((Resource) diffable).create();
     }
 

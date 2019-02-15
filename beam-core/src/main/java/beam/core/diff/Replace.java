@@ -59,8 +59,7 @@ public class Replace extends Change {
     }
 
     @Override
-    public void execute() {
-        throw new UnsupportedOperationException();
+    public void execute(BeamUI ui) throws Exception {
     }
 
 }
