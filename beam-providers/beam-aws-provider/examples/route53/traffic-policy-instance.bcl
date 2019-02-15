@@ -1,0 +1,35 @@
+import ../init as _
+
+aws::vpc vpc-traffic-policy-instance-example
+    cidr-block: "10.0.0.0/16"
+
+    tags: {
+        Name: "vpc-traffic-policy-instance-example"
+    }
+end
+
+aws::hosted-zone hosted-zone-traffic-policy-instance-example
+    hosted-zone-name: "hosted-zone-traffic-policy-instance-example.com"
+    private-zone: true
+    vpc
+        vpc-id: $(aws::vpc vpc-traffic-policy-instance-example | vpc-id)
+        vpc-region: $(aws::credentials default | region)
+    end
+    comment: "hosted-zone-traffic-policy-instance-example.co comment"
+end
+
+aws::traffic-policy traffic-policy-example-instance
+    name: "traffic-policy-example-instance"
+    comment: "traffic-policy-example-instance Comment"
+    document-path: "policy.json"
+end
+
+aws::traffic-policy-instance traffic-policy-instance-example
+    name: "tp."
+    comment: "traffic-policy-instance-example Comment"
+    ttl: 100
+    hosted-zone-id: $(aws::hosted-zone hosted-zone-traffic-policy-instance-example | hosted-zone-id)
+    hosted-zone-name: $(aws::hosted-zone hosted-zone-traffic-policy-instance-example | hosted-zone-name)
+    traffic-policy-id: $(aws::traffic-policy traffic-policy-example-instance | traffic-policy-id)
+    version: $(aws::traffic-policy traffic-policy-example-instance | version)
+end
