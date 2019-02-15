@@ -135,23 +135,26 @@ public class CloudFrontCacheBehavior extends Diffable {
             allowedMethods = new ArrayList<>();
         }
 
-        //Collections.sort(allowedMethods);
+        List<String> sorted = new ArrayList<>(allowedMethods);
+        Collections.sort(sorted);
 
-        return allowedMethods;
+        return sorted;
     }
 
     public void setAllowedMethods(List<String> allowedMethods) {
         this.allowedMethods = allowedMethods;
     }
 
+    @ResourceDiffProperty(updatable = true)
     public List<String> getCachedMethods() {
         if (cachedMethods == null || cachedMethods.isEmpty()) {
             return getAllowedMethods();
         }
 
-        //Collections.sort(cachedMethods);
+        List<String> sorted = new ArrayList<>(cachedMethods);
+        Collections.sort(sorted);
 
-        return cachedMethods;
+        return sorted;
     }
 
     public void setCachedMethods(List<String> cachedMethods) {
