@@ -94,6 +94,11 @@ public class InstanceResource extends Ec2TaggableResource<Instance> implements B
     private String instanceState;
     private Date launchDate;
 
+    /**
+     * Instance ID of this instance.
+     *
+     * @output
+     */
     public String getInstanceId() {
         return instanceId;
     }
