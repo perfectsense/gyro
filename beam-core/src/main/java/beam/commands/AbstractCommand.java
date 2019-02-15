@@ -1,5 +1,6 @@
 package beam.commands;
 
+import beam.core.BeamCore;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import io.airlift.airline.Option;
@@ -20,10 +21,15 @@ public abstract class AbstractCommand implements BeamCommand {
     @Option(type = OptionType.GLOBAL, name = "--debug", description = "Debug mode")
     public boolean debug;
 
+    @Option(name = { "--verbose" })
+    private boolean verbose;
+
     protected abstract void doExecute() throws Exception;
 
     @Override
     public void execute() throws Exception {
+        BeamCore.ui().setVerbose(verbose);
+
         if (debug || "debug".equalsIgnoreCase(System.getenv("BEAM_LOG"))) {
             System.getProperties().setProperty("org.openstack4j.core.transport.internal.HttpLoggingFilter", "true");
 

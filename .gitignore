@@ -10,6 +10,8 @@ target/
 build/
 out/
 
+_build/
+
 # Output by Capsule
 dependency-reduced-pom.xml
 

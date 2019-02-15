@@ -17,15 +17,18 @@ public class Delete extends Change {
     }
 
     @Override
-    public void writeTo(BeamUI ui) {
+    public void writePlan(BeamUI ui) {
         ui.write("@|red - Delete %s|@", diffable.toDisplayString());
     }
 
     @Override
-    protected void doExecute() {
-        if (diffable instanceof Resource) {
-            ((Resource) diffable).delete();
-        }
+    public void writeExecution(BeamUI ui) {
+        ui.write("@|magenta - Deleting %s|@", diffable.toDisplayString());
+    }
+
+    @Override
+    public void execute() {
+        ((Resource) diffable).delete();
     }
 
 }

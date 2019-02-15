@@ -7,6 +7,7 @@ import beam.core.diff.ResourceName;
 import beam.lang.Resource;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.iam.IamClient;
+import software.amazon.awssdk.services.iam.model.CreateInstanceProfileResponse;
 import software.amazon.awssdk.services.iam.model.GetInstanceProfileResponse;
 import software.amazon.awssdk.services.iam.model.Role;
 
@@ -30,8 +31,17 @@ import java.util.Set;
 @ResourceName("iam-instance-profile")
 public class IamInstanceProfileResource extends AwsResource {
 
+    private String instanceProfileArn;
     private String instanceProfileName;
     private List<String> roles;
+
+    public String getInstanceProfileArn() {
+        return instanceProfileArn;
+    }
+
+    public void setInstanceProfileArn(String instanceProfileArn) {
+        this.instanceProfileArn = instanceProfileArn;
+    }
 
     public String getInstanceProfileName() {
         return this.instanceProfileName;
@@ -62,6 +72,7 @@ public class IamInstanceProfileResource extends AwsResource {
         GetInstanceProfileResponse response = client.getInstanceProfile(r -> r.instanceProfileName(getInstanceProfileName()));
 
         if (response != null) {
+            setInstanceProfileArn(response.instanceProfile().arn());
 
             getRoles().clear();
             for (Role role : response.instanceProfile().roles()) {
@@ -81,7 +92,9 @@ public class IamInstanceProfileResource extends AwsResource {
                 .build();
 
         try {
-            client.createInstanceProfile(r -> r.instanceProfileName(getInstanceProfileName()));
+            CreateInstanceProfileResponse response = client.createInstanceProfile(r -> r.instanceProfileName(getInstanceProfileName()));
+
+            setInstanceProfileArn(response.instanceProfile().arn());
 
             for (String role : getRoles()) {
                 client.addRoleToInstanceProfile(

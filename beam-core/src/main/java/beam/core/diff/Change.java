@@ -1,163 +1,144 @@
 package beam.core.diff;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import beam.core.BeamUI;
-import beam.lang.Resource;
-import beam.lang.ast.scope.DiffableScope;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
-import com.psddev.dari.util.ObjectUtils;
-import com.psddev.dari.util.StringUtils;
 
 public abstract class Change {
 
     private final List<Diff> diffs = new ArrayList<>();
-    private boolean executable;
-    private final AtomicBoolean changed = new AtomicBoolean();
+    boolean executable;
+    final AtomicBoolean changed = new AtomicBoolean();
 
     public List<Diff> getDiffs() {
         return diffs;
     }
 
-    public boolean isExecutable() {
-        return executable;
-    }
-
-    public void setExecutable(boolean executable) {
-        this.executable = executable;
-    }
-
-    public boolean isChanged() {
-        return changed.get();
-    }
-
     public abstract Diffable getDiffable();
 
-    public abstract void writeTo(BeamUI ui);
+    public abstract void writePlan(BeamUI ui);
 
-    protected abstract void doExecute();
+    public abstract void writeExecution(BeamUI ui);
 
-    public final void execute() throws Exception {
-        if (!isExecutable()) {
-            throw new IllegalStateException("Can't change yet!");
-        }
+    public abstract void execute();
 
-        if (!changed.compareAndSet(false, true)) {
-            return;
-        }
+    protected String stringify(Object value) {
+        if (value instanceof List) {
+            return "[ " + ((List<?>) value).stream()
+                    .map(this::stringify)
+                    .collect(Collectors.joining(", ")) + " ]";
 
-        Diffable diffable = getDiffable();
+        } else if (value instanceof Map) {
+            return "{ " + ((Map<?, ?>) value).entrySet()
+                    .stream()
+                    .map(e -> e.getKey() + ": " + stringify(e.getValue()))
+                    .collect(Collectors.joining(", ")) + " }";
 
-        if (!(diffable instanceof Resource)) {
-            return;
-        }
+        } else if (value instanceof String) {
+            return "'" + value + "'";
 
-        Resource resource = (Resource) diffable;
-        DiffableScope scope = resource.scope();
-
-        if (scope != null) {
-            resource.initialize(scope.resolve());
-        }
-
-        doExecute();
-    }
-
-    public static String processAsScalarValue(String key, Object currentValue, Object pendingValue) {
-        StringBuilder sb = new StringBuilder();
-
-        sb.append(key);
-        sb.append(": ");
-        if (ObjectUtils.isBlank(currentValue)) {
-            sb.append(pendingValue);
         } else {
-            sb.append(currentValue);
-            sb.append(" -> ");
-            sb.append(pendingValue);
+            return String.valueOf(value);
         }
-
-        return sb.toString();
     }
 
-    public static String processAsMapValue(String key, Map currentValue, Map pendingValue) {
-        StringBuilder sb = new StringBuilder();
+    protected void writeDifference(
+            BeamUI ui,
+            DiffableField field,
+            Diffable currentDiffable,
+            Diffable pendingDiffable) {
 
-        String diff = mapSummaryDiff(currentValue, pendingValue);
-        if (!ObjectUtils.isBlank(diff)) {
-            sb.append(key);
-            sb.append(": ");
-            sb.append(diff);
-        }
+        ui.write("\n· %s:", field.getBeamName());
 
-        return sb.toString();
-    }
+        Object currentValue = field.getValue(currentDiffable);
+        Object pendingValue = field.getValue(pendingDiffable);
 
-    public static String processAsListValue(String key, List currentValue, List pendingValue) {
-        StringBuilder sb = new StringBuilder();
+        if ((currentValue == null || currentValue instanceof List)
+                && (pendingValue == null || pendingValue instanceof List)) {
 
-        List<String> additions = new ArrayList<>(pendingValue);
-        additions.removeAll(currentValue);
+            List<?> currentList = currentValue != null ? new ArrayList<>((List<?>) currentValue) : new ArrayList<>();
+            List<?> pendingList = pendingValue != null ? new ArrayList<>((List<?>) pendingValue) : new ArrayList<>();
+            int currentListSize = currentList.size();
+            int pendingListSize = pendingList.size();
 
-        List<String> subtractions = new ArrayList<>(currentValue);
-        subtractions.removeAll(pendingValue);
+            for (int i = 0, l = Math.max(currentListSize, pendingListSize); i < l; ++i) {
+                Object c = i < currentListSize ? currentList.get(i) : null;
+                Object p = i < pendingListSize ? pendingList.get(i) : null;
 
-        if (!additions.isEmpty()) {
-            sb.append(key);
-            sb.append(": ");
-            sb.append("+[");
-            sb.append(StringUtils.join(additions, ", "));
-            sb.append("]");
-        } else if (!subtractions.isEmpty()) {
-            sb.append(key);
-            sb.append(": ");
-            sb.append("-[");
-            sb.append(StringUtils.join(subtractions, ", "));
-            sb.append("]");
-        }
+                if (Objects.equals(c, p)) {
+                    ui.write(stringify(c));
 
-        return sb.toString();
-    }
+                } else if (c == null) {
+                    ui.write(" @|green +|@ %s", stringify(p));
 
-    public static String mapSummaryDiff(Map current, Map pending) {
-        if (current == null) {
-            current = new HashMap();
-        }
+                } else if (p == null) {
+                    ui.write(" @|red -|@ %s", stringify(c));
 
-        final MapDifference diff = Maps.difference(current, pending);
+                } else {
+                    ui.write(" @|yellow ⟳|@ %s → %s", stringify(c), stringify(p));
+                }
 
-        List<String> diffs = new ArrayList<>();
-
-        for (Object key : diff.entriesOnlyOnRight().keySet()) {
-            diffs.add(String.format("+[%s => %s]", key, pending.get(key)));
-        }
-
-        for (Object key : diff.entriesOnlyOnLeft().keySet()) {
-            diffs.add(String.format("-[%s => %s]", key, current.get(key)));
-        }
-
-        for (Object key : diff.entriesDiffering().keySet()) {
-            StringBuilder diffResult = new StringBuilder();
-            diffResult.append(String.format("*[%s: ", key));
-            MapDifference.ValueDifference value = (MapDifference.ValueDifference)diff.entriesDiffering().get(key);
-            Object currentValue = value.leftValue();
-            Object pendingValue = value.rightValue();
-
-            if (currentValue instanceof Map && pendingValue instanceof Map) {
-                diffResult.append(mapSummaryDiff((Map) currentValue, (Map) pendingValue));
-            } else {
-                diffResult.append(String.format("%s => %s", currentValue, pendingValue));
+                if (i < l - 1) {
+                    ui.write(",");
+                }
             }
 
-            diffResult.append("]");
+        } else if ((currentValue == null || currentValue instanceof Map)
+                && (pendingValue == null || pendingValue instanceof Map)) {
 
-            diffs.add(diffResult.toString());
+            if (currentValue == null) {
+                writeMapPut(ui, (Map<?, ?>) pendingValue);
+
+            } else if (pendingValue == null) {
+                writeMapRemove(ui, (Map<?, ?>) currentValue);
+
+            } else {
+                MapDifference<?, ?> diff = Maps.difference((Map<?, ?>) currentValue, (Map<?, ?>) pendingValue);
+
+                writeMapRemove(ui, diff.entriesOnlyOnLeft());
+
+                writeMap(
+                    ui,
+                    " @|yellow ⟳ {|@ %s @|yellow }|@",
+                    diff.entriesDiffering(),
+                    e -> String.format(
+                            "%s → %s",
+                            stringify(e.leftValue()),
+                            stringify(e.rightValue())));
+
+                writeMapPut(ui, diff.entriesOnlyOnRight());
+            }
+
+        } else {
+            ui.write(" %s → %s", stringify(currentValue), stringify(pendingValue));
+        }
+    }
+
+    private <V> void writeMap(BeamUI ui, String message, Map<?, V> map, Function<V, String> valueFunction) {
+        if (map.isEmpty()) {
+            return;
         }
 
-        return StringUtils.join(diffs, ", ");
+        ui.write(message, map.entrySet()
+                .stream()
+                .map(e -> e.getKey() + ": " + valueFunction.apply(e.getValue()))
+                .collect(Collectors.joining(", ")));
+    }
+
+    private void writeMapPut(BeamUI ui, Map<?, ?> map) {
+        writeMap(ui, " @|green +{|@ %s @|green }|@", map, this::stringify);
+    }
+
+    private void writeMapRemove(BeamUI ui, Map<?, ?> map) {
+        writeMap(ui, " @|red -{|@ %s @|red }|@", map, this::stringify);
     }
 
 }

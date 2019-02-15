@@ -1,9 +1,5 @@
 package beam.commands;
 
-import beam.core.BeamUI;
-import com.google.common.collect.ImmutableSet;
-import org.fusesource.jansi.AnsiRenderer;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -15,12 +11,27 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import beam.core.BeamUI;
+import com.google.common.collect.ImmutableSet;
+import org.fusesource.jansi.AnsiRenderer;
+
 public class CliBeamUI implements BeamUI {
 
     private static final Pattern NEWLINES = Pattern.compile("([\r\n]+)");
 
-    private int indentLevel;
+    private boolean verbose;
     private int indentSize = 4;
+    private int indentLevel;
+
+    @Override
+    public boolean isVerbose() {
+        return verbose;
+    }
+
+    @Override
+    public void setVerbose(boolean verbose) {
+        this.verbose = verbose;
+    }
 
     public int getIndentSize() {
         return indentSize;
@@ -114,56 +125,39 @@ public class CliBeamUI implements BeamUI {
     }
 
     private void writeIndentation() {
-        System.out.print(getIndentation());
-    }
-
-    private String getIndentation() {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < indentLevel; ++ i) {
-            for (int j = getIndentSize(); j > 0; -- j) {
-                sb.append(' ');
-            }
+        for (int i = 0, l = indentLevel * getIndentSize(); i < l; ++ i) {
+            System.out.print(' ');
         }
-
-        return sb.toString();
-    }
-
-    private String ansi(String text) {
-        return AnsiRenderer.test(text) ? AnsiRenderer.render(text) : text;
     }
 
     @Override
     public void write(String message, Object... arguments) {
-        System.out.print(dump(message, arguments));
-        System.out.flush();
-    }
-
-    @Override
-    public String dump(String message, Object... arguments) {
         String text = arguments != null && arguments.length > 0
                 ? String.format(message, arguments)
                 : message;
 
+        if (AnsiRenderer.test(text)) {
+            text = AnsiRenderer.render(text);
+        }
+
         int offset = 0;
 
-        StringBuilder sb = new StringBuilder();
         for (Matcher m = NEWLINES.matcher(text); m.find();) {
-            sb.append(getIndentation());
-            sb.append(text.substring(offset, m.start()));
-            sb.append(m.group(1));
+            writeIndentation();
+            System.out.print(text.substring(offset, m.start()));
+            System.out.print(m.group(1));
 
             offset = m.end();
         }
 
-
         int length = text.length();
 
         if (length > offset) {
-            sb.append(getIndentation());
-            sb.append(text.substring(offset, length));
+            writeIndentation();
+            System.out.print(text.substring(offset, length));
         }
 
-        return ansi(sb.toString());
+        System.out.flush();
     }
 
     @Override
@@ -180,4 +174,5 @@ public class CliBeamUI implements BeamUI {
 
         System.out.flush();
     }
+
 }

@@ -12,6 +12,10 @@ test::credentials default
     region: "us-east-2"
 end
 
+test::network network
+    cidr-block: "10.0.0.0/16"
+end
+
 test::listener listener-example
     port: 80
     protocol: "TCP"
@@ -23,6 +27,7 @@ test::listener listener-example
         cognito
             user-pool-arn: "foo"
             user-pool-client-id: "foo-cognito"
+            user-pool-domain: "$(test::network network | network-id).foo"
         end
     end
 

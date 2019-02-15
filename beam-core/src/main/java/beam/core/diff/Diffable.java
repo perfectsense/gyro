@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import beam.core.BeamUI;
 import beam.lang.Resource;
 import beam.lang.ast.KeyValueNode;
 import beam.lang.ast.Node;
@@ -24,9 +25,18 @@ import com.google.common.collect.ImmutableSet;
 
 public abstract class Diffable {
 
+    private DiffableScope scope;
     private Diffable parent;
     private Change change;
     private Set<String> configuredFields;
+
+    public DiffableScope scope() {
+        return scope;
+    }
+
+    public void scope(DiffableScope scope) {
+        this.scope = scope;
+    }
 
     public Diffable parent() {
         return parent;
@@ -136,12 +146,10 @@ public abstract class Diffable {
         }
 
         if (diffable instanceof Resource) {
-            Resource valueResource = (Resource) diffable;
-
-            valueResource.resourceType(key);
-            valueResource.scope(scope);
+            ((Resource) diffable).resourceType(key);
         }
 
+        diffable.scope(scope);
         diffable.parent(this);
         diffable.initialize(scope);
 
@@ -151,6 +159,14 @@ public abstract class Diffable {
     public abstract String primaryKey();
 
     public abstract String toDisplayString();
+
+    public boolean writePlan(BeamUI ui, Change change) {
+        return false;
+    }
+
+    public boolean writeExecution(BeamUI ui, Change change) {
+        return false;
+    }
 
     public List<Node> toBodyNodes() {
         List<Node> body = new ArrayList<>();

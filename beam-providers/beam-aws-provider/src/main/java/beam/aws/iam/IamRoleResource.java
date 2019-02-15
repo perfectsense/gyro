@@ -9,6 +9,7 @@ import beam.lang.Resource;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.iam.IamClient;
 import software.amazon.awssdk.services.iam.model.AttachedPolicy;
+import software.amazon.awssdk.services.iam.model.CreateRoleResponse;
 import software.amazon.awssdk.services.iam.model.ListAttachedRolePoliciesResponse;
 import software.amazon.awssdk.services.iam.model.Role;
 
@@ -39,11 +40,13 @@ import java.util.Set;
 @ResourceName("iam-role")
 public class IamRoleResource extends AwsResource {
 
-    private String roleName;
-    private String description;
     private String assumeRolePolicyContents;
     private String assumeRolePolicyDocumentFile;
+    private String description;
     private List<String> policyArns;
+    private String roleArn;
+    private String roleName;
+
 
     @ResourceDiffProperty(updatable = true)
     public String getAssumeRolePolicyContents() {
@@ -99,6 +102,14 @@ public class IamRoleResource extends AwsResource {
         this.policyArns = policyArns;
     }
 
+    public String getRoleArn() {
+        return roleArn;
+    }
+
+    public void setRoleArn(String roleArn) {
+        this.roleArn = roleArn;
+    }
+
     public String getRoleName() {
         return this.roleName;
     }
@@ -116,6 +127,7 @@ public class IamRoleResource extends AwsResource {
         Role response = client.getRole(r -> r.roleName(getRoleName())).role();
 
         if (response != null) {
+            setRoleArn(response.arn());
             setRoleName(response.roleName());
             setDescription(response.description());
             String encode = URLDecoder.decode(response.assumeRolePolicyDocument());
@@ -140,9 +152,11 @@ public class IamRoleResource extends AwsResource {
                 .build();
 
         try {
-            client.createRole(r -> r.assumeRolePolicyDocument(getAssumeRolePolicyContents())
+            CreateRoleResponse response = client.createRole(r -> r.assumeRolePolicyDocument(getAssumeRolePolicyContents())
                     .description(getDescription())
                     .roleName(getRoleName()));
+
+            setRoleArn(response.role().arn());
 
             for (String policyArn : getPolicyArns()) {
                 client.attachRolePolicy(r -> r.roleName(getRoleName())
