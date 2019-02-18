@@ -131,6 +131,11 @@ public class HostedZoneResource extends AwsResource {
         this.servicePrincipal = servicePrincipal;
     }
 
+    /**
+     * A list of vpc to be associated with the hosed zone
+     *
+     * @subresource beam.aws.route53.Route53VpcResource
+     */
     @ResourceDiffProperty(nullable = true, subresource = true)
     public List<Route53VpcResource> getVpc() {
         if (vpc == null) {
