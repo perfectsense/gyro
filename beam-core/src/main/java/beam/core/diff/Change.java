@@ -9,6 +9,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import beam.core.BeamUI;
+import beam.lang.ast.scope.State;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 
@@ -27,7 +28,7 @@ public abstract class Change {
 
     public abstract void writeExecution(BeamUI ui);
 
-    public abstract void execute(BeamUI ui) throws Exception;
+    public abstract void execute(BeamUI ui, State state) throws Exception;
 
     protected String stringify(Object value) {
         if (value instanceof List) {

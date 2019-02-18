@@ -365,13 +365,17 @@ public class Diff {
                 }
 
                 try {
-                    change.execute(ui);
+                    change.execute(ui, state);
                     ui.write(ui.isVerbose() ? "\n@|bold,green OK|@\n\n" : " @|bold,green OK|@\n");
                     state.update(change);
 
                 } catch (Exception error) {
-                    ui.write(ui.isVerbose() ? "\n@|bold,red ERROR|@\n\n" : " @|bold,red ERROR|@\n");
-                    ui.writeError(error, "");
+                    if (ui.isVerbose()) {
+                        ui.writeError(error, "\n@|bold,red ERROR|@");
+
+                    } else {
+                        ui.write(" @|bold,red ERROR %s|@\n", error.getMessage());
+                    }
                 }
             }
         }

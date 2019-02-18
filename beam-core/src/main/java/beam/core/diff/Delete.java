@@ -2,6 +2,7 @@ package beam.core.diff;
 
 import beam.core.BeamUI;
 import beam.lang.Resource;
+import beam.lang.ast.scope.State;
 
 public class Delete extends Change {
 
@@ -27,7 +28,7 @@ public class Delete extends Change {
     }
 
     @Override
-    public void execute(BeamUI ui) {
+    public void execute(BeamUI ui, State state) {
         ((Resource) diffable).delete();
     }
 

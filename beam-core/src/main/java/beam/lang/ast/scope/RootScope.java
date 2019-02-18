@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import beam.lang.Resource;
+import beam.lang.Workflow;
 import beam.lang.ast.block.VirtualResourceNode;
 import com.psddev.dari.util.StringUtils;
 
@@ -15,6 +16,7 @@ public class RootScope extends FileScope {
     private final RootScope current;
     private final Map<String, Class<?>> resourceClasses = new HashMap<>();
     private final Map<String, VirtualResourceNode> virtualResourceNodes = new LinkedHashMap<>();
+    private final List<Workflow> workflows = new ArrayList<>();
 
     public RootScope(String file) {
         super(null, file);
@@ -40,6 +42,10 @@ public class RootScope extends FileScope {
 
     public Map<String, VirtualResourceNode> getVirtualResourceNodes() {
         return virtualResourceNodes;
+    }
+
+    public List<Workflow> getWorkflows() {
+        return workflows;
     }
 
     public List<Resource> findAllResources() {
