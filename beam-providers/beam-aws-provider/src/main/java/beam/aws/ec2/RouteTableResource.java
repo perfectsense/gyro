@@ -3,6 +3,7 @@ package beam.aws.ec2;
 import beam.aws.AwsResource;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
+import beam.core.diff.ResourceOutput;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.CreateRouteTableResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeRouteTablesResponse;
@@ -65,6 +66,7 @@ public class RouteTableResource extends Ec2TaggableResource<RouteTable> {
         this.subnetIds = subnetIds;
     }
 
+    @ResourceOutput
     public String getRouteTableId() {
         return routeTableId;
     }
@@ -73,6 +75,7 @@ public class RouteTableResource extends Ec2TaggableResource<RouteTable> {
         this.routeTableId = routeTableId;
     }
 
+    @ResourceOutput
     public String getOwnerId() {
         return ownerId;
     }
@@ -123,12 +126,6 @@ public class RouteTableResource extends Ec2TaggableResource<RouteTable> {
         for (String subnetId : getSubnetIds()) {
             client.associateRouteTable(r -> r.routeTableId(getRouteTableId()).subnetId(subnetId));
         }
-    }
-
-    @Override
-    public void testCreate() {
-        setRouteTableId("rt-" + UUID.randomUUID());
-        setOwnerId("owner-" + UUID.randomUUID());
     }
 
     @Override

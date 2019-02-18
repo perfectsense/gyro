@@ -4,6 +4,7 @@ import beam.aws.AwsResource;
 import beam.core.BeamException;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
+import beam.core.diff.ResourceOutput;
 import com.psddev.dari.util.ObjectUtils;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.AttributeBooleanValue;
@@ -61,6 +62,7 @@ public class VpcResource extends Ec2TaggableResource<Vpc> {
         return getVpcId();
     }
 
+    @ResourceOutput
     public String getVpcId() {
         return vpcId;
     }
@@ -149,6 +151,7 @@ public class VpcResource extends Ec2TaggableResource<Vpc> {
         this.defaultVpc = defaultVpc;
     }
 
+    @ResourceOutput(value = "owner-12345", randomSuffix = false)
     public String getOwnerId() {
         return ownerId;
     }
@@ -263,8 +266,8 @@ public class VpcResource extends Ec2TaggableResource<Vpc> {
 
     @Override
     public void testCreate() {
-        setVpcId("vpc-" + UUID.randomUUID());
-        setOwnerId("owner-" + UUID.randomUUID());
+        super.testCreate();
+
         setInstanceTenancy("default");
     }
 

@@ -3,6 +3,7 @@ package beam.aws.ec2;
 import beam.aws.AwsResource;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
+import beam.core.diff.ResourceOutput;
 import beam.lang.Resource;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.AllowedPrincipal;
@@ -87,6 +88,7 @@ public class VpcEndpointServiceResource extends AwsResource {
         this.principals = principals;
     }
 
+    @ResourceOutput
     public String getServiceId() {
         return serviceId;
     }

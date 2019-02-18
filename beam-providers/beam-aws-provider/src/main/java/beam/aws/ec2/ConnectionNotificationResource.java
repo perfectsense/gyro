@@ -4,6 +4,7 @@ import beam.aws.AwsResource;
 import beam.core.BeamException;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
+import beam.core.diff.ResourceOutput;
 import beam.lang.Resource;
 import com.psddev.dari.util.ObjectUtils;
 import software.amazon.awssdk.services.ec2.Ec2Client;
@@ -56,6 +57,7 @@ public class ConnectionNotificationResource extends AwsResource {
     /**
      * The id of the endpoint service. Either endpoint id or endpoint service id is required.
      */
+    @ResourceOutput
     public String getServiceId() {
         return serviceId;
     }

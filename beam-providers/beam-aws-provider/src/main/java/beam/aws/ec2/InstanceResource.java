@@ -6,6 +6,7 @@ import beam.core.BeamException;
 import beam.core.BeamInstance;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
+import beam.core.diff.ResourceOutput;
 import com.psddev.dari.util.ObjectUtils;
 import org.apache.commons.codec.binary.Base64;
 import software.amazon.awssdk.core.SdkBytes;
@@ -100,6 +101,7 @@ public class InstanceResource extends Ec2TaggableResource<Instance> implements B
      *
      * @output
      */
+    @ResourceOutput
     public String getInstanceId() {
         return instanceId;
     }
@@ -565,11 +567,6 @@ public class InstanceResource extends Ec2TaggableResource<Instance> implements B
         } catch (Ec2Exception ex) {
             throw ex;
         }
-    }
-
-    @Override
-    public void testCreate() {
-        setInstanceId("i-" + UUID.randomUUID());
     }
 
     @Override

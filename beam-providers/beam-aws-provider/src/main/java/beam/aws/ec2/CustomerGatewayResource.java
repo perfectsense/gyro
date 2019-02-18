@@ -2,6 +2,7 @@ package beam.aws.ec2;
 
 import beam.aws.AwsResource;
 import beam.core.diff.ResourceName;
+import beam.core.diff.ResourceOutput;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.CreateCustomerGatewayRequest;
 import software.amazon.awssdk.services.ec2.model.CreateCustomerGatewayResponse;
@@ -34,6 +35,7 @@ public class CustomerGatewayResource extends Ec2TaggableResource<CustomerGateway
     private String publicIp;
     private Integer bgpAsn;
 
+    @ResourceOutput
     public String getCustomerGatewayId() {
         return customerGatewayId;
     }

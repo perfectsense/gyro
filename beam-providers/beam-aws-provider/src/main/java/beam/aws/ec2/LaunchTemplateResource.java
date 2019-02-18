@@ -3,6 +3,7 @@ package beam.aws.ec2;
 import beam.aws.AwsResource;
 import beam.core.BeamException;
 import beam.core.diff.ResourceName;
+import beam.core.diff.ResourceOutput;
 import com.psddev.dari.util.ObjectUtils;
 import org.apache.commons.codec.binary.Base64;
 import software.amazon.awssdk.services.ec2.Ec2Client;
@@ -85,6 +86,7 @@ public class LaunchTemplateResource extends Ec2TaggableResource<LaunchTemplate> 
 
     private String instanceId;
 
+    @ResourceOutput
     public String getLaunchTemplateId() {
         return launchTemplateId;
     }

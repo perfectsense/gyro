@@ -2,6 +2,7 @@ package beam.aws.ec2;
 
 import beam.aws.AwsResource;
 import beam.core.diff.ResourceName;
+import beam.core.diff.ResourceOutput;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.CreateInternetGatewayResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeInternetGatewaysResponse;
@@ -30,6 +31,7 @@ public class InternetGatewayResource extends Ec2TaggableResource<InternetGateway
     private String internetGatewayId;
     private String vpcId;
 
+    @ResourceOutput
     public String getInternetGatewayId() {
         return internetGatewayId;
     }
@@ -94,11 +96,6 @@ public class InternetGatewayResource extends Ec2TaggableResource<InternetGateway
                     .vpcId(getVpcId())
             );
         }
-    }
-
-    @Override
-    public void testCreate() {
-        setInternetGatewayId("ig-" + UUID.randomUUID());
     }
 
     @Override
