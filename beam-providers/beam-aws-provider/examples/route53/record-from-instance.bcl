@@ -66,9 +66,8 @@ aws::instance instance
 end
 
 aws::record-set record-set-example
-    hosted-zone-name: $(aws::hosted-zone hosted-zone | hosted-zone-name)
     hosted-zone-id: $(aws::hosted-zone hosted-zone | hosted-zone-id)
-    name: "instance."
+    name: "instance.$(aws::hosted-zone hosted-zone | hosted-zone-name)"
     type: "A"
     ttl: 60
     records: [
