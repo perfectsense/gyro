@@ -55,7 +55,6 @@ public class RecordSetResource extends AwsResource {
     private Boolean evaluateTargetHealth;
     private String failover;
     private String hostedZoneId;
-    private String hostedZoneName;
     private String healthCheckId;
     private Boolean multiValueAnswer;
     private String name;
@@ -157,17 +156,6 @@ public class RecordSetResource extends AwsResource {
 
     public void setHostedZoneId(String hostedZoneId) {
         this.hostedZoneId = hostedZoneId;
-    }
-
-    /**
-     * The name of the hosted zone under which the the record set is to be created. (Required)
-     */
-    public String getHostedZoneName() {
-        return hostedZoneName;
-    }
-
-    public void setHostedZoneName(String hostedZoneName) {
-        this.hostedZoneName = hostedZoneName;
     }
 
     /**
@@ -412,10 +400,6 @@ public class RecordSetResource extends AwsResource {
             sb.append(getName());
         }
 
-        if (!ObjectUtils.isBlank(getHostedZoneName())) {
-            sb.append(getHostedZoneName());
-        }
-
         if (!ObjectUtils.isBlank(getType())) {
             sb.append(" type [ ").append(getType()).append(" ]");
         }
@@ -453,7 +437,6 @@ public class RecordSetResource extends AwsResource {
     private ResourceRecordSet getResourceRecordSet(Route53Client client) {
         ListResourceRecordSetsResponse response = client.listResourceRecordSets(
             r -> r.hostedZoneId(getHostedZoneId())
-                .startRecordName(getName() + getHostedZoneName())
                 .startRecordType(getType())
         );
 
@@ -462,7 +445,7 @@ public class RecordSetResource extends AwsResource {
 
     private void saveResourceRecordSet(Route53Client client, RecordSetResource recordSetResource, ChangeAction changeAction) {
         ResourceRecordSet.Builder recordSetBuilder = ResourceRecordSet.builder()
-            .name(recordSetResource.getName() + recordSetResource.getHostedZoneName())
+            .name(recordSetResource.getName())
             .healthCheckId(recordSetResource.getHealthCheckId())
             .setIdentifier(recordSetResource.getSetIdentifier())
             .trafficPolicyInstanceId(recordSetResource.getTrafficPolicyInstanceId())
