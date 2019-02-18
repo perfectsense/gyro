@@ -34,6 +34,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -564,6 +565,11 @@ public class InstanceResource extends Ec2TaggableResource<Instance> implements B
         } catch (Ec2Exception ex) {
             throw ex;
         }
+    }
+
+    @Override
+    public void testCreate() {
+        setInstanceId("i-" + UUID.randomUUID());
     }
 
     @Override

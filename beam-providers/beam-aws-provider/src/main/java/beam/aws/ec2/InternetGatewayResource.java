@@ -10,6 +10,7 @@ import software.amazon.awssdk.services.ec2.model.InternetGateway;
 import software.amazon.awssdk.services.ec2.model.InternetGatewayAttachment;
 
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Create an internet gateway.
@@ -93,6 +94,11 @@ public class InternetGatewayResource extends Ec2TaggableResource<InternetGateway
                     .vpcId(getVpcId())
             );
         }
+    }
+
+    @Override
+    public void testCreate() {
+        setInternetGatewayId("ig-" + UUID.randomUUID());
     }
 
     @Override

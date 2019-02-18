@@ -18,6 +18,7 @@ import software.amazon.awssdk.services.ec2.model.ModifySubnetAttributeRequest;
 import software.amazon.awssdk.services.ec2.model.Subnet;
 
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Create a subnet in a VPC.
@@ -145,6 +146,11 @@ public class SubnetResource extends Ec2TaggableResource<Subnet> {
         setSubnetId(response.subnet().subnetId());
 
         modifyAttribute(client);
+    }
+
+    @Override
+    public void testCreate() {
+        setSubnetId("subnet-" + UUID.randomUUID());
     }
 
     @Override

@@ -23,6 +23,7 @@ import software.amazon.awssdk.services.ec2.model.VpcClassicLink;
 import software.amazon.awssdk.services.ec2.model.VpcIpv6CidrBlockAssociation;
 
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Creates a VPC with the specified IPv4 CIDR block.
@@ -258,6 +259,13 @@ public class VpcResource extends Ec2TaggableResource<Vpc> {
         setInstanceTenancy(vpc.instanceTenancyAsString());
 
         modifySettings(client);
+    }
+
+    @Override
+    public void testCreate() {
+        setVpcId("vpc-" + UUID.randomUUID());
+        setOwnerId("owner-" + UUID.randomUUID());
+        setInstanceTenancy("default");
     }
 
     @Override

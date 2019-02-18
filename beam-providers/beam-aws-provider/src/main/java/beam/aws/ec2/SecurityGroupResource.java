@@ -13,6 +13,7 @@ import software.amazon.awssdk.services.ec2.model.SecurityGroup;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Create a security group with specified rules.
@@ -214,6 +215,11 @@ public class SecurityGroupResource extends Ec2TaggableResource<SecurityGroup> {
         );
 
         setGroupId(response.groupId());
+    }
+
+    @Override
+    public void testCreate() {
+        setGroupId("sg-" + UUID.randomUUID());
     }
 
     @Override
