@@ -2,6 +2,7 @@ package beam.core.diff;
 
 import beam.core.BeamUI;
 import beam.lang.Resource;
+import beam.lang.ast.scope.State;
 
 public class Create extends Change {
 
@@ -43,7 +44,7 @@ public class Create extends Change {
     }
 
     @Override
-    public void execute(BeamUI ui) {
+    public void execute(BeamUI ui, State state) {
         ((Resource) diffable).create();
     }
 

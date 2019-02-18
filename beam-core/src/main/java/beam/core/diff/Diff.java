@@ -365,7 +365,7 @@ public class Diff {
                 }
 
                 try {
-                    change.execute(ui);
+                    change.execute(ui, state);
                     ui.write(ui.isVerbose() ? "\n@|bold,green OK|@\n\n" : " @|bold,green OK|@\n");
                     state.update(change);
 

@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 
 import beam.core.BeamUI;
 import beam.lang.Resource;
+import beam.lang.ast.scope.State;
 
 public class Update extends Change {
 
@@ -49,7 +50,7 @@ public class Update extends Change {
     }
 
     @Override
-    public void execute(BeamUI ui) {
+    public void execute(BeamUI ui, State state) {
         ((Resource) pendingDiffable).update(
                 (Resource) currentDiffable,
                 changedFields.stream()
