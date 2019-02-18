@@ -17,6 +17,7 @@ import software.amazon.awssdk.services.route53.model.ResourceRecord;
 import software.amazon.awssdk.services.route53.model.ResourceRecordSet;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -287,6 +288,7 @@ public class RecordSetResource extends AwsResource {
             records = new ArrayList<>();
         }
 
+        Collections.sort(records);
         return records;
     }
 
@@ -437,10 +439,15 @@ public class RecordSetResource extends AwsResource {
     private ResourceRecordSet getResourceRecordSet(Route53Client client) {
         ListResourceRecordSetsResponse response = client.listResourceRecordSets(
             r -> r.hostedZoneId(getHostedZoneId())
+                .startRecordName(getName())
                 .startRecordType(getType())
         );
 
-        return response.resourceRecordSets().get(0);
+        if (!response.resourceRecordSets().isEmpty()) {
+            return response.resourceRecordSets().get(0);
+        }
+
+        return null;
     }
 
     private void saveResourceRecordSet(Route53Client client, RecordSetResource recordSetResource, ChangeAction changeAction) {
@@ -599,10 +606,11 @@ public class RecordSetResource extends AwsResource {
 
         if (!getRoutingPolicy().equals("weighted") && getWeight() != null) {
             throw new BeamException("The param 'weight' is not allowed when 'routing-policy' is not set to 'weighted'.");
-        } else if (getRoutingPolicy().equals("weighted")
-            && (getWeight() == null) || getWeight() < 0 || getWeight() > 255) {
-            throw new BeamException("The param 'weight' is required when 'routing-policy' is set to 'weighted'."
-                + " Valid values [ Long 0 - 255 ].");
+        } else if (getRoutingPolicy().equals("weighted")) {
+            if ((getWeight() == null) || getWeight() < 0 || getWeight() > 255) {
+                throw new BeamException("The param 'weight' is required when 'routing-policy' is set to 'weighted'."
+                    + " Valid values [ Long 0 - 255 ].");
+            }
         }
 
         if (!getRoutingPolicy().equals("latency") && getRegion() != null) {
