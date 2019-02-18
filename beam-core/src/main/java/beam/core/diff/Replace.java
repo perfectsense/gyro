@@ -85,9 +85,9 @@ public class Replace extends Change {
     }
 
     @Override
-    public void execute(BeamUI ui, State state) throws Exception {
+    public boolean execute(BeamUI ui, State state) throws Exception {
         if (workflow == null) {
-            return;
+            return false;
         }
 
         if (ui.isVerbose()) {
@@ -110,6 +110,7 @@ public class Replace extends Change {
         }
 
         workflow.execute(ui, state, pendingValues);
+        return true;
     }
 
 }
