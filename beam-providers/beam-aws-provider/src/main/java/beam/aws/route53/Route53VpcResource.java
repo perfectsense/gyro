@@ -14,6 +14,9 @@ public class Route53VpcResource extends AwsResource {
     private String vpcId;
     private String vpcRegion;
 
+    /**
+     * The vpc id.
+     */
     public String getVpcId() {
         return vpcId;
     }
@@ -22,6 +25,9 @@ public class Route53VpcResource extends AwsResource {
         this.vpcId = vpcId;
     }
 
+    /**
+     * The region the vpc resides in.
+     */
     public String getVpcRegion() {
         return vpcRegion;
     }
