@@ -51,11 +51,13 @@ public class Update extends Change {
 
     @Override
     public void execute(BeamUI ui, State state) {
-        ((Resource) pendingDiffable).update(
-                (Resource) currentDiffable,
-                changedFields.stream()
-                        .map(DiffableField::getBeamName)
-                        .collect(Collectors.toSet()));
+        if (!state.isTest()) {
+            ((Resource) pendingDiffable).update(
+                    (Resource) currentDiffable,
+                    changedFields.stream()
+                            .map(DiffableField::getBeamName)
+                            .collect(Collectors.toSet()));
+        }
     }
 
 }

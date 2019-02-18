@@ -18,12 +18,18 @@ import beam.lang.Resource;
 public class State {
 
     private final RootScope root;
+    private final boolean test;
     private final Map<String, FileScope> states = new HashMap<>();
 
-    public State(FileScope pending) throws Exception {
+    public State(FileScope pending, boolean test) throws Exception {
         root = new RootScope(pending.getFile() + ".state");
+        this.test = test;
 
         load(pending, root);
+    }
+
+    public boolean isTest() {
+        return test;
     }
 
     private void load(FileScope pending, FileScope state) throws Exception {
