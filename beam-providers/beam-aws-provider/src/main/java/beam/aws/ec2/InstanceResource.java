@@ -34,6 +34,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -94,6 +95,11 @@ public class InstanceResource extends Ec2TaggableResource<Instance> implements B
     private String instanceState;
     private Date launchDate;
 
+    /**
+     * Instance ID of this instance.
+     *
+     * @output
+     */
     public String getInstanceId() {
         return instanceId;
     }
@@ -324,6 +330,11 @@ public class InstanceResource extends Ec2TaggableResource<Instance> implements B
         this.userData = userData;
     }
 
+    /**
+     * The private IP of this instance.
+     *
+     * @output
+     */
     public String getPrivateIpAddress() {
         return privateIpAddress;
     }
@@ -332,6 +343,11 @@ public class InstanceResource extends Ec2TaggableResource<Instance> implements B
         this.privateIpAddress = privateIpAddress;
     }
 
+    /**
+     * The public IP of this instance, if launched in a public subnet.
+     *
+     * @output
+     */
     public String getPublicIpAddress() {
         return publicIpAddress;
     }
@@ -340,6 +356,11 @@ public class InstanceResource extends Ec2TaggableResource<Instance> implements B
         this.publicIpAddress = publicIpAddress;
     }
 
+    /**
+     * The public dns name of this instance, if launched in a public subnet.
+     *
+     * @output
+     */
     public String getPublicDnsName() {
         return publicDnsName;
     }
@@ -348,6 +369,11 @@ public class InstanceResource extends Ec2TaggableResource<Instance> implements B
         this.publicDnsName = publicDnsName;
     }
 
+    /**
+     * Current state of this instance (running, pending, terminated, stopped).
+     *
+     * @output
+     */
     public String getInstanceState() {
         return instanceState;
     }
@@ -360,6 +386,11 @@ public class InstanceResource extends Ec2TaggableResource<Instance> implements B
         this.launchDate = launchDate;
     }
 
+    /**
+     * The date and time this instance was launched.
+     *
+     * @output
+     */
     public Date getInstanceLaunchDate() {
         return launchDate;
     }
@@ -534,6 +565,11 @@ public class InstanceResource extends Ec2TaggableResource<Instance> implements B
         } catch (Ec2Exception ex) {
             throw ex;
         }
+    }
+
+    @Override
+    public void testCreate() {
+        setInstanceId("i-" + UUID.randomUUID());
     }
 
     @Override

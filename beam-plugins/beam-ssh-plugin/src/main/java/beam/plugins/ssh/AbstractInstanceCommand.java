@@ -5,6 +5,7 @@ import beam.core.BeamCore;
 import beam.core.BeamInstance;
 import beam.lang.Resource;
 import beam.lang.ast.scope.RootScope;
+import beam.lang.ast.scope.State;
 import io.airlift.airline.Option;
 
 import java.util.ArrayList;
@@ -22,7 +23,7 @@ public abstract class AbstractInstanceCommand extends AbstractConfigCommand {
     public abstract void doExecute(List<BeamInstance> instances) throws Exception;
 
     @Override
-    protected void doExecute(RootScope current, RootScope pending) throws Exception {
+    protected void doExecute(RootScope current, RootScope pending, State state) throws Exception {
 
         BeamCore.ui().write("\n");
 

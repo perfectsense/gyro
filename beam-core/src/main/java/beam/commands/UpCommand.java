@@ -11,7 +11,7 @@ import io.airlift.airline.Command;
 public class UpCommand extends AbstractConfigCommand {
 
     @Override
-    public void doExecute(RootScope current, RootScope pending) throws Exception {
+    public void doExecute(RootScope current, RootScope pending, State state) throws Exception {
         BeamUI ui = BeamCore.ui();
 
         ui.write("\n@|bold,white Looking for changes...\n\n|@");
@@ -24,8 +24,6 @@ public class UpCommand extends AbstractConfigCommand {
 
         if (diff.write(ui)) {
             if (ui.readBoolean(Boolean.FALSE, "\nAre you sure you want to change resources?")) {
-                State state = new State(pending);
-
                 ui.write("\n");
                 diff.executeCreateOrUpdate(ui, state);
                 diff.executeReplace(ui, state);

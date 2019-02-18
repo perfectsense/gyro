@@ -94,7 +94,9 @@ public class CloudFrontResource extends AwsResource {
     }
 
     /**
-     * The id of the CloudFront distribution. (Read-only)
+     * The id of this CloudFront distribution.
+     *
+     * @output
      */
     public String getId() {
         return id;
@@ -105,7 +107,9 @@ public class CloudFrontResource extends AwsResource {
     }
 
     /**
-     * The arn of the CloudFront distribution. (Read-only)
+     * The arn of this CloudFront distribution.
+     *
+     * @output
      */
     public String getArn() {
         return arn;
@@ -249,6 +253,11 @@ public class CloudFrontResource extends AwsResource {
         this.webAclId = webAclId;
     }
 
+    /**
+     * The domain name for this distribution (i.e. ``abc123893.cloudfront.net``).
+     *
+     * @output
+     */
     public String getDomainName() {
         return domainName;
     }

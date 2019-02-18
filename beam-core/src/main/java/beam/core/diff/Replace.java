@@ -8,7 +8,6 @@ import java.util.stream.Collectors;
 import beam.core.BeamUI;
 import beam.lang.Resource;
 import beam.lang.Workflow;
-import beam.lang.ast.scope.RootScope;
 import beam.lang.ast.scope.State;
 
 public class Replace extends Change {

@@ -45,7 +45,15 @@ public class Create extends Change {
 
     @Override
     public boolean execute(BeamUI ui, State state) {
-        ((Resource) diffable).create();
+        Resource resource = (Resource) diffable;
+
+        if (state.isTest()) {
+            resource.testCreate();
+
+        } else {
+            resource.create();
+        }
+
         return true;
     }
 

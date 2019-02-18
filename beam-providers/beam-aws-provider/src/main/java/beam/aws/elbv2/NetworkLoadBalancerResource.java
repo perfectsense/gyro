@@ -45,24 +45,24 @@ import java.util.Set;
 @ResourceName("nlb")
 public class NetworkLoadBalancerResource extends LoadBalancerResource {
 
-    private List<SubnetMappingResource> subnetMapping;
+    private List<SubnetMappings> subnetMappings;
 
     /**
      * The list of subnet mappings associated with the nlb (Required)
      *
      * @subresource beam.aws.elbv2.SubnetMappingResource
      */
-    @ResourceDiffProperty(subresource = true, nullable = true, updatable = true)
-    public List<SubnetMappingResource> getSubnetMapping() {
-        if (subnetMapping == null) {
-            subnetMapping = new ArrayList<>();
+    //@ResourceDiffProperty(subresource = true, nullable = true, updatable = true)
+    public List<SubnetMappings> getSubnetMappings() {
+        if (subnetMappings == null) {
+            subnetMappings = new ArrayList<>();
         }
 
-        return subnetMapping;
+        return subnetMappings;
     }
 
-    public void setSubnetMapping(List<SubnetMappingResource> subnetMapping) {
-        this.subnetMapping = subnetMapping;
+    public void setSubnetMappings(List<SubnetMappings> subnetMappings) {
+        this.subnetMappings = subnetMappings;
     }
 
     @Override
@@ -71,16 +71,16 @@ public class NetworkLoadBalancerResource extends LoadBalancerResource {
 
         if (loadBalancer != null) {
 
-            getSubnetMapping().clear();
+            getSubnetMappings().clear();
             for (AvailabilityZone zone : loadBalancer.availabilityZones()) {
-                SubnetMappingResource subnet = new SubnetMappingResource();
+                SubnetMappings subnet = new SubnetMappings();
                 subnet.parent(this);
                 subnet.setSubnetId(zone.subnetId());
                 for (LoadBalancerAddress address : zone.loadBalancerAddresses()) {
                     subnet.setAllocationId(address.allocationId());
                     subnet.setIpAddress(address.ipAddress());
                 }
-                getSubnetMapping().add(subnet);
+                getSubnetMappings().add(subnet);
             }
 
             return true;
@@ -126,8 +126,8 @@ public class NetworkLoadBalancerResource extends LoadBalancerResource {
     private List<SubnetMapping> toSubnetMappings() {
         List<SubnetMapping> subnetMappings = new ArrayList<>();
 
-        for (SubnetMappingResource subMap : getSubnetMapping()) {
-            subnetMappings.add(subMap.toSubnetMapping());
+        for (SubnetMappings subMap : getSubnetMappings()) {
+            subnetMappings.add(subMap.toSubnetMappings());
         }
 
         return subnetMappings;

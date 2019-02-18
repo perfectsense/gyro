@@ -22,6 +22,9 @@ public abstract class Resource extends Diffable {
 
     public abstract void create();
 
+    public void testCreate() {
+    }
+
     public abstract void update(Resource current, Set<String> changedProperties);
 
     public abstract void delete();
