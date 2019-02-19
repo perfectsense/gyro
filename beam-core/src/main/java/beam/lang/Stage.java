@@ -20,7 +20,7 @@ public class Stage {
 
     private final String name;
     private final String prompt;
-    private final List<Node> creates = new ArrayList<>();
+    private final List<Node> changes = new ArrayList<>();
     private final List<KeyBlockNode> swaps = new ArrayList<>();
     private final List<Transition> transitions;
 
@@ -36,7 +36,12 @@ public class Stage {
                 String kbKey = kb.getKey();
 
                 if (kbKey.equals("create")) {
-                    creates.addAll(kb.getBody());
+                    changes.addAll(kb.getBody());
+                    i.remove();
+                    continue;
+
+                } else if (kbKey.equals("delete")) {
+                    changes.add(kb);
                     i.remove();
                     continue;
 
@@ -76,8 +81,17 @@ public class Stage {
 
         executeScope.putAll(values);
 
-        for (Node create : creates) {
-            create.evaluate(executeScope);
+        for (Node change : changes) {
+            change.evaluate(executeScope);
+        }
+
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> deletes = (List<Map<String, Object>>) executeScope.get("delete");
+
+        if (deletes != null) {
+            for (Map<String, Object> delete : deletes) {
+                pendingRootScope.remove(delete.get("type") + "::" + delete.get("name"));
+            }
         }
 
         for (KeyBlockNode swap : swaps) {
