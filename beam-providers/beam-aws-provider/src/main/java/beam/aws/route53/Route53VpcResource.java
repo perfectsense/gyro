@@ -14,6 +14,15 @@ public class Route53VpcResource extends AwsResource {
     private String vpcId;
     private String vpcRegion;
 
+    public Route53VpcResource() {
+
+    }
+
+    public Route53VpcResource(String vpcId, String vpcRegion) {
+        this.vpcId = vpcId;
+        this.vpcRegion = vpcRegion;
+    }
+
     /**
      * The vpc id.
      */
@@ -33,15 +42,6 @@ public class Route53VpcResource extends AwsResource {
     }
 
     public void setVpcRegion(String vpcRegion) {
-        this.vpcRegion = vpcRegion;
-    }
-
-    public Route53VpcResource() {
-
-    }
-
-    public Route53VpcResource(String vpcId, String vpcRegion) {
-        this.vpcId = vpcId;
         this.vpcRegion = vpcRegion;
     }
 
