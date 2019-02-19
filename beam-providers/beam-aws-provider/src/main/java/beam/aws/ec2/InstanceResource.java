@@ -35,7 +35,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -99,7 +98,6 @@ public class InstanceResource extends Ec2TaggableResource<Instance> implements B
     /**
      * Instance ID of this instance.
      *
-     * @output
      */
     @ResourceOutput
     public String getInstanceId() {

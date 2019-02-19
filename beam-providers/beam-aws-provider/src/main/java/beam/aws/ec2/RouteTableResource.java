@@ -14,7 +14,6 @@ import software.amazon.awssdk.services.ec2.model.RouteTableAssociation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * Creates a VPC route table.

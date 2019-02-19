@@ -11,7 +11,6 @@ import software.amazon.awssdk.services.ec2.model.InternetGateway;
 import software.amazon.awssdk.services.ec2.model.InternetGatewayAttachment;
 
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * Create an internet gateway.

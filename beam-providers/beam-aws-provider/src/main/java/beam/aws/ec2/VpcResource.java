@@ -24,7 +24,6 @@ import software.amazon.awssdk.services.ec2.model.VpcClassicLink;
 import software.amazon.awssdk.services.ec2.model.VpcIpv6CidrBlockAssociation;
 
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * Creates a VPC with the specified IPv4 CIDR block.
