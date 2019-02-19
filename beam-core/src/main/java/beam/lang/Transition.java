@@ -1,21 +1,29 @@
 package beam.lang;
 
-import java.util.Map;
+import beam.lang.ast.Node;
+import beam.lang.ast.block.ResourceNode;
+import beam.lang.ast.scope.Scope;
 
 public class Transition {
 
-    private final String stage;
     private final String name;
+    private final String to;
     private final String description;
 
-    public Transition(Map<String, Object> map) {
-        stage = (String) map.get("stage");
-        name = (String) map.get("name");
-        description = (String) map.get("description");
+    public Transition(Scope parent, ResourceNode node) throws Exception {
+        Scope scope = new Scope(parent);
+
+        for (Node item : node.getBody()) {
+            item.evaluate(scope);
+        }
+
+        name = (String) node.getNameNode().evaluate(parent);
+        to = (String) scope.get("to");
+        description = (String) scope.get("description");
     }
 
-    public String getStage() {
-        return stage;
+    public String getTo() {
+        return to;
     }
 
     public String getName() {

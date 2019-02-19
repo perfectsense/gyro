@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import beam.core.BeamUI;
@@ -22,7 +21,7 @@ public class Stage {
     private final String prompt;
     private final List<Node> changes = new ArrayList<>();
     private final List<KeyBlockNode> swaps = new ArrayList<>();
-    private final List<Transition> transitions;
+    private final List<Transition> transitions = new ArrayList<>();
 
     @SuppressWarnings("unchecked")
     public Stage(Scope parent, ResourceNode node) throws Exception {
@@ -50,6 +49,15 @@ public class Stage {
                     i.remove();
                     continue;
                 }
+
+            } else if (item instanceof ResourceNode) {
+                ResourceNode r = (ResourceNode) item;
+
+                if (r.getType().equals("transition")) {
+                    transitions.add(new Transition(parent, r));
+                    i.remove();
+                    continue;
+                }
             }
 
             item.evaluate(scope);
@@ -57,12 +65,6 @@ public class Stage {
 
         name = (String) node.getNameNode().evaluate(parent);
         prompt = (String) scope.get("prompt");
-
-        transitions = Optional.ofNullable((List<Map<String, Object>>) scope.get("transition"))
-                .map(l -> l.stream()
-                        .map(Transition::new)
-                        .collect(Collectors.toList()))
-                .orElse(null);
     }
 
     public String getName() {
@@ -129,19 +131,19 @@ public class Stage {
             }
         }
 
-        if (transitions == null) {
+        if (transitions.isEmpty()) {
             return null;
         }
 
         Map<String, String> options = transitions.stream()
-                .collect(Collectors.toMap(Transition::getName, Transition::getStage));
+                .collect(Collectors.toMap(Transition::getName, Transition::getTo));
 
         while (true) {
             for (Transition transition : transitions) {
                 ui.write("\n%s) %s", transition.getName(), transition.getDescription());
             }
 
-            String selected = ui.readText("\n%s ", prompt);
+            String selected = ui.readText("\n%s ", prompt != null ? prompt : "Next stage?");
             String selectedOption = options.get(selected);
 
             if (selectedOption != null) {
