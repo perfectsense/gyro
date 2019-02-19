@@ -2,6 +2,7 @@ package beam.aws.ec2;
 
 import beam.aws.AwsResource;
 import beam.core.diff.ResourceName;
+import beam.core.diff.ResourceOutput;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.CreateVpcPeeringConnectionResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeVpcPeeringConnectionsResponse;
@@ -81,6 +82,7 @@ public class PeeringConectionResource extends Ec2TaggableResource<VpcPeeringConn
         this.region = region;
     }
 
+    @ResourceOutput
     public String getPeeringConnectionId() {
         return peeringConnectionId;
     }

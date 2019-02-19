@@ -1,0 +1,40 @@
+import ../init as _
+
+aws::vpc vpc-record-set-example
+    cidr-block: "10.0.0.0/16"
+
+    tags: {
+        Name: "vpc-record-set-example"
+    }
+end
+
+aws::hosted-zone hosted-zone-record-set-example
+    hosted-zone-name: "hosted-zone-record-set-example.com"
+    private-zone: false
+    comment: "hosted-zone-record-set-example.com comment"
+end
+
+aws::health-check health-check-record-set-example-calculated
+    type: "CALCULATED"
+    inverted: false
+    disabled: false
+    health-threshold: 0
+    tags: {
+        Name: "health-check-record-set-example-calculated"
+    }
+end
+
+aws::record-set record-set-example
+    hosted-zone-id: $(aws::hosted-zone hosted-zone-record-set-example | hosted-zone-id)
+    name: "record-set-example.$(aws::hosted-zone hosted-zone-record-set-example | hosted-zone-name)"
+    type: "A"
+    ttl: 300
+    records: [
+        "192.0.2.235",
+        "192.0.2.236"
+    ]
+    failover: "secondary"
+    set-identifier: "set_id"
+    routing-policy: "failover"
+    health-check-id: $(aws::health-check health-check-record-set-example-calculated | health-check-id)
+end

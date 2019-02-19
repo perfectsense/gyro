@@ -3,15 +3,44 @@ plugins {
     id 'maven-publish'
     id 'org.springframework.boot' version '2.1.0.RELEASE'
 }
-
+apply plugin: 'java'
 apply plugin: 'io.spring.dependency-management'
 
 sourceCompatibility = 1.8
 
-defaultTasks 'build'
+defaultTasks 'build', 'publish', 'publishToMavenLocal'
 
 dependencies {
     compile "beam:beam-core:${version}"
+}
+
+task finalize {
+    dependsOn 'dist'
+}
+build.finalizedBy(finalize)
+
+task distDir {
+    doLast {
+        mkdir "dist"
+    }
+
+    dependsOn 'build'
+}
+
+task dist(type: Copy) {
+    from libsDir
+    include '*.jar'
+    into "dist"
+
+    rename "beam-cli-0.5.jar", 'beam'
+
+    dependsOn 'distDir'
+}
+
+task bundleDistribution(type: Exec) {
+    commandLine 'sh', '-c', 'scripts/build-beam-dist.sh'
+
+    dependsOn 'dist'
 }
 
 bootJar {

@@ -9,6 +9,7 @@ import java.util.Optional;
 
 import com.google.common.base.CaseFormat;
 import com.psddev.dari.util.Converter;
+import com.psddev.dari.util.ObjectUtils;
 
 public class DiffableField {
 
@@ -25,6 +26,8 @@ public class DiffableField {
     private final Method getter;
     private final Method setter;
     private final boolean updatable;
+    private final String testValue;
+    private final boolean testValueRandomSuffix;
     private final Class<?> itemClass;
 
     protected DiffableField(String javaName, Method getter, Method setter, Type type) {
@@ -40,6 +43,16 @@ public class DiffableField {
 
         } else {
             this.updatable = false;
+        }
+
+        ResourceOutput output = getter.getAnnotation(ResourceOutput.class);
+
+        if (output != null) {
+            this.testValue = !ObjectUtils.isBlank(output.value()) ? output.value() : beamName;
+            this.testValueRandomSuffix = output.randomSuffix();
+        } else {
+            this.testValue = null;
+            this.testValueRandomSuffix = false;
         }
 
         if (type instanceof Class) {
@@ -73,6 +86,14 @@ public class DiffableField {
 
     public Class<?> getItemClass() {
         return itemClass;
+    }
+
+    public String getTestValue() {
+        return testValue;
+    }
+
+    public boolean isTestValueRandomSuffix() {
+        return testValueRandomSuffix;
     }
 
     public Object getValue(Diffable diffable) {

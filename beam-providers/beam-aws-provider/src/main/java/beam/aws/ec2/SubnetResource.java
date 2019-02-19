@@ -4,6 +4,7 @@ import beam.aws.AwsResource;
 import beam.core.BeamException;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
+import beam.core.diff.ResourceOutput;
 import com.psddev.dari.util.ObjectUtils;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.AttributeBooleanValue;
@@ -18,7 +19,6 @@ import software.amazon.awssdk.services.ec2.model.ModifySubnetAttributeRequest;
 import software.amazon.awssdk.services.ec2.model.Subnet;
 
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * Create a subnet in a VPC.
@@ -89,6 +89,7 @@ public class SubnetResource extends Ec2TaggableResource<Subnet> {
         this.mapPublicIpOnLaunch = mapPublicIpOnLaunch;
     }
 
+    @ResourceOutput
     public String getSubnetId() {
         return subnetId;
     }
@@ -146,11 +147,6 @@ public class SubnetResource extends Ec2TaggableResource<Subnet> {
         setSubnetId(response.subnet().subnetId());
 
         modifyAttribute(client);
-    }
-
-    @Override
-    public void testCreate() {
-        setSubnetId("subnet-" + UUID.randomUUID());
     }
 
     @Override

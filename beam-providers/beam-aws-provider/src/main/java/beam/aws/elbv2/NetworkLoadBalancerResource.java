@@ -1,9 +1,7 @@
 package beam.aws.elbv2;
 
-import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 import beam.lang.Resource;
-
 import software.amazon.awssdk.services.elasticloadbalancingv2.ElasticLoadBalancingV2Client;
 import software.amazon.awssdk.services.elasticloadbalancingv2.model.AvailabilityZone;
 import software.amazon.awssdk.services.elasticloadbalancingv2.model.CreateLoadBalancerResponse;
@@ -52,7 +50,6 @@ public class NetworkLoadBalancerResource extends LoadBalancerResource {
      *
      * @subresource beam.aws.elbv2.SubnetMappingResource
      */
-    //@ResourceDiffProperty(subresource = true, nullable = true, updatable = true)
     public List<SubnetMappings> getSubnetMappings() {
         if (subnetMappings == null) {
             subnetMappings = new ArrayList<>();
