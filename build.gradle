@@ -111,12 +111,6 @@ project(":beam-providers:beam-aws-provider") {
     }
 }
 
-project(":beam-providers:beam-test-provider") {
-    dependencies {
-        compile project(':beam-core')
-    }
-}
-
 project(":beam-providers:beam-openstack-provider") {
     dependencies {
         compile project(':beam-core')
