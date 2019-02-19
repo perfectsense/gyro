@@ -22,8 +22,6 @@ subprojects {
     apply plugin: 'maven-publish'
     apply plugin: 'checkstyle'
 
-    defaultTasks 'build', 'publish', 'publishToMavenLocal'
-
     group = 'beam'
     version = '0.5'
 
