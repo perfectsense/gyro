@@ -9,8 +9,8 @@ import software.amazon.awssdk.services.rds.RdsClient;
 import software.amazon.awssdk.services.rds.model.CreateDbParameterGroupResponse;
 import software.amazon.awssdk.services.rds.model.DbParameterGroupNotFoundException;
 import software.amazon.awssdk.services.rds.model.DescribeDbParameterGroupsResponse;
-import software.amazon.awssdk.services.rds.model.DescribeDbParametersResponse;
 import software.amazon.awssdk.services.rds.model.Parameter;
+import software.amazon.awssdk.services.rds.paginators.DescribeDBParametersIterable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -97,23 +97,26 @@ public class DBParameterGroupResource extends RdsTaggableResource {
                 );
 
 
-            DescribeDbParametersResponse parametersResponse = client.describeDBParameters(
+            DescribeDBParametersIterable iterable = client.describeDBParametersPaginator(
                 r -> r.dbParameterGroupName(getName())
             );
 
             Set<String> names = getParameter().stream().map(DBParameter::getName).collect(Collectors.toSet());
             getParameter().clear();
-            getParameter().addAll(parametersResponse.parameters().stream()
-                .filter(p -> names.contains(p.parameterName()))
-                .map(p -> {
-                            DBParameter parameter = new DBParameter();
-                            parameter.setApplyMethod(p.applyMethodAsString());
-                            parameter.setName(p.parameterName());
-                            parameter.setValue(p.parameterValue());
-                            return parameter;
-                        }
-                    )
-                .collect(Collectors.toList()));
+            iterable.stream().forEach(
+                r -> getParameter().addAll(r.parameters().stream()
+                    .filter(p -> names.contains(p.parameterName()))
+                    .map(p -> {
+                                DBParameter parameter = new DBParameter();
+                                parameter.setApplyMethod(p.applyMethodAsString());
+                                parameter.setName(p.parameterName());
+                                parameter.setValue(p.parameterValue());
+                                return parameter;
+                            }
+                        )
+                    .collect(Collectors.toList())
+                )
+            );
 
         } catch (DbParameterGroupNotFoundException ex) {
             return false;
