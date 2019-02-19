@@ -2,6 +2,7 @@ package beam.lang.ast.block;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -47,6 +48,7 @@ public class ResourceNode extends BlockNode {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Object evaluate(Scope scope) throws Exception {
         String name = (String) nameNode.evaluate(scope);
         String fullName = type + "::" + name;
@@ -84,25 +86,27 @@ public class ResourceNode extends BlockNode {
             node.evaluate(bodyScope);
         }
 
-        // Copy values from another resource.
-        String parentName = (String) bodyScope.remove("_extends");
+        // Copy values from another.
+        Object another = bodyScope.remove("_extends");
         RootScope rootScope = scope.getRootScope();
 
-        if (parentName != null) {
-            Resource parent = rootScope.findResource(type + "::" + parentName);
+        if (another instanceof String) {
+            Resource anotherResource = rootScope.findResource(type + "::" + another);
 
-            if (parent == null) {
+            if (anotherResource == null) {
                 throw new IllegalArgumentException(String.format(
                         "No resource named [%s]!",
-                        parentName));
+                        another));
             }
 
-            for (DiffableField field : DiffableType.getInstance(parent.getClass()).getFields()) {
-                bodyScope.putIfAbsent(field.getBeamName(), field.getValue(parent));
+            for (DiffableField field : DiffableType.getInstance(anotherResource.getClass()).getFields()) {
+                bodyScope.putIfAbsent(field.getBeamName(), field.getValue(anotherResource));
             }
+
+        } else if (another instanceof Map) {
+            ((Map<String, Object>) another).forEach(bodyScope::putIfAbsent);
         }
 
-        @SuppressWarnings("unchecked")
         Class<? extends Resource> resourceClass = (Class<? extends Resource>) rootScope.getResourceClasses().get(type);
 
         if (resourceClass == null) {
