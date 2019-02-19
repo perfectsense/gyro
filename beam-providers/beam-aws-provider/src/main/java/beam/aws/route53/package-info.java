@@ -1,4 +1,4 @@
-@DocNamespace("route53")
+@DocGroup("Route53")
 package beam.aws.route53;
 
-import beam.core.docs.DocNamespace;
+import beam.core.docs.DocGroup;
