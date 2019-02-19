@@ -10,7 +10,7 @@ plugins {
     id 'maven-publish'
 }
 
-defaultTasks 'build', 'checkstyle', 'publish', 'publishToMavenLocal', 'distDir', 'dist'
+defaultTasks 'build', 'checkstyle', 'publish', 'publishToMavenLocal'
 
 allprojects {
     version = '0.5'
@@ -118,11 +118,5 @@ project(":beam-providers:beam-openstack-provider") {
 project(":beam-providers:beam-azure-provider") {
     dependencies {
         compile project(':beam-core')
-    }
-}
-
-task distDir {
-    doLast {
-        mkdir "dist"
     }
 }
