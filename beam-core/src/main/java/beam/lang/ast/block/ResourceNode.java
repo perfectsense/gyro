@@ -12,6 +12,7 @@ import beam.core.diff.DiffableType;
 import beam.lang.Resource;
 import beam.lang.ast.Node;
 import beam.lang.ast.scope.DiffableScope;
+import beam.lang.ast.scope.RootScope;
 import beam.lang.ast.scope.Scope;
 import beam.parser.antlr4.BeamParser;
 
@@ -75,8 +76,26 @@ public class ResourceNode extends BlockNode {
             node.evaluate(bodyScope);
         }
 
+        // Copy values from another resource.
+        String parentName = (String) bodyScope.remove("_extends");
+        RootScope rootScope = scope.getRootScope();
+
+        if (parentName != null) {
+            Resource parent = rootScope.findResource(type + "::" + parentName);
+
+            if (parent == null) {
+                throw new IllegalArgumentException(String.format(
+                        "No resource named [%s]!",
+                        parentName));
+            }
+
+            for (DiffableField field : DiffableType.getInstance(parent.getClass()).getFields()) {
+                bodyScope.putIfAbsent(field.getBeamName(), field.getValue(parent));
+            }
+        }
+
         @SuppressWarnings("unchecked")
-        Class<? extends Resource> resourceClass = (Class<? extends Resource>) scope.getRootScope().getResourceClasses().get(type);
+        Class<? extends Resource> resourceClass = (Class<? extends Resource>) rootScope.getResourceClasses().get(type);
 
         if (resourceClass == null) {
             VirtualResourceNode vrNode = scope.getRootScope().getVirtualResourceNodes().get(type);
