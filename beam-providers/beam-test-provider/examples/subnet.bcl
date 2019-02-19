@@ -1,42 +1,5 @@
 import init as _
 
-workflow
-    name: 'replace-network'
-    trigger-type: 'test::network'
-    trigger-fields: ['cidr-block']
-    first-stage: 'create-temp'
-
-    stage
-        name: 'create-temp'
-
-        create
-            parser-error: 'workaround'
-
-            test::network "$(_current)-temp"
-                cidr-block: $(cidr-block)
-            end
-        end
-
-        prompt: 'What next?'
-
-        transition
-            stage: 'swap'
-            name: 's'
-            description: 'Swap the existing network with the temporary one'
-        end
-    end
-
-    stage
-        name: 'swap'
-
-        swap
-            type: 'test::network'
-            x: "$(_current)"
-            y: "$(_current)-temp"
-        end
-    end
-end
-
 test::network network
     cidr-block: "10.0.0.0/16"
 end

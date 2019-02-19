@@ -7,3 +7,22 @@ aws::vpc vpc
         Name: "vpc-example"
     }
 end
+
+workflow 'replace-vpc' for-type: 'aws::vpc'
+    stage 'create-temp-vpc'
+        create parser-error: 'workaround'
+            aws::vpc "$(CURRENT)-temp"
+                _extends: $(CURRENT)
+                cidr-block: $(PENDING.cidr-block)
+            end
+        end
+    end
+
+    stage 'swap-vpcs'
+        swap
+            type: 'aws::vpc'
+            x: "$(CURRENT)"
+            y: "$(CURRENT)-temp"
+        end
+    end
+end
