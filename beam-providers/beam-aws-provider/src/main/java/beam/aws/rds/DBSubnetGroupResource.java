@@ -118,11 +118,6 @@ public class DBSubnetGroupResource extends RdsTaggableResource {
 
     @Override
     public String toDisplayString() {
-        StringBuilder sb = new StringBuilder();
-
-        sb.append("db subnet group ");
-        sb.append(getGroupName());
-
-        return sb.toString();
+        return "db subnet group " + getGroupName();
     }
 }
