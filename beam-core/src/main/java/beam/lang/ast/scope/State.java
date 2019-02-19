@@ -64,6 +64,14 @@ public class State {
         }
     }
 
+    private void save(FileScope state) throws Exception {
+        state.getBackend().save(state);
+
+        for (FileScope i : state.getImports()) {
+            save(i);
+        }
+    }
+
     public void update(Change change) throws Exception {
         Diffable diffable = change.getDiffable();
 
@@ -154,12 +162,46 @@ public class State {
         }
     }
 
-    private void save(FileScope state) throws Exception {
-        state.getBackend().save(state);
+    public void swap(RootScope current, RootScope pending, String type, String x, String y) throws Exception {
+        swapResources(current, type, x, y);
+        swapResources(pending, type, x, y);
+        swapResources(root, type, x, y);
+        save(root);
+    }
 
-        for (FileScope i : state.getImports()) {
-            save(i);
+    private void swapResources(RootScope rootScope, String type, String xName, String yName) {
+        String xFullName = type + "::" + xName;
+        String yFullName = type + "::" + yName;
+        FileScope xScope = findScope(xFullName, rootScope);
+        FileScope yScope = findScope(yFullName, rootScope);
+
+        if (xScope != null && yScope != null) {
+            Resource x = (Resource) xScope.remove(xFullName);
+            Resource y = (Resource) yScope.remove(yFullName);
+
+            x.resourceIdentifier(yName);
+            y.resourceIdentifier(xName);
+            xScope.put(yFullName, x);
+            yScope.put(xFullName, y);
         }
+    }
+
+    private FileScope findScope(String name, FileScope scope) {
+        Object value = scope.get(name);
+
+        if (value instanceof Resource) {
+            return scope;
+        }
+
+        for (FileScope i : scope.getImports()) {
+            FileScope r = findScope(name, i);
+
+            if (r != null) {
+                return r;
+            }
+        }
+
+        return null;
     }
 
 }

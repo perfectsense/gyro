@@ -28,7 +28,7 @@ public class Replace extends Change {
                 .getRootScope()
                 .getWorkflows()
                 .stream()
-                .filter(w -> w.isTriggerable(pendingResource, changedFields))
+                .filter(w -> w.getForType().equals(pendingResource.resourceType()))
                 .findFirst()
                 .orElse(null);
     }
@@ -59,7 +59,7 @@ public class Replace extends Change {
 
     @Override
     public void writePlan(BeamUI ui) {
-        ui.write("@|cyan ⤢ Replace %s|@", currentDiffable.toDisplayString());
+        ui.write("@|cyan ⇅ Replace %s|@", currentDiffable.toDisplayString());
         ui.write(" (because of %s, ", changedFields.stream()
                 .filter(f -> !f.isUpdatable())
                 .map(DiffableField::getBeamName)
@@ -78,7 +78,7 @@ public class Replace extends Change {
 
     @Override
     public void writeExecution(BeamUI ui) {
-        ui.write("@|magenta ⤢ Replacing %s|@", currentDiffable.toDisplayString());
+        ui.write("@|magenta ⇅ Replacing %s|@", currentDiffable.toDisplayString());
         writeFields(ui);
     }
 
@@ -94,20 +94,20 @@ public class Replace extends Change {
 
         ui.write("\n@|magenta ~ Executing %s workflow|@", workflow.getName());
 
-        Resource currentResource = (Resource) currentDiffable;
         Resource pendingResource = (Resource) pendingDiffable;
+        Map<String, Object> values = new LinkedHashMap<>();
         Map<String, Object> pendingValues = new LinkedHashMap<>();
 
-        pendingValues.put("_current", pendingResource.resourceIdentifier());
+        values.put("CURRENT", pendingResource.resourceIdentifier());
+        values.put("PENDING", pendingValues);
 
         for (DiffableField field : changedFields) {
             if (!field.isUpdatable()) {
                 pendingValues.put(field.getBeamName(), field.getValue(pendingResource));
-                field.setValue(pendingResource, field.getValue(currentResource));
             }
         }
 
-        workflow.execute(ui, state, pendingValues);
+        workflow.execute(ui, state, values);
         return true;
     }
 

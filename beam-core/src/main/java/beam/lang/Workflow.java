@@ -1,42 +1,39 @@
 package beam.lang;
 
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 
 import beam.core.BeamUI;
-import beam.core.diff.DiffableField;
+import beam.core.LocalFileBackend;
+import beam.core.diff.Diff;
 import beam.lang.ast.Node;
-import beam.lang.ast.block.KeyBlockNode;
+import beam.lang.ast.block.ResourceNode;
+import beam.lang.ast.scope.RootScope;
 import beam.lang.ast.scope.Scope;
 import beam.lang.ast.scope.State;
-import com.google.common.collect.ImmutableSet;
 
 public class Workflow {
 
+    private final RootScope pendingRootScope;
     private final String name;
-    private final String triggerType;
-    private final Set<String> triggerFields;
-    private final String firstStage;
-    private final Map<String, Stage> stages = new LinkedHashMap<>();
+    private final String forType;
+    private final List<Stage> stages = new ArrayList<>();
 
-    @SuppressWarnings("unchecked")
-    public Workflow(Scope parent, KeyBlockNode node) throws Exception {
+    public Workflow(Scope parent, ResourceNode node) throws Exception {
         Scope scope = new Scope(parent);
 
         for (Iterator<Node> i = node.getBody().iterator(); i.hasNext();) {
             Node item = i.next();
 
-            if (item instanceof KeyBlockNode) {
-                KeyBlockNode kb = (KeyBlockNode) item;
+            if (item instanceof ResourceNode) {
+                ResourceNode rn = (ResourceNode) item;
 
-                if (kb.getKey().equals("stage")) {
-                    Stage stage = new Stage(scope, kb.getBody());
+                if (rn.getType().equals("stage")) {
+                    Stage stage = new Stage(scope, rn);
 
-                    stages.put(stage.getName(), stage);
+                    stages.add(stage);
                     i.remove();
                     continue;
                 }
@@ -45,45 +42,112 @@ public class Workflow {
             item.evaluate(scope);
         }
 
-        name = (String) scope.get("name");
-        triggerType = (String) scope.get("trigger-type");
-        triggerFields = ImmutableSet.copyOf((List<String>) scope.get("trigger-fields"));
-        firstStage = (String) scope.get("first-stage");
+        pendingRootScope = parent.getRootScope();
+        name = (String) node.getNameNode().evaluate(parent);
+        forType = (String) scope.get("for-type");
     }
 
     public String getName() {
         return name;
     }
 
-    public boolean isTriggerable(Resource resource, Set<DiffableField> changedFields) {
-        return resource.resourceType().equals(triggerType)
-                && changedFields.stream()
-                        .map(DiffableField::getBeamName)
-                        .anyMatch(triggerFields::contains);
+    public String getForType() {
+        return forType;
     }
 
-    public void execute(BeamUI ui, State state, Map<String, Object> pendingValues) throws Exception {
-        AtomicReference<String> stageName = new AtomicReference<>(firstStage);
-        int index = 0;
+    private RootScope copyCurrentRootScope() throws Exception {
+        RootScope s = new RootScope(pendingRootScope.getCurrent().getFile());
+
+        new LocalFileBackend().load(s);
+        return s;
+    }
+
+    public void execute(BeamUI ui, State state, Map<String, Object> values) throws Exception {
+        int stagesSize = stages.size();
+
+        if (stagesSize == 0) {
+            throw new IllegalArgumentException("No stages!");
+        }
+
+        int stageIndex = 0;
+        RootScope currentRootScope = copyCurrentRootScope();
 
         do {
-            Stage stage = stages.get(stageName.get());
+            Stage stage = stages.get(stageIndex);
+            String stageName = stage.getName();
 
-            if (stage == null) {
-                throw new IllegalArgumentException(String.format("No stage named [%s]!", stageName));
-            }
-
-            ui.write("\n@|magenta %d Executing %s stage|@\n", ++index, stage.getName());
+            ui.write("\n@|magenta %d Executing %s stage|@\n", stageIndex + 1, stageName);
 
             if (ui.isVerbose()) {
                 ui.write("\n");
             }
 
-            ui.indented(() -> {
-                stageName.set(stage.execute(ui, state, pendingValues));
-            });
+            ui.indent();
 
-        } while (stageName.get() != null);
+            try {
+                RootScope pendingRootScope = copyCurrentRootScope();
+                stageName = stage.execute(ui, state, values, currentRootScope, pendingRootScope);
+                currentRootScope = pendingRootScope;
+
+            } finally {
+                ui.unindent();
+            }
+
+            if (stageName == null) {
+                ++stageIndex;
+
+            } else {
+                stageIndex = -1;
+
+                for (int i = 0; i < stagesSize; ++i) {
+                    Stage s = stages.get(i);
+
+                    if (s.getName().equals(stageName)) {
+                        stageIndex = i;
+                        break;
+                    }
+                }
+
+                if (stageIndex < 0) {
+                    throw new IllegalArgumentException(String.format(
+                            "No stage named [%s]!",
+                            stageName));
+                }
+            }
+
+        } while (stageIndex < stagesSize);
+
+        ui.write("\n@|magenta ~ Finalizing %s workflow |@\n", name);
+        ui.indent();
+
+        try {
+            currentRootScope = pendingRootScope.getCurrent();
+
+            currentRootScope.clear();
+            pendingRootScope.clear();
+
+            new LocalFileBackend().load(currentRootScope);
+            new LocalFileBackend().load(pendingRootScope);
+
+            Diff diff = new Diff(currentRootScope.findAllResources(), pendingRootScope.findAllResources());
+
+            diff.diff();
+
+            if (diff.write(ui)) {
+                if (ui.readBoolean(Boolean.TRUE, "\nFinalize %s workflow?", name)) {
+                    ui.write("\n");
+                    diff.executeCreateOrUpdate(ui, state);
+                    diff.executeReplace(ui, state);
+                    diff.executeDelete(ui, state);
+
+                } else {
+                    throw new RuntimeException("Aborted!");
+                }
+            }
+
+        } finally {
+            ui.unindent();
+        }
     }
 
 }

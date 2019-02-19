@@ -8,18 +8,16 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import beam.core.BeamUI;
-import beam.core.LocalFileBackend;
 import beam.core.diff.Diff;
 import beam.lang.ast.Node;
 import beam.lang.ast.block.KeyBlockNode;
-import beam.lang.ast.scope.FileScope;
+import beam.lang.ast.block.ResourceNode;
 import beam.lang.ast.scope.RootScope;
 import beam.lang.ast.scope.Scope;
 import beam.lang.ast.scope.State;
 
 public class Stage {
 
-    private final Scope scope;
     private final String name;
     private final String prompt;
     private final List<Node> creates = new ArrayList<>();
@@ -27,14 +25,14 @@ public class Stage {
     private final List<Transition> transitions;
 
     @SuppressWarnings("unchecked")
-    public Stage(Scope parent, List<Node> body) throws Exception {
-        scope = new Scope(parent);
+    public Stage(Scope parent, ResourceNode node) throws Exception {
+        Scope scope = new Scope(parent);
 
-        for (Iterator<Node> i = body.iterator(); i.hasNext();) {
-            Node node = i.next();
+        for (Iterator<Node> i = node.getBody().iterator(); i.hasNext();) {
+            Node item = i.next();
 
-            if (node instanceof KeyBlockNode) {
-                KeyBlockNode kb = (KeyBlockNode) node;
+            if (item instanceof KeyBlockNode) {
+                KeyBlockNode kb = (KeyBlockNode) item;
                 String kbKey = kb.getKey();
 
                 if (kbKey.equals("create")) {
@@ -49,10 +47,10 @@ public class Stage {
                 }
             }
 
-            node.evaluate(scope);
+            item.evaluate(scope);
         }
 
-        name = (String) scope.get("name");
+        name = (String) node.getNameNode().evaluate(parent);
         prompt = (String) scope.get("prompt");
 
         transitions = Optional.ofNullable((List<Map<String, Object>>) scope.get("transition"))
@@ -66,10 +64,10 @@ public class Stage {
         return name;
     }
 
-    public String execute(BeamUI ui, State state, Map<String, Object> pendingValues) throws Exception {
-        Scope executeScope = new Scope(scope);
+    public String execute(BeamUI ui, State state, Map<String, Object> values, RootScope currentRootScope, RootScope pendingRootScope) throws Exception {
+        Scope executeScope = new Scope(pendingRootScope);
 
-        executeScope.putAll(pendingValues);
+        executeScope.putAll(values);
 
         for (Node create : creates) {
             create.evaluate(executeScope);
@@ -79,30 +77,18 @@ public class Stage {
             swap.evaluate(executeScope);
         }
 
-        RootScope pendingRootScope = scope.getRootScope();
-        RootScope currentRootScope = pendingRootScope.getCurrent();
         @SuppressWarnings("unchecked")
         List<Map<String, Object>> swaps = (List<Map<String, Object>>) executeScope.get("swap");
 
         if (swaps != null) {
             for (Map<String, Object> swap : swaps) {
-                swapResources(
-                        currentRootScope,
-                        (String) swap.get("type"),
-                        (String) swap.get("x"),
-                        (String) swap.get("y"));
+                String type = (String) swap.get("type");
+                String x = (String) swap.get("x");
+                String y = (String) swap.get("y");
 
-                swapResources(
-                        pendingRootScope,
-                        (String) swap.get("type"),
-                        (String) swap.get("x"),
-                        (String) swap.get("y"));
+                ui.write("@|magenta ⤢ Swapping %s with %s|@\n", x, y);
+                state.swap(currentRootScope, pendingRootScope, type, x, y);
             }
-        }
-
-        if (transitions == null) {
-            pendingRootScope.clear();
-            new LocalFileBackend().load(pendingRootScope);
         }
 
         Diff diff = new Diff(currentRootScope.findAllResources(), pendingRootScope.findAllResources());
@@ -115,15 +101,10 @@ public class Stage {
                 diff.executeCreateOrUpdate(ui, state);
                 diff.executeReplace(ui, state);
                 diff.executeDelete(ui, state);
-                currentRootScope.clear();
-                new LocalFileBackend().load(currentRootScope);
 
             } else {
-                return null;
+                throw new RuntimeException("Aborted!");
             }
-
-        } else {
-            ui.write("\n@|yellow No changes in this stage.|@\n\n");
         }
 
         if (transitions == null) {
@@ -148,38 +129,6 @@ public class Stage {
                 ui.write("[%s] isn't valid! Try again.\n", selected);
             }
         }
-    }
-
-    private void swapResources(RootScope rootScope, String type, String xName, String yName) {
-        String xFullName = type + "::" + xName;
-        String yFullName = type + "::" + yName;
-        FileScope xScope = find(xFullName, rootScope);
-        FileScope yScope = find(yFullName, rootScope);
-        Resource x = (Resource) xScope.get(xFullName);
-        Resource y = (Resource) yScope.get(yFullName);
-
-        xScope.put(xFullName, y);
-        yScope.put(yFullName, x);
-        x.resourceIdentifier(yName);
-        y.resourceIdentifier(xName);
-    }
-
-    private FileScope find(String name, FileScope scope) {
-        Object value = scope.get(name);
-
-        if (value instanceof Resource) {
-            return scope;
-        }
-
-        for (FileScope i : scope.getImports()) {
-            FileScope r = find(name, i);
-
-            if (r != null) {
-                return r;
-            }
-        }
-
-        return null;
     }
 
 }

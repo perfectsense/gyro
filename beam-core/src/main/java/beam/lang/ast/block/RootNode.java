@@ -31,7 +31,7 @@ public class RootNode extends BlockNode {
         List<KeyValueNode> keyValues = new ArrayList<>();
         List<PluginNode> plugins = new ArrayList<>();
         Map<String, VirtualResourceNode> virtualResourceNodes = scope.getRootScope().getVirtualResourceNodes();
-        List<KeyBlockNode> workflowNodes = new ArrayList<>();
+        List<ResourceNode> workflowNodes = new ArrayList<>();
         List<Node> body = new ArrayList<>();
 
         for (Node node : this.body) {
@@ -49,11 +49,11 @@ public class RootNode extends BlockNode {
                 virtualResourceNodes.put(vrNode.getName(), vrNode);
 
             } else {
-                if (node instanceof KeyBlockNode) {
-                    KeyBlockNode kbNode = (KeyBlockNode) node;
+                if (node instanceof ResourceNode) {
+                    ResourceNode rnNode = (ResourceNode) node;
 
-                    if (kbNode.getKey().equals("workflow")) {
-                        workflowNodes.add(kbNode);
+                    if (rnNode.getType().equals("workflow")) {
+                        workflowNodes.add(rnNode);
                         continue;
                     }
                 }
@@ -77,8 +77,8 @@ public class RootNode extends BlockNode {
         RootScope rootScope = scope.getRootScope();
         List<Workflow> workflows = rootScope.getWorkflows();
 
-        for (KeyBlockNode wn : workflowNodes) {
-            workflows.add(new Workflow(rootScope, wn));
+        for (ResourceNode rn : workflowNodes) {
+            workflows.add(new Workflow(rootScope, rn));
         }
 
         DeferError.evaluate(scope, body);

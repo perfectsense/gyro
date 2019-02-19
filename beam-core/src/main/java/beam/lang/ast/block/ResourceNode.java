@@ -38,6 +38,14 @@ public class ResourceNode extends BlockNode {
         nameNode = Node.create(context.resourceName().getChild(0));
     }
 
+    public String getType() {
+        return type;
+    }
+
+    public Node getNameNode() {
+        return nameNode;
+    }
+
     @Override
     public Object evaluate(Scope scope) throws Exception {
         String name = (String) nameNode.evaluate(scope);
