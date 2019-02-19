@@ -1,0 +1,19 @@
+import ../init as _
+
+aws::vpc vpc-hosted-zone-example
+    cidr-block: "10.0.0.0/16"
+
+    tags: {
+        Name: "vpc-hosted-zone-example"
+    }
+end
+
+aws::hosted-zone hosted-zone-example
+    hosted-zone-name: "hosted-zone-example.com"
+    private-zone: true
+    vpc
+        vpc-id: $(aws::vpc vpc-hosted-zone-example | vpc-id)
+        vpc-region: $(aws::credentials default | region)
+    end
+    comment: "hosted-zone-example.co comment"
+end
