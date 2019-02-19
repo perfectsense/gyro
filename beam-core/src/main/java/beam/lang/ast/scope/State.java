@@ -21,8 +21,20 @@ public class State {
     private final boolean test;
     private final Map<String, FileScope> states = new HashMap<>();
 
-    public State(FileScope pending, boolean test) throws Exception {
-        root = new RootScope(pending.getFile() + ".state");
+    private String getStateFile(String file) {
+        if (file.endsWith(".bcl.state")) {
+            return file;
+
+        } else if (file.endsWith(".bcl")) {
+            return file + ".state";
+
+        } else {
+            return file + ".bcl.state";
+        }
+    }
+
+    public State(RootScope pending, boolean test) throws Exception {
+        root = new RootScope(getStateFile(pending.getFile()));
         this.test = test;
 
         load(pending, root);
@@ -33,7 +45,7 @@ public class State {
     }
 
     private void load(FileScope pending, FileScope state) throws Exception {
-        states.put(pending.getFile(), state);
+        states.put(getStateFile(pending.getFile()), state);
         pending.getBackend().load(state);
         state.getImports().clear();
         state.getPluginLoaders().clear();
@@ -45,7 +57,7 @@ public class State {
 
             FileScope stateImport = new FileScope(
                     pending,
-                    pendingDir.relativize(pendingImportFile).toString() + ".state");
+                    getStateFile(pendingDir.relativize(pendingImportFile).toString()));
 
             load(pendingImport, stateImport);
             state.getImports().add(stateImport);
@@ -83,7 +95,7 @@ public class State {
 
         } else {
             String key = resource.resourceIdentifier();
-            FileScope state = states.get(resource.scope().getFileScope().getFile());
+            FileScope state = states.get(getStateFile(resource.scope().getFileScope().getFile()));
 
             // Subresource?
             if (key == null) {
