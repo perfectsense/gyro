@@ -14,9 +14,16 @@ import java.util.stream.Collectors;
 
 public abstract class RdsTaggableResource extends AwsResource {
 
+    private String arn;
     private Map<String, String> tags;
 
-    protected abstract String getArn();
+    public String getArn() {
+        return arn;
+    }
+
+    public void setArn(String arn) {
+        this.arn = arn;
+    }
 
     @ResourceDiffProperty(updatable = true)
     public Map<String, String> getTags() {

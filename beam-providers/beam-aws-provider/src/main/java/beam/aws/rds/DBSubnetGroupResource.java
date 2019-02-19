@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 public class DBSubnetGroupResource extends RdsTaggableResource {
 
     private String groupName;
-    private String groupArn;
     private String description;
     private List<String> subnetIds;
 
@@ -31,14 +30,6 @@ public class DBSubnetGroupResource extends RdsTaggableResource {
 
     public void setGroupName(String groupName) {
         this.groupName = groupName;
-    }
-
-    public String getGroupArn() {
-        return groupArn;
-    }
-
-    public void setGroupArn(String groupArn) {
-        this.groupArn = groupArn;
     }
 
     @ResourceDiffProperty(updatable = true)
@@ -67,11 +58,6 @@ public class DBSubnetGroupResource extends RdsTaggableResource {
     }
 
     @Override
-    protected String getArn() {
-        return groupArn;
-    }
-
-    @Override
     public boolean doRefresh() {
         RdsClient client = createClient(RdsClient.class);
 
@@ -89,7 +75,7 @@ public class DBSubnetGroupResource extends RdsTaggableResource {
                     setDescription(g.dbSubnetGroupDescription());
                     setGroupName(g.dbSubnetGroupName());
                     setSubnetIds(g.subnets().stream().map(Subnet::subnetIdentifier).collect(Collectors.toList()));
-                    setGroupArn(g.dbSubnetGroupArn());
+                    setArn(g.dbSubnetGroupArn());
                 }
             );
 
@@ -109,7 +95,7 @@ public class DBSubnetGroupResource extends RdsTaggableResource {
                     .subnetIds(getSubnetIds())
         );
 
-        setGroupArn(response.dbSubnetGroup().dbSubnetGroupArn());
+        setArn(response.dbSubnetGroup().dbSubnetGroupArn());
     }
 
     @Override
