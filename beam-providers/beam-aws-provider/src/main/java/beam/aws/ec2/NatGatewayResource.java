@@ -2,6 +2,7 @@ package beam.aws.ec2;
 
 import beam.aws.AwsResource;
 import beam.core.diff.ResourceName;
+import beam.core.diff.ResourceOutput;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.CreateNatGatewayResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeNatGatewaysResponse;
@@ -36,6 +37,7 @@ public class NatGatewayResource extends Ec2TaggableResource<NatGateway> {
     /**
      * Nat Gateway id when created.
      */
+    @ResourceOutput
     public String getNatGatewayId() {
         return natGatewayId;
     }

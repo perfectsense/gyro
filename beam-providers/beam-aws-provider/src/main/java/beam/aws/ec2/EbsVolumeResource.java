@@ -5,6 +5,7 @@ import beam.core.BeamCore;
 import beam.core.BeamException;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
+import beam.core.diff.ResourceOutput;
 import com.psddev.dari.util.ObjectUtils;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.CreateVolumeResponse;
@@ -139,6 +140,7 @@ public class EbsVolumeResource extends Ec2TaggableResource<Volume> {
         this.state = state;
     }
 
+    @ResourceOutput
     public String getVolumeId() {
         return volumeId;
     }

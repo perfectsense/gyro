@@ -2,6 +2,7 @@ package beam.aws.ec2;
 
 import beam.aws.AwsResource;
 import beam.core.diff.ResourceName;
+import beam.core.diff.ResourceOutput;
 import beam.lang.Resource;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.CreateEgressOnlyInternetGatewayResponse;
@@ -40,6 +41,7 @@ public class EgressOnlyInternetGatewayResource extends AwsResource {
         this.vpcId = vpcId;
     }
 
+    @ResourceOutput
     public String getGatewayId() {
         return gatewayId;
     }

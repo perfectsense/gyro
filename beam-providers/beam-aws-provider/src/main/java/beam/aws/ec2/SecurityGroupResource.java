@@ -3,6 +3,7 @@ package beam.aws.ec2;
 import beam.aws.AwsResource;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
+import beam.core.diff.ResourceOutput;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.CreateSecurityGroupResponse;
 import software.amazon.awssdk.services.ec2.model.DescribeSecurityGroupsResponse;
@@ -136,6 +137,7 @@ public class SecurityGroupResource extends Ec2TaggableResource<SecurityGroup> {
         this.keepDefaultEgressRules = keepDefaultEgressRules;
     }
 
+    @ResourceOutput
     public String getGroupId() {
         return groupId;
     }
@@ -149,6 +151,7 @@ public class SecurityGroupResource extends Ec2TaggableResource<SecurityGroup> {
         return getGroupId();
     }
 
+    @ResourceOutput
     public String getOwnerId() {
         return ownerId;
     }

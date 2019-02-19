@@ -3,6 +3,7 @@ package beam.aws.ec2;
 import beam.aws.AwsResource;
 import beam.core.BeamException;
 import beam.core.diff.ResourceName;
+import beam.core.diff.ResourceOutput;
 import com.psddev.dari.util.ObjectUtils;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.CreateSnapshotResponse;
@@ -50,6 +51,7 @@ public class EbsSnapshotResource extends Ec2TaggableResource<Snapshot> {
     /**
      * The volume id based on which the snapshot would be created. (Required)
      */
+    @ResourceOutput
     public String getVolumeId() {
         return volumeId;
     }

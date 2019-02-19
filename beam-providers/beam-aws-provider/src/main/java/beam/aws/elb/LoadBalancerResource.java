@@ -3,6 +3,7 @@ package beam.aws.elb;
 import beam.aws.AwsResource;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
+import beam.core.diff.ResourceOutput;
 import beam.lang.Resource;
 
 import software.amazon.awssdk.services.elasticloadbalancing.ElasticLoadBalancingClient;
@@ -48,6 +49,7 @@ public class LoadBalancerResource extends AwsResource {
     /**
      * The public DNS name of this load balancer.
      */
+    @ResourceOutput
     public String getDnsName() {
         return dnsName;
     }

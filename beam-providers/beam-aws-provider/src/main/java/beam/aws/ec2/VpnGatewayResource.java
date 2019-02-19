@@ -3,6 +3,7 @@ package beam.aws.ec2;
 import beam.aws.AwsResource;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
+import beam.core.diff.ResourceOutput;
 import org.apache.commons.lang.StringUtils;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.CreateVpnGatewayResponse;
@@ -33,6 +34,7 @@ public class VpnGatewayResource extends Ec2TaggableResource<VpnGateway> {
     private Long amazonSideAsn;
     private String vpcId;
 
+    @ResourceOutput
     public String getVpnGatewayId() {
         return vpnGatewayId;
     }

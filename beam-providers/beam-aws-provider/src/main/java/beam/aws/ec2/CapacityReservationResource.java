@@ -4,6 +4,7 @@ import beam.aws.AwsResource;
 import beam.core.BeamException;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
+import beam.core.diff.ResourceOutput;
 import com.psddev.dari.util.ObjectUtils;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.CapacityReservation;
@@ -52,6 +53,7 @@ public class CapacityReservationResource extends Ec2TaggableResource<CapacityRes
     private Integer availableInstanceCount;
     private Date createDate;
 
+    @ResourceOutput
     public String getCapacityReservationId() {
         return capacityReservationId;
     }

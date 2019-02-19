@@ -174,6 +174,12 @@ public class ResourceDocGenerator {
                     }
                 }
 
+                for (AnnotationDesc annotationDesc : methodDoc.annotations()) {
+                    if (annotationDesc.annotationType().name().equals("ResourceOutput")) {
+                        isOutput = true;
+                    }
+                }
+
                 if (!isSubresource && !isOutput) {
                     writeAttribute(sb, methodDoc, indent);
                 }
@@ -190,8 +196,10 @@ public class ResourceDocGenerator {
         for (MethodDoc methodDoc : classDoc.methods()) {
             if (!ObjectUtils.isBlank(methodDoc.commentText())) {
                 boolean isOutput = false;
-                for (Tag tag : methodDoc.tags()) {
-                    if (tag.name().equals("@output")) {
+
+                for (AnnotationDesc annotationDesc : methodDoc.annotations()) {
+                    System.out.println(annotationDesc.annotationType().name());
+                    if (annotationDesc.annotationType().name().equals("ResourceOutput")) {
                         isOutput = true;
                     }
                 }

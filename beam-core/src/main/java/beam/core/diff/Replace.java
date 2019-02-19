@@ -4,6 +4,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import beam.core.BeamUI;
+import beam.lang.ast.scope.State;
 
 public class Replace extends Change {
 
@@ -59,8 +60,7 @@ public class Replace extends Change {
     }
 
     @Override
-    public void execute() {
-        throw new UnsupportedOperationException();
+    public void execute(BeamUI ui, State state) throws Exception {
     }
 
 }

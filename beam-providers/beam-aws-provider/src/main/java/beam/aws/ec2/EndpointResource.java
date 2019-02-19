@@ -4,6 +4,7 @@ import beam.aws.AwsResource;
 import beam.core.BeamException;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
+import beam.core.diff.ResourceOutput;
 import beam.lang.Resource;
 import org.apache.commons.lang.StringUtils;
 import software.amazon.awssdk.services.ec2.Ec2Client;
@@ -78,6 +79,7 @@ public class EndpointResource extends AwsResource {
     private String policyDocPath;
     private String policy;
 
+    @ResourceOutput
     public String getEndpointId() {
         return endpointId;
     }
