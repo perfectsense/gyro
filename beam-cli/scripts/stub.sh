@@ -10,9 +10,14 @@ fi
 
 EXECUTION_DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
-
 [ $? -gt 0 -a -f "$0" ] && MYSELF="./$0"
 java=$EXECUTION_DIRECTORY/beam-rt/bin/java
+if [ ! -x $java ];
+then
+    echo "WARNING: Bundled runtime not found. Using system Java."
+
+    java=$JAVA_HOME/bin/java
+fi
 
 exec "$java" $JAVA_OPTS $java_args -Dbeam.app=$0 -jar $MYSELF "$@"
 exit 1
