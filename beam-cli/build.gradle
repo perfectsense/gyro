@@ -8,10 +8,22 @@ apply plugin: 'io.spring.dependency-management'
 
 sourceCompatibility = 1.8
 
-defaultTasks 'build'
+defaultTasks 'build', 'dist', 'bundleDistribution'
 
 dependencies {
     compile "beam:beam-core:${version}"
+}
+
+task dist(type: Copy) {
+    from libsDir
+    include '*.jar'
+    into "dist"
+
+    rename "beam-cli-0.5.jar", 'beam'
+}
+
+task bundleDistribution(type: Exec) {
+    commandLine 'sh', '-c', 'scripts/build-beam-dist.sh'
 }
 
 bootJar {

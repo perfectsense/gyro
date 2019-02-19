@@ -128,11 +128,3 @@ task distDir {
         mkdir "dist"
     }
 }
-
-task dist(type: Copy) {
-    from project("beam-cli").libsDir
-    include '*.jar'
-    into "dist"
-
-    rename "beam-cli-0.5.jar", 'beam'
-}
