@@ -72,14 +72,15 @@ public class Stage {
     public String execute(
             BeamUI ui,
             State state,
-            Map<String, Object> values,
+            Resource pendingResource,
             RootScope currentRootScope,
             RootScope pendingRootScope)
             throws Exception {
 
         Scope executeScope = new Scope(pendingRootScope);
 
-        executeScope.putAll(values);
+        executeScope.put("NAME", pendingResource.resourceIdentifier());
+        executeScope.put("PENDING", pendingResource.scope().resolve());
 
         for (Node change : changes) {
             change.evaluate(executeScope);

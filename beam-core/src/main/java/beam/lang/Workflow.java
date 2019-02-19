@@ -3,7 +3,6 @@ package beam.lang;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import beam.core.BeamUI;
 import beam.core.LocalFileBackend;
@@ -62,7 +61,12 @@ public class Workflow {
         return s;
     }
 
-    public void execute(BeamUI ui, State state, Map<String, Object> values) throws Exception {
+    public void execute(
+            BeamUI ui,
+            State state,
+            Resource pendingResource)
+            throws Exception {
+
         int stagesSize = stages.size();
 
         if (stagesSize == 0) {
@@ -86,7 +90,7 @@ public class Workflow {
 
             try {
                 RootScope pendingRootScope = copyCurrentRootScope();
-                stageName = stage.execute(ui, state, values, currentRootScope, pendingRootScope);
+                stageName = stage.execute(ui, state, pendingResource, currentRootScope, pendingRootScope);
                 currentRootScope = pendingRootScope;
 
             } finally {

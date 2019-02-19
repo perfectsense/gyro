@@ -1,7 +1,5 @@
 package beam.core.diff;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -93,21 +91,7 @@ public class Replace extends Change {
         }
 
         ui.write("\n@|magenta ~ Executing %s workflow|@", workflow.getName());
-
-        Resource pendingResource = (Resource) pendingDiffable;
-        Map<String, Object> values = new LinkedHashMap<>();
-        Map<String, Object> pendingValues = new LinkedHashMap<>();
-
-        values.put("CURRENT", pendingResource.resourceIdentifier());
-        values.put("PENDING", pendingValues);
-
-        for (DiffableField field : changedFields) {
-            if (!field.isUpdatable()) {
-                pendingValues.put(field.getBeamName(), field.getValue(pendingResource));
-            }
-        }
-
-        workflow.execute(ui, state, values);
+        workflow.execute(ui, state, (Resource) pendingDiffable);
         return true;
     }
 
