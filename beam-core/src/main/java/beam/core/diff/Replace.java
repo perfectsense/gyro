@@ -39,20 +39,6 @@ public class Replace extends Change {
     }
 
     private void writeFields(BeamUI ui) {
-        ui.write(" (because of %s, ", changedFields.stream()
-                .filter(f -> !f.isUpdatable())
-                .map(DiffableField::getBeamName)
-                .collect(Collectors.joining(", ")));
-
-        if (workflow != null) {
-            ui.write("using %s", workflow.getName());
-
-        } else {
-            ui.write("skipping without a workflow");
-        }
-
-        ui.write(")");
-
         if (!ui.isVerbose()) {
             return;
         }
@@ -74,6 +60,19 @@ public class Replace extends Change {
     @Override
     public void writePlan(BeamUI ui) {
         ui.write("@|cyan ⤢ Replace %s|@", currentDiffable.toDisplayString());
+        ui.write(" (because of %s, ", changedFields.stream()
+                .filter(f -> !f.isUpdatable())
+                .map(DiffableField::getBeamName)
+                .collect(Collectors.joining(", ")));
+
+        if (workflow != null) {
+            ui.write("using %s", workflow.getName());
+
+        } else {
+            ui.write("skipping without a workflow");
+        }
+
+        ui.write(")");
         writeFields(ui);
     }
 
