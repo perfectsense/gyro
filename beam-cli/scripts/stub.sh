@@ -14,9 +14,17 @@ EXECUTION_DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 &&
 java=$EXECUTION_DIRECTORY/beam-rt/bin/java
 if [ ! -x $java ];
 then
-    echo "WARNING: Bundled runtime not found. Using system Java."
+    java=`which java`
+    if [ ! -x $java ];
+    then
+        java=$JAVA_HOME/bin/java
+    fi
+fi
 
-    java=$JAVA_HOME/bin/java
+if [ ! -x $java ];
+then
+    echo "ERROR: Unable to locate a Java 11 runtime."
+    exit 1;
 fi
 
 exec "$java" $JAVA_OPTS $java_args -Dbeam.app=$0 -jar $MYSELF "$@"
