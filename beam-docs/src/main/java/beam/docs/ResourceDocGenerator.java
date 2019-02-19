@@ -79,13 +79,13 @@ public class ResourceDocGenerator {
         sb.append(repeat("-", 10));
         sb.append("\n\n");
 
-        generateAttributes(doc, sb, 0);
+        if (generateAttributes(doc, sb, 0)) {
+            sb.append("Outputs\n");
+            sb.append(repeat("-", 7));
+            sb.append("\n\n");
 
-        sb.append("Outputs\n");
-        sb.append(repeat("-", 7));
-        sb.append("\n\n");
-
-        generateOutputs(doc, sb, 0);
+            generateOutputs(doc, sb, 0);
+        }
 
         return sb.toString();
     }
@@ -138,7 +138,8 @@ public class ResourceDocGenerator {
         sb.append("\n\n");
     }
 
-    private void generateAttributes(ClassDoc classDoc, StringBuilder sb, int indent) {
+    private boolean generateAttributes(ClassDoc classDoc, StringBuilder sb, int indent) {
+        boolean hadOutputs = false;
 
         // Output superclass attributes.
         if (classDoc.superclass() != null && !classDoc.superclass().name().equals("Resource")) {
@@ -183,8 +184,14 @@ public class ResourceDocGenerator {
                 if (!isSubresource && !isOutput) {
                     writeAttribute(sb, methodDoc, indent);
                 }
+
+                if (isOutput) {
+                    hadOutputs = true;
+                }
             }
         }
+
+        return hadOutputs;
     }
 
     private void generateOutputs(ClassDoc classDoc, StringBuilder sb, int indent) {
