@@ -64,7 +64,14 @@ public class Stage {
         return name;
     }
 
-    public String execute(BeamUI ui, State state, Map<String, Object> values, RootScope currentRootScope, RootScope pendingRootScope) throws Exception {
+    public String execute(
+            BeamUI ui,
+            State state,
+            Map<String, Object> values,
+            RootScope currentRootScope,
+            RootScope pendingRootScope)
+            throws Exception {
+
         Scope executeScope = new Scope(pendingRootScope);
 
         executeScope.putAll(values);
