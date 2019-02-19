@@ -38,16 +38,16 @@ public abstract class RdsTaggableResource extends AwsResource {
         this.tags = tags;
     }
 
-    protected boolean doRefresh() {
-        return true;
-    }
+    protected abstract boolean doRefresh();
 
     @Override
     public final boolean refresh() {
         boolean refreshed = doRefresh();
 
-        getTags().clear();
-        loadTags();
+        if (refreshed) {
+            getTags().clear();
+            loadTags();
+        }
 
         return refreshed;
     }
