@@ -165,11 +165,6 @@ public class DBParameterGroupResource extends RdsTaggableResource {
 
     @Override
     public String toDisplayString() {
-        StringBuilder sb = new StringBuilder();
-
-        sb.append("db parameter group ");
-        sb.append(getName());
-
-        return sb.toString();
+        return "db parameter group " + getName();
     }
 }
