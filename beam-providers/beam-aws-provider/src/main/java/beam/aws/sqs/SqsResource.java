@@ -66,6 +66,7 @@ import java.util.Set;
 @ResourceName("sqs")
 public class SqsResource extends AwsResource {
     private String name;
+    private String queueArn;
     private String queueUrl;
     private Integer visibilityTimeout;
     private Integer messageRetentionPeriod;
@@ -149,6 +150,14 @@ public class SqsResource extends AwsResource {
 
     public void setReceiveMessageWaitTimeSeconds(Integer receiveMessageWaitTimeSeconds) {
         this.receiveMessageWaitTimeSeconds = receiveMessageWaitTimeSeconds;
+    }
+
+    public String getQueueArn() {
+        return queueArn;
+    }
+
+    public void setQueueArn(String queueArn) {
+        this.queueArn = queueArn;
     }
 
     public String getQueueUrl() {
@@ -270,6 +279,8 @@ public class SqsResource extends AwsResource {
             GetQueueAttributesResponse response = client.getQueueAttributes(r -> r.queueUrl(getQueueUrl())
                 .attributeNames(QueueAttributeName.ALL));
 
+            setQueueArn(response.attributes().get(QueueAttributeName.QUEUE_ARN));
+
             setVisibilityTimeout(Integer.valueOf(response.attributes()
                 .get(QueueAttributeName.VISIBILITY_TIMEOUT)));
 
@@ -367,6 +378,11 @@ public class SqsResource extends AwsResource {
 
         client.createQueue(r -> r.queueName(getName()).attributes(attributeMap));
         setQueueUrl(client.createQueue(r -> r.queueName(getName()).attributes(attributeMap)).queueUrl());
+
+        GetQueueAttributesResponse response = client.getQueueAttributes(r -> r.queueUrl(getQueueUrl())
+                .attributeNames(QueueAttributeName.QUEUE_ARN));
+
+        setQueueArn(response.attributes().get(QueueAttributeName.QUEUE_ARN));
     }
 
     @Override
