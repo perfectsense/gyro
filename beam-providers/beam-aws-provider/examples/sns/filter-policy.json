@@ -1,0 +1,4 @@
+{
+  "store": ["example_corp"],
+  "event": ["order_placed"]
+}
