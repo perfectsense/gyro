@@ -274,7 +274,7 @@ public class SqsResource extends AwsResource {
             setQueueUrl(response1.queueUrls() != null ? response1.queueUrls().get(0) : null);
         }
 
-        if (!getQueueUrl().isEmpty()) {
+        if (getQueueUrl() != null && !getQueueUrl().isEmpty()) {
 
             GetQueueAttributesResponse response = client.getQueueAttributes(r -> r.queueUrl(getQueueUrl())
                 .attributeNames(QueueAttributeName.ALL));
