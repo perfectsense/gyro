@@ -5,6 +5,10 @@ import gyro.parser.antlr4.BeamParser;
 
 public class AndNode extends ExpressionNode {
 
+    public AndNode(BeamParser.FilterExpressionContext context) {
+        super(context);
+    }
+
     public AndNode(BeamParser.ExpressionContext context) {
         super(context);
     }

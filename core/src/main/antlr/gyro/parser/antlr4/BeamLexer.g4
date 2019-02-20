@@ -37,6 +37,7 @@ RPAREN        : ')';
 PIPE          : '|';
 SLASH         : '/';
 DOT           : '.';
+GLOB          : '*';
 
 IDENTIFIER : (Common | COLON COLON)+;
 

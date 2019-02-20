@@ -8,6 +8,14 @@ public abstract class ExpressionNode extends Node {
     private Node leftNode;
     private Node rightNode;
 
+    public ExpressionNode(BeamParser.FilterExpressionContext context) {
+        leftNode = Node.create(context.getChild(0));
+
+        if (context.getChild(2) != null) {
+            rightNode = Node.create(context.getChild(2));
+        }
+    }
+
     public ExpressionNode(BeamParser.ExpressionContext context) {
         leftNode = Node.create(context.getChild(0));
 

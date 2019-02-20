@@ -5,6 +5,10 @@ import gyro.parser.antlr4.BeamParser;
 
 public class ValueExpressionNode extends ExpressionNode {
 
+    public ValueExpressionNode(BeamParser.FilterExpressionContext context) {
+        super(context);
+    }
+
     public ValueExpressionNode(BeamParser.ExpressionContext context) {
         super(context);
     }

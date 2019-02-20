@@ -1,7 +1,5 @@
 parser grammar BeamParser;
 
-import BeamReferenceParser;
-
 options { tokenVocab = BeamLexer; }
 
 beamFile : file* EOF;
@@ -57,6 +55,8 @@ value        : listValue | mapValue | stringValue | booleanValue | numberValue |
 numberValue  : DECIMAL_LITERAL | FLOAT_LITERAL;
 booleanValue : TRUE | FALSE;
 stringValue  : stringExpression | STRING_LITERAL;
+stringExpression : QUOTE stringContents* QUOTE;
+stringContents   : referenceBody | DOLLAR | LPAREN | RPAREN | TEXT;
 
 mapValue
     : LCURLY keyValue? (COMMA keyValue)* RCURLY
@@ -70,3 +70,18 @@ listValue
     ;
 
 listItemValue : stringValue | booleanValue | numberValue | referenceValue;
+
+referenceValue     : DOLLAR LPAREN referenceBody RPAREN ;
+referenceBody      : referenceType referenceName? | referenceType referenceName (PIPE filterExpression)*;
+referenceType      : IDENTIFIER (DOT IDENTIFIER)* ;
+referenceName      : ( (SLASH | GLOB | IDENTIFIER)* | stringExpression | IDENTIFIER (DOT IDENTIFIER)*) ;
+
+filterExpression
+    : IDENTIFIER (DOT IDENTIFIER)*               # FilterAttributeValue
+    | referenceValue                             # FilterReferenceValue
+    | stringValue                                # FilterStringValue
+    | filterExpression operator filterExpression # FilterComparisonExpression
+    | filterExpression OR filterExpression       # FilterOrExpression
+    | filterExpression AND filterExpression      # FilterAndExpression
+    ;
+

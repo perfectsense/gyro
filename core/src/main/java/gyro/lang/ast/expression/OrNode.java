@@ -5,6 +5,10 @@ import gyro.parser.antlr4.BeamParser;
 
 public class OrNode extends ExpressionNode {
 
+    public OrNode(BeamParser.FilterExpressionContext context) {
+        super(context);
+    }
+
     public OrNode(BeamParser.ExpressionContext context) {
         super(context);
     }

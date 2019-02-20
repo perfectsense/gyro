@@ -1,13 +1,23 @@
 package gyro.lang.ast.expression;
 
 import gyro.lang.ast.scope.Scope;
+import gyro.parser.antlr4.BeamParser;
 import gyro.parser.antlr4.BeamParser.ComparisonExpressionContext;
+import gyro.parser.antlr4.BeamParser.FilterComparisonExpressionContext;
+import gyro.parser.antlr4.BeamParser.FilterExpressionContext;
 
 import static gyro.parser.antlr4.BeamParser.ExpressionContext;
 
 public class ComparisonNode extends ExpressionNode {
 
     private String operator;
+
+    public ComparisonNode(FilterExpressionContext context) {
+        super(context);
+
+        FilterComparisonExpressionContext compareContext = (FilterComparisonExpressionContext) context;
+        operator = compareContext.operator().getText();
+    }
 
     public ComparisonNode(ExpressionContext context) {
         super(context);

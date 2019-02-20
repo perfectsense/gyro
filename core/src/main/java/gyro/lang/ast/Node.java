@@ -15,6 +15,7 @@ import gyro.lang.ast.expression.ComparisonNode;
 import gyro.lang.ast.expression.OrNode;
 import gyro.lang.ast.expression.ValueExpressionNode;
 import gyro.lang.ast.scope.Scope;
+import gyro.lang.ast.value.AttributeNode;
 import gyro.lang.ast.value.BooleanNode;
 import gyro.lang.ast.value.ListNode;
 import gyro.lang.ast.value.MapNode;
@@ -60,6 +61,30 @@ public abstract class Node {
         } else if (cc.equals(BeamParser.ValueExpressionContext.class)) {
             return new ValueExpressionNode((BeamParser.ValueExpressionContext) context);
 
+        } else if (cc.equals(BeamParser.FilterAndExpressionContext.class)) {
+            return new AndNode((BeamParser.FilterAndExpressionContext) context);
+
+        } else if (cc.equals(BeamParser.FilterOrExpressionContext.class)) {
+            return new OrNode((BeamParser.FilterOrExpressionContext) context);
+
+        } else if (cc.equals(BeamParser.FilterComparisonExpressionContext.class)) {
+            return new ComparisonNode((BeamParser.FilterComparisonExpressionContext) context);
+
+        } else if (cc.equals(BeamParser.FilterReferenceValueContext.class)) {
+            return create(((BeamParser.FilterReferenceValueContext) context).referenceValue().referenceBody());
+
+        } else if (cc.equals(BeamParser.FilterAttributeValueContext.class)) {
+            return new AttributeNode((BeamParser.FilterAttributeValueContext) context);
+
+        } else if (cc.equals(BeamParser.FilterStringValueContext.class)) {
+            BeamParser.FilterStringValueContext svc = (BeamParser.FilterStringValueContext) context;
+            BeamParser.StringExpressionContext sec = svc.stringValue().stringExpression();
+
+            return sec != null
+                ? new StringExpressionNode(sec)
+                : new StringNode(StringUtils.strip(svc.stringValue().STRING_LITERAL().getText(), "'"));
+
+
         } else if (cc.equals(BeamParser.ValueContext.class)) {
             return Node.create(context.getChild(0));
 
@@ -83,28 +108,7 @@ public abstract class Node {
             String type = rbc.referenceType().getText();
 
             if (type.contains("::")) {
-                BeamParser.ReferenceNameContext rnc = rbc.referenceName();
-                Node name;
-
-                if (rnc != null) {
-                    BeamParser.StringExpressionContext sec = rnc.stringExpression();
-
-                    if (sec != null) {
-                        name = Node.create(sec);
-
-                    } else {
-                        name = new StringNode(rnc.getText());
-                    }
-
-                } else {
-                    name = null;
-                }
-
-                String attribute = Optional.ofNullable(rbc.referenceAttribute())
-                        .map(BeamParser.ReferenceAttributeContext::getText)
-                        .orElse(null);
-
-                return new ResourceReferenceNode(type, name, attribute);
+                return new ResourceReferenceNode(rbc);
 
             } else {
                 return new ValueReferenceNode(type);
