@@ -91,6 +91,8 @@ end
 
 workflow 'replace-route' for-type: 'aws::route'
     stage 'delete-existing-route'
+        confirm-diff: true
+
         delete
             type: 'aws::route'
             name: "$(NAME)"
