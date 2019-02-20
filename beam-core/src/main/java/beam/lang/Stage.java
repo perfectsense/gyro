@@ -18,6 +18,7 @@ import beam.lang.ast.scope.State;
 public class Stage {
 
     private final String name;
+    private final boolean confirmDiff;
     private final String transitionPrompt;
     private final List<Node> changes = new ArrayList<>();
     private final List<KeyBlockNode> swaps = new ArrayList<>();
@@ -64,6 +65,7 @@ public class Stage {
         }
 
         name = (String) node.getNameNode().evaluate(parent);
+        confirmDiff = Boolean.TRUE.equals(scope.get("confirm-diff"));
         transitionPrompt = (String) scope.get("transition-prompt");
     }
 
@@ -119,17 +121,18 @@ public class Stage {
 
         diff.diff();
 
-        if (diff.write(ui)) {
+        if (confirmDiff && diff.write(ui)) {
             if (ui.readBoolean(Boolean.TRUE, "\nContinue with %s stage?", name)) {
                 ui.write("\n");
-                diff.executeCreateOrUpdate(ui, state);
-                diff.executeReplace(ui, state);
-                diff.executeDelete(ui, state);
 
             } else {
                 throw new RuntimeException("Aborted!");
             }
         }
+
+        diff.executeCreateOrUpdate(ui, state);
+        diff.executeReplace(ui, state);
+        diff.executeDelete(ui, state);
 
         if (transitions.isEmpty()) {
             return null;
