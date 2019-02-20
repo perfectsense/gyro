@@ -16,7 +16,7 @@ workflow 'replace-vpc' for-type: 'aws::vpc'
             end
         end
 
-        prompt: 'What next?'
+        transition-prompt: 'What next?'
 
         transition 'swap' to: 'swap-vpcs'
             description: 'Swap the VPCs'

@@ -18,7 +18,7 @@ import beam.lang.ast.scope.State;
 public class Stage {
 
     private final String name;
-    private final String prompt;
+    private final String transitionPrompt;
     private final List<Node> changes = new ArrayList<>();
     private final List<KeyBlockNode> swaps = new ArrayList<>();
     private final List<Transition> transitions = new ArrayList<>();
@@ -64,7 +64,7 @@ public class Stage {
         }
 
         name = (String) node.getNameNode().evaluate(parent);
-        prompt = (String) scope.get("prompt");
+        transitionPrompt = (String) scope.get("transition-prompt");
     }
 
     public String getName() {
@@ -143,7 +143,7 @@ public class Stage {
                 ui.write("\n%s) %s", transition.getName(), transition.getDescription());
             }
 
-            String selected = ui.readText("\n%s ", prompt != null ? prompt : "Next stage?");
+            String selected = ui.readText("\n%s ", transitionPrompt != null ? transitionPrompt : "Next stage?");
             String selectedOption = options.get(selected);
 
             if (selectedOption != null) {
