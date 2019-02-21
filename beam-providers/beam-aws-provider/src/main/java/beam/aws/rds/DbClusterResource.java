@@ -33,8 +33,8 @@ public class DbClusterResource extends RdsTaggableResource {
     private List<String> enableCloudwatchLogsExports;
     private Boolean enableIamDatabaseAuthentication;
     private String engine;
-    private String engineVersion;
     private String engineMode;
+    private String engineVersion;
     private String finalDbSnapshotIdentifier;
     private String globalClusterIdentifier;
     private String kmsKeyId;
@@ -199,6 +199,17 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
+     * The DB engine mode of the DB cluster, either ``provisioned``, ``serverless``, ``parallelquery``, or ``global``.
+     */
+    public String getEngineMode() {
+        return engineMode;
+    }
+
+    public void setEngineMode(String engineMode) {
+        this.engineMode = engineMode;
+    }
+
+    /**
      * The version number of the database engine to use.
      */
     public String getEngineVersion() {
@@ -210,14 +221,14 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * The DB engine mode of the DB cluster, either `provisioned`, `serverless`, `parallelquery`, or `global`.
+     * The DB cluster snapshot identifier of the new DB cluster snapshot created when `SkipFinalSnapshot` is set to false.
      */
-    public String getEngineMode() {
-        return engineMode;
+    public String getFinalDbSnapshotIdentifier() {
+        return finalDbSnapshotIdentifier;
     }
 
-    public void setEngineMode(String engineMode) {
-        this.engineMode = engineMode;
+    public void setFinalDbSnapshotIdentifier(String finalDbSnapshotIdentifier) {
+        this.finalDbSnapshotIdentifier = finalDbSnapshotIdentifier;
     }
 
     /**
@@ -342,6 +353,17 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
+     * Determines whether a final DB cluster snapshot is created before the DB cluster is deleted.
+     */
+    public Boolean getSkipFinalSnapshot() {
+        return skipFinalSnapshot;
+    }
+
+    public void setSkipFinalSnapshot(Boolean skipFinalSnapshot) {
+        this.skipFinalSnapshot = skipFinalSnapshot;
+    }
+
+    /**
      * Specifies whether the DB cluster is encrypted.
      */
     public Boolean getStorageEncrypted() {
@@ -361,28 +383,6 @@ public class DbClusterResource extends RdsTaggableResource {
 
     public void setVpcSecurityGroupIds(List<String> vpcSecurityGroupIds) {
         this.vpcSecurityGroupIds = vpcSecurityGroupIds;
-    }
-
-    /**
-     * The DB cluster snapshot identifier of the new DB cluster snapshot created when `SkipFinalSnapshot` is set to false.
-     */
-    public String getFinalDbSnapshotIdentifier() {
-        return finalDbSnapshotIdentifier;
-    }
-
-    public void setFinalDbSnapshotIdentifier(String finalDbSnapshotIdentifier) {
-        this.finalDbSnapshotIdentifier = finalDbSnapshotIdentifier;
-    }
-
-    /**
-     * Determines whether a final DB cluster snapshot is created before the DB cluster is deleted.
-     */
-    public Boolean getSkipFinalSnapshot() {
-        return skipFinalSnapshot;
-    }
-
-    public void setSkipFinalSnapshot(Boolean skipFinalSnapshot) {
-        this.skipFinalSnapshot = skipFinalSnapshot;
     }
 
     @Override
