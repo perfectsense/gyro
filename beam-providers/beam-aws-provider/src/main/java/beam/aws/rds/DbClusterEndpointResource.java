@@ -15,6 +15,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Create a db cluster endpoint.
+ *
+ * .. code-block:: beam
+ *
+ *    aws::db-cluster-endpoint endpoint-example
+ *        cluster-endpoint-identifier: "endpoint"
+ *        db-cluster-identifier: $(aws::db-cluster db-cluster-example | db-cluster-identifier)
+ *        endpoint-type: "READER"
+ *        static-members: [$(aws::db-instance db-instance-example | db-instance-identifier)]
+ *    end
+ */
 @ResourceName("db-cluster-endpoint")
 public class DbClusterEndpointResource extends AwsResource {
 
