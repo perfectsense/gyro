@@ -18,6 +18,24 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Create a db subnet group.
+ *
+ * .. code-block:: beam
+ *
+ *    aws::db-subnet-group db-subnet-group
+ *        group-name: "db-subnet-group-example"
+ *        description: "db subnet group description"
+ *        subnet-ids: [
+ *            $(aws::subnet subnet-us-east-2a | subnet-id),
+ *            $(aws::subnet subnet-us-east-2b | subnet-id)
+ *        ]
+ *
+ *        tags: {
+ *            Name: "db-subnet-group-example"
+ *        }
+ *    end
+ */
 @ResourceName("db-subnet-group")
 public class DbSubnetGroupResource extends RdsTaggableResource {
 
