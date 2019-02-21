@@ -53,9 +53,9 @@ public class DbInstanceResource extends RdsTaggableResource {
     private String masterUsername;
     private Integer monitoringInterval;
     private String monitoringRoleArn;
-    private Boolean multiAZ;
+    private Boolean multiAz;
     private String optionGroupName;
-    private String performanceInsightsKMSKeyId;
+    private String performanceInsightsKmsKeyId;
     private Integer performanceInsightsRetentionPeriod;
     private Integer port;
     private String preferredBackupWindow;
@@ -401,12 +401,12 @@ public class DbInstanceResource extends RdsTaggableResource {
      * A value that specifies whether the DB instance is a Multi-AZ deployment.
      */
     @ResourceDiffProperty(updatable = true)
-    public Boolean getMultiAZ() {
-        return multiAZ;
+    public Boolean getMultiAz() {
+        return multiAz;
     }
 
-    public void setMultiAZ(Boolean multiAZ) {
-        this.multiAZ = multiAZ;
+    public void setMultiAz(Boolean multiAz) {
+        this.multiAz = multiAz;
     }
 
     /**
@@ -425,12 +425,12 @@ public class DbInstanceResource extends RdsTaggableResource {
      * The AWS KMS key identifier for encryption of Performance Insights data.
      */
     @ResourceDiffProperty(updatable = true)
-    public String getPerformanceInsightsKMSKeyId() {
-        return performanceInsightsKMSKeyId;
+    public String getPerformanceInsightsKmsKeyId() {
+        return performanceInsightsKmsKeyId;
     }
 
-    public void setPerformanceInsightsKMSKeyId(String performanceInsightsKMSKeyId) {
-        this.performanceInsightsKMSKeyId = performanceInsightsKMSKeyId;
+    public void setPerformanceInsightsKmsKeyId(String performanceInsightsKmsKeyId) {
+        this.performanceInsightsKmsKeyId = performanceInsightsKmsKeyId;
     }
 
     /**
@@ -690,13 +690,13 @@ public class DbInstanceResource extends RdsTaggableResource {
                         setMasterUsername(i.masterUsername());
                         setMonitoringInterval(i.monitoringInterval());
                         setMonitoringRoleArn(i.monitoringRoleArn());
-                        setMultiAZ(i.multiAZ());
+                        setMultiAz(i.multiAZ());
 
                         setOptionGroupName(i.optionGroupMemberships().stream()
                             .findFirst().map(OptionGroupMembership::optionGroupName)
                             .orElse(null));
 
-                        setPerformanceInsightsKMSKeyId(i.performanceInsightsKMSKeyId());
+                        setPerformanceInsightsKmsKeyId(i.performanceInsightsKMSKeyId());
                         setPerformanceInsightsRetentionPeriod(i.performanceInsightsRetentionPeriod());
                         setPort(i.dbInstancePort());
                         setPreferredBackupWindow(i.preferredBackupWindow());
@@ -752,9 +752,9 @@ public class DbInstanceResource extends RdsTaggableResource {
                     .masterUserPassword(getMasterUserPassword())
                     .monitoringInterval(getMonitoringInterval())
                     .monitoringRoleArn(getMonitoringRoleArn())
-                    .multiAZ(getMultiAZ())
+                    .multiAZ(getMultiAz())
                     .optionGroupName(getOptionGroupName())
-                    .performanceInsightsKMSKeyId(getPerformanceInsightsKMSKeyId())
+                    .performanceInsightsKMSKeyId(getPerformanceInsightsKmsKeyId())
                     .performanceInsightsRetentionPeriod(getPerformanceInsightsRetentionPeriod())
                     .port(getPort())
                     .preferredBackupWindow(getPreferredBackupWindow())
@@ -797,9 +797,9 @@ public class DbInstanceResource extends RdsTaggableResource {
                     .masterUserPassword(getMasterUserPassword())
                     .monitoringInterval(getMonitoringInterval())
                     .monitoringRoleArn(getMonitoringRoleArn())
-                    .multiAZ(getMultiAZ())
+                    .multiAZ(getMultiAz())
                     .optionGroupName(getOptionGroupName())
-                    .performanceInsightsKMSKeyId(getPerformanceInsightsKMSKeyId())
+                    .performanceInsightsKMSKeyId(getPerformanceInsightsKmsKeyId())
                     .performanceInsightsRetentionPeriod(getPerformanceInsightsRetentionPeriod())
                     .preferredBackupWindow(getPreferredBackupWindow())
                     .preferredMaintenanceWindow(getPreferredMaintenanceWindow())
