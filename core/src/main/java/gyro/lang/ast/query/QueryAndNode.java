@@ -1,6 +1,7 @@
 package gyro.lang.ast.query;
 
 import gyro.lang.ast.scope.Scope;
+import gyro.lang.query.AndQueryFilter;
 import gyro.lang.query.QueryFilter;
 import gyro.parser.antlr4.BeamParser;
 
@@ -8,7 +9,10 @@ public class QueryAndNode extends QueryExpressionNode {
 
     @Override
     public QueryFilter toFilter(Scope scope) {
-        return null;
+        QueryExpressionNode leftNode = (QueryExpressionNode) getLeftNode();
+        QueryExpressionNode rightNode = (QueryExpressionNode) getRightNode();
+
+        return new AndQueryFilter(leftNode.toFilter(scope), rightNode.toFilter(scope));
     }
 
     public QueryAndNode(BeamParser.FilterExpressionContext context) {
