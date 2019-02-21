@@ -1,7 +1,9 @@
 package gyro.lang.ast.expression;
 
 import gyro.lang.ast.scope.Scope;
-import gyro.parser.antlr4.BeamParser;
+import gyro.lang.query.EqualsQueryFilter;
+import gyro.lang.query.NotEqualsFilter;
+import gyro.lang.query.QueryFilter;
 import gyro.parser.antlr4.BeamParser.ComparisonExpressionContext;
 import gyro.parser.antlr4.BeamParser.FilterComparisonExpressionContext;
 import gyro.parser.antlr4.BeamParser.FilterExpressionContext;
@@ -11,6 +13,25 @@ import static gyro.parser.antlr4.BeamParser.ExpressionContext;
 public class ComparisonNode extends ExpressionNode {
 
     private String operator;
+
+    @Override
+    public QueryFilter toFilter(Scope scope) {
+        try {
+            Object leftValue = getLeftNode().evaluate(scope);
+            Object rightValue = getRightNode().evaluate(scope);
+
+            switch (operator) {
+                case "==":
+                    return new EqualsQueryFilter(leftValue.toString(), rightValue.toString());
+                case "!=":
+                    return new NotEqualsFilter(leftValue.toString(), rightValue.toString());
+            }
+        } catch (Exception ex) {
+            // TODO: ??
+        }
+
+        throw new IllegalStateException();
+    }
 
     public ComparisonNode(FilterExpressionContext context) {
         super(context);

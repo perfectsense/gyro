@@ -3,13 +3,18 @@ package gyro.lang.ast.value;
 import gyro.lang.Resource;
 import gyro.lang.ast.DeferError;
 import gyro.lang.ast.Node;
+import gyro.lang.ast.expression.ExpressionNode;
+import gyro.lang.ast.scope.DiffableScope;
 import gyro.lang.ast.scope.Scope;
+import gyro.lang.query.QueryFilter;
+import gyro.lang.query.ResourceQuery;
 import gyro.parser.antlr4.BeamParser;
 import gyro.parser.antlr4.BeamParser.ReferenceBodyContext;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -71,20 +76,25 @@ public class ResourceReferenceNode extends Node {
     public Object evaluate(Scope scope) throws Exception {
         if (nameNode != null) {
             String name = (String) nameNode.evaluate(scope);
-            String fullName = type + "::" + name;
-            Resource resource = scope.getRootScope().findResource(fullName);
 
-            if (resource == null) {
-                throw new DeferError(this);
-            }
-
-            if (attribute != null) {
-                return resource.get(attribute);
+            if (name.startsWith("EXTERNAL/*")) {
+                return externalQuery(scope);
 
             } else {
-                return resource;
-            }
+                String fullName = type + "::" + name;
+                Resource resource = scope.getRootScope().findResource(fullName);
 
+                if (resource == null) {
+                    throw new DeferError(this);
+                }
+
+                if (attribute != null) {
+                    return resource.get(attribute);
+
+                } else {
+                    return resource;
+                }
+            }
         } else {
             Stream<Resource> s = scope.getRootScope()
                     .findAllResources()
@@ -117,6 +127,51 @@ public class ResourceReferenceNode extends Node {
         }
 
         builder.append(")");
+    }
+
+    private List<Resource> externalQuery(Scope scope) throws Exception {
+        List<Resource> resources = new ArrayList<>();
+
+        @SuppressWarnings("unchecked")
+        Class<? extends Resource> resourceClass = (Class<? extends Resource>) scope.getRootScope().getResourceClasses().get(type);
+
+        Resource resource;
+
+        try {
+            resource = resourceClass.getConstructor().newInstance();
+
+            resource.resourceType(type);
+            resource.scope(new DiffableScope(scope));
+            resource.initialize(scope);
+
+            if (resource instanceof ResourceQuery) {
+                ResourceQuery resourceQuery = (ResourceQuery) resource;
+
+                List<QueryFilter> queryFilters = filters
+                    .stream()
+                    .map(f -> ((ExpressionNode) f).toFilter(scope))
+                    .collect(Collectors.toList());
+
+                resources = resourceQuery.query(queryFilters);
+
+                // TODO: Process any left over filters.
+            }
+
+        } catch (IllegalAccessException
+            | InstantiationException
+            | NoSuchMethodException error) {
+
+            throw new IllegalStateException(error);
+
+        } catch (InvocationTargetException error) {
+            Throwable cause = error.getCause();
+
+            throw cause instanceof RuntimeException
+                ? (RuntimeException) cause
+                : new RuntimeException(cause);
+        }
+
+        return resources;
     }
 
 }
