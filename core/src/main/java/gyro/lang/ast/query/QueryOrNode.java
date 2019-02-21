@@ -10,22 +10,10 @@ public class QueryOrNode extends QueryExpressionNode {
 
     @Override
     public QueryFilter toFilter(Scope scope) {
-        Node leftNode = getLeftNode();
-        if (!(leftNode instanceof QueryComparisonNode)) {
-            // TODO: Beam Exception with line number information...
-            throw new IllegalStateException();
-        }
+        QueryExpressionNode leftNode = (QueryExpressionNode) getLeftNode();
+        QueryExpressionNode rightNode = (QueryExpressionNode) getRightNode();
 
-        Node rightNode = getRightNode();
-        if (!(rightNode instanceof QueryComparisonNode)) {
-            // TODO: Beam Exception with line number information...
-            throw new IllegalStateException();
-        }
-
-        return new OrQueryFilter(
-            ((QueryComparisonNode) leftNode).toFilter(scope),
-            ((QueryComparisonNode) rightNode).toFilter(scope)
-        );
+        return new OrQueryFilter(leftNode.toFilter(scope), rightNode.toFilter(scope));
     }
 
     public QueryOrNode(BeamParser.FilterExpressionContext context) {
