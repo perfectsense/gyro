@@ -1,11 +1,17 @@
-package gyro.lang.ast.expression;
+package gyro.lang.ast.query;
 
 import gyro.lang.ast.scope.Scope;
+import gyro.lang.query.QueryFilter;
 import gyro.parser.antlr4.BeamParser;
 
-public class ValueExpressionNode extends ExpressionNode {
+public class QueryValueExpressionNode extends QueryExpressionNode {
 
-    public ValueExpressionNode(BeamParser.ExpressionContext context) {
+    @Override
+    public QueryFilter toFilter(Scope scope) {
+        return null;
+    }
+
+    public QueryValueExpressionNode(BeamParser.FilterExpressionContext context) {
         super(context);
     }
 

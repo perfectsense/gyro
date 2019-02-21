@@ -1,14 +1,18 @@
-package gyro.lang.ast.expression;
+package gyro.lang.ast.query;
 
 import gyro.lang.ast.Node;
+import gyro.lang.ast.scope.Scope;
+import gyro.lang.query.QueryFilter;
 import gyro.parser.antlr4.BeamParser;
 
-public abstract class ExpressionNode extends Node {
+public abstract class QueryExpressionNode extends Node {
 
     private Node leftNode;
     private Node rightNode;
 
-    public ExpressionNode(BeamParser.ExpressionContext context) {
+    public abstract QueryFilter toFilter(Scope scope);
+
+    public QueryExpressionNode(BeamParser.FilterExpressionContext context) {
         leftNode = Node.create(context.getChild(0));
 
         if (context.getChild(2) != null) {

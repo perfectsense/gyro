@@ -3,7 +3,7 @@ package gyro.lang.ast.value;
 import gyro.lang.Resource;
 import gyro.lang.ast.DeferError;
 import gyro.lang.ast.Node;
-import gyro.lang.ast.expression.ExpressionNode;
+import gyro.lang.ast.query.QueryExpressionNode;
 import gyro.lang.ast.scope.DiffableScope;
 import gyro.lang.ast.scope.Scope;
 import gyro.lang.query.QueryFilter;
@@ -149,7 +149,7 @@ public class ResourceReferenceNode extends Node {
 
                 List<QueryFilter> queryFilters = filters
                     .stream()
-                    .map(f -> ((ExpressionNode) f).toFilter(scope))
+                    .map(f -> ((QueryExpressionNode) f).toFilter(scope))
                     .collect(Collectors.toList());
 
                 resources = resourceQuery.query(queryFilters);

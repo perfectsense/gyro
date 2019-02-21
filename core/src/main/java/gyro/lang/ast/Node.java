@@ -1,8 +1,5 @@
 package gyro.lang.ast;
 
-import java.util.List;
-import java.util.Optional;
-
 import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.block.PluginNode;
 import gyro.lang.ast.block.ResourceNode;
@@ -14,6 +11,9 @@ import gyro.lang.ast.expression.AndNode;
 import gyro.lang.ast.expression.ComparisonNode;
 import gyro.lang.ast.expression.OrNode;
 import gyro.lang.ast.expression.ValueExpressionNode;
+import gyro.lang.ast.query.QueryAndNode;
+import gyro.lang.ast.query.QueryComparisonNode;
+import gyro.lang.ast.query.QueryOrNode;
 import gyro.lang.ast.scope.Scope;
 import gyro.lang.ast.value.AttributeNode;
 import gyro.lang.ast.value.BooleanNode;
@@ -28,6 +28,8 @@ import gyro.parser.antlr4.BeamParser;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.apache.commons.lang.StringUtils;
+
+import java.util.List;
 
 public abstract class Node {
 
@@ -62,13 +64,13 @@ public abstract class Node {
             return new ValueExpressionNode((BeamParser.ValueExpressionContext) context);
 
         } else if (cc.equals(BeamParser.FilterAndExpressionContext.class)) {
-            return new AndNode((BeamParser.FilterAndExpressionContext) context);
+            return new QueryAndNode((BeamParser.FilterAndExpressionContext) context);
 
         } else if (cc.equals(BeamParser.FilterOrExpressionContext.class)) {
-            return new OrNode((BeamParser.FilterOrExpressionContext) context);
+            return new QueryOrNode((BeamParser.FilterOrExpressionContext) context);
 
         } else if (cc.equals(BeamParser.FilterComparisonExpressionContext.class)) {
-            return new ComparisonNode((BeamParser.FilterComparisonExpressionContext) context);
+            return new QueryComparisonNode((BeamParser.FilterComparisonExpressionContext) context);
 
         } else if (cc.equals(BeamParser.FilterReferenceValueContext.class)) {
             return create(((BeamParser.FilterReferenceValueContext) context).referenceValue().referenceBody());

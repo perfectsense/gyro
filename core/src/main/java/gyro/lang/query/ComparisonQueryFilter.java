@@ -1,7 +1,5 @@
 package gyro.lang.query;
 
-import gyro.lang.Resource;
-
 public abstract class ComparisonQueryFilter extends QueryFilter {
 
     private String field;
