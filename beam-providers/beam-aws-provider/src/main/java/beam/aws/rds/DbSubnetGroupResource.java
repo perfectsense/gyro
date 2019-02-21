@@ -14,6 +14,7 @@ import software.amazon.awssdk.services.rds.model.Subnet;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -47,6 +48,7 @@ public class DbSubnetGroupResource extends RdsTaggableResource {
             return new ArrayList<>();
         }
 
+        subnetIds = subnetIds.stream().filter(Objects::nonNull).collect(Collectors.toList());
         List<String> sorted = new ArrayList<>(subnetIds);
         Collections.sort(sorted);
 
