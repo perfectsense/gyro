@@ -84,6 +84,18 @@ public class VirtualMachineResource extends AzureResource {
 
     @Override
     public String toDisplayString() {
-        return null;
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("virtual machine");
+
+        if (!ObjectUtils.isBlank(getName())) {
+            sb.append(" - ").append(getName());
+        }
+
+        if (!ObjectUtils.isBlank(getVirtualMachineId())) {
+            sb.append(" - ").append(getVirtualMachineId());
+        }
+
+        return sb.toString();
     }
 }
