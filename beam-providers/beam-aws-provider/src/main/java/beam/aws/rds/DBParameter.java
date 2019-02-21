@@ -3,7 +3,7 @@ package beam.aws.rds;
 import beam.core.diff.Diffable;
 import beam.core.diff.ResourceDiffProperty;
 
-public class DBParameter extends Diffable {
+public class DbParameter extends Diffable {
 
     private String name;
     private String value;
@@ -54,11 +54,6 @@ public class DBParameter extends Diffable {
 
     @Override
     public String toDisplayString() {
-        StringBuilder sb = new StringBuilder();
-
-        sb.append("db parameter group ");
-        sb.append(getName());
-
-        return sb.toString();
+        return "db parameter group " + getName();
     }
 }

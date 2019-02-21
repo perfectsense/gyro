@@ -42,12 +42,12 @@ import java.util.stream.Collectors;
  *    end
  */
 @ResourceName("db-parameter-group")
-public class DBParameterGroupResource extends RdsTaggableResource {
+public class DbParameterGroupResource extends RdsTaggableResource {
 
     private String description;
     private String family;
     private String name;
-    private List<DBParameter> parameter;
+    private List<DbParameter> parameter;
 
     /**
      * The description of the DB parameter group. (Required)
@@ -86,7 +86,7 @@ public class DBParameterGroupResource extends RdsTaggableResource {
      * A list of DB parameters.
      */
     @ResourceDiffProperty(updatable = true)
-    public List<DBParameter> getParameter() {
+    public List<DbParameter> getParameter() {
         if (parameter == null) {
             parameter = new ArrayList<>();
         }
@@ -94,7 +94,7 @@ public class DBParameterGroupResource extends RdsTaggableResource {
         return parameter;
     }
 
-    public void setParameter(List<DBParameter> parameter) {
+    public void setParameter(List<DbParameter> parameter) {
         this.parameter = parameter;
     }
 
@@ -120,18 +120,17 @@ public class DBParameterGroupResource extends RdsTaggableResource {
                     }
                 );
 
-
             DescribeDBParametersIterable iterable = client.describeDBParametersPaginator(
                 r -> r.dbParameterGroupName(getName())
             );
 
-            Set<String> names = getParameter().stream().map(DBParameter::getName).collect(Collectors.toSet());
+            Set<String> names = getParameter().stream().map(DbParameter::getName).collect(Collectors.toSet());
             getParameter().clear();
             iterable.stream().forEach(
                 r -> getParameter().addAll(r.parameters().stream()
                     .filter(p -> names.contains(p.parameterName()))
                     .map(p -> {
-                                DBParameter parameter = new DBParameter();
+                                DbParameter parameter = new DbParameter();
                                 parameter.setApplyMethod(p.applyMethodAsString());
                                 parameter.setName(p.parameterName());
                                 parameter.setValue(p.parameterValue());

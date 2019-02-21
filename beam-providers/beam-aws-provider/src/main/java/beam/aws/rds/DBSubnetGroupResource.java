@@ -18,7 +18,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @ResourceName("db-subnet-group")
-public class DBSubnetGroupResource extends RdsTaggableResource {
+public class DbSubnetGroupResource extends RdsTaggableResource {
 
     private String groupName;
     private String description;
