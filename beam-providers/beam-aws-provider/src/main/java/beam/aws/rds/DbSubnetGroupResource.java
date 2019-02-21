@@ -21,18 +21,13 @@ import java.util.stream.Collectors;
 @ResourceName("db-subnet-group")
 public class DbSubnetGroupResource extends RdsTaggableResource {
 
-    private String groupName;
     private String description;
+    private String groupName;
     private List<String> subnetIds;
 
-    public String getGroupName() {
-        return groupName;
-    }
-
-    public void setGroupName(String groupName) {
-        this.groupName = groupName;
-    }
-
+    /**
+     * The description for the DB subnet group. (Required)
+     */
     @ResourceDiffProperty(updatable = true)
     public String getDescription() {
         return description;
@@ -42,6 +37,20 @@ public class DbSubnetGroupResource extends RdsTaggableResource {
         this.description = description;
     }
 
+    /**
+     * The name for the DB subnet group. This value is stored as a lowercase string. (Required)
+     */
+    public String getGroupName() {
+        return groupName;
+    }
+
+    public void setGroupName(String groupName) {
+        this.groupName = groupName;
+    }
+
+    /**
+     * The EC2 Subnet IDs for the DB subnet group. (Required)
+     */
     @ResourceDiffProperty(updatable = true)
     public List<String> getSubnetIds() {
         if (subnetIds == null || subnetIds.isEmpty()) {
