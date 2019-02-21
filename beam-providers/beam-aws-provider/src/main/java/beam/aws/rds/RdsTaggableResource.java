@@ -2,6 +2,7 @@ package beam.aws.rds;
 
 import beam.aws.AwsResource;
 import beam.core.diff.ResourceDiffProperty;
+import beam.core.diff.ResourceOutput;
 import beam.lang.Resource;
 import software.amazon.awssdk.services.rds.RdsClient;
 import software.amazon.awssdk.services.rds.model.ListTagsForResourceResponse;
@@ -19,9 +20,8 @@ public abstract class RdsTaggableResource extends AwsResource {
 
     /**
      * The ARN of the RDS resource.
-     *
-     * @ResourceOutput
      */
+    @ResourceOutput
     public String getArn() {
         return arn;
     }
