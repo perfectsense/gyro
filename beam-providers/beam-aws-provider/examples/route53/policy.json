@@ -1,0 +1,29 @@
+{
+  "AWSPolicyFormatVersion": "2015-10-01",
+  "RecordType": "A",
+  "Endpoints": {
+    "endpoint-failover-ErUn": {
+      "Type": "value",
+      "Value": "192.0.2.235"
+    },
+    "endpoint-failover-bSQd": {
+      "Type": "value",
+      "Value": "192.0.2.235"
+    }
+  },
+  "Rules": {
+    "failover-start-bsky": {
+      "RuleType": "failover",
+      "Primary": {
+        "EndpointReference": "endpoint-failover-ErUn",
+        "EvaluateTargetHealth": false,
+        "HealthCheck": "7f96d162-ed96-42b9-b541-2fcbb7a3564b"
+      },
+      "Secondary": {
+        "EvaluateTargetHealth": true,
+        "EndpointReference": "endpoint-failover-bSQd"
+      }
+    }
+  },
+  "StartRule": "failover-start-bsky"
+}

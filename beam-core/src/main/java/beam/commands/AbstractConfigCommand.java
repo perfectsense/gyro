@@ -9,6 +9,7 @@ import beam.lang.FileBackend;
 import beam.lang.Resource;
 import beam.lang.ast.scope.FileScope;
 import beam.lang.ast.scope.RootScope;
+import beam.lang.ast.scope.State;
 import com.psddev.dari.util.StringUtils;
 import io.airlift.airline.Arguments;
 import io.airlift.airline.Option;
@@ -21,6 +22,9 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
     @Option(name = { "--skip-refresh" })
     public boolean skipRefresh;
+
+    @Option(name = { "--test" })
+    private boolean test;
 
     @Arguments
     private List<String> arguments;
@@ -35,7 +39,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         return core;
     }
 
-    protected abstract void doExecute(RootScope current, RootScope pending) throws Exception;
+    protected abstract void doExecute(RootScope current, RootScope pending, State state) throws Exception;
 
     @Override
     protected void doExecute() throws Exception {
@@ -61,11 +65,13 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             throw new BeamException(ex.getMessage());
         }
 
-        refreshCredentials(current);
+        if (!test) {
+            refreshCredentials(current);
 
-        if (!skipRefresh) {
-            refreshResources(current);
-            BeamCore.ui().write("\n");
+            if (!skipRefresh) {
+                refreshResources(current);
+                BeamCore.ui().write("\n");
+            }
         }
 
         try {
@@ -75,7 +81,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             throw new BeamException(ex.getMessage());
         }
 
-        doExecute(current, pending);
+        doExecute(current, pending, new State(pending, test));
     }
 
     private void refreshCredentials(FileScope scope) {

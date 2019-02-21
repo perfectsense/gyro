@@ -1,6 +1,7 @@
 package beam.core.diff;
 
 import beam.core.BeamUI;
+import beam.lang.ast.scope.State;
 
 public class Keep extends Change {
 
@@ -26,7 +27,7 @@ public class Keep extends Change {
     }
 
     @Override
-    public void execute() {
+    public void execute(BeamUI ui, State state) {
     }
 
 }

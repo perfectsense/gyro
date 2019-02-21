@@ -4,6 +4,7 @@ import beam.aws.AwsResource;
 import beam.core.BeamException;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
+import beam.core.diff.ResourceOutput;
 import beam.lang.Resource;
 import software.amazon.awssdk.services.cloudfront.CloudFrontClient;
 import software.amazon.awssdk.services.cloudfront.model.CacheBehavior;
@@ -96,8 +97,8 @@ public class CloudFrontResource extends AwsResource {
     /**
      * The id of this CloudFront distribution.
      *
-     * @output
      */
+    @ResourceOutput
     public String getId() {
         return id;
     }
@@ -109,8 +110,8 @@ public class CloudFrontResource extends AwsResource {
     /**
      * The arn of this CloudFront distribution.
      *
-     * @output
      */
+    @ResourceOutput
     public String getArn() {
         return arn;
     }
@@ -256,8 +257,8 @@ public class CloudFrontResource extends AwsResource {
     /**
      * The domain name for this distribution (i.e. ``abc123893.cloudfront.net``).
      *
-     * @output
      */
+    @ResourceOutput("abc123.cloudfront.net")
     public String getDomainName() {
         return domainName;
     }

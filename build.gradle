@@ -10,7 +10,7 @@ plugins {
     id 'maven-publish'
 }
 
-defaultTasks 'build', 'checkstyle', 'publish', 'publishToMavenLocal', 'distDir', 'dist'
+defaultTasks 'build', 'checkstyle', 'publish', 'publishToMavenLocal'
 
 allprojects {
     version = '0.5'
@@ -21,8 +21,6 @@ subprojects {
     apply plugin: 'java'
     apply plugin: 'maven-publish'
     apply plugin: 'checkstyle'
-
-    defaultTasks 'build', 'publish', 'publishToMavenLocal'
 
     group = 'beam'
     version = '0.5'
@@ -111,12 +109,6 @@ project(":beam-providers:beam-aws-provider") {
     }
 }
 
-project(":beam-providers:beam-test-provider") {
-    dependencies {
-        compile project(':beam-core')
-    }
-}
-
 project(":beam-providers:beam-openstack-provider") {
     dependencies {
         compile project(':beam-core')
@@ -127,18 +119,4 @@ project(":beam-providers:beam-azure-provider") {
     dependencies {
         compile project(':beam-core')
     }
-}
-
-task distDir {
-    doLast {
-        mkdir "dist"
-    }
-}
-
-task dist(type: Copy) {
-    from project("beam-cli").libsDir
-    include '*.jar'
-    into "dist"
-
-    rename "beam-cli-0.5.jar", 'beam'
 }
