@@ -49,7 +49,13 @@ public class VirtualMachineResource extends AzureResource {
 
     @Override
     public boolean refresh() {
-        return false;
+        Azure client = createClient();
+
+        VirtualMachine virtualMachine = client.virtualMachines().getById(getVirtualMachineId());
+
+        setName(virtualMachine.name());
+
+        return true;
     }
 
     @Override
@@ -75,6 +81,8 @@ public class VirtualMachineResource extends AzureResource {
     @Override
     public void update(Resource current, Set<String> changedProperties) {
 
+            .withSize(VirtualMachineSizeTypes.fromString(getVmSizeType()))
+            .withDataDiskDefaultStorageAccountType(StorageAccountTypes.fromString(getStorageAccountTypeDataDisk()))
     }
 
     @Override
