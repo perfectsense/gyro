@@ -17,6 +17,11 @@ public abstract class RdsTaggableResource extends AwsResource {
     private String arn;
     private Map<String, String> tags;
 
+    /**
+     * The ARN of the RDS resource.
+     *
+     * @ResourceOutput
+     */
     public String getArn() {
         return arn;
     }
@@ -25,6 +30,9 @@ public abstract class RdsTaggableResource extends AwsResource {
         this.arn = arn;
     }
 
+    /**
+     * A list of tags.
+     */
     @ResourceDiffProperty(updatable = true)
     public Map<String, String> getTags() {
         if (tags == null) {
