@@ -186,6 +186,6 @@ public class DbClusterParameterGroupResource extends RdsTaggableResource {
 
     @Override
     public String toDisplayString() {
-        return "cluster parameter group " + getName();
+        return "db cluster parameter group " + getName();
     }
 }

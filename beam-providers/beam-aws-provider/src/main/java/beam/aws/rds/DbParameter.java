@@ -54,6 +54,6 @@ public class DbParameter extends Diffable {
 
     @Override
     public String toDisplayString() {
-        return "db parameter group " + getName();
+        return "db parameter " + getName();
     }
 }
