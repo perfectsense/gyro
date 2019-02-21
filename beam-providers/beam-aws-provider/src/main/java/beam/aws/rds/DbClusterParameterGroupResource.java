@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
  *
  * .. code-block:: beam
  *
- *    aws::cluster-parameter-group cluster-parameter-group
+ *    aws::db-cluster-parameter-group cluster-parameter-group
  *        name: "cluster-parameter-group-example"
  *        description: "some description"
  *        family: "aurora5.6"
@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
  *        }
  *    end
  */
-@ResourceName("cluster-parameter-group")
+@ResourceName("db-cluster-parameter-group")
 public class DbClusterParameterGroupResource extends RdsTaggableResource {
 
     private String description;
