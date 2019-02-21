@@ -1,4 +1,4 @@
-package beam.azure.compute;
+package beam.azure.network;
 
 import beam.azure.AzureResource;
 import beam.core.diff.ResourceDiffProperty;
