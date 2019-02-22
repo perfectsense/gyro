@@ -341,7 +341,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * License model information for this DB instance. Valid values: `license-included`, `bring-your-own-license`, `general-public-license`.
+     * License model information for this DB instance. Valid values: ``license-included``, ``bring-your-own-license``, ``general-public-license``.
      */
     @ResourceDiffProperty(updatable = true)
     public String getLicenseModel() {
@@ -376,7 +376,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The interval, in seconds, between points when Enhanced Monitoring metrics are collected for the DB instance. The default is 0. Valid Values: `0`, `1`, `5`, `10`, `15`, `30`, `60`
+     * The interval, in seconds, between points when Enhanced Monitoring metrics are collected for the DB instance. The default is 0. Valid Values: ``0``, ``1``, ``5``, ``10``, ``15``, ``30``, ``60``
      */
     @ResourceDiffProperty(updatable = true)
     public Integer getMonitoringInterval() {
@@ -436,7 +436,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The amount of time, in days, to retain Performance Insights data. Valid values are `7` or `731` (2 years).
+     * The amount of time, in days, to retain Performance Insights data. Valid values are ``7`` or ``731`` (2 years).
      */
     @ResourceDiffProperty(updatable = true)
     public Integer getPerformanceInsightsRetentionPeriod() {
@@ -517,7 +517,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * Specifies the storage type to be associated with the DB instance. Valid values: `standard`, `gp2`, `io1`.
+     * Specifies the storage type to be associated with the DB instance. Valid values: ``standard``, ``gp2``, ``io1``.
      */
     @ResourceDiffProperty(updatable = true)
     public String getStorageType() {
