@@ -16,9 +16,28 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Creates a public ip address.
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: beam
+ *
+ *     azure::public-ip-address public-ip-address-example
+ *          name: "public-ip-address-example"
+ *          resource-group-name: $(azure::resource-group resource-group-public-ip-address-example | resource-group-name)
+ *          idle-timeout-in-minute: 4
+ *          sku-basic: false
+ *
+ *          tags: {
+ *              Name: "public-ip-address-example"
+ *          }
+ *     end
+ */
 @ResourceName("public-ip-address")
 public class PublicIpAddressResource extends AzureResource {
-    private String name;
+    private String publicIpAddressName;
     private String resourceGroupName;
     private Boolean skuBasic;
     private Boolean dynamic;
@@ -29,14 +48,20 @@ public class PublicIpAddressResource extends AzureResource {
     private String domainLabel;
     private Map<String, String> tags;
 
-    public String getName() {
-        return name;
+    /**
+     * Name of the public ip address. (Required)
+     */
+    public String getPublicIpAddressName() {
+        return publicIpAddressName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setPublicIpAddressName(String publicIpAddressName) {
+        this.publicIpAddressName = publicIpAddressName;
     }
 
+    /**
+     * Name of the resource group under which this would reside. (Required)
+     */
     public String getResourceGroupName() {
         return resourceGroupName;
     }
@@ -45,6 +70,9 @@ public class PublicIpAddressResource extends AzureResource {
         this.resourceGroupName = resourceGroupName;
     }
 
+    /**
+     * Specify if Sku type is basic or standard. Defaults to true.
+     */
     public Boolean getSkuBasic() {
         if (skuBasic == null) {
             skuBasic = true;
@@ -57,6 +85,9 @@ public class PublicIpAddressResource extends AzureResource {
         this.skuBasic = skuBasic;
     }
 
+    /**
+     * Specify if using dynamic ip or not. Defaults to false.
+     */
     public Boolean getDynamic() {
         if (dynamic == null) {
             dynamic = false;
@@ -69,6 +100,9 @@ public class PublicIpAddressResource extends AzureResource {
         this.dynamic = dynamic;
     }
 
+    /**
+     * Specify the idle time in minutes before time out. Valid values [ Integer from 4 - 30]. (Required)
+     */
     @ResourceDiffProperty(updatable = true)
     public Integer getIdleTimeoutInMinute() {
         return idleTimeoutInMinute;
@@ -94,6 +128,9 @@ public class PublicIpAddressResource extends AzureResource {
         this.ipAddress = ipAddress;
     }
 
+    /**
+     * Specify the availability zone.
+     */
     public String getAvailabilityZoneId() {
         return availabilityZoneId;
     }
@@ -102,6 +139,9 @@ public class PublicIpAddressResource extends AzureResource {
         this.availabilityZoneId = availabilityZoneId;
     }
 
+    /**
+     * Specify the domain prefix.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getDomainLabel() {
         return domainLabel;
@@ -128,7 +168,7 @@ public class PublicIpAddressResource extends AzureResource {
     public boolean refresh() {
         Azure client = createClient();
 
-        PublicIPAddress publicIpAddress = client.publicIPAddresses().getByResourceGroup(getResourceGroupName(), getName());
+        PublicIPAddress publicIpAddress = client.publicIPAddresses().getByResourceGroup(getResourceGroupName(), getPublicIpAddressName());
 
         setIpAddress(publicIpAddress.ipAddress());
         setDomainLabel(publicIpAddress.leafDomainLabel());
@@ -143,7 +183,7 @@ public class PublicIpAddressResource extends AzureResource {
         Azure client = createClient();
 
         WithCreate withCreate = client.publicIPAddresses()
-            .define(getName())
+            .define(getPublicIpAddressName())
             .withRegion(Region.fromName(getRegion()))
             .withExistingResourceGroup(getResourceGroupName())
             .withSku(getSkuBasic() ? PublicIPSkuType.BASIC : PublicIPSkuType.STANDARD);
@@ -183,7 +223,7 @@ public class PublicIpAddressResource extends AzureResource {
     public void update(Resource current, Set<String> changedProperties) {
         Azure client = createClient();
 
-        PublicIPAddress publicIPAddress = client.publicIPAddresses().getByResourceGroup(getResourceGroupName(), getName());
+        PublicIPAddress publicIPAddress = client.publicIPAddresses().getByResourceGroup(getResourceGroupName(), getPublicIpAddressName());
 
         PublicIPAddress.Update update = publicIPAddress.update();
 
@@ -209,7 +249,7 @@ public class PublicIpAddressResource extends AzureResource {
     public void delete() {
         Azure client = createClient();
 
-        client.publicIPAddresses().deleteByResourceGroup(getResourceGroupName(), getName());
+        client.publicIPAddresses().deleteByResourceGroup(getResourceGroupName(), getPublicIpAddressName());
     }
 
     @Override
@@ -218,8 +258,8 @@ public class PublicIpAddressResource extends AzureResource {
 
         sb.append("public ip address");
 
-        if (!ObjectUtils.isBlank(getName())) {
-            sb.append(" - ").append(getName());
+        if (!ObjectUtils.isBlank(getPublicIpAddressName())) {
+            sb.append(" - ").append(getPublicIpAddressName());
         }
 
         if (!ObjectUtils.isBlank(getIpAddress())) {
