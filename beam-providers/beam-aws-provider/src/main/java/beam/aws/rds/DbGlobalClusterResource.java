@@ -71,7 +71,6 @@ public class DbGlobalClusterResource extends AwsResource {
     /**
      * The cluster identifier of the global database cluster. (Required)
      */
-    @ResourceDiffProperty(updatable = true)
     public String getGlobalClusterIdentifier() {
         return globalClusterIdentifier;
     }
