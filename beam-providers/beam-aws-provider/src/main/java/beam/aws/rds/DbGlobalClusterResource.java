@@ -155,6 +155,7 @@ public class DbGlobalClusterResource extends AwsResource {
     public void update(Resource config, Set<String> changedProperties) {
         RdsClient client = createClient(RdsClient.class);
         DbGlobalClusterResource current = (DbGlobalClusterResource) config;
+        // The modify global cluster api currently return a 500
         client.modifyGlobalCluster(
             r -> r.deletionProtection(getDeletionProtection())
                     .globalClusterIdentifier(current.getGlobalClusterIdentifier())
