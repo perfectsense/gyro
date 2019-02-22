@@ -9,6 +9,7 @@ import software.amazon.awssdk.services.rds.RdsClient;
 import software.amazon.awssdk.services.rds.model.CreateDbSnapshotResponse;
 import software.amazon.awssdk.services.rds.model.DbSnapshotNotFoundException;
 import software.amazon.awssdk.services.rds.model.DescribeDbSnapshotsResponse;
+import software.amazon.awssdk.services.rds.model.InvalidDbInstanceStateException;
 
 import java.util.Set;
 
@@ -85,13 +86,17 @@ public class DbSnapShotResource extends RdsTaggableResource {
 
     @Override
     protected void doCreate() {
-        RdsClient client = createClient(RdsClient.class);
-        CreateDbSnapshotResponse response = client.createDBSnapshot(
-            r -> r.dbInstanceIdentifier(getDbInstanceIdentifier())
+        try {
+            RdsClient client = createClient(RdsClient.class);
+            CreateDbSnapshotResponse response = client.createDBSnapshot(
+                r -> r.dbInstanceIdentifier(getDbInstanceIdentifier())
                     .dbSnapshotIdentifier(getDbSnapshotIdentifier())
-        );
+            );
 
-        setArn(response.dbSnapshot().dbSnapshotArn());
+            setArn(response.dbSnapshot().dbSnapshotArn());
+        } catch (InvalidDbInstanceStateException ex) {
+            throw new BeamException(ex.getLocalizedMessage());
+        }
     }
 
     @Override
