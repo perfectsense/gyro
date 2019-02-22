@@ -583,27 +583,25 @@ public class DbClusterResource extends RdsTaggableResource {
 
         try {
             client.modifyDBCluster(
-                r -> r.applyImmediately(getApplyImmediately())
-                    .backtrackWindow(getBackTrackWindow())
-                    .backupRetentionPeriod(getBackupRetentionPeriod())
+                r -> r.applyImmediately(Objects.equals(getApplyImmediately(), current.getApplyImmediately()) ? null : getApplyImmediately())
+                    .backtrackWindow(Objects.equals(getBackTrackWindow(), current.getBackTrackWindow()) ? null : getBackTrackWindow())
+                    .backupRetentionPeriod(Objects.equals(getBackupRetentionPeriod(), current.getBackupRetentionPeriod()) ? null : getBackupRetentionPeriod())
                     .cloudwatchLogsExportConfiguration(c -> c.enableLogTypes(getEnableCloudwatchLogsExports()))
                     .dbClusterIdentifier(current.getDbClusterIdentifier())
-                    .dbClusterParameterGroupName(getDbClusterParameterGroupName())
-                    .deletionProtection(getDeletionProtection())
+                    .dbClusterParameterGroupName(Objects.equals(getDbClusterParameterGroupName(), current.getDbClusterParameterGroupName()) ? null : getDbClusterParameterGroupName())
+                    .deletionProtection(Objects.equals(getDeletionProtection(), current.getDeletionProtection()) ? null : getDeletionProtection())
                     .enableIAMDatabaseAuthentication(Objects.equals(getEnableIamDatabaseAuthentication(), current.getEnableIamDatabaseAuthentication())
                         ? null : getEnableIamDatabaseAuthentication())
-
                     .engineVersion(Objects.equals(getEngineVersion(), current.getEngineVersion()) ? null : getEngineVersion())
-                    .masterUserPassword(getMasterUserPassword())
-                    .newDBClusterIdentifier(getDbClusterIdentifier())
-                    .optionGroupName(getOptionGroupName())
+                    .masterUserPassword(Objects.equals(getMasterUserPassword(), current.getMasterUserPassword()) ? null : getMasterUserPassword())
+                    .optionGroupName(Objects.equals(getOptionGroupName(), current.getOptionGroupName()) ? null : getOptionGroupName())
                     .port(Objects.equals(getPort(), current.getPort()) ? null : getPort())
                     .preferredBackupWindow(Objects.equals(getPreferredBackupWindow(), current.getPreferredBackupWindow())
                         ? null : getPreferredBackupWindow())
                     .preferredMaintenanceWindow(Objects.equals(getPreferredMaintenanceWindow(), current.getPreferredMaintenanceWindow())
                         ? null : getPreferredMaintenanceWindow())
                     .scalingConfiguration(scalingConfiguration)
-                    .vpcSecurityGroupIds(getVpcSecurityGroupIds())
+                    .vpcSecurityGroupIds(Objects.equals(getVpcSecurityGroupIds(), current.getVpcSecurityGroupIds()) ? null : getVpcSecurityGroupIds())
             );
         } catch (InvalidDbClusterStateException ex) {
             throw new BeamException(ex.getLocalizedMessage());
