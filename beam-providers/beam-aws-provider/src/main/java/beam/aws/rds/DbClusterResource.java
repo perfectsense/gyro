@@ -18,6 +18,54 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Create a Aurora cluster.
+ *
+ * .. code-block:: beam
+ *
+ *    aws::db-cluster db-cluster-example
+ *        db-cluster-identifier: "aurora-mysql-cluster"
+ *        engine: "aurora-mysql"
+ *        availability-zones: ["us-east-2a", "us-east-2b", "us-east-2c"]
+ *        db-name: "clusterexample"
+ *        master-username: "user"
+ *        master-user-password: "password"
+ *        backup-retention-period: 5
+ *        preferred-backup-window: "07:00-09:00"
+ *        delete-automated-backups: true
+ *        skip-final-snapshot: true
+ *        tags: {
+ *            Name: "aurora-mysql-cluster1"
+ *        }
+ *    end
+ *
+ * .. code-block:: beam
+ *
+ *    aws::db-cluster db-cluster-serverless-example
+ *        db-cluster-identifier: "aurora-serverless-cluster"
+ *        engine: "aurora"
+ *        engine-mode: "serverless"
+ *
+ *        scaling-configuration
+ *            auto-pause: true
+ *            max-capacity: 128
+ *            min-capacity: 2
+ *            seconds-until-auto-pause: 300
+ *        end
+ *
+ *        availability-zones: ["us-east-2a", "us-east-2b", "us-east-2c"]
+ *        db-name: "clusterexample"
+ *        master-username: "user"
+ *        master-user-password: "password"
+ *        backup-retention-period: 5
+ *        preferred-backup-window: "07:00-09:00"
+ *        delete-automated-backups: true
+ *        skip-final-snapshot: true
+ *        tags: {
+ *            Name: "aurora-serverless-cluster"
+ *        }
+ *    end
+ */
 @ResourceName("db-cluster")
 public class DbClusterResource extends RdsTaggableResource {
 
