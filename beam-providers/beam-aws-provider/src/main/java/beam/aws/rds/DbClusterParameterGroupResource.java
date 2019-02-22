@@ -84,6 +84,8 @@ public class DbClusterParameterGroupResource extends RdsTaggableResource {
 
     /**
      * A list of cluster parameters.
+     *
+     * @subresource beam.aws.rds.DbParameter
      */
     @ResourceDiffProperty(updatable = true)
     public List<DbParameter> getParameter() {

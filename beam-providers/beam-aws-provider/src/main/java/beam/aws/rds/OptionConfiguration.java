@@ -26,6 +26,8 @@ public class OptionConfiguration extends Diffable {
 
     /**
      * The option settings to include in an option group.
+     *
+     * @subresource beam.aws.rds.OptionSettings
      */
     public List<OptionSettings> getOptionSettings() {
         if (optionSettings == null) {
