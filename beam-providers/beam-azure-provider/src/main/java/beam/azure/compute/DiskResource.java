@@ -16,6 +16,25 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Creates a disk.
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: beam
+ *
+ *     azure::disk disk-example
+ *          disk-name: "disk-example"
+ *          disk-type: "Standard_LRS"
+ *          os-type: "LINUX"
+ *          size: 10
+ *          resource-group-name: $(azure::resource-group resource-group-disk-example | resource-group-name)
+ *          tags: {
+ *              Name: "disk-example"
+ *          }
+ *     end
+ */
 @ResourceName("disk")
 public class DiskResource extends AzureResource {
     private String diskName;
@@ -28,6 +47,9 @@ public class DiskResource extends AzureResource {
     private String dataLoadSource;
     private Map<String, String> tags;
 
+    /**
+     * Name of the disk. (Required)
+     */
     public String getDiskName() {
         return diskName;
     }
@@ -44,6 +66,9 @@ public class DiskResource extends AzureResource {
         this.discId = discId;
     }
 
+    /**
+     * Name of the resource group under which this would reside. (Required)
+     */
     public String getResourceGroupName() {
         return resourceGroupName;
     }
@@ -52,6 +77,9 @@ public class DiskResource extends AzureResource {
         this.resourceGroupName = resourceGroupName;
     }
 
+    /**
+     * Size of the disk in Gb. (Required)
+     */
     @ResourceDiffProperty(updatable = true)
     public Integer getSize() {
         return size;
@@ -61,15 +89,21 @@ public class DiskResource extends AzureResource {
         this.size = size;
     }
 
+    /**
+     * Type of OS. Valid options include [ 'LINUX', 'WINDOWS'].
+     */
     @ResourceDiffProperty(updatable = true)
     public String getOsType() {
-        return osType;
+        return osType != null ? osType.toUpperCase() : null;
     }
 
     public void setOsType(String osType) {
         this.osType = osType;
     }
 
+    /**
+     * Type of Disk. Valid options include [ 'STANDARD_LRS', 'PREMIUM_LRS', 'STANDARD_SSD_LRS'].
+     */
     @ResourceDiffProperty(updatable = true)
     public String getDiskType() {
         return diskType != null ? diskType.toUpperCase() : null;
@@ -79,6 +113,9 @@ public class DiskResource extends AzureResource {
         this.diskType = diskType;
     }
 
+    /**
+     * Type of data source. Defaults to 'disk'. Valid options include [ 'disk', 'vhd', 'snapshot'].
+     */
     public String getDataLoadSourceType() {
         if (dataLoadSourceType == null) {
             dataLoadSourceType = "disk";
@@ -90,6 +127,9 @@ public class DiskResource extends AzureResource {
         this.dataLoadSourceType = dataLoadSourceType;
     }
 
+    /**
+     * The actual data source.
+     */
     public String getDataLoadSource() {
         return dataLoadSource;
     }
