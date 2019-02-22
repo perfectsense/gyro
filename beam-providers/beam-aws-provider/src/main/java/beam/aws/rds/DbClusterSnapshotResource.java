@@ -68,10 +68,10 @@ public class DbClusterSnapshotResource extends RdsTaggableResource {
 
             response.dbClusterSnapshots().stream()
                 .forEach(s -> {
-                        setDbClusterIdentifier(s.dbClusterIdentifier());
-                        setArn(s.dbClusterSnapshotArn());
-                    }
-                );
+                    setDbClusterIdentifier(s.dbClusterIdentifier());
+                    setArn(s.dbClusterSnapshotArn());
+                }
+            );
 
         } catch (DbClusterSnapshotNotFoundException ex) {
             return false;

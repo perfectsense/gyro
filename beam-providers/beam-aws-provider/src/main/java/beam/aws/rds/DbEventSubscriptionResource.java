@@ -117,14 +117,14 @@ public class DbEventSubscriptionResource extends RdsTaggableResource {
 
             response.eventSubscriptionsList().stream()
                 .forEach(s -> {
-                        setEnabled(s.enabled());
-                        setEventCategories(s.eventCategoriesList());
-                        setSnsTopicArn(s.snsTopicArn());
-                        setSourceIds(s.sourceIdsList());
-                        setSourceType(s.sourceType());
-                        setArn(s.eventSubscriptionArn());
-                    }
-                );
+                    setEnabled(s.enabled());
+                    setEventCategories(s.eventCategoriesList());
+                    setSnsTopicArn(s.snsTopicArn());
+                    setSourceIds(s.sourceIdsList());
+                    setSourceType(s.sourceType());
+                    setArn(s.eventSubscriptionArn());
+                }
+            );
 
         } catch (SubscriptionNotFoundException ex) {
             return false;

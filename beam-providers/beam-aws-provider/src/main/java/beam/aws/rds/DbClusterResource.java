@@ -466,55 +466,55 @@ public class DbClusterResource extends RdsTaggableResource {
 
             response.dbClusters().stream()
                 .forEach(c -> {
-                        setAvailabilityZones(c.availabilityZones());
-                        setBackTrackWindow(c.backtrackWindow());
-                        setBackupRetentionPeriod(c.backupRetentionPeriod());
-                        setCharacterSetName(c.characterSetName());
-                        setDbClusterParameterGroupName(c.dbClusterParameterGroup());
-                        setDbName(c.databaseName());
-                        setDbSubnetGroupName(c.dbSubnetGroup());
-                        setDeletionProtection(c.deletionProtection());
+                    setAvailabilityZones(c.availabilityZones());
+                    setBackTrackWindow(c.backtrackWindow());
+                    setBackupRetentionPeriod(c.backupRetentionPeriod());
+                    setCharacterSetName(c.characterSetName());
+                    setDbClusterParameterGroupName(c.dbClusterParameterGroup());
+                    setDbName(c.databaseName());
+                    setDbSubnetGroupName(c.dbSubnetGroup());
+                    setDeletionProtection(c.deletionProtection());
 
-                        List<String> cwLogsExports = c.enabledCloudwatchLogsExports();
-                        setEnableCloudwatchLogsExports(cwLogsExports.isEmpty() ? null : cwLogsExports);
-                        setEnableIamDatabaseAuthentication(c.iamDatabaseAuthenticationEnabled());
-                        setEngine(c.engine());
+                    List<String> cwLogsExports = c.enabledCloudwatchLogsExports();
+                    setEnableCloudwatchLogsExports(cwLogsExports.isEmpty() ? null : cwLogsExports);
+                    setEnableIamDatabaseAuthentication(c.iamDatabaseAuthenticationEnabled());
+                    setEngine(c.engine());
 
-                        String version = c.engineVersion();
-                        if (getEngineVersion() != null) {
-                            version = version.substring(0, getEngineVersion().length());
-                        }
-
-                        setEngineVersion(version);
-                        setEngineMode(c.engineMode());
-                        setKmsKeyId(c.kmsKeyId());
-                        setMasterUsername(c.masterUsername());
-
-                        setOptionGroupName(c.dbClusterOptionGroupMemberships().stream()
-                            .findFirst().map(DBClusterOptionGroupStatus::dbClusterOptionGroupName)
-                            .orElse(null));
-
-                        setPort(c.port());
-                        setPreferredBackupWindow(c.preferredBackupWindow());
-                        setPreferredMaintenanceWindow(c.preferredMaintenanceWindow());
-                        setReplicationSourceIdentifier(c.replicationSourceIdentifier());
-
-                        if (c.scalingConfigurationInfo() != null) {
-                            ScalingConfiguration scalingConfiguration = new ScalingConfiguration();
-                            scalingConfiguration.setAutoPause(c.scalingConfigurationInfo().autoPause());
-                            scalingConfiguration.setMaxCapacity(c.scalingConfigurationInfo().maxCapacity());
-                            scalingConfiguration.setMinCapacity(c.scalingConfigurationInfo().minCapacity());
-                            scalingConfiguration.setSecondsUntilAutoPause(c.scalingConfigurationInfo().secondsUntilAutoPause());
-                            setScalingConfiguration(scalingConfiguration);
-                        }
-
-                        setStorageEncrypted(c.storageEncrypted());
-
-                        setVpcSecurityGroupIds(c.vpcSecurityGroups().stream()
-                            .map(VpcSecurityGroupMembership::vpcSecurityGroupId)
-                            .collect(Collectors.toList()));
+                    String version = c.engineVersion();
+                    if (getEngineVersion() != null) {
+                        version = version.substring(0, getEngineVersion().length());
                     }
-                );
+
+                    setEngineVersion(version);
+                    setEngineMode(c.engineMode());
+                    setKmsKeyId(c.kmsKeyId());
+                    setMasterUsername(c.masterUsername());
+
+                    setOptionGroupName(c.dbClusterOptionGroupMemberships().stream()
+                        .findFirst().map(DBClusterOptionGroupStatus::dbClusterOptionGroupName)
+                        .orElse(null));
+
+                    setPort(c.port());
+                    setPreferredBackupWindow(c.preferredBackupWindow());
+                    setPreferredMaintenanceWindow(c.preferredMaintenanceWindow());
+                    setReplicationSourceIdentifier(c.replicationSourceIdentifier());
+
+                    if (c.scalingConfigurationInfo() != null) {
+                        ScalingConfiguration scalingConfiguration = new ScalingConfiguration();
+                        scalingConfiguration.setAutoPause(c.scalingConfigurationInfo().autoPause());
+                        scalingConfiguration.setMaxCapacity(c.scalingConfigurationInfo().maxCapacity());
+                        scalingConfiguration.setMinCapacity(c.scalingConfigurationInfo().minCapacity());
+                        scalingConfiguration.setSecondsUntilAutoPause(c.scalingConfigurationInfo().secondsUntilAutoPause());
+                        setScalingConfiguration(scalingConfiguration);
+                    }
+
+                    setStorageEncrypted(c.storageEncrypted());
+
+                    setVpcSecurityGroupIds(c.vpcSecurityGroups().stream()
+                        .map(VpcSecurityGroupMembership::vpcSecurityGroupId)
+                        .collect(Collectors.toList()));
+                }
+            );
 
         } catch (DbClusterNotFoundException ex) {
             return false;
@@ -585,12 +585,15 @@ public class DbClusterResource extends RdsTaggableResource {
             client.modifyDBCluster(
                 r -> r.applyImmediately(Objects.equals(getApplyImmediately(), current.getApplyImmediately()) ? null : getApplyImmediately())
                     .backtrackWindow(Objects.equals(getBackTrackWindow(), current.getBackTrackWindow()) ? null : getBackTrackWindow())
-                    .backupRetentionPeriod(Objects.equals(getBackupRetentionPeriod(), current.getBackupRetentionPeriod()) ? null : getBackupRetentionPeriod())
+                    .backupRetentionPeriod(Objects.equals(getBackupRetentionPeriod(), current.getBackupRetentionPeriod())
+                        ? null : getBackupRetentionPeriod())
                     .cloudwatchLogsExportConfiguration(c -> c.enableLogTypes(getEnableCloudwatchLogsExports()))
                     .dbClusterIdentifier(current.getDbClusterIdentifier())
-                    .dbClusterParameterGroupName(Objects.equals(getDbClusterParameterGroupName(), current.getDbClusterParameterGroupName()) ? null : getDbClusterParameterGroupName())
+                    .dbClusterParameterGroupName(Objects.equals(getDbClusterParameterGroupName(), current.getDbClusterParameterGroupName())
+                        ? null : getDbClusterParameterGroupName())
                     .deletionProtection(Objects.equals(getDeletionProtection(), current.getDeletionProtection()) ? null : getDeletionProtection())
-                    .enableIAMDatabaseAuthentication(Objects.equals(getEnableIamDatabaseAuthentication(), current.getEnableIamDatabaseAuthentication())
+                    .enableIAMDatabaseAuthentication(Objects.equals(
+                        getEnableIamDatabaseAuthentication(), current.getEnableIamDatabaseAuthentication())
                         ? null : getEnableIamDatabaseAuthentication())
                     .engineVersion(Objects.equals(getEngineVersion(), current.getEngineVersion()) ? null : getEngineVersion())
                     .masterUserPassword(Objects.equals(getMasterUserPassword(), current.getMasterUserPassword()) ? null : getMasterUserPassword())
@@ -601,7 +604,8 @@ public class DbClusterResource extends RdsTaggableResource {
                     .preferredMaintenanceWindow(Objects.equals(getPreferredMaintenanceWindow(), current.getPreferredMaintenanceWindow())
                         ? null : getPreferredMaintenanceWindow())
                     .scalingConfiguration(scalingConfiguration)
-                    .vpcSecurityGroupIds(Objects.equals(getVpcSecurityGroupIds(), current.getVpcSecurityGroupIds()) ? null : getVpcSecurityGroupIds())
+                    .vpcSecurityGroupIds(Objects.equals(getVpcSecurityGroupIds(), current.getVpcSecurityGroupIds())
+                        ? null : getVpcSecurityGroupIds())
             );
         } catch (InvalidDbClusterStateException ex) {
             throw new BeamException(ex.getLocalizedMessage());

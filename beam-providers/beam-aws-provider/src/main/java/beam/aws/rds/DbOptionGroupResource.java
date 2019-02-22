@@ -130,39 +130,42 @@ public class DbOptionGroupResource extends RdsTaggableResource {
 
             response.optionGroupsList().stream()
                 .forEach(g -> {
-                        setDescription(g.optionGroupDescription());
-                        setEngine(g.engineName());
-                        setMajorEngineVersion(g.majorEngineVersion());
-                        setOption(g.options().stream()
-                            .map(o -> {
-                                OptionConfiguration current = getOption().stream().filter(c -> c.getOptionName().equals(o.optionName())).findFirst().orElse(new OptionConfiguration());
-                                OptionConfiguration optionConfiguration = new OptionConfiguration();
-                                optionConfiguration.setOptionName(o.optionName());
-                                optionConfiguration.setPort(o.port());
-                                optionConfiguration.setVersion(o.optionVersion());
+                    setDescription(g.optionGroupDescription());
+                    setEngine(g.engineName());
+                    setMajorEngineVersion(g.majorEngineVersion());
+                    setOption(g.options().stream()
+                        .map(o -> {
+                            OptionConfiguration current = getOption().stream().filter(
+                                c -> c.getOptionName().equals(o.optionName())).findFirst().orElse(new OptionConfiguration());
+                            OptionConfiguration optionConfiguration = new OptionConfiguration();
+                            optionConfiguration.setOptionName(o.optionName());
+                            optionConfiguration.setPort(o.port());
+                            optionConfiguration.setVersion(o.optionVersion());
 
-                                optionConfiguration.setVpcSecurityGroupMemberships(
-                                    o.vpcSecurityGroupMemberships().stream()
-                                        .map(VpcSecurityGroupMembership::vpcSecurityGroupId)
-                                        .collect(Collectors.toList()));
-
-                                optionConfiguration.setOptionSettings(o.optionSettings().stream()
-                                    .filter(s -> current.getOptionSettings().stream().map(OptionSettings::getName).collect(Collectors.toSet()).contains(s.name()))
-                                    .map(s -> {
-                                        OptionSettings optionSettings = new OptionSettings();
-                                        optionSettings.setName(s.name());
-                                        optionSettings.setValue(s.value());
-                                        return optionSettings;
-                                    })
+                            optionConfiguration.setVpcSecurityGroupMemberships(
+                                o.vpcSecurityGroupMemberships().stream()
+                                    .map(VpcSecurityGroupMembership::vpcSecurityGroupId)
                                     .collect(Collectors.toList()));
 
-                                return optionConfiguration;
-                            })
-                            .collect(Collectors.toList()));
+                            optionConfiguration.setOptionSettings(o.optionSettings().stream()
+                                .filter(s -> current.getOptionSettings().stream()
+                                    .map(OptionSettings::getName)
+                                    .collect(Collectors.toSet()).contains(s.name()))
+                                .map(s -> {
+                                    OptionSettings optionSettings = new OptionSettings();
+                                    optionSettings.setName(s.name());
+                                    optionSettings.setValue(s.value());
+                                    return optionSettings;
+                                })
+                                .collect(Collectors.toList()));
 
-                        setArn(g.optionGroupArn());
-                    }
-                );
+                            return optionConfiguration;
+                        })
+                        .collect(Collectors.toList()));
+
+                    setArn(g.optionGroupArn());
+                }
+            );
 
         } catch (OptionGroupNotFoundException ex) {
             return false;

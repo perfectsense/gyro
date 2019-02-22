@@ -83,12 +83,12 @@ public class DbSnapShotResource extends RdsTaggableResource {
 
             response.dbSnapshots().stream()
                 .forEach(s -> {
-                        setDbInstanceIdentifier(s.dbInstanceIdentifier());
-                        setEngineVersion(s.engineVersion());
-                        setOptionGroupName(s.optionGroupName());
-                        setArn(s.dbSnapshotArn());
-                    }
-                );
+                    setDbInstanceIdentifier(s.dbInstanceIdentifier());
+                    setEngineVersion(s.engineVersion());
+                    setOptionGroupName(s.optionGroupName());
+                    setArn(s.dbSnapshotArn());
+                }
+            );
 
         } catch (DbSnapshotNotFoundException ex) {
             return false;

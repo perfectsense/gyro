@@ -113,12 +113,12 @@ public class DbClusterParameterGroupResource extends RdsTaggableResource {
 
             response.dbClusterParameterGroups().stream()
                 .forEach(g -> {
-                        setFamily(g.dbParameterGroupFamily());
-                        setName(g.dbClusterParameterGroupName());
-                        setDescription(g.description());
-                        setArn(g.dbClusterParameterGroupArn());
+                    setFamily(g.dbParameterGroupFamily());
+                    setName(g.dbClusterParameterGroupName());
+                    setDescription(g.description());
+                    setArn(g.dbClusterParameterGroupArn());
                     }
-                );
+            );
 
             DescribeDbClusterParametersResponse parametersResponse = client.describeDBClusterParameters(
                 r -> r.dbClusterParameterGroupName(getName())
@@ -129,13 +129,12 @@ public class DbClusterParameterGroupResource extends RdsTaggableResource {
             getParameter().addAll(parametersResponse.parameters().stream()
                 .filter(p -> names.contains(p.parameterName()))
                 .map(p -> {
-                        DbParameter parameter = new DbParameter();
-                        parameter.setApplyMethod(p.applyMethodAsString());
-                        parameter.setName(p.parameterName());
-                        parameter.setValue(p.parameterValue());
-                        return parameter;
-                    }
-                )
+                    DbParameter parameter = new DbParameter();
+                    parameter.setApplyMethod(p.applyMethodAsString());
+                    parameter.setName(p.parameterName());
+                    parameter.setValue(p.parameterValue());
+                    return parameter;
+                })
                 .collect(Collectors.toList())
             );
 

@@ -90,12 +90,12 @@ public abstract class RdsTaggableResource extends AwsResource {
     private void addTags() {
         RdsClient client = createClient(RdsClient.class);
         executeService(() ->
-        client.addTagsToResource(
-            r -> r.resourceName(getArn())
-                .tags(getTags().entrySet().stream()
-                    .map(e -> Tag.builder().key(e.getKey()).value(e.getValue()).build())
-                    .collect(Collectors.toList()))
-        ));
+            client.addTagsToResource(
+                r -> r.resourceName(getArn())
+                    .tags(getTags().entrySet().stream()
+                        .map(e -> Tag.builder().key(e.getKey()).value(e.getValue()).build())
+                        .collect(Collectors.toList()))
+            ));
     }
 
     private void removeTags() {

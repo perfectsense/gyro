@@ -113,12 +113,12 @@ public class DbParameterGroupResource extends RdsTaggableResource {
 
             response.dbParameterGroups().stream()
                 .forEach(g -> {
-                        setFamily(g.dbParameterGroupFamily());
-                        setName(g.dbParameterGroupName());
-                        setDescription(g.description());
-                        setArn(g.dbParameterGroupArn());
-                    }
-                );
+                    setFamily(g.dbParameterGroupFamily());
+                    setName(g.dbParameterGroupName());
+                    setDescription(g.description());
+                    setArn(g.dbParameterGroupArn());
+                }
+            );
 
             DescribeDBParametersIterable iterable = client.describeDBParametersPaginator(
                 r -> r.dbParameterGroupName(getName())

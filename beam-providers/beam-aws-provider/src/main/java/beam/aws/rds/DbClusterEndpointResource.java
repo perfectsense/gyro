@@ -118,11 +118,11 @@ public class DbClusterEndpointResource extends AwsResource {
 
             response.dbClusterEndpoints().stream()
                 .forEach(e -> {
-                        setEndpointType(e.customEndpointType());
-                        setExcludedMembers(e.excludedMembers());
-                        setStaticMembers(e.staticMembers());
-                    }
-                );
+                    setEndpointType(e.customEndpointType());
+                    setExcludedMembers(e.excludedMembers());
+                    setStaticMembers(e.staticMembers());
+                }
+            );
 
         } catch (DbClusterNotFoundException | DbClusterEndpointNotFoundException ex) {
             return false;

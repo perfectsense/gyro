@@ -126,19 +126,19 @@ public class DbGlobalClusterResource extends AwsResource {
 
             response.globalClusters().stream()
                 .forEach(c -> {
-                        setDatabaseName(c.databaseName());
-                        setDeletionProtection(c.deletionProtection());
-                        setEngine(c.engine());
+                    setDatabaseName(c.databaseName());
+                    setDeletionProtection(c.deletionProtection());
+                    setEngine(c.engine());
 
-                        String version = c.engineVersion();
-                        if (getEngineVersion() != null) {
-                            version = version.substring(0, getEngineVersion().length());
-                        }
-
-                        setEngineVersion(version);
-                        setStorageEncrypted(c.storageEncrypted());
+                    String version = c.engineVersion();
+                    if (getEngineVersion() != null) {
+                        version = version.substring(0, getEngineVersion().length());
                     }
-                );
+
+                    setEngineVersion(version);
+                    setStorageEncrypted(c.storageEncrypted());
+                }
+            );
 
         } catch (GlobalClusterNotFoundException ex) {
             return false;
