@@ -15,6 +15,22 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Create a db event subscription.
+ *
+ * .. code-block:: beam
+ *
+ *    aws::db-event-subscription db-event-subscription-example
+ *        subscription-name: "db-event-subscription-example"
+ *        sns-topic-arn: "arn:aws:sns:us-east-2:242040583208:rds-topic-example"
+ *        enabled: true
+ *        source-type: "db-instance"
+ *        event-categories: ["availability", "deletion"]
+ *        tags: {
+ *            Name: "db-event-subscription-example"
+ *        }
+ *    end
+ */
 @ResourceName("db-event-subscription")
 public class DbEventSubscriptionResource extends RdsTaggableResource {
 
