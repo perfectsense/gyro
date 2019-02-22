@@ -16,6 +16,7 @@ import software.amazon.awssdk.services.rds.model.OptionGroupMembership;
 import software.amazon.awssdk.services.rds.model.VpcSecurityGroupMembership;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -775,44 +776,45 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     @Override
-    public void doUpdate(Resource current, Set<String> changedProperties) {
+    public void doUpdate(Resource config, Set<String> changedProperties) {
         RdsClient client = createClient(RdsClient.class);
+        DbInstanceResource current = (DbInstanceResource) config;
         client.modifyDBInstance(
-            r -> r.allocatedStorage(getAllocatedStorage())
-                    .applyImmediately(getApplyImmediately())
-                    .allowMajorVersionUpgrade(getAllowMajorVersionUpgrade())
-                    .autoMinorVersionUpgrade(getAutoMinorVersionUpgrade())
-                    .backupRetentionPeriod(getBackupRetentionPeriod())
+            r -> r.allocatedStorage(Objects.equals(getAllocatedStorage(), current.getAllocatedStorage()) ? null : getAllocatedStorage())
+                    .applyImmediately(Objects.equals(getApplyImmediately(), current.getApplyImmediately()) ? null : getApplyImmediately())
+                    .allowMajorVersionUpgrade(Objects.equals(getAllowMajorVersionUpgrade(), current.getAllowMajorVersionUpgrade()) ? null : getAllowMajorVersionUpgrade())
+                    .autoMinorVersionUpgrade(Objects.equals(getAutoMinorVersionUpgrade(), current.getAutoMinorVersionUpgrade()) ? null : getAutoMinorVersionUpgrade())
+                    .backupRetentionPeriod(Objects.equals(getBackupRetentionPeriod(), current.getBackupRetentionPeriod()) ? null : getBackupRetentionPeriod())
                     .cloudwatchLogsExportConfiguration(c -> c.enableLogTypes(getEnableCloudwatchLogsExports()))
-                    .copyTagsToSnapshot(getCopyTagsToSnapshot())
-                    .dbInstanceClass(getDbInstanceClass())
+                    .copyTagsToSnapshot(Objects.equals(getCopyTagsToSnapshot(), current.getCopyTagsToSnapshot()) ? null : getCopyTagsToSnapshot())
+                    .dbInstanceClass(Objects.equals(getDbInstanceClass(), current.getDbInstanceClass()) ? null : getDbInstanceClass())
                     .dbInstanceIdentifier(getDbInstanceIdentifier())
-                    .dbParameterGroupName(getDbParameterGroupName())
-                    .dbSecurityGroups(getDbSecurityGroups())
-                    .dbSubnetGroupName(getDbSubnetGroupName())
-                    .deletionProtection(getDeletionProtection())
-                    .domain(getDomain())
-                    .domainIAMRoleName(getDomainIamRoleName())
-                    .enableIAMDatabaseAuthentication(getEnableIamDatabaseAuthentication())
-                    .enablePerformanceInsights(getEnablePerformanceInsights())
-                    .engineVersion(getEngineVersion())
-                    .iops(getIops())
-                    .licenseModel(getLicenseModel())
-                    .masterUserPassword(getMasterUserPassword())
-                    .monitoringInterval(getMonitoringInterval())
-                    .monitoringRoleArn(getMonitoringRoleArn())
-                    .multiAZ(getMultiAz())
-                    .optionGroupName(getOptionGroupName())
-                    .performanceInsightsKMSKeyId(getPerformanceInsightsKmsKeyId())
-                    .performanceInsightsRetentionPeriod(getPerformanceInsightsRetentionPeriod())
-                    .preferredBackupWindow(getPreferredBackupWindow())
-                    .preferredMaintenanceWindow(getPreferredMaintenanceWindow())
-                    .promotionTier(getPromotionTier())
-                    .publiclyAccessible(getPubliclyAccessible())
-                    .storageType(getStorageType())
-                    .tdeCredentialArn(getTdeCredentialArn())
-                    .tdeCredentialPassword(getTdeCredentialPassword())
-                    .vpcSecurityGroupIds(getVpcSecurityGroupIds())
+                    .dbParameterGroupName(Objects.equals(getDbParameterGroupName(), current.getDbParameterGroupName()) ? null : getDbParameterGroupName())
+                    .dbSecurityGroups(Objects.equals(getDbSecurityGroups(), current.getDbSecurityGroups()) ? null : getDbSecurityGroups())
+                    .dbSubnetGroupName(Objects.equals(getDbSubnetGroupName(), current.getDbSubnetGroupName()) ? null : getDbSubnetGroupName())
+                    .deletionProtection(Objects.equals(getDeletionProtection(), current.getDeletionProtection()) ? null : getDeletionProtection())
+                    .domain(Objects.equals(getDomain(), current.getDomain()) ? null : getDomain())
+                    .domainIAMRoleName(Objects.equals(getDomainIamRoleName(), current.getDomainIamRoleName()) ? null : getDomainIamRoleName())
+                    .enableIAMDatabaseAuthentication(Objects.equals(getEnableIamDatabaseAuthentication(), current.getEnableIamDatabaseAuthentication()) ? null : getEnableIamDatabaseAuthentication())
+                    .enablePerformanceInsights(Objects.equals(getEnablePerformanceInsights(), current.getEnablePerformanceInsights()) ? null : getEnablePerformanceInsights())
+                    .engineVersion(Objects.equals(getEngineVersion(), current.getEngineVersion()) ? null : getEngineVersion())
+                    .iops(Objects.equals(getIops(), current.getIops()) ? null : getIops())
+                    .licenseModel(Objects.equals(getLicenseModel(), current.getLicenseModel()) ? null : getLicenseModel())
+                    .masterUserPassword(Objects.equals(getMasterUserPassword(), current.getMasterUserPassword()) ? null : getMasterUserPassword())
+                    .monitoringInterval(Objects.equals(getMonitoringInterval(), current.getMonitoringInterval()) ? null : getMonitoringInterval())
+                    .monitoringRoleArn(Objects.equals(getMonitoringRoleArn(), current.getMonitoringRoleArn()) ? null : getMonitoringRoleArn())
+                    .multiAZ(Objects.equals(getMultiAz(), current.getMultiAz()) ? null : getMultiAz())
+                    .optionGroupName(Objects.equals(getOptionGroupName(), current.getOptionGroupName()) ? null : getOptionGroupName())
+                    .performanceInsightsKMSKeyId(Objects.equals(getPerformanceInsightsKmsKeyId(), current.getPerformanceInsightsKmsKeyId()) ? null : getPerformanceInsightsKmsKeyId())
+                    .performanceInsightsRetentionPeriod(Objects.equals(getPerformanceInsightsRetentionPeriod(), current.getPerformanceInsightsRetentionPeriod()) ? null : getPerformanceInsightsRetentionPeriod())
+                    .preferredBackupWindow(Objects.equals(getPreferredBackupWindow(), current.getPreferredBackupWindow()) ? null : getPreferredBackupWindow())
+                    .preferredMaintenanceWindow(Objects.equals(getPreferredMaintenanceWindow(), current.getPreferredMaintenanceWindow()) ? null : getPreferredMaintenanceWindow())
+                    .promotionTier(Objects.equals(getPromotionTier(), current.getPromotionTier()) ? null : getPromotionTier())
+                    .publiclyAccessible(Objects.equals(getPubliclyAccessible(), current.getPubliclyAccessible()) ? null : getPubliclyAccessible())
+                    .storageType(Objects.equals(getStorageType(), current.getStorageType()) ? null : getStorageType())
+                    .tdeCredentialArn(Objects.equals(getTdeCredentialArn(), current.getTdeCredentialArn()) ? null : getTdeCredentialArn())
+                    .tdeCredentialPassword(Objects.equals(getTdeCredentialPassword(), current.getTdeCredentialPassword()) ? null : getTdeCredentialPassword())
+                    .vpcSecurityGroupIds(Objects.equals(getVpcSecurityGroupIds(), current.getVpcSecurityGroupIds()) ? null : getVpcSecurityGroupIds())
         );
     }
 
