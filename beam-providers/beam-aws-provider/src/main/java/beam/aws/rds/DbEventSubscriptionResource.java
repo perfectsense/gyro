@@ -124,7 +124,8 @@ public class DbEventSubscriptionResource extends RdsTaggableResource {
                     setEnabled(s.enabled());
                     setEventCategories(s.eventCategoriesList());
                     setSnsTopicArn(s.snsTopicArn());
-                    setSourceIds(s.sourceIdsList());
+                    List<String> sourceIds = s.sourceIdsList();
+                    setSourceIds(sourceIds.isEmpty() ? null : sourceIds);
                     setSourceType(s.sourceType());
                     setArn(s.eventSubscriptionArn());
                 }
@@ -146,6 +147,7 @@ public class DbEventSubscriptionResource extends RdsTaggableResource {
                     .sourceIds(getSourceIds())
                     .sourceType(getSourceType())
                     .subscriptionName(getSubscriptionName())
+                    .snsTopicArn(getSnsTopicArn())
         );
 
         setArn(response.eventSubscription().eventSubscriptionArn());
