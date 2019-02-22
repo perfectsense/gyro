@@ -12,7 +12,7 @@ aws::db-cluster db-cluster-example
     delete-automated-backups: true
     skip-final-snapshot: true
     tags: {
-        Name: "aurora-mysql-cluster1"
+        Name: "aurora-mysql-cluster"
     }
 end
 

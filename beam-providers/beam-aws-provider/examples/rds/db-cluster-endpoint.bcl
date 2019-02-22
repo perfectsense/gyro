@@ -1,7 +1,7 @@
 import ../init as _
 
 aws::db-cluster db-cluster-example
-    db-cluster-identifier: "aurora-cluster-example"
+    db-cluster-identifier: "db-cluster-endpoint-cluster"
     engine: "aurora-mysql"
     availability-zones: ["us-east-2a", "us-east-2b", "us-east-2c"]
     db-name: "clusterexample"
@@ -12,29 +12,29 @@ aws::db-cluster db-cluster-example
     delete-automated-backups: true
     skip-final-snapshot: true
     tags: {
-        Name: "aurora-cluster-example"
+        Name: "db-cluster-endpoint-cluster"
     }
 end
 
 aws::db-instance db-instance-example1
-    db-instance-identifier: "db-instance-example1"
+    db-instance-identifier: "db-cluster-endpoint-instance1"
     db-instance-class: "db.t2.small"
     db-cluster-identifier: $(aws::db-cluster db-cluster-example | db-cluster-identifier)
     engine: "aurora-mysql"
     apply-immediately: true
     tags: {
-        Name: "db-instance-example1"
+        Name: "db-cluster-endpoint-instance1"
     }
 end
 
 aws::db-instance db-instance-example2
-    db-instance-identifier: "db-instance-example2"
+    db-instance-identifier: "db-cluster-endpoint-instance2"
     db-instance-class: "db.t2.small"
     db-cluster-identifier: $(aws::db-cluster db-cluster-example | db-cluster-identifier)
     engine: "aurora-mysql"
     apply-immediately: true
     tags: {
-        Name: "db-instance-example2"
+        Name: "db-cluster-endpoint-instance2"
     }
 end
 
