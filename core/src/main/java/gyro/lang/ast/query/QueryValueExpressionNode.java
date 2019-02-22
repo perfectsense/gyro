@@ -8,7 +8,7 @@ import java.util.List;
 
 public class QueryValueExpressionNode extends QueryExpressionNode {
 
-    public QueryValueExpressionNode(BeamParser.FilterExpressionContext context) {
+    public QueryValueExpressionNode(BeamParser.QueryExpressionContext context) {
         super(context);
     }
 

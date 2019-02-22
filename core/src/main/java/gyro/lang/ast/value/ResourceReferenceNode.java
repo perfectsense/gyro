@@ -41,7 +41,7 @@ public class ResourceReferenceNode extends Node {
             nameNode = null;
         }
 
-        filters = context.filterExpression()
+        filters = context.queryExpression()
             .stream()
             .map(f -> Node.create(f))
             .collect(Collectors.toList());

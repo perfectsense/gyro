@@ -72,18 +72,18 @@ listValue
 listItemValue : stringValue | booleanValue | numberValue | referenceValue;
 
 referenceValue     : DOLLAR LPAREN referenceBody RPAREN ;
-referenceBody      : referenceType referenceName? | referenceType referenceName (PIPE filterExpression)*;
+referenceBody      : referenceType referenceName? | referenceType referenceName (PIPE queryExpression)*;
 referenceType      : IDENTIFIER (DOT IDENTIFIER)* ;
 referenceName      : ( (SLASH | GLOB | IDENTIFIER)* | stringExpression | IDENTIFIER (DOT IDENTIFIER)*) ;
 
-filterExpression
-    : IDENTIFIER (DOT IDENTIFIER)*               # FilterAttributeValue
-    | referenceValue                             # FilterReferenceValue
-    | stringValue                                # FilterStringValue
-    | booleanValue                               # FilterBooleanValue
-    | numberValue                                # FilterNumberValue
-    | filterExpression operator filterExpression # FilterComparisonExpression
-    | filterExpression OR filterExpression       # FilterOrExpression
-    | filterExpression AND filterExpression      # FilterAndExpression
+queryExpression
+    : IDENTIFIER (DOT IDENTIFIER)*             # QueryAttributeValue
+    | referenceValue                           # QueryReferenceValue
+    | stringValue                              # QueryStringValue
+    | booleanValue                             # QueryBooleanValue
+    | numberValue                              # QueryNumberValue
+    | queryExpression operator queryExpression # QueryComparisonExpression
+    | queryExpression OR queryExpression       # QueryOrExpression
+    | queryExpression AND queryExpression      # QueryAndExpression
     ;
 

@@ -2,10 +2,10 @@ package gyro.lang.ast.query;
 
 import gyro.core.diff.DiffableType;
 import gyro.lang.Resource;
-import gyro.lang.ast.scope.Scope;
 import gyro.lang.ResourceQuery;
-import gyro.parser.antlr4.BeamParser.FilterComparisonExpressionContext;
-import gyro.parser.antlr4.BeamParser.FilterExpressionContext;
+import gyro.lang.ast.scope.Scope;
+import gyro.parser.antlr4.BeamParser.QueryComparisonExpressionContext;
+import gyro.parser.antlr4.BeamParser.QueryExpressionContext;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -17,10 +17,10 @@ public class QueryComparisonNode extends QueryExpressionNode {
 
     private String operator;
 
-    public QueryComparisonNode(FilterExpressionContext context) {
+    public QueryComparisonNode(QueryExpressionContext context) {
         super(context);
 
-        FilterComparisonExpressionContext compareContext = (FilterComparisonExpressionContext) context;
+        QueryComparisonExpressionContext compareContext = (QueryComparisonExpressionContext) context;
         operator = compareContext.operator().getText();
     }
 

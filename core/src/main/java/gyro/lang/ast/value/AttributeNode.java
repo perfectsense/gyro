@@ -2,13 +2,13 @@ package gyro.lang.ast.value;
 
 import gyro.lang.ast.Node;
 import gyro.lang.ast.scope.Scope;
-import gyro.parser.antlr4.BeamParser.FilterAttributeValueContext;
+import gyro.parser.antlr4.BeamParser.QueryAttributeValueContext;
 
 public class AttributeNode extends Node {
 
     private final String value;
 
-    public AttributeNode(FilterAttributeValueContext context) {
+    public AttributeNode(QueryAttributeValueContext context) {
         this.value = context.getText();
     }
 

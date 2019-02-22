@@ -63,34 +63,34 @@ public abstract class Node {
         } else if (cc.equals(BeamParser.ValueExpressionContext.class)) {
             return new ValueExpressionNode((BeamParser.ValueExpressionContext) context);
 
-        } else if (cc.equals(BeamParser.FilterAndExpressionContext.class)) {
-            return new QueryAndNode((BeamParser.FilterAndExpressionContext) context);
+        } else if (cc.equals(BeamParser.QueryAndExpressionContext.class)) {
+            return new QueryAndNode((BeamParser.QueryAndExpressionContext) context);
 
-        } else if (cc.equals(BeamParser.FilterOrExpressionContext.class)) {
-            return new QueryOrNode((BeamParser.FilterOrExpressionContext) context);
+        } else if (cc.equals(BeamParser.QueryOrExpressionContext.class)) {
+            return new QueryOrNode((BeamParser.QueryOrExpressionContext) context);
 
-        } else if (cc.equals(BeamParser.FilterComparisonExpressionContext.class)) {
-            return new QueryComparisonNode((BeamParser.FilterComparisonExpressionContext) context);
+        } else if (cc.equals(BeamParser.QueryComparisonExpressionContext.class)) {
+            return new QueryComparisonNode((BeamParser.QueryComparisonExpressionContext) context);
 
-        } else if (cc.equals(BeamParser.FilterReferenceValueContext.class)) {
-            return create(((BeamParser.FilterReferenceValueContext) context).referenceValue().referenceBody());
+        } else if (cc.equals(BeamParser.QueryReferenceValueContext.class)) {
+            return create(((BeamParser.QueryReferenceValueContext) context).referenceValue().referenceBody());
 
-        } else if (cc.equals(BeamParser.FilterAttributeValueContext.class)) {
-            return new AttributeNode((BeamParser.FilterAttributeValueContext) context);
+        } else if (cc.equals(BeamParser.QueryAttributeValueContext.class)) {
+            return new AttributeNode((BeamParser.QueryAttributeValueContext) context);
 
-        } else if (cc.equals(BeamParser.FilterStringValueContext.class)) {
-            BeamParser.FilterStringValueContext svc = (BeamParser.FilterStringValueContext) context;
+        } else if (cc.equals(BeamParser.QueryStringValueContext.class)) {
+            BeamParser.QueryStringValueContext svc = (BeamParser.QueryStringValueContext) context;
             BeamParser.StringExpressionContext sec = svc.stringValue().stringExpression();
 
             return sec != null
                 ? new StringExpressionNode(sec)
                 : new StringNode(StringUtils.strip(svc.stringValue().STRING_LITERAL().getText(), "'"));
 
-        } else if (cc.equals(BeamParser.FilterBooleanValueContext.class)) {
-            return new BooleanNode(((BeamParser.FilterBooleanValueContext) context).booleanValue());
+        } else if (cc.equals(BeamParser.QueryBooleanValueContext.class)) {
+            return new BooleanNode(((BeamParser.QueryBooleanValueContext) context).booleanValue());
 
-        } else if (cc.equals(BeamParser.FilterNumberValueContext.class)) {
-            return new NumberNode(((BeamParser.FilterNumberValueContext) context).numberValue());
+        } else if (cc.equals(BeamParser.QueryNumberValueContext.class)) {
+            return new NumberNode(((BeamParser.QueryNumberValueContext) context).numberValue());
 
         } else if (cc.equals(BeamParser.ValueContext.class)) {
             return Node.create(context.getChild(0));

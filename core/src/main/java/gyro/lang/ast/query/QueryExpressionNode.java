@@ -12,7 +12,7 @@ public abstract class QueryExpressionNode extends Node {
     private Node leftNode;
     private Node rightNode;
 
-    public QueryExpressionNode(BeamParser.FilterExpressionContext context) {
+    public QueryExpressionNode(BeamParser.QueryExpressionContext context) {
         leftNode = Node.create(context.getChild(0));
 
         if (context.getChild(2) != null) {
