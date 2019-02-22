@@ -12,6 +12,16 @@ import software.amazon.awssdk.services.rds.model.GlobalClusterNotFoundException;
 
 import java.util.Set;
 
+/**
+ * Create a db instance.
+ *
+ * .. code-block:: beam
+ *
+ *    aws::db-global-cluster db-global-cluster-example
+ *        global-cluster-identifier: "aurora-global-cluster"
+ *        engine: "aurora"
+ *    end
+ */
 @ResourceName("db-global-cluster")
 public class DbGlobalClusterResource extends AwsResource {
 
