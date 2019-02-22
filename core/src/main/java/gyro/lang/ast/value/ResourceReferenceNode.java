@@ -1,5 +1,6 @@
 package gyro.lang.ast.value;
 
+import gyro.core.BeamException;
 import gyro.lang.Resource;
 import gyro.lang.ast.DeferError;
 import gyro.lang.ast.Node;
@@ -79,8 +80,12 @@ public class ResourceReferenceNode extends Node {
                 for (Node filter : filters) {
                     // TODO: first filter triggers api calls, subsequent fitlers use
                     //       the output from the first and narrow it down
-                    ((QueryExpressionNode) filter).setResource(queryResource(scope));
+                    Resource queryResource = queryResource(scope);
+                    if (queryResource == null) {
+                        throw new BeamException("Resource type " + type + " does not support external queries.");
+                    }
 
+                    ((QueryExpressionNode) filter).setResource(queryResource);
                     Object value = filter.evaluate(scope);
 
                     return value;
