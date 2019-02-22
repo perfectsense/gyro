@@ -11,6 +11,7 @@ import software.amazon.awssdk.services.rds.model.DescribeEventSubscriptionsRespo
 import software.amazon.awssdk.services.rds.model.SubscriptionNotFoundException;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -41,11 +42,14 @@ public class DbEventSubscriptionResource extends RdsTaggableResource {
      */
     @ResourceDiffProperty(updatable = true)
     public List<String> getEventCategories() {
-        if (eventCategories == null) {
-            eventCategories = new ArrayList<>();
+        if (eventCategories == null || eventCategories.isEmpty()) {
+            return new ArrayList<>();
         }
 
-        return eventCategories;
+        List<String> sorted = new ArrayList<>(eventCategories);
+        Collections.sort(sorted);
+
+        return sorted;
     }
 
     public void setEventCategories(List<String> eventCategories) {
