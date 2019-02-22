@@ -1,19 +1,19 @@
 package beam.aws.rds;
 
+import beam.aws.AwsResource;
 import beam.core.BeamException;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 import beam.lang.Resource;
 import com.psddev.dari.util.ObjectUtils;
 import software.amazon.awssdk.services.rds.RdsClient;
-import software.amazon.awssdk.services.rds.model.CreateGlobalClusterResponse;
 import software.amazon.awssdk.services.rds.model.DescribeGlobalClustersResponse;
 import software.amazon.awssdk.services.rds.model.GlobalClusterNotFoundException;
 
 import java.util.Set;
 
 @ResourceName("db-global-cluster")
-public class DbGlobalClusterResource extends RdsTaggableResource {
+public class DbGlobalClusterResource extends AwsResource {
 
     private String databaseName;
     private Boolean deletionProtection;
@@ -103,7 +103,7 @@ public class DbGlobalClusterResource extends RdsTaggableResource {
     }
 
     @Override
-    protected boolean doRefresh() {
+    public boolean refresh() {
         RdsClient client = createClient(RdsClient.class);
 
         if (ObjectUtils.isBlank(getGlobalClusterIdentifier())) {
@@ -128,7 +128,6 @@ public class DbGlobalClusterResource extends RdsTaggableResource {
 
                         setEngineVersion(version);
                         setStorageEncrypted(c.storageEncrypted());
-                        setArn(c.globalClusterArn());
                     }
                 );
 
@@ -140,9 +139,9 @@ public class DbGlobalClusterResource extends RdsTaggableResource {
     }
 
     @Override
-    protected void doCreate() {
+    public void create() {
         RdsClient client = createClient(RdsClient.class);
-        CreateGlobalClusterResponse response = client.createGlobalCluster(
+        client.createGlobalCluster(
             r -> r.databaseName(getDatabaseName())
                     .deletionProtection(getDeletionProtection())
                     .engine(getEngine())
@@ -151,12 +150,10 @@ public class DbGlobalClusterResource extends RdsTaggableResource {
                     .sourceDBClusterIdentifier(getSourceDbClusterIdentifier())
                     .storageEncrypted(getStorageEncrypted())
         );
-
-        setArn(response.globalCluster().globalClusterArn());
     }
 
     @Override
-    protected void doUpdate(Resource config, Set<String> changedProperties) {
+    public void update(Resource config, Set<String> changedProperties) {
         RdsClient client = createClient(RdsClient.class);
         DbGlobalClusterResource current = (DbGlobalClusterResource) config;
         client.modifyGlobalCluster(
