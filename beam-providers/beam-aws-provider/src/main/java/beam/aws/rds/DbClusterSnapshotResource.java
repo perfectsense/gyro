@@ -12,6 +12,19 @@ import software.amazon.awssdk.services.rds.model.InvalidDbClusterStateException;
 
 import java.util.Set;
 
+/**
+ * Create a db cluster snapshot.
+ *
+ * .. code-block:: beam
+ *
+ *    aws::db-cluster-snapshot db-cluster-snapshot-example
+ *        db-cluster-identifier: $(aws::db-cluster db-cluster-example | db-cluster-identifier)
+ *        db-cluster-snapshot-identifier: "db-cluster-snapshot-example"
+ *        tags: {
+ *            Name: "db-cluster-snapshot-example"
+ *        }
+ *    end
+ */
 @ResourceName("db-cluster-snapshot")
 public class DbClusterSnapshotResource extends RdsTaggableResource {
 
