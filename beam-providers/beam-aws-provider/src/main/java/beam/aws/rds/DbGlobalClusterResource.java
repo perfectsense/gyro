@@ -106,7 +106,7 @@ public class DbGlobalClusterResource extends AwsResource {
         RdsClient client = createClient(RdsClient.class);
 
         if (ObjectUtils.isBlank(getGlobalClusterIdentifier())) {
-            throw new BeamException("global-cluster-identifier is missing, unable to load db cluster snapshot.");
+            throw new BeamException("global-cluster-identifier is missing, unable to load db global cluster.");
         }
 
         try {
