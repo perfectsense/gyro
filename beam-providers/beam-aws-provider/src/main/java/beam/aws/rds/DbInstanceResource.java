@@ -498,6 +498,10 @@ public class DbInstanceResource extends RdsTaggableResource {
      * Specifies the accessibility options for the DB instance.
      */
     public Boolean getPubliclyAccessible() {
+        if (publiclyAccessible == null) {
+            publiclyAccessible = false;
+        }
+
         return publiclyAccessible;
     }
 
