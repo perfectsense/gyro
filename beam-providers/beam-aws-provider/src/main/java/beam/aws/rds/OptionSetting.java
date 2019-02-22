@@ -7,6 +7,9 @@ public class OptionSetting extends Diffable {
     private String name;
     private String value;
 
+    /**
+     * The name of the option that has settings that you can set.
+     */
     public String getName() {
         return name;
     }
@@ -15,6 +18,9 @@ public class OptionSetting extends Diffable {
         this.name = name;
     }
 
+    /**
+     * The current value of the option setting.
+     */
     public String getValue() {
         return value;
     }

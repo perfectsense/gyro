@@ -13,6 +13,9 @@ public class OptionConfiguration extends Diffable {
     private String version;
     private List<String> vpcSecurityGroupMemberships;
 
+    /**
+     * The option name.
+     */
     public String getOptionName() {
         return optionName;
     }
@@ -21,6 +24,9 @@ public class OptionConfiguration extends Diffable {
         this.optionName = optionName;
     }
 
+    /**
+     * The option settings to include in an option group.
+     */
     public List<OptionSetting> getOptionSetting() {
         if (optionSetting == null) {
             optionSetting = new ArrayList<>();
@@ -33,6 +39,9 @@ public class OptionConfiguration extends Diffable {
         this.optionSetting = optionSetting;
     }
 
+    /**
+     * The optional port for the option.
+     */
     public Integer getPort() {
         return port;
     }
@@ -41,6 +50,9 @@ public class OptionConfiguration extends Diffable {
         this.port = port;
     }
 
+    /**
+     * The version for the option.
+     */
     public String getVersion() {
         return version;
     }
@@ -49,6 +61,9 @@ public class OptionConfiguration extends Diffable {
         this.version = version;
     }
 
+    /**
+     * A list of VpcSecurityGroupMemebrship name strings used for this option.
+     */
     public List<String> getVpcSecurityGroupMemberships() {
         if (vpcSecurityGroupMemberships == null) {
             vpcSecurityGroupMemberships = new ArrayList<>();
