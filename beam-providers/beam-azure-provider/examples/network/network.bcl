@@ -9,7 +9,7 @@ azure::resource-group resource-group-network-example
 end
 
 azure::network network-example
-    name: "network-example"
+    network-name: "network-example"
     resource-group-name: $(azure::resource-group resource-group-network-example | resource-group-name)
     address-spaces:  [
          "10.0.0.0/27",

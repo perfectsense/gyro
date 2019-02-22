@@ -18,23 +18,54 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+/**
+ * Creates a virtual network.
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: beam
+ *
+ *     azure::network network-example
+ *          network-name: "network-example"
+ *          resource-group-name: $(azure::resource-group resource-group-network-example | resource-group-name)
+ *          address-spaces:  [
+ *               "10.0.0.0/27",
+ *               "10.1.0.0/27"
+ *          ]
+ *          subnets: {
+ *              subnet1: "10.0.0.0/28",
+ *              subnet2: "10.0.0.16/28"
+ *          }
+ *
+ *          tags: {
+ *              Name: "resource-group-network-example"
+ *          }
+ *     end
+ */
 @ResourceName("network")
 public class NetworkResource extends AzureResource {
-    private String name;
+    private String networkName;
     private String resourceGroupName;
     private List<String> addressSpaces;
     private Map<String, String> subnets;
     private Map<String, String> tags;
     private String networkId;
 
-    public String getName() {
-        return name;
+    /**
+     * Name of the network. (Required)
+     */
+    public String getNetworkName() {
+        return networkName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setNetworkName(String networkName) {
+        this.networkName = networkName;
     }
 
+    /**
+     * Name of the resource group under which this would reside. (Required)
+     */
     public String getResourceGroupName() {
         return resourceGroupName;
     }
@@ -43,6 +74,9 @@ public class NetworkResource extends AzureResource {
         this.resourceGroupName = resourceGroupName;
     }
 
+    /**
+     * Address spaces for the network. (Required)
+     */
     @ResourceDiffProperty(updatable = true)
     public List<String> getAddressSpaces() {
         if (addressSpaces == null) {
@@ -56,6 +90,9 @@ public class NetworkResource extends AzureResource {
         this.addressSpaces = addressSpaces;
     }
 
+    /**
+     * Subnets for the network as key value pairs.
+     */
     public Map<String, String> getSubnets() {
         if (subnets == null) {
             subnets = new HashMap<>();
@@ -97,7 +134,7 @@ public class NetworkResource extends AzureResource {
 
         setTags(network.tags());
         setAddressSpaces(network.addressSpaces()); // change to list
-        setName(network.name());
+        setNetworkName(network.name());
 
         getSubnets().clear();
         if (!network.subnets().isEmpty()) {
@@ -114,7 +151,7 @@ public class NetworkResource extends AzureResource {
         Azure client = createClient();
 
         Network.DefinitionStages.WithCreate networkDefWithoutAddress = client.networks()
-            .define(getName())
+            .define(getNetworkName())
             .withRegion(Region.fromName(getRegion()))
             .withExistingResourceGroup(getResourceGroupName());
 
@@ -198,8 +235,8 @@ public class NetworkResource extends AzureResource {
 
         sb.append("network");
 
-        if (!ObjectUtils.isBlank(getName())) {
-            sb.append(" - ").append(getName());
+        if (!ObjectUtils.isBlank(getNetworkName())) {
+            sb.append(" - ").append(getNetworkName());
         }
 
         if (!ObjectUtils.isBlank(getNetworkId())) {
