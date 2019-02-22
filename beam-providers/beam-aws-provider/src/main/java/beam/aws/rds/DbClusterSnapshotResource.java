@@ -8,6 +8,7 @@ import software.amazon.awssdk.services.rds.RdsClient;
 import software.amazon.awssdk.services.rds.model.CreateDbClusterSnapshotResponse;
 import software.amazon.awssdk.services.rds.model.DbClusterSnapshotNotFoundException;
 import software.amazon.awssdk.services.rds.model.DescribeDbClusterSnapshotsResponse;
+import software.amazon.awssdk.services.rds.model.InvalidDbClusterStateException;
 
 import java.util.Set;
 
@@ -68,13 +69,17 @@ public class DbClusterSnapshotResource extends RdsTaggableResource {
 
     @Override
     protected void doCreate() {
-        RdsClient client = createClient(RdsClient.class);
-        CreateDbClusterSnapshotResponse response = client.createDBClusterSnapshot(
-            r -> r.dbClusterIdentifier(getDbClusterIdentifier())
-                .dbClusterSnapshotIdentifier(getDbClusterSnapshotIdentifier())
-        );
+        try {
+            RdsClient client = createClient(RdsClient.class);
+            CreateDbClusterSnapshotResponse response = client.createDBClusterSnapshot(
+                r -> r.dbClusterIdentifier(getDbClusterIdentifier())
+                    .dbClusterSnapshotIdentifier(getDbClusterSnapshotIdentifier())
+            );
 
-        setArn(response.dbClusterSnapshot().dbClusterSnapshotArn());
+            setArn(response.dbClusterSnapshot().dbClusterSnapshotArn());
+        } catch (InvalidDbClusterStateException ex) {
+            throw new BeamException(ex.getLocalizedMessage());
+        }
     }
 
     @Override
