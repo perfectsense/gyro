@@ -20,6 +20,27 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Create a db instance.
+ *
+ * .. code-block:: beam
+ *
+ *    aws::db-instance db-instance-example
+ *        allocated-storage: 20
+ *        db-instance-identifier: "db-instance-example"
+ *        storage-type: "gp2"
+ *        engine: "mysql"
+ *        engine-version: "5.7"
+ *        db-instance-class: "db.t2.micro"
+ *        master-username: "user"
+ *        master-user-password: "password"
+ *        delete-automated-backups: true
+ *        skip-final-snapshot: true
+ *        tags: {
+ *            Name: "db-instance-example"
+ *        }
+ *    end
+ */
 @ResourceName("db-instance")
 public class DbInstanceResource extends RdsTaggableResource {
 
