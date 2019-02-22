@@ -14,6 +14,7 @@ import software.amazon.awssdk.services.rds.model.VpcSecurityGroupMembership;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -539,14 +540,18 @@ public class DbClusterResource extends RdsTaggableResource {
                     .dbClusterIdentifier(current.getDbClusterIdentifier())
                     .dbClusterParameterGroupName(getDbClusterParameterGroupName())
                     .deletionProtection(getDeletionProtection())
-                    .enableIAMDatabaseAuthentication(getEnableIamDatabaseAuthentication())
-                    .engineVersion(getEngineVersion())
+                    .enableIAMDatabaseAuthentication(Objects.equals(getEnableIamDatabaseAuthentication(), current.getEnableIamDatabaseAuthentication())
+                        ? null : getEnableIamDatabaseAuthentication())
+
+                    .engineVersion(Objects.equals(getEngineVersion(), current.getEngineVersion()) ? null : getEngineVersion())
                     .masterUserPassword(getMasterUserPassword())
                     .newDBClusterIdentifier(getDbClusterIdentifier())
                     .optionGroupName(getOptionGroupName())
-                    .port(getPort())
-                    .preferredBackupWindow(getPreferredBackupWindow())
-                    .preferredMaintenanceWindow(getPreferredMaintenanceWindow())
+                    .port(Objects.equals(getPort(), current.getPort()) ? null : getPort())
+                    .preferredBackupWindow(Objects.equals(getPreferredBackupWindow(), current.getPreferredBackupWindow())
+                        ? null : getPreferredBackupWindow())
+                    .preferredMaintenanceWindow(Objects.equals(getPreferredMaintenanceWindow(), current.getPreferredMaintenanceWindow())
+                        ? null : getPreferredMaintenanceWindow())
                     .scalingConfiguration(scalingConfiguration)
                     .vpcSecurityGroupIds(getVpcSecurityGroupIds())
         );
