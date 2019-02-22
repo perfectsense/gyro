@@ -80,7 +80,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * The target backtrack window, in seconds. To disable backtracking, set this value to 0.
+     * The target backtrack window, in seconds. To disable backtracking, set this value to ``0``.
      */
     @ResourceDiffProperty(updatable = true)
     public Long getBackTrackWindow() {
@@ -92,7 +92,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * The number of days for which automated backups are retained. You must specify a minimum value of 1.
+     * The number of days for which automated backups are retained. You must specify a minimum value of ``1``.
      */
     @ResourceDiffProperty(updatable = true)
     public Integer getBackupRetentionPeriod() {
@@ -137,7 +137,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * The name of the DB cluster parameter group to associate with this DB cluster. If this argument is omitted, `default.aurora5.6` is used.
+     * The name of the DB cluster parameter group to associate with this DB cluster. If this argument is omitted, ``default.aurora5.6`` is used.
      */
     @ResourceDiffProperty(updatable = true)
     public String getDbClusterParameterGroupName() {
@@ -196,7 +196,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * The name of the database engine to be used for this DB cluster. Valid Values: `aurora` (for MySQL 5.6-compatible Aurora), `aurora-mysql` (for MySQL 5.7-compatible Aurora), and `aurora-postgresql`. (Required)
+     * The name of the database engine to be used for this DB cluster. Valid Values: ``aurora`` (for MySQL 5.6-compatible Aurora), ``aurora-mysql`` (for MySQL 5.7-compatible Aurora), and ``aurora-postgresql``. (Required)
      */
     public String getEngine() {
         return engine;
@@ -297,7 +297,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * The port number on which the instances in the DB cluster accept connections. Default: `3306` if engine is set as aurora or `5432` if set to aurora-postgresql.
+     * The port number on which the instances in the DB cluster accept connections. Default: ``3306`` if engine is set as aurora or ``5432`` if set to aurora-postgresql.
      */
     @ResourceDiffProperty(updatable = true)
     public Integer getPort() {
