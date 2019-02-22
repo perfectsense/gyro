@@ -10,6 +10,7 @@ import software.amazon.awssdk.services.rds.model.CreateDbClusterResponse;
 import software.amazon.awssdk.services.rds.model.DBClusterOptionGroupStatus;
 import software.amazon.awssdk.services.rds.model.DbClusterNotFoundException;
 import software.amazon.awssdk.services.rds.model.DescribeDbClustersResponse;
+import software.amazon.awssdk.services.rds.model.InvalidDbClusterStateException;
 import software.amazon.awssdk.services.rds.model.VpcSecurityGroupMembership;
 
 import java.util.ArrayList;
@@ -580,8 +581,9 @@ public class DbClusterResource extends RdsTaggableResource {
                 .build()
             : null;
 
-        client.modifyDBCluster(
-            r -> r.applyImmediately(getApplyImmediately())
+        try {
+            client.modifyDBCluster(
+                r -> r.applyImmediately(getApplyImmediately())
                     .backtrackWindow(getBackTrackWindow())
                     .backupRetentionPeriod(getBackupRetentionPeriod())
                     .cloudwatchLogsExportConfiguration(c -> c.enableLogTypes(getEnableCloudwatchLogsExports()))
@@ -602,7 +604,10 @@ public class DbClusterResource extends RdsTaggableResource {
                         ? null : getPreferredMaintenanceWindow())
                     .scalingConfiguration(scalingConfiguration)
                     .vpcSecurityGroupIds(getVpcSecurityGroupIds())
-        );
+            );
+        } catch (InvalidDbClusterStateException ex) {
+            throw new BeamException(ex.getLocalizedMessage());
+        }
     }
 
     @Override

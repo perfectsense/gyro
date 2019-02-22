@@ -12,6 +12,7 @@ import software.amazon.awssdk.services.rds.model.DBSecurityGroupMembership;
 import software.amazon.awssdk.services.rds.model.DbInstanceNotFoundException;
 import software.amazon.awssdk.services.rds.model.DescribeDbInstancesResponse;
 import software.amazon.awssdk.services.rds.model.DomainMembership;
+import software.amazon.awssdk.services.rds.model.InvalidDbInstanceStateException;
 import software.amazon.awssdk.services.rds.model.OptionGroupMembership;
 import software.amazon.awssdk.services.rds.model.VpcSecurityGroupMembership;
 
@@ -804,8 +805,9 @@ public class DbInstanceResource extends RdsTaggableResource {
     public void doUpdate(Resource config, Set<String> changedProperties) {
         RdsClient client = createClient(RdsClient.class);
         DbInstanceResource current = (DbInstanceResource) config;
-        client.modifyDBInstance(
-            r -> r.allocatedStorage(Objects.equals(getAllocatedStorage(), current.getAllocatedStorage()) ? null : getAllocatedStorage())
+        try {
+            client.modifyDBInstance(
+                r -> r.allocatedStorage(Objects.equals(getAllocatedStorage(), current.getAllocatedStorage()) ? null : getAllocatedStorage())
                     .applyImmediately(Objects.equals(getApplyImmediately(), current.getApplyImmediately()) ? null : getApplyImmediately())
                     .allowMajorVersionUpgrade(Objects.equals(getAllowMajorVersionUpgrade(), current.getAllowMajorVersionUpgrade()) ? null : getAllowMajorVersionUpgrade())
                     .autoMinorVersionUpgrade(Objects.equals(getAutoMinorVersionUpgrade(), current.getAutoMinorVersionUpgrade()) ? null : getAutoMinorVersionUpgrade())
@@ -840,7 +842,10 @@ public class DbInstanceResource extends RdsTaggableResource {
                     .tdeCredentialArn(Objects.equals(getTdeCredentialArn(), current.getTdeCredentialArn()) ? null : getTdeCredentialArn())
                     .tdeCredentialPassword(Objects.equals(getTdeCredentialPassword(), current.getTdeCredentialPassword()) ? null : getTdeCredentialPassword())
                     .vpcSecurityGroupIds(Objects.equals(getVpcSecurityGroupIds(), current.getVpcSecurityGroupIds()) ? null : getVpcSecurityGroupIds())
-        );
+            );
+        } catch (InvalidDbInstanceStateException ex) {
+            throw new BeamException(ex.getLocalizedMessage());
+        }
     }
 
     @Override
