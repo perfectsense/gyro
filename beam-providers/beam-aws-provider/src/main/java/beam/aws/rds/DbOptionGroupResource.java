@@ -16,6 +16,36 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Create a db option group.
+ *
+ * .. code-block:: beam
+ *
+ *    aws::db-option-group db-option-group-example
+ *        name: "option-group-example"
+ *        description: "option group example"
+ *        engine: "mysql"
+ *        major-engine-version: "5.6"
+ *
+ *        option
+ *            option-name: "MARIADB_AUDIT_PLUGIN"
+ *
+ *            option-settings
+ *                name: "SERVER_AUDIT_FILE_ROTATIONS"
+ *                value: "20"
+ *            end
+ *
+ *            option-settings
+ *                name: "SERVER_AUDIT_FILE_ROTATE_SIZE"
+ *                value: "1000"
+ *            end
+ *        end
+ *
+ *        tags: {
+ *            Name: "db-option-group-example"
+ *        }
+ *    end
+ */
 @ResourceName("db-option-group")
 public class DbOptionGroupResource extends RdsTaggableResource {
 
