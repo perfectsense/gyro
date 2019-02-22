@@ -6,6 +6,7 @@ import beam.core.diff.ResourceName;
 import beam.lang.Resource;
 import com.psddev.dari.util.ObjectUtils;
 import software.amazon.awssdk.services.rds.RdsClient;
+import software.amazon.awssdk.services.rds.model.CreateDbInstanceResponse;
 import software.amazon.awssdk.services.rds.model.DBParameterGroupStatus;
 import software.amazon.awssdk.services.rds.model.DBSecurityGroupMembership;
 import software.amazon.awssdk.services.rds.model.DbInstanceNotFoundException;
@@ -710,6 +711,7 @@ public class DbInstanceResource extends RdsTaggableResource {
                         setVpcSecurityGroupIds(i.vpcSecurityGroups().stream()
                             .map(VpcSecurityGroupMembership::vpcSecurityGroupId)
                             .collect(Collectors.toList()));
+                        setArn(i.dbInstanceArn());
                     }
                 );
 
@@ -723,7 +725,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     @Override
     public void doCreate() {
         RdsClient client = createClient(RdsClient.class);
-        client.createDBInstance(
+        CreateDbInstanceResponse response = client.createDBInstance(
             r -> r.allocatedStorage(getAllocatedStorage())
                     .autoMinorVersionUpgrade(getAutoMinorVersionUpgrade())
                     .availabilityZone(getAvailabilityZone())
@@ -768,6 +770,8 @@ public class DbInstanceResource extends RdsTaggableResource {
                     .timezone(getTimezone())
                     .vpcSecurityGroupIds(getVpcSecurityGroupIds())
         );
+
+        setArn(response.dbInstance().dbInstanceArn());
     }
 
     @Override
