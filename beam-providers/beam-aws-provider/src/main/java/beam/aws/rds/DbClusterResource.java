@@ -10,7 +10,6 @@ import software.amazon.awssdk.services.rds.model.CreateDbClusterResponse;
 import software.amazon.awssdk.services.rds.model.DBClusterOptionGroupStatus;
 import software.amazon.awssdk.services.rds.model.DbClusterNotFoundException;
 import software.amazon.awssdk.services.rds.model.DescribeDbClustersResponse;
-import software.amazon.awssdk.services.rds.model.ScalingConfiguration;
 import software.amazon.awssdk.services.rds.model.VpcSecurityGroupMembership;
 
 import java.util.ArrayList;
@@ -449,7 +448,16 @@ public class DbClusterResource extends RdsTaggableResource {
                         setPreferredBackupWindow(c.preferredBackupWindow());
                         setPreferredMaintenanceWindow(c.preferredMaintenanceWindow());
                         setReplicationSourceIdentifier(c.replicationSourceIdentifier());
-                        // scaling config
+
+                        if (c.scalingConfigurationInfo() != null) {
+                            ScalingConfiguration scalingConfiguration = new ScalingConfiguration();
+                            scalingConfiguration.setAutoPause(c.scalingConfigurationInfo().autoPause());
+                            scalingConfiguration.setMaxCapacity(c.scalingConfigurationInfo().maxCapacity());
+                            scalingConfiguration.setMinCapacity(c.scalingConfigurationInfo().minCapacity());
+                            scalingConfiguration.setSecondsUntilAutoPause(c.scalingConfigurationInfo().secondsUntilAutoPause());
+                            setScalingConfiguration(scalingConfiguration);
+                        }
+
                         setStorageEncrypted(c.storageEncrypted());
 
                         setVpcSecurityGroupIds(c.vpcSecurityGroups().stream()
@@ -468,6 +476,15 @@ public class DbClusterResource extends RdsTaggableResource {
     @Override
     protected void doCreate() {
         RdsClient client = createClient(RdsClient.class);
+        software.amazon.awssdk.services.rds.model.ScalingConfiguration scalingConfiguration = getScalingConfiguration() != null
+            ? software.amazon.awssdk.services.rds.model.ScalingConfiguration.builder()
+                .autoPause(getScalingConfiguration().getAutoPause())
+                .maxCapacity(getScalingConfiguration().getMaxCapacity())
+                .minCapacity(getScalingConfiguration().getMinCapacity())
+                .secondsUntilAutoPause(getScalingConfiguration().getSecondsUntilAutoPause())
+                .build()
+            : null;
+
         CreateDbClusterResponse response = client.createDBCluster(
             r -> r.availabilityZones(getAvailabilityZones())
                     .backtrackWindow(getBackTrackWindow())
@@ -493,7 +510,7 @@ public class DbClusterResource extends RdsTaggableResource {
                     .preferredMaintenanceWindow(getPreferredMaintenanceWindow())
                     .preSignedUrl(getPreSignedUrl())
                     .replicationSourceIdentifier(getReplicationSourceIdentifier())
-                    //.scalingConfiguration(getScalingConfiguration())
+                    .scalingConfiguration(scalingConfiguration)
                     .storageEncrypted(getStorageEncrypted())
                     .vpcSecurityGroupIds(getVpcSecurityGroupIds())
         );
@@ -505,6 +522,15 @@ public class DbClusterResource extends RdsTaggableResource {
     protected void doUpdate(Resource config, Set<String> changedProperties) {
         RdsClient client = createClient(RdsClient.class);
         DbClusterResource current = (DbClusterResource) config;
+        software.amazon.awssdk.services.rds.model.ScalingConfiguration scalingConfiguration = getScalingConfiguration() != null
+            ? software.amazon.awssdk.services.rds.model.ScalingConfiguration.builder()
+                .autoPause(getScalingConfiguration().getAutoPause())
+                .maxCapacity(getScalingConfiguration().getMaxCapacity())
+                .minCapacity(getScalingConfiguration().getMinCapacity())
+                .secondsUntilAutoPause(getScalingConfiguration().getSecondsUntilAutoPause())
+                .build()
+            : null;
+
         client.modifyDBCluster(
             r -> r.applyImmediately(getApplyImmediately())
                     .backtrackWindow(getBackTrackWindow())
@@ -521,7 +547,7 @@ public class DbClusterResource extends RdsTaggableResource {
                     .port(getPort())
                     .preferredBackupWindow(getPreferredBackupWindow())
                     .preferredMaintenanceWindow(getPreferredMaintenanceWindow())
-                    // scaling config
+                    .scalingConfiguration(scalingConfiguration)
                     .vpcSecurityGroupIds(getVpcSecurityGroupIds())
         );
     }
