@@ -8,7 +8,7 @@ import java.util.List;
 public class OptionConfiguration extends Diffable {
 
     private String optionName;
-    private List<OptionSetting> optionSetting;
+    private List<OptionSettings> optionSettings;
     private Integer port;
     private String version;
     private List<String> vpcSecurityGroupMemberships;
@@ -27,16 +27,16 @@ public class OptionConfiguration extends Diffable {
     /**
      * The option settings to include in an option group.
      */
-    public List<OptionSetting> getOptionSetting() {
-        if (optionSetting == null) {
-            optionSetting = new ArrayList<>();
+    public List<OptionSettings> getOptionSettings() {
+        if (optionSettings == null) {
+            optionSettings = new ArrayList<>();
         }
 
-        return optionSetting;
+        return optionSettings;
     }
 
-    public void setOptionSetting(List<OptionSetting> optionSetting) {
-        this.optionSetting = optionSetting;
+    public void setOptionSettings(List<OptionSettings> optionSettings) {
+        this.optionSettings = optionSettings;
     }
 
     /**

@@ -1,8 +1,9 @@
 package beam.aws.rds;
 
 import beam.core.diff.Diffable;
+import beam.core.diff.ResourceDiffProperty;
 
-public class OptionSetting extends Diffable {
+public class OptionSettings extends Diffable {
 
     private String name;
     private String value;
@@ -21,6 +22,7 @@ public class OptionSetting extends Diffable {
     /**
      * The current value of the option setting.
      */
+    @ResourceDiffProperty(updatable = true)
     public String getValue() {
         return value;
     }

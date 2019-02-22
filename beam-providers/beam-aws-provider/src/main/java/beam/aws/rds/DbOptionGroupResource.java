@@ -115,12 +115,12 @@ public class DbOptionGroupResource extends RdsTaggableResource {
                                         .map(VpcSecurityGroupMembership::vpcSecurityGroupId)
                                         .collect(Collectors.toList()));
 
-                                optionConfiguration.setOptionSetting(o.optionSettings().stream()
+                                optionConfiguration.setOptionSettings(o.optionSettings().stream()
                                     .map(s -> {
-                                        OptionSetting optionSetting = new OptionSetting();
-                                        optionSetting.setName(s.name());
-                                        optionSetting.setValue(s.value());
-                                        return optionSetting;
+                                        OptionSettings optionSettings = new OptionSettings();
+                                        optionSettings.setName(s.name());
+                                        optionSettings.setValue(s.value());
+                                        return optionSettings;
                                     })
                                     .collect(Collectors.toList()));
 
@@ -185,7 +185,7 @@ public class DbOptionGroupResource extends RdsTaggableResource {
                         .optionVersion(o.getVersion())
                         .port(o.getPort())
                         .vpcSecurityGroupMemberships(o.getVpcSecurityGroupMemberships())
-                        .optionSettings(o.getOptionSetting().stream()
+                        .optionSettings(o.getOptionSettings().stream()
                             .map(s -> software.amazon.awssdk.services.rds.model.OptionSetting.builder()
                                 .name(s.getName())
                                 .value(s.getValue())
