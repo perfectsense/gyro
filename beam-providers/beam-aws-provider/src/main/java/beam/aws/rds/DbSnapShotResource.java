@@ -13,6 +13,19 @@ import software.amazon.awssdk.services.rds.model.InvalidDbInstanceStateException
 
 import java.util.Set;
 
+/**
+ * Create a db snapshot.
+ *
+ * .. code-block:: beam
+ *
+ *    aws::db-snapshot db-snapshot-example
+ *        db-instance-identifier: $(aws::db-instance db-instance-example | db-instance-identifier)
+ *        db-snapshot-identifier: "db-snapshot-example"
+ *        tags: {
+ *            Name: "db-snapshot-example"
+ *        }
+ *    end
+ */
 @ResourceName("db-snapshot")
 public class DbSnapShotResource extends RdsTaggableResource {
 
