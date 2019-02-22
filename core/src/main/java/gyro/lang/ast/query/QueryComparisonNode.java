@@ -1,34 +1,21 @@
 package gyro.lang.ast.query;
 
+import gyro.core.diff.DiffableType;
+import gyro.lang.Resource;
 import gyro.lang.ast.scope.Scope;
-import gyro.lang.query.EqualsQueryFilter;
-import gyro.lang.query.NotEqualsFilter;
-import gyro.lang.query.QueryFilter;
+import gyro.lang.ResourceQuery;
 import gyro.parser.antlr4.BeamParser.FilterComparisonExpressionContext;
 import gyro.parser.antlr4.BeamParser.FilterExpressionContext;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 public class QueryComparisonNode extends QueryExpressionNode {
 
     private String operator;
-
-    @Override
-    public QueryFilter toFilter(Scope scope) {
-        try {
-            Object leftValue = getLeftNode().evaluate(scope);
-            Object rightValue = getRightNode().evaluate(scope);
-
-            switch (operator) {
-                case "==":
-                    return new EqualsQueryFilter(leftValue.toString(), rightValue.toString());
-                case "!=":
-                    return new NotEqualsFilter(leftValue.toString(), rightValue.toString());
-            }
-        } catch (Exception ex) {
-            // TODO: ??
-        }
-
-        throw new IllegalStateException();
-    }
 
     public QueryComparisonNode(FilterExpressionContext context) {
         super(context);
@@ -38,15 +25,48 @@ public class QueryComparisonNode extends QueryExpressionNode {
     }
 
     @Override
+    public Object evaluate(Resource resource, List<Resource> resources) throws Exception {
+        if (resources == null) {
+            return evaluate(resource.scope());
+        }
+
+        String leftValue = (String) getLeftNode().evaluate(resource.scope());
+        Object rightValue = getRightNode().evaluate(resource.scope());
+
+        for (Iterator<Resource> i = resources.iterator(); i.hasNext();) {
+            Resource r = i.next();
+
+            boolean equal = Objects.equals(
+                DiffableType.getInstance(r.getClass()).getFieldByBeamName(leftValue).getValue(r),
+                rightValue);
+
+            if ("==".equals(operator) && !equal) {
+                i.remove();
+            } else if ("!=".equals(operator) && equal) {
+                i.remove();
+            }
+        }
+
+        return resources;
+    }
+
+    @Override
     public Object evaluate(Scope scope) throws Exception {
         Object leftValue = getLeftNode().evaluate(scope);
         Object rightValue = getRightNode().evaluate(scope);
 
-        switch (operator) {
-            case "==" : return leftValue.equals(rightValue);
-            case "!=" : return !leftValue.equals(rightValue);
-            default   : return false;
+        if ("==".equals(operator)) {
+            Map<String, String> filter = new HashMap<>();
+            filter.put(leftValue.toString(), rightValue.toString());
+
+            ResourceQuery resourceQuery = (ResourceQuery) getResource();
+            return resourceQuery.query(filter);
+        } else if ("!=".equals(operator)) {
+            ResourceQuery resourceQuery = (ResourceQuery) getResource();
+            return evaluate(getResource(), resourceQuery.queryAll());
         }
+
+        return null;
     }
 
     @Override
@@ -57,4 +77,5 @@ public class QueryComparisonNode extends QueryExpressionNode {
         builder.append(" ");
         builder.append(getRightNode());
     }
+
 }

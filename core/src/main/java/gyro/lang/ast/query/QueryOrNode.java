@@ -1,31 +1,37 @@
 package gyro.lang.ast.query;
 
-import gyro.lang.ast.Node;
+import gyro.lang.Resource;
 import gyro.lang.ast.scope.Scope;
-import gyro.lang.query.OrQueryFilter;
-import gyro.lang.query.QueryFilter;
 import gyro.parser.antlr4.BeamParser;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class QueryOrNode extends QueryExpressionNode {
-
-    @Override
-    public QueryFilter toFilter(Scope scope) {
-        QueryExpressionNode leftNode = (QueryExpressionNode) getLeftNode();
-        QueryExpressionNode rightNode = (QueryExpressionNode) getRightNode();
-
-        return new OrQueryFilter(leftNode.toFilter(scope), rightNode.toFilter(scope));
-    }
 
     public QueryOrNode(BeamParser.FilterExpressionContext context) {
         super(context);
     }
 
     @Override
-    public Object evaluate(Scope scope) throws Exception {
-        Boolean leftValue = toBoolean(getLeftNode().evaluate(scope));
-        Boolean rightValue = toBoolean(getRightNode().evaluate(scope));
+    public Object evaluate(Resource resource, List<Resource> resources) throws Exception {
+        if (resources == null) {
+            return evaluate(resource.scope());
+        }
 
-        return leftValue || rightValue;
+        return null;
+    }
+
+    @Override
+    public Object evaluate(Scope scope) throws Exception {
+        List<Resource> leftValue = (List<Resource>) getLeftNode().evaluate(scope);
+        List<Resource> rightValue = (List<Resource>) getRightNode().evaluate(scope);
+
+        List<Resource> both = new ArrayList<>();
+        both.addAll(leftValue);
+        both.addAll(rightValue);
+
+        return both;
     }
 
     @Override

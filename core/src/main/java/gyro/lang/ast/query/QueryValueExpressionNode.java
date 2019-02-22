@@ -1,18 +1,24 @@
 package gyro.lang.ast.query;
 
+import gyro.lang.Resource;
 import gyro.lang.ast.scope.Scope;
-import gyro.lang.query.QueryFilter;
 import gyro.parser.antlr4.BeamParser;
+
+import java.util.List;
 
 public class QueryValueExpressionNode extends QueryExpressionNode {
 
-    @Override
-    public QueryFilter toFilter(Scope scope) {
-        return null;
-    }
-
     public QueryValueExpressionNode(BeamParser.FilterExpressionContext context) {
         super(context);
+    }
+
+    @Override
+    public Object evaluate(Resource resource, List<Resource> resources) throws Exception {
+        if (resources == null) {
+            return evaluate(resource.scope());
+        }
+
+        return null;
     }
 
     @Override

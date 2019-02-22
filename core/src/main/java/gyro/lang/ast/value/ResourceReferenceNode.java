@@ -6,13 +6,11 @@ import gyro.lang.ast.Node;
 import gyro.lang.ast.query.QueryExpressionNode;
 import gyro.lang.ast.scope.DiffableScope;
 import gyro.lang.ast.scope.Scope;
-import gyro.lang.query.QueryFilter;
-import gyro.lang.query.ResourceQuery;
+import gyro.lang.ResourceQuery;
 import gyro.parser.antlr4.BeamParser;
 import gyro.parser.antlr4.BeamParser.ReferenceBodyContext;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -78,8 +76,17 @@ public class ResourceReferenceNode extends Node {
             String name = (String) nameNode.evaluate(scope);
 
             if (name.startsWith("EXTERNAL/*")) {
-                return externalQuery(scope);
+                for (Node filter : filters) {
+                    // TODO: first filter triggers api calls, subsequent fitlers use
+                    //       the output from the first and narrow it down
+                    ((QueryExpressionNode) filter).setResource(queryResource(scope));
 
+                    Object value = filter.evaluate(scope);
+
+                    return value;
+                }
+
+                return null;
             } else {
                 String fullName = type + "::" + name;
                 Resource resource = scope.getRootScope().findResource(fullName);
@@ -129,8 +136,7 @@ public class ResourceReferenceNode extends Node {
         builder.append(")");
     }
 
-    private List<Resource> externalQuery(Scope scope) throws Exception {
-        List<Resource> resources = new ArrayList<>();
+    private Resource queryResource(Scope scope) throws Exception {
 
         @SuppressWarnings("unchecked")
         Class<? extends Resource> resourceClass = (Class<? extends Resource>) scope.getRootScope().getResourceClasses().get(type);
@@ -145,16 +151,7 @@ public class ResourceReferenceNode extends Node {
             resource.initialize(scope);
 
             if (resource instanceof ResourceQuery) {
-                ResourceQuery resourceQuery = (ResourceQuery) resource;
-
-                List<QueryFilter> queryFilters = filters
-                    .stream()
-                    .map(f -> ((QueryExpressionNode) f).toFilter(scope))
-                    .collect(Collectors.toList());
-
-                resources = resourceQuery.query(queryFilters);
-
-                // TODO: Process any left over filters.
+                return resource;
             }
 
         } catch (IllegalAccessException
@@ -171,7 +168,7 @@ public class ResourceReferenceNode extends Node {
                 : new RuntimeException(cause);
         }
 
-        return resources;
+        return null;
     }
 
 }

@@ -1,16 +1,16 @@
 package gyro.lang.ast.query;
 
+import gyro.lang.Resource;
 import gyro.lang.ast.Node;
-import gyro.lang.ast.scope.Scope;
-import gyro.lang.query.QueryFilter;
 import gyro.parser.antlr4.BeamParser;
+
+import java.util.List;
 
 public abstract class QueryExpressionNode extends Node {
 
+    private Resource resource;
     private Node leftNode;
     private Node rightNode;
-
-    public abstract QueryFilter toFilter(Scope scope);
 
     public QueryExpressionNode(BeamParser.FilterExpressionContext context) {
         leftNode = Node.create(context.getChild(0));
@@ -20,8 +20,26 @@ public abstract class QueryExpressionNode extends Node {
         }
     }
 
+    public abstract Object evaluate(Resource resource, List<Resource> resources) throws Exception;
+
+    public Resource getResource() {
+        return resource;
+    }
+
+    public void setResource(Resource resource) {
+        this.resource = resource;
+    }
+
     public Node getLeftNode() {
         return leftNode;
+    }
+
+    public QueryExpressionNode getLeftQueryExpressionNode() {
+        if (leftNode instanceof QueryExpressionNode) {
+            return (QueryExpressionNode) leftNode;
+        }
+
+        return null;
     }
 
     public void setLeftNode(Node leftNode) {
@@ -32,18 +50,16 @@ public abstract class QueryExpressionNode extends Node {
         return rightNode;
     }
 
-    public void setRightNode(Node rightNode) {
-        this.rightNode = rightNode;
-    }
-
-    public static Boolean toBoolean(Object value) {
-        if (value instanceof Boolean) {
-            return (Boolean) value;
-        } else if (value instanceof Number) {
-            return ((Number) value).intValue() == 1;
+    public QueryExpressionNode getRightQueryExpressionNode() {
+        if (rightNode instanceof QueryExpressionNode) {
+            return (QueryExpressionNode) rightNode;
         }
 
-        return false;
+        return null;
+    }
+
+    public void setRightNode(Node rightNode) {
+        this.rightNode = rightNode;
     }
 
 }
