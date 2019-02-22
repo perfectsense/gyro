@@ -183,7 +183,7 @@ public class NetworkInterfaceResource extends AzureResource {
     public void delete() {
         Azure client = createClient();
 
-        client.networkInterfaces().deleteById(getNetworkInterfaceId());
+        client.networkInterfaces().deleteByResourceGroup(getResourceGroupName(), getNetworkInterfaceName());
     }
 
     @Override
