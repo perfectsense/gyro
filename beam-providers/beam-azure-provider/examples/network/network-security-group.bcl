@@ -1,0 +1,19 @@
+import ../init as _
+
+azure::resource-group resource-group-network-security-group-example
+    resource-group-name: "resource-group-network-security-group-example"
+
+    tags: {
+        Name: "resource-group-network-security-group-example"
+    }
+end
+
+azure::network-security-group network-security-group-example
+    network-security-group-name: "network-security-group-example"
+    resource-group-name: $(azure::resource-group resource-group-network-security-group-example | resource-group-name)
+
+    tags: {
+        Name: "network-security-group-example"
+    }
+end
+
