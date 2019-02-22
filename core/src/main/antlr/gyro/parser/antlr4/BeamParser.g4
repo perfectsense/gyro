@@ -80,6 +80,8 @@ filterExpression
     : IDENTIFIER (DOT IDENTIFIER)*               # FilterAttributeValue
     | referenceValue                             # FilterReferenceValue
     | stringValue                                # FilterStringValue
+    | booleanValue                               # FilterBooleanValue
+    | numberValue                                # FilterNumberValue
     | filterExpression operator filterExpression # FilterComparisonExpression
     | filterExpression OR filterExpression       # FilterOrExpression
     | filterExpression AND filterExpression      # FilterAndExpression

@@ -86,6 +86,11 @@ public abstract class Node {
                 ? new StringExpressionNode(sec)
                 : new StringNode(StringUtils.strip(svc.stringValue().STRING_LITERAL().getText(), "'"));
 
+        } else if (cc.equals(BeamParser.FilterBooleanValueContext.class)) {
+            return new BooleanNode(((BeamParser.FilterBooleanValueContext) context).booleanValue());
+
+        } else if (cc.equals(BeamParser.FilterNumberValueContext.class)) {
+            return new NumberNode(((BeamParser.FilterNumberValueContext) context).numberValue());
 
         } else if (cc.equals(BeamParser.ValueContext.class)) {
             return Node.create(context.getChild(0));
