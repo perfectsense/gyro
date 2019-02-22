@@ -13,7 +13,7 @@ import software.amazon.awssdk.services.rds.model.GlobalClusterNotFoundException;
 import java.util.Set;
 
 /**
- * Create a db instance.
+ * Create a global cluster.
  *
  * .. code-block:: beam
  *
