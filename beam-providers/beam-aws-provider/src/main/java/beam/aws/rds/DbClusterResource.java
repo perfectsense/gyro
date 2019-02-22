@@ -608,6 +608,13 @@ public class DbClusterResource extends RdsTaggableResource {
     @Override
     public void delete() {
         RdsClient client = createClient(RdsClient.class);
+        if (getGlobalClusterIdentifier() != null) {
+            client.removeFromGlobalCluster(
+                r -> r.dbClusterIdentifier(getArn())
+                        .globalClusterIdentifier(getGlobalClusterIdentifier())
+            );
+        }
+
         client.deleteDBCluster(
             r -> r.dbClusterIdentifier(getDbClusterIdentifier())
                     .finalDBSnapshotIdentifier(getFinalDbSnapshotIdentifier())
