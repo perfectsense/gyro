@@ -1,0 +1,23 @@
+import ../init as _
+
+azure::resource-group queue-resource-group
+    resource-group-name: "queue-resource-group"
+
+    tags: {
+        Name: "queue-resource-group"
+    }
+end
+
+azure::storage-account queue-storage-account-example
+    resource-group-name: $(azure::resource-group queue-resource-group | resource-group-name)
+    storage-account-name: "testqueueexample"
+
+    tags: {
+        Name: "testqueueexample"
+    }
+end
+
+azure::cloud-queue cloud-queue-example
+    cloud-queue-name: "cloudqueuename"
+    storage-connection: $(azure::storage-account queue-storage-account-example | storage-connection)
+end
