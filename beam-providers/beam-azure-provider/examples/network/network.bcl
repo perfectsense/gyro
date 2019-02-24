@@ -21,6 +21,6 @@ azure::network network-example
     }
 
     tags: {
-        Name: "resource-group-network-example"
+        Name: "network-example"
     }
 end
