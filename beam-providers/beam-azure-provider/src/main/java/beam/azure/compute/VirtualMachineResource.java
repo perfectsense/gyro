@@ -1,6 +1,9 @@
 package beam.azure.compute;
 
 import beam.azure.AzureResource;
+import beam.core.BeamException;
+import beam.core.diff.ResourceDiffProperty;
+import beam.core.diff.ResourceName;
 import beam.lang.Resource;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.compute.CachingTypes;
@@ -9,6 +12,7 @@ import com.microsoft.azure.management.compute.KnownWindowsVirtualMachineImage;
 import com.microsoft.azure.management.compute.OperatingSystemTypes;
 import com.microsoft.azure.management.compute.StorageAccountTypes;
 import com.microsoft.azure.management.compute.VirtualMachine;
+import com.microsoft.azure.management.compute.VirtualMachine.DefinitionStages.WithNetwork;
 import com.microsoft.azure.management.compute.VirtualMachine.DefinitionStages.WithPrivateIP;
 import com.microsoft.azure.management.compute.VirtualMachine.DefinitionStages.WithPublicIPAddress;
 import com.microsoft.azure.management.compute.VirtualMachine.DefinitionStages.WithOS;
@@ -22,24 +26,28 @@ import com.microsoft.azure.management.compute.VirtualMachine.DefinitionStages.Wi
 import com.microsoft.azure.management.compute.VirtualMachine.DefinitionStages.WithLinuxRootPasswordOrPublicKeyManaged;
 import com.microsoft.azure.management.compute.VirtualMachine.DefinitionStages.WithWindowsCreateUnmanaged;
 import com.microsoft.azure.management.compute.VirtualMachine.DefinitionStages.WithWindowsCreateManaged;
-import com.microsoft.azure.management.compute.VirtualMachine.DefinitionStages.WithWindowsCreateManagedOrUnmanaged;
 import com.microsoft.azure.management.compute.VirtualMachine.DefinitionStages.WithWindowsAdminPasswordManaged;
 import com.microsoft.azure.management.compute.VirtualMachineSizeTypes;
-import com.microsoft.azure.management.compute.WinRMListener;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.psddev.dari.util.ObjectUtils;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+@ResourceName("virtual-machine")
 public class VirtualMachineResource extends AzureResource {
-    private String name;
+    private String virtualMachineName;
     private String resourceGroupName;
     private String networkId;
+    private String networkInterfaceName;
     private String adminUserName;
     private String adminPassword;
     private String virtualMachineId;
     private String vmId;
-    private String publicIpAddress;
+    private String publicIpAddressName;
     private String privateIpAddress;
     private String osType;
     private String diskId;
@@ -55,13 +63,20 @@ public class VirtualMachineResource extends AzureResource {
     private String vmSizeType;
     private String knownVirtualImage;
     private String timeZone;
+    private String imagePublisher;
+    private String imageOffer;
+    private String imageSku;
+    private String imageRegion;
+    private String imageVersion;
+    private List<String> secondaryNetworkInterfaceNames;
+    private Map<String, String> tags;
 
-    public String getName() {
-        return name;
+    public String getVirtualMachineName() {
+        return virtualMachineName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setVirtualMachineName(String virtualMachineName) {
+        this.virtualMachineName = virtualMachineName;
     }
 
     public String getResourceGroupName() {
@@ -78,6 +93,14 @@ public class VirtualMachineResource extends AzureResource {
 
     public void setNetworkId(String networkId) {
         this.networkId = networkId;
+    }
+
+    public String getNetworkInterfaceName() {
+        return networkInterfaceName;
+    }
+
+    public void setNetworkInterfaceName(String networkInterfaceName) {
+        this.networkInterfaceName = networkInterfaceName;
     }
 
     public String getAdminUserName() {
@@ -112,12 +135,12 @@ public class VirtualMachineResource extends AzureResource {
         this.vmId = vmId;
     }
 
-    public String getPublicIpAddress() {
-        return publicIpAddress;
+    public String getPublicIpAddressName() {
+        return publicIpAddressName;
     }
 
-    public void setPublicIpAddress(String publicIpAddress) {
-        this.publicIpAddress = publicIpAddress;
+    public void setPublicIpAddressName(String publicIpAddressName) {
+        this.publicIpAddressName = publicIpAddressName;
     }
 
     public String getPrivateIpAddress() {
@@ -153,6 +176,10 @@ public class VirtualMachineResource extends AzureResource {
     }
 
     public String getVmImageType() {
+        if (vmImageType == null) {
+            vmImageType = "specialized";
+        }
+
         return vmImageType;
     }
 
@@ -240,13 +267,81 @@ public class VirtualMachineResource extends AzureResource {
         this.timeZone = timeZone;
     }
 
+    public String getImagePublisher() {
+        return imagePublisher;
+    }
+
+    public void setImagePublisher(String imagePublisher) {
+        this.imagePublisher = imagePublisher;
+    }
+
+    public String getImageOffer() {
+        return imageOffer;
+    }
+
+    public void setImageOffer(String imageOffer) {
+        this.imageOffer = imageOffer;
+    }
+
+    public String getImageSku() {
+        return imageSku;
+    }
+
+    public void setImageSku(String imageSku) {
+        this.imageSku = imageSku;
+    }
+
+    public String getImageRegion() {
+        return imageRegion;
+    }
+
+    public void setImageRegion(String imageRegion) {
+        this.imageRegion = imageRegion;
+    }
+
+    public String getImageVersion() {
+        return imageVersion;
+    }
+
+    public void setImageVersion(String imageVersion) {
+        this.imageVersion = imageVersion;
+    }
+
+    @ResourceDiffProperty(updatable = true)
+    public List<String> getSecondaryNetworkInterfaceNames() {
+        if (secondaryNetworkInterfaceNames == null) {
+            secondaryNetworkInterfaceNames = new ArrayList<>();
+        }
+
+        return secondaryNetworkInterfaceNames;
+    }
+
+    public void setSecondaryNetworkInterfaceNames(List<String> secondaryNetworkInterfaceNames) {
+        this.secondaryNetworkInterfaceNames = secondaryNetworkInterfaceNames;
+    }
+
+    @ResourceDiffProperty(updatable = true)
+    public Map<String, String> getTags() {
+        if (tags == null) {
+            tags = new HashMap<>();
+        }
+
+        return tags;
+    }
+
+    public void setTags(Map<String, String> tags) {
+        this.tags = tags;
+    }
+
     @Override
     public boolean refresh() {
         Azure client = createClient();
 
         VirtualMachine virtualMachine = client.virtualMachines().getById(getVirtualMachineId());
 
-        setName(virtualMachine.name());
+        setVirtualMachineName(virtualMachine.name());
+        setVmId(virtualMachine.vmId());
+        setTags(virtualMachine.tags());
 
         return true;
     }
@@ -255,27 +350,41 @@ public class VirtualMachineResource extends AzureResource {
     public void create() {
         Azure client = createClient();
 
-        WithPrivateIP withPrivateIP = client.virtualMachines().define(getName())
+        WithNetwork withNetwork = client.virtualMachines().define(getVirtualMachineName())
             .withRegion(Region.fromName(getRegion()))
-            .withExistingResourceGroup(getResourceGroupName())
-            .withExistingPrimaryNetwork(client.networks().getById(getNetworkId()))
-            .withSubnet(getSubnet());
-
-        WithPublicIPAddress withPublicIpAddress;
-        if (!ObjectUtils.isBlank(getPrivateIpAddress())) {
-            withPublicIpAddress = withPrivateIP.withPrimaryPrivateIPAddressStatic(getPrivateIpAddress());
-        } else {
-            withPublicIpAddress = withPrivateIP.withPrimaryPrivateIPAddressDynamic();
-        }
+            .withExistingResourceGroup(getResourceGroupName());
 
         WithOS withOS;
-        if (!ObjectUtils.isBlank(getPublicIpAddress())) {
-            withOS = withPublicIpAddress.withoutPrimaryPublicIPAddress();
+
+        if (!ObjectUtils.isBlank(getNetworkInterfaceName())) {
+            withOS = withNetwork.withExistingPrimaryNetworkInterface(
+                    client.networkInterfaces().getByResourceGroup(
+                        getResourceGroupName(), getNetworkInterfaceName()
+                    ));
         } else {
-            withOS = withPublicIpAddress.withExistingPrimaryPublicIPAddress(
-                client.publicIPAddresses().getById(getPublicIpAddress())
-            );
+
+            WithPrivateIP withPrivateIP = withNetwork
+                .withExistingPrimaryNetwork(client.networks().getById(getNetworkId()))
+                .withSubnet(getSubnet());
+
+            WithPublicIPAddress withPublicIpAddress;
+            if (!ObjectUtils.isBlank(getPrivateIpAddress())) {
+                withPublicIpAddress = withPrivateIP.withPrimaryPrivateIPAddressStatic(getPrivateIpAddress());
+            } else {
+                withPublicIpAddress = withPrivateIP.withPrimaryPrivateIPAddressDynamic();
+            }
+
+
+            if (!ObjectUtils.isBlank(getPublicIpAddressName())) {
+                withOS = withPublicIpAddress.withExistingPrimaryPublicIPAddress(
+                    client.publicIPAddresses().getByResourceGroup(getResourceGroupName(), getPublicIpAddressName())
+                );
+            } else {
+                withOS = withPublicIpAddress.withoutPrimaryPublicIPAddress();
+            }
         }
+
+
 
         WithCreate create = null;
         WithManagedCreate managedCreate = null;
@@ -295,7 +404,7 @@ public class VirtualMachineResource extends AzureResource {
                 WithLinuxCreateManagedOrUnmanaged createManagedOrUnmanaged;
 
                 if (getVmImageType().equals("latest")) {
-                    managedOrUnmanaged = withOS.withLatestLinuxImage("","","")
+                    managedOrUnmanaged = withOS.withLatestLinuxImage(getImagePublisher(),getImageOffer(),getImageSku())
                         .withRootUsername(getAdminUserName());
                 } else if (getVmImageType().equals("popular")) {
                     managedOrUnmanaged = withOS.withPopularLinuxImage(
@@ -304,33 +413,31 @@ public class VirtualMachineResource extends AzureResource {
                 } else {
                     managedOrUnmanaged = withOS.withSpecificLinuxImageVersion(
                         client.virtualMachineImages()
-                            .getImage("region","publisher","offer","sku","version")
+                            .getImage(getImageRegion(),getImagePublisher(),getImageOffer(),getImageSku(),getImageVersion())
                             .imageReference()
                     ).withRootUsername(getAdminUserName());
                 }
 
-                createManagedOrUnmanaged = !ObjectUtils.isBlank(getAdminPassword())
-                    ? managedOrUnmanaged.withRootPassword(getAdminPassword()) : null;
-
-                createManagedOrUnmanaged = !ObjectUtils.isBlank(getSsh())
-                    ? (createManagedOrUnmanaged != null
-                        ? createManagedOrUnmanaged.withSsh(getSsh()) : managedOrUnmanaged.withSsh(getSsh())) : null;
-
-                managedCreate = createManagedOrUnmanaged != null
-                    ? createManagedOrUnmanaged.withExistingDataDisk(client.disks().getById(getDiskId())) : null;
-
+                if (!ObjectUtils.isBlank(getAdminPassword()) && !ObjectUtils.isBlank(getSsh())) {
+                    managedCreate = managedOrUnmanaged.withRootPassword(getAdminPassword()).withSsh(getSsh());
+                } else if (!ObjectUtils.isBlank(getAdminPassword())) {
+                    managedCreate = managedOrUnmanaged.withRootPassword(getAdminPassword());
+                } else {
+                    managedCreate = managedOrUnmanaged.withSsh(getSsh());
+                }
 
             } else if (getVmImageType().equals("stored")) {
                 WithLinuxRootPasswordOrPublicKeyUnmanaged publicKeyUnmanaged = withOS
                     .withStoredLinuxImage(getStoredImage())
                     .withRootUsername(getAdminUserName());
 
-                createUnmanaged = !ObjectUtils.isBlank(getAdminPassword())
-                    ? publicKeyUnmanaged.withRootPassword(getAdminPassword()) : null;
-
-                createUnmanaged = !ObjectUtils.isBlank(getSsh())
-                    ? (createUnmanaged != null
-                        ? createUnmanaged.withSsh(getSsh()) : publicKeyUnmanaged.withSsh(getSsh())) : null;
+                if (!ObjectUtils.isBlank(getAdminPassword()) && !ObjectUtils.isBlank(getSsh())) {
+                    createUnmanaged = publicKeyUnmanaged.withRootPassword(getAdminPassword()).withSsh(getSsh());
+                } else if (!ObjectUtils.isBlank(getAdminPassword())) {
+                    createUnmanaged = publicKeyUnmanaged.withRootPassword(getAdminPassword());
+                } else {
+                    createUnmanaged = publicKeyUnmanaged.withSsh(getSsh());
+                }
 
             } else if (getVmImageType().equals("custom") || getVmImageType().equals("gallery")) {
                 WithLinuxRootPasswordOrPublicKeyManaged publicKeyManaged;
@@ -343,12 +450,13 @@ public class VirtualMachineResource extends AzureResource {
                         .withRootUsername(getAdminUserName());
                 }
 
-                createManaged = !ObjectUtils.isBlank(getAdminPassword())
-                    ? publicKeyManaged.withRootPassword(getAdminPassword()) : null;
-
-                createManaged = !ObjectUtils.isBlank(getSsh())
-                    ? (createManaged != null
-                        ? createManaged.withSsh(getSsh()) : publicKeyManaged.withSsh(getSsh())) : null;
+                if (!ObjectUtils.isBlank(getAdminPassword()) && !ObjectUtils.isBlank(getSsh())) {
+                    createManaged = publicKeyManaged.withRootPassword(getAdminPassword()).withSsh(getSsh());
+                } else if (!ObjectUtils.isBlank(getAdminPassword())) {
+                    createManaged = publicKeyManaged.withRootPassword(getAdminPassword());
+                } else {
+                    createManaged = publicKeyManaged.withSsh(getSsh());
+                }
 
             } else {
                 managedCreate = withOS.withSpecializedOSDisk(
@@ -357,9 +465,9 @@ public class VirtualMachineResource extends AzureResource {
             }
 
             if (createUnmanaged != null) {
-                create = createUnmanaged.withSize(VirtualMachineSizeTypes.fromString(""));
+                create = createUnmanaged.withSize(VirtualMachineSizeTypes.fromString(getVmSizeType()));
             } else if (createManaged != null) {
-                create = createManaged.withSize(VirtualMachineSizeTypes.fromString(""));
+                create = createManaged.withSize(VirtualMachineSizeTypes.fromString(getVmSizeType()));
             }
         } else {
             //windows
@@ -369,7 +477,7 @@ public class VirtualMachineResource extends AzureResource {
                 VirtualMachine.DefinitionStages.WithWindowsAdminPasswordManagedOrUnmanaged managedOrUnmanaged;
 
                 if (getVmImageType().equals("latest")) {
-                    managedOrUnmanaged = withOS.withLatestWindowsImage("publisher","offer","sku")
+                    managedOrUnmanaged = withOS.withLatestWindowsImage(getImagePublisher(),getImageOffer(),getImageSku())
                         .withAdminUsername(getAdminUserName());
                 } else if (getVmImageType().equals("popular")) {
                     managedOrUnmanaged = withOS.withPopularWindowsImage(
@@ -378,16 +486,13 @@ public class VirtualMachineResource extends AzureResource {
                 } else {
                     managedOrUnmanaged = withOS.withSpecificWindowsImageVersion(
                         client.virtualMachineImages()
-                            .getImage("region","publisher","offer","sku","version")
+                            .getImage(getImageRegion(),getImagePublisher(),getImageOffer(),getImageSku(),getImageVersion())
                             .imageReference()
                     ).withAdminUsername(getAdminUserName());
                 }
 
-                WithWindowsCreateManagedOrUnmanaged createManagedOrUnmanaged = !ObjectUtils.isBlank(getAdminPassword())
-                    ? managedOrUnmanaged.withAdminPassword(getAdminPassword()) : null;
-
-                managedCreate = createManagedOrUnmanaged != null
-                    ? createManagedOrUnmanaged.withExistingDataDisk(client.disks().getById(getDiskId())) : null;
+                managedCreate = managedOrUnmanaged.withAdminPassword(getAdminPassword())
+                    .withExistingDataDisk(client.disks().getById(getDiskId()));
 
             } else if (getVmImageType().equals("stored")) {
                 createUnmanaged = withOS.withStoredWindowsImage(getStoredImage())
@@ -410,20 +515,17 @@ public class VirtualMachineResource extends AzureResource {
                 );
             }
 
-            WinRMListener d = new WinRMListener();
             if (createUnmanaged != null) {
                 create = createUnmanaged
                     .withoutAutoUpdate()
                     .withoutVMAgent()
                     .withTimeZone(getTimeZone())
-                    .withWinRM(d)
                     .withSize(VirtualMachineSizeTypes.fromString(getVmSizeType()));
             } else if (createManaged != null) {
                 create = createManaged
                     .withoutAutoUpdate()
                     .withoutVMAgent()
                     .withTimeZone(getTimeZone())
-                    .withWinRM(d)
                     .withSize(VirtualMachineSizeTypes.fromString(getVmSizeType()));
             }
         }
@@ -435,7 +537,17 @@ public class VirtualMachineResource extends AzureResource {
                 .withSize(VirtualMachineSizeTypes.fromString(getVmSizeType()));
         }
 
-        VirtualMachine virtualMachine = create.create();
+        if (create == null) {
+            throw new BeamException("Invalid config.");
+        }
+
+        if (!getSecondaryNetworkInterfaceNames().isEmpty()) {
+            for (String networkInterfaceName : getSecondaryNetworkInterfaceNames()) {
+                create = create.withExistingSecondaryNetworkInterface(client.networkInterfaces().getByResourceGroup(getResourceGroupName(), networkInterfaceName));
+            }
+        }
+
+        VirtualMachine virtualMachine = create.withTags(getTags()).create();
 
         setVirtualMachineId(virtualMachine.id());
         setVmId(virtualMachine.vmId());
@@ -451,6 +563,7 @@ public class VirtualMachineResource extends AzureResource {
             .withSize(VirtualMachineSizeTypes.fromString(getVmSizeType()))
             .withDataDiskDefaultCachingType(CachingTypes.fromString(getCachingType()))
             .withDataDiskDefaultStorageAccountType(StorageAccountTypes.fromString(getStorageAccountTypeDataDisk()))
+            .withTags(getTags())
             .apply();
     }
 
@@ -467,8 +580,8 @@ public class VirtualMachineResource extends AzureResource {
 
         sb.append("virtual machine");
 
-        if (!ObjectUtils.isBlank(getName())) {
-            sb.append(" - ").append(getName());
+        if (!ObjectUtils.isBlank(getVirtualMachineName())) {
+            sb.append(" - ").append(getVirtualMachineName());
         }
 
         if (!ObjectUtils.isBlank(getVirtualMachineId())) {
