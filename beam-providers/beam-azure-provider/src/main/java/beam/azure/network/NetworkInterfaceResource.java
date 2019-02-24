@@ -77,7 +77,7 @@ public class NetworkInterfaceResource extends AzureResource {
     }
 
     /**
-     * One of the subnet name from teh assigned virtual network. (Required)
+     * One of the subnet name from the assigned virtual network. (Required)
      */
     public String getSubnet() {
         return subnet;

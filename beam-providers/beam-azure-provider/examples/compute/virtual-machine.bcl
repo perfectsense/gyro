@@ -75,4 +75,7 @@ azure::virtual-machine virtual-machine-example
     vm-size-type: "STANDARD_G1"
     storage-account-type-data-disk: "STANDARD_LRS"
     storage-account-type-os-disk: "STANDARD_LRS"
+    tags: {
+            Name: "network-interface-example-VM"
+    }
 end
