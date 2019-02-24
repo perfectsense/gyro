@@ -38,7 +38,7 @@ import java.util.Set;
 @ResourceName("disk")
 public class DiskResource extends AzureResource {
     private String diskName;
-    private String discId;
+    private String diskId;
     private String resourceGroupName;
     private Integer size;
     private String osType;
@@ -58,12 +58,12 @@ public class DiskResource extends AzureResource {
         this.diskName = diskName;
     }
 
-    public String getDiscId() {
-        return discId;
+    public String getDiskId() {
+        return diskId;
     }
 
-    public void setDiscId(String discId) {
-        this.discId = discId;
+    public void setDiskId(String diskId) {
+        this.diskId = diskId;
     }
 
     /**
@@ -155,7 +155,7 @@ public class DiskResource extends AzureResource {
     public boolean refresh() {
         Azure client = createClient();
 
-        Disk disk = client.disks().getById(getDiscId());
+        Disk disk = client.disks().getById(getDiskId());
         setDiskName(disk.name());
         setOsType(disk.osType() != null ? disk.osType().name() : null);
         setSize(disk.sizeInGB());
@@ -216,14 +216,14 @@ public class DiskResource extends AzureResource {
             disk.update().withOSType(OperatingSystemTypes.fromString(getOsType())).apply();
         }
 
-        setDiscId(disk.id());
+        setDiskId(disk.id());
     }
 
     @Override
     public void update(Resource current, Set<String> changedProperties) {
         Azure client = createClient();
 
-        Disk disk = client.disks().getById(getDiscId());
+        Disk disk = client.disks().getById(getDiskId());
 
         int changeCount = 0;
 
@@ -250,7 +250,7 @@ public class DiskResource extends AzureResource {
     public void delete() {
         Azure client = createClient();
 
-        client.disks().deleteById(getDiscId());
+        client.disks().deleteById(getDiskId());
     }
 
     @Override

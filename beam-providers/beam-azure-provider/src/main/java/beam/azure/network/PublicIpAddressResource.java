@@ -223,9 +223,9 @@ public class PublicIpAddressResource extends AzureResource {
     public void update(Resource current, Set<String> changedProperties) {
         Azure client = createClient();
 
-        PublicIPAddress publicIPAddress = client.publicIPAddresses().getByResourceGroup(getResourceGroupName(), getPublicIpAddressName());
+        PublicIPAddress publicIpAddress = client.publicIPAddresses().getByResourceGroup(getResourceGroupName(), getPublicIpAddressName());
 
-        PublicIPAddress.Update update = publicIPAddress.update();
+        PublicIPAddress.Update update = publicIpAddress.update();
 
         if (changedProperties.contains("idle-timeout-in-minute")) {
             update = update.withIdleTimeoutInMinutes(getIdleTimeoutInMinute());
