@@ -1,0 +1,24 @@
+import ../init as _
+
+azure::resource-group blob-resource-group
+    resource-group-name: "blob-resource-group"
+
+    tags: {
+        Name: "blob-resource-group"
+    }
+end
+
+azure::storage-account blob-storage-account-example
+    resource-group-name: $(azure::resource-group blob-resource-group | resource-group-name)
+    storage-account-name: "testblobexample"
+
+    tags: {
+        Name: "testblobexample"
+    }
+end
+
+azure::cloud-file-share cloud-file-share-example
+    cloud-file-share-name: "example-cloud-file-share"
+    share-quota: 15
+    storage-connection: $(azure::storage-account blob-storage-account-example | storage-connection)
+end
