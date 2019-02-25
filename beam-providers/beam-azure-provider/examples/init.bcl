@@ -10,5 +10,5 @@ end
 azure::credentials default
     region: "westus"
     log-level: "basic"
-    credential-file-path: "beam-providers/beam-azure-provider/examples/storage/credentials.txt"
+    credential-file-path: "path/to/credentials"
 end
