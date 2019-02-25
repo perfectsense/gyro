@@ -6,10 +6,13 @@ import beam.core.diff.ResourceName;
 import beam.lang.Resource;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.network.NetworkInterface;
+import com.microsoft.azure.management.network.NicIPConfiguration;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.psddev.dari.util.ObjectUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -42,6 +45,8 @@ public class NetworkInterfaceResource extends AzureResource {
     private String securityGroupId;
     private String networkInterfaceId;
     private Map<String, String> tags;
+    private NicIpConfigurationResource primaryIpConfiguration;
+    private List<NicIpConfigurationResource> nicIpConfiguration;
 
     /**
      * Name of the network interface. (Required)
@@ -101,6 +106,7 @@ public class NetworkInterfaceResource extends AzureResource {
     /**
      * The id of a security group to be assigned with the interface.
      */
+    @ResourceDiffProperty(updatable = true)
     public String getSecurityGroupId() {
         return securityGroupId;
     }
@@ -130,14 +136,52 @@ public class NetworkInterfaceResource extends AzureResource {
         this.tags = tags;
     }
 
+    @ResourceDiffProperty(updatable = true)
+    public NicIpConfigurationResource getPrimaryIpConfiguration() {
+        if (primaryIpConfiguration == null) {
+            primaryIpConfiguration = new NicIpConfigurationResource("primary");
+        }
+
+        return primaryIpConfiguration;
+    }
+
+    public void setPrimaryIpConfiguration(NicIpConfigurationResource primaryIpConfiguration) {
+        this.primaryIpConfiguration = primaryIpConfiguration;
+    }
+
+    @ResourceDiffProperty(updatable = true)
+    public List<NicIpConfigurationResource> getNicIpConfiguration() {
+        if (nicIpConfiguration == null) {
+            nicIpConfiguration = new ArrayList<>();
+        }
+        return nicIpConfiguration;
+    }
+
+    public void setNicIpConfiguration(List<NicIpConfigurationResource> nicIpConfiguration) {
+        this.nicIpConfiguration = nicIpConfiguration;
+    }
+
     @Override
     public boolean refresh() {
         Azure client = createClient();
 
-        NetworkInterface networkInterface = client.networkInterfaces().getByResourceGroup(getResourceGroupName(), getNetworkInterfaceName());
+        NetworkInterface networkInterface = getNetworkInterface(client);
 
         setNetworkInterfaceName(networkInterface.name());
+        setSecurityGroupId(networkInterface.getNetworkSecurityGroup() != null ? networkInterface.getNetworkSecurityGroup().id() : null);
         setTags(networkInterface.tags());
+
+        getNicIpConfiguration().clear();
+        for (NicIPConfiguration nicIpConfiguration : networkInterface.ipConfigurations().values()) {
+            NicIpConfigurationResource nicIpConfigurationResource = new NicIpConfigurationResource(nicIpConfiguration);
+            nicIpConfigurationResource.parent(this);
+
+            if (nicIpConfiguration.isPrimary()) {
+                setPrimaryIpConfiguration(nicIpConfigurationResource);
+            } else {
+                getNicIpConfiguration().add(nicIpConfigurationResource);
+            }
+        }
 
         return true;
     }
@@ -174,9 +218,19 @@ public class NetworkInterfaceResource extends AzureResource {
     public void update(Resource current, Set<String> changedProperties) {
         Azure client = createClient();
 
-        NetworkInterface networkInterface = client.networkInterfaces().getByResourceGroup(getResourceGroupName(), getNetworkInterfaceName());
+        NetworkInterface networkInterface = getNetworkInterface(client);
 
-        networkInterface.update().withTags(getTags()).apply();
+        NetworkInterface.Update update = networkInterface.update();
+
+        if (changedProperties.contains("security-group-id")) {
+            if (ObjectUtils.isBlank(getSecurityGroupId())) {
+                update = update.withoutNetworkSecurityGroup();
+            } else {
+                update = update.withExistingNetworkSecurityGroup(client.networkSecurityGroups().getById(getSecurityGroupId()));
+            }
+        }
+
+        update.withTags(getTags()).apply();
     }
 
     @Override
@@ -201,5 +255,9 @@ public class NetworkInterfaceResource extends AzureResource {
         }
 
         return sb.toString();
+    }
+
+    NetworkInterface getNetworkInterface(Azure client) {
+        return client.networkInterfaces().getByResourceGroup(getResourceGroupName(), getNetworkInterfaceName());
     }
 }
