@@ -118,7 +118,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * Apply modifications in this request and any pending modifications asynchronously as soon as possible, regardless of the `preferred-maintenance-window`. Default is false;.
+     * Apply modifications in this request and any pending modifications asynchronously as soon as possible, regardless of the `preferred-maintenance-window`. Default is false.
      */
     public Boolean getApplyImmediately() {
         return applyImmediately;
