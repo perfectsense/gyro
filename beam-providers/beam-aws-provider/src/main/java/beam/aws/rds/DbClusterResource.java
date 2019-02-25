@@ -102,7 +102,7 @@ public class DbClusterResource extends RdsTaggableResource {
     private List<String> vpcSecurityGroupIds;
 
     /**
-     * Specifies whether the modifications in this request and any pending modifications are asynchronously applied as soon as possible, regardless of the `PreferredMaintenanceWindow` setting for the DB instance.
+     * Apply modifications in this request and any pending modifications asynchronously as soon as possible, regardless of the `preferred-maintenance-window`. Default is false.
      */
     @ResourceDiffProperty(updatable = true)
     public Boolean getApplyImmediately() {
@@ -114,7 +114,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * A list of EC2 Availability Zones that instances in the DB cluster can be created in.
+     * A list of Availability Zones that instances in the DB cluster can be created in.
      */
     public List<String> getAvailabilityZones() {
         if (availabilityZones == null) {
@@ -129,7 +129,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * The target backtrack window, in seconds. To disable backtracking, set this value to ``0``.
+     * The target backtrack window specified in seconds. Must be a number from ``0`` to ``259,200`` (72 hours) with ``0`` to disable backtracking.
      */
     @ResourceDiffProperty(updatable = true)
     public Long getBackTrackWindow() {
@@ -141,7 +141,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * The number of days for which automated backups are retained. You must specify a minimum value of ``1``.
+     * The number of days that automated backups are retained. Must be a value from ``1`` to ``35``.
      */
     @ResourceDiffProperty(updatable = true)
     public Integer getBackupRetentionPeriod() {
@@ -153,7 +153,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * A value that indicates that the DB cluster should be associated with the specified CharacterSet.
+     * The CharacterSet name for the DB cluster.
      */
     public String getCharacterSetName() {
         return characterSetName;
@@ -164,7 +164,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * The DB cluster identifier. This parameter is stored as a lowercase string.
+     * The unique name of the DB Cluster. (Required)
      */
     public String getDbClusterIdentifier() {
         return dbClusterIdentifier;
@@ -175,7 +175,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * The name for your database of up to 64 alpha-numeric characters. If you do not provide a name, Amazon RDS will not create a database in the DB cluster you are creating.
+     * The database name when creating the DB cluster. If omitted, no database will be created.
      */
     public String getDbName() {
         return dbName;
@@ -186,7 +186,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * The name of the DB cluster parameter group to associate with this DB cluster. If this argument is omitted, ``default.aurora5.6`` is used.
+     * The name of the DB cluster parameter group to associate with. If omitted, ``default.aurora5.6`` is used.
      */
     @ResourceDiffProperty(updatable = true)
     public String getDbClusterParameterGroupName() {
@@ -198,7 +198,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * A DB subnet group to associate with this DB cluster.
+     * A DB subnet group to associate with.
      */
     public String getDbSubnetGroupName() {
         return dbSubnetGroupName;
@@ -209,7 +209,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * Indicates if the DB cluster should have deletion protection enabled. The database can't be deleted when this value is set to true. The default is false.
+     * Enable or disable deletion protection on the DB cluster. The default is false.
      */
     @ResourceDiffProperty(updatable = true)
     public Boolean getDeletionProtection() {
@@ -221,7 +221,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * The list of log types that need to be enabled for exporting to CloudWatch Logs.
+     * The list of log types that need to be enabled for exporting to CloudWatch Logs. The values in the list depend on the DB engine being used. See `Publishing Database Logs to Amazon CloudWatch Logs <https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_LogAccess.html#USER_LogAccess.Procedural.UploadtoCloudWatch>`_.
      */
     @ResourceDiffProperty(updatable = true)
     public List<String> getEnableCloudwatchLogsExports() {
@@ -233,7 +233,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * True to enable mapping of AWS Identity and Access Management (IAM) accounts to database accounts, and otherwise false.
+     * Enable or disable mapping IAM accounts to database accounts, default to false (disable).
      */
     @ResourceDiffProperty(updatable = true)
     public Boolean getEnableIamDatabaseAuthentication() {
@@ -245,7 +245,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * The name of the database engine to be used for this DB cluster. Valid Values: ``aurora`` (for MySQL 5.6-compatible Aurora), ``aurora-mysql`` (for MySQL 5.7-compatible Aurora), and ``aurora-postgresql``. (Required)
+     * The name of the database engine. Valid Values: ``aurora`` (for MySQL 5.6-compatible Aurora), ``aurora-mysql`` (for MySQL 5.7-compatible Aurora), and ``aurora-postgresql``. (Required)
      */
     public String getEngine() {
         return engine;
@@ -278,7 +278,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * The DB cluster snapshot identifier of the new DB cluster snapshot created when `SkipFinalSnapshot` is set to false.
+     * The name of the final snap shot created when `skip-final-snapshot` is false.
      */
     public String getFinalDbSnapshotIdentifier() {
         return finalDbSnapshotIdentifier;
@@ -289,7 +289,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * The global cluster ID of an Aurora cluster that becomes the primary cluster in the new global database cluster.
+     * The global cluster identifier from the `aws::db-global-cluster`.
      */
     public String getGlobalClusterIdentifier() {
         return globalClusterIdentifier;
@@ -300,7 +300,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * The AWS KMS key identifier for an encrypted DB cluster.
+     * The AWS KMS key ARN to encrypt the DB cluster.
      */
     public String getKmsKeyId() {
         return kmsKeyId;
@@ -334,7 +334,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * A value that indicates that the DB cluster should be associated with the specified option group.
+     * The name of the option group to associate with.
      */
     @ResourceDiffProperty(updatable = true)
     public String getOptionGroupName() {
@@ -346,7 +346,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * The port number on which the instances in the DB cluster accept connections. Default: ``3306`` if engine is set as aurora or ``5432`` if set to aurora-postgresql.
+     * The port number on which the instances in the DB cluster accept connections. If omitted, default to aurora: ``3306`` or aurora-postgresql: ``5432``.
      */
     @ResourceDiffProperty(updatable = true)
     public Integer getPort() {
@@ -358,7 +358,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * The daily time range during which automated backups are created if automated backups are enabled using the `BackupRetentionPeriod` parameter.
+     * The daily time range during which automated backups are created if automated backups are enabled. e.g. ``07:00-09:00``.
      */
     @ResourceDiffProperty(updatable = true)
     public String getPreferredBackupWindow() {
@@ -370,7 +370,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * The weekly time range during which system maintenance can occur, in Universal Coordinated Time (UTC). Format: ddd:hh24:mi-ddd:hh24:mi
+     * The time range each week during which system maintenance can occur, in Universal Coordinated Time (UTC). Format: `ddd:hh24:mi-ddd:hh24:mi`.
      */
     @ResourceDiffProperty(updatable = true)
     public String getPreferredMaintenanceWindow() {
@@ -382,7 +382,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * A URL that contains a Signature Version 4 signed request for the `CreateDBCluster` action to be called in the source AWS Region where the DB cluster is replicated from.
+     * A URL that contains a Signature Version 4 signed request when performing cross-region replication from an encrypted DB cluster. Only applicable when ``replication-source-identifier`` is set and the replication source is encrypted.
      */
     public String getPreSignedUrl() {
         return preSignedUrl;
@@ -405,7 +405,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * For DB clusters in `serverless` DB engine mode, the scaling properties of the DB cluster.
+     *  The scaling properties of the DB cluster. Only applicable for DB clusters in `serverless` DB engine mode,
      */
     @ResourceDiffProperty(updatable = true)
     public ScalingConfiguration getScalingConfiguration() {
@@ -417,7 +417,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * Determines whether a final DB cluster snapshot is created before the DB cluster is deleted.
+     * Skip or create the final DB snapshot before the DB cluster is deleted. Default is false (create the final snapshot).
      */
     @ResourceDiffProperty(updatable = true)
     public Boolean getSkipFinalSnapshot() {
@@ -429,7 +429,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * Specifies whether the DB cluster is encrypted.
+     * Enable or disable DB cluster encryption. Default to false (no encryption).
      */
     public Boolean getStorageEncrypted() {
         return storageEncrypted;
@@ -440,7 +440,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * A list of EC2 VPC security groups to associate with this DB cluster.
+     * A list of Amazon VPC security groups to associate with.
      */
     @ResourceDiffProperty(updatable = true)
     public List<String> getVpcSecurityGroupIds() {
