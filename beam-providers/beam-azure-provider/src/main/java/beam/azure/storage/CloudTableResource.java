@@ -15,7 +15,7 @@ import java.security.InvalidKeyException;
 import java.util.Set;
 
 /**
- * Creates a table
+ * Creates a cloud table
  *
  * Example
  * -------
@@ -92,7 +92,9 @@ public class CloudTableResource extends AzureResource {
     }
 
     @Override
-    public String toDisplayString() {return "cloud table " + getCloudTableName(); }
+    public String toDisplayString() {
+        return "cloud table " + getCloudTableName();
+    }
 
     private CloudTable cloudTable() {
         try {

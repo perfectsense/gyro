@@ -15,7 +15,7 @@ import java.security.InvalidKeyException;
 import java.util.Set;
 
 /**
- * Creates a queue
+ * Creates a cloud queue
  *
  * Example
  * -------

@@ -85,9 +85,9 @@ public class StorageAccountResource extends AzureResource {
     }
 
     public String getStorageConnection() {
-        return "DefaultEndpointsProtocol=https;" +
-                "AccountName="+getStorageAccountName() + ";" +
-                "AccountKey=" + getKeys().get("key1");
+        return "DefaultEndpointsProtocol=https;"
+                + "AccountName=" + getStorageAccountName() + ";"
+                + "AccountKey=" + getKeys().get("key1");
     }
 
     public void setStorageConnection(String storageConnection) {
