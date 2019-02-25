@@ -116,7 +116,9 @@ public class CloudBlobResource extends AzureResource {
     }
 
     @Override
-    public String toDisplayString() {return "cloud blob " + getBlobName(); }
+    public String toDisplayString() {
+        return "cloud blob " + getBlobName();
+    }
 
     private CloudBlockBlob cloudBlobBlob() {
         try {
