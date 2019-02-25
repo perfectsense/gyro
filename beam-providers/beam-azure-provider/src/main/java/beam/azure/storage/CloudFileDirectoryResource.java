@@ -42,6 +42,14 @@ public class CloudFileDirectoryResource extends AzureResource {
     private String cloudFileShareName;
     private String storageConnection;
 
+    public CloudFileDirectoryResource() {}
+
+    public CloudFileDirectoryResource(String directoryPath, String cloudFileShareName, String storageConnection) {
+        this.cloudFileDirectoryPath = directoryPath;
+        this.cloudFileShareName = cloudFileShareName;
+        this.storageConnection = storageConnection;
+    }
+
     /**
      * The name of the cloud file directory. (Required)
      */
