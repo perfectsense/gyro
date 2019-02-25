@@ -22,6 +22,21 @@ import java.util.Set;
 
 import java.io.File;
 
+/**
+ * Creates a cloud blob
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: beam
+ *
+ *     azure::cloud-blob blob-example
+ *         blob-directory-path: "/path/to/blob"
+ *         container-name: $(azure::cloud-blob-container blob-container-example | container-name)
+ *         file-path: "beam-providers/beam-azure-provider/examples/storage/test-blob-doc.txt"
+ *         storage-connection: $(azure::storage-account blob-storage-account-example | storage-connection)
+ *     end
+ */
 @ResourceName("cloud-blob")
 public class CloudBlobResource extends AzureResource {
 
