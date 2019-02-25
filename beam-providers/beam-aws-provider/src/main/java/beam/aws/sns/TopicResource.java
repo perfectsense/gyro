@@ -4,6 +4,7 @@ import beam.aws.AwsResource;
 import beam.core.BeamException;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
+import beam.core.diff.ResourceOutput;
 import beam.lang.Resource;
 import com.psddev.dari.util.CompactMap;
 
@@ -19,13 +20,32 @@ import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Set;
 
-@ResourceName("sns")
-public class SnsResource extends AwsResource {
+/**
+ * Creates a sns topic
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: beam
+ *
+ *     aws::topic sns-topic-example
+ *         topic-attributes: {
+ *             DisplayName: "sns-topic-example",
+ *             Policy: "beam-providers/beam-aws-provider/examples/sns/sns-policy.json"
+ *         }
+ *         name: "sns-topic"
+ *     end
+ */
+@ResourceName("topic")
+public class TopicResource extends AwsResource {
 
     private Map<String, String> topicAttributes;
     private String name;
     private String topicArn;
 
+    /**
+     * The attributes associated with this topic. (Required)
+     */
     @ResourceDiffProperty(updatable = true)
     public Map<String, String> getTopicAttributes() {
         if (topicAttributes == null) {
@@ -62,6 +82,9 @@ public class SnsResource extends AwsResource {
         }
     }
 
+    /**
+     * The name of the topic. (Required)
+     */
     public String getName() {
         return name;
     }
@@ -70,6 +93,7 @@ public class SnsResource extends AwsResource {
         this.name = name;
     }
 
+    @ResourceOutput
     public String getTopicArn() {
         return topicArn;
     }
@@ -100,11 +124,7 @@ public class SnsResource extends AwsResource {
 
             return true;
 
-        } catch (NotFoundException ex) {
-            return false;
-        } catch (AuthorizationErrorException exception) {
-            return false;
-        } catch (InvalidParameterException ex) {
+        } catch (NotFoundException | AuthorizationErrorException | InvalidParameterException ex) {
             return false;
         }
     }
