@@ -4,6 +4,7 @@ import beam.aws.AwsResource;
 import beam.core.BeamException;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
+import beam.core.diff.ResourceOutput;
 import beam.lang.Resource;
 import com.psddev.dari.util.CompactMap;
 
@@ -17,6 +18,24 @@ import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Creates a subscriber to a topic
+ *
+ * Example
+ * -------
+ *
+ * .. code-block:: beam
+ *
+ *     aws::subscriber subscriber-example
+ *         protocol: "sqs"
+ *         endpoint: $(aws::sqs sqs-example | queue-arn)
+ *         subscription-attributes: {
+ *                 FilterPolicy: "beam-providers/beam-aws-provider/examples/sns/filter-policy.json",
+ *                 RawMessageDelivery: "true"
+ *         }
+ *         topic-arn: $(aws::topic sns-topic-example | topic-arn)
+ *     end
+ */
 @ResourceName("subscriber")
 public class SubscriberResource extends AwsResource {
 
@@ -28,6 +47,9 @@ public class SubscriberResource extends AwsResource {
 
     public SubscriberResource() {}
 
+    /**
+     * The attributes for the subscription. (Required)
+     */
     @ResourceDiffProperty(updatable = true)
     public Map<String, String> getSubscriptionAttributes() {
         if (subscriptionAttributes == null) {
@@ -64,6 +86,9 @@ public class SubscriberResource extends AwsResource {
         }
     }
 
+    /**
+     * The endpoint of the resource subscribed to the topic. (Required)
+     */
     public String getEndpoint() {
         return endpoint;
     }
@@ -72,6 +97,9 @@ public class SubscriberResource extends AwsResource {
         this.endpoint = endpoint;
     }
 
+    /**
+     * The protocol associated with the endpoint. (Required)
+     */
     public String getProtocol() {
         return protocol;
     }
@@ -80,6 +108,7 @@ public class SubscriberResource extends AwsResource {
         this.protocol = protocol;
     }
 
+    @ResourceOutput
     public String getSubscriptionArn() {
         return subscriptionArn;
     }
@@ -88,6 +117,7 @@ public class SubscriberResource extends AwsResource {
         this.subscriptionArn = subscriptionArn;
     }
 
+    @ResourceOutput
     public String getTopicArn() {
         return topicArn;
     }
