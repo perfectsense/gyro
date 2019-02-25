@@ -9,13 +9,13 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import beam.core.BeamUI;
+import beam.lang.ast.scope.State;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 
 public abstract class Change {
 
     private final List<Diff> diffs = new ArrayList<>();
-    boolean executable;
     final AtomicBoolean changed = new AtomicBoolean();
 
     public List<Diff> getDiffs() {
@@ -28,7 +28,7 @@ public abstract class Change {
 
     public abstract void writeExecution(BeamUI ui);
 
-    public abstract void execute();
+    public abstract void execute(BeamUI ui, State state)  throws Exception;
 
     protected String stringify(Object value) {
         if (value instanceof List) {

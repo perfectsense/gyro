@@ -3,8 +3,10 @@ package beam.lang;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import beam.core.diff.Diffable;
+import beam.core.diff.DiffableField;
 import beam.core.diff.DiffableType;
 import beam.core.diff.ResourceName;
 import beam.lang.ast.block.ResourceNode;
@@ -21,6 +23,21 @@ public abstract class Resource extends Diffable {
     public abstract boolean refresh();
 
     public abstract void create();
+
+    public void testCreate() {
+        for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
+            if (field.getTestValue() != null) {
+                String value = "test-" + field.getTestValue();
+
+                if (field.isTestValueRandomSuffix())  {
+                    value += "-";
+                    value += UUID.randomUUID().toString().replaceAll("-", "").substring(16);
+                }
+
+                field.setValue(this, value);
+            }
+        }
+    }
 
     public abstract void update(Resource current, Set<String> changedProperties);
 

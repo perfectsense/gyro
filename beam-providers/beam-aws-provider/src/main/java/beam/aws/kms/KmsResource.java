@@ -4,6 +4,7 @@ import beam.aws.AwsResource;
 import beam.core.BeamException;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
+import beam.core.diff.ResourceOutput;
 import beam.lang.Resource;
 import com.psddev.dari.util.CompactMap;
 
@@ -149,6 +150,10 @@ public class KmsResource extends AwsResource {
         this.keyRotation = keyRotation;
     }
 
+    /**
+     * The arn for this key.
+     */
+    @ResourceOutput
     public String getKeyArn() {
         return keyArn;
     }
@@ -157,6 +162,10 @@ public class KmsResource extends AwsResource {
         this.keyArn = keyArn;
     }
 
+    /**
+     * The id for this key.
+     */
+    @ResourceOutput
     public String getKeyId() {
         return keyId;
     }

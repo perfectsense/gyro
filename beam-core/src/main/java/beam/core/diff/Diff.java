@@ -2,7 +2,6 @@ package beam.core.diff;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -262,12 +261,12 @@ public class Diff {
         return false;
     }
 
-    public Set<ChangeType> write(BeamUI ui) {
-        Set<ChangeType> changeTypes = new HashSet<>();
-
+    public boolean write(BeamUI ui) {
         if (!hasChanges()) {
-            return changeTypes;
+            return false;
         }
+
+        boolean written = false;
 
         for (Change change : getChanges()) {
             if (change.getDiffable() instanceof Credentials) {
@@ -291,21 +290,7 @@ public class Diff {
                 }
             }
 
-            if (change instanceof Create) {
-                changeTypes.add(ChangeType.CREATE);
-
-            } else if (change instanceof Delete) {
-                changeTypes.add(ChangeType.DELETE);
-
-            } else if (change instanceof Keep) {
-                changeTypes.add(ChangeType.KEEP);
-
-            } else if (change instanceof Replace) {
-                changeTypes.add(ChangeType.REPLACE);
-
-            } else if (change instanceof Update) {
-                changeTypes.add(ChangeType.UPDATE);
-            }
+            written = true;
 
             if (!change.getDiffable().writePlan(ui, change)) {
                 change.writePlan(ui);
@@ -315,35 +300,18 @@ public class Diff {
 
             ui.indented(() -> {
                 for (Diff d : change.getDiffs()) {
-                    changeTypes.addAll(d.write(ui));
+                    d.write(ui);
                 }
             });
         }
 
-        return changeTypes;
-    }
-
-    private void setChangeable() {
-        for (Change change : getChanges()) {
-            change.executable = true;
-            change.getDiffs().forEach(Diff::setChangeable);
-        }
+        return written;
     }
 
     public void executeCreateOrUpdate(BeamUI ui, State state) throws Exception {
-        setChangeable();
-
         for (Change change : getChanges()) {
             if (change instanceof Create || change instanceof Update) {
-                Diffable diffable = change.getDiffable();
-
-                if (diffable instanceof Resource) {
-                    if (!(change.getDiffable() instanceof Credentials)) {
-                        execute(ui, change);
-                    }
-
-                    state.update(change);
-                }
+                execute(ui, state, change);
             }
 
             for (Diff d : change.getDiffs()) {
@@ -352,9 +320,19 @@ public class Diff {
         }
     }
 
-    public void executeDelete(BeamUI ui, State state) throws Exception {
-        setChangeable();
+    public void executeReplace(BeamUI ui, State state) throws Exception {
+        for (Change change : getChanges()) {
+            if (change instanceof Replace) {
+                execute(ui, state, change);
+            }
 
+            for (Diff d : change.getDiffs()) {
+                d.executeReplace(ui, state);
+            }
+        }
+    }
+
+    public void executeDelete(BeamUI ui, State state) throws Exception {
         for (ListIterator<Change> j = getChanges().listIterator(getChanges().size()); j.hasPrevious();) {
             Change change = j.previous();
 
@@ -363,47 +341,39 @@ public class Diff {
             }
 
             if (change instanceof Delete) {
-                Diffable diffable = change.getDiffable();
-
-                if (diffable instanceof Resource) {
-                    if (!(diffable instanceof Credentials)) {
-                        execute(ui, change);
-                    }
-
-                    state.update(change);
-                }
+                execute(ui, state, change);
             }
         }
     }
 
-    private void execute(BeamUI ui, Change change) throws Exception {
-        if (change instanceof Keep || change instanceof Replace || change.changed.get()) {
-            return;
-        }
-
-        if (!change.executable) {
-            throw new IllegalStateException("Can't change yet!");
-        }
-
-        if (!change.changed.compareAndSet(false, true)) {
-            return;
-        }
-
+    private void execute(BeamUI ui, State state, Change change) throws Exception {
         Diffable diffable = change.getDiffable();
 
-        resolve(diffable);
-
-        if (!diffable.writeExecution(ui, change)) {
-            change.writeExecution(ui);
+        if (!(diffable instanceof Resource)) {
+            return;
         }
 
-        try {
-            change.execute();
-            ui.write(ui.isVerbose() ? "\n@|bold,green OK|@\n\n" : " @|bold,green OK|@\n");
+        if (change.changed.compareAndSet(false, true)) {
+            if (diffable instanceof Credentials) {
+                state.update(change);
 
-        } catch (Exception error) {
-            ui.write(ui.isVerbose() ? "\n@|bold,red ERROR|@\n\n" : " @|bold,red ERROR|@\n");
-            ui.writeError(error, "");
+            } else {
+                resolve(diffable);
+
+                if (!diffable.writeExecution(ui, change)) {
+                    change.writeExecution(ui);
+                }
+
+                try {
+                    change.execute(ui, state);
+                    ui.write(ui.isVerbose() ? "\n@|bold,green OK|@\n\n" : " @|bold,green OK|@\n");
+                    state.update(change);
+
+                } catch (Exception error) {
+                    ui.write(ui.isVerbose() ? "\n@|bold,red ERROR|@\n\n" : " @|bold,red ERROR|@\n");
+                    ui.writeError(error, "");
+                }
+            }
         }
     }
 

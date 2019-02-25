@@ -6,6 +6,7 @@ import beam.core.BeamException;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
 
+import beam.core.diff.ResourceOutput;
 import software.amazon.awssdk.services.ec2.Ec2Client;
 import software.amazon.awssdk.services.ec2.model.Address;
 import software.amazon.awssdk.services.ec2.model.AllocateAddressResponse;
@@ -92,6 +93,7 @@ public class ElasticIpResource extends Ec2TaggableResource<Address> {
      * Allocation id when the requested public ip is acquired.
      */
     @ResourceDiffProperty
+    @ResourceOutput
     public String getAllocationId() {
         return allocationId;
     }
