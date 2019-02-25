@@ -53,9 +53,11 @@ public class ResourceDocGenerator {
 
         providerPackage = packageDoc.name().substring(0, packageDoc.name().lastIndexOf('.'));
         PackageDoc rootPackageDoc = root.packageNamed(providerPackage);
-        for (AnnotationDesc annotationDesc : rootPackageDoc.annotations()) {
-            if (annotationDesc.annotationType().name().equals("DocNamespace")) {
-                namespace = (String) annotationDesc.elementValues()[0].value().value();
+        if (rootPackageDoc != null) {
+            for (AnnotationDesc annotationDesc : rootPackageDoc.annotations()) {
+                if (annotationDesc.annotationType().name().equals("DocNamespace")) {
+                    namespace = (String) annotationDesc.elementValues()[0].value().value();
+                }
             }
         }
 
