@@ -11,11 +11,7 @@ import gyro.lang.ast.expression.AndNode;
 import gyro.lang.ast.expression.ComparisonNode;
 import gyro.lang.ast.expression.OrNode;
 import gyro.lang.ast.expression.ValueExpressionNode;
-import gyro.lang.ast.query.QueryAndNode;
-import gyro.lang.ast.query.QueryComparisonNode;
-import gyro.lang.ast.query.QueryOrNode;
 import gyro.lang.ast.scope.Scope;
-import gyro.lang.ast.value.AttributeNode;
 import gyro.lang.ast.value.BooleanNode;
 import gyro.lang.ast.value.ListNode;
 import gyro.lang.ast.value.MapNode;
@@ -62,35 +58,6 @@ public abstract class Node {
 
         } else if (cc.equals(BeamParser.ValueExpressionContext.class)) {
             return new ValueExpressionNode((BeamParser.ValueExpressionContext) context);
-
-        } else if (cc.equals(BeamParser.QueryAndExpressionContext.class)) {
-            return new QueryAndNode((BeamParser.QueryAndExpressionContext) context);
-
-        } else if (cc.equals(BeamParser.QueryOrExpressionContext.class)) {
-            return new QueryOrNode((BeamParser.QueryOrExpressionContext) context);
-
-        } else if (cc.equals(BeamParser.QueryComparisonExpressionContext.class)) {
-            return new QueryComparisonNode((BeamParser.QueryComparisonExpressionContext) context);
-
-        } else if (cc.equals(BeamParser.QueryReferenceValueContext.class)) {
-            return create(((BeamParser.QueryReferenceValueContext) context).referenceValue().referenceBody());
-
-        } else if (cc.equals(BeamParser.QueryAttributeValueContext.class)) {
-            return new AttributeNode((BeamParser.QueryAttributeValueContext) context);
-
-        } else if (cc.equals(BeamParser.QueryStringValueContext.class)) {
-            BeamParser.QueryStringValueContext svc = (BeamParser.QueryStringValueContext) context;
-            BeamParser.StringExpressionContext sec = svc.stringValue().stringExpression();
-
-            return sec != null
-                ? new StringExpressionNode(sec)
-                : new StringNode(StringUtils.strip(svc.stringValue().STRING_LITERAL().getText(), "'"));
-
-        } else if (cc.equals(BeamParser.QueryBooleanValueContext.class)) {
-            return new BooleanNode(((BeamParser.QueryBooleanValueContext) context).booleanValue());
-
-        } else if (cc.equals(BeamParser.QueryNumberValueContext.class)) {
-            return new NumberNode(((BeamParser.QueryNumberValueContext) context).numberValue());
 
         } else if (cc.equals(BeamParser.ValueContext.class)) {
             return Node.create(context.getChild(0));

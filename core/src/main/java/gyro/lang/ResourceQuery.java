@@ -1,7 +1,5 @@
 package gyro.lang;
 
-import gyro.lang.Resource;
-
 import java.util.List;
 import java.util.Map;
 

@@ -77,13 +77,11 @@ referenceType      : IDENTIFIER (DOT IDENTIFIER)* ;
 referenceName      : ( (SLASH | GLOB | IDENTIFIER)* | stringExpression | IDENTIFIER (DOT IDENTIFIER)*) ;
 
 queryExpression
-    : IDENTIFIER (DOT IDENTIFIER)*             # QueryAttributeValue
-    | referenceValue                           # QueryReferenceValue
-    | stringValue                              # QueryStringValue
-    | booleanValue                             # QueryBooleanValue
-    | numberValue                              # QueryNumberValue
-    | queryExpression operator queryExpression # QueryComparisonExpression
-    | queryExpression OR queryExpression       # QueryOrExpression
-    | queryExpression AND queryExpression      # QueryAndExpression
+    : queryField                          # QueryFieldValue
+    | queryField operator queryValue      # QueryComparisonExpression
+    | queryExpression OR queryExpression  # QueryOrExpression
+    | queryExpression AND queryExpression # QueryAndExpression
     ;
 
+queryField : IDENTIFIER (DOT IDENTIFIER)*;
+queryValue : referenceValue | stringValue | booleanValue | numberValue;

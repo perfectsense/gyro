@@ -4,7 +4,8 @@ import gyro.core.BeamException;
 import gyro.lang.Resource;
 import gyro.lang.ast.DeferError;
 import gyro.lang.ast.Node;
-import gyro.lang.ast.query.QueryExpressionNode;
+import gyro.lang.ast.query.FieldValueQuery;
+import gyro.lang.ast.query.Query;
 import gyro.lang.ast.scope.DiffableScope;
 import gyro.lang.ast.scope.Scope;
 import gyro.lang.ResourceQuery;
@@ -22,7 +23,7 @@ public class ResourceReferenceNode extends Node {
     private final String type;
     private final Node nameNode;
     private final String attribute;
-    private final List<Node> filters;
+    private final List<Query> queries;
 
     public ResourceReferenceNode(ReferenceBodyContext context) {
         type = context.referenceType().getText();
@@ -42,22 +43,18 @@ public class ResourceReferenceNode extends Node {
             nameNode = null;
         }
 
-        filters = context.queryExpression()
+        queries = context.queryExpression()
             .stream()
-            .map(f -> Node.create(f))
+            .map(f -> Query.create(f))
             .collect(Collectors.toList());
 
         String attributeValue = null;
-        if (filters.size() > 0) {
-            Node last = filters.get(filters.size() - 1);
+        if (queries.size() > 0) {
+            Query last = queries.get(queries.size() - 1);
 
-            if (last instanceof AttributeNode) {
-                try {
-                    attributeValue = (String) last.evaluate(null);
-                    filters.remove(filters.size() - 1);
-                } catch (Exception ex) {
-                    // Should not throw exception
-                }
+            if (last instanceof FieldValueQuery) {
+                attributeValue = ((FieldValueQuery) last).getValue();
+                queries.remove(queries.size() - 1);
             }
         }
 
@@ -68,7 +65,7 @@ public class ResourceReferenceNode extends Node {
         this.type = type;
         this.nameNode = nameNode;
         this.attribute = attribute;
-        this.filters = Collections.EMPTY_LIST;
+        this.queries = Collections.EMPTY_LIST;
     }
 
     @Override
@@ -77,7 +74,7 @@ public class ResourceReferenceNode extends Node {
             String name = (String) nameNode.evaluate(scope);
 
             if (name.startsWith("EXTERNAL/*")) {
-                for (Node filter : filters) {
+                for (Query query : queries) {
                     // TODO: first filter triggers api calls, subsequent fitlers use
                     //       the output from the first and narrow it down
                     Resource queryResource = queryResource(scope);
@@ -85,9 +82,7 @@ public class ResourceReferenceNode extends Node {
                         throw new BeamException("Resource type " + type + " does not support external queries.");
                     }
 
-                    ((QueryExpressionNode) filter).setResource(queryResource);
-                    Object value = filter.evaluate(scope);
-
+                    Object value = query.evaluate(queryResource, null, scope);
                     return value;
                 }
 

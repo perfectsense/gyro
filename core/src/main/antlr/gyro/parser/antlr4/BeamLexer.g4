@@ -13,7 +13,7 @@ FALSE : 'false';
 IF    : 'if';
 ELSEIF: 'else if';
 ELSE  : 'else';
-EQ    : '==';
+EQ    : '=';
 NOTEQ : '!=';
 OR    : 'or';
 AND   : 'and';
