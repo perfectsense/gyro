@@ -130,7 +130,7 @@ public class CloudFileDirectoryResource extends AzureResource {
         return "cloud file directory " + getCloudFileDirectoryName();
     }
 
-    private CloudFileDirectory cloudFileDirectory() {
+    public CloudFileDirectory cloudFileDirectory() {
         try {
             CloudStorageAccount storageAccount = CloudStorageAccount.parse(getStorageConnection());
             CloudFileClient fileClient = storageAccount.createCloudFileClient();
