@@ -1,0 +1,23 @@
+import ../init as _
+
+azure::resource-group table-resource-group
+    resource-group-name: "table-resource-group"
+
+    tags: {
+        Name: "table-resource-group"
+    }
+end
+
+azure::storage-account table-storage-account-example
+    resource-group-name: $(azure::resource-group table-resource-group | resource-group-name)
+    storage-account-name: "testtableexample"
+
+    tags: {
+        Name: "testtableexample"
+    }
+end
+
+azure::cloud-table cloud-table-example
+    cloud-table-name: "cloudtablename"
+    storage-connection: $(azure::storage-account table-storage-account-example | storage-connection)
+end
