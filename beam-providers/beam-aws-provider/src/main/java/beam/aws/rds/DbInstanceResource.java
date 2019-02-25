@@ -95,7 +95,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     private List<String> vpcSecurityGroupIds;
 
     /**
-     * The amount of storage (in gibibytes) to allocate for the DB instance.
+     * The amount of storage to allocate in gibibytes. Not applicable for Aurora.
      */
     @ResourceDiffProperty(updatable = true)
     public Integer getAllocatedStorage() {
@@ -107,7 +107,29 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * Indicates that minor engine upgrades are applied automatically to the DB instance during the maintenance window.
+     * Allow or disallow major version upgrades.
+     */
+    public Boolean getAllowMajorVersionUpgrade() {
+        return allowMajorVersionUpgrade;
+    }
+
+    public void setAllowMajorVersionUpgrade(Boolean allowMajorVersionUpgrade) {
+        this.allowMajorVersionUpgrade = allowMajorVersionUpgrade;
+    }
+
+    /**
+     * Apply modifications in this request and any pending modifications asynchronously as soon as possible, regardless of the `preferred-maintenance-window`. Default is false;.
+     */
+    public Boolean getApplyImmediately() {
+        return applyImmediately;
+    }
+
+    public void setApplyImmediately(Boolean applyImmediately) {
+        this.applyImmediately = applyImmediately;
+    }
+
+    /**
+     * Allow or disallow automatic minor engine version upgrades during the maintenance window. Defaults to true (allow).
      */
     @ResourceDiffProperty(updatable = true)
     public Boolean getAutoMinorVersionUpgrade() {
@@ -119,7 +141,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The EC2 Availability Zone that the DB instance is created in.
+     * The Availability Zone for the DB instance.
      */
     public String getAvailabilityZone() {
         return availabilityZone;
@@ -130,7 +152,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The number of days for which automated backups are retained.
+     * The number of days that automated backups are retained. Must be a value from ``0`` to ``35`` with ``0`` to disable automated backups. Not applicable for Aurora.
      */
     @ResourceDiffProperty(updatable = true)
     public Integer getBackupRetentionPeriod() {
@@ -142,7 +164,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * Indicates that the DB instance should be associated with the specified CharacterSet.
+     * The CharacterSet for Oracle DB instances. See `Oracle Character Sets Supported in Amazon RDS <https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Appendix.OracleCharacterSets.html>`_.
      */
     public String getCharacterSetName() {
         return characterSetName;
@@ -153,7 +175,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * Copy all tags from the DB instance to snapshots of the DB instance. The default is false.
+     * Copy or not copy tags from the db instance to snapshots. The default is false (not copy).
      */
     @ResourceDiffProperty(updatable = true)
     public Boolean getCopyTagsToSnapshot() {
@@ -165,7 +187,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The identifier of the DB cluster that the instance will belong to.
+     * The identifier of the existing DB cluster that the instance will belong to. Only applicable for Aurora engine, the first instance will be the primary instance and additional instances will be replicas.
      */
     public String getDbClusterIdentifier() {
         return dbClusterIdentifier;
@@ -176,7 +198,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The compute and memory capacity of the DB instance.
+     * The DB instance type. See `DB Instance Class <https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.DBInstanceClass.html>`_. (Required)
      */
     @ResourceDiffProperty(updatable = true)
     public String getDbInstanceClass() {
@@ -188,7 +210,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The DB instance identifier. This parameter is stored as a lowercase string.
+     * The unique name of the DB instance. (Required)
      */
     public String getDbInstanceIdentifier() {
         return dbInstanceIdentifier;
@@ -199,7 +221,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The name of the database to create when the DB instance is created (differs according to the database engine used). See `CreateDBInstance <https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_CreateDBInstance.html>`_.
+     * The database name (or Oracle System ID for Oracle) when creating the DB instance. Not applicable for SQL Server. See `CreateDBInstance <https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_CreateDBInstance.html>`_.
      */
     public String getDbName() {
         return dbName;
@@ -210,7 +232,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The name of the DB parameter group to associate with this DB instance. If this argument is omitted, the default DBParameterGroup for the specified engine is used.
+     * The name of the DB parameter group to associate with. If omitted, The default parameter group for the specified engine is used.
      */
     @ResourceDiffProperty(updatable = true)
     public String getDbParameterGroupName() {
@@ -222,7 +244,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * A list of DB security groups to associate with this DB instance.
+     * A list of DB security groups to associate with. Only used for DB Instances on the EC2-Classic. Not compatible with `vpc-security-group-ids`.
      */
     @ResourceDiffProperty(updatable = true)
     public List<String> getDbSecurityGroups() {
@@ -234,7 +256,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * A DB subnet group to associate with this DB instance. If there is no DB subnet group, then it is a non-VPC DB instance.
+     * A DB subnet group to associate with. If omitted, the instance will be created in the default VPC or in EC2-Classic.
      */
     public String getDbSubnetGroupName() {
         return dbSubnetGroupName;
@@ -245,7 +267,19 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * Indicates if the DB instance should have deletion protection enabled. The database can't be deleted when this value is set to true. The default is false.
+     * Delete or keep automated backups after the DB instance is deleted. Default to false (keep automated backups).
+     */
+    @ResourceDiffProperty(updatable = true)
+    public Boolean getDeleteAutomatedBackups() {
+        return deleteAutomatedBackups;
+    }
+
+    public void setDeleteAutomatedBackups(Boolean deleteAutomatedBackups) {
+        this.deleteAutomatedBackups = deleteAutomatedBackups;
+    }
+
+    /**
+     * Enable or disable deletion protection on the DB instance. The default is false.
      */
     @ResourceDiffProperty(updatable = true)
     public Boolean getDeletionProtection() {
@@ -257,7 +291,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * Specify the Active Directory Domain to create the instance in.
+     * The Active Directory Domain to create the instance in, only applicable to SQL Server engine.
      */
     @ResourceDiffProperty(updatable = true)
     public String getDomain() {
@@ -269,7 +303,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * Specify the name of the IAM role to be used when making API calls to the Directory Service.
+     * The name of the IAM role to be used when making API calls to the Directory Service, only applicable to SQL Server engine.
      */
     @ResourceDiffProperty(updatable = true)
     public String getDomainIamRoleName() {
@@ -293,7 +327,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * True to enable mapping of AWS Identity and Access Management (IAM) accounts to database accounts, and otherwise false.
+     * Enable or disable mapping IAM accounts to database accounts, default to false (disable). Not applicable to Aurora.
      */
     @ResourceDiffProperty(updatable = true)
     public Boolean getEnableIamDatabaseAuthentication() {
@@ -305,7 +339,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * True to enable Performance Insights for the DB instance, and otherwise false.
+     * Enable or disable Performance Insights for the DB instance, default to false (disable).
      */
     @ResourceDiffProperty(updatable = true)
     public Boolean getEnablePerformanceInsights() {
@@ -317,7 +351,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The name of the database engine to be used for this instance. See `CreateDBInstance <https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_CreateDBInstance.html>`_.
+     * The name of the database engine. For Aurora engines, `db-cluster-identifier` needs to be specified, and the instance's db engine needs to match with the cluster's db engine. See `CreateDBInstance <https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_CreateDBInstance.html>`_. (Required)
      */
     public String getEngine() {
         return engine;
@@ -328,7 +362,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The version number of the database engine to use.
+     * The version number of the database engine to use. Not applicable for Aurora since engine version is managed by the cluster.
      */
     @ResourceDiffProperty(updatable = true)
     public String getEngineVersion() {
@@ -340,7 +374,18 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The amount of Provisioned IOPS (input/output operations per second) to be initially allocated for the DB instance.
+     * The name of the final snap shot created when `skip-final-snapshot` is false.
+     */
+    public String getFinalDbSnapshotIdentifier() {
+        return finalDbSnapshotIdentifier;
+    }
+
+    public void setFinalDbSnapshotIdentifier(String finalDbSnapshotIdentifier) {
+        this.finalDbSnapshotIdentifier = finalDbSnapshotIdentifier;
+    }
+
+    /**
+     * The amount of Provisioned IOPS to be allocated. The value must be equal to or greater than 1000. Required if `storage-type` is ``io1``.
      */
     @ResourceDiffProperty(updatable = true)
     public Integer getIops() {
@@ -352,7 +397,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The AWS KMS key identifier for an encrypted DB instance.
+     * The AWS KMS key ARN to encrypt the DB instance. Not applicable for Aurora.
      */
     public String getKmsKeyId() {
         return kmsKeyId;
@@ -363,7 +408,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * License model information for this DB instance. Valid values: ``license-included``, ``bring-your-own-license``, ``general-public-license``.
+     * License model for the DB instance. Valid values: ``license-included``, ``bring-your-own-license``, ``general-public-license``.
      */
     @ResourceDiffProperty(updatable = true)
     public String getLicenseModel() {
@@ -375,7 +420,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The password for the master user.
+     * The password for the master user. Not applicable for Aurora.
      */
     @ResourceDiffProperty(updatable = true)
     public String getMasterUserPassword() {
@@ -387,7 +432,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The name for the master user.
+     * The name for the master user. Not applicable for Aurora.
      */
     public String getMasterUsername() {
         return masterUsername;
@@ -398,7 +443,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The interval, in seconds, between points when Enhanced Monitoring metrics are collected for the DB instance. The default is 0. Valid Values: ``0``, ``1``, ``5``, ``10``, ``15``, ``30``, ``60``
+     * Enhanced Monitoring metrics collecting interval in seconds. The default is 0 (disable collection). Valid Values: ``0``, ``1``, ``5``, ``10``, ``15``, ``30``, ``60``
      */
     @ResourceDiffProperty(updatable = true)
     public Integer getMonitoringInterval() {
@@ -422,7 +467,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * A value that specifies whether the DB instance is a Multi-AZ deployment.
+     * Specifies whether the DB instance is a Multi-AZ deployment. If set to true, ``availability-zone`` cannot be specified.
      */
     @ResourceDiffProperty(updatable = true)
     public Boolean getMultiAz() {
@@ -434,7 +479,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * Indicates that the DB instance should be associated with the specified option group.
+     * The name of the option group to associate with.
      */
     @ResourceDiffProperty(updatable = true)
     public String getOptionGroupName() {
@@ -446,7 +491,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The AWS KMS key identifier for encryption of Performance Insights data.
+     * The AWS KMS key ARN for encryption of Performance Insights data. Not applicable if `enable-performance-insights` is false.
      */
     @ResourceDiffProperty(updatable = true)
     public String getPerformanceInsightsKmsKeyId() {
@@ -458,7 +503,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The amount of time, in days, to retain Performance Insights data. Valid values are ``7`` or ``731`` (2 years).
+     * Retain how many days of Performance Insights data. Valid values are ``7`` or ``731`` (2 years).
      */
     @ResourceDiffProperty(updatable = true)
     public Integer getPerformanceInsightsRetentionPeriod() {
@@ -481,7 +526,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The daily time range during which automated backups are created if automated backups are enabled.
+     * The daily time range during which automated backups are created if automated backups are enabled. e.g. ``07:00-09:00``.
      */
     @ResourceDiffProperty(updatable = true)
     public String getPreferredBackupWindow() {
@@ -493,7 +538,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The time range each week during which system maintenance can occur, in Universal Coordinated Time (UTC). Format: ddd:hh24:mi-ddd:hh24:mi.
+     * The time range each week during which system maintenance can occur, in Universal Coordinated Time (UTC). Format: `ddd:hh24:mi-ddd:hh24:mi`.
      */
     @ResourceDiffProperty(updatable = true)
     public String getPreferredMaintenanceWindow() {
@@ -505,7 +550,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * A value that specifies the order in which an Aurora Replica is promoted to the primary instance after a failure of the existing primary instance. Valid Values: 0 - 15.
+     * The order of the Aurora Replica is promoted to the primary instance after the existing primary instance fails. Valid Values: 0 - 15.
      */
     @ResourceDiffProperty(updatable = true)
     public Integer getPromotionTier() {
@@ -517,7 +562,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * Specifies the accessibility options for the DB instance.
+     * The public accessibility of the DB instance. Default to false (private).
      */
     public Boolean getPubliclyAccessible() {
         if (publiclyAccessible == null) {
@@ -532,7 +577,18 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * Specifies whether the DB instance is encrypted.
+     * Skip or create the final DB snapshot before the DB instance is deleted. Default is false (create the final snapshot).
+     */
+    public Boolean getSkipFinalSnapshot() {
+        return skipFinalSnapshot;
+    }
+
+    public void setSkipFinalSnapshot(Boolean skipFinalSnapshot) {
+        this.skipFinalSnapshot = skipFinalSnapshot;
+    }
+
+    /**
+     * Enable or disable DB instance encryption. Default to false (no encryption).
      */
     public Boolean getStorageEncrypted() {
         return storageEncrypted;
@@ -543,7 +599,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * Specifies the storage type to be associated with the DB instance. Valid values: ``standard``, ``gp2``, ``io1``.
+     * The storage type for the DB instance. Valid values: ``standard``, ``gp2``, ``io1``.
      */
     @ResourceDiffProperty(updatable = true)
     public String getStorageType() {
@@ -555,7 +611,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The ARN from the key store with which to associate the instance for TDE encryption.
+     * The ARN from the key store for TDE encryption.
      */
     public String getTdeCredentialArn() {
         return tdeCredentialArn;
@@ -566,7 +622,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The password for the given ARN from the key store in order to access the device.
+     * The password for the given ARN from the key store.
      */
     public String getTdeCredentialPassword() {
         return tdeCredentialPassword;
@@ -588,7 +644,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * A list of Amazon EC2 VPC security groups to associate with this DB in
+     * A list of Amazon VPC security groups to associate with. Not applicable for Aurora. Not compatible with `db-security-groups`.
      */
     @ResourceDiffProperty(updatable = true)
     public List<String> getVpcSecurityGroupIds() {
@@ -597,62 +653,6 @@ public class DbInstanceResource extends RdsTaggableResource {
 
     public void setVpcSecurityGroupIds(List<String> vpcSecurityGroupIds) {
         this.vpcSecurityGroupIds = vpcSecurityGroupIds;
-    }
-
-    /**
-     * Indicates that major version upgrades are allowed.
-     */
-    public Boolean getAllowMajorVersionUpgrade() {
-        return allowMajorVersionUpgrade;
-    }
-
-    public void setAllowMajorVersionUpgrade(Boolean allowMajorVersionUpgrade) {
-        this.allowMajorVersionUpgrade = allowMajorVersionUpgrade;
-    }
-
-    /**
-     * Specifies whether the modifications in this request and any pending modifications are asynchronously applied as soon as possible, regardless of the `PreferredMaintenanceWindow` setting for the DB instance.
-     */
-    public Boolean getApplyImmediately() {
-        return applyImmediately;
-    }
-
-    public void setApplyImmediately(Boolean applyImmediately) {
-        this.applyImmediately = applyImmediately;
-    }
-
-    /**
-     * The `DBSnapshotIdentifier` of the new DB snapshot created when `SkipFinalSnapshot` is set to false.
-     */
-    public String getFinalDbSnapshotIdentifier() {
-        return finalDbSnapshotIdentifier;
-    }
-
-    public void setFinalDbSnapshotIdentifier(String finalDbSnapshotIdentifier) {
-        this.finalDbSnapshotIdentifier = finalDbSnapshotIdentifier;
-    }
-
-    /**
-     * A value that indicates whether a final DB snapshot is created before the DB instance is deleted.
-     */
-    public Boolean getSkipFinalSnapshot() {
-        return skipFinalSnapshot;
-    }
-
-    public void setSkipFinalSnapshot(Boolean skipFinalSnapshot) {
-        this.skipFinalSnapshot = skipFinalSnapshot;
-    }
-
-    /**
-     * A value that indicates whether to remove automated backups immediately after the DB instance is deleted.
-     */
-    @ResourceDiffProperty(updatable = true)
-    public Boolean getDeleteAutomatedBackups() {
-        return deleteAutomatedBackups;
-    }
-
-    public void setDeleteAutomatedBackups(Boolean deleteAutomatedBackups) {
-        this.deleteAutomatedBackups = deleteAutomatedBackups;
     }
 
     @Override
