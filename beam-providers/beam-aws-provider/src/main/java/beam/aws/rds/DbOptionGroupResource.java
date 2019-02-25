@@ -56,7 +56,7 @@ public class DbOptionGroupResource extends RdsTaggableResource {
     private List<OptionConfiguration> option;
 
     /**
-     * Specifies the name of the option group to be created.
+     * The name of the option group.
      */
     public String getName() {
         return name;
@@ -78,7 +78,7 @@ public class DbOptionGroupResource extends RdsTaggableResource {
     }
 
     /**
-     * Specifies the name of the engine that this option group should be associated with.
+     * The name of the engine that this option group should be associated with.
      */
     public String getEngine() {
         return engine;
@@ -89,7 +89,7 @@ public class DbOptionGroupResource extends RdsTaggableResource {
     }
 
     /**
-     * Specifies the major version of the engine that this option group should be associated with.
+     * The major version of the engine that this option group should be associated with.
      */
     public String getMajorEngineVersion() {
         return majorEngineVersion;

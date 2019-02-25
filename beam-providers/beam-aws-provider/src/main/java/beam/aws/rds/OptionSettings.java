@@ -9,7 +9,7 @@ public class OptionSettings extends Diffable {
     private String value;
 
     /**
-     * The name of the option that has settings that you can set.
+     * The name of the option settings.
      */
     public String getName() {
         return name;
@@ -20,7 +20,7 @@ public class OptionSettings extends Diffable {
     }
 
     /**
-     * The current value of the option setting.
+     * The value of the option settings.
      */
     @ResourceDiffProperty(updatable = true)
     public String getValue() {

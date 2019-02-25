@@ -56,7 +56,7 @@ public class DbSubnetGroupResource extends RdsTaggableResource {
     }
 
     /**
-     * The name for the DB subnet group. This value is stored as a lowercase string. (Required)
+     * The name for the DB subnet group. (Required)
      */
     public String getGroupName() {
         return groupName;
@@ -67,7 +67,7 @@ public class DbSubnetGroupResource extends RdsTaggableResource {
     }
 
     /**
-     * The EC2 Subnet IDs for the DB subnet group. (Required)
+     * The list of Subnet IDs for the DB subnet group. (Required)
      */
     @ResourceDiffProperty(updatable = true)
     public List<String> getSubnetIds() {

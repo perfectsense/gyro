@@ -11,7 +11,7 @@ public class ScalingConfiguration extends Diffable {
     private Integer secondsUntilAutoPause;
 
     /**
-     * A value that specifies whether to allow or disallow automatic pause for an Aurora DB cluster in serverless DB engine mode. A DB cluster can be paused only when it's idle (it has no connections).
+     * Allow or disallow automatic pause for an Aurora DB cluster in serverless DB engine mode. A DB cluster can be paused only when it's idle (i.e. it has no connections).
      */
     @ResourceDiffProperty(updatable = true)
     public Boolean getAutoPause() {
@@ -23,7 +23,7 @@ public class ScalingConfiguration extends Diffable {
     }
 
     /**
-     * The maximum capacity for an Aurora DB cluster in serverless DB engine mode. Valid capacity values are ``2``, ``4``, ``8``, ``16``, ``32``, ``64``, ``128``, and ``256``. The maximum capacity must be greater than or equal to the minimum capacity.
+     * The maximum capacity for an Aurora DB cluster in serverless DB engine mode. Valid values: ``2``, ``4``, ``8``, ``16``, ``32``, ``64``, ``128``, and ``256``.
      */
     @ResourceDiffProperty(updatable = true)
     public Integer getMaxCapacity() {
@@ -35,7 +35,7 @@ public class ScalingConfiguration extends Diffable {
     }
 
     /**
-     * The minimum capacity for an Aurora DB cluster in serverless DB engine mode. Valid capacity values are ``2``, ``4``, ``8``, ``16``, ``32``, ``64``, ``128``, and ``256``. The minimum capacity must be less than or equal to the maximum capacity.
+     * The minimum capacity for an Aurora DB cluster in serverless DB engine mode. Valid values: ``2``, ``4``, ``8``, ``16``, ``32``, ``64``, ``128``, and ``256``.
      */
     @ResourceDiffProperty(updatable = true)
     public Integer getMinCapacity() {
@@ -47,7 +47,7 @@ public class ScalingConfiguration extends Diffable {
     }
 
     /**
-     * The time, in seconds, before an Aurora DB cluster in serverless mode is paused.
+     * The time before an Aurora DB cluster in serverless mode is paused in seconds.
      */
     @ResourceDiffProperty(updatable = true)
     public Integer getSecondsUntilAutoPause() {

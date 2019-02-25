@@ -34,7 +34,7 @@ public class DbGlobalClusterResource extends AwsResource {
     private Boolean storageEncrypted;
 
     /**
-     * The name for your database of up to 64 alpha-numeric characters. If you do not provide a name, Amazon Aurora will not create a database in the global database cluster you are creating.
+     * The name for your database of up to 64 alpha-numeric characters. If omitted, no database will be created in the global database cluster.
      */
     public String getDatabaseName() {
         return databaseName;
@@ -45,7 +45,7 @@ public class DbGlobalClusterResource extends AwsResource {
     }
 
     /**
-     * The deletion protection setting for the new global database. The global database can't be deleted when this value is set to true.
+     * Enable or disable deletion protection on the global cluster. The default is false.
      */
     @ResourceDiffProperty(updatable = true)
     public Boolean getDeletionProtection() {
@@ -57,7 +57,7 @@ public class DbGlobalClusterResource extends AwsResource {
     }
 
     /**
-     * Provides the name of the database engine to be used for this DB cluster.
+     * The name of the database engine.
      */
     public String getEngine() {
         return engine;
@@ -79,7 +79,7 @@ public class DbGlobalClusterResource extends AwsResource {
     }
 
     /**
-     * The cluster identifier of the global database cluster. (Required)
+     * The unique identifier of the global database cluster. (Required)
      */
     public String getGlobalClusterIdentifier() {
         return globalClusterIdentifier;
@@ -90,7 +90,7 @@ public class DbGlobalClusterResource extends AwsResource {
     }
 
     /**
-     * The Amazon Resource Name (ARN) to use as the primary cluster of the global database.
+     * The primary cluster ARN of the global database.
      */
     public String getSourceDbClusterIdentifier() {
         return sourceDbClusterIdentifier;
@@ -101,7 +101,7 @@ public class DbGlobalClusterResource extends AwsResource {
     }
 
     /**
-     * The storage encryption setting for the new global database cluster.
+     * Enable or disable global cluster encryption. Default to false (no encryption).
      */
     public Boolean getStorageEncrypted() {
         return storageEncrypted;

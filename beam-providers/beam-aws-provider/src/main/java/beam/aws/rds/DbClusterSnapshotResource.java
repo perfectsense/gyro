@@ -32,7 +32,7 @@ public class DbClusterSnapshotResource extends RdsTaggableResource {
     private String dbClusterSnapshotIdentifier;
 
     /**
-     * The identifier of the DB cluster to create a snapshot for. This parameter is not case-sensitive. (Required)
+     * The identifier of the DB cluster to create a snapshot for. (Required)
      */
     public String getDbClusterIdentifier() {
         return dbClusterIdentifier;
@@ -43,7 +43,7 @@ public class DbClusterSnapshotResource extends RdsTaggableResource {
     }
 
     /**
-     * The identifier of the DB cluster snapshot. This parameter is stored as a lowercase string. (Required)
+     * The unique identifier of the DB cluster snapshot. (Required)
      */
     public String getDbClusterSnapshotIdentifier() {
         return dbClusterSnapshotIdentifier;

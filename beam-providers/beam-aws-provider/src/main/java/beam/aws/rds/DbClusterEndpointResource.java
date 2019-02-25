@@ -37,7 +37,7 @@ public class DbClusterEndpointResource extends AwsResource {
     private List<String> staticMembers;
 
     /**
-     * The identifier to use for the new endpoint. This parameter is stored as a lowercase string. (Required)
+     * The unique identifier of the endpoint. (Required)
      */
     public String getClusterEndpointIdentifier() {
         return clusterEndpointIdentifier;
@@ -48,7 +48,7 @@ public class DbClusterEndpointResource extends AwsResource {
     }
 
     /**
-     * The DB cluster identifier of the DB cluster associated with the endpoint. This parameter is stored as a lowercase string. (Required)
+     * The DB cluster identifier associated with the endpoint. (Required)
      */
     public String getDbClusterIdentifier() {
         return dbClusterIdentifier;
@@ -71,7 +71,7 @@ public class DbClusterEndpointResource extends AwsResource {
     }
 
     /**
-     * List of DB instance identifiers that aren't part of the custom endpoint group. All other eligible instances are reachable through the custom endpoint. Only relevant if the list of static members is empty.
+     * List of DB instance identifiers that excluded from the custom endpoint group. Only applicable if `static-members` is empty.
      */
     @ResourceDiffProperty(updatable = true)
     public List<String> getExcludedMembers() {

@@ -34,6 +34,9 @@ public class DbSnapShotResource extends RdsTaggableResource {
     private String engineVersion;
     private String optionGroupName;
 
+    /**
+     * The identifier of the DB instance to create a snapshot for. (Required)
+     */
     public String getDbInstanceIdentifier() {
         return dbInstanceIdentifier;
     }
@@ -42,6 +45,9 @@ public class DbSnapShotResource extends RdsTaggableResource {
         this.dbInstanceIdentifier = dbInstanceIdentifier;
     }
 
+    /**
+     * The unique identifier of the DB instance snapshot. (Required)
+     */
     public String getDbSnapshotIdentifier() {
         return dbSnapshotIdentifier;
     }
@@ -50,6 +56,9 @@ public class DbSnapShotResource extends RdsTaggableResource {
         this.dbSnapshotIdentifier = dbSnapshotIdentifier;
     }
 
+    /**
+     * The engine version to upgrade the DB snapshot to.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getEngineVersion() {
         return engineVersion;
@@ -59,6 +68,9 @@ public class DbSnapShotResource extends RdsTaggableResource {
         this.engineVersion = engineVersion;
     }
 
+    /**
+     * The option group associate with the upgraded DB snapshot. Only applicable when upgrading an Oracle DB snapshot.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getOptionGroupName() {
         return optionGroupName;

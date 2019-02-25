@@ -14,7 +14,7 @@ public class OptionConfiguration extends Diffable {
     private List<String> vpcSecurityGroupMemberships;
 
     /**
-     * The option name.
+     * The name of the option.
      */
     public String getOptionName() {
         return optionName;
@@ -25,7 +25,7 @@ public class OptionConfiguration extends Diffable {
     }
 
     /**
-     * The option settings to include in an option group.
+     * The List of option settings to include in the option configuration.
      *
      * @subresource beam.aws.rds.OptionSettings
      */
@@ -42,7 +42,7 @@ public class OptionConfiguration extends Diffable {
     }
 
     /**
-     * The optional port for the option.
+     * The port of the option.
      */
     public Integer getPort() {
         return port;
@@ -53,7 +53,7 @@ public class OptionConfiguration extends Diffable {
     }
 
     /**
-     * The version for the option.
+     * The version of the option.
      */
     public String getVersion() {
         return version;
@@ -64,7 +64,7 @@ public class OptionConfiguration extends Diffable {
     }
 
     /**
-     * A list of VpcSecurityGroupMemebrship name strings used for this option.
+     * A list of VPC security groups used for this option.
      */
     public List<String> getVpcSecurityGroupMemberships() {
         if (vpcSecurityGroupMemberships == null) {
