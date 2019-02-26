@@ -1,9 +1,9 @@
 import ../init.bcl as _
 
 aws::topic sns-topic-example
-    topic-attributes: {
-            DisplayName: "sns-topic-example-ex",
-            Policy: "beam-providers/beam-aws-provider/examples/sns/sns-policy.json"
+    attributes: {
+        DisplayName: "sns-topic-example-ex",
+        Policy: "beam-providers/beam-aws-provider/examples/sns/sns-policy.json"
     }
     name: "sns-topic"
 end
@@ -11,9 +11,9 @@ end
 aws::subscriber sns-subscriber-example
     protocol: "sqs"
     endpoint: $(aws::sqs sqs-example | queue-arn)
-    subscription-attributes: {
-            FilterPolicy: "beam-providers/beam-aws-provider/examples/sns/filter-policy.json",
-            RawMessageDelivery: "true"
+    attributes: {
+        FilterPolicy: "beam-providers/beam-aws-provider/examples/sns/filter-policy.json",
+        RawMessageDelivery: "true"
     }
     topic-arn: $(aws::topic sns-topic-example | topic-arn)
 end
