@@ -182,17 +182,11 @@ public class SubscriberResource extends AwsResource {
     public void update(Resource current, Set<String> changedProperties) {
         SnsClient client = createClient(SnsClient.class);
 
-        client.setSubscriptionAttributes(r -> r.attributeName("DeliveryPolicy")
-                                                .attributeValue(getSubscriptionAttributes().get("DeliveryPolicy"))
-                                                .subscriptionArn(getSubscriptionArn()));
-
-        client.setSubscriptionAttributes(r -> r.attributeName("FilterPolicy")
-                .attributeValue(getSubscriptionAttributes().get("FilterPolicy"))
-                .subscriptionArn(getSubscriptionArn()));
-
-        client.setSubscriptionAttributes(r -> r.attributeName("RawMessageDelivery")
-                .attributeValue(getSubscriptionAttributes().get("RawMessageDelivery"))
-                .subscriptionArn(getSubscriptionArn()));
+        for (Map.Entry<String, String> entry : getAttributes().entrySet()) {
+            client.setSubscriptionAttributes(r -> r.attributeName(entry.getKey())
+                    .attributeValue(getAttributes().get(entry.getValue()))
+                    .subscriptionArn(getSubscriptionArn()));
+        }
     }
 
     @Override
