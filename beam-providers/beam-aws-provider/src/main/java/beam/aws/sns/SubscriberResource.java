@@ -29,9 +29,9 @@ import java.util.Set;
  *     aws::subscriber subscriber-example
  *         protocol: "sqs"
  *         endpoint: $(aws::sqs sqs-example | queue-arn)
- *         subscription-attributes: {
- *                 FilterPolicy: "beam-providers/beam-aws-provider/examples/sns/filter-policy.json",
- *                 RawMessageDelivery: "true"
+ *         attributes: {
+ *             FilterPolicy: "beam-providers/beam-aws-provider/examples/sns/filter-policy.json",
+ *             RawMessageDelivery: "true"
  *         }
  *         topic-arn: $(aws::topic sns-topic-example | topic-arn)
  *     end
@@ -39,7 +39,7 @@ import java.util.Set;
 @ResourceName("subscriber")
 public class SubscriberResource extends AwsResource {
 
-    private Map<String, String> subscriptionAttributes;
+    private Map<String, String> attributes;
     private String endpoint;
     private String protocol;
     private String subscriptionArn;
@@ -52,38 +52,38 @@ public class SubscriberResource extends AwsResource {
      * Possible attributes are DeliveryPolicy, FilterPolicy, and RawMessageDelivery
      */
     @ResourceDiffProperty(updatable = true)
-    public Map<String, String> getSubscriptionAttributes() {
-        if (subscriptionAttributes == null) {
-            subscriptionAttributes = new CompactMap<>();
+    public Map<String, String> getAttributes() {
+        if (attributes == null) {
+            attributes = new CompactMap<>();
         }
 
-        if (subscriptionAttributes.get("DeliveryPolicy") != null && subscriptionAttributes.get("DeliveryPolicy").endsWith(".json")) {
+        if (attributes.get("DeliveryPolicy") != null && attributes.get("DeliveryPolicy").endsWith(".json")) {
             try {
-                String encode = new String(Files.readAllBytes(Paths.get(subscriptionAttributes.get("DeliveryPolicy"))), "UTF-8");
-                subscriptionAttributes.put("DeliveryPolicy", formatPolicy(encode));
+                String encode = new String(Files.readAllBytes(Paths.get(attributes.get("DeliveryPolicy"))), "UTF-8");
+                attributes.put("DeliveryPolicy", formatPolicy(encode));
             } catch (Exception err) {
                 throw new BeamException(err.getMessage());
             }
         }
 
-        if (subscriptionAttributes.get("FilterPolicy") != null && subscriptionAttributes.get("FilterPolicy").endsWith(".json")) {
+        if (attributes.get("FilterPolicy") != null && attributes.get("FilterPolicy").endsWith(".json")) {
             try {
-                String encode = new String(Files.readAllBytes(Paths.get(subscriptionAttributes.get("FilterPolicy"))), "UTF-8");
-                subscriptionAttributes.put("FilterPolicy", formatPolicy(encode));
+                String encode = new String(Files.readAllBytes(Paths.get(attributes.get("FilterPolicy"))), "UTF-8");
+                attributes.put("FilterPolicy", formatPolicy(encode));
             } catch (Exception err) {
                 throw new BeamException(err.getMessage());
             }
         }
 
-        return subscriptionAttributes;
+        return attributes;
     }
 
-    public void setSubscriptionAttributes(Map<String, String> subscriptionAttributes) {
-        if (this.subscriptionAttributes != null && subscriptionAttributes != null) {
-            this.subscriptionAttributes.putAll(subscriptionAttributes);
+    public void setAttributes(Map<String, String> attributes) {
+        if (this.attributes != null && attributes != null) {
+            this.attributes.putAll(attributes);
 
         } else {
-            this.subscriptionAttributes = subscriptionAttributes;
+            this.attributes = attributes;
         }
     }
 
@@ -133,16 +133,17 @@ public class SubscriberResource extends AwsResource {
 
         try {
             GetSubscriptionAttributesResponse response = client.getSubscriptionAttributes(r -> r.subscriptionArn(getSubscriptionArn()));
+            getAttributes().clear();
 
             if (response != null) {
                 if (response.attributes().get("DeliveryPolicy") != null) {
-                    getSubscriptionAttributes().put("DeliveryPolicy", (response.attributes().get("DeliveryPolicy")));
+                    getAttributes().put("DeliveryPolicy", (response.attributes().get("DeliveryPolicy")));
                 }
                 if (response.attributes().get("FilterPolicy") != null) {
-                    getSubscriptionAttributes().put("FilterPolicy", (response.attributes().get("FilterPolicy")));
+                    getAttributes().put("FilterPolicy", (response.attributes().get("FilterPolicy")));
                 }
                 if (response.attributes().get("RawMessageDelivery") != null) {
-                    getSubscriptionAttributes().put("RawMessageDelivery", (response.attributes().get("RawMessageDelivery")));
+                    getAttributes().put("RawMessageDelivery", (response.attributes().get("RawMessageDelivery")));
                 }
 
                 setTopicArn(response.attributes().get("TopicArn"));
@@ -158,7 +159,7 @@ public class SubscriberResource extends AwsResource {
     public void create() {
         SnsClient client = createClient(SnsClient.class);
 
-        SubscribeResponse subscribeResponse = client.subscribe(r -> r.attributes(getSubscriptionAttributes())
+        SubscribeResponse subscribeResponse = client.subscribe(r -> r.attributes(getAttributes())
                 .endpoint(getEndpoint())
                 .protocol(getProtocol())
                 .topicArn(getTopicArn()));
