@@ -48,8 +48,15 @@ public class SubscriberResource extends AwsResource {
     public SubscriberResource() {}
 
     /**
-     * The attributes for the subscription. (Required)
+     * The attributes for the subscription (Optional)
+     *
      * Possible attributes are DeliveryPolicy, FilterPolicy, and RawMessageDelivery
+     *
+     * DeliveryPolicy can be a json file path or json blob (Optional)
+     *
+     * FilterPolicy can be a json file path or json blob (Optional)
+     *
+     * RawMessageDelivery is a boolean (Optional)
      */
     @ResourceDiffProperty(updatable = true)
     public Map<String, String> getAttributes() {
@@ -118,7 +125,9 @@ public class SubscriberResource extends AwsResource {
         this.subscriptionArn = subscriptionArn;
     }
 
-    @ResourceOutput
+    /**
+     * The topic arn to subscribe to. (Required)
+     */
     public String getTopicArn() {
         return topicArn;
     }
@@ -135,6 +144,8 @@ public class SubscriberResource extends AwsResource {
             GetSubscriptionAttributesResponse response = client.getSubscriptionAttributes(r -> r.subscriptionArn(getSubscriptionArn()));
             getAttributes().clear();
 
+            //The list of attributes is much larger than what can be set.
+            //Only those that can be set are extracted out of the list of attributes.
             if (response != null) {
                 if (response.attributes().get("DeliveryPolicy") != null) {
                     getAttributes().put("DeliveryPolicy", (response.attributes().get("DeliveryPolicy")));
