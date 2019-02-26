@@ -9,7 +9,9 @@ import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.management.network.NetworkSecurityGroup;
 import com.psddev.dari.util.ObjectUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -35,6 +37,7 @@ public class NetworkSecurityGroupResource extends AzureResource {
     private String networkSecurityGroupName;
     private String resourceGroupName;
     private String networkSecurityGroupId;
+    private List<NetworkSecurityGroupRuleResource> rule;
     private Map<String, String> tags;
 
     /**
@@ -67,6 +70,24 @@ public class NetworkSecurityGroupResource extends AzureResource {
         this.networkSecurityGroupId = networkSecurityGroupId;
     }
 
+    /**
+     * Inbound and Outbound rules for the security group.
+     *
+     * @subresource beam.azure.network.NetworkSecurityGroupRuleResource
+     */
+    @ResourceDiffProperty(updatable = true)
+    public List<NetworkSecurityGroupRuleResource> getRule() {
+        if (rule == null) {
+            rule = new ArrayList<>();
+        }
+
+        return rule;
+    }
+
+    public void setRule(List<NetworkSecurityGroupRuleResource> rule) {
+        this.rule = rule;
+    }
+
     @ResourceDiffProperty(updatable = true)
     public Map<String, String> getTags() {
         if (tags == null) {
@@ -88,6 +109,15 @@ public class NetworkSecurityGroupResource extends AzureResource {
 
         setNetworkSecurityGroupName(networkSecurityGroup.name());
         setTags(networkSecurityGroup.tags());
+
+        getRule().clear();
+        for (String key : networkSecurityGroup.securityRules().keySet()) {
+            NetworkSecurityGroupRuleResource ruleResource = new NetworkSecurityGroupRuleResource(
+                networkSecurityGroup.securityRules().get(key)
+            );
+            ruleResource.parent(this);
+            getRule().add(ruleResource);
+        }
 
         return true;
     }
