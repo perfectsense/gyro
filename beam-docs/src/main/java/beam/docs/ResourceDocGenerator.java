@@ -145,7 +145,7 @@ public class ResourceDocGenerator {
 
         // Output superclass attributes.
         if (classDoc.superclass() != null && !classDoc.superclass().name().equals("Resource")) {
-            generateAttributes(classDoc.superclass(), sb, indent);
+            hadOutputs = generateAttributes(classDoc.superclass(), sb, indent);
         }
 
         for (MethodDoc methodDoc : classDoc.methods()) {
@@ -199,7 +199,7 @@ public class ResourceDocGenerator {
     private void generateOutputs(ClassDoc classDoc, StringBuilder sb, int indent) {
         // Output superclass attributes.
         if (classDoc.superclass() != null && !classDoc.superclass().name().equals("Resource")) {
-            generateAttributes(classDoc.superclass(), sb, indent);
+            generateOutputs(classDoc.superclass(), sb, indent);
         }
 
         for (MethodDoc methodDoc : classDoc.methods()) {
@@ -207,7 +207,6 @@ public class ResourceDocGenerator {
                 boolean isOutput = false;
 
                 for (AnnotationDesc annotationDesc : methodDoc.annotations()) {
-                    System.out.println(annotationDesc.annotationType().name());
                     if (annotationDesc.annotationType().name().equals("ResourceOutput")) {
                         isOutput = true;
                     }
