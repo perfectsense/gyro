@@ -49,6 +49,7 @@ public class SubscriberResource extends AwsResource {
 
     /**
      * The attributes for the subscription. (Required)
+     * Possible attributes are DeliveryPolicy, FilterPolicy, and RawMessageDelivery
      */
     @ResourceDiffProperty(updatable = true)
     public Map<String, String> getSubscriptionAttributes() {
