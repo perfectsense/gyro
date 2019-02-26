@@ -44,7 +44,15 @@ public class TopicResource extends AwsResource {
     private String topicArn;
 
     /**
-     * The attributes associated with this topic. (Required)
+     * The attributes associated with this topic (Required)
+     *
+     * Possible attributes are DeliveryPolicy, Policy, and DisplayName
+     *
+     * DeliveryPolicy can be a json file path or json blob (Optional)
+     *
+     * DisplayName is a string (Required)
+     *
+     * Policy can be a json file path or json blob (Optional)
      */
     @ResourceDiffProperty(updatable = true)
     public Map<String, String> getAttributes() {
@@ -110,6 +118,8 @@ public class TopicResource extends AwsResource {
             GetTopicAttributesResponse attributesResponse = client.getTopicAttributes(r -> r.topicArn(getTopicArn()));
             getAttributes().clear();
 
+            //The list of attributes is much larger than what can be set.
+            //Only those that can be set are extracted out of the list of attributes.
             if (attributesResponse.attributes().get("DisplayName") != null) {
                 getAttributes().put("DisplayName", (attributesResponse.attributes().get("DisplayName")));
             }
