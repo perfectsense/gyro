@@ -29,7 +29,7 @@ import java.util.Set;
  * .. code-block:: beam
  *
  *     aws::topic sns-topic-example
- *         topic-attributes: {
+ *         attributes: {
  *             DisplayName: "sns-topic-example",
  *             Policy: "beam-providers/beam-aws-provider/examples/sns/sns-policy.json"
  *         }
@@ -39,7 +39,7 @@ import java.util.Set;
 @ResourceName("topic")
 public class TopicResource extends AwsResource {
 
-    private Map<String, String> topicAttributes;
+    private Map<String, String> attributes;
     private String name;
     private String topicArn;
 
@@ -47,38 +47,38 @@ public class TopicResource extends AwsResource {
      * The attributes associated with this topic. (Required)
      */
     @ResourceDiffProperty(updatable = true)
-    public Map<String, String> getTopicAttributes() {
-        if (topicAttributes == null) {
-            topicAttributes = new CompactMap<>();
+    public Map<String, String> getAttributes() {
+        if (attributes == null) {
+            attributes = new CompactMap<>();
         }
 
-        if (topicAttributes.get("Policy") != null && topicAttributes.get("Policy").endsWith(".json")) {
+        if (attributes.get("Policy") != null && attributes.get("Policy").endsWith(".json")) {
             try {
-                String encode = new String(Files.readAllBytes(Paths.get(topicAttributes.get("Policy"))), "UTF-8");
-                topicAttributes.put("Policy", formatPolicy(encode));
+                String encode = new String(Files.readAllBytes(Paths.get(attributes.get("Policy"))), "UTF-8");
+                attributes.put("Policy", formatPolicy(encode));
             } catch (Exception err) {
                 throw new BeamException(err.getMessage());
             }
         }
 
-        if (topicAttributes.get("DeliveryPolicy") != null && topicAttributes.get("DeliveryPolicy").endsWith(".json")) {
+        if (attributes.get("DeliveryPolicy") != null && attributes.get("DeliveryPolicy").endsWith(".json")) {
             try {
-                String encode = new String(Files.readAllBytes(Paths.get(topicAttributes.get("DeliveryPolicy"))), "UTF-8");
-                topicAttributes.put("DeliveryPolicy", formatPolicy(encode));
+                String encode = new String(Files.readAllBytes(Paths.get(attributes.get("DeliveryPolicy"))), "UTF-8");
+                attributes.put("DeliveryPolicy", formatPolicy(encode));
             } catch (Exception err) {
                 throw new BeamException(err.getMessage());
             }
         }
 
-        return topicAttributes;
+        return attributes;
     }
 
-    public void setTopicAttributes(Map<String, String> topicAttributes) {
-        if (this.topicAttributes != null && topicAttributes != null) {
-            this.topicAttributes.putAll(topicAttributes);
+    public void setAttributes(Map<String, String> attributes) {
+        if (this.attributes != null && attributes != null) {
+            this.attributes.putAll(attributes);
 
         } else {
-            this.topicAttributes = topicAttributes;
+            this.attributes = attributes;
         }
     }
 
@@ -108,16 +108,16 @@ public class TopicResource extends AwsResource {
 
         try {
             GetTopicAttributesResponse attributesResponse = client.getTopicAttributes(r -> r.topicArn(getTopicArn()));
-            getTopicAttributes().clear();
+            getAttributes().clear();
 
             if (attributesResponse.attributes().get("DisplayName") != null) {
-                getTopicAttributes().put("DisplayName", (attributesResponse.attributes().get("DisplayName")));
+                getAttributes().put("DisplayName", (attributesResponse.attributes().get("DisplayName")));
             }
             if (attributesResponse.attributes().get("Policy") != null) {
-                getTopicAttributes().put("Policy", (attributesResponse.attributes().get("Policy")));
+                getAttributes().put("Policy", (attributesResponse.attributes().get("Policy")));
             }
             if (attributesResponse.attributes().get("DeliveryPolicy") != null) {
-                getTopicAttributes().put("DeliveryPolicy", (attributesResponse.attributes().get("DeliveryPolicy")));
+                getAttributes().put("DeliveryPolicy", (attributesResponse.attributes().get("DeliveryPolicy")));
             }
 
             setTopicArn(attributesResponse.attributes().get("TopicArn"));
@@ -133,7 +133,7 @@ public class TopicResource extends AwsResource {
     public void create() {
         SnsClient client = createClient(SnsClient.class);
 
-        CreateTopicResponse topicResponse = client.createTopic(r -> r.attributes(getTopicAttributes())
+        CreateTopicResponse topicResponse = client.createTopic(r -> r.attributes(getAttributes())
                                     .name(getName()));
 
         setTopicArn(topicResponse.topicArn());
