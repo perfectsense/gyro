@@ -21,8 +21,20 @@ public class State {
     private final boolean test;
     private final Map<String, FileScope> states = new HashMap<>();
 
-    public State(FileScope pending, boolean test) throws Exception {
-        root = new RootScope(pending.getFile() + ".state");
+    private String getStateFile(String file) {
+        if (file.endsWith(".bcl.state")) {
+            return file;
+
+        } else if (file.endsWith(".bcl")) {
+            return file + ".state";
+
+        } else {
+            return file + ".bcl.state";
+        }
+    }
+
+    public State(RootScope pending, boolean test) throws Exception {
+        root = new RootScope(getStateFile(pending.getFile()));
         this.test = test;
 
         load(pending, root);
@@ -33,7 +45,7 @@ public class State {
     }
 
     private void load(FileScope pending, FileScope state) throws Exception {
-        states.put(pending.getFile(), state);
+        states.put(getStateFile(pending.getFile()), state);
         pending.getBackend().load(state);
         state.getImports().clear();
         state.getPluginLoaders().clear();
@@ -45,10 +57,18 @@ public class State {
 
             FileScope stateImport = new FileScope(
                     pending,
-                    pendingDir.relativize(pendingImportFile).toString() + ".state");
+                    getStateFile(pendingDir.relativize(pendingImportFile).toString()));
 
             load(pendingImport, stateImport);
             state.getImports().add(stateImport);
+        }
+    }
+
+    private void save(FileScope state) throws Exception {
+        state.getBackend().save(state);
+
+        for (FileScope i : state.getImports()) {
+            save(i);
         }
     }
 
@@ -83,7 +103,7 @@ public class State {
 
         } else {
             String key = resource.resourceIdentifier();
-            FileScope state = states.get(resource.scope().getFileScope().getFile());
+            FileScope state = states.get(getStateFile(resource.scope().getFileScope().getFile()));
 
             // Subresource?
             if (key == null) {
@@ -142,12 +162,46 @@ public class State {
         }
     }
 
-    private void save(FileScope state) throws Exception {
-        state.getBackend().save(state);
+    public void swap(RootScope current, RootScope pending, String type, String x, String y) throws Exception {
+        swapResources(current, type, x, y);
+        swapResources(pending, type, x, y);
+        swapResources(root, type, x, y);
+        save(root);
+    }
 
-        for (FileScope i : state.getImports()) {
-            save(i);
+    private void swapResources(RootScope rootScope, String type, String xName, String yName) {
+        String xFullName = type + "::" + xName;
+        String yFullName = type + "::" + yName;
+        FileScope xScope = findScope(xFullName, rootScope);
+        FileScope yScope = findScope(yFullName, rootScope);
+
+        if (xScope != null && yScope != null) {
+            Resource x = (Resource) xScope.remove(xFullName);
+            Resource y = (Resource) yScope.remove(yFullName);
+
+            x.resourceIdentifier(yName);
+            y.resourceIdentifier(xName);
+            xScope.put(yFullName, x);
+            yScope.put(xFullName, y);
         }
+    }
+
+    private FileScope findScope(String name, FileScope scope) {
+        Object value = scope.get(name);
+
+        if (value instanceof Resource) {
+            return scope;
+        }
+
+        for (FileScope i : scope.getImports()) {
+            FileScope r = findScope(name, i);
+
+            if (r != null) {
+                return r;
+            }
+        }
+
+        return null;
     }
 
 }

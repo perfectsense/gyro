@@ -12,4 +12,8 @@ public abstract class BlockNode extends Node {
         this.body = body;
     }
 
+    public List<Node> getBody() {
+        return body;
+    }
+
 }

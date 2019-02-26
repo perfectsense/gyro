@@ -22,6 +22,7 @@ public class CliBeamUI implements BeamUI {
     private boolean verbose;
     private int indentSize = 4;
     private int indentLevel;
+    private boolean pendingIndentation = true;
 
     @Override
     public boolean isVerbose() {
@@ -125,8 +126,12 @@ public class CliBeamUI implements BeamUI {
     }
 
     private void writeIndentation() {
-        for (int i = 0, l = indentLevel * getIndentSize(); i < l; ++ i) {
-            System.out.print(' ');
+        if (pendingIndentation) {
+            for (int i = 0, l = indentLevel * getIndentSize(); i < l; ++ i) {
+                System.out.print(' ');
+            }
+
+            pendingIndentation = false;
         }
     }
 
@@ -147,6 +152,7 @@ public class CliBeamUI implements BeamUI {
             System.out.print(text.substring(offset, m.start()));
             System.out.print(m.group(1));
 
+            pendingIndentation = true;
             offset = m.end();
         }
 

@@ -5,10 +5,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import beam.lang.Workflow;
 import beam.lang.ast.DeferError;
 import beam.lang.ast.ImportNode;
 import beam.lang.ast.KeyValueNode;
 import beam.lang.ast.Node;
+import beam.lang.ast.scope.RootScope;
 import beam.lang.ast.scope.Scope;
 import beam.parser.antlr4.BeamParser;
 
@@ -29,6 +31,7 @@ public class RootNode extends BlockNode {
         List<KeyValueNode> keyValues = new ArrayList<>();
         List<PluginNode> plugins = new ArrayList<>();
         Map<String, VirtualResourceNode> virtualResourceNodes = scope.getRootScope().getVirtualResourceNodes();
+        List<ResourceNode> workflowNodes = new ArrayList<>();
         List<Node> body = new ArrayList<>();
 
         for (Node node : this.body) {
@@ -46,6 +49,15 @@ public class RootNode extends BlockNode {
                 virtualResourceNodes.put(vrNode.getName(), vrNode);
 
             } else {
+                if (node instanceof ResourceNode) {
+                    ResourceNode rnNode = (ResourceNode) node;
+
+                    if (rnNode.getType().equals("workflow")) {
+                        workflowNodes.add(rnNode);
+                        continue;
+                    }
+                }
+
                 body.add(node);
             }
         }
@@ -60,6 +72,13 @@ public class RootNode extends BlockNode {
 
         for (PluginNode plugin : plugins) {
             plugin.load(scope);
+        }
+
+        RootScope rootScope = scope.getRootScope();
+        List<Workflow> workflows = rootScope.getWorkflows();
+
+        for (ResourceNode rn : workflowNodes) {
+            workflows.add(new Workflow(rootScope, rn));
         }
 
         DeferError.evaluate(scope, body);

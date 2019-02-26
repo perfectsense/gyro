@@ -50,7 +50,7 @@ public class Update extends Change {
     }
 
     @Override
-    public void execute(BeamUI ui, State state) {
+    public boolean execute(BeamUI ui, State state) {
         if (!state.isTest()) {
             ((Resource) pendingDiffable).update(
                     (Resource) currentDiffable,
@@ -58,6 +58,8 @@ public class Update extends Change {
                             .map(DiffableField::getBeamName)
                             .collect(Collectors.toSet()));
         }
+
+        return true;
     }
 
 }

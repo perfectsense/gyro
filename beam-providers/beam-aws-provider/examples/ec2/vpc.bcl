@@ -7,3 +7,27 @@ aws::vpc vpc
         Name: "vpc-example"
     }
 end
+
+workflow 'replace-vpc' for-type: 'aws::vpc'
+    stage 'create-temp-vpc'
+        create parser-error: 'workaround'
+            aws::vpc "$(NAME)-temp"
+                _extends: $(PENDING)
+            end
+        end
+
+        transition-prompt: 'What next?'
+
+        transition 'swap' to: 'swap-vpcs'
+            description: 'Swap the VPCs'
+        end
+    end
+
+    stage 'swap-vpcs'
+        swap
+            type: 'aws::vpc'
+            x: "$(NAME)"
+            y: "$(NAME)-temp"
+        end
+    end
+end
