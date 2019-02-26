@@ -22,6 +22,9 @@ public class NicIpConfigurationResource extends AzureResource {
     private Boolean ipAllocationStatic;
     private Boolean primary;
 
+    /**
+     * Name of the ip configuration. (Required)
+     */
     public String getIpConfigurationName() {
         return ipConfigurationName;
     }
@@ -30,6 +33,9 @@ public class NicIpConfigurationResource extends AzureResource {
         this.ipConfigurationName = ipConfigurationName;
     }
 
+    /**
+     * Public ip address name to be associated with the ip config.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getPublicIpAddressName() {
         return publicIpAddressName;
@@ -47,6 +53,9 @@ public class NicIpConfigurationResource extends AzureResource {
         this.privateIpAddress = privateIpAddress;
     }
 
+    /**
+     * Private ip address to be associated with the ip config.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getPrivateIpAddressStatic() {
         return privateIpAddressStatic;
@@ -56,6 +65,9 @@ public class NicIpConfigurationResource extends AzureResource {
         this.privateIpAddressStatic = privateIpAddressStatic;
     }
 
+    /**
+     * Set ip allocation type to be static or dynamic. Defaults to false i.e dynamic.
+     */
     @ResourceDiffProperty(updatable = true)
     public Boolean getIpAllocationStatic() {
         if (ipAllocationStatic == null) {
@@ -65,6 +77,13 @@ public class NicIpConfigurationResource extends AzureResource {
         return ipAllocationStatic;
     }
 
+    public void setIpAllocationStatic(Boolean ipAllocationStatic) {
+        this.ipAllocationStatic = ipAllocationStatic;
+    }
+
+    /**
+     * Marks the ip configuration as primary.
+     */
     public Boolean getPrimary() {
         if (primary == null) {
             primary = false;
@@ -75,10 +94,6 @@ public class NicIpConfigurationResource extends AzureResource {
 
     public void setPrimary(Boolean primary) {
         this.primary = primary;
-    }
-
-    public void setIpAllocationStatic(Boolean ipAllocationStatic) {
-        this.ipAllocationStatic = ipAllocationStatic;
     }
 
     public NicIpConfigurationResource() {
