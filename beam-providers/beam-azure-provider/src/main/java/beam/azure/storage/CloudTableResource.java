@@ -61,7 +61,6 @@ public class CloudTableResource extends AzureResource {
                 setCloudTableName(cloudTable.getName());
                 return true;
             }
-
             return false;
         } catch (StorageException ex) {
             throw new BeamException(ex.getMessage());

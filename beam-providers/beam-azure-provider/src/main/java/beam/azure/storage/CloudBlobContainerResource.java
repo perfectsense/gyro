@@ -77,11 +77,10 @@ public class CloudBlobContainerResource extends AzureResource {
                 setPublicAccess(container.getProperties().getPublicAccess().toString());
                 return true;
             }
+            return false;
         } catch (StorageException ex) {
             throw new BeamException(ex.getMessage());
         }
-
-        return false;
     }
 
     @Override
