@@ -1,7 +1,8 @@
 package gyro.lang.ast.query;
 
-import gyro.lang.Resource;
+import gyro.lang.ResourceQueryGroup;
 import gyro.lang.ast.scope.Scope;
+import gyro.lang.ast.value.ResourceReferenceNode;
 import gyro.parser.antlr4.BeamParser;
 
 import java.util.List;
@@ -25,7 +26,7 @@ public class QueryExpression extends Query {
     }
 
     @Override
-    public Object evaluate(Resource resource, List<Resource> resources, Scope scope) throws Exception {
+    public List<ResourceQueryGroup> evaluate(Scope scope, ResourceReferenceNode node) throws Exception {
         return null;
     }
 

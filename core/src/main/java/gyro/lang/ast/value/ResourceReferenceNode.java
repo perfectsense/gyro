@@ -2,17 +2,18 @@ package gyro.lang.ast.value;
 
 import gyro.core.BeamException;
 import gyro.lang.Resource;
+import gyro.lang.ResourceQueryGroup;
 import gyro.lang.ast.DeferError;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.query.FieldValueQuery;
 import gyro.lang.ast.query.Query;
-import gyro.lang.ast.scope.DiffableScope;
 import gyro.lang.ast.scope.Scope;
 import gyro.lang.ResourceQuery;
 import gyro.parser.antlr4.BeamParser;
 import gyro.parser.antlr4.BeamParser.ReferenceBodyContext;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -74,17 +75,31 @@ public class ResourceReferenceNode extends Node {
             String name = (String) nameNode.evaluate(scope);
 
             if (name.startsWith("EXTERNAL/*")) {
+                List<ResourceQueryGroup> groups = null;
                 for (Query query : queries) {
                     // TODO: first filter triggers api calls, subsequent fitlers use
                     //       the output from the first and narrow it down
-                    Resource queryResource = queryResource(scope);
-                    if (queryResource == null) {
+                    ResourceQuery resourceQuery = getResourceQuery(scope);
+                    if (resourceQuery == null) {
                         throw new BeamException("Resource type " + type + " does not support external queries.");
                     }
 
-                    Object value = query.evaluate(queryResource, null, scope);
-                    return value;
+                    List<ResourceQueryGroup> groupsForOneQuery = query.evaluate(scope, this);
+                    if (groups == null) {
+                        groups = groupsForOneQuery;
+                    } else {
+                        List<ResourceQueryGroup> result = new ArrayList<>();
+                        for (ResourceQueryGroup left : groups) {
+                            for (ResourceQueryGroup right : groupsForOneQuery) {
+                                result.add(left.join(right));
+                            }
+                        }
+                        groups = result;
+                    }
                 }
+
+                groups.stream().forEach(ResourceQueryGroup::merge);
+                groups.stream().forEach(g -> g.getResourceQueries().stream().forEach(ResourceQuery::query));
 
                 return null;
             } else {
@@ -136,23 +151,17 @@ public class ResourceReferenceNode extends Node {
         builder.append(")");
     }
 
-    private Resource queryResource(Scope scope) throws Exception {
+    public ResourceQuery<Resource> getResourceQuery(Scope scope) throws Exception {
 
         @SuppressWarnings("unchecked")
-        Class<? extends Resource> resourceClass = (Class<? extends Resource>) scope.getRootScope().getResourceClasses().get(type);
+        Class<? extends ResourceQuery> resourceQueryClass = (Class<? extends ResourceQuery>) scope.getRootScope().getResourceQueryClasses().get(type);
 
-        Resource resource;
+        if (resourceQueryClass == null) {
+            return null;
+        }
 
         try {
-            resource = resourceClass.getConstructor().newInstance();
-
-            resource.resourceType(type);
-            resource.scope(new DiffableScope(scope));
-            resource.initialize(scope);
-
-            if (resource instanceof ResourceQuery) {
-                return resource;
-            }
+            return resourceQueryClass.getConstructor().newInstance();
 
         } catch (IllegalAccessException
             | InstantiationException
@@ -167,8 +176,5 @@ public class ResourceReferenceNode extends Node {
                 ? (RuntimeException) cause
                 : new RuntimeException(cause);
         }
-
-        return null;
     }
-
 }

@@ -1,7 +1,8 @@
 package gyro.lang.ast.query;
 
-import gyro.lang.Resource;
+import gyro.lang.ResourceQueryGroup;
 import gyro.lang.ast.scope.Scope;
+import gyro.lang.ast.value.ResourceReferenceNode;
 import gyro.parser.antlr4.BeamParser;
 import org.antlr.v4.runtime.tree.ParseTree;
 
@@ -30,6 +31,6 @@ public abstract class Query {
     }
 
 
-    public abstract Object evaluate(Resource resource, List<Resource> resources, Scope scope) throws Exception;
+    public abstract List<ResourceQueryGroup> evaluate(Scope scope, ResourceReferenceNode node) throws Exception;
 
 }

@@ -15,6 +15,7 @@ public class RootScope extends FileScope {
 
     private final RootScope current;
     private final Map<String, Class<?>> resourceClasses = new HashMap<>();
+    private final Map<String, Class<?>> resourceQueryClasses = new HashMap<>();
     private final Map<String, VirtualResourceNode> virtualResourceNodes = new LinkedHashMap<>();
     private final List<Workflow> workflows = new ArrayList<>();
 
@@ -38,6 +39,10 @@ public class RootScope extends FileScope {
 
     public Map<String, Class<?>> getResourceClasses() {
         return resourceClasses;
+    }
+
+    public Map<String, Class<?>> getResourceQueryClasses() {
+        return resourceQueryClasses;
     }
 
     public Map<String, VirtualResourceNode> getVirtualResourceNodes() {

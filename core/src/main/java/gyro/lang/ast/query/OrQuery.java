@@ -1,7 +1,8 @@
 package gyro.lang.ast.query;
 
-import gyro.lang.Resource;
+import gyro.lang.ResourceQueryGroup;
 import gyro.lang.ast.scope.Scope;
+import gyro.lang.ast.value.ResourceReferenceNode;
 import gyro.parser.antlr4.BeamParser.QueryExpressionContext;
 
 import java.util.ArrayList;
@@ -14,14 +15,13 @@ public class OrQuery extends QueryExpression {
     }
 
     @Override
-    public Object evaluate(Resource resource, List<Resource> resources, Scope scope) throws Exception {
-        List<Resource> leftValue = (List<Resource>) getLeftQuery().evaluate(resource, resources, scope);
-        List<Resource> rightValue = (List<Resource>) getRightQuery().evaluate(resource, resources, scope);
+    public List<ResourceQueryGroup> evaluate(Scope scope, ResourceReferenceNode node) throws Exception {
+        List<ResourceQueryGroup> leftQueries = getLeftQuery().evaluate(scope, node);
+        List<ResourceQueryGroup> rightQueries = getRightQuery().evaluate(scope, node);
+        List<ResourceQueryGroup> result = new ArrayList<>();
+        result.addAll(leftQueries);
+        result.addAll(rightQueries);
 
-        List<Resource> both = new ArrayList<>();
-        both.addAll(leftValue);
-        both.addAll(rightValue);
-
-        return both;
+        return result;
     }
 }
