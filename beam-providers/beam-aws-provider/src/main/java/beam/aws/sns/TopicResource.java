@@ -173,9 +173,11 @@ public class TopicResource extends AwsResource {
     public String toDisplayString() {
         StringBuilder sb = new StringBuilder();
         sb.append("sns topic ");
+
         if (getTopicArn() != null) {
             sb.append(getTopicArn());
         }
+
         return sb.toString();
     }
 
