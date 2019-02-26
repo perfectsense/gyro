@@ -19,6 +19,5 @@ end
 
 azure::cloud-file-share cloud-file-share-example
     cloud-file-share-name: "example-cloud-file-share"
-    share-quota: 15
     storage-connection: $(azure::storage-account cloud-file-share-storage-account-example | storage-connection)
 end
