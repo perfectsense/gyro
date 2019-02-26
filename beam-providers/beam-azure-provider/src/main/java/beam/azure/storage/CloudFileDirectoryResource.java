@@ -127,7 +127,7 @@ public class CloudFileDirectoryResource extends AzureResource {
 
     @Override
     public String toDisplayString() {
-        return "cloud file directory " + getCloudFileDirectoryName();
+        return "cloud file directory " + Paths.get(getCloudFileDirectoryPath()).getFileName().toString();
     }
 
     public CloudFileDirectory cloudFileDirectory() {
