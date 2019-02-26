@@ -9,7 +9,7 @@ azure::resource-group cloud-file-resource-group-example
 end
 
 azure::storage-account cloud-file-share-storage-account-example
-    resource-group-name: $(azure::resource-group cloud-file-resource-group | resource-group-name)
+    resource-group-name: $(azure::resource-group cloud-file-resource-group-example | resource-group-name)
     storage-account-name: "cloudfilesharestacct"
 
     tags: {
