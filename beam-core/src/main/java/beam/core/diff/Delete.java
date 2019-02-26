@@ -28,10 +28,12 @@ public class Delete extends Change {
     }
 
     @Override
-    public void execute(BeamUI ui, State state) {
+    public boolean execute(BeamUI ui, State state) {
         if (!state.isTest()) {
             ((Resource) diffable).delete();
         }
+
+        return true;
     }
 
 }

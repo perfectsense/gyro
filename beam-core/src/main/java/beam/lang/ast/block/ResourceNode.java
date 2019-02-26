@@ -2,6 +2,7 @@ package beam.lang.ast.block;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -12,6 +13,7 @@ import beam.core.diff.DiffableType;
 import beam.lang.Resource;
 import beam.lang.ast.Node;
 import beam.lang.ast.scope.DiffableScope;
+import beam.lang.ast.scope.RootScope;
 import beam.lang.ast.scope.Scope;
 import beam.parser.antlr4.BeamParser;
 
@@ -37,7 +39,16 @@ public class ResourceNode extends BlockNode {
         nameNode = Node.create(context.resourceName().getChild(0));
     }
 
+    public String getType() {
+        return type;
+    }
+
+    public Node getNameNode() {
+        return nameNode;
+    }
+
     @Override
+    @SuppressWarnings("unchecked")
     public Object evaluate(Scope scope) throws Exception {
         String name = (String) nameNode.evaluate(scope);
         String fullName = type + "::" + name;
@@ -75,8 +86,28 @@ public class ResourceNode extends BlockNode {
             node.evaluate(bodyScope);
         }
 
-        @SuppressWarnings("unchecked")
-        Class<? extends Resource> resourceClass = (Class<? extends Resource>) scope.getRootScope().getResourceClasses().get(type);
+        // Copy values from another.
+        Object another = bodyScope.remove("_extends");
+        RootScope rootScope = scope.getRootScope();
+
+        if (another instanceof String) {
+            Resource anotherResource = rootScope.findResource(type + "::" + another);
+
+            if (anotherResource == null) {
+                throw new IllegalArgumentException(String.format(
+                        "No resource named [%s]!",
+                        another));
+            }
+
+            for (DiffableField field : DiffableType.getInstance(anotherResource.getClass()).getFields()) {
+                bodyScope.putIfAbsent(field.getBeamName(), field.getValue(anotherResource));
+            }
+
+        } else if (another instanceof Map) {
+            ((Map<String, Object>) another).forEach(bodyScope::putIfAbsent);
+        }
+
+        Class<? extends Resource> resourceClass = (Class<? extends Resource>) rootScope.getResourceClasses().get(type);
 
         if (resourceClass == null) {
             VirtualResourceNode vrNode = scope.getRootScope().getVirtualResourceNodes().get(type);

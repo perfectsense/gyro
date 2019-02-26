@@ -28,7 +28,7 @@ public abstract class Change {
 
     public abstract void writeExecution(BeamUI ui);
 
-    public abstract void execute(BeamUI ui, State state)  throws Exception;
+    public abstract boolean execute(BeamUI ui, State state) throws Exception;
 
     protected String stringify(Object value) {
         if (value instanceof List) {

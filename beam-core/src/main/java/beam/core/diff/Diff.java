@@ -364,14 +364,12 @@ public class Diff {
                     change.writeExecution(ui);
                 }
 
-                try {
-                    change.execute(ui, state);
+                if (change.execute(ui, state)) {
                     ui.write(ui.isVerbose() ? "\n@|bold,green OK|@\n\n" : " @|bold,green OK|@\n");
                     state.update(change);
 
-                } catch (Exception error) {
-                    ui.write(ui.isVerbose() ? "\n@|bold,red ERROR|@\n\n" : " @|bold,red ERROR|@\n");
-                    ui.writeError(error, "");
+                } else {
+                    ui.write(ui.isVerbose() ? "\n@|bold,yellow SKIPPED|@\n\n" : " @|bold,yellow SKIPPED|@\n");
                 }
             }
         }

@@ -4,6 +4,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import beam.core.BeamUI;
+import beam.lang.Resource;
+import beam.lang.Workflow;
 import beam.lang.ast.scope.State;
 
 public class Replace extends Change {
@@ -11,11 +13,22 @@ public class Replace extends Change {
     private final Diffable currentDiffable;
     private final Diffable pendingDiffable;
     private final Set<DiffableField> changedFields;
+    private final Workflow workflow;
 
     public Replace(Diffable currentDiffable, Diffable pendingDiffable, Set<DiffableField> changedFields) {
         this.currentDiffable = currentDiffable;
         this.pendingDiffable = pendingDiffable;
         this.changedFields = changedFields;
+
+        Resource pendingResource = (Resource) pendingDiffable;
+
+        this.workflow = pendingResource.scope()
+                .getRootScope()
+                .getWorkflows()
+                .stream()
+                .filter(w -> w.getForType().equals(pendingResource.resourceType()))
+                .findFirst()
+                .orElse(null);
     }
 
     @Override
@@ -24,11 +37,6 @@ public class Replace extends Change {
     }
 
     private void writeFields(BeamUI ui) {
-        ui.write(" (because of %s)", changedFields.stream()
-                .filter(f -> !f.isUpdatable())
-                .map(DiffableField::getBeamName)
-                .collect(Collectors.joining(", ")));
-
         if (!ui.isVerbose()) {
             return;
         }
@@ -49,18 +57,42 @@ public class Replace extends Change {
 
     @Override
     public void writePlan(BeamUI ui) {
-        ui.write("@|cyan ⤢ Replace %s|@", currentDiffable.toDisplayString());
+        ui.write("@|cyan ⇅ Replace %s|@", currentDiffable.toDisplayString());
+        ui.write(" (because of %s, ", changedFields.stream()
+                .filter(f -> !f.isUpdatable())
+                .map(DiffableField::getBeamName)
+                .collect(Collectors.joining(", ")));
+
+        if (workflow != null) {
+            ui.write("using %s", workflow.getName());
+
+        } else {
+            ui.write("skipping without a workflow");
+        }
+
+        ui.write(")");
         writeFields(ui);
     }
 
     @Override
     public void writeExecution(BeamUI ui) {
-        ui.write("@|magenta ⤢ Replacing %s|@", currentDiffable.toDisplayString());
+        ui.write("@|magenta ⇅ Replacing %s|@", currentDiffable.toDisplayString());
         writeFields(ui);
     }
 
     @Override
-    public void execute(BeamUI ui, State state) throws Exception {
+    public boolean execute(BeamUI ui, State state) throws Exception {
+        if (workflow == null) {
+            return false;
+        }
+
+        if (ui.isVerbose()) {
+            ui.write("\n");
+        }
+
+        ui.write("\n@|magenta ~ Executing %s workflow|@", workflow.getName());
+        workflow.execute(ui, state, (Resource) pendingDiffable);
+        return true;
     }
 
 }
