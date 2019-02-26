@@ -141,7 +141,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The Availability Zone for the DB instance.
+     * The availability zone to launch this DB instance in. The default picks a random availability zone in the currently configured region. Leave this value unset if ``multi-az`` is set to true.
      */
     public String getAvailabilityZone() {
         return availabilityZone;
@@ -152,7 +152,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The number of days that automated backups are retained. Must be a value from ``0`` to ``35`` with ``0`` to disable automated backups. Not applicable for Aurora.
+     * The number of days to retain backups. Must be a value from ``0`` to ``35`` where ``0`` to disables automated backups. Not applicable for Aurora.
      */
     @ResourceDiffProperty(updatable = true)
     public Integer getBackupRetentionPeriod() {
@@ -164,7 +164,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The CharacterSet for Oracle DB instances. See `Oracle Character Sets Supported in Amazon RDS <https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Appendix.OracleCharacterSets.html>`_.
+     * Sets the character set name for this DB instance on supported engines.
      */
     public String getCharacterSetName() {
         return characterSetName;
@@ -175,7 +175,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * Copy or not copy tags from the db instance to snapshots. The default is false (not copy).
+     * Copy the DB instance tags to snapshots. Default is false.
      */
     @ResourceDiffProperty(updatable = true)
     public Boolean getCopyTagsToSnapshot() {
@@ -187,7 +187,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The identifier of the existing DB cluster that the instance will belong to. Only applicable for Aurora engine, the first instance will be the primary instance and additional instances will be replicas.
+     * The identifier of the existing DB cluster this DB instance belongs to. Only applies to Aurora engine.
      */
     public String getDbClusterIdentifier() {
         return dbClusterIdentifier;
@@ -232,7 +232,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The name of the DB parameter group to associate with. If omitted, The default parameter group for the specified engine is used.
+     * The name of the DB parameter group to use for this instance. The default DB Parameter Group is used if this is not set.
      */
     @ResourceDiffProperty(updatable = true)
     public String getDbParameterGroupName() {
@@ -244,7 +244,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * A list of DB security groups to associate with. Only used for DB Instances on the EC2-Classic. Not compatible with `vpc-security-group-ids`.
+     * A list of security groups to use with this DB instance. This is for EC2 Classic, for VPCs use ``vpc-security-group-ids``.
      */
     @ResourceDiffProperty(updatable = true)
     public List<String> getDbSecurityGroups() {
@@ -256,7 +256,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * A DB subnet group to associate with. If omitted, the instance will be created in the default VPC or in EC2-Classic.
+     * A DB subnet group to use for this DB instance.
      */
     public String getDbSubnetGroupName() {
         return dbSubnetGroupName;
@@ -267,7 +267,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * Delete or keep automated backups after the DB instance is deleted. Default to false (keep automated backups).
+     * Delete automated backups after the DB instance is deleted. Default to false (keep automated backups).
      */
     @ResourceDiffProperty(updatable = true)
     public Boolean getDeleteAutomatedBackups() {
@@ -279,7 +279,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * Enable or disable deletion protection on the DB instance. The default is false.
+     * Enable deletion protection on the DB instance. This prevents the database from accidentally being deleted. The default is false.
      */
     @ResourceDiffProperty(updatable = true)
     public Boolean getDeletionProtection() {
@@ -315,7 +315,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The list of log types that need to be enabled for exporting to CloudWatch Logs. The values in the list depend on the DB engine being used. See `Publishing Database Logs to Amazon CloudWatch Logs <https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_LogAccess.html#USER_LogAccess.Procedural.UploadtoCloudWatch>`_.
+     * The list of log types to export to CloudWatch Logs. Valid values depend on the DB engine being used. See `Publishing Database Logs to Amazon CloudWatch Logs <https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_LogAccess.html#USER_LogAccess.Procedural.UploadtoCloudWatch>`_.
      */
     @ResourceDiffProperty(updatable = true)
     public List<String> getEnableCloudwatchLogsExports() {
@@ -327,7 +327,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * Enable or disable mapping IAM accounts to database accounts, default to false (disable). Not applicable to Aurora.
+     * Enable mapping IAM accounts to database accounts, default to false (disable). Not applicable to Aurora.
      */
     @ResourceDiffProperty(updatable = true)
     public Boolean getEnableIamDatabaseAuthentication() {
@@ -339,7 +339,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * Enable or disable Performance Insights for the DB instance, default to false (disable).
+     * Enable Performance Insights for the DB instance. The default to false.
      */
     @ResourceDiffProperty(updatable = true)
     public Boolean getEnablePerformanceInsights() {
@@ -351,7 +351,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The name of the database engine. For Aurora engines, `db-cluster-identifier` needs to be specified, and the instance's db engine needs to match with the cluster's db engine. See `CreateDBInstance <https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_CreateDBInstance.html>`_. (Required)
+     * The name of the database engine to use for this DB Instance. Valid values are ``aurora``, ``aurora-mysql``, ``aurora-postgresql``, ``mariadb``, ``mysql``, ``oracle-ee``, ``oracle-se2``, ``oracle-se1``, ``oracle-se``, ``postgres``, ``sqlserver-ee``, ``sqlserver-se``, ``sqlserver-ex``, ``sqlserver-we``.
      */
     public String getEngine() {
         return engine;
@@ -362,7 +362,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The version number of the database engine to use. Not applicable for Aurora since engine version is managed by the cluster.
+     * The version number of the database engine to use.
      */
     @ResourceDiffProperty(updatable = true)
     public String getEngineVersion() {
@@ -374,7 +374,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The name of the final snap shot created when `skip-final-snapshot` is false.
+     * The name of the final snap shot when deleting this DB instance.
      */
     public String getFinalDbSnapshotIdentifier() {
         return finalDbSnapshotIdentifier;
@@ -397,7 +397,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The AWS KMS key ARN to encrypt the DB instance. Not applicable for Aurora.
+     * The AWS KMS key ARN to encrypt the DB instance.
      */
     public String getKmsKeyId() {
         return kmsKeyId;
@@ -408,7 +408,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * License model for the DB instance. Valid values: ``license-included``, ``bring-your-own-license``, ``general-public-license``.
+     * License model for this DB instance. Valid values: ``license-included``, ``bring-your-own-license``, ``general-public-license``.
      */
     @ResourceDiffProperty(updatable = true)
     public String getLicenseModel() {
@@ -420,7 +420,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The password for the master user. Not applicable for Aurora.
+     * The password for the master user.
      */
     @ResourceDiffProperty(updatable = true)
     public String getMasterUserPassword() {
@@ -432,7 +432,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The name for the master user. Not applicable for Aurora.
+     * The name for the master user.
      */
     public String getMasterUsername() {
         return masterUsername;
@@ -443,7 +443,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * Enhanced Monitoring metrics collecting interval in seconds. The default is 0 (disable collection). Valid Values: ``0``, ``1``, ``5``, ``10``, ``15``, ``30``, ``60``
+     * Enhanced Monitoring metrics collecting interval in seconds. The default is 0 (disable collection). Valid Values: ``0``, ``1``, ``5``, ``10``, ``15``, ``30``, ``60``.
      */
     @ResourceDiffProperty(updatable = true)
     public Integer getMonitoringInterval() {
@@ -467,7 +467,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * Specifies whether the DB instance is a Multi-AZ deployment. If set to true, ``availability-zone`` cannot be specified.
+     * Launch this DB instance in multiple availability zones. If true, ``availability-zone`` must not be set.
      */
     @ResourceDiffProperty(updatable = true)
     public Boolean getMultiAz() {
@@ -503,7 +503,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * Retain how many days of Performance Insights data. Valid values are ``7`` or ``731`` (2 years).
+     * How many days to retain Performance Insights data. Valid values are ``7`` or ``731`` (2 years).
      */
     @ResourceDiffProperty(updatable = true)
     public Integer getPerformanceInsightsRetentionPeriod() {
@@ -526,7 +526,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The daily time range during which automated backups are created if automated backups are enabled. e.g. ``07:00-09:00``.
+     * The preferred backup window when automated backups are enabled. Must be provided in UTC using the format ``hh24:mi-hh24:mi`` (i.e. ``01:00-02:00``).
      */
     @ResourceDiffProperty(updatable = true)
     public String getPreferredBackupWindow() {
@@ -538,7 +538,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The time range each week during which system maintenance can occur, in Universal Coordinated Time (UTC). Format: `ddd:hh24:mi-ddd:hh24:mi`.
+     * The preferred system maintenance window. Must be provided in UTC using the format ``ddd:hh24:mi-ddd:hh24:mi``` (i.e. ``Mon:01:00-Mon:02:00``).
      */
     @ResourceDiffProperty(updatable = true)
     public String getPreferredMaintenanceWindow() {
@@ -562,7 +562,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The public accessibility of the DB instance. Default to false (private).
+     * The public accessibility of the DB instance. If true, this DB instance will have a public DNS name and public IP.
      */
     public Boolean getPubliclyAccessible() {
         if (publiclyAccessible == null) {
@@ -577,7 +577,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * Skip or create the final DB snapshot before the DB instance is deleted. Default is false (create the final snapshot).
+     * Skip the final DB snapshot when this DB instance is deleted. Default is false.
      */
     public Boolean getSkipFinalSnapshot() {
         return skipFinalSnapshot;
@@ -588,7 +588,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * Enable or disable DB instance encryption. Default to false (no encryption).
+     * Enable DB instance encryption. Default to false.
      */
     public Boolean getStorageEncrypted() {
         return storageEncrypted;
@@ -599,7 +599,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * The storage type for the DB instance. Valid values: ``standard``, ``gp2``, ``io1``.
+     * The storage type for the DB instance. Valid values are ``standard``, ``gp2``, ``io1``.
      */
     @ResourceDiffProperty(updatable = true)
     public String getStorageType() {
@@ -644,7 +644,7 @@ public class DbInstanceResource extends RdsTaggableResource {
     }
 
     /**
-     * A list of Amazon VPC security groups to associate with. Not applicable for Aurora. Not compatible with `db-security-groups`.
+     * A list of Amazon VPC security groups to associate with.
      */
     @ResourceDiffProperty(updatable = true)
     public List<String> getVpcSecurityGroupIds() {
