@@ -1,0 +1,41 @@
+import ../init as _
+
+
+aws::vpc vpc
+    cidr-block: "10.0.0.0/16"
+
+    tags: {
+        Name: "vpc-example"
+    }
+end
+
+aws::subnet subnet-us-east-2a
+    vpc-id: $(aws::vpc vpc | vpc-id)
+    availability-zone: "us-east-2a"
+    cidr-block: "10.0.0.0/24"
+    tags: {
+        Name: "subnet-us-east-2a-example"
+    }
+end
+
+aws::subnet subnet-us-east-2b
+    vpc-id: $(aws::vpc vpc | vpc-id)
+    availability-zone: "us-east-2b"
+    cidr-block: "10.0.1.0/24"
+    tags: {
+        Name: "subnet-us-east-2b-example"
+    }
+end
+
+aws::db-subnet-group db-subnet-group
+    group-name: "db-subnet-group-example"
+    description: "db subnet group description"
+    subnet-ids: [
+        $(aws::subnet subnet-us-east-2a | subnet-id),
+        $(aws::subnet subnet-us-east-2b | subnet-id)
+    ]
+
+    tags: {
+        Name: "db-subnet-group-example"
+    }
+end

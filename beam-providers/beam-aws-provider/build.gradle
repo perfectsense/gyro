@@ -22,6 +22,7 @@ dependencies {
     compile "software.amazon.awssdk:cloudwatch:${aws_sdk2_version}"
     compile "software.amazon.awssdk:route53:${aws_sdk2_version}"
     compile "software.amazon.awssdk:kms:${aws_sdk2_version}"
+    compile "software.amazon.awssdk:rds:${aws_sdk2_version}"
 
     compile 'com.psddev:dari-util:3.3.607-xe0f27a'
     compile "com.google.guava:guava:23.0"

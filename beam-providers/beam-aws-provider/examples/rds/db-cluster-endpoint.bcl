@@ -1,0 +1,53 @@
+import ../init as _
+
+aws::db-cluster db-cluster-example
+    db-cluster-identifier: "db-cluster-endpoint-cluster"
+    engine: "aurora-mysql"
+    availability-zones: ["us-east-2a", "us-east-2b", "us-east-2c"]
+    db-name: "clusterexample"
+    master-username: "user"
+    master-user-password: "password"
+    backup-retention-period: 5
+    preferred-backup-window: "07:00-09:00"
+    delete-automated-backups: true
+    skip-final-snapshot: true
+    tags: {
+        Name: "db-cluster-endpoint-cluster"
+    }
+end
+
+aws::db-instance db-instance-example1
+    db-instance-identifier: "db-cluster-endpoint-instance1"
+    db-instance-class: "db.t2.small"
+    db-cluster-identifier: $(aws::db-cluster db-cluster-example | db-cluster-identifier)
+    engine: "aurora-mysql"
+    apply-immediately: true
+    tags: {
+        Name: "db-cluster-endpoint-instance1"
+    }
+end
+
+aws::db-instance db-instance-example2
+    db-instance-identifier: "db-cluster-endpoint-instance2"
+    db-instance-class: "db.t2.small"
+    db-cluster-identifier: $(aws::db-cluster db-cluster-example | db-cluster-identifier)
+    engine: "aurora-mysql"
+    apply-immediately: true
+    tags: {
+        Name: "db-cluster-endpoint-instance2"
+    }
+end
+
+aws::db-cluster-endpoint endpoint-example1
+    cluster-endpoint-identifier: "endpoint1"
+    db-cluster-identifier: $(aws::db-cluster db-cluster-example | db-cluster-identifier)
+    endpoint-type: "READER"
+    static-members: [$(aws::db-instance db-instance-example1 | db-instance-identifier)]
+end
+
+aws::db-cluster-endpoint endpoint-example2
+    cluster-endpoint-identifier: "endpoint2"
+    db-cluster-identifier: $(aws::db-cluster db-cluster-example | db-cluster-identifier)
+    endpoint-type: "READER"
+    excluded-members: [$(aws::db-instance db-instance-example2 | db-instance-identifier)]
+end
