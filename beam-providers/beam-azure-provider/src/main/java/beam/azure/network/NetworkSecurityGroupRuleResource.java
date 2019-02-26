@@ -39,6 +39,9 @@ public class NetworkSecurityGroupRuleResource extends AzureResource {
             "tcp", SecurityRuleProtocol.TCP,
             "udp", SecurityRuleProtocol.UDP);
 
+    /**
+     * Name of the rule. (Required)
+     */
     public String getSecurityGroupRuleName() {
         return securityGroupRuleName;
     }
@@ -47,6 +50,9 @@ public class NetworkSecurityGroupRuleResource extends AzureResource {
         this.securityGroupRuleName = securityGroupRuleName;
     }
 
+    /**
+     * Set rule type as inbound or outbound. Defaults to true i.e inbound. (Required)
+     */
     @ResourceDiffProperty(updatable = true)
     public Boolean getInboundRule() {
         if (inboundRule == null) {
@@ -60,6 +66,9 @@ public class NetworkSecurityGroupRuleResource extends AzureResource {
         this.inboundRule = inboundRule;
     }
 
+    /**
+     * Set rule to allow or block traffic. Defaults to true i.e allow. (Required)
+     */
     @ResourceDiffProperty(updatable = true)
     public Boolean getAllowRule() {
         if (allowRule == null) {
@@ -73,6 +82,9 @@ public class NetworkSecurityGroupRuleResource extends AzureResource {
         this.allowRule = allowRule;
     }
 
+    /**
+     * A list of source addresses for the rule to work. Required if fromApplicationSecurityGroupId is not set.
+     */
     @ResourceDiffProperty(updatable = true)
     public List<String> getFromAddresses() {
         if (fromAddresses == null) {
@@ -88,6 +100,9 @@ public class NetworkSecurityGroupRuleResource extends AzureResource {
         this.fromAddresses = fromAddresses;
     }
 
+    /**
+     * A list of source ports for the rule to work. (Required)
+     */
     @ResourceDiffProperty(updatable = true)
     public List<String> getFromPorts() {
         if (fromPorts == null) {
@@ -103,6 +118,9 @@ public class NetworkSecurityGroupRuleResource extends AzureResource {
         this.fromPorts = fromPorts;
     }
 
+    /**
+     * A list of destination addresses for the rule to work. Required if toApplicationSecurityGroupId is not set.
+     */
     @ResourceDiffProperty(updatable = true)
     public List<String> getToAddresses() {
         if (toAddresses == null) {
@@ -118,6 +136,9 @@ public class NetworkSecurityGroupRuleResource extends AzureResource {
         this.toAddresses = toAddresses;
     }
 
+    /**
+     * A list of destination ports for the rule to work. (Required)
+     */
     @ResourceDiffProperty(updatable = true)
     public List<String> getToPorts() {
         if (toPorts == null) {
@@ -133,6 +154,9 @@ public class NetworkSecurityGroupRuleResource extends AzureResource {
         this.toPorts = toPorts;
     }
 
+    /**
+     * Source application security group id. Required if fromAddresses not set.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getFromApplicationSecurityGroupId() {
         return fromApplicationSecurityGroupId;
@@ -142,6 +166,9 @@ public class NetworkSecurityGroupRuleResource extends AzureResource {
         this.fromApplicationSecurityGroupId = fromApplicationSecurityGroupId;
     }
 
+    /**
+     * Destination application security group id. Required if toAddresses not set.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getToApplicationSecurityGroupId() {
         return toApplicationSecurityGroupId;
@@ -151,6 +178,9 @@ public class NetworkSecurityGroupRuleResource extends AzureResource {
         this.toApplicationSecurityGroupId = toApplicationSecurityGroupId;
     }
 
+    /**
+     * Description for the rule.
+     */
     @ResourceDiffProperty(updatable = true)
     public String getDescription() {
         return description;
@@ -160,6 +190,9 @@ public class NetworkSecurityGroupRuleResource extends AzureResource {
         this.description = description;
     }
 
+    /**
+     * Priority for the rule. Valid values [ Integer 100 to 4096 ]. (Required)
+     */
     @ResourceDiffProperty(updatable = true)
     public Integer getPriority() {
         return priority;
@@ -169,6 +202,9 @@ public class NetworkSecurityGroupRuleResource extends AzureResource {
         this.priority = priority;
     }
 
+    /**
+     * Priority for the rule. Valid values [ all, tcp, udp ]. Defaults to all. (Required)
+     */
     @ResourceDiffProperty(updatable = true)
     public String getProtocol() {
         if (protocol == null) {
