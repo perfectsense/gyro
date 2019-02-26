@@ -114,7 +114,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * A list of Availability Zones that instances in the DB cluster can be created in.
+     * A list of availability zones that instances in the DB cluster can be created in.
      */
     public List<String> getAvailabilityZones() {
         if (availabilityZones == null) {
@@ -141,7 +141,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * The number of days that automated backups are retained. Must be a value from ``1`` to ``35``.
+     * The number of days to retain backups. Must be a value from ``1`` to ``35``.
      */
     @ResourceDiffProperty(updatable = true)
     public Integer getBackupRetentionPeriod() {
@@ -198,7 +198,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * A DB subnet group to associate with.
+     * A DB subnet group to use for this DB cluster.
      */
     public String getDbSubnetGroupName() {
         return dbSubnetGroupName;
@@ -209,7 +209,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * Enable or disable deletion protection on the DB cluster. The default is false.
+     * Enable deletion protection on the DB cluster. The default is false.
      */
     @ResourceDiffProperty(updatable = true)
     public Boolean getDeletionProtection() {
@@ -221,7 +221,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * The list of log types that need to be enabled for exporting to CloudWatch Logs. The values in the list depend on the DB engine being used. See `Publishing Database Logs to Amazon CloudWatch Logs <https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_LogAccess.html#USER_LogAccess.Procedural.UploadtoCloudWatch>`_.
+     * The list of log types to export to CloudWatch Logs. The values in the list depend on the DB engine being used. See `Publishing Database Logs to Amazon CloudWatch Logs <https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_LogAccess.html#USER_LogAccess.Procedural.UploadtoCloudWatch>`_.
      */
     @ResourceDiffProperty(updatable = true)
     public List<String> getEnableCloudwatchLogsExports() {
@@ -233,7 +233,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * Enable or disable mapping IAM accounts to database accounts, default to false (disable).
+     * Enable mapping IAM accounts to database accounts. The default is false.
      */
     @ResourceDiffProperty(updatable = true)
     public Boolean getEnableIamDatabaseAuthentication() {
@@ -256,7 +256,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * The DB engine mode of the DB cluster, either ``provisioned``, ``serverless``, ``parallelquery``, or ``global``.
+     * The DB engine mode of the DB cluster. Valid values are ``provisioned``, ``serverless``, ``parallelquery``, or ``global``.
      */
     public String getEngineMode() {
         return engineMode;
@@ -278,7 +278,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * The name of the final snap shot created when `skip-final-snapshot` is false.
+     * The name of the final snap shot when this DB cluster is deleted.
      */
     public String getFinalDbSnapshotIdentifier() {
         return finalDbSnapshotIdentifier;
@@ -358,7 +358,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * The daily time range during which automated backups are created if automated backups are enabled. e.g. ``07:00-09:00``.
+     * The preferred backup window when automated backups are enabled. Must be provided in UTC using the format ``hh24:mi-hh24:mi`` (i.e. ``01:00-02:00``).
      */
     @ResourceDiffProperty(updatable = true)
     public String getPreferredBackupWindow() {
@@ -370,7 +370,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * The time range each week during which system maintenance can occur, in Universal Coordinated Time (UTC). Format: `ddd:hh24:mi-ddd:hh24:mi`.
+     * The preferred system maintenance window. Must be provided in UTC using the format ``ddd:hh24:mi-ddd:hh24:mi``` (i.e. ``Mon:01:00-Mon:02:00``).
      */
     @ResourceDiffProperty(updatable = true)
     public String getPreferredMaintenanceWindow() {
@@ -417,7 +417,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * Skip or create the final DB snapshot before the DB cluster is deleted. Default is false (create the final snapshot).
+     * Skip the final DB snapshot when this DB cluster is deleted. The default is false.
      */
     @ResourceDiffProperty(updatable = true)
     public Boolean getSkipFinalSnapshot() {
@@ -429,7 +429,7 @@ public class DbClusterResource extends RdsTaggableResource {
     }
 
     /**
-     * Enable or disable DB cluster encryption. Default to false (no encryption).
+     * Enable DB cluster encryption. The default is false.
      */
     public Boolean getStorageEncrypted() {
         return storageEncrypted;

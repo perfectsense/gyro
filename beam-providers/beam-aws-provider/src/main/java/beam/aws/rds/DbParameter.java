@@ -33,7 +33,7 @@ public class DbParameter extends Diffable {
     }
 
     /**
-     * The timing to apply parameter updates. Valid values: ``immediate`` (default) or ``pending-reboot``.
+     * The timing to apply parameter updates. Valid values are ``immediate`` (default) or ``pending-reboot``.
      */
     public String getApplyMethod() {
         if (applyMethod == null) {

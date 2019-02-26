@@ -11,7 +11,7 @@ public class ScalingConfiguration extends Diffable {
     private Integer secondsUntilAutoPause;
 
     /**
-     * Allow or disallow automatic pause for an Aurora DB cluster in serverless DB engine mode. A DB cluster can be paused only when it's idle (i.e. it has no connections).
+     * Allow automatic pause for an Aurora DB cluster in serverless DB engine mode. A DB cluster can be paused only when it's idle (i.e. it has no connections).
      */
     @ResourceDiffProperty(updatable = true)
     public Boolean getAutoPause() {
@@ -23,7 +23,7 @@ public class ScalingConfiguration extends Diffable {
     }
 
     /**
-     * The maximum capacity for an Aurora DB cluster in serverless DB engine mode. Valid values: ``2``, ``4``, ``8``, ``16``, ``32``, ``64``, ``128``, and ``256``.
+     * The maximum capacity for an Aurora DB cluster in serverless DB engine mode. Valid values are ``2``, ``4``, ``8``, ``16``, ``32``, ``64``, ``128``, and ``256``.
      */
     @ResourceDiffProperty(updatable = true)
     public Integer getMaxCapacity() {
@@ -35,7 +35,7 @@ public class ScalingConfiguration extends Diffable {
     }
 
     /**
-     * The minimum capacity for an Aurora DB cluster in serverless DB engine mode. Valid values: ``2``, ``4``, ``8``, ``16``, ``32``, ``64``, ``128``, and ``256``.
+     * The minimum capacity for an Aurora DB cluster in serverless DB engine mode. Valid values are ``2``, ``4``, ``8``, ``16``, ``32``, ``64``, ``128``, and ``256``.
      */
     @ResourceDiffProperty(updatable = true)
     public Integer getMinCapacity() {

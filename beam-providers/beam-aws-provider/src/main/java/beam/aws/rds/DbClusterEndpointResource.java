@@ -59,7 +59,7 @@ public class DbClusterEndpointResource extends AwsResource {
     }
 
     /**
-     * The type of the endpoint. Valid values: ``READER``, ``ANY``. (Required)
+     * The type of the endpoint. Valid values are ``READER``, ``ANY``. (Required)
      */
     @ResourceDiffProperty(updatable = true)
     public String getEndpointType() {
@@ -71,7 +71,7 @@ public class DbClusterEndpointResource extends AwsResource {
     }
 
     /**
-     * List of DB instance identifiers that excluded from the custom endpoint group. Only applicable if `static-members` is empty.
+     * List of DB instance identifiers to excluded from the custom endpoint group. Only applicable if `static-members` is empty.
      */
     @ResourceDiffProperty(updatable = true)
     public List<String> getExcludedMembers() {

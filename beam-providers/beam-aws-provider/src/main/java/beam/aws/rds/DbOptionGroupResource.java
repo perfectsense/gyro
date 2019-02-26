@@ -100,7 +100,7 @@ public class DbOptionGroupResource extends RdsTaggableResource {
     }
 
     /**
-     * A list of Options to apply.
+     * A list of options to apply.
      *
      * @subresource beam.aws.rds.OptionConfiguration
      */
