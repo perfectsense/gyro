@@ -136,6 +136,11 @@ public class NetworkInterfaceResource extends AzureResource {
         this.tags = tags;
     }
 
+    /**
+     * primary ip configuration for the network interface.
+     *
+     * @subresource beam.azure.network.NicIpConfigurationResource
+     */
     @ResourceDiffProperty(updatable = true)
     public NicIpConfigurationResource getPrimaryIpConfiguration() {
         if (primaryIpConfiguration == null) {
@@ -149,6 +154,11 @@ public class NetworkInterfaceResource extends AzureResource {
         this.primaryIpConfiguration = primaryIpConfiguration;
     }
 
+    /**
+     * A list of ip configurations for the network interface.
+     *
+     * @subresource beam.azure.network.NicIpConfigurationResource
+     */
     @ResourceDiffProperty(updatable = true)
     public List<NicIpConfigurationResource> getNicIpConfiguration() {
         if (nicIpConfiguration == null) {
