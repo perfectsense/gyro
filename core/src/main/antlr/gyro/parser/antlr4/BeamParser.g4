@@ -35,8 +35,8 @@ ifStmt       : IF expression controlBody (ELSEIF expression controlBody)* (ELSE 
 expression
     : value                          # ValueExpression
     | expression operator expression # ComparisonExpression
-    | expression OR expression       # OrExpression
     | expression AND expression      # AndExpression
+    | expression OR expression       # OrExpression
     ;
 
 operator     : EQ | NOTEQ;
@@ -79,8 +79,8 @@ referenceName      : ( (SLASH | GLOB | IDENTIFIER)* | stringExpression | IDENTIF
 queryExpression
     : queryField                          # QueryFieldValue
     | queryField operator queryValue      # QueryComparisonExpression
-    | queryExpression OR queryExpression  # QueryOrExpression
     | queryExpression AND queryExpression # QueryAndExpression
+    | queryExpression OR queryExpression  # QueryOrExpression
     ;
 
 queryField : IDENTIFIER (DOT IDENTIFIER)*;
