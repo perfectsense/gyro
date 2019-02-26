@@ -9,7 +9,9 @@ import beam.lang.Resource;
 import com.psddev.dari.util.CompactMap;
 
 import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sns.model.AuthorizationErrorException;
 import software.amazon.awssdk.services.sns.model.GetSubscriptionAttributesResponse;
+import software.amazon.awssdk.services.sns.model.InvalidParameterException;
 import software.amazon.awssdk.services.sns.model.NotFoundException;
 import software.amazon.awssdk.services.sns.model.SubscribeResponse;
 
@@ -159,6 +161,8 @@ public class SubscriberResource extends AwsResource {
 
                 setTopicArn(response.attributes().get("TopicArn"));
             }
+        } catch (AuthorizationErrorException | InvalidParameterException ex) {
+            throw new BeamException(ex.getMessage());
         } catch (NotFoundException ex) {
             return false;
         }
