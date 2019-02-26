@@ -371,7 +371,7 @@ public class Diff {
 
                 } catch (Exception error) {
                     ui.write(ui.isVerbose() ? "\n@|bold,red ERROR|@\n\n" : " @|bold,red ERROR|@\n");
-                    throw error;
+                    ui.writeError(error, "");
                 }
             }
         }
