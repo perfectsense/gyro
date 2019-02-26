@@ -27,7 +27,7 @@ import java.util.Set;
  *    end
  */
 @ResourceName("db-snapshot")
-public class DbSnapShotResource extends RdsTaggableResource {
+public class DbSnapshotResource extends RdsTaggableResource {
 
     private String dbInstanceIdentifier;
     private String dbSnapshotIdentifier;
