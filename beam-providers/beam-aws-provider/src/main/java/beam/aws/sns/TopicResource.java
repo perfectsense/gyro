@@ -134,7 +134,9 @@ public class TopicResource extends AwsResource {
 
             return true;
 
-        } catch (NotFoundException | AuthorizationErrorException | InvalidParameterException ex) {
+        } catch (AuthorizationErrorException | InvalidParameterException ex) {
+            throw new BeamException(ex.getMessage());
+        } catch (NotFoundException ex) {
             return false;
         }
     }
