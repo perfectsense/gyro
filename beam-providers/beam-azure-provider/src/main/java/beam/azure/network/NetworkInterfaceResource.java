@@ -177,6 +177,7 @@ public class NetworkInterfaceResource extends AzureResource {
             nicIpConfigurationResource.parent(this);
 
             if (nicIpConfiguration.isPrimary()) {
+                nicIpConfigurationResource.setPrimary(true);
                 setPrimaryIpConfiguration(nicIpConfigurationResource);
             } else {
                 getNicIpConfiguration().add(nicIpConfigurationResource);

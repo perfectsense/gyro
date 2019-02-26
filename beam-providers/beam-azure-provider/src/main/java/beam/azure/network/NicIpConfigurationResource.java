@@ -20,6 +20,7 @@ public class NicIpConfigurationResource extends AzureResource {
     private String privateIpAddress;
     private String privateIpAddressStatic;
     private Boolean ipAllocationStatic;
+    private Boolean primary;
 
     public String getIpConfigurationName() {
         return ipConfigurationName;
@@ -62,6 +63,18 @@ public class NicIpConfigurationResource extends AzureResource {
         }
 
         return ipAllocationStatic;
+    }
+
+    public Boolean getPrimary() {
+        if (primary == null) {
+            primary = false;
+        }
+
+        return primary;
+    }
+
+    public void setPrimary(Boolean primary) {
+        this.primary = primary;
     }
 
     public void setIpAllocationStatic(Boolean ipAllocationStatic) {
@@ -153,6 +166,10 @@ public class NicIpConfigurationResource extends AzureResource {
 
     @Override
     public void delete() {
+        if (getPrimary()) {
+            return;
+        }
+
         Azure client = createClient();
 
         NetworkInterfaceResource parent = (NetworkInterfaceResource) parent();
