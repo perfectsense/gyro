@@ -155,17 +155,11 @@ public class TopicResource extends AwsResource {
     public void update(Resource current, Set<String> changedProperties) {
         SnsClient client = createClient(SnsClient.class);
 
-        client.setTopicAttributes(r -> r.attributeName("DeliveryPolicy")
-                .attributeValue(getTopicAttributes().get("DeliveryPolicy"))
-                .topicArn(getTopicArn()));
-
-        client.setTopicAttributes(r -> r.attributeName("DisplayName")
-                .attributeValue(getTopicAttributes().get("DisplayName"))
-                .topicArn(getTopicArn()));
-
-        client.setTopicAttributes(r -> r.attributeName("Policy")
-                .attributeValue(getTopicAttributes().get("Policy"))
-                .topicArn(getTopicArn()));
+        for (Map.Entry<String, String> entry : getAttributes().entrySet()) {
+            client.setTopicAttributes(r -> r.attributeName(entry.getKey())
+                    .attributeValue(entry.getValue())
+                    .topicArn(getTopicArn()));
+        }
     }
 
     @Override
