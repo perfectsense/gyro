@@ -202,10 +202,12 @@ public class SubscriberResource extends AwsResource {
 
     public String toDisplayString() {
         StringBuilder sb = new StringBuilder();
+
         sb.append("subscriber with protocol " + getProtocol());
         if (getEndpoint() != null) {
             sb.append(" and endpoint " + getEndpoint());
         }
+
         return sb.toString();
     }
 
