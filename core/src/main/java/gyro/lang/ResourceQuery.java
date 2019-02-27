@@ -9,16 +9,14 @@ import gyro.lang.ast.scope.Scope;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-public abstract class ResourceQuery<T extends Resource> extends Resource {
+public abstract class ResourceQuery<T extends Resource> extends Diffable {
 
     public abstract List<T> query(Map<String, String> filter);
 
     public abstract List<T> queryAll();
 
     public final List<T> query() {
-        System.out.println("calling query");
         Map<String, String> filters = new HashMap<>();
         for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
             String key = field.getBeamName();
@@ -29,7 +27,6 @@ public abstract class ResourceQuery<T extends Resource> extends Resource {
             }
         }
 
-        System.out.println("filters: " + filters);
         List<T> resources = query(filters);
         resources.stream().forEach(s -> System.out.println(s.toDisplayString()));
         return resources;
@@ -58,26 +55,6 @@ public abstract class ResourceQuery<T extends Resource> extends Resource {
         return null;
     }
 
-    @Override
-    public boolean refresh() {
-        return false;
-    }
-
-    @Override
-    public void create() {
-
-    }
-
-    @Override
-    public void update(Resource current, Set<String> changedProperties) {
-
-    }
-
-    @Override
-    public void delete() {
-
-    }
-
     public Credentials resourceCredentials() {
 
             Scope scope = scope().getRootScope();
@@ -99,7 +76,6 @@ public abstract class ResourceQuery<T extends Resource> extends Resource {
                     }
                 }
             }
-
 
         throw new IllegalStateException();
     }

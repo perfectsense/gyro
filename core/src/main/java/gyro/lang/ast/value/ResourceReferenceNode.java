@@ -78,8 +78,6 @@ public class ResourceReferenceNode extends Node {
             if (name.startsWith("EXTERNAL/*")) {
                 List<ResourceQueryGroup> groups = null;
                 for (Query query : queries) {
-                    // TODO: first filter triggers api calls, subsequent fitlers use
-                    //       the output from the first and narrow it down
                     ResourceQuery resourceQuery = getResourceQuery(scope);
                     if (resourceQuery == null) {
                         throw new BeamException("Resource type " + type + " does not support external queries.");
