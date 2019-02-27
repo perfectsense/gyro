@@ -22,6 +22,19 @@ dependencies {
     compile "com.microsoft.azure:adal4j:1.6.3"
 }
 
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = 'beam'
+            artifactId = 'beam-azure-provider'
+            version = '0.5'
+
+            from components.java
+        }
+    }
+}
+
 task referenceDocs(type: Javadoc) {
     title = null // Prevents -doctitle and -windowtitle from being passed to BeamDoclet
     source = sourceSets.main.allJava

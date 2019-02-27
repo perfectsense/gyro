@@ -45,17 +45,6 @@ subprojects {
         checkstyle 'com.puppycrawl.tools:checkstyle:8.15'
     }
 
-    publishing {
-        publications {
-            beam(MavenPublication) {
-                from components.java
-                afterEvaluate {
-                    artifactId = jar.baseName
-                }
-            }
-        }
-    }
-
     checkstyle {
         toolVersion = '6.13'
         configFile rootProject.file('config/checkstyle.xml')
@@ -84,19 +73,19 @@ project(":cli") {
     }
 }
 
-project(":beam-plugins:beam-ssh-plugin") {
+project(":beam-plugins:ssh") {
     dependencies {
         compile project(':beam-core')
     }
 }
 
-project(":beam-plugins:beam-enterprise-plugin") {
+project(":beam-plugins:beam-enterprise") {
     dependencies {
         compile project(':beam-providers:beam-aws-provider')
     }
 }
 
-project(":beam-plugins:beam-sample-plugin") {
+project(":beam-plugins:sample") {
     dependencies {
         compile project(':beam-core')
         compile project(':beam-providers:beam-aws-provider')

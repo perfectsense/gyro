@@ -4,7 +4,7 @@ plugin
 end
 
 plugin
-    artifact: 'beam:beam-enterprise-plugin:0.5'
+    artifact: 'gyro.plugin:beam-enterprise:0.5'
     repositories: ['https://artifactory.psdops.com/public']
 end
 

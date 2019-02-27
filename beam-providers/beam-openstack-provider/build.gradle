@@ -29,6 +29,19 @@ dependencies {
     compile 'javax.activation:activation:1.1.1'
 }
 
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = 'beam'
+            artifactId = 'beam-openstack-provider'
+            version = '0.5'
+
+            from components.java
+        }
+    }
+}
+
 task referenceDocs(type: Javadoc) {
     title = null // Prevents -doctitle and -windowtitle from being passed to BeamDoclet
     source = sourceSets.main.allJava

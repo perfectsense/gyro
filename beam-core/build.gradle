@@ -36,6 +36,18 @@ dependencies {
     implementation 'org.hamcrest:hamcrest:2.1'
 }
 
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = 'beam'
+            artifactId = 'beam-core'
+            version = '0.5'
+
+            from components.java
+        }
+    }
+}
+
 test {
     useJUnitPlatform()
 }
