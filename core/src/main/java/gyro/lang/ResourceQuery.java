@@ -76,25 +76,25 @@ public abstract class ResourceQuery<T extends Resource> extends Diffable {
 
     protected Credentials resourceCredentials() {
 
-            Scope scope = scope().getRootScope();
+        Scope scope = scope().getRootScope();
 
-            if (scope != null) {
-                String name = (String) scope.get("resource-credentials");
+        if (scope != null) {
+            String name = (String) scope.get("resource-credentials");
 
-                if (name == null) {
-                    name = "default";
-                }
+            if (name == null) {
+                name = "default";
+            }
 
-                for (Resource resource : scope.getRootScope().findAllResources()) {
-                    if (resource instanceof Credentials) {
-                        Credentials credentials = (Credentials) resource;
+            for (Resource resource : scope.getRootScope().findAllResources()) {
+                if (resource instanceof Credentials) {
+                    Credentials credentials = (Credentials) resource;
 
-                        if (credentials.resourceIdentifier().equals(name)) {
-                            return credentials;
-                        }
+                    if (credentials.resourceIdentifier().equals(name)) {
+                        return credentials;
                     }
                 }
             }
+        }
 
         throw new IllegalStateException();
     }
