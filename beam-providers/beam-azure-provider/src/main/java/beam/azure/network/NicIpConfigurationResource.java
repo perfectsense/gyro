@@ -119,6 +119,10 @@ public class NicIpConfigurationResource extends AzureResource {
 
     @Override
     public void create() {
+        if (getPrimary()) {
+            return;
+        }
+
         Azure client = createClient();
 
         NetworkInterfaceResource parent = (NetworkInterfaceResource) parent();
