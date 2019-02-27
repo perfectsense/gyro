@@ -4,20 +4,35 @@ import gyro.core.BeamException;
 import gyro.core.diff.Diffable;
 import gyro.core.diff.DiffableField;
 import gyro.core.diff.DiffableType;
+import gyro.lang.ast.scope.Scope;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-public abstract class ResourceQuery<T extends Resource> extends Diffable {
+public abstract class ResourceQuery<T extends Resource> extends Resource {
 
     public abstract List<T> query(Map<String, String> filter);
 
     public abstract List<T> queryAll();
 
-    public List<T> query() {
+    public final List<T> query() {
         System.out.println("calling query");
-        return new ArrayList<>();
+        Map<String, String> filters = new HashMap<>();
+        for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
+            String key = field.getBeamName();
+            Object value = field.getValue(this);
+            if (value != null) {
+                // need to test if the resource query is an api resource query
+                filters.put(key, value.toString());
+            }
+        }
+
+        System.out.println("filters: " + filters);
+        List<T> resources = query(filters);
+        resources.stream().forEach(s -> System.out.println(s.toDisplayString()));
+        return resources;
     }
 
     public void merge(ResourceQuery<Resource> other) {
@@ -41,6 +56,52 @@ public abstract class ResourceQuery<T extends Resource> extends Diffable {
     @Override
     public String toDisplayString() {
         return null;
+    }
+
+    @Override
+    public boolean refresh() {
+        return false;
+    }
+
+    @Override
+    public void create() {
+
+    }
+
+    @Override
+    public void update(Resource current, Set<String> changedProperties) {
+
+    }
+
+    @Override
+    public void delete() {
+
+    }
+
+    public Credentials resourceCredentials() {
+
+            Scope scope = scope().getRootScope();
+
+            if (scope != null) {
+                String name = (String) scope.get("resource-credentials");
+
+                if (name == null) {
+                    name = "default";
+                }
+
+                for (Resource resource : scope.getRootScope().findAllResources()) {
+                    if (resource instanceof Credentials) {
+                        Credentials credentials = (Credentials) resource;
+
+                        if (credentials.resourceIdentifier().equals(name)) {
+                            return credentials;
+                        }
+                    }
+                }
+            }
+
+
+        throw new IllegalStateException();
     }
 }
 /*

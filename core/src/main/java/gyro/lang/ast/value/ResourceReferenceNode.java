@@ -7,6 +7,7 @@ import gyro.lang.ast.DeferError;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.query.FieldValueQuery;
 import gyro.lang.ast.query.Query;
+import gyro.lang.ast.scope.DiffableScope;
 import gyro.lang.ast.scope.Scope;
 import gyro.lang.ResourceQuery;
 import gyro.parser.antlr4.BeamParser;
@@ -161,7 +162,9 @@ public class ResourceReferenceNode extends Node {
         }
 
         try {
-            return resourceQueryClass.getConstructor().newInstance();
+            ResourceQuery<Resource> resourceQuery = resourceQueryClass.getConstructor().newInstance();
+            resourceQuery.scope(new DiffableScope(scope));
+            return resourceQuery;
 
         } catch (IllegalAccessException
             | InstantiationException
