@@ -74,7 +74,7 @@ subprojects {
 
 }
 
-project(":beam-cli") {
+project(":cli") {
     dependencies {
         compile project(':beam-core')
     }

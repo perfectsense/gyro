@@ -32,20 +32,20 @@ task dist(type: Copy) {
     include '*.jar'
     into "dist"
 
-    rename "beam-cli-0.5.jar", 'beam'
+    rename "cli-0.5.jar", 'gyro'
 
     dependsOn 'distDir'
 }
 
 task bundleDistribution(type: Exec) {
-    commandLine 'sh', '-c', 'scripts/build-beam-dist.sh'
+    commandLine 'sh', '-c', 'scripts/build-gyro-dist.sh'
 
     dependsOn 'dist'
 }
 
 bootJar {
     classifier = ''
-    mainClassName = 'beam.cli.Beam'
+    mainClassName = 'gyro.cli.Gyro'
     launchScript {
         script = file('scripts/stub.sh')
     }

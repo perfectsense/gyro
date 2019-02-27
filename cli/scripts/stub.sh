@@ -1,6 +1,6 @@
 #!/bin/sh
 MYSELF=`which "$0" 2>/dev/null`
-export BEAM_APP=$0
+export GYRO_APP=$0
 
 # Suppress JDK9+ reflection warnings.
 if [ `java -version 2>&1 | grep -c 1\.8\.0` -eq "0" ];
@@ -11,7 +11,7 @@ fi
 EXECUTION_DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 [ $? -gt 0 -a -f "$0" ] && MYSELF="./$0"
-java=$EXECUTION_DIRECTORY/beam-rt/bin/java
+java=$EXECUTION_DIRECTORY/gyro-rt/bin/java
 if [ ! -x $java ];
 then
     java=`which java`

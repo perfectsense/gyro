@@ -1,4 +1,4 @@
-package beam.cli;
+package gyro.cli;
 
 import beam.commands.AbstractCommand;
 import beam.commands.BeamCommand;
@@ -27,7 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class Beam {
+public class Gyro {
 
     private Cli<Object> cli;
     private List<String> arguments;
@@ -44,14 +44,14 @@ public class Beam {
     public static void main(String[] arguments) throws Exception {
         ((Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).setLevel(Level.OFF);
 
-        Beam beam = new Beam();
+        Gyro gyro = new Gyro();
         BeamCore.pushUi(new CliBeamUI());
 
-        loadPlugins(beam);
+        loadPlugins(gyro);
 
         try {
-            beam.init(Arrays.asList(arguments));
-            beam.run();
+            gyro.init(Arrays.asList(arguments));
+            gyro.run();
 
         } finally {
             BeamCore.popUi();
@@ -78,7 +78,7 @@ public class Beam {
         }
 
         Cli.CliBuilder<Object> builder = Cli.<Object>builder(appName)
-            .withDescription("Beam.")
+            .withDescription("Gyro.")
             .withDefaultCommand(Help.class)
             .withCommands(commands());
 
@@ -117,10 +117,10 @@ public class Beam {
         }
     }
 
-    public static void loadPlugins(Beam beam) {
+    public static void loadPlugins(Gyro gyro) {
         try {
-            // Load ~/.beam/plugins.bcl
-            File plugins = Paths.get(getBeamUserHome(), ".beam", "plugins.bcl").toFile();
+            // Load ~/.gyro/plugins.bcl
+            File plugins = Paths.get(getBeamUserHome(), ".gyro", "plugins.bcl").toFile();
             if (plugins.exists() && plugins.isFile()) {
                 RootScope pluginConfig = new RootScope(plugins.toString());
 
@@ -129,7 +129,7 @@ public class Beam {
                 for (PluginLoader loader : pluginConfig.getFileScope().getPluginLoaders()) {
                     for (Class<?> c : loader.classes()) {
                         if (BeamCommand.class.isAssignableFrom(c) && !Modifier.isAbstract(c.getModifiers())) {
-                            beam.commands().add(c);
+                            gyro.commands().add(c);
                         }
                     }
                 }
