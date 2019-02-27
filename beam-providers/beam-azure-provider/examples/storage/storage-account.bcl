@@ -1,0 +1,18 @@
+import ../init as _
+
+azure::resource-group storage-account-example
+    resource-group-name: "storage-account-example"
+
+    tags: {
+        Name: "storage-account-example"
+    }
+end
+
+azure::storage-account storage-account-example
+    resource-group-name: $(azure::resource-group storage-account-example | resource-group-name)
+    storage-account-name: "storageaccountex"
+
+    tags: {
+        Name: "storage-account-example"
+    }
+end

@@ -1,0 +1,29 @@
+import ../init as _
+
+azure::resource-group cloud-file-resource-group-example
+    resource-group-name: "cloud-file-resource-group"
+
+    tags: {
+        Name: "cloud-file-resource-group"
+    }
+end
+
+azure::storage-account cloud-file-account-example
+    resource-group-name: $(azure::resource-group cloud-file-resource-group-example | resource-group-name)
+    storage-account-name: "cloudfileexample"
+
+    tags: {
+        Name: "cloudfileexample"
+    }
+end
+
+azure::cloud-file-share cloud-file-share-example
+    cloud-file-share-name: "cloudfileshare"
+    storage-connection: $(azure::storage-account cloud-file-account-example | storage-connection)
+end
+
+azure::cloud-file-directory cloud-file-directory
+    cloud-file-directory-path: "/example/directory/path"
+    cloud-file-share-name: $(azure::cloud-file-share cloud-file-share-example | cloud-file-share-name)
+    storage-connection: $(azure::storage-account cloud-file-account-example | storage-connection)
+end
