@@ -102,6 +102,7 @@ public class NicIpConfigurationResource extends AzureResource {
 
     public NicIpConfigurationResource(String ipConfigurationName) {
         setIpConfigurationName(ipConfigurationName);
+        setPrimary(true);
     }
 
     public NicIpConfigurationResource(NicIPConfiguration nicIpConfiguration) {

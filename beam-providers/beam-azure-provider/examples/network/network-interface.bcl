@@ -66,6 +66,12 @@ azure::network-interface network-interface-example
         Name: "network-interface-example"
     }
 
+    primary-ip-configuration
+        ip-allocation-static: false
+        ip-configuration-name: 'primary'
+        primary: true
+    end
+
     nic-ip-configuration
         ip-configuration-name: "nic-ip-configuration-1"
     end

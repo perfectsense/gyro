@@ -55,6 +55,12 @@ azure::network-interface network-interface-example-VM
     tags: {
         Name: "network-interface-example-VM"
     }
+
+    primary-ip-configuration
+        ip-allocation-static: false
+        ip-configuration-name: 'primary'
+        primary: true
+    end
 end
 
 azure::virtual-machine virtual-machine-example
