@@ -7,6 +7,7 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Optional;
 
+import gyro.lang.ast.query.ApiFilterable;
 import com.google.common.base.CaseFormat;
 import com.psddev.dari.util.Converter;
 import com.psddev.dari.util.ObjectUtils;
@@ -28,6 +29,7 @@ public class DiffableField {
     private final boolean updatable;
     private final String testValue;
     private final boolean testValueRandomSuffix;
+    private final String filterName;
     private final Class<?> itemClass;
 
     protected DiffableField(String javaName, Method getter, Method setter, Type type) {
@@ -53,6 +55,13 @@ public class DiffableField {
         } else {
             this.testValue = null;
             this.testValueRandomSuffix = false;
+        }
+
+        ApiFilterable filterable = getter.getAnnotation(ApiFilterable.class);
+        if (filterable != null) {
+            this.filterName = filterable.filter();
+        } else {
+            this.filterName = null;
         }
 
         if (type instanceof Class) {
@@ -94,6 +103,10 @@ public class DiffableField {
 
     public boolean isTestValueRandomSuffix() {
         return testValueRandomSuffix;
+    }
+
+    public String getFilterName() {
+        return filterName;
     }
 
     public Object getValue(Diffable diffable) {

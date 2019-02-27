@@ -12,37 +12,56 @@ import java.util.Map;
 
 public abstract class ResourceQuery<T extends Resource> extends Diffable {
 
+    private boolean apiQuery;
+
     public abstract List<T> query(Map<String, String> filter);
 
     public abstract List<T> queryAll();
 
-    public final List<T> query() {
-        Map<String, String> filters = new HashMap<>();
-        for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
-            String key = field.getBeamName();
-            Object value = field.getValue(this);
-            if (value != null) {
-                // need to test if the resource query is an api resource query
-                filters.put(key, value.toString());
-            }
-        }
-
-        List<T> resources = query(filters);
-        resources.stream().forEach(s -> System.out.println(s.toDisplayString()));
-        return resources;
+    public boolean apiQuery() {
+        return apiQuery;
     }
 
-    public void merge(ResourceQuery<Resource> other) {
-        for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
-            String key = field.getBeamName();
-            Object value = field.getValue(this);
-            Object otherValue = field.getValue(other);
-            if (value != null && otherValue != null) {
-                throw new BeamException(String.format("%s is filtered more than once", key));
-            } else if (otherValue != null) {
-                field.setValue(this, otherValue);
+    public void apiQuery(boolean apiQuery) {
+        this.apiQuery = apiQuery;
+    }
+
+    public final List<T> query() {
+        if (apiQuery) {
+            Map<String, String> filters = new HashMap<>();
+            for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
+                Object value = field.getValue(this);
+                String filterName = field.getFilterName();
+                if (value != null) {
+                    filters.put(filterName, value.toString());
+                }
             }
+
+            List<T> resources = query(filters);
+            resources.stream().forEach(s -> System.out.println(s.toDisplayString()));
+            return resources;
+        } else {
+            throw new UnsupportedOperationException("Non api query is not supported yet!");
         }
+    }
+
+    public boolean merge(ResourceQuery<Resource> other) {
+        if (apiQuery && other.apiQuery) {
+            for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
+                String key = field.getBeamName();
+                Object value = field.getValue(this);
+                Object otherValue = field.getValue(other);
+                if (value != null && otherValue != null) {
+                    throw new BeamException(String.format("%s is filtered more than once", key));
+                } else if (otherValue != null) {
+                    field.setValue(this, otherValue);
+                }
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     @Override

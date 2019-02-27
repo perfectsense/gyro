@@ -29,8 +29,9 @@ public class ResourceQueryGroup {
             if (first == null) {
                 first = other;
             } else {
-                first.merge(other);
-                iterator.remove();
+                if (first.merge(other)) {
+                    iterator.remove();
+                }
             }
         }
 

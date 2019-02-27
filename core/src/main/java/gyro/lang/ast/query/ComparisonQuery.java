@@ -32,10 +32,15 @@ public class ComparisonQuery extends Query {
     public List<ResourceQueryGroup> evaluate(Scope scope, ResourceReferenceNode node) throws Exception {
         Object comparisonValue = value.evaluate(scope);
         ResourceQuery<Resource> resourceQuery = node.getResourceQuery(scope);
+        Scope queryScope = resourceQuery.scope();
         for (DiffableField field : DiffableType.getInstance(resourceQuery.getClass()).getFields()) {
             String key = field.getBeamName();
             if (fieldName.equals(key)) {
                 field.setValue(resourceQuery, comparisonValue);
+                queryScope.put("_" + key, operator);
+                if (EQUALS_OPERATOR.equals(operator) && field.getFilterName() != null) {
+                    resourceQuery.apiQuery(true);
+                }
             }
         }
 
