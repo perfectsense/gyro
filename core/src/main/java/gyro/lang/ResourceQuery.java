@@ -4,11 +4,14 @@ import gyro.core.BeamException;
 import gyro.core.diff.Diffable;
 import gyro.core.diff.DiffableField;
 import gyro.core.diff.DiffableType;
+import gyro.lang.ast.query.ComparisonQuery;
 import gyro.lang.ast.scope.Scope;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 public abstract class ResourceQuery<T extends Resource> extends Diffable {
 
@@ -37,12 +40,45 @@ public abstract class ResourceQuery<T extends Resource> extends Diffable {
                 }
             }
 
-            List<T> resources = query(filters);
-            resources.stream().forEach(s -> System.out.println(s.toDisplayString()));
+            List<T> resources = filters.isEmpty() ? queryAll() : query(filters);
             return resources;
+
         } else {
             throw new UnsupportedOperationException("Non api query is not supported yet!");
         }
+    }
+
+    public final List<T> filter(List<T> resources) {
+        if (resources == null || resources.isEmpty()) {
+            resources = queryAll();
+        }
+
+        for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
+            String key = field.getBeamName();
+            Object value = field.getValue(this);
+
+            if (value != null) {
+                String operator = (String) scope().get("_" + key);
+
+                if (ComparisonQuery.EQUALS_OPERATOR.equals(operator)) {
+                    resources = resources.stream()
+                        .filter(r -> Objects.equals(
+                            DiffableType.getInstance(r.getClass()).getFieldByBeamName(key).getValue(r), value))
+                        .collect(Collectors.toList());
+
+                } else if (ComparisonQuery.NOT_EQUALS_OPERATOR.equals(operator)) {
+                    resources = resources.stream()
+                        .filter(r -> !Objects.equals(
+                            DiffableType.getInstance(r.getClass()).getFieldByBeamName(key).getValue(r), value))
+                        .collect(Collectors.toList());
+
+                } else {
+                    throw new UnsupportedOperationException(String.format("%s operator is not supported!", operator));
+                }
+            }
+        }
+
+        return resources;
     }
 
     public boolean merge(ResourceQuery<Resource> other) {

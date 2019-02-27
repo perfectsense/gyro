@@ -9,6 +9,8 @@ public class ResourceQueryGroup {
 
     private final List<ResourceQuery<Resource>> resourceQueries = new ArrayList<>();
 
+    private ResourceQuery<Resource> apiQuery;
+
     public List<ResourceQuery<Resource>> getResourceQueries() {
         return resourceQueries;
     }
@@ -21,6 +23,7 @@ public class ResourceQueryGroup {
     }
 
     public void merge() {
+        // TODO: need to find the first api query and start merging from there
         List<ResourceQuery<Resource>> queries = new ArrayList<>(resourceQueries);
         ResourceQuery<Resource> first = null;
         Iterator<ResourceQuery<Resource>> iterator = queries.iterator();
@@ -37,6 +40,19 @@ public class ResourceQueryGroup {
 
         resourceQueries.clear();
         resourceQueries.addAll(queries);
+        apiQuery = resourceQueries.stream().filter(ResourceQuery::apiQuery).findFirst().orElse(null);
+    }
+
+    public List<Resource> query() {
+        List<Resource> resources = apiQuery != null ? apiQuery.query() : new ArrayList<>();
+        for (ResourceQuery<Resource> resourceQuery : resourceQueries) {
+            if (!resourceQuery.apiQuery()) {
+                resources = resourceQuery.filter(resources);
+            }
+        }
+
+        resources.stream().forEach(r -> System.out.println(r.toDisplayString()));
+        return resources;
     }
 
     public String toString() {

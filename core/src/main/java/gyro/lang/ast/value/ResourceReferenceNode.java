@@ -77,6 +77,7 @@ public class ResourceReferenceNode extends Node {
 
             if (name.startsWith("EXTERNAL/*")) {
                 List<ResourceQueryGroup> groups = null;
+                // TODO: no query should return all resources
                 for (Query query : queries) {
                     ResourceQuery resourceQuery = getResourceQuery(scope);
                     if (resourceQuery == null) {
@@ -98,7 +99,7 @@ public class ResourceReferenceNode extends Node {
                 }
 
                 groups.stream().forEach(ResourceQueryGroup::merge);
-                groups.stream().forEach(g -> g.getResourceQueries().stream().forEach(ResourceQuery::query));
+                groups.stream().forEach(ResourceQueryGroup::query);
 
                 return null;
             } else {
