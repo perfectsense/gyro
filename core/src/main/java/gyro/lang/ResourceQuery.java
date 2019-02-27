@@ -65,16 +65,16 @@ public abstract class ResourceQuery<T extends Resource> extends Diffable {
     }
 
     @Override
-    public String primaryKey() {
+    public final String primaryKey() {
         return null;
     }
 
     @Override
-    public String toDisplayString() {
+    public final String toDisplayString() {
         return null;
     }
 
-    public Credentials resourceCredentials() {
+    protected Credentials resourceCredentials() {
 
             Scope scope = scope().getRootScope();
 
