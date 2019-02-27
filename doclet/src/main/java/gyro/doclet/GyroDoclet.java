@@ -1,4 +1,4 @@
-package beam.docs;
+package gyro.doclet;
 
 import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.Doclet;
@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class BeamDoclet extends Doclet {
+public class GyroDoclet extends Doclet {
 
     public static boolean start(RootDoc root) {
         // Generate rst file for each resource.

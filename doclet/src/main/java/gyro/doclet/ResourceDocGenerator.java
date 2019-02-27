@@ -1,4 +1,4 @@
-package beam.docs;
+package gyro.doclet;
 
 import com.google.common.base.CaseFormat;
 import com.psddev.dari.util.ObjectUtils;

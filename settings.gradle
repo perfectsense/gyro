@@ -3,6 +3,6 @@ rootProject.name = 'beam'
 include 'beam-core', 'cli',
         'beam-providers:beam-aws-provider', 'beam-providers:beam-openstack-provider','beam-providers:beam-azure-provider',
         'beam-plugins:beam-ssh-plugin', 'beam-plugins:beam-enterprise-plugin', 'beam-plugins:beam-sample-plugin',
-        'beam-docs'
+        'doclet'
 
 enableFeaturePreview('STABLE_PUBLISHING')

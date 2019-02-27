@@ -16,7 +16,7 @@ dependencies {
 }
 
 shadowJar {
-    baseName = 'beam-docs'
+    baseName = 'gyro-doclet'
     classifier = ''
 }
 

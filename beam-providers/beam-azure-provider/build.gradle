@@ -26,6 +26,6 @@ task referenceDocs(type: Javadoc) {
     title = null // Prevents -doctitle and -windowtitle from being passed to BeamDoclet
     source = sourceSets.main.allJava
     classpath = configurations.compile
-    options.doclet = "beam.docs.BeamDoclet"
-    options.docletpath = [file("../../beam-docs/build/libs/beam-docs-0.5.jar")]
+    options.doclet = "gyro.doclet.GyroDoclet"
+    options.docletpath = [file("../../doclet/build/libs/gyro-doclet-0.5.jar")]
 }
