@@ -1,0 +1,26 @@
+import ../init as _
+
+aws::sqs sqs-example1
+     name : "testStandard"
+     visibility-timeout : 400
+     message-retention-period : 864000
+     maximum-message-size : 258048
+     delay-seconds : 140
+     receive-message-wait-time-seconds : 5
+     kms-master-key-id : 23
+     kms-data-key-reuse-period-seconds : 200
+     policy-doc-path: 'gyro-providers/gyro-aws-provider/examples/sqs/policy.json'
+end
+
+aws::sqs sqs-example2
+     name : "testFifo.fifo"
+     visibility-timeout : 400
+     message-retention-period : 864000
+     maximum-message-size : 258048
+     delay-seconds : 140
+     receive-message-wait-time-seconds : 5
+     kms-master-key-id : 23
+     kms-data-key-reuse-period-seconds : 200
+     policy-doc-path: 'gyro-providers/gyro-aws-provider/examples/sqs/policy.json'
+end
+

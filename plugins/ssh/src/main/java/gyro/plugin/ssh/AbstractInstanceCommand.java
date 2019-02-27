@@ -1,11 +1,11 @@
 package gyro.plugin.ssh;
 
-import beam.commands.AbstractConfigCommand;
-import beam.core.BeamCore;
-import beam.core.BeamInstance;
-import beam.lang.Resource;
-import beam.lang.ast.scope.RootScope;
-import beam.lang.ast.scope.State;
+import gyro.commands.AbstractConfigCommand;
+import gyro.core.BeamCore;
+import gyro.core.BeamInstance;
+import gyro.lang.Resource;
+import gyro.lang.ast.scope.RootScope;
+import gyro.lang.ast.scope.State;
 import io.airlift.airline.Option;
 
 import java.util.ArrayList;

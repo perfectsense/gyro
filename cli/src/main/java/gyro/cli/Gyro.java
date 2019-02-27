@@ -1,13 +1,13 @@
 package gyro.cli;
 
-import beam.commands.AbstractCommand;
-import beam.commands.BeamCommand;
-import beam.commands.CliBeamUI;
-import beam.core.BeamCore;
-import beam.core.BeamException;
-import beam.core.LocalFileBackend;
-import beam.lang.ast.scope.RootScope;
-import beam.lang.plugins.PluginLoader;
+import gyro.commands.AbstractCommand;
+import gyro.commands.BeamCommand;
+import gyro.commands.CliBeamUI;
+import gyro.core.BeamCore;
+import gyro.core.BeamException;
+import gyro.core.LocalFileBackend;
+import gyro.lang.ast.scope.RootScope;
+import gyro.lang.plugins.PluginLoader;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import com.psddev.dari.util.ObjectUtils;
@@ -38,7 +38,7 @@ public class Gyro {
     static {
         Reflections.log = null;
         reflections = new Reflections(new org.reflections.util.ConfigurationBuilder()
-            .setUrls(ClasspathHelper.forPackage("beam")));
+            .setUrls(ClasspathHelper.forPackage("gyro")));
     }
 
     public static void main(String[] arguments) throws Exception {
@@ -70,8 +70,8 @@ public class Gyro {
         }
 
         String appName = "beam";
-        if (System.getProperty("beam.app") != null) {
-            File appFile = new File(System.getProperty("beam.app"));
+        if (System.getProperty("gyro.app") != null) {
+            File appFile = new File(System.getProperty("gyro.app"));
             if (appFile.exists()) {
                 appName = appFile.getName();
             }

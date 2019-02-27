@@ -1,7 +1,7 @@
 package gyro.plugin.enterprise;
 
-import beam.aws.AwsCredentials;
-import beam.core.diff.ResourceName;
+import gyro.aws.AwsCredentials;
+import gyro.core.diff.ResourceName;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;

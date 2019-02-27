@@ -1,7 +1,7 @@
 package gyro.plugin.enterprise;
 
-import beam.core.BeamCore;
-import beam.core.BeamException;
+import gyro.core.BeamCore;
+import gyro.core.BeamException;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
 import com.psddev.dari.util.ErrorUtils;
@@ -62,7 +62,7 @@ public class EnterpriseApi {
     public File prepareLocalFile(String name) throws IOException {
         ErrorUtils.errorIfBlank(name, "name");
 
-        File file = Paths.get(EnterpriseConfig.getUserHome(), ".beam", "enterprise", StringUtils.encodeUri(enterpriseUrl()), name).toFile();
+        File file = Paths.get(EnterpriseConfig.getUserHome(), ".gyro", "enterprise", StringUtils.encodeUri(enterpriseUrl()), name).toFile();
         IoUtils.createParentDirectories(file);
 
         return file;

@@ -11,7 +11,7 @@ sourceCompatibility = 1.8
 defaultTasks 'build', 'publish', 'publishToMavenLocal'
 
 dependencies {
-    compile "beam:beam-core:${version}"
+    compile "gyro:gyro-core:${version}"
 }
 
 task finalize {

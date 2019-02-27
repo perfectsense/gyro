@@ -1,6 +1,6 @@
 package gyro.plugin.ssh;
 
-import beam.core.BeamUI;
+import gyro.core.BeamUI;
 import com.psddev.dari.util.CompactMap;
 
 import java.util.Iterator;

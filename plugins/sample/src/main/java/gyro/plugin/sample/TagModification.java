@@ -1,9 +1,9 @@
 package gyro.plugin.sample;
 
-import beam.aws.ec2.Ec2TaggableResource;
-import beam.core.diff.ResourceName;
-import beam.lang.Modification;
-import beam.lang.Resource;
+import gyro.aws.ec2.Ec2TaggableResource;
+import gyro.core.diff.ResourceName;
+import gyro.lang.Modification;
+import gyro.lang.Resource;
 
 import java.util.Arrays;
 import java.util.List;
@@ -24,7 +24,7 @@ public class TagModification extends Modification {
 
     @Override
     public List<String> modifies() {
-        return Arrays.asList("beam.aws.ec2.Ec2TaggableResource");
+        return Arrays.asList("gyro.aws.ec2.Ec2TaggableResource");
     }
 
     @Override

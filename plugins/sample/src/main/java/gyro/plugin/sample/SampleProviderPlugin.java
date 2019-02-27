@@ -1,6 +1,6 @@
 package gyro.plugin.sample;
 
-import beam.lang.plugins.Provider;
+import gyro.lang.plugins.Provider;
 
 public class SampleProviderPlugin extends Provider {
 

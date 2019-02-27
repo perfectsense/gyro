@@ -1,7 +1,7 @@
-rootProject.name = 'beam'
+rootProject.name = 'gyro'
 
-include 'beam-core', 'cli',
-        'beam-providers:beam-aws-provider', 'beam-providers:beam-openstack-provider','beam-providers:beam-azure-provider',
+include 'gyro-core', 'cli',
+        'providers:aws', 'providers:openstack','providers:azure',
         'plugins:ssh', 'plugins:beam-enterprise', 'plugins:sample',
         'doclet'
 

@@ -11,7 +11,7 @@ sourceCompatibility = 1.8
 
 dependencies {
     compile "com.google.guava:guava:23.0"
-    compile project(":beam-core")
+    compile project(":gyro-core")
     compile files("${System.getProperty('java.home')}/../lib/tools.jar")
 }
 

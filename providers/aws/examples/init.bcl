@@ -1,0 +1,21 @@
+plugin
+    artifact: 'gyro.provider:aws:0.5'
+    repositories: ['https://artifactory.psdops.com/public']
+end
+
+plugin
+    artifact: 'gyro.plugin:beam-enterprise:0.5'
+    repositories: ['https://artifactory.psdops.com/public']
+end
+
+project: "gyro-sandbox"
+account: "psd-gyro-sandbox"
+environment: "sandbox"
+
+aws::credentials default
+    enterprise-url: "https://gyro-enterprise.psdops.com"
+    project: $(project)
+    account: $(account)
+
+    region: "us-east-2"
+end

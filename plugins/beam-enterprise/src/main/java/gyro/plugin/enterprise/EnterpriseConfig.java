@@ -1,8 +1,8 @@
 package gyro.plugin.enterprise;
 
-import beam.core.LocalFileBackend;
-import beam.lang.Resource;
-import beam.lang.ast.scope.RootScope;
+import gyro.core.LocalFileBackend;
+import gyro.lang.Resource;
+import gyro.lang.ast.scope.RootScope;
 import com.psddev.dari.util.CollectionUtils;
 import com.psddev.dari.util.CompactMap;
 import com.psddev.dari.util.Lazy;
@@ -20,7 +20,7 @@ public class EnterpriseConfig {
         @Override
         @SuppressWarnings("unchecked")
         protected Map<String, Object> create() throws Exception {
-            File enterpriseConfigFile = Paths.get(EnterpriseConfig.getUserHome(), ".beam", "enterprise.bcl").toFile();
+            File enterpriseConfigFile = Paths.get(EnterpriseConfig.getUserHome(), ".gyro", "enterprise.bcl").toFile();
 
             if (enterpriseConfigFile.exists()) {
                 RootScope config = new RootScope(enterpriseConfigFile.toString());

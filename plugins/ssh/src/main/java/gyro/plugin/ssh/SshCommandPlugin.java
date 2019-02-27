@@ -1,6 +1,6 @@
 package gyro.plugin.ssh;
 
-import beam.lang.plugins.Plugin;
+import gyro.lang.plugins.Plugin;
 
 public class SshCommandPlugin extends Plugin {
 

@@ -65,7 +65,7 @@ html_show_sphinx = False
 todo_include_todos = False
 
 pdf_documents = [
- ('beam/index',
+ ('gyro/index',
      u'Beam',
      u'Beam',
      u'',

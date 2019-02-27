@@ -1,0 +1,45 @@
+
+plugins {
+    id 'java'
+    id 'maven-publish'
+}
+
+sourceCompatibility = 1.8
+
+def azure_sdk_version = '1.19.0'
+
+defaultTasks 'build', 'publish', 'publishToMavenLocal'
+
+dependencies {
+    compile 'com.psddev:dari-util:3.3.607-xe0f27a'
+    compile "com.google.guava:guava:23.0"
+    compile "gyro:gyro-core:${version}"
+    compile "com.microsoft.azure:azure:${azure_sdk_version}"
+    compile "com.microsoft.azure:azure-mgmt-resources:${azure_sdk_version}"
+    compile "com.microsoft.azure:azure-mgmt-network:${azure_sdk_version}"
+    compile "com.microsoft.azure:azure-mgmt-compute:${azure_sdk_version}"
+    compile "com.microsoft.azure:azure-mgmt-dns:${azure_sdk_version}"
+    compile "com.microsoft.azure:azure-storage:8.0.0"
+    compile "com.microsoft.azure:adal4j:1.6.3"
+}
+
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = 'gyro.provider'
+            artifactId = 'azure'
+            version = '0.5'
+
+            from components.java
+        }
+    }
+}
+
+task referenceDocs(type: Javadoc) {
+    title = null // Prevents -doctitle and -windowtitle from being passed to BeamDoclet
+    source = sourceSets.main.allJava
+    classpath = configurations.compile
+    options.doclet = "gyro.doclet.GyroDoclet"
+    options.docletpath = [file("../../doclet/build/libs/gyro-doclet-0.5.jar")]
+}

@@ -9,7 +9,7 @@ sourceCompatibility = 1.8
 defaultTasks 'build'
 
 dependencies {
-    compile "beam:beam-aws-provider:${version}"
+    compile "gyro.provider:aws:${version}"
 }
 
 publishing {

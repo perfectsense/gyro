@@ -1,6 +1,6 @@
 package gyro.plugin.enterprise;
 
-import beam.core.BeamException;
+import gyro.core.BeamException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;

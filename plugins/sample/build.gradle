@@ -9,6 +9,6 @@ sourceCompatibility = 1.8
 defaultTasks 'build'
 
 dependencies {
-    compile "beam:beam-core:${version}"
-    compile "beam:beam-aws-provider:${version}"
+    compile "gyro:gyro-core:${version}"
+    compile "gyro.provider:aws:${version}"
 }

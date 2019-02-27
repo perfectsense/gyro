@@ -1,6 +1,6 @@
 package gyro.plugin.enterprise;
 
-import beam.core.BeamCore;
+import gyro.core.BeamCore;
 import com.psddev.dari.util.ObjectUtils;
 import org.apache.http.message.BasicNameValuePair;
 

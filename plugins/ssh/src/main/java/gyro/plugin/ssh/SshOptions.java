@@ -1,7 +1,7 @@
 package gyro.plugin.ssh;
 
-import beam.core.BeamException;
-import beam.core.BeamInstance;
+import gyro.core.BeamException;
+import gyro.core.BeamInstance;
 import io.airlift.airline.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

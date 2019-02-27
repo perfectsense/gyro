@@ -1,7 +1,7 @@
 package gyro.plugin.enterprise;
 
-import beam.core.diff.ResourceName;
-import beam.lang.Resource;
+import gyro.core.diff.ResourceName;
+import gyro.lang.Resource;
 
 import java.util.Set;
 

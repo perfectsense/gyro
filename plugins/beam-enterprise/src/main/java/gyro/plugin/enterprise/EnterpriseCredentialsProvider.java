@@ -1,6 +1,6 @@
 package gyro.plugin.enterprise;
 
-import beam.core.BeamException;
+import gyro.core.BeamException;
 import com.google.common.base.Charsets;
 import com.psddev.dari.util.ErrorUtils;
 import com.psddev.dari.util.IoUtils;

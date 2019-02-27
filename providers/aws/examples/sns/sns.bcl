@@ -1,0 +1,32 @@
+import ../init.bcl as _
+
+aws::topic sns-topic-example
+    attributes: {
+        DisplayName: "sns-topic-example-ex",
+        Policy: "gyro-providers/gyro-aws-provider/examples/sns/sns-policy.json"
+    }
+    name: "sns-topic"
+end
+
+aws::subscriber sns-subscriber-example
+    protocol: "sqs"
+    endpoint: $(aws::sqs sqs-example | queue-arn)
+    attributes: {
+        FilterPolicy: "gyro-providers/gyro-aws-provider/examples/sns/filter-policy.json",
+        RawMessageDelivery: "true"
+    }
+    topic-arn: $(aws::topic sns-topic-example | topic-arn)
+end
+
+aws::sqs sqs-example
+     name : "sns-example"
+     visibility-timeout : 400
+     message-retention-period : 864000
+     maximum-message-size : 258048
+     delay-seconds : 140
+     receive-message-wait-time-seconds : 5
+     kms-master-key-id : 23
+     kms-data-key-reuse-period-seconds : 200
+     policy-doc-path: 'gyro-providers/gyro-aws-provider/examples/sqs/policy.json'
+end
+

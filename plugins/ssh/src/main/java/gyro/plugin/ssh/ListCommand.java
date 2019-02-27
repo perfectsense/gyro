@@ -1,7 +1,7 @@
 package gyro.plugin.ssh;
 
-import beam.core.BeamCore;
-import beam.core.BeamInstance;
+import gyro.core.BeamCore;
+import gyro.core.BeamInstance;
 import com.psddev.dari.util.ObjectUtils;
 import io.airlift.airline.Command;
 

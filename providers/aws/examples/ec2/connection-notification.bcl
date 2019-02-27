@@ -1,0 +1,9 @@
+import endpoint as _
+
+aws::connection-notification connection-notification-example
+    vpc-endpoint-id: $(aws::endpoint endpoint-example-interface | endpoint-id)
+    connection-notification-arn: "arn:aws:sns:us-west-2:242040583208:gyro-instance-state"
+    connection-events: [
+        "Accept"
+    ]
+end

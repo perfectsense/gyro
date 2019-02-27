@@ -14,7 +14,7 @@ Please follow these rules:
 - Use the following format for examples:
 
 ```
-.. code-block:: beam
+.. code-block:: gyro
 
     aws::resource name
         attribute1: value1
