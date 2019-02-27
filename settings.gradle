@@ -2,7 +2,7 @@ rootProject.name = 'beam'
 
 include 'beam-core', 'cli',
         'beam-providers:beam-aws-provider', 'beam-providers:beam-openstack-provider','beam-providers:beam-azure-provider',
-        'beam-plugins:ssh', 'beam-plugins:beam-enterprise', 'beam-plugins:sample',
+        'plugins:ssh', 'plugins:beam-enterprise', 'plugins:sample',
         'doclet'
 
 enableFeaturePreview('STABLE_PUBLISHING')

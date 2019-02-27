@@ -73,19 +73,19 @@ project(":cli") {
     }
 }
 
-project(":beam-plugins:ssh") {
+project(":plugins:ssh") {
     dependencies {
         compile project(':beam-core')
     }
 }
 
-project(":beam-plugins:beam-enterprise") {
+project(":plugins:beam-enterprise") {
     dependencies {
         compile project(':beam-providers:beam-aws-provider')
     }
 }
 
-project(":beam-plugins:sample") {
+project(":plugins:sample") {
     dependencies {
         compile project(':beam-core')
         compile project(':beam-providers:beam-aws-provider')
