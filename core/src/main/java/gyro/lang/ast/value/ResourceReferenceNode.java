@@ -2,14 +2,15 @@ package gyro.lang.ast.value;
 
 import gyro.core.BeamException;
 import gyro.lang.Resource;
+import gyro.lang.ResourceQuery;
 import gyro.lang.ResourceQueryGroup;
 import gyro.lang.ast.DeferError;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.query.FieldValueQuery;
 import gyro.lang.ast.query.Query;
 import gyro.lang.ast.scope.DiffableScope;
+import gyro.lang.ast.scope.RootScope;
 import gyro.lang.ast.scope.Scope;
-import gyro.lang.ResourceQuery;
 import gyro.parser.antlr4.BeamParser;
 import gyro.parser.antlr4.BeamParser.ReferenceBodyContext;
 
@@ -70,14 +71,33 @@ public class ResourceReferenceNode extends Node {
         this.queries = Collections.EMPTY_LIST;
     }
 
+    private List<ResourceQueryGroup> parseQueries(Scope scope) throws Exception {
+        List<ResourceQueryGroup> groups = new ArrayList<>();
+        for (Query query : queries) {
+            List<ResourceQueryGroup> groupsForOneQuery = query.evaluate(scope, this);
+            if (groups.isEmpty()) {
+                groups = groupsForOneQuery;
+            } else {
+                List<ResourceQueryGroup> result = new ArrayList<>();
+                for (ResourceQueryGroup left : groups) {
+                    for (ResourceQueryGroup right : groupsForOneQuery) {
+                        result.add(left.join(right));
+                    }
+                }
+                groups = result;
+            }
+        }
+
+        return groups;
+    }
+
     @Override
     public Object evaluate(Scope scope) throws Exception {
         if (nameNode != null) {
             String name = (String) nameNode.evaluate(scope);
 
+            List<Resource> resources = new ArrayList<>();
             if (name.startsWith("EXTERNAL/*")) {
-                List<Resource> resources = new ArrayList<>();
-                List<ResourceQueryGroup> groups = null;
                 ResourceQuery<Resource> resourceQuery = getResourceQuery(scope);
                 if (resourceQuery == null) {
                     throw new BeamException("Resource type " + type + " does not support external queries.");
@@ -87,20 +107,7 @@ public class ResourceReferenceNode extends Node {
                     resources = resourceQuery.queryAll();
 
                 } else {
-                    for (Query query : queries) {
-                        List<ResourceQueryGroup> groupsForOneQuery = query.evaluate(scope, this);
-                        if (groups == null) {
-                            groups = groupsForOneQuery;
-                        } else {
-                            List<ResourceQueryGroup> result = new ArrayList<>();
-                            for (ResourceQueryGroup left : groups) {
-                                for (ResourceQueryGroup right : groupsForOneQuery) {
-                                    result.add(left.join(right));
-                                }
-                            }
-                            groups = result;
-                        }
-                    }
+                    List<ResourceQueryGroup> groups = parseQueries(scope);
 
                     for (ResourceQueryGroup group : groups) {
                         group.merge();
@@ -116,6 +123,54 @@ public class ResourceReferenceNode extends Node {
                     return resources;
                 }
 
+            } else if (name.endsWith("*")) {
+                RootScope rootScope = scope.getRootScope();
+                if (name.startsWith("STATE/")) {
+                    rootScope = rootScope.getCurrent();
+                    name = name.replaceFirst("STATE/", "");
+                }
+
+                Stream<Resource> s = rootScope.findAllResources().stream().filter(r -> type.equals(r.resourceType()));
+
+                if (!name.equals("*")) {
+                    String prefix = name.substring(0, name.length() - 1);
+                    s = s.filter(r -> r.resourceIdentifier().startsWith(prefix));
+                }
+
+                List<ResourceQueryGroup> groups = parseQueries(scope);
+                List<Resource> baseResources = s.collect(Collectors.toList());
+
+                if (queries.isEmpty()) {
+                    resources.addAll(baseResources);
+                } else {
+                    for (ResourceQueryGroup group : groups) {
+                        resources.addAll(group.query(baseResources));
+                    }
+                }
+
+                resources.stream().forEach(r -> System.out.println(r.toDisplayString()));
+
+                if (attribute != null) {
+                    return resources.stream().map(r -> r.get(attribute)).collect(Collectors.toList());
+                } else {
+                    return resources;
+                }
+
+            } else if (name.startsWith("STATE/")) {
+                name = name.replaceFirst("STATE/", "");
+                if (name.isEmpty()) {
+                    throw new IllegalArgumentException();
+                }
+
+                String fullName = type + "::" + name;
+                Resource resource = scope.getRootScope().getCurrent().findResource(fullName);
+
+                if (attribute != null) {
+                    return resource.get(attribute);
+
+                } else {
+                    return resource;
+                }
             } else {
                 String fullName = type + "::" + name;
                 Resource resource = scope.getRootScope().findResource(fullName);

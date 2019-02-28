@@ -53,4 +53,13 @@ public class ResourceQueryGroup {
 
         return resources;
     }
+
+    public List<Resource> query(List<Resource> baseResources) {
+        List<Resource> resources = new ArrayList<>(baseResources);
+        for (ResourceQuery<Resource> resourceQuery : resourceQueries) {
+            resources = resourceQuery.filter(resources);
+        }
+
+        return resources;
+    }
 }
