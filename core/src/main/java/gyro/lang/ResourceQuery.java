@@ -134,23 +134,3 @@ public abstract class ResourceQuery<T extends Resource> extends Diffable {
         throw new IllegalStateException();
     }
 }
-/*
-
-step 1: extract or
-
-A | b or c and D | e and G or H
-
-[A] | [b] or [c] and [D] | [e] and [G] or [H]
-
-[A] | [b] or [c, D] | [e, G] or [H]
-
-[A, b] or [A, c, D] | [e, G] or [H]
-
-[A, b, e, G] or [A, b, H] or [A, c, D, e, G] or [A, c, D, H]
-
-step 2: Locate api filter fields
-
-[A, G] [b, e] or [A, H] [b] or [A, D, G] [c, e] or [A, D, H] [c]
-
-
-*/
