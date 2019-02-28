@@ -40,8 +40,7 @@ public abstract class ResourceQuery<T extends Resource> extends Diffable {
                 }
             }
 
-            List<T> resources = filters.isEmpty() ? queryAll() : query(filters);
-            return resources;
+            return filters.isEmpty() ? queryAll() : query(filters);
 
         } else {
             throw new UnsupportedOperationException("Non api query is not supported, use `filter` instead!");
