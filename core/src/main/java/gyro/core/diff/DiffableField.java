@@ -1,16 +1,16 @@
 package gyro.core.diff;
 
+import com.google.common.base.CaseFormat;
+import com.psddev.dari.util.Converter;
+import com.psddev.dari.util.ObjectUtils;
+import gyro.lang.ast.query.ApiFilterable;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Optional;
-
-import gyro.lang.ast.query.ApiFilterable;
-import com.google.common.base.CaseFormat;
-import com.psddev.dari.util.Converter;
-import com.psddev.dari.util.ObjectUtils;
 
 public class DiffableField {
 
