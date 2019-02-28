@@ -44,7 +44,7 @@ public abstract class ResourceQuery<T extends Resource> extends Diffable {
             return resources;
 
         } else {
-            throw new UnsupportedOperationException("Non api query is not supported yet!");
+            throw new UnsupportedOperationException("Non api query is not supported, use `filter` instead!");
         }
     }
 
