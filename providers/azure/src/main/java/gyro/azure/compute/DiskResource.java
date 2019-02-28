@@ -1,10 +1,5 @@
-package beam.azure.compute;
+package gyro.azure.compute;
 
-import beam.azure.AzureResource;
-import beam.core.diff.ResourceDiffProperty;
-import beam.core.diff.ResourceName;
-import beam.core.diff.ResourceOutput;
-import beam.lang.Resource;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.compute.Disk;
 import com.microsoft.azure.management.compute.DiskSkuTypes;
@@ -12,6 +7,11 @@ import com.microsoft.azure.management.compute.OperatingSystemTypes;
 import com.microsoft.azure.management.compute.StorageAccountTypes;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.psddev.dari.util.ObjectUtils;
+import gyro.azure.AzureResource;
+import gyro.core.diff.ResourceDiffProperty;
+import gyro.core.diff.ResourceName;
+import gyro.core.diff.ResourceOutput;
+import gyro.lang.Resource;
 
 import java.util.HashMap;
 import java.util.Map;

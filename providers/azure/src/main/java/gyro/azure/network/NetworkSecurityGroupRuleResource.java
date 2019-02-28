@@ -1,9 +1,5 @@
-package beam.azure.network;
+package gyro.azure.network;
 
-import beam.azure.AzureResource;
-import beam.core.diff.ResourceDiffProperty;
-import beam.core.diff.ResourceName;
-import beam.lang.Resource;
 import com.google.common.collect.ImmutableMap;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.network.NetworkSecurityGroup;
@@ -12,6 +8,10 @@ import com.microsoft.azure.management.network.SecurityRuleAccess;
 import com.microsoft.azure.management.network.SecurityRuleDirection;
 import com.microsoft.azure.management.network.SecurityRuleProtocol;
 import com.psddev.dari.util.ObjectUtils;
+import gyro.azure.AzureResource;
+import gyro.core.diff.ResourceDiffProperty;
+import gyro.core.diff.ResourceName;
+import gyro.lang.Resource;
 
 import java.util.ArrayList;
 import java.util.Collections;

@@ -1,4 +1,4 @@
 @DocGroup("compute")
-package beam.azure.compute;
+package gyro.azure.compute;
 
-import beam.core.docs.DocGroup;
+import gyro.core.docs.DocGroup;

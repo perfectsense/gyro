@@ -1,14 +1,14 @@
-package beam.azure.network;
+package gyro.azure.network;
 
-import beam.azure.AzureResource;
-import beam.core.diff.ResourceDiffProperty;
-import beam.core.diff.ResourceName;
-import beam.core.diff.ResourceOutput;
-import beam.lang.Resource;
 import com.microsoft.azure.management.Azure;
-import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.management.network.NetworkSecurityGroup;
+import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.psddev.dari.util.ObjectUtils;
+import gyro.azure.AzureResource;
+import gyro.core.diff.ResourceDiffProperty;
+import gyro.core.diff.ResourceName;
+import gyro.core.diff.ResourceOutput;
+import gyro.lang.Resource;
 
 import java.util.ArrayList;
 import java.util.HashMap;

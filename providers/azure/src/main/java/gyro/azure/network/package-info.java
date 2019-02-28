@@ -1,4 +1,4 @@
 @DocGroup("network")
-package beam.azure.network;
+package gyro.azure.network;
 
-import beam.core.docs.DocGroup;
+import gyro.core.docs.DocGroup;
