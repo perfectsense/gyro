@@ -8,10 +8,6 @@ sourceCompatibility = 1.8
 
 defaultTasks 'build'
 
-dependencies {
-    compile "gyro.provider:aws:${version}"
-}
-
 publishing {
     publications {
         maven(MavenPublication) {

@@ -8,7 +8,3 @@ sourceCompatibility = 1.8
 
 defaultTasks 'build'
 
-dependencies {
-    compile "gyro:gyro-core:${version}"
-    compile "gyro.provider:aws:${version}"
-}
