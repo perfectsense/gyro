@@ -1,0 +1,52 @@
+
+plugins {
+    id 'maven-publish'
+    id 'org.springframework.boot' version '2.1.0.RELEASE'
+}
+apply plugin: 'java'
+apply plugin: 'io.spring.dependency-management'
+
+sourceCompatibility = 1.8
+
+defaultTasks 'build', 'publish', 'publishToMavenLocal'
+
+dependencies {
+    compile "gyro:gyro-core:${version}"
+}
+
+task finalize {
+    dependsOn 'dist'
+}
+build.finalizedBy(finalize)
+
+task distDir {
+    doLast {
+        mkdir "dist"
+    }
+
+    dependsOn 'build'
+}
+
+task dist(type: Copy) {
+    from libsDir
+    include '*.jar'
+    into "dist"
+
+    rename "cli-0.5.jar", 'gyro'
+
+    dependsOn 'distDir'
+}
+
+task bundleDistribution(type: Exec) {
+    commandLine 'sh', '-c', 'scripts/build-gyro-dist.sh'
+
+    dependsOn 'dist'
+}
+
+bootJar {
+    classifier = ''
+    mainClassName = 'gyro.cli.Gyro'
+    launchScript {
+        script = file('scripts/stub.sh')
+    }
+}

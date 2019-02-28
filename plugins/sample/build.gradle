@@ -1,0 +1,22 @@
+
+plugins {
+    id 'maven-publish'
+    id 'java'
+}
+
+sourceCompatibility = 1.8
+
+defaultTasks 'build'
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = 'gyro.plugin'
+            artifactId = 'sample'
+            version = '0.5'
+
+            from components.java
+        }
+    }
+}
+

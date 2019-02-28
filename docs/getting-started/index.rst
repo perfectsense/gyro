@@ -1,7 +1,7 @@
 
-.. title:: Getting Started with Beam
+.. title:: Getting Started with Gyro
 
-Getting Started with Beam
+Getting Started with Gyro
 =========================
 
 .. toctree::

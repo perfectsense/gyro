@@ -1,3 +1,3 @@
 
-Installing Beam
+Installing Gyro
 ---------------

@@ -17,12 +17,11 @@ allprojects {
 }
 
 subprojects {
-    apply plugin: "idea"
+    apply plugin: 'idea'
     apply plugin: 'java'
-    apply plugin: 'maven-publish'
     apply plugin: 'checkstyle'
 
-    group = 'beam'
+    group = 'gyro'
     version = '0.5'
 
     repositories {
@@ -45,17 +44,6 @@ subprojects {
         checkstyle 'com.puppycrawl.tools:checkstyle:8.15'
     }
 
-    publishing {
-        publications {
-            beam(MavenPublication) {
-                from components.java
-                afterEvaluate {
-                    artifactId = jar.baseName
-                }
-            }
-        }
-    }
-
     checkstyle {
         toolVersion = '6.13'
         configFile rootProject.file('config/checkstyle.xml')
@@ -74,9 +62,9 @@ subprojects {
 
 }
 
-project(":beam-cli") {
+project(":cli") {
     dependencies {
-        compile project(':beam-core')
+        compile project(':gyro-core')
     }
 
     publish {
@@ -84,39 +72,39 @@ project(":beam-cli") {
     }
 }
 
-project(":beam-plugins:beam-ssh-plugin") {
+project(":plugins:ssh") {
     dependencies {
-        compile project(':beam-core')
+        compile project(':gyro-core')
     }
 }
 
-project(":beam-plugins:beam-enterprise-plugin") {
+project(":plugins:beam-enterprise") {
     dependencies {
-        compile project(':beam-providers:beam-aws-provider')
+        compile project(':providers:aws')
     }
 }
 
-project(":beam-plugins:beam-sample-plugin") {
+project(":plugins:sample") {
     dependencies {
-        compile project(':beam-core')
-        compile project(':beam-providers:beam-aws-provider')
+        compile project(':gyro-core')
+        compile project(':providers:aws')
     }
 }
 
-project(":beam-providers:beam-aws-provider") {
+project(":providers:aws") {
     dependencies {
-        compile project(':beam-core')
+        compile project(':gyro-core')
     }
 }
 
-project(":beam-providers:beam-openstack-provider") {
+project(":providers:openstack") {
     dependencies {
-        compile project(':beam-core')
+        compile project(':gyro-core')
     }
 }
 
-project(":beam-providers:beam-azure-provider") {
+project(":providers:azure") {
     dependencies {
-        compile project(':beam-core')
+        compile project(':gyro-core')
     }
 }

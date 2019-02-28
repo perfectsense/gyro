@@ -1,4 +1,4 @@
-.. title:: Beam
+.. title:: Gyro
 
 .. toctree::
    :caption: Guides

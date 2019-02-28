@@ -1,8 +1,8 @@
-rootProject.name = 'beam'
+rootProject.name = 'gyro'
 
-include 'beam-core', 'beam-cli',
-        'beam-providers:beam-aws-provider', 'beam-providers:beam-openstack-provider','beam-providers:beam-azure-provider',
-        'beam-plugins:beam-ssh-plugin', 'beam-plugins:beam-enterprise-plugin', 'beam-plugins:beam-sample-plugin',
-        'beam-docs'
+include 'gyro-core', 'cli',
+        'providers:aws', 'providers:openstack','providers:azure',
+        'plugins:ssh', 'plugins:beam-enterprise', 'plugins:sample',
+        'doclet'
 
 enableFeaturePreview('STABLE_PUBLISHING')

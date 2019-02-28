@@ -1,0 +1,77 @@
+
+plugins {
+    id 'maven-publish'
+    id 'antlr'
+    id 'idea'
+}
+
+sourceCompatibility = 1.8
+
+defaultTasks 'build'
+
+dependencies {
+    compile 'org.reflections:reflections:0.9.10'
+    compile 'org.fusesource.jansi:jansi:1.16'
+    compile 'org.apache.httpcomponents:httpclient:4.5'
+    compile 'org.eclipse.aether:aether-impl:1.1.0'
+    compile 'org.eclipse.aether:aether-connector-basic:1.1.0'
+    compile 'org.eclipse.aether:aether-transport-file:1.1.0'
+    compile 'org.eclipse.aether:aether-transport-http:1.1.0'
+    compile 'org.apache.maven:maven-aether-provider:3.3.9'
+    compile 'commons-beanutils:commons-beanutils-core:1.8.3'
+    compile 'io.airlift:airline:0.8'
+    compile 'org.fusesource.jansi:jansi:1.16'
+    compile 'com.psddev:dari-util:3.3.607-xe0f27a'
+
+    antlr "org.antlr:antlr4:4.7.1"
+
+    // jUnit
+    testCompile 'org.junit.jupiter:junit-jupiter-api:5.3.2'
+    testCompile 'org.junit.jupiter:junit-jupiter-params:5.3.2'
+    testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.3.2'
+
+    // Mockito
+    testCompile 'org.mockito:mockito-junit-jupiter:2.23.0'
+    implementation 'org.mockito:mockito-core:2.23.4'
+    implementation 'org.hamcrest:hamcrest:2.1'
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = 'gyro'
+            artifactId = 'gyro-core'
+            version = '0.5'
+
+            from components.java
+        }
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
+
+final PARSER_PACKAGE_NAME = 'gyro.parser.antlr4'
+generateGrammarSource {
+    outputs.cacheIf { true }
+    arguments += ["-package", PARSER_PACKAGE_NAME]
+    arguments << "-Xexact-output-dir"
+    arguments << "-visitor"
+    arguments << "-lib" << "src/main/antlr/gyro/parser/antlr4"
+
+    doLast {
+        def parserFilePattern = 'Groovy*'
+        def outputPath = generateGrammarSource.outputDirectory.canonicalPath
+        def parserPackagePath = "${outputPath}/${PARSER_PACKAGE_NAME.replace('.', '/')}"
+        file(parserPackagePath).mkdirs()
+        copy {
+            from outputPath
+            into parserPackagePath
+            include parserFilePattern
+        }
+        delete fileTree(outputPath) {
+            include parserFilePattern
+        }
+    }
+}

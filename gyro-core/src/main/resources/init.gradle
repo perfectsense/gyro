@@ -1,0 +1,15 @@
+initscript {
+    repositories {
+        maven {
+            url "https://artifactory.psdops.com/public"
+        }
+    }
+
+    dependencies {
+        classpath group: 'gyro', name: 'gyro', version: '1.0'
+    }
+}
+
+allprojects {
+    apply plugin: beam.builder.util.gradle.ProjectPropertiesPlugin
+}
