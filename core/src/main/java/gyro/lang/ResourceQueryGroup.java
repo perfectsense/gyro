@@ -52,11 +52,6 @@ public class ResourceQueryGroup {
             }
         }
 
-        resources.stream().forEach(r -> System.out.println(r.toDisplayString()));
         return resources;
-    }
-
-    public String toString() {
-        return resourceQueries.stream().map(ResourceQuery::toDisplayString).collect(Collectors.toList()).toString();
     }
 }
