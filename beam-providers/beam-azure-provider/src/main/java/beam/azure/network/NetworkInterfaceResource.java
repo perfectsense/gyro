@@ -31,6 +31,17 @@ import java.util.Set;
  *          network-id: $(azure::network network-example-interface | network-id)
  *          subnet: "subnet2"
  *          security-group-id: $(azure::network-security-group network-security-group-example-interface | network-security-group-id)
+ *
+ *          primary-ip-configuration
+ *              ip-allocation-static: false
+ *              ip-configuration-name: 'primary'
+ *              primary: true
+ *          end
+ *
+ *          nic-ip-configuration
+ *              ip-configuration-name: "nic-ip-configuration-1"
+ *          end
+ *
  *          tags: {
  *              Name: "network-interface-example"
  *          }
