@@ -235,7 +235,7 @@ public class NetworkInterfaceResource extends AzureResource {
 
         NetworkInterface networkInterface = withCreate.withTags(getTags()).create();
 
-        networkInterface.id();
+        setNetworkInterfaceId(networkInterface.id());
     }
 
     @Override
