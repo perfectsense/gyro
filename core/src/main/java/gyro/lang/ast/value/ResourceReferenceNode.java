@@ -77,13 +77,17 @@ public class ResourceReferenceNode extends Node {
 
             if (name.startsWith("EXTERNAL/*")) {
                 List<ResourceQueryGroup> groups = null;
-                // TODO: no query should return all resources
-                for (Query query : queries) {
-                    ResourceQuery resourceQuery = getResourceQuery(scope);
-                    if (resourceQuery == null) {
-                        throw new BeamException("Resource type " + type + " does not support external queries.");
-                    }
+                ResourceQuery<Resource> resourceQuery = getResourceQuery(scope);
+                if (resourceQuery == null) {
+                    throw new BeamException("Resource type " + type + " does not support external queries.");
+                }
 
+                if (queries.isEmpty()) {
+                    resourceQuery.queryAll().stream().forEach(r -> System.out.println(r.toDisplayString()));
+                    return resourceQuery.queryAll();
+                }
+
+                for (Query query : queries) {
                     List<ResourceQueryGroup> groupsForOneQuery = query.evaluate(scope, this);
                     if (groups == null) {
                         groups = groupsForOneQuery;
