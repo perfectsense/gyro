@@ -20,8 +20,8 @@ public class FileScope extends Scope {
     public FileScope(FileScope parent, String file) {
         super(parent);
 
-        if (!file.endsWith(".bcl") && !file.endsWith(".bcl.state")) {
-            file += ".bcl";
+        if (!file.endsWith(".gyro") && !file.endsWith(".gyro.state")) {
+            file += ".gyro";
         }
 
         if (parent != null) {
@@ -36,7 +36,7 @@ public class FileScope extends Scope {
     }
 
     public FileBackend getBackend() {
-        if (backend == null || !file.endsWith(".bcl.state")) {
+        if (backend == null || !file.endsWith(".gyro.state")) {
             return DEFAULT_FILE_BACKEND;
 
         } else {

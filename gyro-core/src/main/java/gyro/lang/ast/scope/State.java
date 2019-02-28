@@ -22,14 +22,14 @@ public class State {
     private final Map<String, FileScope> states = new HashMap<>();
 
     private String getStateFile(String file) {
-        if (file.endsWith(".bcl.state")) {
+        if (file.endsWith(".gyro.state")) {
             return file;
 
-        } else if (file.endsWith(".bcl")) {
+        } else if (file.endsWith(".gyro")) {
             return file + ".state";
 
         } else {
-            return file + ".bcl.state";
+            return file + ".gyro.state";
         }
     }
 

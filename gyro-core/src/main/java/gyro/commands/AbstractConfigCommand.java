@@ -52,8 +52,8 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         FileBackend backend = new LocalFileBackend();
 
         String file = StringUtils.ensureEnd(
-                StringUtils.removeEnd(arguments().get(0), ".bcl"),
-                ".bcl.state");
+                StringUtils.removeEnd(arguments().get(0), ".gyro"),
+                ".gyro.state");
 
         RootScope current = new RootScope(file);
         RootScope pending = new RootScope(current);

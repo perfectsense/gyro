@@ -63,7 +63,7 @@ public class LocalFileBackend extends FileBackend {
             file += ".state";
         }
 
-        Path newFile = Files.createTempFile("local-file-backend-", ".bcl.state");
+        Path newFile = Files.createTempFile("local-file-backend-", ".gyro.state");
 
         try {
             try (BufferedWriter out = new BufferedWriter(

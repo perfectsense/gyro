@@ -119,8 +119,8 @@ public class Gyro {
 
     public static void loadPlugins(Gyro gyro) {
         try {
-            // Load ~/.gyro/plugins.bcl
-            File plugins = Paths.get(getBeamUserHome(), ".gyro", "plugins.bcl").toFile();
+            // Load ~/.gyro/plugins.gyro
+            File plugins = Paths.get(getBeamUserHome(), ".gyro", "plugins.gyro").toFile();
             if (plugins.exists() && plugins.isFile()) {
                 RootScope pluginConfig = new RootScope(plugins.toString());
 

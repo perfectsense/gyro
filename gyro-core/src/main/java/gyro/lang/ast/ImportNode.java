@@ -45,8 +45,8 @@ public class ImportNode extends Node {
                     Paths.get(fileRootScope.getFile())
                             .getFileName()
                             .toString()
-                            .replace(".bcl", "")
-                            .replace(".bcl.state", ""),
+                            .replace(".gyro", "")
+                            .replace(".gyro.state", ""),
                     fileRootScope);
         }
     }

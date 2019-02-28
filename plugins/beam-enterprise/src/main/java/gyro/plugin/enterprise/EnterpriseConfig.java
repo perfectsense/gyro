@@ -20,7 +20,7 @@ public class EnterpriseConfig {
         @Override
         @SuppressWarnings("unchecked")
         protected Map<String, Object> create() throws Exception {
-            File enterpriseConfigFile = Paths.get(EnterpriseConfig.getUserHome(), ".gyro", "enterprise.bcl").toFile();
+            File enterpriseConfigFile = Paths.get(EnterpriseConfig.getUserHome(), ".gyro", "enterprise.gyro").toFile();
 
             if (enterpriseConfigFile.exists()) {
                 RootScope config = new RootScope(enterpriseConfigFile.toString());
