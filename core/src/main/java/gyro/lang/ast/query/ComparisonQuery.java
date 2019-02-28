@@ -47,43 +47,5 @@ public class ComparisonQuery extends Query {
         ResourceQueryGroup group = new ResourceQueryGroup();
         group.getResourceQueries().add(resourceQuery);
         return Arrays.asList(group);
-
-
-//        // Fetch resources from API.
-//        if (resources == null) {
-//            if (EQUALS_OPERATOR.equals(operator)) {
-//                Map<String, String> filter = new HashMap<>();
-//                filter.put(fieldName, comparisonValue.toString());
-//
-//                List<Resource> results = resourceQuery.query(filter);
-//
-//                if (results == null) {
-//                    results = resourceQuery.queryAll();
-//                    return evaluate(resourceQuery, results, scope);
-//                }
-//
-//                return results;
-//            } else if (NOT_EQUALS_OPERATOR.equals(operator)) {
-//                return evaluate(resourceQuery, resourceQuery.queryAll(), scope);
-//            }
-//        } else {
-//            for (Iterator<Resource> i = resources.iterator(); i.hasNext();) {
-//                Resource r = i.next();
-//
-//                boolean equal = Objects.equals(
-//                    DiffableType.getInstance(r.getClass()).getFieldByBeamName(fieldName).getValue(r),
-//                    comparisonValue);
-//
-//                if (EQUALS_OPERATOR.equals(operator) && !equal) {
-//                    i.remove();
-//                } else if (NOT_EQUALS_OPERATOR.equals(operator) && equal) {
-//                    i.remove();
-//                }
-//            }
-//
-//            return resources;
-//        }
-
-        //return null;
     }
 }
