@@ -76,6 +76,7 @@ public class ResourceReferenceNode extends Node {
             String name = (String) nameNode.evaluate(scope);
 
             if (name.startsWith("EXTERNAL/*")) {
+                List<Resource> resources = new ArrayList<>();
                 List<ResourceQueryGroup> groups = null;
                 ResourceQuery<Resource> resourceQuery = getResourceQuery(scope);
                 if (resourceQuery == null) {
@@ -83,29 +84,38 @@ public class ResourceReferenceNode extends Node {
                 }
 
                 if (queries.isEmpty()) {
-                    resourceQuery.queryAll().stream().forEach(r -> System.out.println(r.toDisplayString()));
-                    return resourceQuery.queryAll();
-                }
+                    resources = resourceQuery.queryAll();
 
-                for (Query query : queries) {
-                    List<ResourceQueryGroup> groupsForOneQuery = query.evaluate(scope, this);
-                    if (groups == null) {
-                        groups = groupsForOneQuery;
-                    } else {
-                        List<ResourceQueryGroup> result = new ArrayList<>();
-                        for (ResourceQueryGroup left : groups) {
-                            for (ResourceQueryGroup right : groupsForOneQuery) {
-                                result.add(left.join(right));
+                } else {
+                    for (Query query : queries) {
+                        List<ResourceQueryGroup> groupsForOneQuery = query.evaluate(scope, this);
+                        if (groups == null) {
+                            groups = groupsForOneQuery;
+                        } else {
+                            List<ResourceQueryGroup> result = new ArrayList<>();
+                            for (ResourceQueryGroup left : groups) {
+                                for (ResourceQueryGroup right : groupsForOneQuery) {
+                                    result.add(left.join(right));
+                                }
                             }
+                            groups = result;
                         }
-                        groups = result;
+                    }
+
+                    for (ResourceQueryGroup group : groups) {
+                        group.merge();
+                        resources.addAll(group.query());
                     }
                 }
 
-                groups.stream().forEach(ResourceQueryGroup::merge);
-                groups.stream().forEach(ResourceQueryGroup::query);
+                resources.stream().forEach(r -> System.out.println(r.toDisplayString()));
 
-                return null;
+                if (attribute != null) {
+                    return resources.stream().map(r -> r.get(attribute)).collect(Collectors.toList());
+                } else {
+                    return resources;
+                }
+
             } else {
                 String fullName = type + "::" + name;
                 Resource resource = scope.getRootScope().findResource(fullName);
