@@ -28,6 +28,27 @@ import java.util.Set;
  *          network-security-group-name: "network-security-group-example"
  *          resource-group-name: $(azure::resource-group resource-group-network-security-group-example | resource-group-name)
  *
+ *          rule
+ *              security-group-rule-name: "Port_8080"
+ *              inbound-rule: true
+ *              allowRule: true
+ *              from-addresses: [
+ *                  "8080"
+ *              ]
+ *              from-ports: [
+ *                  "*"
+ *
+ *              ]
+ *              to-addresses: [
+ *                  "8080"
+ *              ]
+ *              to-ports: [
+ *                  "*"
+ *              ]
+ *              priority: 100
+ *              protocol: "all"
+ *          end
+ *
  *          tags: {
  *              Name: "network-security-group-example"
  *          }
