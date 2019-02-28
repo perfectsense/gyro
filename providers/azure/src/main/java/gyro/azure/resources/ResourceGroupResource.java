@@ -91,11 +91,10 @@ public class ResourceGroupResource extends AzureResource {
         ResourceGroup resourceGroup = client.resourceGroups()
             .define(getResourceGroupName())
             .withRegion(Region.fromName(getRegion()))
+            .withTags(getTags())
             .create();
 
         setResourceGroupId(resourceGroup.id());
-
-        resourceGroup.update().withTags(getTags()).apply();
     }
 
     @Override

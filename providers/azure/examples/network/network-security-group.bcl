@@ -1,0 +1,62 @@
+import ../init as _
+
+azure::resource-group resource-group-network-security-group-example
+    resource-group-name: "resource-group-network-security-group-example"
+
+    tags: {
+        Name: "resource-group-network-security-group-example"
+    }
+end
+
+azure::network-security-group network-security-group-example
+    network-security-group-name: "network-security-group-example"
+    resource-group-name: $(azure::resource-group resource-group-network-security-group-example | resource-group-name)
+
+    tags: {
+        Name: "network-security-group-example"
+    }
+
+    rule
+        security-group-rule-name: "Port_8080"
+        inbound-rule: true
+        allowRule: true
+        from-addresses: [
+            "8080"
+        ]
+        from-ports: [
+            "*"
+
+        ]
+        to-addresses: [
+            "8080"
+        ]
+        to-ports: [
+            "*"
+        ]
+        priority: 100
+        protocol: "all"
+    end
+
+    rule
+        security-group-rule-name: "Port_8081"
+        inbound-rule: false
+        allowRule: true
+        from-addresses: [
+            "8081"
+        ]
+        from-ports: [
+            "80"
+
+        ]
+        to-addresses: [
+            "8081"
+        ]
+        to-ports: [
+            "80"
+        ]
+        priority: 110
+        protocol: "all"
+    end
+
+end
+
