@@ -8,3 +8,15 @@ sourceCompatibility = 1.8
 
 defaultTasks 'build'
 
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = 'gyro.plugin'
+            artifactId = 'ssh'
+            version = '0.5'
+
+            from components.java
+        }
+    }
+}
+
