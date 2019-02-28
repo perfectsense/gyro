@@ -4,6 +4,7 @@ import beam.azure.AzureResource;
 import beam.core.BeamException;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
+import beam.core.diff.ResourceOutput;
 import beam.lang.Resource;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.compute.CachingTypes;
@@ -167,6 +168,7 @@ public class VirtualMachineResource extends AzureResource {
         this.adminPassword = adminPassword;
     }
 
+    @ResourceOutput
     public String getVirtualMachineId() {
         return virtualMachineId;
     }
@@ -175,6 +177,7 @@ public class VirtualMachineResource extends AzureResource {
         this.virtualMachineId = virtualMachineId;
     }
 
+    @ResourceOutput
     public String getVmId() {
         return vmId;
     }

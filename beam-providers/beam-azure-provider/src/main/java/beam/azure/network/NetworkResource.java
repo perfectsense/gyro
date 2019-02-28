@@ -3,6 +3,7 @@ package beam.azure.network;
 import beam.azure.AzureResource;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
+import beam.core.diff.ResourceOutput;
 import beam.lang.Resource;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.network.Network;
@@ -118,6 +119,7 @@ public class NetworkResource extends AzureResource {
         this.tags = tags;
     }
 
+    @ResourceOutput
     public String getNetworkId() {
         return networkId;
     }

@@ -3,6 +3,7 @@ package beam.azure.network;
 import beam.azure.AzureResource;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
+import beam.core.diff.ResourceOutput;
 import beam.lang.Resource;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
@@ -62,6 +63,7 @@ public class NetworkSecurityGroupResource extends AzureResource {
         this.resourceGroupName = resourceGroupName;
     }
 
+    @ResourceOutput
     public String getNetworkSecurityGroupId() {
         return networkSecurityGroupId;
     }

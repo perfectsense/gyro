@@ -3,6 +3,7 @@ package beam.azure.network;
 import beam.azure.AzureResource;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
+import beam.core.diff.ResourceOutput;
 import beam.lang.Resource;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.network.PublicIPAddress;
@@ -112,6 +113,7 @@ public class PublicIpAddressResource extends AzureResource {
         this.idleTimeoutInMinute = idleTimeoutInMinute;
     }
 
+    @ResourceOutput
     public String getPublicIpAddressId() {
         return publicIpAddressId;
     }
@@ -120,6 +122,7 @@ public class PublicIpAddressResource extends AzureResource {
         this.publicIpAddressId = publicIpAddressId;
     }
 
+    @ResourceOutput
     public String getIpAddress() {
         return ipAddress;
     }

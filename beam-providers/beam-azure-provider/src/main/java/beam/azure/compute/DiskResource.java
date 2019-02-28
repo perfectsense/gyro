@@ -3,6 +3,7 @@ package beam.azure.compute;
 import beam.azure.AzureResource;
 import beam.core.diff.ResourceDiffProperty;
 import beam.core.diff.ResourceName;
+import beam.core.diff.ResourceOutput;
 import beam.lang.Resource;
 import com.microsoft.azure.management.Azure;
 import com.microsoft.azure.management.compute.Disk;
@@ -58,6 +59,7 @@ public class DiskResource extends AzureResource {
         this.diskName = diskName;
     }
 
+    @ResourceOutput
     public String getDiskId() {
         return diskId;
     }
