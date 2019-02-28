@@ -116,6 +116,7 @@ public class ResourceReferenceNode extends Node {
                 }
 
                 resources.stream().forEach(r -> System.out.println(r.toDisplayString()));
+                System.out.println();
 
                 if (attribute != null) {
                     return resources.stream().map(r -> r.get(attribute)).collect(Collectors.toList());
@@ -149,6 +150,7 @@ public class ResourceReferenceNode extends Node {
                 }
 
                 resources.stream().forEach(r -> System.out.println(r.toDisplayString()));
+                System.out.println();
 
                 if (attribute != null) {
                     return resources.stream().map(r -> r.get(attribute)).collect(Collectors.toList());
