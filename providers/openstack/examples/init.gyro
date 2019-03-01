@@ -1,5 +1,5 @@
 plugin
-    artifact: 'gyro:gyro-openstack-provider:0.5'
+    artifact: 'gyro.provider:openstack:0.5'
     repositories: [
         'http://repo1.maven.org/maven2/',
         'https://repo.gradle.org/gradle/libs-releases/',
