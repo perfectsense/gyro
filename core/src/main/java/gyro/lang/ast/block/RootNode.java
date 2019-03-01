@@ -40,7 +40,6 @@ public class RootNode extends BlockNode {
 
             } else if (node instanceof KeyValueNode) {
                 keyValues.add((KeyValueNode) node);
-                body.add(node);
 
             } else if (node instanceof PluginNode) {
                 plugins.add((PluginNode) node);
@@ -68,7 +67,7 @@ public class RootNode extends BlockNode {
         }
 
         for (KeyValueNode kv : keyValues) {
-            //kv.evaluate(scope);
+            kv.evaluate(scope);
         }
 
         for (PluginNode plugin : plugins) {
