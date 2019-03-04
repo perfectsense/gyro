@@ -1,9 +1,9 @@
 package gyro.lang;
 
 import gyro.core.BeamException;
-import gyro.core.diff.Diffable;
-import gyro.core.diff.DiffableField;
 import gyro.core.diff.DiffableType;
+import gyro.core.query.QueryField;
+import gyro.core.query.QueryType;
 import gyro.lang.ast.query.ComparisonQuery;
 import gyro.lang.ast.scope.Scope;
 
@@ -13,9 +13,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public abstract class ResourceQuery<T extends Resource> extends Diffable {
+public abstract class ResourceQuery<T extends Resource> {
 
     private boolean apiQuery;
+
+    private String operator;
+
+    private Credentials credentials;
 
     public abstract List<T> query(Map<String, String> filter);
 
@@ -29,10 +33,26 @@ public abstract class ResourceQuery<T extends Resource> extends Diffable {
         this.apiQuery = apiQuery;
     }
 
-    public final List<T> query() {
-        if (apiQuery) {
+    public String operator() {
+        return operator;
+    }
+
+    public void operator(String operator) {
+        this.operator = operator;
+    }
+
+    public Credentials credentials() {
+        return credentials;
+    }
+
+    public void credentials(Credentials credentials) {
+        this.credentials = credentials;
+    }
+
+    public List<T> query() {
+        if (apiQuery()) {
             Map<String, String> filters = new HashMap<>();
-            for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
+            for (QueryField field : QueryType.getInstance(getClass()).getFields()) {
                 Object value = field.getValue(this);
                 String filterName = field.getFilterName();
                 if (value != null) {
@@ -47,18 +67,16 @@ public abstract class ResourceQuery<T extends Resource> extends Diffable {
         }
     }
 
-    public final List<T> filter(List<T> resources) {
+    public List<T> filter(List<T> resources) {
         if (resources == null || resources.isEmpty()) {
             resources = queryAll();
         }
 
-        for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
+        for (QueryField field : QueryType.getInstance(getClass()).getFields()) {
             String key = field.getBeamName();
             Object value = field.getValue(this);
 
             if (value != null) {
-                String operator = (String) scope().get("_" + key);
-
                 if (ComparisonQuery.EQUALS_OPERATOR.equals(operator)) {
                     resources = resources.stream()
                         .filter(r -> Objects.equals(
@@ -81,8 +99,8 @@ public abstract class ResourceQuery<T extends Resource> extends Diffable {
     }
 
     public boolean merge(ResourceQuery<Resource> other) {
-        if (apiQuery && other.apiQuery) {
-            for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
+        if (apiQuery() && other.apiQuery()) {
+            for (QueryField field : QueryType.getInstance(getClass()).getFields()) {
                 String key = field.getBeamName();
                 Object value = field.getValue(this);
                 Object otherValue = field.getValue(other);
@@ -99,19 +117,9 @@ public abstract class ResourceQuery<T extends Resource> extends Diffable {
         return false;
     }
 
-    @Override
-    public final String primaryKey() {
-        return null;
-    }
+    public Credentials resourceCredentials(Scope scope) {
 
-    @Override
-    public final String toDisplayString() {
-        return null;
-    }
-
-    protected Credentials resourceCredentials() {
-
-        Scope scope = scope().getRootScope();
+        scope = scope.getRootScope();
 
         if (scope != null) {
             String name = (String) scope.get("resource-credentials");
