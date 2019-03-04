@@ -126,11 +126,9 @@ public class ResourceReferenceNode extends Node {
 
             } else if (name.endsWith("*")) {
                 RootScope rootScope = scope.getRootScope();
-                boolean state = false;
                 if (name.startsWith("STATE/")) {
                     rootScope = rootScope.getCurrent();
                     name = name.replaceFirst("STATE/", "");
-                    state = true;
                 }
 
                 Stream<Resource> s = rootScope.findAllResources().stream().filter(r -> type.equals(r.resourceType()));
@@ -142,10 +140,6 @@ public class ResourceReferenceNode extends Node {
 
                 List<ResourceQueryGroup> groups = parseQueries(scope);
                 List<Resource> baseResources = s.collect(Collectors.toList());
-
-                if (baseResources.isEmpty() && !state) {
-                    throw new DeferError(this);
-                }
 
                 if (queries.isEmpty()) {
                     resources.addAll(baseResources);
