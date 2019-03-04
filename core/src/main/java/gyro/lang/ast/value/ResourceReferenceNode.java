@@ -125,11 +125,6 @@ public class ResourceReferenceNode extends Node {
 
             } else if (name.endsWith("*")) {
                 RootScope rootScope = scope.getRootScope();
-                if (name.startsWith("STATE/")) {
-                    rootScope = rootScope.getCurrent();
-                    name = name.replaceFirst("STATE/", "");
-                }
-
                 Stream<Resource> s = rootScope.findAllResources().stream().filter(r -> type.equals(r.resourceType()));
 
                 if (!name.equals("*")) {
@@ -157,21 +152,6 @@ public class ResourceReferenceNode extends Node {
                     return resources;
                 }
 
-            } else if (name.startsWith("STATE/")) {
-                name = name.replaceFirst("STATE/", "");
-                if (name.isEmpty()) {
-                    throw new IllegalArgumentException();
-                }
-
-                String fullName = type + "::" + name;
-                Resource resource = scope.getRootScope().getCurrent().findResource(fullName);
-
-                if (attribute != null) {
-                    return resource.get(attribute);
-
-                } else {
-                    return resource;
-                }
             } else {
                 String fullName = type + "::" + name;
                 Resource resource = scope.getRootScope().findResource(fullName);
