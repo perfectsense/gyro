@@ -1,8 +1,7 @@
 package gyro.lang.ast.value;
 
-import gyro.core.BeamException;
+import gyro.lang.ExternalResourceQuery;
 import gyro.lang.Resource;
-import gyro.lang.ResourceQuery;
 import gyro.lang.ResourceQueryGroup;
 import gyro.lang.ast.DeferError;
 import gyro.lang.ast.Node;
@@ -13,7 +12,6 @@ import gyro.lang.ast.scope.Scope;
 import gyro.parser.antlr4.BeamParser;
 import gyro.parser.antlr4.BeamParser.ReferenceBodyContext;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -70,17 +68,22 @@ public class ResourceReferenceNode extends Node {
         this.queries = Collections.EMPTY_LIST;
     }
 
-    private List<ResourceQueryGroup> parseQueries(Scope scope) throws Exception {
+    private List<ResourceQueryGroup> parseQueries(Scope scope, boolean external) throws Exception {
         List<ResourceQueryGroup> groups = new ArrayList<>();
+        if (external) {
+            ResourceQueryGroup group = new ResourceQueryGroup(Query.createExternalResourceQuery(scope, type));
+            groups.add(group);
+        }
+
         for (Query query : queries) {
-            List<ResourceQueryGroup> groupsForOneQuery = query.evaluate(scope, this);
+            List<ResourceQueryGroup> groupsForOneQuery = query.evaluate(scope, type, external);
             if (groups.isEmpty()) {
                 groups = groupsForOneQuery;
             } else {
                 List<ResourceQueryGroup> result = new ArrayList<>();
                 for (ResourceQueryGroup left : groups) {
                     for (ResourceQueryGroup right : groupsForOneQuery) {
-                        result.add(left.join(right));
+                        result.add(left.join(right, Query.createExternalResourceQuery(scope, type)));
                     }
                 }
                 groups = result;
@@ -97,21 +100,11 @@ public class ResourceReferenceNode extends Node {
 
             List<Resource> resources = new ArrayList<>();
             if (name.startsWith("EXTERNAL/*")) {
-                ResourceQuery<Resource> resourceQuery = getResourceQuery(scope);
-                if (resourceQuery == null) {
-                    throw new BeamException("Resource type " + type + " does not support external queries.");
-                }
+                List<ResourceQueryGroup> groups = parseQueries(scope, true);
 
-                if (queries.isEmpty()) {
-                    resources = resourceQuery.queryAll();
-
-                } else {
-                    List<ResourceQueryGroup> groups = parseQueries(scope);
-
-                    for (ResourceQueryGroup group : groups) {
-                        group.merge();
-                        resources.addAll(group.query());
-                    }
+                for (ResourceQueryGroup group : groups) {
+                    group.merge();
+                    resources.addAll(group.query());
                 }
 
                 resources.stream().forEach(r -> System.out.println(r.toDisplayString()));
@@ -132,7 +125,7 @@ public class ResourceReferenceNode extends Node {
                     s = s.filter(r -> r.resourceIdentifier().startsWith(prefix));
                 }
 
-                List<ResourceQueryGroup> groups = parseQueries(scope);
+                List<ResourceQueryGroup> groups = parseQueries(scope, false);
                 List<Resource> baseResources = s.collect(Collectors.toList());
 
                 if (queries.isEmpty()) {
@@ -199,34 +192,5 @@ public class ResourceReferenceNode extends Node {
         }
 
         builder.append(")");
-    }
-
-    public ResourceQuery<Resource> getResourceQuery(Scope scope) throws Exception {
-
-        @SuppressWarnings("unchecked")
-        Class<? extends ResourceQuery> resourceQueryClass = (Class<? extends ResourceQuery>) scope.getRootScope().getResourceQueryClasses().get(type);
-
-        if (resourceQueryClass == null) {
-            return null;
-        }
-
-        try {
-            ResourceQuery<Resource> resourceQuery = resourceQueryClass.getConstructor().newInstance();
-            resourceQuery.credentials(resourceQuery.resourceCredentials(scope));
-            return resourceQuery;
-
-        } catch (IllegalAccessException
-            | InstantiationException
-            | NoSuchMethodException error) {
-
-            throw new IllegalStateException(error);
-
-        } catch (InvocationTargetException error) {
-            Throwable cause = error.getCause();
-
-            throw cause instanceof RuntimeException
-                ? (RuntimeException) cause
-                : new RuntimeException(cause);
-        }
     }
 }

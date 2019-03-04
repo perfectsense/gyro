@@ -20,7 +20,7 @@ public class FieldValueQuery extends Query {
     }
 
     @Override
-    public List<ResourceQueryGroup> evaluate(Scope scope, ResourceReferenceNode node) throws Exception {
+    public List<ResourceQueryGroup> evaluate(Scope scope, String type, boolean external) throws Exception {
         return null;
     }
 

@@ -15,13 +15,13 @@ public class AndQuery extends QueryExpression {
     }
 
     @Override
-    public List<ResourceQueryGroup> evaluate(Scope scope, ResourceReferenceNode node) throws Exception {
-        List<ResourceQueryGroup> leftQueries = getLeftQuery().evaluate(scope, node);
-        List<ResourceQueryGroup> rightQueries = getRightQuery().evaluate(scope, node);
+    public List<ResourceQueryGroup> evaluate(Scope scope, String type, boolean external) throws Exception {
+        List<ResourceQueryGroup> leftQueries = getLeftQuery().evaluate(scope, type, external);
+        List<ResourceQueryGroup> rightQueries = getRightQuery().evaluate(scope, type, external);
         List<ResourceQueryGroup> result = new ArrayList<>();
         for (ResourceQueryGroup left : leftQueries) {
             for (ResourceQueryGroup right : rightQueries) {
-                result.add(left.join(right));
+                result.add(left.join(right, Query.createExternalResourceQuery(scope, type)));
             }
         }
 
