@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface ApiFilterable {
+public @interface ResourceFilter {
 
-    public String filter();
+    public String value();
 }

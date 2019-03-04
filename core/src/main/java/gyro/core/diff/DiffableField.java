@@ -3,7 +3,7 @@ package gyro.core.diff;
 import com.google.common.base.CaseFormat;
 import com.psddev.dari.util.Converter;
 import com.psddev.dari.util.ObjectUtils;
-import gyro.lang.ast.query.ApiFilterable;
+import gyro.lang.ast.query.ResourceFilter;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -57,11 +57,11 @@ public class DiffableField {
             this.testValueRandomSuffix = false;
         }
 
-        ApiFilterable filterable = getter.getAnnotation(ApiFilterable.class);
+        ResourceFilter filterable = getter.getAnnotation(ResourceFilter.class);
         if (filterable != null) {
-            this.filterName = filterable.filter();
+            this.filterName = filterable.value();
         } else {
-            this.filterName = null;
+            this.filterName = getBeamName();
         }
 
         if (type instanceof Class) {
