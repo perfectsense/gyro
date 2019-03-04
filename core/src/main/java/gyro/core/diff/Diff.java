@@ -54,9 +54,7 @@ public class Diff {
         );
 
         for (Diffable pendingDiffable : pendingDiffables) {
-            if (!(pendingDiffable instanceof Credentials) && pendingDiffable instanceof Resource) {
-                resolve(pendingDiffable);
-            }
+            resolve(pendingDiffable);
 
             Diffable currentDiffable = currentDiffables.remove(pendingDiffable.primaryKey());
 
