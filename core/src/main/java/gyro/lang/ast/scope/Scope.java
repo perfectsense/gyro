@@ -77,7 +77,8 @@ public class Scope implements Map<String, Object> {
         String firstKey = keys[0];
         Object value = null;
 
-        for (Scope s = this; s != null; s = s.parent) {
+        Scope startingScope = this instanceof DiffableScope ? this.parent : this;
+        for (Scope s = startingScope; s != null; s = s.parent) {
             if (s.containsKey(firstKey)) {
                 Node valueNode = s.valueNodes.get(firstKey);
                 value = valueNode == null ? s.get(firstKey) : valueNode.evaluate(s);
