@@ -29,7 +29,6 @@ public class DiffableField {
     private final boolean updatable;
     private final String testValue;
     private final boolean testValueRandomSuffix;
-    private final String filterName;
     private final Class<?> itemClass;
 
     protected DiffableField(String javaName, Method getter, Method setter, Type type) {
@@ -55,13 +54,6 @@ public class DiffableField {
         } else {
             this.testValue = null;
             this.testValueRandomSuffix = false;
-        }
-
-        ResourceFilter filterable = getter.getAnnotation(ResourceFilter.class);
-        if (filterable != null) {
-            this.filterName = filterable.value();
-        } else {
-            this.filterName = getBeamName();
         }
 
         if (type instanceof Class) {
@@ -103,10 +95,6 @@ public class DiffableField {
 
     public boolean isTestValueRandomSuffix() {
         return testValueRandomSuffix;
-    }
-
-    public String getFilterName() {
-        return filterName;
     }
 
     public Object getValue(Diffable diffable) {
