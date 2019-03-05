@@ -2,7 +2,6 @@ package gyro.lang.ast.query;
 
 import gyro.lang.ResourceQueryGroup;
 import gyro.lang.ast.scope.Scope;
-import gyro.lang.ast.value.ResourceReferenceNode;
 import gyro.parser.antlr4.BeamParser;
 
 import java.util.List;

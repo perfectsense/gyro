@@ -1,6 +1,5 @@
 package gyro.lang.ast.value;
 
-import gyro.lang.ExternalResourceQuery;
 import gyro.lang.Resource;
 import gyro.lang.ResourceQueryGroup;
 import gyro.lang.ast.DeferError;
