@@ -36,7 +36,13 @@ public abstract class Query {
         return null;
     }
 
-    public static ExternalResourceQuery<Resource> createExternalResourceQuery(Scope scope, String type, String fieldName, String operator, Object value) throws Exception {
+    public static ExternalResourceQuery<Resource> createExternalResourceQuery(
+        Scope scope,
+        String type,
+        String fieldName,
+        String operator,
+        Object value)
+        throws Exception {
 
         try {
             ExternalResourceQuery<Resource> resourceQuery = createExternalResourceQuery(scope, type);
@@ -71,7 +77,8 @@ public abstract class Query {
     public static ExternalResourceQuery<Resource> createExternalResourceQuery(Scope scope, String type) throws Exception {
 
         @SuppressWarnings("unchecked")
-        Class<? extends ExternalResourceQuery> resourceQueryClass = (Class<? extends ExternalResourceQuery>) scope.getRootScope().getResourceQueryClasses().get(type);
+        Class<? extends ExternalResourceQuery> resourceQueryClass = (Class<? extends ExternalResourceQuery>) scope
+            .getRootScope().getResourceQueryClasses().get(type);
 
         if (resourceQueryClass == null) {
             throw new BeamException("Resource type " + type + " does not support external queries.");
@@ -97,7 +104,14 @@ public abstract class Query {
         }
     }
 
-    public static InternalResourceQuery<Resource> createInternalResourceQuery(Scope scope, String type, String fieldName, String operator, Object value) throws Exception {
+    public static InternalResourceQuery<Resource> createInternalResourceQuery(
+        Scope scope,
+        String type,
+        String fieldName,
+        String operator,
+        Object value)
+        throws Exception {
+
         @SuppressWarnings("unchecked")
         Class<? extends Resource> resourceClass = (Class<? extends Resource>) scope.getRootScope().getResourceClasses().get(type);
 
@@ -105,7 +119,7 @@ public abstract class Query {
             throw new BeamException("Resource type " + type + " does not exist.");
         }
 
-        return new InternalResourceQuery(resourceClass, fieldName, operator, value);
+        return new InternalResourceQuery(type, resourceClass, fieldName, operator, value);
     }
 
     public abstract List<ResourceQueryGroup> evaluate(Scope scope, String type, boolean external) throws Exception;

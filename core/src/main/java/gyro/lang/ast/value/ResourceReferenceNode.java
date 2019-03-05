@@ -83,9 +83,12 @@ public class ResourceReferenceNode extends Node {
                 List<ResourceQueryGroup> result = new ArrayList<>();
                 for (ResourceQueryGroup left : groups) {
                     for (ResourceQueryGroup right : groupsForOneQuery) {
-                        result.add(left.join(right, Query.createExternalResourceQuery(scope, type)));
+                        ResourceQueryGroup joined = new ResourceQueryGroup(Query.createExternalResourceQuery(scope, type));
+                        ResourceQueryGroup.join(left, right, joined);
+                        result.add(joined);
                     }
                 }
+
                 groups = result;
             }
         }

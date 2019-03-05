@@ -21,7 +21,9 @@ public class AndQuery extends QueryExpression {
         List<ResourceQueryGroup> result = new ArrayList<>();
         for (ResourceQueryGroup left : leftQueries) {
             for (ResourceQueryGroup right : rightQueries) {
-                result.add(left.join(right, Query.createExternalResourceQuery(scope, type)));
+                ResourceQueryGroup joined = new ResourceQueryGroup(Query.createExternalResourceQuery(scope, type));
+                ResourceQueryGroup.join(left, right, joined);
+                result.add(joined);
             }
         }
 

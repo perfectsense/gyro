@@ -17,7 +17,7 @@ public abstract class ExternalResourceQuery<R extends Resource> extends Resource
     public abstract List<R> queryAll();
 
     @Override
-    public boolean external() {
+    public final boolean external() {
         return true;
     }
 

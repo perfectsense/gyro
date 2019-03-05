@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 public class InternalResourceQuery<R extends Resource> extends ResourceQuery<R> {
 
-    public InternalResourceQuery(Class<R> resourceClass, String fieldName, String operator, Object value) {
+    public InternalResourceQuery(String type, Class<R> resourceClass, String fieldName, String operator, Object value) {
         super(fieldName, operator, value);
 
         boolean validQuery = false;
@@ -24,12 +24,14 @@ public class InternalResourceQuery<R extends Resource> extends ResourceQuery<R> 
         }
 
         if (!validQuery) {
-            throw new BeamException(String.format("%s is not defined in %s", fieldName(), resourceClass));
+            throw new BeamException(String.format(
+                "No such field [%s] defined %s!",
+                fieldName(), type));
         }
     }
 
     @Override
-    public boolean external() {
+    public final boolean external() {
         return false;
     }
 
@@ -57,7 +59,7 @@ public class InternalResourceQuery<R extends Resource> extends ResourceQuery<R> 
                 .collect(Collectors.toList());
 
         } else {
-            throw new UnsupportedOperationException(String.format("%s operator is not supported!", operator()));
+            throw new UnsupportedOperationException(String.format("Operator %s is not supported!", operator()));
         }
 
         return resources;

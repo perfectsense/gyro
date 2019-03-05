@@ -17,11 +17,9 @@ public class ResourceQueryGroup {
         return resourceQueries;
     }
 
-    public ResourceQueryGroup join(ResourceQueryGroup right, ExternalResourceQuery<Resource> query) {
-        ResourceQueryGroup group = new ResourceQueryGroup(query);
-        group.getResourceQueries().addAll(getResourceQueries());
-        group.getResourceQueries().addAll(right.getResourceQueries());
-        return group;
+    public static void join(ResourceQueryGroup left, ResourceQueryGroup right, ResourceQueryGroup result) {
+        result.getResourceQueries().addAll(left.getResourceQueries());
+        result.getResourceQueries().addAll(right.getResourceQueries());
     }
 
     public void merge() {
