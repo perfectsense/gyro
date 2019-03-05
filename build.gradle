@@ -78,12 +78,6 @@ project(":providers:aws") {
     }
 }
 
-project(":providers:openstack") {
-    dependencies {
-        compile project(':gyro-core')
-    }
-}
-
 project(":providers:azure") {
     dependencies {
         compile project(':gyro-core')

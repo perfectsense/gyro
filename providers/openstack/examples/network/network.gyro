@@ -1,5 +1,0 @@
-import ../init as _
-
-openstack::network network-example
-    network-name: "network-example"
-end
