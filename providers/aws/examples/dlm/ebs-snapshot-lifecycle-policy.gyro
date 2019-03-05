@@ -1,0 +1,16 @@
+import ../init as _
+
+aws::ebs-snapshot-lifecycle-policy ebs-snapshot-lifecycle-policy-example
+    description: "ebs-snapshot-lifecycle-policy-example"
+    execution-role-arn: "arn:aws:iam::242040583208:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling"
+    schedule-name: "ebs-snapshot-lifecycle-policy-example-schedule"
+    retain-rule-count: 1000
+    rule-time: "09:00"
+    rule-interval: 6
+    tags-to-add: {
+        addTag: "tag1-val"
+    }
+    target-tags: {
+        targetTag: "tag1-val"
+    }
+end
