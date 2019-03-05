@@ -109,9 +109,6 @@ public class ResourceReferenceNode extends Node {
                     resources.addAll(group.query());
                 }
 
-                resources.stream().forEach(r -> System.out.println(r.toDisplayString()));
-                System.out.println();
-
                 if (attribute != null) {
                     return resources.stream().map(r -> r.get(attribute)).collect(Collectors.toList());
                 } else {
@@ -137,9 +134,6 @@ public class ResourceReferenceNode extends Node {
                         resources.addAll(group.query(baseResources));
                     }
                 }
-
-                resources.stream().forEach(r -> System.out.println(r.toDisplayString()));
-                System.out.println();
 
                 if (attribute != null) {
                     return resources.stream().map(r -> r.get(attribute)).collect(Collectors.toList());
