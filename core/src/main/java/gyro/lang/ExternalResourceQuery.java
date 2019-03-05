@@ -12,40 +12,12 @@ public abstract class ExternalResourceQuery<R extends Resource> extends Resource
 
     private Credentials credentials;
 
-    public abstract List<R> query(Map<String, String> filter);
-
-    public abstract List<R> queryAll();
-
-    @Override
-    public final boolean external() {
-        return true;
-    }
-
     public Credentials credentials() {
         return credentials;
     }
 
     public void credentials(Credentials credentials) {
         this.credentials = credentials;
-    }
-
-    @Override
-    public final List<R> query() {
-        Map<String, String> filters = new HashMap<>();
-        for (QueryField field : QueryType.getInstance(getClass()).getFields()) {
-            Object value = field.getValue(this);
-            String filterName = field.getFilterName();
-            if (value != null) {
-                filters.put(filterName, value.toString());
-            }
-        }
-
-        return filters.isEmpty() ? queryAll() : query(filters);
-    }
-
-    @Override
-    public final List<R> filter(List<R> resources) {
-        throw new IllegalStateException();
     }
 
     public Credentials resourceCredentials(Scope scope) {
@@ -72,4 +44,32 @@ public abstract class ExternalResourceQuery<R extends Resource> extends Resource
 
         throw new IllegalStateException();
     }
+
+    @Override
+    public final boolean external() {
+        return true;
+    }
+
+    @Override
+    public final List<R> filter(List<R> resources) {
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public final List<R> query() {
+        Map<String, String> filters = new HashMap<>();
+        for (QueryField field : QueryType.getInstance(getClass()).getFields()) {
+            Object value = field.getValue(this);
+            String filterName = field.getFilterName();
+            if (value != null) {
+                filters.put(filterName, value.toString());
+            }
+        }
+
+        return filters.isEmpty() ? queryAll() : query(filters);
+    }
+
+    public abstract List<R> query(Map<String, String> filter);
+
+    public abstract List<R> queryAll();
 }
