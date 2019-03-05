@@ -72,12 +72,6 @@ project(":cli") {
     }
 }
 
-project(":plugins:ssh") {
-    dependencies {
-        compile project(':gyro-core')
-    }
-}
-
 project(":plugins:beam-enterprise") {
     dependencies {
         compile project(':providers:aws')
