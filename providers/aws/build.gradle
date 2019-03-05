@@ -6,7 +6,7 @@ plugins {
 
 sourceCompatibility = 1.8
 
-def aws_sdk2_version = '2.3.0'
+def aws_sdk2_version = '2.4.4'
 
 defaultTasks 'build', 'publish', 'publishToMavenLocal'
 
@@ -25,7 +25,7 @@ dependencies {
     compile "software.amazon.awssdk:kms:${aws_sdk2_version}"
     compile "software.amazon.awssdk:rds:${aws_sdk2_version}"
     compile "software.amazon.awssdk:sns:${aws_sdk2_version}"
-    compile "software.amazon.awssdk:dlm:2.4.4"
+    compile "software.amazon.awssdk:dlm:${aws_sdk2_version}"
 
     compile 'com.psddev:dari-util:3.3.607-xe0f27a'
     compile "com.google.guava:guava:23.0"
