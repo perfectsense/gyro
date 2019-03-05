@@ -1,8 +1,6 @@
 rootProject.name = 'gyro'
 
 include 'gyro-core', 'cli',
-        'providers:aws', 'providers:openstack','providers:azure',
-        'plugins:ssh', 'plugins:beam-enterprise', 'plugins:sample',
-        'doclet'
+        'providers:aws', 'providers:azure'
 
 enableFeaturePreview('STABLE_PUBLISHING')
