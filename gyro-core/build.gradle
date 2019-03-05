@@ -15,6 +15,7 @@ def BRANCH = System.getenv("TRAVIS_BRANCH")
 if (BRANCH == null) {
     defaultTasks 'build', 'publishToMavenLocal'
 } else if (OS_NAME == 'linux') {
+    check.dependsOn 'publish', 'publishToMavenLocal'
     defaultTasks 'build', 'publish', 'publishToMavenLocal'
 }
 
