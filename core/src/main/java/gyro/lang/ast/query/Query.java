@@ -13,6 +13,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+import java.util.Map;
 
 public abstract class Query {
 
@@ -36,6 +37,7 @@ public abstract class Query {
         return null;
     }
 
+    @SuppressWarnings("unchecked")
     public static ExternalResourceQuery<Resource> createExternalResourceQuery(
         Scope scope,
         String type,
@@ -48,12 +50,20 @@ public abstract class Query {
             ExternalResourceQuery<Resource> resourceQuery = createExternalResourceQuery(scope, type);
             resourceQuery.credentials(resourceQuery.resourceCredentials(scope));
             boolean validQuery = false;
+            String mapFieldName = fieldName.split("\\.")[0];
+            String mapKey = fieldName.replaceFirst(mapFieldName + ".", "");
             for (QueryField field : QueryType.getInstance(resourceQuery.getClass()).getFields()) {
                 String key = field.getBeamName();
                 if (fieldName.equals(key) && operator.equals(ComparisonQuery.EQUALS_OPERATOR)) {
                     validQuery = true;
                     field.setValue(resourceQuery, value);
                     resourceQuery.operator(operator);
+                } else if (fieldName.contains(".") && operator.equals(ComparisonQuery.EQUALS_OPERATOR)) {
+                    if (mapFieldName.equals(key)) {
+                        validQuery = true;
+                        ((Map<String, String>) field.getValue(resourceQuery)).put(mapKey, value.toString());
+                        resourceQuery.operator(operator);
+                    }
                 }
             }
 

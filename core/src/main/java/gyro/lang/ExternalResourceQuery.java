@@ -56,7 +56,7 @@ public abstract class ExternalResourceQuery<R extends Resource> extends Resource
     }
 
     @Override
-    public final List<R> query() {
+    public List<R> query() {
         Map<String, String> filters = new HashMap<>();
         for (QueryField field : QueryType.getInstance(getClass()).getFields()) {
             Object value = field.getValue(this);

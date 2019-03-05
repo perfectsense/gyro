@@ -5,6 +5,7 @@ import gyro.core.query.QueryField;
 import gyro.core.query.QueryType;
 
 import java.util.List;
+import java.util.Map;
 
 public abstract class ResourceQuery<R extends Resource> {
 
@@ -46,6 +47,7 @@ public abstract class ResourceQuery<R extends Resource> {
         this.value = value;
     }
 
+    @SuppressWarnings("unchecked")
     public final boolean merge(ResourceQuery<? extends Resource> other) {
         if (external() && other.external()) {
             for (QueryField field : QueryType.getInstance(getClass()).getFields()) {
@@ -53,11 +55,18 @@ public abstract class ResourceQuery<R extends Resource> {
                 Object value = field.getValue(this);
                 Object otherValue = field.getValue(other);
 
-                if (value != null && otherValue != null) {
-                    throw new BeamException(String.format("%s is filtered more than once", key));
+                if (value instanceof Map && otherValue instanceof Map) {
+                    Map thisMap = (Map) value;
+                    Map otherMap = (Map) otherValue;
+                    thisMap.putAll(otherMap);
 
-                } else if (otherValue != null) {
-                    field.setValue(this, otherValue);
+                } else {
+                    if (value != null && otherValue != null) {
+                        throw new BeamException(String.format("%s is filtered more than once", key));
+
+                    } else if (otherValue != null) {
+                        field.setValue(this, otherValue);
+                    }
                 }
             }
 
