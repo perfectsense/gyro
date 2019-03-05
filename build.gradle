@@ -72,13 +72,6 @@ project(":cli") {
     }
 }
 
-project(":plugins:sample") {
-    dependencies {
-        compile project(':gyro-core')
-        compile project(':providers:aws')
-    }
-}
-
 project(":providers:aws") {
     dependencies {
         compile project(':gyro-core')
