@@ -1,6 +1,5 @@
 rootProject.name = 'gyro'
 
-include 'gyro-core', 'cli',
-        'providers:aws', 'providers:azure'
+include 'cli', 'gyro-core'
 
 enableFeaturePreview('STABLE_PUBLISHING')

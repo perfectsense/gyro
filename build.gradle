@@ -10,10 +10,10 @@ plugins {
     id 'maven-publish'
 }
 
-defaultTasks 'build', 'checkstyle', 'publish', 'publishToMavenLocal'
+defaultTasks 'build', 'checkstyle', 'publishToMavenLocal'
 
 allprojects {
-    version = '0.5'
+    version = '0.14-SNAPSHOT'
 }
 
 subprojects {
@@ -22,7 +22,7 @@ subprojects {
     apply plugin: 'checkstyle'
 
     group = 'gyro'
-    version = '0.5'
+    version = '0.14-SNAPSHOT'
 
     repositories {
         mavenLocal()
@@ -69,17 +69,5 @@ project(":cli") {
 
     publish {
         dependsOn assemble
-    }
-}
-
-project(":providers:aws") {
-    dependencies {
-        compile project(':gyro-core')
-    }
-}
-
-project(":providers:azure") {
-    dependencies {
-        compile project(':gyro-core')
     }
 }

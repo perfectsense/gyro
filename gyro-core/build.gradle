@@ -9,6 +9,15 @@ sourceCompatibility = 1.8
 
 defaultTasks 'build'
 
+def OS_NAME = System.getenv("TRAVIS_OS_NAME") ?: "unix"
+def BRANCH = System.getenv("TRAVIS_BRANCH")
+
+if (BRANCH == null) {
+    defaultTasks 'build', 'publishToMavenLocal'
+} else if (OS_NAME == 'linux') {
+    defaultTasks 'build', 'publish', 'publishToMavenLocal'
+}
+
 dependencies {
     compile 'org.reflections:reflections:0.9.10'
     compile 'org.fusesource.jansi:jansi:1.16'
@@ -41,9 +50,23 @@ publishing {
         maven(MavenPublication) {
             groupId = 'gyro'
             artifactId = 'gyro-core'
-            version = '0.5'
 
             from components.java
+        }
+    }
+
+    repositories {
+        maven {
+            credentials {
+                username System.getenv("GRADLE_DEPLOY_USER")
+                password System.getenv("GRADLE_DEPLOY_PASSWORD")
+            }
+
+            if (project.version.endsWith('-SNAPSHOT')) {
+                url "https://artifactory.psdops.com/gyro-snapshots"
+            } else {
+                url "https://artifactory.psdops.com/gyro-releases"
+            }
         }
     }
 }

@@ -10,4 +10,4 @@ jlink --no-header-files \
     --add-modules java.logging,java.management,java.naming,java.scripting,java.xml,jdk.unsupported,jdk.xml.dom,java.desktop,java.instrument,java.compiler \
     --output gyro-rt
 
-zip -r gyro-0.5.zip gyro-rt gyro
+zip -r gyro-${OS_NAME}-${VERSION}.zip gyro-rt gyro
