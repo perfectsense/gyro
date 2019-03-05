@@ -26,7 +26,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Creates an Auto scaling Group from a Launch Configuration or from a Launch Template.
+ * Creates an EBS Snapshot lifecycle policy.
  *
  * Example
  * -------
@@ -55,18 +55,16 @@ public class EbsSnapshotLifecyclePolicyResource extends AwsResource {
     private String description;
     private String executionRoleArn;
     private String resourceType;
-    private Map<String, String> targetTags; // one is required
+    private Map<String, String> targetTags;
     private String state;
     private Date dateCreated;
     private Date dateModified;
-
-    //----Schedule fields----//
     private Boolean copyTags;
     private String scheduleName;
-    private Integer ruleInterval; //Valid intervals are: {2, 3, 4, 6, 8, 12, 24}
-    private String ruleIntervalUnit; //HOURS
-    private String ruleTime; //hh:mm
-    private Integer retainRuleCount; // 1 to 1000
+    private Integer ruleInterval;
+    private String ruleIntervalUnit;
+    private String ruleTime;
+    private Integer retainRuleCount;
     private Map<String, String> tagsToAdd;
 
     @ResourceOutput
@@ -91,7 +89,7 @@ public class EbsSnapshotLifecyclePolicyResource extends AwsResource {
     }
 
     /**
-     * The permission role arn for teh snapshot policy. (Required)
+     * The permission role arn for the snapshot policy. (Required)
      */
     @ResourceDiffProperty(updatable = true)
     public String getExecutionRoleArn() {
@@ -103,7 +101,7 @@ public class EbsSnapshotLifecyclePolicyResource extends AwsResource {
     }
 
     /**
-     * The description of the snapshot policy. Valid values ``VOLUME``. Defaults to ``VOLUME``
+     * The resource type of the snapshot policy. Currently only supported value is ``VOLUME``. Defaults to ``VOLUME``.
      */
     @ResourceDiffProperty(updatable = true)
     public String getResourceType() {
@@ -135,7 +133,7 @@ public class EbsSnapshotLifecyclePolicyResource extends AwsResource {
     }
 
     /**
-     * The state of the snapshot policy. Valid values ``ENABLED`` or ``DISABLED``. Defaults to ``ENABLED``
+     * The state of the snapshot policy. Valid values are ``ENABLED`` or ``DISABLED``. Defaults to ``ENABLED``
      */
     @ResourceDiffProperty(updatable = true)
     public String getState() {
@@ -168,10 +166,8 @@ public class EbsSnapshotLifecyclePolicyResource extends AwsResource {
         this.dateModified = dateModified;
     }
 
-    //--Schedule-field-getter-setter--/
-
     /**
-     * Copy tags to volumes created using this snapshot policy. Valid values ``true`` or ``false ``. Defaults to ``false``
+     * Copy tags to volumes created using this snapshot policy. Defaults to ``false``
      */
     @ResourceDiffProperty(updatable = true)
     public Boolean getCopyTags() {
@@ -199,7 +195,7 @@ public class EbsSnapshotLifecyclePolicyResource extends AwsResource {
     }
 
     /**
-     * The name of the schedule for the snapshot policy. Valid values ``2``,``3``,``4``,``6``,``8``, ``12`` and ``24``  (Required)
+     * The name of the schedule for the snapshot policy. Valid values are ``2``,``3``,``4``,``6``,``8``, ``12`` and ``24``  (Required)
      */
     @ResourceDiffProperty(updatable = true)
     public Integer getRuleInterval() {
@@ -211,7 +207,7 @@ public class EbsSnapshotLifecyclePolicyResource extends AwsResource {
     }
 
     /**
-     * The rule interval for the snapshot policy. Valid values ``HOURS``. Defaults to ``HOURS``
+     * The rule interval for the snapshot policy. Valid values are ``HOURS``. Defaults to ``HOURS``
      */
     @ResourceDiffProperty(updatable = true)
     public String getRuleIntervalUnit() {
@@ -227,7 +223,7 @@ public class EbsSnapshotLifecyclePolicyResource extends AwsResource {
     }
 
     /**
-     * The time format of the interval for the snapshot policy. Valid values ``hh:mm``. Defaults to ``hh:mm``
+     * The time format of the interval for the snapshot policy. Currenly only supported value is ``hh:mm``. Defaults to ``hh:mm``
      */
     @ResourceDiffProperty(updatable = true)
     public String getRuleTime() {
@@ -243,7 +239,7 @@ public class EbsSnapshotLifecyclePolicyResource extends AwsResource {
     }
 
     /**
-     * The number of volumes to retain for the snapshot policy. Valid values ``1`` to ``1000`` (Required)
+     * The number of volumes to retain for the snapshot policy. Valid values are ``1`` to ``1000``. (Required)
      */
     @ResourceDiffProperty(updatable = true)
     public Integer getRetainRuleCount() {
