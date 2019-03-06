@@ -13,6 +13,7 @@ import gyro.core.diff.Diffable;
 import gyro.core.diff.DiffableField;
 import gyro.core.diff.DiffableType;
 import gyro.core.diff.ResourceName;
+import gyro.core.diff.ResourceNames;
 import gyro.lang.Resource;
 
 public class State {
@@ -127,7 +128,18 @@ public class State {
             Object value = field.getValue(parent);
 
             if (value instanceof List) {
-                String subresourceName = subresource.getClass().getAnnotation(ResourceName.class).value();
+                String subresourceName = null;
+
+                if (subresource.getClass().getAnnotation(ResourceNames.class) != null) {
+                    for (ResourceName resourceName : subresource.getClass().getAnnotation(ResourceNames.class).value()) {
+                        if (resourceName.parent().equals(parent.getClass().getAnnotation(ResourceName.class).value())) {
+                            subresourceName = resourceName.value();
+                            break;
+                        }
+                    }
+                } else {
+                    subresourceName = subresource.getClass().getAnnotation(ResourceName.class).value();
+                }
 
                 if (!subresourceName.equals(field.getBeamName())) {
                     continue;
