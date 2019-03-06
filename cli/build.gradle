@@ -19,7 +19,7 @@ publish.dependsOn 'bundleDistribution'
 publishToMavenLocal.dependsOn 'bundleDistribution'
 
 dependencies {
-    compile "gyro:gyro-core:${version}"
+    compile "gyro:core:${version}"
 }
 
 def OS_NAME = System.getenv("TRAVIS_OS_NAME") ?: "unix"
