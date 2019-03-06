@@ -1,24 +1,28 @@
 sudo: false
 
-language: java
+matrix:
+  include:
+    # Linux & macOS
+    - language: java
+      os:
+        - osx
+        - linux
 
-jdk:
-  - openjdk11
+      jdk:
+        - openjdk11
 
-before_cache:
-  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
-  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+      before_cache:
+        - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+        - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
 
-cache:
-  directories:
-    - $HOME/.m2
-    - $HOME/.gradle/caches/
-    - $HOME/.gradle/wrapper/
+      cache:
+        directories:
+          - $HOME/.m2
+          - $HOME/.gradle/caches/
+          - $HOME/.gradle/wrapper/
 
-os:
-  - osx
-  - linux
-  #- windows
-
-    #after_success:
-    #- git clone https://github.com/perfectsense/travis-maven-deploy.git && travis-maven-deploy/deploy.sh
+    # Windows
+    - language: shell
+      os: windows
+      before_script: choco install openjdk
+      script: ./gradlew check
