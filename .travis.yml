@@ -39,8 +39,8 @@ matrix:
           - $HOME/.gradle/wrapper/
 
     # Windows
-    - language: shell
-      os: windows
-      before_install:
-        - choco install openjdk --version 11.0.1 --verbose
-      script: ./gradlew check
+    #- language: shell
+    #  os: windows
+    #  before_install:
+    #    - choco install openjdk --version 11.0.1 --verbose
+    #  script: ./gradlew check
