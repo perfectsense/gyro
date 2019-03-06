@@ -117,7 +117,7 @@ public class PluginLoader {
                     String key = String.format("%s:%s:%s",
                         dependencyArtifact.getGroupId(),
                         dependencyArtifact.getArtifactId(),
-                        dependencyArtifact.getVersion());
+                        dependencyArtifact.getBaseVersion());
 
                     if (artifact().equals(key)) {
                         loadClasses(artifactJarUrls, dependencyArtifact);
