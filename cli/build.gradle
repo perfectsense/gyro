@@ -27,14 +27,14 @@ def OS_NAME = System.getenv("TRAVIS_OS_NAME") ?: "unix"
 publishing {
     publications {
         maven(MavenPublication) {
-            groupId = 'gyro.cli'
+            groupId = 'gyro'
             artifactId = "gyro-${OS_NAME}"
 
-            artifact("dist/gyro-${OS_NAME}-${version}.zip") {
+            artifact("dist/gyro-cli-${OS_NAME}-${version}.zip") {
                 extension 'zip'
             }
 
-            artifact("dist/gyro")
+            artifact("dist/gyro-cli")
         }
     }
 
