@@ -1,5 +1,0 @@
-import ../init as _
-
-aws::iam-instance-profile test-instance-profile
-    instance-profile-name: "test-instance-profile"
-end

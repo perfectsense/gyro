@@ -1,7 +1,0 @@
-import ../init as _
-
-aws::iam-policy example-policy
-    policy-name: "example-policy"
-    description: "example policy description"
-    policy-document-file: "gyro-providers/gyro-aws-provider/examples/iam/example_policy.json"
-end

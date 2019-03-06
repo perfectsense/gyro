@@ -1,7 +1,0 @@
-import ../init as _
-
-aws::iam-role example-role
-    role-name: "example-role"
-    description: "example-role description"
-    assume-role-policy-document-file: "gyro-providers/gyro-aws-provider/examples/iam/role_example.json"
-end

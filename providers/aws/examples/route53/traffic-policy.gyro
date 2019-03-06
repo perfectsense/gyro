@@ -1,7 +1,0 @@
-import ../init as _
-
-aws::traffic-policy traffic-policy-example
-    name: "traffic-policy-example"
-    comment: "traffic-policy-example Comment"
-    document-path: "policy.json"
-end

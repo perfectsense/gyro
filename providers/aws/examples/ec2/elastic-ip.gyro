@@ -1,9 +1,0 @@
-import ../init as _
-
-aws::elastic-ip elastic-ip-example1
-    is-standard-domain: false
-
-    tags: {
-        Name: "elastic-ip-example1"
-    }
-end
