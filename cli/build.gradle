@@ -34,7 +34,7 @@ publishing {
                 extension 'zip'
             }
 
-            artifact("dist/gyro-cli")
+            artifact("dist/gyro")
         }
     }
 
