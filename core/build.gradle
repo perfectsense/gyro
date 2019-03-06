@@ -50,7 +50,7 @@ publishing {
     publications {
         maven(MavenPublication) {
             groupId = 'gyro'
-            artifactId = 'gyro-core'
+            artifactId = 'core'
 
             from components.java
         }

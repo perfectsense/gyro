@@ -1,5 +1,5 @@
 rootProject.name = 'gyro'
 
-include 'cli', 'gyro-core'
+include 'cli', 'core'
 
 enableFeaturePreview('STABLE_PUBLISHING')
