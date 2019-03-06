@@ -41,5 +41,6 @@ matrix:
     # Windows
     - language: shell
       os: windows
-      before_script: choco install openjdk --version 11.0.1 --verbose
+      before_install:
+        - choco install openjdk --version 11.0.1 --verbose
       script: ./gradlew check
