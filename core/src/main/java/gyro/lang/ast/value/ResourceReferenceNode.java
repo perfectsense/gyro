@@ -48,12 +48,13 @@ public class ResourceReferenceNode extends Node {
             .collect(Collectors.toList());
 
         String attributeValue = null;
-        if (queries.size() > 0) {
-            Query last = queries.get(queries.size() - 1);
+        Integer size = queries.size();
+        if (size > 0) {
+            Query last = queries.get(size - 1);
 
             if (last instanceof FieldValueQuery) {
                 attributeValue = ((FieldValueQuery) last).getValue();
-                queries.remove(queries.size() - 1);
+                queries.remove(size - 1);
             }
         }
 
