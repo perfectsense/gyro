@@ -15,8 +15,8 @@ public class OrQuery extends QueryExpression {
 
     @Override
     public List<ResourceQueryGroup> evaluate(Scope scope, String type, boolean external) throws Exception {
-        List<ResourceQueryGroup> leftQueries = getLeftQuery().evaluate(scope, type, external);
-        List<ResourceQueryGroup> rightQueries = getRightQuery().evaluate(scope, type, external);
+        List<ResourceQueryGroup> leftQueries = getLeft().evaluate(scope, type, external);
+        List<ResourceQueryGroup> rightQueries = getRight().evaluate(scope, type, external);
         List<ResourceQueryGroup> result = new ArrayList<>();
         result.addAll(leftQueries);
         result.addAll(rightQueries);
