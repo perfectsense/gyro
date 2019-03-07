@@ -33,6 +33,7 @@ public class KeyValueNode extends Node {
                 .ifPresent(s -> s.add(key, value, scope));
 
         scope.put(key, value.evaluate(scope));
+        scope.getKeyNodes().put(key, this);
         return scope.get(key);
     }
 

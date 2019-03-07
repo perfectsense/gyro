@@ -5,17 +5,20 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import gyro.core.BeamException;
 import gyro.core.BeamUI;
 import gyro.lang.Resource;
 import gyro.lang.ast.KeyValueNode;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.scope.DiffableScope;
+import gyro.lang.ast.scope.Scope;
 import gyro.lang.ast.value.BooleanNode;
 import gyro.lang.ast.value.ListNode;
 import gyro.lang.ast.value.MapNode;
@@ -92,6 +95,7 @@ public abstract class Diffable {
             configuredFields = ImmutableSet.copyOf(cf);
         }
 
+        Map<String, Object> undefinedValues = new HashMap<>(values);
         for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
             String key = field.getBeamName();
 
@@ -117,6 +121,19 @@ public abstract class Diffable {
             }
 
             field.setValue(this, value);
+            undefinedValues.remove(key);
+        }
+
+        for (Map.Entry<String, Object> entry : undefinedValues.entrySet()) {
+            if (!entry.getKey().startsWith("_")) {
+                if (values instanceof Scope) {
+                    Node node = ((Scope) values).getKeyNodes().get(entry.getKey());
+                    throw new BeamException(String.format("Field [%s] is not allowed %s\n%s", entry.getKey(), node.getLocation(), node));
+
+                } else {
+                    throw new BeamException(String.format("Field [%s] is not allowed", entry.getKey()));
+                }
+            }
         }
     }
 
