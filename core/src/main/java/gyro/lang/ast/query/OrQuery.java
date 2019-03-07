@@ -7,7 +7,7 @@ import gyro.parser.antlr4.BeamParser.QueryExpressionContext;
 import java.util.ArrayList;
 import java.util.List;
 
-public class OrQuery extends QueryExpression {
+public class OrQuery extends AbstractCompoundQuery {
 
     public OrQuery(QueryExpressionContext context) {
         super(context);
