@@ -44,7 +44,7 @@ public class ResourceReferenceNode extends Node {
 
         queries = context.queryExpression()
             .stream()
-            .map(f -> Query.create(f))
+            .map(Query::create)
             .collect(Collectors.toList());
 
         String attributeValue = null;
