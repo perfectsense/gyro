@@ -21,8 +21,8 @@ public class ResourceReferenceNode extends Node {
 
     private final String type;
     private final Node nameNode;
-    private final String attribute;
     private final List<Query> queries;
+    private final String attribute;
 
     public ResourceReferenceNode(ReferenceBodyContext context) {
         type = context.referenceType().getText();
