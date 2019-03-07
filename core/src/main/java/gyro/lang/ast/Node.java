@@ -24,13 +24,36 @@ import gyro.lang.ast.value.StringExpressionNode;
 import gyro.lang.ast.value.StringNode;
 import gyro.lang.ast.value.ValueReferenceNode;
 import gyro.parser.antlr4.BeamParser;
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.apache.commons.lang.StringUtils;
 
 public abstract class Node {
 
+    private NodeLocation location;
+
+    public NodeLocation getLocation() {
+        return location;
+    }
+
     public static Node create(ParseTree context) {
+        Node node = doCreate(context);
+        String file = null;
+        Integer line = null;
+        Integer column = null;
+        if (context instanceof ParserRuleContext) {
+            ParserRuleContext parserRuleContext = (ParserRuleContext) context;
+            file = parserRuleContext.getStart().getTokenSource().getSourceName();
+            line = parserRuleContext.getStart().getLine();
+            column = parserRuleContext.getStart().getCharPositionInLine();
+        }
+
+        node.location = new NodeLocation(file, line, column);
+        return node;
+    }
+
+    public static Node doCreate(ParseTree context) {
         Class<? extends ParseTree> cc = context.getClass();
 
         if (cc.equals(BeamParser.BeamFileContext.class)) {
