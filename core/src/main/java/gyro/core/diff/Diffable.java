@@ -128,11 +128,12 @@ public abstract class Diffable {
             if (!entry.getKey().startsWith("_")) {
                 if (values instanceof Scope) {
                     Node node = ((Scope) values).getKeyNodes().get(entry.getKey());
-                    throw new BeamException(String.format("Field [%s] is not allowed %s\n%s", entry.getKey(), node.getLocation(), node));
-
-                } else {
-                    throw new BeamException(String.format("Field [%s] is not allowed", entry.getKey()));
+                    if (node != null) {
+                        throw new BeamException(String.format("Field [%s] is not allowed %s%n%s", entry.getKey(), node.getLocation(), node));
+                    }
                 }
+
+                throw new BeamException(String.format("Field [%s] is not allowed", entry.getKey()));
             }
         }
     }
