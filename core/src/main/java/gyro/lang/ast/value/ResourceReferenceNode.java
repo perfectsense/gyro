@@ -1,5 +1,6 @@
 package gyro.lang.ast.value;
 
+import com.google.common.collect.ImmutableList;
 import gyro.lang.Resource;
 import gyro.lang.ResourceQueryGroup;
 import gyro.lang.ast.DeferError;
@@ -12,7 +13,7 @@ import gyro.parser.antlr4.BeamParser;
 import gyro.parser.antlr4.BeamParser.ReferenceBodyContext;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -61,11 +62,11 @@ public class ResourceReferenceNode extends Node {
         this.attribute = attributeValue;
     }
 
-    public ResourceReferenceNode(String type, Node nameNode, String attribute) {
+    public ResourceReferenceNode(String type, Node nameNode, String attribute, Collection<Query> queries) {
         this.type = type;
         this.nameNode = nameNode;
         this.attribute = attribute;
-        this.queries = Collections.EMPTY_LIST;
+        this.queries = ImmutableList.copyOf(queries);
     }
 
     private List<ResourceQueryGroup> parseQueries(Scope scope, boolean external) throws Exception {
