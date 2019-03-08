@@ -1,16 +1,19 @@
 package gyro.commands;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import gyro.core.BeamCore;
 import gyro.core.BeamUI;
 import com.google.common.collect.ImmutableSet;
 import org.fusesource.jansi.AnsiRenderer;
@@ -167,18 +170,17 @@ public class CliBeamUI implements BeamUI {
     }
 
     @Override
-    public void writeError(Throwable error, String message, Object... arguments) {
+    public void writeError(Throwable error, String message, Object... arguments) throws IOException {
         write(message, arguments);
         System.out.write('\n');
+        System.out.flush();
 
         if (error != null) {
-            write("%s: ", error.getClass().getName());
-            StringWriter sw = new StringWriter();
-            error.printStackTrace(new PrintWriter(sw));
-            write(sw.toString());
+            File log = Paths.get(BeamCore.getBeamUserHome(), ".gyro", "error.log").toFile();
+            try (PrintWriter printWriter = new PrintWriter(new FileWriter(log))) {
+                printWriter.write(String.format("%s: ", error.getClass().getName()));
+                error.printStackTrace(printWriter);
+            }
         }
-
-        System.out.flush();
     }
-
 }

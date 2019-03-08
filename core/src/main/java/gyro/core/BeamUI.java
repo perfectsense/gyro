@@ -1,5 +1,7 @@
 package gyro.core;
 
+import java.io.IOException;
+
 public interface BeamUI {
 
     boolean isVerbose();
@@ -33,6 +35,6 @@ public interface BeamUI {
 
     void write(String message, Object... arguments);
 
-    void writeError(Throwable error, String message, Object... arguments);
+    void writeError(Throwable error, String message, Object... arguments) throws IOException;
 
 }

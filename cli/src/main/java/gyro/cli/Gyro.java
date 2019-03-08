@@ -112,12 +112,12 @@ public class Gyro {
                 BeamCore.ui().writeError(error.getCause(), "\n@|red Error: %s|@\n", error.getMessage());
 
             } else {
-                BeamCore.ui().writeError(error, "\n@|red Unexpected error! Stack trace follows:|@\n");
+                BeamCore.ui().writeError(error, "\n@|red Unexpected error: %s|@\n", error.getMessage());
             }
         }
     }
 
-    public static void loadPlugins(Gyro gyro) {
+    public static void loadPlugins(Gyro gyro) throws IOException {
         try {
             // Load ~/.gyro/plugins.gyro
             File plugins = Paths.get(getBeamUserHome(), ".gyro", "plugins.gyro").toFile();
@@ -139,7 +139,7 @@ public class Gyro {
                 BeamCore.ui().writeError(error.getCause(), "\n@|red Error: %s|@\n", error.getMessage());
 
             } else {
-                BeamCore.ui().writeError(error, "\n@|red Unexpected error! Stack trace follows:|@\n");
+                BeamCore.ui().writeError(error, "\n@|red Unexpected error: %s|@\n", error.getMessage());
             }
         }
     }
