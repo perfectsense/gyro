@@ -2,7 +2,7 @@ package gyro.lang.plugins;
 
 import com.psddev.dari.util.ObjectUtils;
 import gyro.core.diff.ResourceName;
-import gyro.lang.ExternalResourceQuery;
+import gyro.lang.ResourceFinder;
 
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
@@ -18,7 +18,7 @@ public abstract class Provider extends Plugin {
         }
 
         for (ResourceName name : klass.getAnnotationsByType(ResourceName.class)) {
-            if (ExternalResourceQuery.class.isAssignableFrom(klass)) {
+            if (ResourceFinder.class.isAssignableFrom(klass)) {
                 registerResourceQuery(klass, name.value(), name.parent());
             } else {
                 registerResource(klass, name.value(), name.parent());

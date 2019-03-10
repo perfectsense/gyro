@@ -2,7 +2,7 @@ package gyro.core.query;
 
 import com.google.common.base.CaseFormat;
 import com.psddev.dari.util.Converter;
-import gyro.lang.ResourceQuery;
+import gyro.lang.ResourceFinder;
 import gyro.lang.ast.query.ResourceFilter;
 
 import java.lang.reflect.InvocationTargetException;
@@ -75,7 +75,7 @@ public class QueryField {
         return filterName;
     }
 
-    public Object getValue(ResourceQuery query) {
+    public Object getValue(ResourceFinder query) {
         try {
             return getter.invoke(query);
 
@@ -91,7 +91,7 @@ public class QueryField {
         }
     }
 
-    public void setValue(ResourceQuery query, Object value) {
+    public void setValue(ResourceFinder query, Object value) {
         try {
             if (value instanceof List
                     && !List.class.isAssignableFrom(setter.getParameterTypes()[0])) {

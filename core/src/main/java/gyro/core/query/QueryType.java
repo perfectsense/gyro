@@ -5,7 +5,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import gyro.lang.ResourceQuery;
+import gyro.lang.ResourceFinder;
 
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -16,14 +16,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-public class QueryType<R extends ResourceQuery> {
+public class QueryType<R extends ResourceFinder> {
 
-    private static final LoadingCache<Class<? extends ResourceQuery>, QueryType<? extends ResourceQuery>> INSTANCES = CacheBuilder
+    private static final LoadingCache<Class<? extends ResourceFinder>, QueryType<? extends ResourceFinder>> INSTANCES = CacheBuilder
             .newBuilder()
-            .build(new CacheLoader<Class<? extends ResourceQuery>, QueryType<? extends ResourceQuery>>() {
+            .build(new CacheLoader<Class<? extends ResourceFinder>, QueryType<? extends ResourceFinder>>() {
 
                 @Override
-                public QueryType<? extends ResourceQuery> load(Class<? extends ResourceQuery> queryClass) throws IntrospectionException {
+                public QueryType<? extends ResourceFinder> load(Class<? extends ResourceFinder> queryClass) throws IntrospectionException {
                     return new QueryType<>(queryClass);
                 }
             });
@@ -33,7 +33,7 @@ public class QueryType<R extends ResourceQuery> {
     private final Map<String, QueryField> fieldByBeamName;
 
     @SuppressWarnings("unchecked")
-    public static <R extends ResourceQuery> QueryType<R> getInstance(Class<R> queryClass) {
+    public static <R extends ResourceFinder> QueryType<R> getInstance(Class<R> queryClass) {
         try {
             return (QueryType<R>) INSTANCES.get(queryClass);
 
