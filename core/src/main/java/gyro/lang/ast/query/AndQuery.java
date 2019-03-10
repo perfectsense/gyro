@@ -7,10 +7,22 @@ import gyro.parser.antlr4.BeamParser.QueryExpressionContext;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AndQuery extends AbstractCompoundQuery {
+public class AndQuery extends CompoundQuery {
+
+    private final Query left;
+    private final Query right;
 
     public AndQuery(QueryExpressionContext context) {
-        super(context);
+        this.left = Query.create(context.getChild(0));
+        this.right = Query.create(context.getChild(2));
+    }
+
+    public Query getLeft() {
+        return left;
+    }
+
+    public Query getRight() {
+        return right;
     }
 
     @Override
