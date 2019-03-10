@@ -76,8 +76,7 @@ public class ResourceReferenceNode extends Node {
 
             List<Resource> resources;
             if (name.startsWith("EXTERNAL/*")) {
-                Class<? extends ResourceFinder> resourceQueryClass = (Class<? extends ResourceFinder>) scope
-                    .getRootScope().getResourceQueryClasses().get(type);
+                Class<? extends ResourceFinder> resourceQueryClass = scope.getRootScope().getResourceFinderClasses().get(type);
 
                 if (resourceQueryClass == null) {
                     throw new BeamException("Resource type " + type + " does not support external queries.");

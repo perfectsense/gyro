@@ -19,7 +19,7 @@ public abstract class Provider extends Plugin {
 
         for (ResourceName name : klass.getAnnotationsByType(ResourceName.class)) {
             if (ResourceFinder.class.isAssignableFrom(klass)) {
-                registerResourceQuery(klass, name.value(), name.parent());
+                registerResourceFinder(klass, name.value(), name.parent());
             } else {
                 registerResource(klass, name.value(), name.parent());
             }
@@ -40,7 +40,7 @@ public abstract class Provider extends Plugin {
         getScope().getRootScope().getResourceClasses().put(fullName, cache.get(fullName));
     }
 
-    private void registerResourceQuery(Class queryClass, String resourceName, String parentName) {
+    private void registerResourceFinder(Class queryClass, String resourceName, String parentName) {
         String fullName = String.format("%s::%s", name(), resourceName);
         if (!ObjectUtils.isBlank(parentName)) {
             fullName = String.format("%s::%s::%s", name(), parentName, resourceName);
@@ -52,6 +52,6 @@ public abstract class Provider extends Plugin {
             cache.put(registerName, queryClass);
         }
 
-        getScope().getRootScope().getResourceQueryClasses().put(fullName, cache.get(registerName));
+        getScope().getRootScope().getResourceFinderClasses().put(fullName, cache.get(registerName));
     }
 }
