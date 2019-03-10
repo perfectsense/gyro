@@ -1,10 +1,10 @@
 package gyro.lang.ast.query;
 
-import gyro.lang.ResourceQueryGroup;
+import gyro.lang.Resource;
 import gyro.lang.ast.scope.Scope;
 import gyro.parser.antlr4.BeamParser.QueryExpressionContext;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class AndQuery extends CompoundQuery {
@@ -26,18 +26,32 @@ public class AndQuery extends CompoundQuery {
     }
 
     @Override
-    public List<ResourceQueryGroup> evaluate(Scope scope, String type, boolean external) throws Exception {
-        List<ResourceQueryGroup> leftQueries = getLeft().evaluate(scope, type, external);
-        List<ResourceQueryGroup> rightQueries = getRight().evaluate(scope, type, external);
-        List<ResourceQueryGroup> result = new ArrayList<>();
-        for (ResourceQueryGroup left : leftQueries) {
-            for (ResourceQueryGroup right : rightQueries) {
-                ResourceQueryGroup joined = new ResourceQueryGroup(Query.createExternalResourceQuery(scope, type));
-                ResourceQueryGroup.join(left, right, joined);
-                result.add(joined);
-            }
+    public void evaluate(String type, Scope scope, List<Resource> resources) throws Exception {
+        getLeft().evaluate(type, scope, resources);
+        getRight().evaluate(type, scope, resources);
+
+        List<Query> leftQueries;
+        List<Query> rightQueries;
+
+        if (getLeft() instanceof CompoundQuery) {
+            leftQueries = ((CompoundQuery) getLeft()).getChildren();
+        } else {
+            leftQueries = Collections.singletonList(getLeft());
         }
 
-        return result;
+        if (getRight() instanceof CompoundQuery) {
+            rightQueries = ((CompoundQuery) getRight()).getChildren();
+        } else {
+            rightQueries = Collections.singletonList(getRight());
+        }
+
+        for (Query left : leftQueries) {
+            for (Query right : rightQueries) {
+                CompoundQuery joined = new CompoundQuery();
+                joined.getChildren().add(left);
+                joined.getChildren().add(right);
+                getChildren().add(joined);
+            }
+        }
     }
 }

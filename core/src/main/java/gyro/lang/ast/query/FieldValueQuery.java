@@ -1,6 +1,6 @@
 package gyro.lang.ast.query;
 
-import gyro.lang.ResourceQueryGroup;
+import gyro.lang.Resource;
 import gyro.lang.ast.scope.Scope;
 import gyro.parser.antlr4.BeamParser.QueryFieldValueContext;
 
@@ -19,8 +19,8 @@ public class FieldValueQuery extends Query {
     }
 
     @Override
-    public List<ResourceQueryGroup> evaluate(Scope scope, String type, boolean external) throws Exception {
-        return null;
+    public void evaluate(String type, Scope scope, List<Resource> resources) throws Exception {
+        return;
     }
 
 }
