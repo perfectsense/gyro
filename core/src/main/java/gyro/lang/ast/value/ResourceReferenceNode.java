@@ -114,7 +114,7 @@ public class ResourceReferenceNode extends Node {
             }
 
             for (Query q : queries) {
-                q.evaluate(type, scope, resources);
+                resources = q.evaluate(type, scope, resources);
             }
 
             if (attribute != null) {
