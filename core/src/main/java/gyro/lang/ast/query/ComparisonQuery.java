@@ -14,12 +14,12 @@ import java.util.stream.Collectors;
 
 public class ComparisonQuery extends Query {
 
-    private String operator;
-    private String fieldName;
-    private Node value;
+    private final String operator;
+    private final String fieldName;
+    private final Node value;
 
-    public static String EQUALS_OPERATOR = "=";
-    public static String NOT_EQUALS_OPERATOR = "!=";
+    public static final String EQUALS_OPERATOR = "=";
+    public static final String NOT_EQUALS_OPERATOR = "!=";
 
     public ComparisonQuery(QueryComparisonExpressionContext context) {
         this.operator = context.operator().getText();
