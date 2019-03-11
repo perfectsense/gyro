@@ -2,6 +2,7 @@ package gyro.lang.ast.value;
 
 import com.google.common.collect.ImmutableList;
 import gyro.core.BeamException;
+import gyro.lang.Credentials;
 import gyro.lang.Resource;
 import gyro.lang.ResourceFinder;
 import gyro.lang.ast.DeferError;
@@ -83,8 +84,7 @@ public class ResourceReferenceNode extends Node {
                 }
 
                 ResourceFinder<Resource> finder = resourceQueryClass.getConstructor().newInstance();
-                finder.credentials(finder.resourceCredentials(scope));
-                resources = finder.findAll();
+                resources = finder.findAll(findQueryCredentials(scope));
 
             } else if (name.endsWith("*")) {
                 RootScope rootScope = scope.getRootScope();
@@ -155,5 +155,30 @@ public class ResourceReferenceNode extends Node {
         }
 
         builder.append(")");
+    }
+
+    private Credentials findQueryCredentials(Scope scope) {
+
+        scope = scope.getRootScope();
+
+        if (scope != null) {
+            String name = (String) scope.get("resource-credentials");
+
+            if (name == null) {
+                name = "default";
+            }
+
+            for (Resource resource : scope.getRootScope().findAllResources()) {
+                if (resource instanceof Credentials) {
+                    Credentials credentials = (Credentials) resource;
+
+                    if (credentials.resourceIdentifier().equals(name)) {
+                        return credentials;
+                    }
+                }
+            }
+        }
+
+        throw new IllegalStateException();
     }
 }
