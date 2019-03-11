@@ -19,8 +19,7 @@ public class FieldValueQuery extends Query {
     }
 
     @Override
-    public void evaluate(String type, Scope scope, List<Resource> resources) throws Exception {
-        return;
+    public List<Resource> evaluate(String type, Scope scope, List<Resource> resources) throws Exception {
+        throw new UnsupportedOperationException();
     }
-
 }

@@ -4,7 +4,7 @@ import gyro.lang.Resource;
 import gyro.lang.ast.scope.Scope;
 import gyro.parser.antlr4.BeamParser.QueryExpressionContext;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class OrQuery extends AbstractCompoundQuery {
@@ -15,26 +15,12 @@ public class OrQuery extends AbstractCompoundQuery {
     }
 
     @Override
-    public void evaluate(String type, Scope scope, List<Resource> resources) throws Exception {
-        List<Resource> leftResources = new ArrayList<>(resources);
-        List<Resource> rightResources = new ArrayList<>(resources);
-        getLeft().evaluate(type, scope, leftResources);
-        getRight().evaluate(type, scope, rightResources);
-        resources.clear();
-
-        resources.addAll(leftResources);
-        resources.addAll(rightResources);
-
-        if (getLeft() instanceof CompoundQuery) {
-            getChildren().addAll(((CompoundQuery) getLeft()).getChildren());
-        } else {
-            getChildren().add(getLeft());
+    public List<Resource> evaluate(String type, Scope scope, List<Resource> resources) throws Exception {
+        List<Resource> joined = new LinkedList<>();
+        for (Query child : getChildren()) {
+            joined.addAll(child.evaluate(type, scope, resources));
         }
 
-        if (getRight() instanceof CompoundQuery) {
-            getChildren().addAll(((CompoundQuery) getRight()).getChildren());
-        } else {
-            getChildren().add(getRight());
-        }
+        return joined;
     }
 }

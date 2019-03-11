@@ -10,6 +10,7 @@ import gyro.parser.antlr4.BeamParser.QueryComparisonExpressionContext;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class ComparisonQuery extends Query {
 
@@ -27,35 +28,37 @@ public class ComparisonQuery extends Query {
     }
 
     @Override
-    public void evaluate(String type, Scope scope, List<Resource> resources) throws Exception {
+    public List<Resource> evaluate(String type, Scope scope, List<Resource> resources) throws Exception {
         Object comparisonValue = value.evaluate(scope);
 
-        if (resources.isEmpty()) {
-            return;
-        }
+        for (Resource resource : resources) {
+            Class<? extends Resource> resourceClass = resource.getClass();
+            boolean validQuery = false;
+            for (DiffableField field : DiffableType.getInstance(resourceClass).getFields()) {
+                String key = field.getBeamName();
+                if (key.equals(fieldName)) {
+                    validQuery = true;
+                }
+            }
 
-        Class<? extends Resource> resourceClass = resources.get(0).getClass();
-        boolean validQuery = false;
-        for (DiffableField field : DiffableType.getInstance(resourceClass).getFields()) {
-            String key = field.getBeamName();
-            if (key.equals(fieldName)) {
-                validQuery = true;
+            if (!validQuery) {
+                throw new BeamException(String.format(
+                    "No such field [%s] defined %s!",
+                    fieldName, resourceClass));
             }
         }
 
-        if (!validQuery) {
-            throw new BeamException(String.format(
-                "No such field [%s] defined %s!",
-                fieldName, type));
-        }
-
         if (EQUALS_OPERATOR.equals(operator)) {
-            resources.removeIf(r -> !Objects.equals(
-                DiffableType.getInstance(r.getClass()).getFieldByBeamName(fieldName).getValue(r), comparisonValue));
+            return resources.stream()
+                .filter(r -> Objects.equals(
+                    DiffableType.getInstance(r.getClass()).getFieldByBeamName(fieldName).getValue(r), comparisonValue))
+                .collect(Collectors.toList());
 
         } else if (NOT_EQUALS_OPERATOR.equals(operator)) {
-            resources.removeIf(r -> Objects.equals(
-                DiffableType.getInstance(r.getClass()).getFieldByBeamName(fieldName).getValue(r), comparisonValue));
+            return resources.stream()
+                .filter(r -> !Objects.equals(
+                    DiffableType.getInstance(r.getClass()).getFieldByBeamName(fieldName).getValue(r), comparisonValue))
+                .collect(Collectors.toList());
 
         } else {
             throw new UnsupportedOperationException(String.format("Operator %s is not supported!", operator));

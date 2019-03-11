@@ -29,5 +29,5 @@ public abstract class Query {
         return null;
     }
 
-    public abstract void evaluate(String type, Scope scope, List<Resource> resources) throws Exception;
+    public abstract List<Resource> evaluate(String type, Scope scope, List<Resource> resources) throws Exception;
 }

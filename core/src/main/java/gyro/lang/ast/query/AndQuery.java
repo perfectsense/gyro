@@ -4,7 +4,6 @@ import gyro.lang.Resource;
 import gyro.lang.ast.scope.Scope;
 import gyro.parser.antlr4.BeamParser.QueryExpressionContext;
 
-import java.util.Collections;
 import java.util.List;
 
 public class AndQuery extends AbstractCompoundQuery {
@@ -14,32 +13,11 @@ public class AndQuery extends AbstractCompoundQuery {
     }
 
     @Override
-    public void evaluate(String type, Scope scope, List<Resource> resources) throws Exception {
-        getLeft().evaluate(type, scope, resources);
-        getRight().evaluate(type, scope, resources);
-
-        List<Query> leftQueries;
-        List<Query> rightQueries;
-
-        if (getLeft() instanceof CompoundQuery) {
-            leftQueries = ((CompoundQuery) getLeft()).getChildren();
-        } else {
-            leftQueries = Collections.singletonList(getLeft());
+    public List<Resource> evaluate(String type, Scope scope, List<Resource> resources) throws Exception {
+        for (Query child : getChildren()) {
+            resources = child.evaluate(type, scope, resources);
         }
 
-        if (getRight() instanceof CompoundQuery) {
-            rightQueries = ((CompoundQuery) getRight()).getChildren();
-        } else {
-            rightQueries = Collections.singletonList(getRight());
-        }
-
-        for (Query left : leftQueries) {
-            for (Query right : rightQueries) {
-                CompoundQuery joined = new CompoundQuery();
-                joined.getChildren().add(left);
-                joined.getChildren().add(right);
-                getChildren().add(joined);
-            }
-        }
+        return resources;
     }
 }
