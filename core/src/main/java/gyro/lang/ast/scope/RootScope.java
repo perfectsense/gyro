@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import gyro.lang.Resource;
+import gyro.lang.ResourceFinder;
 import gyro.lang.Workflow;
 import gyro.lang.ast.block.VirtualResourceNode;
 import com.psddev.dari.util.StringUtils;
@@ -15,6 +16,7 @@ public class RootScope extends FileScope {
 
     private final RootScope current;
     private final Map<String, Class<?>> resourceClasses = new HashMap<>();
+    private final Map<String, Class<? extends ResourceFinder>> resourceFinderClasses = new HashMap<>();
     private final Map<String, VirtualResourceNode> virtualResourceNodes = new LinkedHashMap<>();
     private final List<Workflow> workflows = new ArrayList<>();
 
@@ -38,6 +40,10 @@ public class RootScope extends FileScope {
 
     public Map<String, Class<?>> getResourceClasses() {
         return resourceClasses;
+    }
+
+    public Map<String, Class<? extends ResourceFinder>> getResourceFinderClasses() {
+        return resourceFinderClasses;
     }
 
     public Map<String, VirtualResourceNode> getVirtualResourceNodes() {

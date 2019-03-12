@@ -54,6 +54,8 @@ public class Diff {
         );
 
         for (Diffable pendingDiffable : pendingDiffables) {
+            resolve(pendingDiffable);
+
             Diffable currentDiffable = currentDiffables.remove(pendingDiffable.primaryKey());
 
             changes.add(currentDiffable == null

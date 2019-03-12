@@ -2,6 +2,7 @@ package gyro.lang.ast.scope;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,6 +10,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import gyro.lang.Resource;
+import gyro.lang.ast.Node;
 
 public class Scope implements Map<String, Object> {
 
@@ -16,6 +18,7 @@ public class Scope implements Map<String, Object> {
 
     private final Scope parent;
     private final Map<String, Object> values;
+    private final Map<String, Node> valueNodes = new HashMap<>();
 
     public Scope(Scope parent, Map<String, Object> values) {
         this.parent = parent;
@@ -69,14 +72,16 @@ public class Scope implements Map<String, Object> {
         put(key, list);
     }
 
-    public Object find(String path) {
+    public Object find(String path) throws Exception {
         String[] keys = DOT_PATTERN.split(path);
         String firstKey = keys[0];
         Object value = null;
 
-        for (Scope s = this; s != null; s = s.parent) {
+        Scope startingScope = this instanceof DiffableScope ? this.parent : this;
+        for (Scope s = startingScope; s != null; s = s.parent) {
             if (s.containsKey(firstKey)) {
-                value = s.get(firstKey);
+                Node valueNode = s.valueNodes.get(firstKey);
+                value = valueNode == null ? s.get(firstKey) : valueNode.evaluate(s);
                 break;
             }
         }
@@ -107,6 +112,10 @@ public class Scope implements Map<String, Object> {
         }
 
         return value;
+    }
+
+    public void addValueNode(String key, Node value) {
+        valueNodes.put(key, value);
     }
 
     @Override

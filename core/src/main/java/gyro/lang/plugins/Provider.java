@@ -1,7 +1,8 @@
 package gyro.lang.plugins;
 
-import gyro.core.diff.ResourceName;
 import com.psddev.dari.util.ObjectUtils;
+import gyro.core.diff.ResourceName;
+import gyro.lang.ResourceFinder;
 
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
@@ -17,7 +18,11 @@ public abstract class Provider extends Plugin {
         }
 
         for (ResourceName name : klass.getAnnotationsByType(ResourceName.class)) {
-            registerResource(klass, name.value(), name.parent());
+            if (ResourceFinder.class.isAssignableFrom(klass)) {
+                registerResourceFinder(klass, name.value(), name.parent());
+            } else {
+                registerResource(klass, name.value(), name.parent());
+            }
         }
     }
 
@@ -35,4 +40,18 @@ public abstract class Provider extends Plugin {
         getScope().getRootScope().getResourceClasses().put(fullName, cache.get(fullName));
     }
 
+    private void registerResourceFinder(Class queryClass, String resourceName, String parentName) {
+        String fullName = String.format("%s::%s", name(), resourceName);
+        if (!ObjectUtils.isBlank(parentName)) {
+            fullName = String.format("%s::%s::%s", name(), parentName, resourceName);
+        }
+
+        String registerName = String.format("%s::%s", fullName, "_query");
+        Map<String, Class> cache = PROVIDER_CLASS_CACHE.computeIfAbsent(artifact(), f -> new HashMap<>());
+        if (!cache.containsKey(registerName)) {
+            cache.put(registerName, queryClass);
+        }
+
+        getScope().getRootScope().getResourceFinderClasses().put(fullName, cache.get(registerName));
+    }
 }

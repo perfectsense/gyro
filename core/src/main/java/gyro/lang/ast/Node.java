@@ -1,8 +1,5 @@
 package gyro.lang.ast;
 
-import java.util.List;
-import java.util.Optional;
-
 import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.block.PluginNode;
 import gyro.lang.ast.block.ResourceNode;
@@ -27,6 +24,8 @@ import gyro.parser.antlr4.BeamParser;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.apache.commons.lang.StringUtils;
+
+import java.util.List;
 
 public abstract class Node {
 
@@ -83,28 +82,7 @@ public abstract class Node {
             String type = rbc.referenceType().getText();
 
             if (type.contains("::")) {
-                BeamParser.ReferenceNameContext rnc = rbc.referenceName();
-                Node name;
-
-                if (rnc != null) {
-                    BeamParser.StringExpressionContext sec = rnc.stringExpression();
-
-                    if (sec != null) {
-                        name = Node.create(sec);
-
-                    } else {
-                        name = new StringNode(rnc.getText());
-                    }
-
-                } else {
-                    name = null;
-                }
-
-                String attribute = Optional.ofNullable(rbc.referenceAttribute())
-                        .map(BeamParser.ReferenceAttributeContext::getText)
-                        .orElse(null);
-
-                return new ResourceReferenceNode(type, name, attribute);
+                return new ResourceReferenceNode(rbc);
 
             } else {
                 return new ValueReferenceNode(type);
