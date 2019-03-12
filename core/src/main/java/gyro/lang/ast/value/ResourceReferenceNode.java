@@ -135,7 +135,7 @@ public class ResourceReferenceNode extends Node {
         if (nameNode != null) {
             String name = (String) nameNode.evaluate(scope);
 
-            List<Resource> resources;
+            List<Resource> resources = new ArrayList<>();
             List<Query> queryList = new ArrayList<>(queries);
             if (name.startsWith("EXTERNAL/*")) {
                 Class<? extends ResourceFinder> resourceQueryClass = scope.getRootScope().getResourceFinderClasses().get(type);
@@ -145,11 +145,23 @@ public class ResourceReferenceNode extends Node {
                 }
 
                 ResourceFinder<Resource> finder = resourceQueryClass.getConstructor().newInstance();
-                resources = finder.findAll(findQueryCredentials(scope));
 
                 queryList.clear();
+                boolean isHead = true;
                 for (Query q : queries) {
-                    queryList.add(optimize(q, finder, scope));
+                    if (isHead) {
+                        isHead = false;
+                        Query optimized = optimize(q, finder, scope);
+                        queryList.add(optimized);
+
+                        resources = optimized.evaluate(type, scope, resources);
+                        if (resources.isEmpty()) {
+                            resources = finder.findAll(findQueryCredentials(scope));
+                        }
+
+                    } else {
+                        queryList.add(q);
+                    }
                 }
 
             } else if (name.endsWith("*")) {
