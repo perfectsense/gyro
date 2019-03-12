@@ -10,11 +10,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import gyro.core.BeamException;
 import gyro.core.BeamUI;
 import gyro.lang.Credentials;
 import gyro.lang.Resource;
 import gyro.lang.ast.scope.DiffableScope;
 import gyro.lang.ast.scope.State;
+import gyro.plugin.validation.ValidationProcessor;
 
 public class Diff {
 
@@ -306,6 +308,19 @@ public class Diff {
         }
 
         return written;
+    }
+
+    public void validate() throws Exception {
+        List<String> errorMessages = new ArrayList<>();
+        for (Change change : getChanges()) {
+            if (change instanceof Create || change instanceof Update) {
+                errorMessages.addAll(ValidationProcessor.validationMessages(change.getDiffable()));
+            }
+        }
+
+        if (!errorMessages.isEmpty()) {
+            throw new BeamException("\n" + String.join("\n", errorMessages));
+        }
     }
 
     public void executeCreateOrUpdate(BeamUI ui, State state) throws Exception {
