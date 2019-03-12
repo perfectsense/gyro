@@ -44,22 +44,23 @@ public class ResourceReferenceNode extends Node {
             nameNode = null;
         }
 
-        queries = context.queryExpression()
+        List<Query> queryList = context.queryExpression()
             .stream()
             .map(Query::create)
             .collect(Collectors.toList());
 
         String attributeValue = null;
-        Integer size = queries.size();
+        Integer size = queryList.size();
         if (size > 0) {
-            Query last = queries.get(size - 1);
+            Query last = queryList.get(size - 1);
 
             if (last instanceof FieldValueQuery) {
                 attributeValue = ((FieldValueQuery) last).getValue();
-                queries.remove(size - 1);
+                queryList.remove(size - 1);
             }
         }
 
+        queries = ImmutableList.copyOf(queryList);
         this.attribute = attributeValue;
     }
 
