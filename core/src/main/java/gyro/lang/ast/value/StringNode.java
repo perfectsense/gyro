@@ -18,8 +18,8 @@ public class StringNode extends Node {
 
     @Override
     public void buildString(StringBuilder builder, int indentDepth) {
-        builder.append('\'');
+        builder.append('\"');
         builder.append(value);
-        builder.append('\'');
+        builder.append('\"');
     }
 }
