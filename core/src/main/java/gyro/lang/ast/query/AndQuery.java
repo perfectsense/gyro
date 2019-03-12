@@ -12,6 +12,10 @@ public class AndQuery extends AbstractCompoundQuery {
         super(context);
     }
 
+    public AndQuery(List<Query> children) {
+        super(children);
+    }
+
     @Override
     public List<Resource> evaluate(String type, Scope scope, List<Resource> resources) throws Exception {
         for (Query child : getChildren()) {

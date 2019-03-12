@@ -16,6 +16,10 @@ public abstract class AbstractCompoundQuery extends Query {
         children = list.build();
     }
 
+    public AbstractCompoundQuery(List<Query> children) {
+        this.children = ImmutableList.copyOf(children);
+    }
+
     public List<Query> getChildren() {
         return children;
     }

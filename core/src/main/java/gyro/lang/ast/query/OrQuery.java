@@ -9,9 +9,12 @@ import java.util.List;
 
 public class OrQuery extends AbstractCompoundQuery {
 
-
     public OrQuery(QueryExpressionContext context) {
         super(context);
+    }
+
+    public OrQuery(List<Query> children) {
+        super(children);
     }
 
     @Override

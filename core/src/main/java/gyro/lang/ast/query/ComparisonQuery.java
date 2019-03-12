@@ -3,12 +3,17 @@ package gyro.lang.ast.query;
 import gyro.core.BeamException;
 import gyro.core.diff.DiffableField;
 import gyro.core.diff.DiffableType;
+import gyro.core.query.QueryField;
+import gyro.core.query.QueryType;
 import gyro.lang.Resource;
+import gyro.lang.ResourceFinder;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.scope.Scope;
 import gyro.parser.antlr4.BeamParser.QueryComparisonExpressionContext;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -25,6 +30,35 @@ public class ComparisonQuery extends Query {
         this.operator = context.operator().getText();
         this.fieldName = context.queryField().getText();
         this.value = Node.create(context.queryValue().getChild(0));
+    }
+
+    public boolean isSupported(ResourceFinder finder) {
+        String mapFieldName = fieldName.split("\\.")[0];
+        for (QueryField field : QueryType.getInstance(finder.getClass()).getFields()) {
+            String key = field.getBeamName();
+            if (fieldName.equals(key) && operator.equals(ComparisonQuery.EQUALS_OPERATOR)
+                 || fieldName.contains(".") && mapFieldName.equals(key) && operator.equals(ComparisonQuery.EQUALS_OPERATOR)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public Map<String, String> getFilter(Scope scope) throws Exception {
+        Object comparisonValue = value.evaluate(scope);
+        Map<String, String> filter = new HashMap<>();
+        if (comparisonValue != null) {
+            if (fieldName.contains(".")) {
+                String mapFieldName = fieldName.split("\\.")[0];
+                String mapKey = fieldName.replaceFirst(mapFieldName + ".", "");
+                filter.put(String.format("%s:%s", mapFieldName, mapKey), comparisonValue.toString());
+            } else {
+                filter.put(fieldName, comparisonValue.toString());
+            }
+        }
+
+        return filter;
     }
 
     @Override

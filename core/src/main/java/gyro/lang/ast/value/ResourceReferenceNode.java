@@ -7,15 +7,23 @@ import gyro.lang.Resource;
 import gyro.lang.ResourceFinder;
 import gyro.lang.ast.DeferError;
 import gyro.lang.ast.Node;
+import gyro.lang.ast.query.AbstractCompoundQuery;
+import gyro.lang.ast.query.AndQuery;
+import gyro.lang.ast.query.ComparisonQuery;
 import gyro.lang.ast.query.FieldValueQuery;
+import gyro.lang.ast.query.FoundQuery;
+import gyro.lang.ast.query.OrQuery;
 import gyro.lang.ast.query.Query;
 import gyro.lang.ast.scope.RootScope;
 import gyro.lang.ast.scope.Scope;
 import gyro.parser.antlr4.BeamParser;
 import gyro.parser.antlr4.BeamParser.ReferenceBodyContext;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -71,12 +79,64 @@ public class ResourceReferenceNode extends Node {
         this.queries = ImmutableList.copyOf(queries);
     }
 
+    private Query optimize(Query query, ResourceFinder<Resource> finder, Scope scope) throws Exception {
+        if (query instanceof AndQuery) {
+            Map<String, String> filters = new HashMap<>();
+            List<Query> unsupported = new ArrayList<>();
+            List<Query> newChildren = new ArrayList<>();
+
+            for (Query child : ((AndQuery) query).getChildren()) {
+                if (child instanceof ComparisonQuery) {
+                    ComparisonQuery comparisonQuery = (ComparisonQuery) child;
+                    if (comparisonQuery.isSupported(finder)) {
+                        filters.putAll(comparisonQuery.getFilter(scope));
+                    } else {
+                        unsupported.add(child);
+                    }
+
+                } else {
+                    unsupported.add(child);
+                }
+            }
+
+            if (!filters.isEmpty()) {
+                FoundQuery foundQuery = new FoundQuery(finder.find(findQueryCredentials(scope), filters));
+                newChildren.add(foundQuery);
+            }
+
+            newChildren.addAll(unsupported);
+            return new AndQuery(newChildren);
+
+        } else if (query instanceof ComparisonQuery) {
+            ComparisonQuery comparisonQuery = (ComparisonQuery) query;
+            if (comparisonQuery.isSupported(finder)) {
+                return new FoundQuery(finder.find(findQueryCredentials(scope), comparisonQuery.getFilter(scope)));
+
+            } else {
+                return query;
+            }
+
+        } else if (query instanceof OrQuery) {
+            List<Query> newChildren = new ArrayList<>();
+            for (Query child : ((OrQuery) query).getChildren()) {
+                Query optimized = optimize(child, finder, scope);
+                newChildren.add(optimized);
+            }
+
+            return new OrQuery(newChildren);
+
+        } else {
+            throw new IllegalStateException();
+        }
+    }
+
     @Override
     public Object evaluate(Scope scope) throws Exception {
         if (nameNode != null) {
             String name = (String) nameNode.evaluate(scope);
 
             List<Resource> resources;
+            List<Query> queryList = new ArrayList<>(queries);
             if (name.startsWith("EXTERNAL/*")) {
                 Class<? extends ResourceFinder> resourceQueryClass = scope.getRootScope().getResourceFinderClasses().get(type);
 
@@ -86,6 +146,11 @@ public class ResourceReferenceNode extends Node {
 
                 ResourceFinder<Resource> finder = resourceQueryClass.getConstructor().newInstance();
                 resources = finder.findAll(findQueryCredentials(scope));
+
+                queryList.clear();
+                for (Query q : queries) {
+                    queryList.add(optimize(q, finder, scope));
+                }
 
             } else if (name.endsWith("*")) {
                 RootScope rootScope = scope.getRootScope();
@@ -114,7 +179,7 @@ public class ResourceReferenceNode extends Node {
                 }
             }
 
-            for (Query q : queries) {
+            for (Query q : queryList) {
                 resources = q.evaluate(type, scope, resources);
             }
 
