@@ -7,7 +7,6 @@ import gyro.lang.Resource;
 import gyro.lang.ResourceFinder;
 import gyro.lang.ast.DeferError;
 import gyro.lang.ast.Node;
-import gyro.lang.ast.query.AbstractCompoundQuery;
 import gyro.lang.ast.query.AndQuery;
 import gyro.lang.ast.query.ComparisonQuery;
 import gyro.lang.ast.query.FieldValueQuery;
