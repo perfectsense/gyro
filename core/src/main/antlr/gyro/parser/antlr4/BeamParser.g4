@@ -72,7 +72,7 @@ listValue
 listItemValue : stringValue | booleanValue | numberValue | referenceValue;
 
 referenceValue     : DOLLAR LPAREN referenceBody RPAREN ;
-referenceBody      : referenceType referenceName? | referenceType referenceName (PIPE queryExpression)*;
+referenceBody      : referenceType referenceName (PIPE queryExpression)* | referenceType referenceName | referenceType;
 referenceType      : IDENTIFIER (DOT IDENTIFIER)* ;
 referenceName      : ( (SLASH | GLOB | IDENTIFIER)* | stringExpression | IDENTIFIER (DOT IDENTIFIER)*) ;
 
