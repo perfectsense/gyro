@@ -56,7 +56,7 @@ public abstract class Change {
             Diffable currentDiffable,
             Diffable pendingDiffable) {
 
-        ui.write("\n· %s:", field.getBeamName());
+        ui.write("\n· %s: ", field.getBeamName());
 
         Object currentValue = field.getValue(currentDiffable);
         Object pendingValue = field.getValue(pendingDiffable);

@@ -1,7 +1,5 @@
 parser grammar BeamParser;
 
-import BeamReferenceParser;
-
 options { tokenVocab = BeamLexer; }
 
 beamFile : file* EOF;
@@ -37,8 +35,8 @@ ifStmt       : IF expression controlBody (ELSEIF expression controlBody)* (ELSE 
 expression
     : value                          # ValueExpression
     | expression operator expression # ComparisonExpression
-    | expression OR expression       # OrExpression
     | expression AND expression      # AndExpression
+    | expression OR expression       # OrExpression
     ;
 
 operator     : EQ | NOTEQ;
@@ -57,6 +55,8 @@ value        : listValue | mapValue | stringValue | booleanValue | numberValue |
 numberValue  : DECIMAL_LITERAL | FLOAT_LITERAL;
 booleanValue : TRUE | FALSE;
 stringValue  : stringExpression | STRING_LITERAL;
+stringExpression : QUOTE stringContents* QUOTE;
+stringContents   : referenceBody | DOLLAR | LPAREN | RPAREN | TEXT;
 
 mapValue
     : LCURLY keyValue? (COMMA keyValue)* RCURLY
@@ -70,3 +70,18 @@ listValue
     ;
 
 listItemValue : stringValue | booleanValue | numberValue | referenceValue;
+
+referenceValue     : DOLLAR LPAREN referenceBody RPAREN ;
+referenceBody      : referenceType referenceName (PIPE queryExpression)* | referenceType referenceName | referenceType;
+referenceType      : IDENTIFIER (DOT IDENTIFIER)* ;
+referenceName      : ( (SLASH | GLOB | IDENTIFIER)* | stringExpression | IDENTIFIER (DOT IDENTIFIER)*) ;
+
+queryExpression
+    : queryField                          # QueryFieldValue
+    | queryField operator queryValue      # QueryComparisonExpression
+    | queryExpression AND queryExpression # QueryAndExpression
+    | queryExpression OR queryExpression  # QueryOrExpression
+    ;
+
+queryField : IDENTIFIER (DOT IDENTIFIER)*;
+queryValue : referenceValue | stringValue | booleanValue | numberValue;

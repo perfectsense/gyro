@@ -53,7 +53,8 @@ public class State {
         state.getPluginLoaders().addAll(pending.getPluginLoaders());
 
         for (FileScope pendingImport : pending.getImports()) {
-            Path pendingDir = Paths.get(pending.getFile()).getParent();
+            Path pendingDir = Paths.get(pending.getFile()).getParent() != null ?
+                Paths.get(pending.getFile()).getParent() : Paths.get(".");
             Path pendingImportFile = Paths.get(pendingImport.getFile());
 
             FileScope stateImport = new FileScope(

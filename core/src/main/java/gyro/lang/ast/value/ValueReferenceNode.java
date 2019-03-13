@@ -12,7 +12,7 @@ public class ValueReferenceNode extends Node {
     }
 
     @Override
-    public Object evaluate(Scope scope) {
+    public Object evaluate(Scope scope) throws Exception {
         return scope.find(path);
     }
 

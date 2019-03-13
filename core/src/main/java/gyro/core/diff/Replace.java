@@ -20,15 +20,19 @@ public class Replace extends Change {
         this.pendingDiffable = pendingDiffable;
         this.changedFields = changedFields;
 
-        Resource pendingResource = (Resource) pendingDiffable;
+        if (pendingDiffable instanceof Resource) {
+            Resource pendingResource = (Resource) pendingDiffable;
 
-        this.workflow = pendingResource.scope()
-                .getRootScope()
-                .getWorkflows()
-                .stream()
-                .filter(w -> w.getForType().equals(pendingResource.resourceType()))
-                .findFirst()
-                .orElse(null);
+            this.workflow = pendingResource.scope()
+                    .getRootScope()
+                    .getWorkflows()
+                    .stream()
+                    .filter(w -> w.getForType().equals(pendingResource.resourceType()))
+                    .findFirst()
+                    .orElse(null);
+        } else {
+            workflow = null;
+        }
     }
 
     @Override

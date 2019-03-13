@@ -24,7 +24,7 @@ public class FileScope extends Scope {
             file += ".gyro";
         }
 
-        if (parent != null) {
+        if (parent != null && Paths.get(parent.getFile()).getParent() != null) {
             file = Paths.get(parent.getFile()).getParent().resolve(file).toString();
         }
 

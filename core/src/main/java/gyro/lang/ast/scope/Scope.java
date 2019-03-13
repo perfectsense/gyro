@@ -18,6 +18,7 @@ public class Scope implements Map<String, Object> {
 
     private final Scope parent;
     private final Map<String, Object> values;
+    private final Map<String, Node> valueNodes = new HashMap<>();
     private final Map<String, Node> keyNodes = new HashMap<>();
 
     public Scope(Scope parent, Map<String, Object> values) {
@@ -31,10 +32,6 @@ public class Scope implements Map<String, Object> {
 
     public Scope getParent() {
         return parent;
-    }
-
-    public Map<String, Node> getKeyNodes() {
-        return keyNodes;
     }
 
     @SuppressWarnings("unchecked")
@@ -76,14 +73,16 @@ public class Scope implements Map<String, Object> {
         put(key, list);
     }
 
-    public Object find(String path) {
+    public Object find(String path) throws Exception {
         String[] keys = DOT_PATTERN.split(path);
         String firstKey = keys[0];
         Object value = null;
 
-        for (Scope s = this; s != null; s = s.parent) {
+        Scope startingScope = this instanceof DiffableScope ? this.parent : this;
+        for (Scope s = startingScope; s != null; s = s.parent) {
             if (s.containsKey(firstKey)) {
-                value = s.get(firstKey);
+                Node valueNode = s.valueNodes.get(firstKey);
+                value = valueNode == null ? s.get(firstKey) : valueNode.evaluate(s);
                 break;
             }
         }
@@ -114,6 +113,14 @@ public class Scope implements Map<String, Object> {
         }
 
         return value;
+    }
+
+    public void addValueNode(String key, Node value) {
+        valueNodes.put(key, value);
+    }
+
+    public Map<String, Node> getKeyNodes() {
+        return keyNodes;
     }
 
     @Override

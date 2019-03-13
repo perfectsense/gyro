@@ -81,7 +81,7 @@ public class LocalFileBackend extends FileBackend {
                     }
 
                     out.write("import ");
-                    out.write(dir.relativize(Paths.get(importFile)).toString());
+                    out.write(dir != null ? dir.relativize(Paths.get(importFile)).toString() : importFile);
                     out.write('\n');
                 }
 
