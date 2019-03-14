@@ -16,7 +16,7 @@ import gyro.lang.Credentials;
 import gyro.lang.Resource;
 import gyro.lang.ast.scope.DiffableScope;
 import gyro.lang.ast.scope.State;
-import gyro.plugin.validation.ValidationProcessor;
+import gyro.core.validations.ValidationProcessor;
 
 public class Diff {
 

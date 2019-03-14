@@ -1,8 +1,4 @@
-package gyro.plugin.validation.annotations.misc;
-
-import gyro.plugin.validation.annotations.AnnotationProcessorClass;
-import gyro.plugin.validation.annotations.GyroValidation;
-import gyro.plugin.validation.annotations.misc.validators.RequiredValidator;
+package gyro.core.validations;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -14,7 +10,6 @@ import java.lang.annotation.Target;
 @AnnotationProcessorClass(RequiredValidator.class)
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-@GyroValidation
 public @interface Required {
     String message() default "Required field.";
 }

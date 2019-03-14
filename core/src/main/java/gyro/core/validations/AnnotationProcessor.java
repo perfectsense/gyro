@@ -1,8 +1,8 @@
-package gyro.plugin.validation.annotations;
+package gyro.core.validations;
 
 import java.lang.annotation.Annotation;
 
-public interface AnnotationProcessor<A extends Annotation, T> {
+public interface AnnotationProcessor<A extends Annotation> {
     void initialize(A annotation);
 
     boolean isValid(Object value);

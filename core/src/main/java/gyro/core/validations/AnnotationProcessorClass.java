@@ -1,4 +1,4 @@
-package gyro.plugin.validation.annotations;
+package gyro.core.validations;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Documented;
@@ -11,5 +11,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.ANNOTATION_TYPE)
 public @interface AnnotationProcessorClass {
-    Class<? extends AnnotationProcessor<? extends Annotation, ?>> value();
+    Class<? extends AnnotationProcessor<? extends Annotation>> value();
 }
