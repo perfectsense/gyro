@@ -20,6 +20,11 @@ public class ImportNode extends Node {
                 .orElse(null);
     }
 
+    public ImportNode(String file, String name) {
+        this.file = file;
+        this.name = name;
+    }
+
     public void load(Scope scope) throws Exception {
         FileScope parentFileScope = scope.getFileScope();
         FileScope fileRootScope = new FileScope(parentFileScope, file);

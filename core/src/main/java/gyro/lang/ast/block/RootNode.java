@@ -1,10 +1,15 @@
 package gyro.lang.ast.block;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import gyro.core.BeamCore;
 import gyro.lang.Workflow;
 import gyro.lang.ast.DeferError;
 import gyro.lang.ast.ImportNode;
@@ -60,6 +65,15 @@ public class RootNode extends BlockNode {
 
                 body.add(node);
             }
+        }
+
+        File rootConfig = new File(scope.getFileScope().getFile());
+        Path configPath = Paths.get(rootConfig.getCanonicalPath());
+        Path pluginPath = BeamCore.findPluginConfigPath(configPath);
+
+        if (configPath.endsWith(".gyro") && !Files.isSameFile(pluginPath, configPath)) {
+            ImportNode pluginImport = new ImportNode(pluginPath.toString(), "_");
+            imports.add(pluginImport);
         }
 
         for (ImportNode i : imports) {
