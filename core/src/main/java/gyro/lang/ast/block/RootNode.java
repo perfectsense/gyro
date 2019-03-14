@@ -40,6 +40,15 @@ public class RootNode extends BlockNode {
         List<ResourceNode> workflowNodes = new ArrayList<>();
         List<Node> body = new ArrayList<>();
 
+        File rootConfig = new File(scope.getFileScope().getFile());
+        Path configPath = Paths.get(rootConfig.getCanonicalPath());
+        Path pluginPath = BeamCore.findPluginConfigPath(configPath);
+
+        if (configPath.toString().endsWith(".gyro") && !Files.isSameFile(pluginPath, configPath)) {
+            ImportNode pluginImport = new ImportNode(pluginPath.toString(), "_");
+            imports.add(pluginImport);
+        }
+
         for (Node node : this.body) {
             if (node instanceof ImportNode) {
                 imports.add((ImportNode) node);
@@ -68,17 +77,8 @@ public class RootNode extends BlockNode {
             }
         }
 
-        File rootConfig = new File(scope.getFileScope().getFile());
-        Path configPath = Paths.get(rootConfig.getCanonicalPath());
-        Path pluginPath = BeamCore.findPluginConfigPath(configPath);
-
-        if (configPath.endsWith(".gyro") && !Files.isSameFile(pluginPath, configPath)) {
-            if (!plugins.isEmpty()) {
-                throw new BeamLanguageException(String.format("Plugins are only allowed to be defined in '%s', found in '%s'.", pluginPath, configPath));
-            }
-
-            ImportNode pluginImport = new ImportNode(pluginPath.toString(), "_");
-            imports.add(pluginImport);
+        if (configPath.endsWith(".gyro") && !Files.isSameFile(pluginPath, configPath) && !plugins.isEmpty()) {
+            throw new BeamLanguageException(String.format("Plugins are only allowed to be defined in '%s', found in '%s'.", pluginPath, configPath));
         }
 
         for (ImportNode i : imports) {
