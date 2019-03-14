@@ -31,6 +31,10 @@ public class BeamCore {
         return findWorkingDirectory(path).resolve(Paths.get("plugins.gyro"));
     }
 
+    public static Path findEnterpriseConfigPath() {
+        return rootDir != null ? rootDir.resolve(Paths.get("enterprise.gyro")) : null;
+    }
+
     private static Path findWorkingDirectory(Path path) throws IOException {
         if (rootDir != null) {
             return rootDir;
