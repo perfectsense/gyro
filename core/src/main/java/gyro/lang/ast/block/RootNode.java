@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import gyro.core.BeamCore;
+import gyro.lang.BeamLanguageException;
 import gyro.lang.Workflow;
 import gyro.lang.ast.DeferError;
 import gyro.lang.ast.ImportNode;
@@ -72,6 +73,10 @@ public class RootNode extends BlockNode {
         Path pluginPath = BeamCore.findPluginConfigPath(configPath);
 
         if (configPath.endsWith(".gyro") && !Files.isSameFile(pluginPath, configPath)) {
+            if (!plugins.isEmpty()) {
+                throw new BeamLanguageException(String.format("Plugins are only allowed to be defined in '%s', found in '%s'.", pluginPath, configPath));
+            }
+
             ImportNode pluginImport = new ImportNode(pluginPath.toString(), "_");
             imports.add(pluginImport);
         }
