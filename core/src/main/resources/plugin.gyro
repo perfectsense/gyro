@@ -1,0 +1,7 @@
+plugin
+    artifact: 'gyro:gyro-${NAME}:${VERSION}'
+    repositories: [
+        'https://artifactory.psdops.com/public',
+        'https://artifactory.psdops.com/gyro-snapshots'
+    ]
+end
