@@ -26,7 +26,7 @@ public class InitCommand extends AbstractCommand {
         StringBuilder pluginBuilder = new StringBuilder();
         for (String plugin : arguments()) {
             if (!plugin.contains(":")) {
-                throw new BeamException(String.format("Plugins have to be specified with a version, i.e. %s:[version]", plugin));
+                throw new BeamException(String.format("Plugins have to be specified with a version, i.e. %s:<version>", plugin));
             }
 
             String name = plugin.split(":")[0];

@@ -57,6 +57,6 @@ public class BeamCore {
             path = path.getParent();
         }
 
-        throw new BeamException("Unable to find working directory, use `gyro init` to create one.");
+        throw new BeamException("Unable to find working directory, use `gyro init [<plugin>:<version>...]` to create one.");
     }
 }
