@@ -10,12 +10,13 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import gyro.core.BeamCore;
-import gyro.lang.BeamLanguageException;
+import gyro.core.BeamException;
 import gyro.lang.Workflow;
 import gyro.lang.ast.DeferError;
 import gyro.lang.ast.ImportNode;
 import gyro.lang.ast.KeyValueNode;
 import gyro.lang.ast.Node;
+import gyro.lang.ast.scope.FileScope;
 import gyro.lang.ast.scope.RootScope;
 import gyro.lang.ast.scope.Scope;
 import gyro.parser.antlr4.BeamParser;
@@ -44,9 +45,10 @@ public class RootNode extends BlockNode {
         Path configPath = Paths.get(rootConfig.getCanonicalPath());
         Path pluginPath = BeamCore.findPluginConfigPath(configPath);
 
-        if (configPath.toString().endsWith(".gyro") && !Files.isSameFile(pluginPath, configPath)) {
-            ImportNode pluginImport = new ImportNode(pluginPath.toString(), "_");
-            imports.add(pluginImport);
+        if (!Files.isSameFile(pluginPath, configPath)) {
+            FileScope parentFileScope = scope.getFileScope();
+            FileScope pluginScope = new FileScope(parentFileScope, pluginPath.toString());
+            parentFileScope.getBackend().load(pluginScope);
         }
 
         for (Node node : this.body) {
@@ -77,8 +79,8 @@ public class RootNode extends BlockNode {
             }
         }
 
-        if (configPath.endsWith(".gyro") && !Files.isSameFile(pluginPath, configPath) && !plugins.isEmpty()) {
-            throw new BeamLanguageException(String.format("Plugins are only allowed to be defined in '%s', found in '%s'.", pluginPath, configPath));
+        if (!Files.isSameFile(pluginPath, configPath) && !plugins.isEmpty()) {
+            throw new BeamException(String.format("Plugins are only allowed to be defined in '%s', found in '%s'.", pluginPath, configPath));
         }
 
         for (ImportNode i : imports) {
