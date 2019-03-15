@@ -28,7 +28,14 @@ public class BeamCore {
     }
 
     public static Path findPluginConfigPath(Path path) throws IOException {
-        return findWorkingDirectory(path).resolve(Paths.get("plugins.gyro"));
+        Path rootPath = findWorkingDirectory(path);
+        Path pluginPath = rootPath.resolve(Paths.get("plugins.gyro"));
+        if (!pluginPath.toFile().exists()) {
+            throw new BeamException(String.format(
+                "Unable to find 'plugins.gyro', use `gyro init [<plugin>:<version>...]` under '%s' directory to create it.", rootPath.getParent()));
+        }
+
+        return pluginPath;
     }
 
     public static Path findEnterpriseConfigPath() {
