@@ -41,16 +41,6 @@ public class RootNode extends BlockNode {
         List<ResourceNode> workflowNodes = new ArrayList<>();
         List<Node> body = new ArrayList<>();
 
-        File rootConfig = new File(scope.getFileScope().getFile());
-        Path configPath = Paths.get(rootConfig.getCanonicalPath());
-        Path pluginPath = BeamCore.findPluginConfigPath(configPath);
-
-        if (!Files.isSameFile(pluginPath, configPath)) {
-            FileScope parentFileScope = scope.getFileScope();
-            FileScope pluginScope = new FileScope(parentFileScope, pluginPath.toString());
-            parentFileScope.getBackend().load(pluginScope);
-        }
-
         for (Node node : this.body) {
             if (node instanceof ImportNode) {
                 imports.add((ImportNode) node);
@@ -79,8 +69,18 @@ public class RootNode extends BlockNode {
             }
         }
 
-        if (!Files.isSameFile(pluginPath, configPath) && !plugins.isEmpty()) {
-            throw new BeamException(String.format("Plugins are only allowed to be defined in '%s', found in '%s'.", pluginPath, configPath));
+        File rootConfig = new File(scope.getFileScope().getFile());
+        Path configPath = Paths.get(rootConfig.getCanonicalPath());
+        Path pluginPath = BeamCore.findPluginConfigPath(configPath);
+
+        if (!Files.isSameFile(pluginPath, configPath)) {
+            if (!plugins.isEmpty()) {
+                throw new BeamException(String.format("Plugins are only allowed to be defined in '%s', found in '%s'.", pluginPath, configPath));
+            }
+
+            FileScope parentFileScope = scope.getFileScope();
+            FileScope pluginScope = new FileScope(parentFileScope, pluginPath.toString());
+            parentFileScope.getBackend().load(pluginScope);
         }
 
         for (ImportNode i : imports) {
