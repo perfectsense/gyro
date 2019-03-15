@@ -41,16 +41,31 @@ public class InitCommand extends AbstractCommand {
         }
 
         File rootDir = new File(".gyro");
-        if (rootDir.exists()) {
-            throw new BeamException(String.format("Gyro config directory already exist at '%s'", rootDir.getCanonicalFile()));
-        }
+        if (!rootDir.exists()) {
+            rootDir.mkdirs();
+            File pluginsFile = new File(rootDir, "plugins.gyro");
+            try (FileWriter writer = new FileWriter(pluginsFile)) {
+                writer.write(pluginBuilder.toString());
+            }
 
-        rootDir.mkdirs();
-        File pluginsFile = new File(rootDir, "plugins.gyro");
-        try (FileWriter writer = new FileWriter(pluginsFile)) {
-            writer.write(pluginBuilder.toString());
-        }
+            BeamCore.ui().write("New Gyro working directory has been created.\n");
 
-        BeamCore.ui().write("New Gyro working directory has been created.\n");
+        } else if (rootDir.isDirectory()) {
+            if (BeamCore.ui().readBoolean(
+                    Boolean.FALSE,
+                    "\nFound existing Gyro working directory at '%s', are you sure you want to update plugins?",
+                    rootDir.getCanonicalPath())) {
+
+                File pluginsFile = new File(rootDir, "plugins.gyro");
+                try (FileWriter writer = new FileWriter(pluginsFile)) {
+                    writer.write(pluginBuilder.toString());
+                }
+
+                BeamCore.ui().write("Gyro working directory has been updated.\n");
+            }
+
+        } else {
+            throw new BeamException(String.format("Unable to update Gyro working directory, file already exist at '%s'", rootDir.getCanonicalPath()));
+        }
     }
 }
