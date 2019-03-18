@@ -1,6 +1,7 @@
 package gyro.lang.ast.block;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -145,7 +146,7 @@ public class ResourceNode extends BlockNode {
         resource.resourceType(type);
         resource.resourceIdentifier(name);
         resource.scope(bodyScope);
-        resource.initialize(bodyScope);
+        resource.initialize(another != null ? new LinkedHashMap<>(bodyScope) : bodyScope);
         scope.getFileScope().put(fullName, resource);
 
         return null;
