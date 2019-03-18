@@ -189,13 +189,13 @@ public class State {
         FileScope yScope = findScope(yFullName, rootScope);
 
         if (xScope != null && yScope != null) {
-            Resource x = (Resource) xScope.remove(xFullName);
-            Resource y = (Resource) yScope.remove(yFullName);
+            Resource x = (Resource) xScope.get(xFullName);
+            Resource y = (Resource) yScope.get(yFullName);
 
             x.resourceIdentifier(yName);
             y.resourceIdentifier(xName);
-            xScope.put(yFullName, x);
-            yScope.put(xFullName, y);
+            xScope.put(xFullName, y);
+            yScope.put(yFullName, x);
         }
     }
 
