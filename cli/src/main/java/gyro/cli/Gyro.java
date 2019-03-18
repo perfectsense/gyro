@@ -19,7 +19,6 @@ import org.reflections.util.ClasspathHelper;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -46,12 +45,18 @@ public class Gyro {
         Gyro gyro = new Gyro();
         BeamCore.pushUi(new CliBeamUI());
 
-        loadPlugins(gyro);
-
         try {
+            loadPlugins(gyro);
             gyro.init(Arrays.asList(arguments));
             gyro.run();
 
+        } catch (Throwable error) {
+            if (error instanceof BeamException) {
+                BeamCore.ui().writeError(error.getCause(), "\n@|red Error: %s|@\n", error.getMessage());
+
+            } else {
+                BeamCore.ui().writeError(error, "\n@|red Unexpected error! Stack trace follows:|@\n");
+            }
         } finally {
             BeamCore.popUi();
         }
@@ -89,56 +94,37 @@ public class Gyro {
         return commands;
     }
 
-    public void run() throws IOException {
-        try {
-            Object command = cli.parse(arguments);
+    public void run() throws Exception {
+        Object command = cli.parse(arguments);
 
-            if (command instanceof Runnable) {
-                ((Runnable) command).run();
+        if (command instanceof Runnable) {
+            ((Runnable) command).run();
 
-            } else if (command instanceof AbstractCommand) {
-                ((AbstractCommand) command).execute();
-            } else {
-                throw new IllegalStateException(String.format(
-                    "[%s] must be an instance of [%s] or [%s]!",
-                    command.getClass().getName(),
-                    Runnable.class.getName(),
-                    BeamCommand.class.getName()));
-            }
-
-        } catch (Throwable error) {
-            if (error instanceof BeamException) {
-                BeamCore.ui().writeError(error.getCause(), "\n@|red Error: %s|@\n", error.getMessage());
-
-            } else {
-                BeamCore.ui().writeError(error, "\n@|red Unexpected error! Stack trace follows:|@\n");
-            }
+        } else if (command instanceof AbstractCommand) {
+            ((AbstractCommand) command).execute();
+        } else {
+            throw new IllegalStateException(String.format(
+                "[%s] must be an instance of [%s] or [%s]!",
+                command.getClass().getName(),
+                Runnable.class.getName(),
+                BeamCommand.class.getName()));
         }
     }
 
-    public static void loadPlugins(Gyro gyro) {
-        try {
-            // Load GYRO_ROOT/.gyro/plugins.gyro
-            File plugins = BeamCore.findPluginPath().toFile();
-            if (plugins.exists() && plugins.isFile()) {
-                RootScope pluginConfig = new RootScope(plugins.toString());
+    public static void loadPlugins(Gyro gyro) throws Exception {
+        // Load GYRO_ROOT/.gyro/plugins.gyro
+        File plugins = BeamCore.findPluginPath().toFile();
+        if (plugins.exists() && plugins.isFile()) {
+            RootScope pluginConfig = new RootScope(plugins.toString());
 
-                new LocalFileBackend().load(pluginConfig);
+            new LocalFileBackend().load(pluginConfig);
 
-                for (PluginLoader loader : pluginConfig.getFileScope().getPluginLoaders()) {
-                    for (Class<?> c : loader.classes()) {
-                        if (BeamCommand.class.isAssignableFrom(c) && !Modifier.isAbstract(c.getModifiers())) {
-                            gyro.commands().add(c);
-                        }
+            for (PluginLoader loader : pluginConfig.getFileScope().getPluginLoaders()) {
+                for (Class<?> c : loader.classes()) {
+                    if (BeamCommand.class.isAssignableFrom(c) && !Modifier.isAbstract(c.getModifiers())) {
+                        gyro.commands().add(c);
                     }
                 }
-            }
-        } catch (Throwable error) {
-            if (error instanceof BeamException) {
-                BeamCore.ui().writeError(error.getCause(), "\n@|red Error: %s|@\n", error.getMessage());
-
-            } else {
-                BeamCore.ui().writeError(error, "\n@|red Unexpected error! Stack trace follows:|@\n");
             }
         }
     }
