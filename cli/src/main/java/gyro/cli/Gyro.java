@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Modifier;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -119,8 +118,8 @@ public class Gyro {
 
     public static void loadPlugins(Gyro gyro) {
         try {
-            // Load ~/.gyro/plugins.gyro
-            File plugins = Paths.get(getBeamUserHome(), ".gyro", "plugins.gyro").toFile();
+            // Load GYRO_ROOT/.gyro/plugins.gyro
+            File plugins = BeamCore.findPluginPath().toFile();
             if (plugins.exists() && plugins.isFile()) {
                 RootScope pluginConfig = new RootScope(plugins.toString());
 

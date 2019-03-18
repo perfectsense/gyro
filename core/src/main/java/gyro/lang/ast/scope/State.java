@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 
+import gyro.core.BeamCore;
 import gyro.core.diff.Change;
 import gyro.core.diff.Delete;
 import gyro.core.diff.Diffable;
@@ -38,6 +39,7 @@ public class State {
         root = new RootScope(getStateFile(pending.getFile()));
         this.test = test;
 
+        loadPlugins(root);
         load(pending, root);
     }
 
@@ -217,4 +219,9 @@ public class State {
         return null;
     }
 
+    private void loadPlugins(RootScope scope) throws Exception {
+        FileScope parentFileScope = scope.getFileScope();
+        FileScope pluginScope = new FileScope(parentFileScope, BeamCore.findPluginPath().toString());
+        parentFileScope.getBackend().load(pluginScope);
+    }
 }

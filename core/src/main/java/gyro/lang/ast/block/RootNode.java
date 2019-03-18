@@ -16,7 +16,6 @@ import gyro.lang.ast.DeferError;
 import gyro.lang.ast.ImportNode;
 import gyro.lang.ast.KeyValueNode;
 import gyro.lang.ast.Node;
-import gyro.lang.ast.scope.FileScope;
 import gyro.lang.ast.scope.RootScope;
 import gyro.lang.ast.scope.Scope;
 import gyro.parser.antlr4.BeamParser;
@@ -71,16 +70,13 @@ public class RootNode extends BlockNode {
 
         File rootConfig = new File(scope.getFileScope().getFile());
         Path configPath = Paths.get(rootConfig.getCanonicalPath());
-        Path pluginPath = BeamCore.findPluginConfigPath(configPath);
+        Path pluginPath = BeamCore.findPluginPath();
+        BeamCore.verifyConfig(configPath);
 
         if (!Files.isSameFile(pluginPath, configPath)) {
             if (!plugins.isEmpty()) {
                 throw new BeamException(String.format("Plugins are only allowed to be defined in '%s', found in '%s'.", pluginPath, configPath));
             }
-
-            FileScope parentFileScope = scope.getFileScope();
-            FileScope pluginScope = new FileScope(parentFileScope, pluginPath.toString());
-            parentFileScope.getBackend().load(pluginScope);
         }
 
         for (ImportNode i : imports) {

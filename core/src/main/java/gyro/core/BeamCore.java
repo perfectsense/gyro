@@ -13,8 +13,6 @@ public class BeamCore {
 
     private static final ThreadLocalStack<BeamUI> UI = new ThreadLocalStack<>();
 
-    private static Path rootDir = null;
-
     public static BeamUI ui() {
         return UI.get();
     }
@@ -27,8 +25,23 @@ public class BeamCore {
         return UI.pop();
     }
 
-    public static Path findPluginConfigPath(Path path) throws IOException {
-        Path rootPath = findWorkingDirectory(path);
+    public static boolean verifyConfig(Path path) throws IOException {
+        Path rootPath = findPluginPath().getParent();
+        Path configRootPath = findWorkingDirectory(path);
+
+        if (configRootPath == null || !Files.isSameFile(rootPath, configRootPath)) {
+            throw new BeamException(String.format("'%s' is not located within the current working directory '%s'!", path, rootPath.getParent()));
+        }
+
+        return true;
+    }
+
+    public static Path findPluginPath() throws IOException {
+        Path rootPath = findWorkingDirectory(Paths.get("").toAbsolutePath());
+        if (rootPath == null) {
+            throw new BeamException("Unable to find working directory, use `gyro init [<plugin>:<version>...]` to create one.");
+        }
+
         Path pluginPath = rootPath.resolve(Paths.get("plugins.gyro"));
         if (!pluginPath.toFile().exists()) {
             throw new BeamException(String.format(
@@ -38,15 +51,11 @@ public class BeamCore {
         return pluginPath;
     }
 
-    public static Path findEnterpriseConfigPath() {
-        return rootDir != null ? rootDir.resolve(Paths.get("enterprise.gyro")) : null;
+    public static Path findEnterpriseConfigPath() throws IOException {
+        return  findPluginPath().getParent().resolve(Paths.get("enterprise.gyro"));
     }
 
     private static Path findWorkingDirectory(Path path) throws IOException {
-        if (rootDir != null) {
-            return rootDir;
-        }
-
         while (path != null) {
             if (path.toFile().isDirectory()) {
                 try (Stream<Path> stream = Files.list(path)) {
@@ -55,8 +64,7 @@ public class BeamCore {
                         && t.getFileName().toString().equals(".gyro")).findAny();
 
                     if (optional.isPresent()) {
-                        rootDir = optional.get().normalize();
-                        return rootDir;
+                        return optional.get().normalize();
                     }
                 }
             }
@@ -64,6 +72,6 @@ public class BeamCore {
             path = path.getParent();
         }
 
-        throw new BeamException("Unable to find working directory, use `gyro init [<plugin>:<version>...]` to create one.");
+        return null;
     }
 }

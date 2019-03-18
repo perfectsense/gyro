@@ -58,6 +58,9 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         RootScope current = new RootScope(file);
         RootScope pending = new RootScope(current);
 
+        loadPlugins(current);
+        loadPlugins(pending);
+
         try {
             backend.load(current);
 
@@ -117,4 +120,9 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         }
     }
 
+    private void loadPlugins(RootScope scope) throws Exception {
+        FileScope parentFileScope = scope.getFileScope();
+        FileScope pluginScope = new FileScope(parentFileScope, BeamCore.findPluginPath().toString());
+        parentFileScope.getBackend().load(pluginScope);
+    }
 }
