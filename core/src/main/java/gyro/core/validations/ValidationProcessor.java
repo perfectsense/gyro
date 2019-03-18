@@ -1,6 +1,6 @@
 package gyro.core.validations;
 
-import com.google.common.base.CaseFormat;
+import com.psddev.dari.util.ObjectUtils;
 import gyro.core.diff.Diffable;
 
 import java.lang.annotation.Annotation;
@@ -23,6 +23,17 @@ public class ValidationProcessor {
             }
         }
 
+        for (Annotation annotation : diffable.getClass().getAnnotations()) {
+            if (annotation.annotationType().isAnnotationPresent(AnnotationProcessorClass.class)) {
+                String validationMessage = validateResourceAnnotation(annotation, diffable, indent);
+
+                if (!ObjectUtils.isBlank(validationMessage)) {
+                    errorList.add(validationMessage);
+                    break;
+                }
+            }
+        }
+
         if (!errorList.isEmpty()) {
             errorList.add(0,String.format("\n%sx %s", indent, resourceName));
         }
@@ -33,8 +44,6 @@ public class ValidationProcessor {
     private static List<String> validateMethod(Method method, Diffable diffable, String indent) {
         List<String> validationMessages = new ArrayList<>();
 
-        String fieldName = CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN, method.getName()).replace("get-", "");
-
         Object invokeObject;
 
         try {
@@ -42,29 +51,17 @@ public class ValidationProcessor {
 
             for (Annotation annotation : method.getAnnotations()) {
                 if (annotation.annotationType().isAnnotationPresent(AnnotationProcessorClass.class)) {
-                    AnnotationProcessorClass annotationProcessorClass = annotation.annotationType().getAnnotation(AnnotationProcessorClass.class);
-                    if (annotationProcessorClass != null) {
-                        if (invokeObject == null && !isValueReference(method, diffable)) {
-                            try {
-                                Class<?> cls = Class.forName(annotationProcessorClass.value().getName());
-                                Method getProcessor = cls.getMethod("getAnnotationProcessor");
-                                AnnotationProcessor annotationProcessor = (AnnotationProcessor) getProcessor.invoke(cls);
-                                annotationProcessor.initialize(annotation);
-
-                                if (!annotationProcessor.isValid(invokeObject)) {
-                                    validationMessages.add(0,
-                                        String.format("%s· %s: %s. %s", indent, fieldName, invokeObject, annotationProcessor.getMessage()));
-                                    break;
-                                }
-                            } catch (ClassNotFoundException | NoSuchMethodException ex) {
-                                ex.printStackTrace();
-                            }
-                        }
+                    String validationMessage = validateFieldAnnotation(invokeObject,annotation,method, diffable, indent);
+                    if (!ObjectUtils.isBlank(validationMessage)) {
+                        validationMessages.add(0, validationMessage);
+                        break;
                     }
                 }
             }
 
             if (invokeObject != null) {
+                String fieldName = ValidationUtils.getFieldName(method.getName());
+
                 List<String> errorList = new ArrayList<>();
                 if (invokeObject instanceof List) {
                     List invokeList = (List) invokeObject;
@@ -89,6 +86,54 @@ public class ValidationProcessor {
         }
 
         return validationMessages;
+    }
+
+    private static String validateFieldAnnotation(Object invokeObject, Annotation annotation, Method method, Diffable diffable, String indent)
+        throws IllegalAccessException, InvocationTargetException, IllegalArgumentException {
+        String validationMessage = "";
+        AnnotationProcessorClass annotationProcessorClass = annotation.annotationType().getAnnotation(AnnotationProcessorClass.class);
+        if (annotationProcessorClass != null) {
+            if (!isValueReference(method, diffable) || invokeObject != null) {
+                try {
+                    AnnotationProcessor annotationProcessor = getAnnotationProcessor(annotation, annotationProcessorClass);
+                    if (!annotationProcessor.isValid(invokeObject)) {
+                        validationMessage = String.format("%s· %s: %s. %s", indent,
+                            ValidationUtils.getFieldName(method.getName()), invokeObject, annotationProcessor.getMessage());
+                    }
+                } catch (ClassNotFoundException | NoSuchMethodException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
+
+        return validationMessage;
+    }
+
+    private static String validateResourceAnnotation(Annotation annotation, Diffable diffable, String indent) {
+        String validationMessage = "";
+        try {
+            AnnotationProcessorClass annotationProcessorClass = annotation.annotationType().getAnnotation(AnnotationProcessorClass.class);
+            if (annotationProcessorClass != null) {
+                AnnotationProcessor annotationProcessor = getAnnotationProcessor(annotation, annotationProcessorClass);
+
+                if (!annotationProcessor.isValid(diffable)) {
+                    validationMessage = String.format("%s· %s", indent, annotationProcessor.getMessage());
+                }
+            }
+        } catch (IllegalAccessException | InvocationTargetException | IllegalArgumentException | ClassNotFoundException | NoSuchMethodException ex) {
+            ex.printStackTrace();
+        }
+
+        return validationMessage;
+    }
+
+    private static AnnotationProcessor getAnnotationProcessor(Annotation annotation, AnnotationProcessorClass annotationProcessorClass)
+        throws IllegalAccessException, InvocationTargetException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException {
+        Class<?> cls = Class.forName(annotationProcessorClass.value().getName());
+        Method getProcessor = cls.getMethod("getAnnotationProcessor");
+        AnnotationProcessor annotationProcessor = (AnnotationProcessor) getProcessor.invoke(cls);
+        annotationProcessor.initialize(annotation);
+        return annotationProcessor;
     }
 
     private static boolean isValueReference(Method method, Diffable diffable) {

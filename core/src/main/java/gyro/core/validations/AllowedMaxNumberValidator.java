@@ -12,7 +12,7 @@ public class AllowedMaxNumberValidator extends AnnotationBaseProcessor<AllowedMa
 
     @Override
     boolean doValidation(Object value) {
-        double valueCheck = (double) value;
+        double valueCheck = value instanceof Integer ? (double) (Integer) value : value instanceof Long ? (double) (Long) value : (double) value;
         double refValue = annotation.value();
         int result = Double.compare(valueCheck, refValue);
 

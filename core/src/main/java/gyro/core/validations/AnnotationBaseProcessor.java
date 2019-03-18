@@ -15,7 +15,7 @@ public abstract class AnnotationBaseProcessor<A extends Annotation> implements A
     @Override
     public boolean isValid(Object value) {
         if (value == null) {
-            return false;
+            return true;
         }
 
         return doValidation(value);

@@ -1,11 +1,7 @@
 package gyro.core.validations;
 
-import com.psddev.dari.util.ObjectUtils;
-
-import java.util.List;
-import java.util.Map;
-
-public class RequiredValidator extends AnnotationBaseProcessor<Required> {
+public class RequiredValidator implements AnnotationProcessor<Required> {
+    private Required annotation;
     private static RequiredValidator constructor = null;
 
     private RequiredValidator() {
@@ -20,16 +16,13 @@ public class RequiredValidator extends AnnotationBaseProcessor<Required> {
     }
 
     @Override
-    public boolean doValidation(Object value) {
-        if (value instanceof List) {
-            return !((List) value).isEmpty();
-        } else if (value instanceof Map) {
-            return !((Map) value).isEmpty();
-        } else if (value instanceof String) {
-            return !ObjectUtils.isBlank(value);
-        } else {
-            return true;
-        }
+    public boolean isValid(Object value) {
+        return ValidationUtils.isNullOrEmpty(value);
+    }
+
+    @Override
+    public void initialize(Required annotation) {
+        this.annotation = annotation;
     }
 
     @Override
