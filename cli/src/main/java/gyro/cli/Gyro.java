@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.lang.reflect.Modifier;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -46,7 +47,7 @@ public class Gyro {
         BeamCore.pushUi(new CliBeamUI());
 
         try {
-            loadPlugins(gyro);
+            loadCommands(gyro);
             gyro.init(Arrays.asList(arguments));
             gyro.run();
 
@@ -111,18 +112,21 @@ public class Gyro {
         }
     }
 
-    public static void loadPlugins(Gyro gyro) throws Exception {
+    public static void loadCommands(Gyro gyro) throws Exception {
         // Load GYRO_ROOT/.gyro/plugins.gyro
-        File plugins = BeamCore.findPluginPath().toFile();
-        if (plugins.exists() && plugins.isFile()) {
-            RootScope pluginConfig = new RootScope(plugins.toString());
+        Path commandPluginPath = BeamCore.findCommandPluginPath();
+        if (commandPluginPath != null) {
+            File plugins = BeamCore.findPluginPath().toFile();
+            if (plugins.exists() && plugins.isFile()) {
+                RootScope pluginConfig = new RootScope(plugins.toString());
 
-            new LocalFileBackend().load(pluginConfig);
+                new LocalFileBackend().load(pluginConfig);
 
-            for (PluginLoader loader : pluginConfig.getFileScope().getPluginLoaders()) {
-                for (Class<?> c : loader.classes()) {
-                    if (BeamCommand.class.isAssignableFrom(c) && !Modifier.isAbstract(c.getModifiers())) {
-                        gyro.commands().add(c);
+                for (PluginLoader loader : pluginConfig.getFileScope().getPluginLoaders()) {
+                    for (Class<?> c : loader.classes()) {
+                        if (BeamCommand.class.isAssignableFrom(c) && !Modifier.isAbstract(c.getModifiers())) {
+                            gyro.commands().add(c);
+                        }
                     }
                 }
             }

@@ -51,6 +51,15 @@ public class BeamCore {
         return pluginPath;
     }
 
+    public static Path findCommandPluginPath() throws IOException {
+        Path rootPath = findWorkingDirectory(Paths.get("").toAbsolutePath());
+        if (rootPath != null) {
+            return rootPath.resolve(Paths.get("plugins.gyro"));
+        } else {
+            return null;
+        }
+    }
+
     public static Path findEnterpriseConfigPath() throws IOException {
         return  findPluginPath().getParent().resolve(Paths.get("enterprise.gyro"));
     }
