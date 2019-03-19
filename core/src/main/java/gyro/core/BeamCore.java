@@ -60,10 +60,6 @@ public class BeamCore {
         }
     }
 
-    public static Path findEnterpriseConfigPath() throws IOException {
-        return  findPluginPath().getParent().resolve(Paths.get("enterprise.gyro"));
-    }
-
     private static Path findWorkingDirectory(Path path) throws IOException {
         while (path != null) {
             if (path.toFile().isDirectory()) {
