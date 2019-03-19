@@ -39,13 +39,13 @@ public class BeamCore {
     public static Path findPluginPath() throws IOException {
         Path rootPath = findWorkingDirectory(Paths.get("").toAbsolutePath());
         if (rootPath == null) {
-            throw new BeamException("Unable to find gyro working directory, use `gyro init [<plugin>:<version>...]` to create one.");
+            throw new BeamException("Unable to find gyro working directory, use 'gyro init <plugins>...' to create one. See 'gyro help init' for detailed usage.");
         }
 
         Path pluginPath = rootPath.resolve(Paths.get("plugins.gyro"));
         if (!pluginPath.toFile().exists()) {
             throw new BeamException(String.format(
-                "Unable to find 'plugins.gyro', use `gyro init [<plugin>:<version>...]` under '%s' directory to create it.", rootPath.getParent()));
+                "Unable to find 'plugins.gyro', use 'gyro init <plugins>...' under '%s' directory to create it. See 'gyro help init' for detailed usage.", rootPath.getParent()));
         }
 
         return pluginPath;
