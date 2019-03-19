@@ -9,22 +9,27 @@ import io.airlift.airline.Command;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.util.ArrayList;
 import java.util.List;
 
 @Command(name = "init", description = "Initialize a Gyro working directory.")
 public class InitCommand extends AbstractCommand {
 
-    @Arguments
-    private List<String> arguments;
+    @Arguments(description = "A list of plugins specified in the format of <artifact>:<version>. For example: gyro-aws-provider:0.1-SNAPSHOT", required = true)
+    private List<String> plugins;
 
-    public List<String> arguments() {
-        return arguments;
+    public List<String> plugins() {
+        if (plugins == null) {
+            plugins = new ArrayList<>();
+        }
+
+        return plugins;
     }
 
     @Override
     protected void doExecute() throws Exception {
         StringBuilder pluginBuilder = new StringBuilder();
-        for (String plugin : arguments()) {
+        for (String plugin : plugins()) {
             if (!plugin.contains(":")) {
                 throw new BeamException(String.format("Plugins have to be specified with a version, i.e. %s:<version>", plugin));
             }
