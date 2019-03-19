@@ -73,7 +73,7 @@ public class Gyro {
             }
         }
 
-        String appName = "beam";
+        String appName = "gyro";
         if (System.getProperty("gyro.app") != null) {
             File appFile = new File(System.getProperty("gyro.app"));
             if (appFile.exists()) {
