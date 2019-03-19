@@ -116,7 +116,7 @@ public class Gyro {
         // Load GYRO_ROOT/.gyro/plugins.gyro
         Path commandPluginPath = BeamCore.findCommandPluginPath();
         if (commandPluginPath != null) {
-            File plugins = BeamCore.findPluginPath().toFile();
+            File plugins = commandPluginPath.toFile();
             if (plugins.exists() && plugins.isFile()) {
                 RootScope pluginConfig = new RootScope(plugins.toString());
 
