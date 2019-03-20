@@ -119,6 +119,10 @@ public class Scope implements Map<String, Object> {
         valueNodes.put(key, value);
     }
 
+    public Map<String, Node> getValueNodes() {
+        return valueNodes;
+    }
+
     public Map<String, Node> getKeyNodes() {
         return keyNodes;
     }
