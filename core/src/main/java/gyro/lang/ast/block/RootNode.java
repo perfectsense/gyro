@@ -73,10 +73,8 @@ public class RootNode extends BlockNode {
         Path pluginPath = BeamCore.findPluginPath();
         BeamCore.verifyConfig(configPath);
 
-        if (!Files.isSameFile(pluginPath, configPath)) {
-            if (!plugins.isEmpty()) {
-                throw new BeamException(String.format("Plugins are only allowed to be defined in '%s', found in '%s'.", pluginPath, configPath));
-            }
+        if (!plugins.isEmpty() && configPath.toFile().exists() && !Files.isSameFile(pluginPath, configPath)) {
+            throw new BeamException(String.format("Plugins are only allowed to be defined in '%s', found in '%s'.", pluginPath, configPath));
         }
 
         for (ImportNode i : imports) {
