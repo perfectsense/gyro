@@ -2,6 +2,8 @@ package gyro.lang.ast.value;
 
 import com.google.common.collect.ImmutableList;
 import gyro.core.BeamException;
+import gyro.core.diff.DiffableField;
+import gyro.core.diff.DiffableType;
 import gyro.lang.Credentials;
 import gyro.lang.Resource;
 import gyro.lang.ResourceFinder;
@@ -185,7 +187,16 @@ public class ResourceReferenceNode extends Node {
                 }
 
                 if (attribute != null) {
-                    return resource.get(attribute);
+                    if (DiffableType.getInstance(resource.getClass()).getFields().stream()
+                            .map(DiffableField::getBeamName)
+                            .anyMatch(attribute::equals)) {
+
+                        return resource.get(attribute);
+
+                    } else {
+                        throw new BeamException(String.format("%s %s %s%nAttribute '%s' is not allowed in %s.%n",
+                            resolveError, this, getLocation(), attribute, type));
+                    }
 
                 } else {
                     return resource;
