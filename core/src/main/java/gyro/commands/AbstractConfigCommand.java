@@ -14,6 +14,7 @@ import com.psddev.dari.util.StringUtils;
 import io.airlift.airline.Arguments;
 import io.airlift.airline.Option;
 
+import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +52,12 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
         FileBackend backend = new LocalFileBackend();
 
-        String file = StringUtils.ensureEnd(
+        String file = StringUtils.ensureEnd(arguments().get(0), ".gyro");
+        if (!Paths.get(file).toFile().exists()) {
+            throw new BeamException(String.format("'%s' does not found.", file));
+        }
+
+        file = StringUtils.ensureEnd(
                 StringUtils.removeEnd(arguments().get(0), ".gyro"),
                 ".gyro.state");
 
