@@ -32,6 +32,10 @@ public class LocalFileBackend extends FileBackend {
     public boolean load(FileScope scope) throws Exception {
         Path file = Paths.get(scope.getFile());
 
+        if (file.toString().endsWith(".state")) {
+            file = getStatePath(file);
+        }
+
         if (!Files.exists(file) || Files.isDirectory(file)) {
             return false;
         }
@@ -98,7 +102,7 @@ public class LocalFileBackend extends FileBackend {
 
             Files.move(
                     newFile,
-                    Paths.get(file),
+                    getStatePath(Paths.get(file)),
                     StandardCopyOption.ATOMIC_MOVE,
                     StandardCopyOption.REPLACE_EXISTING);
 
@@ -113,4 +117,15 @@ public class LocalFileBackend extends FileBackend {
 
     }
 
+    private Path getStatePath(Path file) throws IOException {
+        Path rootDir = BeamCore.findPluginPath().getParent().getParent();
+        Path relative = rootDir.relativize(file.toAbsolutePath());
+        Path statePath = Paths.get(rootDir.toString(), ".gyro", "state", relative.toString());
+
+        if (statePath.toFile().getParentFile() != null && !statePath.toFile().getParentFile().exists()) {
+            statePath.toFile().getParentFile().mkdirs();
+        }
+
+        return statePath;
+    }
 }
