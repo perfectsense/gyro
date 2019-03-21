@@ -71,7 +71,6 @@ public class RootNode extends BlockNode {
         File rootConfig = new File(scope.getFileScope().getFile());
         Path configPath = Paths.get(rootConfig.getCanonicalPath());
         Path pluginPath = BeamCore.findPluginPath();
-        BeamCore.verifyConfig(configPath);
 
         if (!plugins.isEmpty() && configPath.toFile().exists() && !Files.isSameFile(pluginPath, configPath)) {
             throw new BeamException(String.format("Plugins are only allowed to be defined in '%s', found in '%s'.", pluginPath, configPath));

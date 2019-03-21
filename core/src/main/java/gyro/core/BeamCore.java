@@ -27,7 +27,7 @@ public class BeamCore {
 
     public static boolean verifyConfig(Path path) throws IOException {
         Path rootPath = findPluginPath().getParent();
-        Path configRootPath = findWorkingDirectory(path);
+        Path configRootPath = findWorkingDirectory(Paths.get(path.toFile().getCanonicalPath()));
 
         if (configRootPath == null || !Files.isSameFile(rootPath, configRootPath)) {
             throw new BeamException(String.format("'%s' is not located within the current working directory '%s'!", path, rootPath.getParent()));

@@ -31,6 +31,7 @@ public class LocalFileBackend extends FileBackend {
     @Override
     public boolean load(FileScope scope) throws Exception {
         Path file = Paths.get(scope.getFile());
+        BeamCore.verifyConfig(file);
 
         if (file.toString().endsWith(".state")) {
             file = getStatePath(file);
