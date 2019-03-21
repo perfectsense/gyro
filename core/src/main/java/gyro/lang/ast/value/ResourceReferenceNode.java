@@ -179,7 +179,7 @@ public class ResourceReferenceNode extends Node {
                 Resource resource = scope.getRootScope().findResource(fullName);
 
                 if (resource == null) {
-                    throw new DeferError(this);
+                    throw new DeferError(this, String.format("Resource '%s %s' is not defined.", type, name));
                 }
 
                 if (attribute != null) {
