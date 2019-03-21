@@ -1,5 +1,6 @@
 package gyro.lang.ast;
 
+import gyro.core.BeamException;
 import gyro.lang.ast.scope.Scope;
 
 import java.util.ArrayList;
@@ -8,6 +9,7 @@ import java.util.List;
 public class DeferError extends Error {
 
     private final Node node;
+    private final String message;
 
     public static void evaluate(Scope scope, List<Node> body) throws Exception {
         int bodySize = body.size();
@@ -30,7 +32,18 @@ public class DeferError extends Error {
                 break;
 
             } else if (bodySize == deferred.size()) {
-                throw new RuntimeException(errors.toString());
+                StringBuilder sb = new StringBuilder();
+                for (DeferError error : errors) {
+                    sb.append("Unable to resolve reference ");
+                    sb.append(error.node.toString());
+                    sb.append(" ");
+                    sb.append(error.node.getLocation());
+                    sb.append("\n");
+                    sb.append(error.message);
+                    sb.append("\n");
+                }
+
+                throw new BeamException(sb.toString());
 
             } else {
                 body = deferred;
@@ -39,8 +52,9 @@ public class DeferError extends Error {
         }
     }
 
-    public DeferError(Node node) {
+    public DeferError(Node node, String message) {
         this.node = node;
+        this.message = message;
     }
 
     @Override
