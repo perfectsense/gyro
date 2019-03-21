@@ -9,6 +9,7 @@ import java.lang.annotation.Target;
 @Documented
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
+@RepeatableAnnotationProcessorClass(ConditionalNumberDependentsProcessor.class)
 public @interface ConditionalNumberDependents {
     ConditionalNumberDependent[] value();
 }
