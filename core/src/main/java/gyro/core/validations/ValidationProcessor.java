@@ -8,6 +8,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ValidationProcessor {
     public static List<String> validationMessages(Diffable diffable) {
@@ -29,7 +30,13 @@ public class ValidationProcessor {
 
                 if (!ObjectUtils.isBlank(validationMessage)) {
                     errorList.add(validationMessage);
-                    break;
+                    //break;
+                }
+            } else if (annotation.annotationType().isAnnotationPresent(RepeatableAnnotationProcessorClass.class)) {
+                List<String> errorMessages = validateRepeatableAnnotation(annotation, diffable, indent);
+
+                if (!errorMessages.isEmpty()) {
+                    errorList.addAll(errorMessages);
                 }
             }
         }
@@ -55,6 +62,12 @@ public class ValidationProcessor {
                     if (!ObjectUtils.isBlank(validationMessage)) {
                         validationMessages.add(0, validationMessage);
                         break;
+                    }
+                } else if (annotation.annotationType().isAnnotationPresent(RepeatableAnnotationProcessorClass.class)) {
+                    List<String> errorMessages = validateRepeatableAnnotation(annotation, invokeObject, indent);
+
+                    if (!errorMessages.isEmpty()) {
+                        validationMessages.addAll(errorMessages);
                     }
                 }
             }
@@ -134,6 +147,36 @@ public class ValidationProcessor {
         AnnotationProcessor annotationProcessor = (AnnotationProcessor) getProcessor.invoke(cls);
         annotationProcessor.initialize(annotation);
         return annotationProcessor;
+    }
+
+    private static List<String> validateRepeatableAnnotation(Annotation annotation, Object object, String indent) {
+        List<String> validationMessages = new ArrayList<>();
+        try {
+            RepeatableAnnotationProcessorClass annotationProcessorClass = annotation.annotationType()
+                .getAnnotation(RepeatableAnnotationProcessorClass.class);
+            if (annotationProcessorClass != null) {
+                RepeatableAnnotationProcessor annotationProcessor = getRepeatableAnnotationProcessor(annotation, annotationProcessorClass);
+
+                List<String> validations = (List<String>) annotationProcessor.getValidations(object);
+
+                if (!validations.isEmpty()) {
+                    validationMessages.addAll(validations.stream().map(o -> String.format("%s· %s", indent,o)).collect(Collectors.toList()));
+                }
+            }
+        } catch (IllegalAccessException | InvocationTargetException | IllegalArgumentException | ClassNotFoundException | NoSuchMethodException ex) {
+            ex.printStackTrace();
+        }
+        return validationMessages;
+    }
+
+    private static RepeatableAnnotationProcessor getRepeatableAnnotationProcessor(Annotation annotation,
+                                                                                  RepeatableAnnotationProcessorClass annotationProcessorClass)
+        throws IllegalAccessException, InvocationTargetException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException {
+        Class<?> cls = Class.forName(annotationProcessorClass.value().getName());
+        Method getProcessor = cls.getMethod("getRepeatableAnnotationProcessor");
+        RepeatableAnnotationProcessor repeatableAnnotationProcessor = (RepeatableAnnotationProcessor) getProcessor.invoke(cls);
+        repeatableAnnotationProcessor.initialize(annotation);
+        return repeatableAnnotationProcessor;
     }
 
     private static boolean isValueReference(Method method, Diffable diffable) {
