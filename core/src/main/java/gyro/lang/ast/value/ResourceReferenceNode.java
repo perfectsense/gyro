@@ -178,8 +178,10 @@ public class ResourceReferenceNode extends Node {
                 String fullName = type + "::" + name;
                 Resource resource = scope.getRootScope().findResource(fullName);
 
+                String resolveError = "Unable to resolve resource reference";
                 if (resource == null) {
-                    throw new DeferError(this, String.format("Resource '%s %s' is not defined.", type, name));
+                    throw new DeferError(this, String.format("%s %s %s%nResource '%s %s' is not defined.%n",
+                        resolveError, this, getLocation(), type, name));
                 }
 
                 if (attribute != null) {

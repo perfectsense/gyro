@@ -34,13 +34,7 @@ public class DeferError extends Error {
             } else if (bodySize == deferred.size()) {
                 StringBuilder sb = new StringBuilder();
                 for (DeferError error : errors) {
-                    sb.append("Unable to resolve reference ");
-                    sb.append(error.node.toString());
-                    sb.append(" ");
-                    sb.append(error.node.getLocation());
-                    sb.append("\n");
                     sb.append(error.message);
-                    sb.append("\n");
                 }
 
                 throw new BeamException(sb.toString());
