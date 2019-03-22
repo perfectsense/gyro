@@ -17,7 +17,7 @@ public class RequiredValidator implements AnnotationProcessor<Required> {
 
     @Override
     public boolean isValid(Object value) {
-        return ValidationUtils.isNullOrEmpty(value);
+        return ValidationUtils.isNotNullOrEmpty(value);
     }
 
     @Override

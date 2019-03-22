@@ -17,7 +17,9 @@ public @interface ConditionalStringDependent {
 
     String[] values();
 
-    String[] dependent();
+    String dependent();
+
+    String[] dependentValues();
 
     ValidationUtils.DependencyType type();
 

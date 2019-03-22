@@ -17,7 +17,7 @@ public class ValidationUtils {
         return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN, fieldName).replace("get-", "");
     }
 
-    static boolean isNullOrEmpty(Object value) {
+    static boolean isNotNullOrEmpty(Object value) {
         if (value != null) {
             if (value instanceof List) {
                 return !((List) value).isEmpty();

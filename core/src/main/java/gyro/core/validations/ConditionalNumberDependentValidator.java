@@ -33,7 +33,7 @@ public class ConditionalNumberDependentValidator extends AnnotationBaseProcessor
                         && (primaryFieldValues.length == 0
                         || Arrays.stream(primaryFieldValues).anyMatch(o -> o == getFieldValueNumber(primaryFieldValue)))) {
                         for (String requiredField : dependentFields) {
-                            if (!ValidationUtils.isNullOrEmpty(ValidationUtils.getValueFromField(requiredField, diffable))) {
+                            if (!ValidationUtils.isNotNullOrEmpty(ValidationUtils.getValueFromField(requiredField, diffable))) {
                                 isValid = false;
                                 break;
                             }

@@ -23,7 +23,8 @@ public class ConditionalStringDependentValidator extends AnnotationBaseProcessor
             Diffable diffable = (Diffable) value;
             String primaryFieldName = annotation.selected();
             String[] primaryFieldValues = annotation.values();
-            String[] dependentFields = annotation.dependent();
+            String dependentField = annotation.dependent();
+            String[] dependentFieldValues = annotation.dependentValues();
 
             try {
                 Object primaryFieldValue = ValidationUtils.getValueFromField(primaryFieldName, diffable);
@@ -31,15 +32,16 @@ public class ConditionalStringDependentValidator extends AnnotationBaseProcessor
                 if (annotation.type().equals(ValidationUtils.DependencyType.REQUIRED)) {
                     if (primaryFieldValue instanceof String
                         && (primaryFieldValues.length == 0 || Arrays.asList(primaryFieldValues).contains(primaryFieldValue))) {
-                        for (String requiredField : dependentFields) {
-                            if (!ValidationUtils.isNullOrEmpty(ValidationUtils.getValueFromField(requiredField, diffable))) {
+
+                        Object dependentFieldValue = ValidationUtils.getValueFromField(dependentField, diffable);
+
+                        if ((dependentFieldValues.length == 0 && !ValidationUtils.isNotNullOrEmpty(dependentFieldValue))
+                            || dependentFieldValue instanceof String && !Arrays.asList(dependentFieldValues).contains(dependentFieldValue)) {
                                 isValid = false;
-                                break;
-                            }
                         }
                     }
                 } else {
-                    if (primaryFieldValue == null
+                    /*if (!ValidationUtils.isNotNullOrEmpty(primaryFieldValue)
                         || ((primaryFieldValue instanceof String)
                         && (primaryFieldValues.length > 0)
                         && (!Arrays.asList(primaryFieldValues).contains(primaryFieldValue)))) {
@@ -49,7 +51,7 @@ public class ConditionalStringDependentValidator extends AnnotationBaseProcessor
                                 break;
                             }
                         }
-                    }
+                    }*/
                 }
 
             } catch (NoSuchMethodException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
@@ -62,7 +64,7 @@ public class ConditionalStringDependentValidator extends AnnotationBaseProcessor
 
     @Override
     public String getMessage() {
-        return String.format(annotation.message(),
+        /*return String.format(annotation.message(),
             (annotation.dependent().length == 1 ? "" : "s"),
             (annotation.dependent().length == 1
                 ? ValidationUtils.getFieldName(annotation.dependent()[0])
@@ -71,6 +73,7 @@ public class ConditionalStringDependentValidator extends AnnotationBaseProcessor
             (annotation.type().equals(ValidationUtils.DependencyType.REQUIRED) ? "Required" : "only Allowed"),
             ValidationUtils.getFieldName(annotation.selected()),
             (annotation.values().length == 0 ? "" : " to " + Arrays.toString(annotation.values()))
-        );
+        );*/
+        return "";
     }
 }
