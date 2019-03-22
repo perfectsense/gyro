@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.psddev.dari.util.ConversionException;
 import gyro.core.BeamException;
 import gyro.core.BeamUI;
 import gyro.lang.Resource;
@@ -120,7 +121,7 @@ public abstract class Diffable {
                 }
             }
 
-            field.setValue(this, value);
+            setValue(field, this, value);
             undefinedValues.remove(key);
         }
 
@@ -280,4 +281,19 @@ public abstract class Diffable {
         }
     }
 
+    protected void setValue(DiffableField field, Diffable diffable, Object value) {
+        Node node = scope().getKeyNodes().get(field.getBeamName());
+
+        try {
+            field.setValue(diffable, value);
+        } catch (ConversionException e) {
+            if (node != null) {
+                throw new BeamException(String.format("Type mismatch when setting field '%s' %s%n%s.%n",
+                    field.getBeamName(), node.getLocation(), node));
+            }
+
+            throw new BeamException(String.format("Type mismatch when setting field '%s' with '%s'.",
+                field.getBeamName(), value));
+        }
+    }
 }
