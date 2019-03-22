@@ -12,7 +12,7 @@ public class AllowedNumberRangeValidator extends AnnotationBaseProcessor<Allowed
 
     @Override
     boolean doValidation(Object value) {
-        double valueCheck = value instanceof Integer ? (double) (Integer) value : value instanceof Long ? (double) (Long) value : (double) value;
+        double valueCheck = ValidationUtils.getDoubleValue(value);
 
         return valueCheck >= annotation.low() && valueCheck <= annotation.high();
     }
@@ -20,9 +20,13 @@ public class AllowedNumberRangeValidator extends AnnotationBaseProcessor<Allowed
     @Override
     public String getMessage() {
         if (annotation.isDouble()) {
-            return String.format(annotation.message(), annotation.low(), annotation.high());
+            return String.format(annotation.message(),
+                annotation.low(),
+                annotation.high());
         } else {
-            return String.format(annotation.message(), (long) annotation.low(), (long) annotation.high());
+            return String.format(annotation.message(),
+                (long) annotation.low(),
+                (long) annotation.high());
         }
     }
 }

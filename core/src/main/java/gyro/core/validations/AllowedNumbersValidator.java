@@ -14,7 +14,7 @@ public class AllowedNumbersValidator extends AnnotationBaseProcessor<AllowedNumb
 
     @Override
     boolean doValidation(Object value) {
-        double valueCheck = value instanceof Integer ? (double) (Integer) value : value instanceof Long ? (double) (Long) value : (double) value;
+        double valueCheck = ValidationUtils.getDoubleValue(value);
         double[] refList = annotation.value();
         return Arrays.stream(refList).anyMatch(o -> o == valueCheck);
     }

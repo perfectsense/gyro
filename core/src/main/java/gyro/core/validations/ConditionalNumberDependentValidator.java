@@ -72,20 +72,20 @@ public class ConditionalNumberDependentValidator extends AnnotationBaseProcessor
             ValidationUtils.getFieldName(annotation.dependent()),
             (annotation.dependentValues().length == 0 ? "" : " with values "
                 + (!annotation.isDependentDouble()
-                ? Arrays.toString(Arrays.stream(annotation.dependentValues()).mapToLong(ValidationUtils::getLongFromDouble).toArray())
+                ? Arrays.toString(Arrays.stream(annotation.dependentValues()).mapToLong(o -> (long) o).toArray())
                 : Arrays.toString(annotation.dependentValues()))),
             (annotation.type().equals(ValidationUtils.DependencyType.REQUIRED) ? "Required" : "only Allowed"),
             ValidationUtils.getFieldName(annotation.selected()),
             (annotation.selectedValues().length == 0 ? "" : " to "
                 + (!annotation.isSelectedDouble()
-                ? Arrays.toString(Arrays.stream(annotation.selectedValues()).mapToLong(ValidationUtils::getLongFromDouble).toArray())
+                ? Arrays.toString(Arrays.stream(annotation.selectedValues()).mapToLong(o -> (long) o).toArray())
                 : Arrays.toString(annotation.selectedValues())))
         );
     }
 
     private Double getFieldValueNumber(Object value) {
         if (value != null) {
-            return (value instanceof Integer ? (double) (Integer) value : value instanceof Long ? (double) (Long) value : (double) value);
+            return ValidationUtils.getDoubleValue(value);
         } else {
             return null;
         }

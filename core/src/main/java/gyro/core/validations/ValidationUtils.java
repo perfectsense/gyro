@@ -45,7 +45,7 @@ public class ValidationUtils {
         return method.invoke(diffable);
     }
 
-    static long getLongFromDouble(double value) {
-        return (long) value;
+    static double getDoubleValue(Object value) {
+        return value instanceof Integer ? (double) (Integer) value : value instanceof Long ? (double) (Long) value : (double) value;
     }
 }

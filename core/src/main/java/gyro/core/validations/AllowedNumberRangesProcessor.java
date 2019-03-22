@@ -26,9 +26,13 @@ public class AllowedNumberRangesProcessor extends RepeatableAnnotationBaseProces
             annotationProcessor.initialize(allowedNumberRange);
             if (!annotationProcessor.isValid(value)) {
                 if (allowedNumberRange.isDouble()) {
-                    rangesString.add(String.format("[%s - %s]", allowedNumberRange.low(), allowedNumberRange.high()));
+                    rangesString.add(String.format("[%s - %s]",
+                        allowedNumberRange.low(),
+                        allowedNumberRange.high()));
                 } else {
-                    rangesString.add(String.format("[%s - %s]", (long) allowedNumberRange.low(), (long) allowedNumberRange.high()));
+                    rangesString.add(String.format("[%s - %s]",
+                        (long) allowedNumberRange.low(),
+                        (long) allowedNumberRange.high()));
                 }
             }
         }
