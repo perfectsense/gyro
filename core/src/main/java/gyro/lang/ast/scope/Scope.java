@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import gyro.core.BeamException;
 import gyro.lang.Resource;
 import gyro.lang.ast.Node;
 
@@ -73,18 +74,25 @@ public class Scope implements Map<String, Object> {
         put(key, list);
     }
 
-    public Object find(String path) throws Exception {
+    public Object find(String path, Node node) throws Exception {
         String[] keys = DOT_PATTERN.split(path);
         String firstKey = keys[0];
         Object value = null;
 
+        boolean found = false;
         Scope startingScope = this instanceof DiffableScope ? this.parent : this;
         for (Scope s = startingScope; s != null; s = s.parent) {
             if (s.containsKey(firstKey)) {
                 Node valueNode = s.valueNodes.get(firstKey);
                 value = valueNode == null ? s.get(firstKey) : valueNode.evaluate(s);
+                found = true;
                 break;
             }
+        }
+
+        if (!found) {
+            throw new BeamException(String.format("Unable to resolve value reference %s %s%n'%s' is not defined.%n",
+                node, node.getLocation(), firstKey));
         }
 
         if (value == null) {

@@ -1,5 +1,7 @@
 package gyro.lang.ast.scope;
 
+import gyro.lang.ast.Node;
+
 public class VirtualResourceScope extends Scope {
 
     private String name;
@@ -16,7 +18,7 @@ public class VirtualResourceScope extends Scope {
     }
 
     @Override
-    public Object find(String path) {
+    public Object find(String path, Node node) {
         return get(path);
     }
 }
