@@ -34,7 +34,7 @@ public abstract class Resource extends Diffable {
                     value += UUID.randomUUID().toString().replaceAll("-", "").substring(16);
                 }
 
-                field.setValue(this, value);
+                setValue(field, this, value);
             }
         }
     }
