@@ -22,7 +22,7 @@ public class ConditionalStringDependentValidator extends AnnotationBaseProcessor
         if (value instanceof Diffable) {
             Diffable diffable = (Diffable) value;
             String primaryFieldName = annotation.selected();
-            String[] primaryFieldValues = annotation.values();
+            String[] primaryFieldValues = annotation.selectedValues();
             String dependentField = annotation.dependent();
             String[] dependentFieldValues = annotation.dependentValues();
 
@@ -37,21 +37,22 @@ public class ConditionalStringDependentValidator extends AnnotationBaseProcessor
 
                         if ((dependentFieldValues.length == 0 && !ValidationUtils.isNotNullOrEmpty(dependentFieldValue))
                             || dependentFieldValue instanceof String && !Arrays.asList(dependentFieldValues).contains(dependentFieldValue)) {
-                                isValid = false;
+                            isValid = false;
                         }
                     }
                 } else {
-                    /*if (!ValidationUtils.isNotNullOrEmpty(primaryFieldValue)
+                    if (!ValidationUtils.isNotNullOrEmpty(primaryFieldValue)
                         || ((primaryFieldValue instanceof String)
                         && (primaryFieldValues.length > 0)
                         && (!Arrays.asList(primaryFieldValues).contains(primaryFieldValue)))) {
-                        for (String allowedField: dependentFields) {
-                            if (ValidationUtils.getValueFromField(allowedField, diffable) != null) {
-                                isValid = false;
-                                break;
-                            }
+
+                        Object dependentFieldValue = ValidationUtils.getValueFromField(dependentField, diffable);
+
+                        if ((dependentFieldValues.length == 0 && ValidationUtils.isNotNullOrEmpty(dependentFieldValue))
+                            || dependentFieldValue instanceof String && Arrays.asList(dependentFieldValues).contains(dependentFieldValue)) {
+                            isValid = false;
                         }
-                    }*/
+                    }
                 }
 
             } catch (NoSuchMethodException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
@@ -64,16 +65,12 @@ public class ConditionalStringDependentValidator extends AnnotationBaseProcessor
 
     @Override
     public String getMessage() {
-        /*return String.format(annotation.message(),
-            (annotation.dependent().length == 1 ? "" : "s"),
-            (annotation.dependent().length == 1
-                ? ValidationUtils.getFieldName(annotation.dependent()[0])
-                : Arrays.stream(annotation.dependent()).map(ValidationUtils::getFieldName).toArray()),
-            (annotation.dependent().length == 1 ? "is" : "are"),
+        return String.format(annotation.message(),
+            ValidationUtils.getFieldName(annotation.dependent()),
+            (annotation.dependentValues().length == 0 ? "" : " with values " + Arrays.toString(annotation.dependentValues())),
             (annotation.type().equals(ValidationUtils.DependencyType.REQUIRED) ? "Required" : "only Allowed"),
             ValidationUtils.getFieldName(annotation.selected()),
-            (annotation.values().length == 0 ? "" : " to " + Arrays.toString(annotation.values()))
-        );*/
-        return "";
+            (annotation.selectedValues().length == 0 ? "" : " to " + Arrays.toString(annotation.selectedValues()))
+        );
     }
 }

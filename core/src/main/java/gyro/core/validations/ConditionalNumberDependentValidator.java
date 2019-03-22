@@ -22,8 +22,9 @@ public class ConditionalNumberDependentValidator extends AnnotationBaseProcessor
         if (value instanceof Diffable) {
             Diffable diffable = (Diffable) value;
             String primaryFieldName = annotation.selected();
-            double[] primaryFieldValues = annotation.values();
-            String[] dependentFields = annotation.dependent();
+            double[] primaryFieldValues = annotation.selectedValues();
+            String dependentField = annotation.dependent();
+            double[] dependentFieldValues = annotation.dependentValues();
 
             try {
                 Object primaryFieldValue = ValidationUtils.getValueFromField(primaryFieldName, diffable);
@@ -32,11 +33,13 @@ public class ConditionalNumberDependentValidator extends AnnotationBaseProcessor
                     if (isValidNumber(primaryFieldValue)
                         && (primaryFieldValues.length == 0
                         || Arrays.stream(primaryFieldValues).anyMatch(o -> o == getFieldValueNumber(primaryFieldValue)))) {
-                        for (String requiredField : dependentFields) {
-                            if (!ValidationUtils.isNotNullOrEmpty(ValidationUtils.getValueFromField(requiredField, diffable))) {
-                                isValid = false;
-                                break;
-                            }
+
+                        Object dependentFieldValue = ValidationUtils.getValueFromField(dependentField, diffable);
+
+                        if ((dependentFieldValues.length == 0 && !ValidationUtils.isNotNullOrEmpty(dependentFieldValue))
+                            || isValidNumber(dependentFieldValue)
+                            && Arrays.stream(dependentFieldValues).noneMatch(o -> o == getFieldValueNumber(dependentFieldValue))) {
+                            isValid = false;
                         }
                     }
                 } else {
@@ -44,11 +47,13 @@ public class ConditionalNumberDependentValidator extends AnnotationBaseProcessor
                         || ((isValidNumber(primaryFieldValue)
                         && (primaryFieldValues.length > 0)
                         && (Arrays.stream(primaryFieldValues).noneMatch(o -> o == getFieldValueNumber(primaryFieldValue)))))) {
-                        for (String allowedField: dependentFields) {
-                            if (ValidationUtils.getValueFromField(allowedField, diffable) != null) {
-                                isValid = false;
-                                break;
-                            }
+
+                        Object dependentFieldValue = ValidationUtils.getValueFromField(dependentField, diffable);
+
+                        if ((dependentFieldValues.length == 0 && ValidationUtils.isNotNullOrEmpty(dependentFieldValue))
+                            || isValidNumber(dependentFieldValue)
+                            && Arrays.stream(dependentFieldValues).anyMatch(o -> o == getFieldValueNumber(dependentFieldValue))) {
+                            isValid = false;
                         }
                     }
                 }
@@ -64,14 +69,17 @@ public class ConditionalNumberDependentValidator extends AnnotationBaseProcessor
     @Override
     public String getMessage() {
         return String.format(annotation.message(),
-            (annotation.dependent().length == 1 ? "" : "s"),
-            (annotation.dependent().length == 1
-                ? ValidationUtils.getFieldName(annotation.dependent()[0])
-                : Arrays.stream(annotation.dependent()).map(ValidationUtils::getFieldName).toArray()),
-            (annotation.dependent().length == 1 ? "is" : "are"),
+            ValidationUtils.getFieldName(annotation.dependent()),
+            (annotation.dependentValues().length == 0 ? "" : " with values "
+                + (!annotation.isDependentDouble()
+                ? Arrays.toString(Arrays.stream(annotation.dependentValues()).mapToLong(ValidationUtils::getLongFromDouble).toArray())
+                : Arrays.toString(annotation.dependentValues()))),
             (annotation.type().equals(ValidationUtils.DependencyType.REQUIRED) ? "Required" : "only Allowed"),
             ValidationUtils.getFieldName(annotation.selected()),
-            (annotation.values().length == 0 ? "" : " to " + Arrays.toString(annotation.values()))
+            (annotation.selectedValues().length == 0 ? "" : " to "
+                + (!annotation.isSelectedDouble()
+                ? Arrays.toString(Arrays.stream(annotation.selectedValues()).mapToLong(ValidationUtils::getLongFromDouble).toArray())
+                : Arrays.toString(annotation.selectedValues())))
         );
     }
 

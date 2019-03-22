@@ -44,4 +44,8 @@ public class ValidationUtils {
         Method method = diffable.getClass().getMethod(methodName);
         return method.invoke(diffable);
     }
+
+    static long getLongFromDouble(double value) {
+        return (long) value;
+    }
 }

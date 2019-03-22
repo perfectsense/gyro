@@ -15,11 +15,17 @@ import java.lang.annotation.Target;
 public @interface ConditionalNumberDependent {
     String selected();
 
-    double[] values();
+    double[] selectedValues() default {};
 
-    String[] dependent();
+    boolean isSelectedDouble() default false;
+
+    String dependent();
+
+    double[] dependentValues() default {};
+
+    boolean isDependentDouble() default false;
 
     ValidationUtils.DependencyType type();
 
-    String message() default "Field%s %s %s %s when Field %s is set%s.";
+    String message() default "Field %s%s is %s when Field %s is set%s.";
 }

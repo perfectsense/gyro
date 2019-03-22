@@ -15,13 +15,13 @@ import java.lang.annotation.Target;
 public @interface ConditionalStringDependent {
     String selected();
 
-    String[] values();
+    String[] selectedValues() default {};
 
     String dependent();
 
-    String[] dependentValues();
+    String[] dependentValues() default {};
 
     ValidationUtils.DependencyType type();
 
-    String message() default "Field%s %s %s %s when Field %s is set%s.";
+    String message() default "Field %s%s is %s when Field %s is set%s.";
 }
