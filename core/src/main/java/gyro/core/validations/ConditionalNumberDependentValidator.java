@@ -70,13 +70,13 @@ public class ConditionalNumberDependentValidator extends AnnotationBaseProcessor
     public String getMessage() {
         return String.format(annotation.message(),
             ValidationUtils.getFieldName(annotation.dependent()),
-            (annotation.dependentValues().length == 0 ? "" : " with values "
+            (annotation.dependentValues().length == 0 ? "" : (annotation.dependentValues().length == 1 ? " with value " : " with values ")
                 + (!annotation.isDependentDouble()
                 ? Arrays.toString(Arrays.stream(annotation.dependentValues()).mapToLong(o -> (long) o).toArray())
                 : Arrays.toString(annotation.dependentValues()))),
             (annotation.type().equals(ValidationUtils.DependencyType.REQUIRED) ? "Required" : "only Allowed"),
             ValidationUtils.getFieldName(annotation.selected()),
-            (annotation.selectedValues().length == 0 ? "" : " to "
+            (annotation.selectedValues().length == 0 ? "" : " to one of "
                 + (!annotation.isSelectedDouble()
                 ? Arrays.toString(Arrays.stream(annotation.selectedValues()).mapToLong(o -> (long) o).toArray())
                 : Arrays.toString(annotation.selectedValues())))

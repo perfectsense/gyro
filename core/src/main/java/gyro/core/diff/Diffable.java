@@ -262,4 +262,8 @@ public abstract class Diffable {
         }
     }
 
+    public List<String> validations() {
+        return new ArrayList<>();
+    }
+
 }

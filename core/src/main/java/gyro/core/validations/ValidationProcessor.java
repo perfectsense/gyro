@@ -16,11 +16,11 @@ public class ValidationProcessor {
     }
 
     private static List<String> validateResource(Diffable diffable, String resourceName, String indent) {
-        List<String> errorList = new ArrayList<>();
+        List<String> validationMessages = new ArrayList<>();
         for (Method method : diffable.getClass().getMethods()) {
             if (method.getName().startsWith("get") && method.getParameterCount() == 0) {
-                List<String> errors = validateMethod(method, diffable, indent);
-                errorList.addAll(errors);
+                List<String> validateFieldMessages = validateFields(method, diffable, indent);
+                validationMessages.addAll(validateFieldMessages);
             }
         }
 
@@ -29,38 +29,47 @@ public class ValidationProcessor {
                 String validationMessage = validateResourceAnnotation(annotation, diffable, indent);
 
                 if (!ObjectUtils.isBlank(validationMessage)) {
-                    errorList.add(validationMessage);
+                    validationMessages.add(validationMessage);
                     //break;
                 }
             } else if (annotation.annotationType().isAnnotationPresent(RepeatableAnnotationProcessorClass.class)) {
-                List<String> errorMessages = validateRepeatableAnnotation(annotation, diffable, indent);
+                List<String> validateRepeatableAnnotationMessages = validateRepeatableAnnotation(annotation, diffable, indent);
 
-                if (!errorMessages.isEmpty()) {
-                    errorList.addAll(errorMessages);
+                if (!validateRepeatableAnnotationMessages.isEmpty()) {
+                    validationMessages.addAll(validateRepeatableAnnotationMessages);
                 }
             }
         }
 
-        if (!errorList.isEmpty()) {
-            errorList.add(0,String.format("\n%sx %s", indent, resourceName));
+        List<String> customValidations = diffable.validations();
+
+        validationMessages.addAll(customValidations.stream().map(message -> String.format("%s· %s", indent, message)).collect(Collectors.toList()));
+
+        for (Method method : diffable.getClass().getMethods()) {
+            if (method.getName().startsWith("get") && method.getParameterCount() == 0) {
+                List<String> validateComplexFieldMessages = validateComplexFields(method, diffable, indent);
+                validationMessages.addAll(validateComplexFieldMessages);
+            }
         }
 
-        return errorList;
+        if (!validationMessages.isEmpty()) {
+            validationMessages.add(0,String.format("\n%sx %s", indent, resourceName));
+        }
+
+        return validationMessages;
     }
 
-    private static List<String> validateMethod(Method method, Diffable diffable, String indent) {
+    private static List<String> validateFields(Method method, Diffable diffable, String indent) {
         List<String> validationMessages = new ArrayList<>();
 
-        Object invokeObject;
-
         try {
-            invokeObject = method.invoke(diffable);
+            Object invokeObject = method.invoke(diffable);
 
             for (Annotation annotation : method.getAnnotations()) {
                 if (annotation.annotationType().isAnnotationPresent(AnnotationProcessorClass.class)) {
-                    String validationMessage = validateFieldAnnotation(invokeObject,annotation,method, diffable, indent);
+                    String validationMessage = validateFieldAnnotation(invokeObject, annotation, method, diffable, indent);
                     if (!ObjectUtils.isBlank(validationMessage)) {
-                        validationMessages.add(0, validationMessage);
+                        validationMessages.add(validationMessage);
                         break;
                     }
                 } else if (annotation.annotationType().isAnnotationPresent(RepeatableAnnotationProcessorClass.class)) {
@@ -71,6 +80,18 @@ public class ValidationProcessor {
                     }
                 }
             }
+        } catch (IllegalAccessException | InvocationTargetException | IllegalArgumentException ex) {
+            ex.printStackTrace();
+        }
+
+        return validationMessages;
+    }
+
+    private static List<String> validateComplexFields(Method method, Diffable diffable, String indent) {
+        List<String> validationMessages = new ArrayList<>();
+
+        try {
+            Object invokeObject = method.invoke(diffable);
 
             if (invokeObject != null) {
                 String fieldName = ValidationUtils.getFieldName(method.getName());
@@ -94,6 +115,7 @@ public class ValidationProcessor {
                     validationMessages.addAll(errorList);
                 }
             }
+
         } catch (IllegalAccessException | InvocationTargetException | IllegalArgumentException ex) {
             ex.printStackTrace();
         }
