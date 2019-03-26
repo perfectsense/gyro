@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -33,6 +34,7 @@ public abstract class Diffable {
     private Diffable parent;
     private Change change;
     private Set<String> configuredFields;
+    private List<String> dependsOn;
 
     public DiffableScope scope() {
         return scope;
@@ -71,6 +73,47 @@ public abstract class Diffable {
 
     public Set<String> configuredFields() {
         return configuredFields != null ? configuredFields : Collections.emptySet();
+    }
+
+    public Set<Diffable> dependencies() {
+        if (scope() == null) {
+            return Collections.emptySet();
+        }
+
+        Set<Diffable> dependencies = new LinkedHashSet<>();
+        dependencies.addAll(scope().dependencies());
+        dependencies.addAll(scope().getRootScope().findAllResources().stream()
+            .filter(r -> getDependsOn().contains(String.format("%s %s", r.resourceType(), r.resourceIdentifier())))
+            .collect(Collectors.toSet()));
+
+        return dependencies;
+    }
+
+    public void addDependents(Diffable dependent) {
+        if (scope() != null) {
+            scope().dependents().add(dependent);
+        }
+    }
+
+    public Set<Diffable> dependents() {
+        if (scope() == null) {
+            return Collections.emptySet();
+        }
+
+        return scope().dependents();
+    }
+
+    public List<String> getDependsOn() {
+        if (dependsOn == null) {
+            dependsOn = new ArrayList<>();
+        }
+
+        Collections.sort(dependsOn);
+        return dependsOn;
+    }
+
+    public void setDependsOn(List<String> dependsOn) {
+        this.dependsOn = dependsOn;
     }
 
     public void initialize(Map<String, Object> values) {
@@ -137,6 +180,16 @@ public abstract class Diffable {
                 throw new BeamException(String.format("Field '%s' is not allowed", entry.getKey()));
             }
         }
+
+        Set<String> dependsOn = new LinkedHashSet<>();
+        for (Diffable dependency : dependencies()) {
+            if (dependency instanceof Resource) {
+                Resource resource = (Resource) dependency;
+                dependsOn.add(String.format("%s %s", resource.resourceType(), resource.resourceIdentifier()));
+            }
+        }
+
+        setDependsOn(new ArrayList<>(dependsOn));
     }
 
     private Object toDiffable(String key, Class<? extends Diffable> diffableClass, Object object) {

@@ -141,4 +141,16 @@ public abstract class Change {
         writeMap(ui, " @|red -{|@ %s @|red }|@", map, this::stringify);
     }
 
+    protected boolean isCompleted() {
+        return true;
+    }
+
+    public boolean isReady() {
+        boolean ready = true;
+        for (Diffable diffable : getDiffable().dependencies()) {
+            ready = ready && diffable.change().isCompleted();
+        }
+
+        return ready;
+    }
 }

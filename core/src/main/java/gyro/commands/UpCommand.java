@@ -3,6 +3,8 @@ package gyro.commands;
 import gyro.core.BeamCore;
 import gyro.core.BeamUI;
 import gyro.core.diff.Diff;
+import gyro.core.diff.Diffable;
+import gyro.lang.Resource;
 import gyro.lang.ast.scope.RootScope;
 import gyro.lang.ast.scope.State;
 import io.airlift.airline.Command;
@@ -25,6 +27,13 @@ public class UpCommand extends AbstractConfigCommand {
         if (diff.write(ui)) {
             if (ui.readBoolean(Boolean.FALSE, "\nAre you sure you want to change resources?")) {
                 ui.write("\n");
+
+                for (Resource resource : current.findAllResources()) {
+                    for (Diffable diffable : resource.dependencies()) {
+                        diffable.addDependents(resource);
+                    }
+                }
+
                 diff.executeCreateOrUpdate(ui, state);
                 diff.executeReplace(ui, state);
                 diff.executeDelete(ui, state);

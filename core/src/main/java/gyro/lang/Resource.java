@@ -43,6 +43,18 @@ public abstract class Resource extends Diffable {
 
     public abstract void delete();
 
+    public boolean isCreated() {
+        return true;
+    }
+
+    public boolean isUpdated() {
+        return true;
+    }
+
+    public boolean isDeleted() {
+        return true;
+    }
+
     public abstract Class resourceCredentialsClass();
 
     public Credentials resourceCredentials() {

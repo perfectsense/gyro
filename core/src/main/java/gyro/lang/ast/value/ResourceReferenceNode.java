@@ -15,6 +15,7 @@ import gyro.lang.ast.query.FieldValueQuery;
 import gyro.lang.ast.query.FoundQuery;
 import gyro.lang.ast.query.OrQuery;
 import gyro.lang.ast.query.Query;
+import gyro.lang.ast.scope.DiffableScope;
 import gyro.lang.ast.scope.RootScope;
 import gyro.lang.ast.scope.Scope;
 import gyro.parser.antlr4.BeamParser;
@@ -184,6 +185,11 @@ public class ResourceReferenceNode extends Node {
                 if (resource == null) {
                     throw new DeferError(this, String.format("%s %s %s%nResource '%s %s' is not defined.%n",
                         resolveError, this, getLocation(), type, name));
+                }
+
+                DiffableScope diffableScope = scope.getClosest(DiffableScope.class);
+                if (diffableScope != null) {
+                    diffableScope.dependencies().add(resource);
                 }
 
                 if (attribute != null) {

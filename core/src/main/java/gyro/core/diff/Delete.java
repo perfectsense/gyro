@@ -36,4 +36,24 @@ public class Delete extends Change {
         return true;
     }
 
+    @Override
+    protected boolean isCompleted() {
+        boolean completed = true;
+        if (getDiffable() instanceof Resource) {
+            Resource resource = (Resource) getDiffable();
+            completed = changed.get() && resource.isDeleted();
+        }
+
+        return completed;
+    }
+
+    @Override
+    public boolean isReady() {
+        boolean ready = true;
+        for (Diffable diffable : getDiffable().dependents()) {
+            ready = ready && diffable.change().isCompleted();
+        }
+
+        return ready;
+    }
 }

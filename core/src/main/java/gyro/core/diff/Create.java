@@ -57,4 +57,14 @@ public class Create extends Change {
         return true;
     }
 
+    @Override
+    protected boolean isCompleted() {
+        boolean completed = true;
+        if (getDiffable() instanceof Resource) {
+            Resource resource = (Resource) getDiffable();
+            completed = changed.get() && resource.isCreated();
+        }
+
+        return completed;
+    }
 }

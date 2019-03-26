@@ -62,4 +62,14 @@ public class Update extends Change {
         return true;
     }
 
+    @Override
+    protected boolean isCompleted() {
+        boolean completed = true;
+        if (getDiffable() instanceof Resource) {
+            Resource resource = (Resource) getDiffable();
+            completed = changed.get() && resource.isUpdated();
+        }
+
+        return completed;
+    }
 }
