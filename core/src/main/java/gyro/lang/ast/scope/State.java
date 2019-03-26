@@ -12,6 +12,7 @@ import gyro.core.diff.Delete;
 import gyro.core.diff.Diffable;
 import gyro.core.diff.DiffableField;
 import gyro.core.diff.DiffableType;
+import gyro.core.diff.Replace;
 import gyro.core.diff.ResourceName;
 import gyro.core.diff.ResourceNames;
 import gyro.lang.Resource;
@@ -75,6 +76,10 @@ public class State {
     }
 
     public void update(Change change) throws Exception {
+        if (change instanceof Replace) {
+            return;
+        }
+
         Diffable diffable = change.getDiffable();
 
         if (!(diffable instanceof Resource)) {
@@ -189,13 +194,13 @@ public class State {
         FileScope yScope = findScope(yFullName, rootScope);
 
         if (xScope != null && yScope != null) {
-            Resource x = (Resource) xScope.remove(xFullName);
-            Resource y = (Resource) yScope.remove(yFullName);
+            Resource x = (Resource) xScope.get(xFullName);
+            Resource y = (Resource) yScope.get(yFullName);
 
             x.resourceIdentifier(yName);
             y.resourceIdentifier(xName);
-            xScope.put(yFullName, x);
-            yScope.put(xFullName, y);
+            xScope.put(xFullName, y);
+            yScope.put(yFullName, x);
         }
     }
 
