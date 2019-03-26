@@ -1,5 +1,12 @@
 sudo: false
 
+if: type = push
+
+branches:
+  only:
+    - master
+    - /^release\/.*/
+
 matrix:
   include:
     # Linux
