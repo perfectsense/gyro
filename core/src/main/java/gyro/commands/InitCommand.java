@@ -15,7 +15,7 @@ import java.util.List;
 @Command(name = "init", description = "Initialize a Gyro working directory.")
 public class InitCommand extends AbstractCommand {
 
-    @Arguments(description = "A list of plugins specified in the format of <group>:<artifact>:<version>. For example: gyro:gyro-aws-provider:0.1-SNAPSHOT", required = true)
+    @Arguments(description = "A list of plugins specified in the format of <group>:<artifact>:<version>. For example: gyro:gyro-aws-provider:0.1-SNAPSHOT")
     private List<String> plugins;
 
     public List<String> plugins() {
