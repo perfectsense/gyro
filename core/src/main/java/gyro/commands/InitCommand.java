@@ -15,7 +15,7 @@ import java.util.List;
 @Command(name = "init", description = "Initialize a Gyro working directory.")
 public class InitCommand extends AbstractCommand {
 
-    @Arguments(description = "A list of plugins specified in the format of <artifact>:<version>. For example: gyro-aws-provider:0.1-SNAPSHOT", required = true)
+    @Arguments(description = "A list of plugins specified in the format of <group>:<artifact>:<version>. For example: gyro:gyro-aws-provider:0.1-SNAPSHOT", required = true)
     private List<String> plugins;
 
     public List<String> plugins() {
@@ -30,16 +30,19 @@ public class InitCommand extends AbstractCommand {
     protected void doExecute() throws Exception {
         StringBuilder pluginBuilder = new StringBuilder();
         for (String plugin : plugins()) {
-            if (!plugin.contains(":")) {
-                throw new BeamException(String.format("Plugins have to be specified with a version, i.e. %s:<version>", plugin));
+            String [] parts = plugin.split(":");
+            if (parts.length != 3) {
+                throw new BeamException("Plugins have to be specified in the format of <group>:<artifact>:<version>. For example: gyro:gyro-aws-provider:0.1-SNAPSHOT");
             }
 
-            String name = plugin.split(":")[0];
-            String version = plugin.split(":")[1];
+            String group = plugin.split(":")[0];
+            String artifact = plugin.split(":")[1];
+            String version = plugin.split(":")[2];
 
             String template = IoUtils.toString(getClass().getResourceAsStream("/plugin.gyro"), Charsets.UTF_8);
 
-            template = template.replaceAll("\\$\\{NAME}", name);
+            template = template.replaceAll("\\$\\{GROUP}", group);
+            template = template.replaceAll("\\$\\{ARTIFACT}", artifact);
             template = template.replaceAll("\\$\\{VERSION}", version);
             pluginBuilder.append(template);
             pluginBuilder.append("\n");

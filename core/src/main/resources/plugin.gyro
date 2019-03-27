@@ -1,5 +1,5 @@
 plugin
-    artifact: 'gyro:${NAME}:${VERSION}'
+    artifact: '${GROUP}:${ARTIFACT}:${VERSION}'
     repositories: [
         'https://artifactory.psdops.com/public',
         'https://artifactory.psdops.com/gyro-snapshots'
