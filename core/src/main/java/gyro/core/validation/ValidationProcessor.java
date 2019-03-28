@@ -24,23 +24,6 @@ public class ValidationProcessor {
             }
         }
 
-        for (Annotation annotation : diffable.getClass().getAnnotations()) {
-            if (annotation.annotationType().isAnnotationPresent(AnnotationProcessorClass.class)) {
-                String validationMessage = validateResourceAnnotation(annotation, diffable, indent);
-
-                if (!ObjectUtils.isBlank(validationMessage)) {
-                    validationMessages.add(validationMessage);
-                    //break;
-                }
-            } else if (annotation.annotationType().isAnnotationPresent(RepeatableAnnotationProcessorClass.class)) {
-                List<String> validateRepeatableAnnotationMessages = validateRepeatableAnnotation(annotation, diffable, indent, null);
-
-                if (!validateRepeatableAnnotationMessages.isEmpty()) {
-                    validationMessages.addAll(validateRepeatableAnnotationMessages);
-                }
-            }
-        }
-
         List<String> customValidations = diffable.validations();
 
         validationMessages.addAll(customValidations.stream().map(message -> String.format("%s· %s", indent, message)).collect(Collectors.toList()));
@@ -139,24 +122,6 @@ public class ValidationProcessor {
                     ex.printStackTrace();
                 }
             }
-        }
-
-        return validationMessage;
-    }
-
-    private static String validateResourceAnnotation(Annotation annotation, Diffable diffable, String indent) {
-        String validationMessage = "";
-        try {
-            AnnotationProcessorClass annotationProcessorClass = annotation.annotationType().getAnnotation(AnnotationProcessorClass.class);
-            if (annotationProcessorClass != null) {
-                AnnotationProcessor annotationProcessor = getAnnotationProcessor(annotation, annotationProcessorClass);
-
-                if (!annotationProcessor.isValid(diffable)) {
-                    validationMessage = String.format("%s· %s", indent, annotationProcessor.getMessage());
-                }
-            }
-        } catch (IllegalAccessException | InvocationTargetException | IllegalArgumentException | ClassNotFoundException | NoSuchMethodException ex) {
-            ex.printStackTrace();
         }
 
         return validationMessage;
