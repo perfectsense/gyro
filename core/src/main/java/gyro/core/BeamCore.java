@@ -27,7 +27,7 @@ public class BeamCore {
 
     public static boolean verifyConfig(Path path) throws IOException {
         Path rootPath = findPluginPath().getParent();
-        Path configRootPath = findWorkingDirectory(Paths.get(path.toFile().getCanonicalPath()));
+        Path configRootPath = findRootDirectory(Paths.get(path.toFile().getCanonicalPath()));
 
         if (configRootPath == null || !Files.isSameFile(rootPath, configRootPath)) {
             throw new BeamException(String.format("'%s' is not located within the current working directory '%s'!", path, rootPath.getParent()));
@@ -37,7 +37,7 @@ public class BeamCore {
     }
 
     public static Path findPluginPath() throws IOException {
-        Path rootPath = findWorkingDirectory(Paths.get("").toAbsolutePath());
+        Path rootPath = findRootDirectory(Paths.get("").toAbsolutePath());
         if (rootPath == null) {
             throw new BeamException("Unable to find gyro working directory, use 'gyro init <plugins>...' to create one. See 'gyro help init' for detailed usage.");
         }
@@ -52,7 +52,7 @@ public class BeamCore {
     }
 
     public static Path findCommandPluginPath() throws IOException {
-        Path rootPath = findWorkingDirectory(Paths.get("").toAbsolutePath());
+        Path rootPath = findRootDirectory(Paths.get("").toAbsolutePath());
         if (rootPath != null) {
             return rootPath.resolve(Paths.get("plugins.gyro"));
         } else {
@@ -60,7 +60,7 @@ public class BeamCore {
         }
     }
 
-    private static Path findWorkingDirectory(Path path) throws IOException {
+    private static Path findRootDirectory(Path path) throws IOException {
         while (path != null) {
             if (path.toFile().isDirectory()) {
                 try (Stream<Path> stream = Files.list(path)) {
