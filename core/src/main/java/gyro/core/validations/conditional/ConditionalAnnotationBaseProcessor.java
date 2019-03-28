@@ -1,6 +1,9 @@
-package gyro.core.validations;
+package gyro.core.validations.conditional;
 
 import java.lang.annotation.Annotation;
+
+import gyro.core.validations.AnnotationProcessor;
+import gyro.core.validations.ValidationUtils;
 import gyro.core.validations.ValidationUtils.DependencyType;
 import gyro.core.validations.ValidationUtils.FieldType;
 import java.util.Arrays;
@@ -32,7 +35,7 @@ public abstract class ConditionalAnnotationBaseProcessor<A extends Annotation> i
         return doValidation(value);
     }
 
-    protected boolean selectedValidation(Object selectedFieldValue, DependencyType dependencyType, FieldType fieldType) {
+    boolean selectedValidation(Object selectedFieldValue, DependencyType dependencyType, FieldType fieldType) {
         if (fieldType.equals(FieldType.STRING)) {
             String[] selectedValidValues = (String[]) getSelectedValues();
 
@@ -148,7 +151,7 @@ public abstract class ConditionalAnnotationBaseProcessor<A extends Annotation> i
         }
     }
 
-    protected boolean dependentValidation(Object dependentFieldValue, DependencyType dependencyType, FieldType fieldType) {
+    boolean dependentValidation(Object dependentFieldValue, DependencyType dependencyType, FieldType fieldType) {
         if (fieldType.equals(FieldType.STRING)) {
             String[] dependentValues = (String[]) getDependentValues();
 

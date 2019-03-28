@@ -2,7 +2,6 @@ package gyro.core.validations.conditional;
 
 import gyro.core.diff.Diffable;
 import gyro.core.validations.AnnotationProcessor;
-import gyro.core.validations.ConditionalAnnotationBaseProcessor;
 import gyro.core.validations.ValidationUtils;
 
 import java.lang.reflect.InvocationTargetException;
