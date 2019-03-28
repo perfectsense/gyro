@@ -5,10 +5,11 @@ import gyro.core.diff.Diffable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 
-public class ConditionalNumberDependentValidator extends ConditionalAnnotationBaseProcessor<ConditionalNumberDependent> {
-    private static ConditionalNumberDependentValidator constructor = new ConditionalNumberDependentValidator();
+public class ConditionalStringForBooleanValidator extends ConditionalAnnotationBaseProcessor<ConditionalStringForBoolean> {
+    private static ConditionalStringForBooleanValidator constructor = new ConditionalStringForBooleanValidator();
 
-    private ConditionalNumberDependentValidator() {
+    private ConditionalStringForBooleanValidator() {
+
     }
 
     public static AnnotationProcessor getAnnotationProcessor() {
@@ -22,7 +23,7 @@ public class ConditionalNumberDependentValidator extends ConditionalAnnotationBa
 
     @Override
     protected Object getDependentValues() {
-        return annotation.dependentValues();
+        return annotation.dependentValue();
     }
 
     @Override
@@ -35,9 +36,9 @@ public class ConditionalNumberDependentValidator extends ConditionalAnnotationBa
             try {
                 Object selectedFieldValue = ValidationUtils.getValueFromField(annotation.selected(), diffable);
 
-                if (selectedValidation(selectedFieldValue, annotation.type(), ValidationUtils.FieldType.NUMBER)) {
+                if (selectedValidation(selectedFieldValue, annotation.type(), ValidationUtils.FieldType.STRING)) {
                     Object dependentFieldValue = ValidationUtils.getValueFromField(annotation.dependent(), diffable);
-                    isValid = dependentValidation(dependentFieldValue, annotation.type(), ValidationUtils.FieldType.NUMBER);
+                    isValid = dependentValidation(dependentFieldValue, annotation.type(), ValidationUtils.FieldType.BOOLEAN);
                 }
 
             } catch (NoSuchMethodException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
@@ -52,16 +53,10 @@ public class ConditionalNumberDependentValidator extends ConditionalAnnotationBa
     public String getMessage() {
         return String.format(annotation.message(),
             ValidationUtils.getFieldName(annotation.dependent()),
-            (annotation.dependentValues().length == 0 ? "" : (annotation.dependentValues().length == 1 ? " with value " : " with values ")
-                + (!annotation.isDependentDouble()
-                ? Arrays.toString(Arrays.stream(annotation.dependentValues()).mapToLong(o -> (long) o).toArray())
-                : Arrays.toString(annotation.dependentValues()))),
+            " with value " + annotation.dependentValue(),
             (annotation.type().equals(ValidationUtils.DependencyType.REQUIRED) ? "Required" : "only Allowed"),
             ValidationUtils.getFieldName(annotation.selected()),
-            (annotation.selectedValues().length == 0 ? "" : " to one of "
-                + (!annotation.isSelectedDouble()
-                ? Arrays.toString(Arrays.stream(annotation.selectedValues()).mapToLong(o -> (long) o).toArray())
-                : Arrays.toString(annotation.selectedValues())))
+            (annotation.selectedValues().length == 0 ? "" : " to " + Arrays.toString(annotation.selectedValues()))
         );
     }
 }

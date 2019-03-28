@@ -5,10 +5,11 @@ import gyro.core.diff.Diffable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 
-public class ConditionalNumberDependentValidator extends ConditionalAnnotationBaseProcessor<ConditionalNumberDependent> {
-    private static ConditionalNumberDependentValidator constructor = new ConditionalNumberDependentValidator();
+public class ConditionalStringForNumberValidator extends ConditionalAnnotationBaseProcessor<ConditionalStringForNumber> {
+    private static ConditionalStringForNumberValidator constructor = new ConditionalStringForNumberValidator();
 
-    private ConditionalNumberDependentValidator() {
+    private ConditionalStringForNumberValidator() {
+
     }
 
     public static AnnotationProcessor getAnnotationProcessor() {
@@ -35,7 +36,7 @@ public class ConditionalNumberDependentValidator extends ConditionalAnnotationBa
             try {
                 Object selectedFieldValue = ValidationUtils.getValueFromField(annotation.selected(), diffable);
 
-                if (selectedValidation(selectedFieldValue, annotation.type(), ValidationUtils.FieldType.NUMBER)) {
+                if (selectedValidation(selectedFieldValue, annotation.type(), ValidationUtils.FieldType.STRING)) {
                     Object dependentFieldValue = ValidationUtils.getValueFromField(annotation.dependent(), diffable);
                     isValid = dependentValidation(dependentFieldValue, annotation.type(), ValidationUtils.FieldType.NUMBER);
                 }
@@ -58,10 +59,7 @@ public class ConditionalNumberDependentValidator extends ConditionalAnnotationBa
                 : Arrays.toString(annotation.dependentValues()))),
             (annotation.type().equals(ValidationUtils.DependencyType.REQUIRED) ? "Required" : "only Allowed"),
             ValidationUtils.getFieldName(annotation.selected()),
-            (annotation.selectedValues().length == 0 ? "" : " to one of "
-                + (!annotation.isSelectedDouble()
-                ? Arrays.toString(Arrays.stream(annotation.selectedValues()).mapToLong(o -> (long) o).toArray())
-                : Arrays.toString(annotation.selectedValues())))
+            (annotation.selectedValues().length == 0 ? "" : " to " + Arrays.toString(annotation.selectedValues()))
         );
     }
 }

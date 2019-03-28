@@ -3,7 +3,7 @@ package gyro.core.validations;
 import java.lang.annotation.Annotation;
 
 public abstract class RepeatableAnnotationBaseProcessor<A extends Annotation> implements RepeatableAnnotationProcessor<A> {
-    A annotation;
+    public A annotation;
 
     @Override
     public void initialize(A annotation) {

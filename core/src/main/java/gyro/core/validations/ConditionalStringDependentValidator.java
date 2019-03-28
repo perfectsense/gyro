@@ -5,7 +5,7 @@ import gyro.core.diff.Diffable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 
-public class ConditionalStringDependentValidator extends AnnotationBaseProcessor<ConditionalStringDependent> {
+public class ConditionalStringDependentValidator extends ConditionalAnnotationBaseProcessor<ConditionalStringDependent> {
     private static ConditionalStringDependentValidator constructor = new ConditionalStringDependentValidator();
 
     private ConditionalStringDependentValidator() {
@@ -16,43 +16,28 @@ public class ConditionalStringDependentValidator extends AnnotationBaseProcessor
     }
 
     @Override
-    boolean doValidation(Object value) {
+    protected Object getSelectedValues() {
+        return annotation.selectedValues();
+    }
+
+    @Override
+    protected Object getDependentValues() {
+        return annotation.dependentValues();
+    }
+
+    @Override
+    protected boolean doValidation(Object value) {
         boolean isValid = true;
 
         if (value instanceof Diffable) {
             Diffable diffable = (Diffable) value;
-            String primaryFieldName = annotation.selected();
-            String[] primaryFieldValues = annotation.selectedValues();
-            String dependentField = annotation.dependent();
-            String[] dependentFieldValues = annotation.dependentValues();
 
             try {
-                Object primaryFieldValue = ValidationUtils.getValueFromField(primaryFieldName, diffable);
+                Object selectedFieldValue = ValidationUtils.getValueFromField(annotation.selected(), diffable);
 
-                if (annotation.type().equals(ValidationUtils.DependencyType.REQUIRED)) {
-                    if (primaryFieldValue instanceof String
-                        && (primaryFieldValues.length == 0 || Arrays.asList(primaryFieldValues).contains(primaryFieldValue))) {
-
-                        Object dependentFieldValue = ValidationUtils.getValueFromField(dependentField, diffable);
-
-                        if ((dependentFieldValues.length == 0 && !ValidationUtils.isNotNullOrEmpty(dependentFieldValue))
-                            || dependentFieldValue instanceof String && !Arrays.asList(dependentFieldValues).contains(dependentFieldValue)) {
-                            isValid = false;
-                        }
-                    }
-                } else {
-                    if (!ValidationUtils.isNotNullOrEmpty(primaryFieldValue)
-                        || ((primaryFieldValue instanceof String)
-                        && (primaryFieldValues.length > 0)
-                        && (!Arrays.asList(primaryFieldValues).contains(primaryFieldValue)))) {
-
-                        Object dependentFieldValue = ValidationUtils.getValueFromField(dependentField, diffable);
-
-                        if ((dependentFieldValues.length == 0 && ValidationUtils.isNotNullOrEmpty(dependentFieldValue))
-                            || dependentFieldValue instanceof String && Arrays.asList(dependentFieldValues).contains(dependentFieldValue)) {
-                            isValid = false;
-                        }
-                    }
+                if (selectedValidation(selectedFieldValue, annotation.type(), ValidationUtils.FieldType.STRING)) {
+                    Object dependentFieldValue = ValidationUtils.getValueFromField(annotation.dependent(), diffable);
+                    isValid = dependentValidation(dependentFieldValue, annotation.type(), ValidationUtils.FieldType.STRING);
                 }
 
             } catch (NoSuchMethodException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
