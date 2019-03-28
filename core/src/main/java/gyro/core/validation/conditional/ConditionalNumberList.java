@@ -1,7 +1,7 @@
 package gyro.core.validation.conditional;
 
 public @interface ConditionalNumberList {
-    double[] values() default {};
+    double[] value() default {};
 
     boolean isDouble() default false;
 

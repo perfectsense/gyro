@@ -44,17 +44,17 @@ public class ConditionalValidator extends ConditionalAnnotationBaseProcessor<Con
     @Override
     protected Object getSelectedValues() {
         if (!annotation.sourceStringValues().isDefault()) {
-            return annotation.sourceStringValues().values();
+            return annotation.sourceStringValues().value();
         } else if (!annotation.sourceStringListValues().isDefault()) {
-            return annotation.sourceStringListValues().values();
+            return annotation.sourceStringListValues().value();
         } else if (!annotation.sourceStringMapValues().isDefault()) {
-            return annotation.sourceStringMapValues().values();
+            return annotation.sourceStringMapValues().value();
         } else if (!annotation.sourceNumberValues().isDefault()) {
-            return annotation.sourceNumberValues().values();
+            return annotation.sourceNumberValues().value();
         } else if (!annotation.sourceNumberListValues().isDefault()) {
-            return annotation.sourceNumberListValues().values();
+            return annotation.sourceNumberListValues().value();
         } else if (!annotation.sourceNumberMapValues().isDefault()) {
-            return annotation.sourceNumberMapValues().values();
+            return annotation.sourceNumberMapValues().value();
         } else if (!annotation.sourceBooleanValues().isDefault()) {
             return annotation.sourceBooleanValues().value();
         } else {
@@ -65,17 +65,17 @@ public class ConditionalValidator extends ConditionalAnnotationBaseProcessor<Con
     @Override
     protected Object getDependentValues() {
         if (!annotation.dependentStringValues().isDefault()) {
-            return annotation.dependentStringValues().values();
+            return annotation.dependentStringValues().value();
         } else if (!annotation.dependentStringListValues().isDefault()) {
-            return annotation.dependentStringListValues().values();
+            return annotation.dependentStringListValues().value();
         } else if (!annotation.dependentStringMapValues().isDefault()) {
-            return annotation.dependentStringMapValues().values();
+            return annotation.dependentStringMapValues().value();
         } else if (!annotation.dependentNumberValues().isDefault()) {
-            return annotation.dependentNumberValues().values();
+            return annotation.dependentNumberValues().value();
         } else if (!annotation.dependentNumberListValues().isDefault()) {
-            return annotation.dependentNumberListValues().values();
+            return annotation.dependentNumberListValues().value();
         } else if (!annotation.dependentNumberMapValues().isDefault()) {
-            return annotation.dependentNumberMapValues().values();
+            return annotation.dependentNumberMapValues().value();
         } else if (!annotation.dependentBooleanValues().isDefault()) {
             return annotation.dependentBooleanValues().value();
         } else {
@@ -86,17 +86,17 @@ public class ConditionalValidator extends ConditionalAnnotationBaseProcessor<Con
     //@Override
     protected String getSelectedValuesDisplay() {
         if (!annotation.sourceStringValues().isDefault()) {
-            return getDisplayStrings(annotation.sourceStringValues().values());
+            return getDisplayStrings(annotation.sourceStringValues().value());
         } else if (!annotation.sourceStringListValues().isDefault()) {
-            return getDisplayStrings(annotation.sourceStringListValues().values());
+            return getDisplayStrings(annotation.sourceStringListValues().value());
         } else if (!annotation.sourceStringMapValues().isDefault()) {
-            return getDisplayStrings(annotation.sourceStringMapValues().values());
+            return getDisplayStrings(annotation.sourceStringMapValues().value());
         } else if (!annotation.sourceNumberValues().isDefault()) {
-            return getDisplayNumbers(annotation.sourceNumberValues().values(), annotation.sourceNumberValues().isDouble());
+            return getDisplayNumbers(annotation.sourceNumberValues().value(), annotation.sourceNumberValues().isDouble());
         } else if (!annotation.sourceNumberListValues().isDefault()) {
-            return getDisplayNumbers(annotation.sourceNumberListValues().values(), annotation.sourceNumberListValues().isDouble());
+            return getDisplayNumbers(annotation.sourceNumberListValues().value(), annotation.sourceNumberListValues().isDouble());
         } else if (!annotation.sourceNumberMapValues().isDefault()) {
-            return getDisplayNumbers(annotation.sourceNumberMapValues().values(), annotation.sourceNumberMapValues().isDouble());
+            return getDisplayNumbers(annotation.sourceNumberMapValues().value(), annotation.sourceNumberMapValues().isDouble());
         } else if (!annotation.sourceBooleanValues().isDefault()) {
             return annotation.sourceBooleanValues().value() ? "True" : "False";
         } else {
@@ -107,17 +107,17 @@ public class ConditionalValidator extends ConditionalAnnotationBaseProcessor<Con
     //@Override
     protected String getDependentValueDisplay() {
         if (!annotation.dependentStringValues().isDefault()) {
-            return getDisplayStrings(annotation.dependentStringValues().values());
+            return getDisplayStrings(annotation.dependentStringValues().value());
         } else if (!annotation.dependentStringListValues().isDefault()) {
-            return getDisplayStrings(annotation.dependentStringListValues().values());
+            return getDisplayStrings(annotation.dependentStringListValues().value());
         } else if (!annotation.dependentStringMapValues().isDefault()) {
-            return getDisplayStrings(annotation.dependentStringMapValues().values());
+            return getDisplayStrings(annotation.dependentStringMapValues().value());
         } else if (!annotation.dependentNumberValues().isDefault()) {
-            return getDisplayNumbers(annotation.dependentNumberValues().values(), annotation.dependentNumberValues().isDouble());
+            return getDisplayNumbers(annotation.dependentNumberValues().value(), annotation.dependentNumberValues().isDouble());
         } else if (!annotation.dependentNumberListValues().isDefault()) {
-            return getDisplayNumbers(annotation.dependentNumberListValues().values(), annotation.dependentNumberListValues().isDouble());
+            return getDisplayNumbers(annotation.dependentNumberListValues().value(), annotation.dependentNumberListValues().isDouble());
         } else if (!annotation.dependentNumberMapValues().isDefault()) {
-            return getDisplayNumbers(annotation.dependentNumberMapValues().values(), annotation.dependentNumberMapValues().isDouble());
+            return getDisplayNumbers(annotation.dependentNumberMapValues().value(), annotation.dependentNumberMapValues().isDouble());
         } else if (!annotation.dependentBooleanValues().isDefault()) {
             return annotation.dependentBooleanValues().value() ? "True" : "False";
         } else {

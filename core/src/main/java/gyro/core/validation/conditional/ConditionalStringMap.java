@@ -1,7 +1,7 @@
 package gyro.core.validation.conditional;
 
 public @interface ConditionalStringMap {
-    String[] values() default {};
+    String[] value() default {};
 
     boolean isDefault() default false;
 }
