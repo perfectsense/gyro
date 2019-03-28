@@ -181,7 +181,7 @@ public abstract class Diffable {
             }
         }
 
-        Set<String> dependsOn = new LinkedHashSet<>();
+        Set<String> dependsOn = new LinkedHashSet<>(getDependsOn());
         for (Diffable dependency : dependencies()) {
             if (dependency instanceof Resource) {
                 Resource resource = (Resource) dependency;
