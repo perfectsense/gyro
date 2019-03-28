@@ -10,9 +10,9 @@ import java.lang.annotation.Target;
 @Documented
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-@AnnotationProcessorClass(AllowedNumberRangeValidator.class)
-@Repeatable(AllowedNumberRanges.class)
-public @interface AllowedNumberRange {
+@AnnotationProcessorClass(RangeValidator.class)
+@Repeatable(Ranges.class)
+public @interface Range {
     double low();
 
     double high();

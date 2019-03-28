@@ -1,9 +1,9 @@
 package gyro.core.validation;
 
-public class AllowedMaxNumberValidator extends AnnotationBaseProcessor<AllowedMaxNumber> {
-    private static AllowedMaxNumberValidator constructor = new AllowedMaxNumberValidator();
+public class MinValidator extends AnnotationBaseProcessor<Min> {
+    private static MinValidator constructor = new MinValidator();
 
-    private AllowedMaxNumberValidator() {
+    private MinValidator() {
     }
 
     public static AnnotationProcessor getAnnotationProcessor() {
@@ -16,7 +16,7 @@ public class AllowedMaxNumberValidator extends AnnotationBaseProcessor<AllowedMa
         double refValue = annotation.value();
         int result = Double.compare(valueCheck, refValue);
 
-        return result <= 0;
+        return result > 0;
     }
 
     @Override

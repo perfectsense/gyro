@@ -9,9 +9,11 @@ import java.lang.annotation.Target;
 @Documented
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-@RepeatableAnnotationProcessorClass(AllowedNumberRangesProcessor.class)
-public @interface AllowedNumberRanges {
-    AllowedNumberRange[] value();
+@AnnotationProcessorClass(MinValidator.class)
+public @interface Min {
+    double value();
 
-    String message() default "Valid number should be in one of these ranges %s.";
+    boolean isDouble() default false;
+
+    String message() default "Maximum allowed number is %s.";
 }

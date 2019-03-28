@@ -1,9 +1,9 @@
 package gyro.core.validation;
 
-public class AllowedNumberRangeValidator extends AnnotationBaseProcessor<AllowedNumberRange> {
-    private static AllowedNumberRangeValidator constructor = new AllowedNumberRangeValidator();
+public class RangeValidator extends AnnotationBaseProcessor<Range> {
+    private static RangeValidator constructor = new RangeValidator();
 
-    private AllowedNumberRangeValidator() {
+    private RangeValidator() {
     }
 
     public static AnnotationProcessor getAnnotationProcessor() {

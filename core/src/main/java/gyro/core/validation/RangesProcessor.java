@@ -3,10 +3,10 @@ package gyro.core.validation;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AllowedNumberRangesProcessor extends RepeatableAnnotationBaseProcessor<AllowedNumberRanges> {
-    private static AllowedNumberRangesProcessor constructor = new AllowedNumberRangesProcessor();
+public class RangesProcessor extends RepeatableAnnotationBaseProcessor<Ranges> {
+    private static RangesProcessor constructor = new RangesProcessor();
 
-    private AllowedNumberRangesProcessor() {
+    private RangesProcessor() {
 
     }
 
@@ -18,21 +18,21 @@ public class AllowedNumberRangesProcessor extends RepeatableAnnotationBaseProces
     public List<String> getValidations(Object value) {
         List<String> validationMessages = new ArrayList<>();
 
-        AnnotationProcessor annotationProcessor = AllowedNumberRangeValidator.getAnnotationProcessor();
+        AnnotationProcessor annotationProcessor = RangeValidator.getAnnotationProcessor();
 
         List<String> rangesString = new ArrayList<>();
 
-        for (AllowedNumberRange allowedNumberRange : annotation.value()) {
-            annotationProcessor.initialize(allowedNumberRange);
+        for (Range range : annotation.value()) {
+            annotationProcessor.initialize(range);
             if (!annotationProcessor.isValid(value)) {
-                if (allowedNumberRange.isDouble()) {
+                if (range.isDouble()) {
                     rangesString.add(String.format("[%s - %s]",
-                        allowedNumberRange.low(),
-                        allowedNumberRange.high()));
+                        range.low(),
+                        range.high()));
                 } else {
                     rangesString.add(String.format("[%s - %s]",
-                        (long) allowedNumberRange.low(),
-                        (long) allowedNumberRange.high()));
+                        (long) range.low(),
+                        (long) range.high()));
                 }
             }
         }

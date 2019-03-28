@@ -9,11 +9,11 @@ import java.lang.annotation.Target;
 @Documented
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-@AnnotationProcessorClass(AllowedMinNumberValidator.class)
-public @interface AllowedMinNumber {
+@AnnotationProcessorClass(MaxValidator.class)
+public @interface Max {
     double value();
 
     boolean isDouble() default false;
 
-    String message() default "Maximum allowed number is %s.";
+    String message() default "Minimum allowed number is %s.";
 }
