@@ -33,7 +33,7 @@ public class ValidationProcessor {
                     //break;
                 }
             } else if (annotation.annotationType().isAnnotationPresent(RepeatableAnnotationProcessorClass.class)) {
-                List<String> validateRepeatableAnnotationMessages = validateRepeatableAnnotation(annotation, diffable, indent);
+                List<String> validateRepeatableAnnotationMessages = validateRepeatableAnnotation(annotation, diffable, indent, null);
 
                 if (!validateRepeatableAnnotationMessages.isEmpty()) {
                     validationMessages.addAll(validateRepeatableAnnotationMessages);
@@ -73,7 +73,7 @@ public class ValidationProcessor {
                         break;
                     }
                 } else if (annotation.annotationType().isAnnotationPresent(RepeatableAnnotationProcessorClass.class)) {
-                    List<String> errorMessages = validateRepeatableAnnotation(annotation, invokeObject, indent);
+                    List<String> errorMessages = validateRepeatableAnnotation(annotation, invokeObject, indent, method);
 
                     if (!errorMessages.isEmpty()) {
                         validationMessages.addAll(errorMessages);
@@ -171,7 +171,7 @@ public class ValidationProcessor {
         return annotationProcessor;
     }
 
-    private static List<String> validateRepeatableAnnotation(Annotation annotation, Object object, String indent) {
+    private static List<String> validateRepeatableAnnotation(Annotation annotation, Object object, String indent, Method method) {
         List<String> validationMessages = new ArrayList<>();
         try {
             RepeatableAnnotationProcessorClass annotationProcessorClass = annotation.annotationType()
@@ -182,7 +182,12 @@ public class ValidationProcessor {
                 List<String> validations = (List<String>) annotationProcessor.getValidations(object);
 
                 if (!validations.isEmpty()) {
-                    validationMessages.addAll(validations.stream().map(o -> String.format("%s· %s", indent,o)).collect(Collectors.toList()));
+                    if (method != null) {
+                        validationMessages.addAll(validations.stream().map(o -> String.format("%s· %s: %s. %s", indent,
+                            ValidationUtils.getFieldName(method.getName()), object, o)).collect(Collectors.toList()));
+                    } else {
+                        validationMessages.addAll(validations.stream().map(o -> String.format("%s· %s", indent, o)).collect(Collectors.toList()));
+                    }
                 }
             }
         } catch (IllegalAccessException | InvocationTargetException | IllegalArgumentException | ClassNotFoundException | NoSuchMethodException ex) {
