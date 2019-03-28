@@ -10,11 +10,6 @@ import java.util.List;
 import java.util.Map;
 
 public class ValidationUtils {
-
-    public enum DependencyType { ALLOWED, REQUIRED }
-
-    public enum FieldType { STRING, STRINGLIST, STRINGMAP, NUMBER, NUMBERLIST, NUMBERMAP, BOOLEAN, FIELD }
-
     public static String getFieldName(String fieldName) {
         return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN, fieldName).replace("get-", "");
     }

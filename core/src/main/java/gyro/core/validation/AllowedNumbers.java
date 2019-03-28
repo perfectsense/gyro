@@ -13,7 +13,5 @@ import java.lang.annotation.Target;
 public @interface AllowedNumbers {
     double [] value();
 
-    boolean isDouble() default false;
-
     String message() default "Valid number should be one of %s.";
 }

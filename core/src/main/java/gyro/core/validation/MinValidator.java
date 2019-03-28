@@ -1,6 +1,6 @@
 package gyro.core.validation;
 
-public class MinValidator extends AnnotationBaseProcessor<Min> {
+public class MinValidator extends AnnotationNumberBaseProcessor<Min> {
     private static MinValidator constructor = new MinValidator();
 
     private MinValidator() {
@@ -21,7 +21,7 @@ public class MinValidator extends AnnotationBaseProcessor<Min> {
 
     @Override
     public String getMessage() {
-        return String.format(annotation.message(), annotation.isDouble()
+        return String.format(annotation.message(), isDouble
             ? annotation.value()
             : (long) annotation.value());
     }

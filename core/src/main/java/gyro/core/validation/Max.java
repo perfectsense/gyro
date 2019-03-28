@@ -13,7 +13,5 @@ import java.lang.annotation.Target;
 public @interface Max {
     double value();
 
-    boolean isDouble() default false;
-
     String message() default "Minimum allowed number is %s.";
 }

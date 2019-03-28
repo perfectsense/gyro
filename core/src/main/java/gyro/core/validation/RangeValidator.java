@@ -1,6 +1,6 @@
 package gyro.core.validation;
 
-public class RangeValidator extends AnnotationBaseProcessor<Range> {
+public class RangeValidator extends AnnotationNumberBaseProcessor<Range> {
     private static RangeValidator constructor = new RangeValidator();
 
     private RangeValidator() {
@@ -19,7 +19,7 @@ public class RangeValidator extends AnnotationBaseProcessor<Range> {
 
     @Override
     public String getMessage() {
-        if (annotation.isDouble()) {
+        if (isDouble) {
             return String.format(annotation.message(),
                 annotation.low(),
                 annotation.high());

@@ -25,7 +25,7 @@ public class RangesProcessor extends RepeatableAnnotationBaseProcessor<Ranges> {
         for (Range range : annotation.value()) {
             annotationProcessor.initialize(range);
             if (!annotationProcessor.isValid(value)) {
-                if (range.isDouble()) {
+                if (((RangeValidator) annotationProcessor).isDouble) {
                     rangesString.add(String.format("[%s - %s]",
                         range.low(),
                         range.high()));

@@ -2,7 +2,7 @@ package gyro.core.validation;
 
 import java.util.Arrays;
 
-public class AllowedNumbersValidator extends AnnotationBaseProcessor<AllowedNumbers> {
+public class AllowedNumbersValidator extends AnnotationNumberBaseProcessor<AllowedNumbers> {
     private static AllowedNumbersValidator constructor = new AllowedNumbersValidator();
 
     private AllowedNumbersValidator() {
@@ -21,7 +21,7 @@ public class AllowedNumbersValidator extends AnnotationBaseProcessor<AllowedNumb
 
     @Override
     public String getMessage() {
-        return String.format(annotation.message(), annotation.isDouble()
+        return String.format(annotation.message(), isDouble
             ? Arrays.toString(annotation.value())
             : Arrays.toString(Arrays.stream(annotation.value()).mapToLong(o -> (long)o).toArray()));
     }

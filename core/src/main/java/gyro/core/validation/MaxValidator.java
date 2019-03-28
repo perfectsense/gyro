@@ -1,6 +1,6 @@
 package gyro.core.validation;
 
-public class MaxValidator extends AnnotationBaseProcessor<Max> {
+public class MaxValidator extends AnnotationNumberBaseProcessor<Max> {
     private static MaxValidator constructor = new MaxValidator();
 
     private MaxValidator() {
@@ -21,7 +21,7 @@ public class MaxValidator extends AnnotationBaseProcessor<Max> {
 
     @Override
     public String getMessage() {
-        return String.format(annotation.message(), annotation.isDouble()
+        return String.format(annotation.message(), isDouble
             ? annotation.value()
             : (long) annotation.value());
     }

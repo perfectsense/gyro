@@ -17,7 +17,5 @@ public @interface Range {
 
     double high();
 
-    boolean isDouble() default false;
-
     String message() default "Valid number should be in the range of [ %s - %s ].";
 }
