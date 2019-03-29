@@ -21,11 +21,11 @@ public class RangeValidator extends AnnotationNumberBaseProcessor<Range> {
             return valueCheck >= annotation.low() && valueCheck <= annotation.high();
         } else if (value instanceof List && ((List) value).size() > 0) {
             return ((List) value).stream().allMatch(
-                o -> (ValidationUtils.getDoubleValue(o) >= annotation.low() && ValidationUtils.getDoubleValue(o) <=annotation.high())
+                o -> (ValidationUtils.getDoubleValue(o) >= annotation.low() && ValidationUtils.getDoubleValue(o) <= annotation.high())
             );
         } else if (value instanceof Map && ((Map) value).keySet().size() > 0) {
             return ((Map) value).keySet().stream().allMatch(
-                o -> ValidationUtils.getDoubleValue(o) >= annotation.low() && ValidationUtils.getDoubleValue(o) <=annotation.high()
+                o -> ValidationUtils.getDoubleValue(o) >= annotation.low() && ValidationUtils.getDoubleValue(o) <= annotation.high()
             );
         } else {
             return true;

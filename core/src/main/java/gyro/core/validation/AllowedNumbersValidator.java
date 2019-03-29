@@ -1,5 +1,7 @@
 package gyro.core.validation;
 
+import com.google.common.primitives.Doubles;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -17,7 +19,7 @@ public class AllowedNumbersValidator extends AnnotationNumberBaseProcessor<Allow
 
     @Override
     boolean doValidation(Object value) {
-        HashSet<Double> doubles = new HashSet(Arrays.asList(annotation.value()));
+        HashSet<Double> doubles = new HashSet(Doubles.asList(annotation.value()));
         if (value instanceof Number) {
             double valueCheck = ValidationUtils.getDoubleValue(value);
             return doubles.contains(valueCheck);
