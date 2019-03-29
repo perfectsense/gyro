@@ -19,11 +19,13 @@ public class MinValidator extends AnnotationNumberBaseProcessor<Min> {
             double valueCheck = ValidationUtils.getDoubleValue(value);
 
             return valueCheck <= annotation.value();
-        } else if (value instanceof List && ((List) value).size() > 0) {
+        } else if (value instanceof List && ((List) value).size() > 0
+            && ((List) value).get(0) instanceof Number) {
             return ((List) value).stream().allMatch(
                 o -> (ValidationUtils.getDoubleValue(o) >= annotation.value())
             );
-        } else if (value instanceof Map && ((Map) value).keySet().size() > 0) {
+        } else if (value instanceof Map && ((Map) value).keySet().size() > 0
+            && ((Map) value).keySet().toArray()[0] instanceof Number) {
             return ((Map) value).keySet().stream().allMatch(
                 o -> ValidationUtils.getDoubleValue(o) >= annotation.value()
             );

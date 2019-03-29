@@ -19,14 +19,16 @@ public class AllowedNumbersValidator extends AnnotationNumberBaseProcessor<Allow
 
     @Override
     boolean doValidation(Object value) {
-        HashSet<Double> doubles = new HashSet(Doubles.asList(annotation.value()));
+        HashSet<Double> validValues = new HashSet(Doubles.asList(annotation.value()));
         if (value instanceof Number) {
             double valueCheck = ValidationUtils.getDoubleValue(value);
-            return doubles.contains(valueCheck);
-        } else if (value instanceof List && ((List) value).size() > 0) {
-            return ((List) value).stream().map(ValidationUtils::getDoubleValue).allMatch(doubles::contains);
-        } else if (value instanceof Map && ((Map) value).keySet().size() > 0) {
-            return ((Map) value).keySet().stream().map(ValidationUtils::getDoubleValue).allMatch(doubles::contains);
+            return validValues.contains(valueCheck);
+        } else if (value instanceof List && ((List) value).size() > 0
+            && ((List) value).get(0) instanceof Number) {
+            return ((List) value).stream().map(ValidationUtils::getDoubleValue).allMatch(validValues::contains);
+        } else if (value instanceof Map && ((Map) value).keySet().size() > 0
+            && ((Map) value).keySet().toArray()[0] instanceof Number) {
+            return ((Map) value).keySet().stream().map(ValidationUtils::getDoubleValue).allMatch(validValues::contains);
         } else {
             return true;
         }
