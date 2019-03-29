@@ -4,17 +4,8 @@ import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Map;
 
-public abstract class AnnotationNumberBaseProcessor<A extends Annotation> implements AnnotationProcessor<A> {
-    A annotation;
-
+public abstract class AnnotationNumberBaseProcessor<A extends Annotation> extends AnnotationBaseProcessor<A> {
     boolean isDouble = false;
-
-    abstract boolean doValidation(Object value);
-
-    @Override
-    public void initialize(A annotation) {
-        this.annotation = annotation;
-    }
 
     @Override
     public boolean isValid(Object value) {
