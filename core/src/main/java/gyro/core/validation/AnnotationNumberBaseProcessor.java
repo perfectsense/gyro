@@ -13,13 +13,14 @@ public abstract class AnnotationNumberBaseProcessor<A extends Annotation> extend
             return true;
         }
 
-        isDouble = isDouble(value);
+        setIsDouble(value);
+        setValueType(value);
 
         return doValidation(value);
     }
 
-    private boolean isDouble(Object value) {
-        return (value instanceof Double)
+    private void setIsDouble(Object value) {
+        isDouble = (value instanceof Double)
             || ((value instanceof List) && (((List) value).size() > 0) && (((List) value).get(0) instanceof Double))
             || ((value instanceof Map) && ((((Map) value).keySet().size() > 0)) && (((Map) value).keySet().toArray()[0] instanceof Double));
     }

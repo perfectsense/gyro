@@ -38,10 +38,12 @@ public class RangeValidator extends AnnotationNumberBaseProcessor<Range> {
     public String getMessage() {
         if (isDouble) {
             return String.format(annotation.message(),
+                valueType.equals(ValueType.MAP) ? "keys of the map" : (valueType.equals(ValueType.LIST) ? "numbers" : "number"),
                 annotation.low(),
                 annotation.high());
         } else {
             return String.format(annotation.message(),
+                valueType.equals(ValueType.MAP) ? "keys of the map" : (valueType.equals(ValueType.LIST) ? "numbers" : "number"),
                 (long) annotation.low(),
                 (long) annotation.high());
         }

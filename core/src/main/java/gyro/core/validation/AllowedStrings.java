@@ -13,5 +13,5 @@ import java.lang.annotation.Target;
 public @interface AllowedStrings {
     String[] value();
 
-    String message() default "Valid string should be one of %s.";
+    String message() default "Valid %s should be one of %s.";
 }

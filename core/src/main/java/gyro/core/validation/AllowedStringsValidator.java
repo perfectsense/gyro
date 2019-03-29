@@ -28,6 +28,8 @@ public class AllowedStringsValidator extends AnnotationStringBaseProcessor<Allow
 
     @Override
     public String getMessage() {
-        return String.format(annotation.message(), Arrays.toString(annotation.value()));
+        return String.format(annotation.message(),
+            valueType.equals(ValueType.MAP) ? "keys of the map" : (valueType.equals(ValueType.LIST) ? "strings" : "string"),
+            Arrays.toString(annotation.value()));
     }
 }

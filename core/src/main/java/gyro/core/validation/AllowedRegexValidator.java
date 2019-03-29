@@ -27,8 +27,9 @@ public class AllowedRegexValidator extends AnnotationStringBaseProcessor<Allowed
 
     @Override
     public String getMessage() {
-        return String.format(annotation.message(), annotation.display().length == 0
-            ? Arrays.toString(annotation.value()) : Arrays.toString(annotation.display()));
+        return String.format(annotation.message(),
+            valueType.equals(ValueType.MAP) ? "keys of the map" : (valueType.equals(ValueType.LIST) ? "strings" : "string"),
+            annotation.display().length == 0 ? Arrays.toString(annotation.value()) : Arrays.toString(annotation.display()));
     }
 
     private boolean isValidString(String valueCheck, List<String> validValues) {

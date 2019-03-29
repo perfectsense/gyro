@@ -36,8 +36,9 @@ public class AllowedNumbersValidator extends AnnotationNumberBaseProcessor<Allow
 
     @Override
     public String getMessage() {
-        return String.format(annotation.message(), isDouble
-            ? Arrays.toString(annotation.value())
+        return String.format(annotation.message(),
+            valueType.equals(ValueType.MAP) ? "keys of the map" : (valueType.equals(ValueType.LIST) ? "numbers" : "number"),
+            isDouble ? Arrays.toString(annotation.value())
             : Arrays.toString(Arrays.stream(annotation.value()).mapToLong(o -> (long)o).toArray()));
     }
 }
