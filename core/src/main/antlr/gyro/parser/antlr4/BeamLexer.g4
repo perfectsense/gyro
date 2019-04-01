@@ -19,8 +19,8 @@ OR    : 'or';
 AND   : 'and';
 
 COMPARISON_OPERATOR : EQ | NOTEQ;
-DECIMAL_LITERAL   : ('0' | [1-9] (Digits? | '_'+ Digits)) [lL]?;
-FLOAT_LITERAL     : (Digits '.' Digits? | '.' Digits);
+DECIMAL_LITERAL   : '-'? ('0' | [1-9] (Digits? | '_'+ Digits)) [lL]?;
+FLOAT_LITERAL     : '-'? (Digits '.' Digits? | '.' Digits);
 STRING_LITERAL    : '\'' String '\'' ;
 
 QUOTE         : '"' -> pushMode(IN_STRING_EXPRESSION);
