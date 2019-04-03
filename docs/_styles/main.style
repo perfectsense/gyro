@@ -91,12 +91,11 @@ styles:
     literal:
         allowOrphans: false
         allowWidows: false
-        backColor: #FAFAFA
         borderColor: #EFEFEF
         borderPadding: [5, 10, 10, 5]
         borderWidth: 0.25
         spaceBefore: 0
-        fontSize: 8
+        fontSize: 10
 
     confval: parent: bodytext
     data: parent: bodytext

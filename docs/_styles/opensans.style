@@ -6,3 +6,5 @@ fontsAlias:
     stdItalic: SourceSansPro-Italic
     stdSansItalic: SourceSansPro-Italic
     stdSansBoldItalic: SourceSansPro-BoldItalic
+    stdMono: UbuntuMono-Regular
+
