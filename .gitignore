@@ -12,5 +12,6 @@ out/
 
 _build/
 
-# Ignore antlr4 generated code
 src/main/gen
+docs/node_modules
+venv

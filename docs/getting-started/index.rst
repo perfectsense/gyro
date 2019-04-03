@@ -7,9 +7,8 @@ Getting Started with Gyro
 .. toctree::
 
     installing
+    language-features
     creating
     updating
     destroying
-    language-features
-    cli-commands
 
