@@ -21,7 +21,7 @@ public class MapNode extends Node {
     }
 
     public MapNode(MapValueContext context) {
-        entries = context.keyValue()
+        entries = context.keyValueStatement()
             .stream()
             .map(kv -> (KeyValueNode) Node.create(kv))
             .collect(Collectors.toList());

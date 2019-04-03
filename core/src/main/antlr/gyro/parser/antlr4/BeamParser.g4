@@ -7,7 +7,7 @@ beamFile : statement  (NEWLINE
            EOF;
 
 statement
-    : keyValue
+    : keyValueStatement
     | resource
     | forStmt
     | ifStmt
@@ -16,7 +16,7 @@ statement
     ;
 
 resource     : resourceType resourceName? NEWLINE resourceBody* END;
-resourceBody : (keyValue | resource | forStmt | ifStmt) NEWLINE;
+resourceBody : (keyValueStatement | resource | forStmt | ifStmt) NEWLINE;
 
 resourceType : IDENTIFIER;
 resourceName : IDENTIFIER | stringValue;
@@ -28,12 +28,12 @@ importName  : IDENTIFIER;
 virtualResource      : VR virtualResourceName NEWLINE virtualResourceParam* DEFINE NEWLINE virtualResourceBody* END;
 virtualResourceParam : PARAM IDENTIFIER NEWLINE;
 virtualResourceName  : IDENTIFIER;
-virtualResourceBody  : (keyValue | resource | forStmt | ifStmt) NEWLINE;
+virtualResourceBody  : (keyValueStatement | resource | forStmt | ifStmt) NEWLINE;
 
 // -- Control Structures
 
 controlBody  : controlStmts*;
-controlStmts : (keyValue | resource | forStmt | ifStmt) NEWLINE;
+controlStmts : (keyValueStatement | resource | forStmt | ifStmt) NEWLINE;
 
 forStmt      : FOR forVariables IN (listValue | referenceValue) NEWLINE controlBody END;
 forVariables : forVariable (COMMA forVariable)*;
@@ -54,7 +54,7 @@ operator     : EQ | NOTEQ;
 //
 // Regular key/value blocks can have values that contain references.
 // Simple key/value blocks cannot have value references.
-keyValue       : key value;
+keyValueStatement : key value;
 key            : (IDENTIFIER | STRING_LITERAL | keywords) keyDelimiter;
 keywords       : IMPORT | AS | VR | PARAM | DEFINE;
 keyDelimiter   : COLON;
@@ -67,7 +67,13 @@ stringValue  : stringExpression | STRING_LITERAL;
 stringExpression : QUOTE stringContents* QUOTE;
 stringContents   : referenceBody | DOLLAR | LPAREN | RPAREN | TEXT;
 
-mapValue : LCURLY NEWLINE? (keyValue (COMMA NEWLINE? keyValue)* NEWLINE?)? RCURLY;
+mapValue
+    :
+    LCURLY NEWLINE?
+        (keyValueStatement (COMMA NEWLINE?
+         keyValueStatement)*      NEWLINE?)?
+    RCURLY
+    ;
 
 listValue : LBRACKET NEWLINE? (listItemValue (COMMA NEWLINE? listItemValue)* NEWLINE?)? RBRACKET;
 

@@ -17,7 +17,7 @@ public class KeyValueNode extends Node {
         this.value = value;
     }
 
-    public KeyValueNode(BeamParser.KeyValueContext context) {
+    public KeyValueNode(BeamParser.KeyValueStatementContext context) {
         ParseTree keyChild = context.key().getChild(0);
         key = (keyChild instanceof BeamParser.KeywordsContext ? keyChild.getChild(0) : keyChild).getText();
         value = Node.create(context.value().getChild(0));
