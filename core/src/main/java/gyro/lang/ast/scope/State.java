@@ -3,9 +3,13 @@ package gyro.lang.ast.scope;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import gyro.core.diff.Change;
 import gyro.core.diff.Delete;
@@ -22,6 +26,7 @@ public class State {
     private final RootScope root;
     private final boolean test;
     private final Map<String, FileScope> states = new HashMap<>();
+    private final Map<String, Set<String>> removeImports = new HashMap<>();
 
     private String getStateFile(String file) {
         if (file.endsWith(".gyro.state")) {
@@ -49,20 +54,32 @@ public class State {
     private void load(FileScope pending, FileScope state) throws Exception {
         states.put(getStateFile(pending.getFile()), state);
         pending.getBackend().load(state);
-        state.getImports().clear();
         state.getPluginLoaders().clear();
         state.getPluginLoaders().addAll(pending.getPluginLoaders());
 
-        for (FileScope pendingImport : pending.getImports()) {
+        Map<String, FileScope> pendingImports = pending.getImports().stream()
+            .collect(Collectors.toMap(i -> getStateFile(i.getFile()), Function.identity()));
+
+        for (FileScope stateImport : state.getImports()) {
+            if (!pendingImports.keySet().contains(stateImport.getFile())) {
+                if (!removeImports.containsKey(state.getFile())) {
+                    removeImports.put(state.getFile(), new HashSet<>());
+                }
+
+                removeImports.get(state.getFile()).add(stateImport.getFile());
+
+            } else {
+                pendingImports.remove(stateImport.getFile());
+                states.put(stateImport.getFile(), stateImport);
+            }
+        }
+
+        for (Map.Entry<String, FileScope> entry : pendingImports.entrySet()) {
             Path pendingDir = Paths.get(pending.getFile()).getParent() != null ?
                 Paths.get(pending.getFile()).getParent() : Paths.get(".");
-            Path pendingImportFile = Paths.get(pendingImport.getFile());
 
-            FileScope stateImport = new FileScope(
-                    pending,
-                    getStateFile(pendingDir.relativize(pendingImportFile).toString()));
-
-            load(pendingImport, stateImport);
+            FileScope stateImport = new FileScope(state, pendingDir.relativize(Paths.get(entry.getKey())).toString());
+            load(entry.getValue(), stateImport);
             state.getImports().add(stateImport);
         }
     }
@@ -71,7 +88,12 @@ public class State {
         state.getBackend().save(state);
 
         for (FileScope i : state.getImports()) {
-            save(i);
+            if (removeImports.containsKey(state.getFile())
+                    && !removeImports.get(state.getFile()).contains(i.getFile())) {
+                save(i);
+            }
+        }
+    }
         }
     }
 
