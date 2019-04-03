@@ -24,15 +24,14 @@ public class ForNode extends BlockNode {
         this.items = items;
     }
 
-    public ForNode(BeamParser.ForStmtContext context) {
+    public ForNode(BeamParser.ForStatementContext context) {
         super(context.blockBody()
                 .blockStatement()
                 .stream()
                 .map(c -> Node.create(c.getChild(0)))
                 .collect(Collectors.toList()));
 
-        variables = context.forVariables()
-                .forVariable()
+        variables = context.forVariable()
                 .stream()
                 .map(c -> c.IDENTIFIER().getText())
                 .collect(Collectors.toList());

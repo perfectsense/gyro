@@ -12,7 +12,7 @@ root
 statement
     : keyValueStatement
     | resource
-    | forStmt
+    | forStatement
     | ifStmt
     | importStmt
     | virtualResource
@@ -23,7 +23,7 @@ blockBody : (blockStatement NEWLINE)*;
 blockStatement
     : keyValueStatement
     | resource
-    | forStmt
+    | forStatement
     | ifStmt
     ;
 
@@ -42,9 +42,14 @@ virtualResourceName  : IDENTIFIER;
 
 // -- Control Structures
 
-forStmt      : FOR forVariables IN (listValue | referenceValue) NEWLINE blockBody END;
-forVariables : forVariable (COMMA forVariable)*;
-forVariable  : IDENTIFIER;
+forVariable : IDENTIFIER;
+
+forStatement
+    :
+    FOR forVariable (COMMA forVariable)* IN (listValue | referenceValue) NEWLINE
+        blockBody
+    END
+    ;
 
 ifStmt : IF expression NEWLINE blockBody (ELSEIF expression NEWLINE blockBody)* (ELSE NEWLINE blockBody)? END;
 

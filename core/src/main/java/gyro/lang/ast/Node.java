@@ -38,8 +38,8 @@ public abstract class Node {
         } else if (cc.equals(BeamParser.BooleanValueContext.class)) {
             return new BooleanNode((BeamParser.BooleanValueContext) context);
 
-        } else if (cc.equals(BeamParser.ForStmtContext.class)) {
-            return new ForNode((BeamParser.ForStmtContext) context);
+        } else if (cc.equals(BeamParser.ForStatementContext.class)) {
+            return new ForNode((BeamParser.ForStatementContext) context);
 
         } else if (cc.equals(BeamParser.IfStmtContext.class)) {
             return new IfNode((BeamParser.IfStmtContext) context);
