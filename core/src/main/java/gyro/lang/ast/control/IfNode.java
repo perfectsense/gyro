@@ -14,7 +14,7 @@ public class IfNode extends Node {
     private final List<Node> expressions;
     private final List<List<Node>> bodies;
 
-    public IfNode(BeamParser.IfStmtContext context) {
+    public IfNode(BeamParser.IfStatementContext context) {
         expressions = context.expression()
             .stream()
             .map(e -> Node.create(e))

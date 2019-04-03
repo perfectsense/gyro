@@ -13,7 +13,7 @@ statement
     : keyValueStatement
     | resource
     | forStatement
-    | ifStmt
+    | ifStatement
     | importStmt
     | virtualResource
     ;
@@ -24,7 +24,7 @@ blockStatement
     : keyValueStatement
     | resource
     | forStatement
-    | ifStmt
+    | ifStatement
     ;
 
 resource : resourceType resourceName? NEWLINE blockBody END;
@@ -51,7 +51,16 @@ forStatement
     END
     ;
 
-ifStmt : IF expression NEWLINE blockBody (ELSEIF expression NEWLINE blockBody)* (ELSE NEWLINE blockBody)? END;
+ifStatement
+    :
+    IF expression NEWLINE
+        blockBody
+    (ELSEIF expression NEWLINE
+        blockBody)*
+    (ELSE NEWLINE
+        blockBody)?
+    END
+    ;
 
 expression
     : value                          # ValueExpression
@@ -83,7 +92,7 @@ mapValue
     :
     LCURLY NEWLINE?
         (keyValueStatement (COMMA NEWLINE?
-         keyValueStatement)*      NEWLINE?)?
+        keyValueStatement)*       NEWLINE?)?
     RCURLY
     ;
 
