@@ -2,12 +2,22 @@ parser grammar BeamParser;
 
 options { tokenVocab = BeamLexer; }
 
-beamFile : file* EOF;
-file     : (keyValue | resource | forStmt | ifStmt | importStmt | virtualResource);
-blockEnd : END;
+beamFile
+    : NEWLINE? EOF
+    | file (NEWLINE file)* NEWLINE? EOF
+    ;
 
-resource     : resourceType resourceName? resourceBody* blockEnd;
-resourceBody : keyValue | resource | forStmt | ifStmt;
+file
+    : keyValue
+    | resource
+    | forStmt
+    | ifStmt
+    | importStmt
+    | virtualResource
+    ;
+
+resource     : resourceType resourceName? NEWLINE resourceBody* END;
+resourceBody : (keyValue | resource | forStmt | ifStmt) NEWLINE;
 
 resourceType : IDENTIFIER;
 resourceName : IDENTIFIER | stringValue;
@@ -16,21 +26,21 @@ importStmt  : IMPORT importPath (AS importName)?;
 importPath  : IDENTIFIER;
 importName  : IDENTIFIER;
 
-virtualResource      : VR virtualResourceName virtualResourceParam* DEFINE virtualResourceBody* blockEnd;
-virtualResourceParam : PARAM IDENTIFIER;
+virtualResource      : VR virtualResourceName NEWLINE virtualResourceParam* DEFINE NEWLINE virtualResourceBody* END;
+virtualResourceParam : PARAM IDENTIFIER NEWLINE;
 virtualResourceName  : IDENTIFIER;
-virtualResourceBody  : keyValue | resource | forStmt | ifStmt;
+virtualResourceBody  : (keyValue | resource | forStmt | ifStmt) NEWLINE;
 
 // -- Control Structures
 
 controlBody  : controlStmts*;
-controlStmts : keyValue | resource | forStmt | ifStmt;
+controlStmts : (keyValue | resource | forStmt | ifStmt) NEWLINE;
 
-forStmt      : FOR forVariables IN (listValue | referenceValue) controlBody blockEnd;
+forStmt      : FOR forVariables IN (listValue | referenceValue) NEWLINE controlBody END;
 forVariables : forVariable (COMMA forVariable)*;
 forVariable  : IDENTIFIER;
 
-ifStmt       : IF expression controlBody (ELSEIF expression controlBody)* (ELSE controlBody)? blockEnd;
+ifStmt       : IF expression NEWLINE controlBody (ELSEIF expression NEWLINE controlBody)* (ELSE NEWLINE controlBody)? END;
 
 expression
     : value                          # ValueExpression
@@ -58,16 +68,9 @@ stringValue  : stringExpression | STRING_LITERAL;
 stringExpression : QUOTE stringContents* QUOTE;
 stringContents   : referenceBody | DOLLAR | LPAREN | RPAREN | TEXT;
 
-mapValue
-    : LCURLY keyValue? (COMMA keyValue)* RCURLY
-    | LCURLY keyValue? (COMMA keyValue)* {
-          notifyErrorListeners("Extra ',' in map");
-      } COMMA RCURLY
-    ;
+mapValue : LCURLY NEWLINE? (keyValue (COMMA NEWLINE? keyValue)* NEWLINE?)? RCURLY;
 
-listValue
-    : LBRACKET listItemValue? (COMMA listItemValue)* RBRACKET
-    ;
+listValue : LBRACKET NEWLINE? (listItemValue (COMMA NEWLINE? listItemValue)* NEWLINE?)? RBRACKET;
 
 listItemValue : stringValue | booleanValue | numberValue | referenceValue;
 

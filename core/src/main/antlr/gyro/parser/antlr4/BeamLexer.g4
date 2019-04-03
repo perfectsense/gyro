@@ -41,7 +41,8 @@ GLOB          : '*';
 
 IDENTIFIER : (Common | COLON COLON)+;
 
-WS      : [ \u000C\t\r\n]+ -> channel(HIDDEN);
+NEWLINE : [\r\n]+[ \u000C\t\r\n]*;
+WS      : [ \u000C\t]+ -> channel(HIDDEN);
 COMMENT : HASH ~[\r\n]* '\r'? '\n' -> channel(HIDDEN) ;
 
 fragment Digits : [0-9] ([0-9_]* [0-9])?;
