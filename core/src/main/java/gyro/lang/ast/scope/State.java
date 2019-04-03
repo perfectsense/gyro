@@ -94,6 +94,21 @@ public class State {
             }
         }
     }
+
+    public void cleanUp() throws Exception {
+        removeUnusedImports(root);
+    }
+
+    private void removeUnusedImports(FileScope state) throws Exception {
+        if (removeImports.containsKey(state.getFile())) {
+            Set<String> removes = removeImports.get(state.getFile());
+            state.getImports().removeIf(i -> removes.contains(i.getFile()));
+        }
+
+        state.getBackend().save(state);
+
+        for (FileScope i : state.getImports()) {
+            removeUnusedImports(i);
         }
     }
 

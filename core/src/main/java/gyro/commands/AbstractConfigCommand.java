@@ -89,7 +89,9 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             throw new BeamException(ex.getMessage());
         }
 
-        doExecute(current, pending, new State(pending, test));
+        State state = new State(pending, test);
+        doExecute(current, pending, state);
+        state.cleanUp();
     }
 
     private void refreshCredentials(FileScope scope) {
