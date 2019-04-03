@@ -26,9 +26,9 @@ styles:
         parent: bodytext
 
     bodytext:
-        fontSize: 10
+        fontSize: 12
+        spaceAfter: 10
         alignment: TA_LEFT
-        leading: 14
         fontName: stdSans
 
     admonition:
@@ -69,7 +69,7 @@ styles:
         alignment: TA_CENTER
         fontName: stdSansBold
         fontSize: 350%
-        textColor: #20435C
+        textColor: #008AD4
         parent: bodytext
 
     centered:
@@ -134,40 +134,43 @@ styles:
         leading: 10
         leftIndent: 0
         spaceBefore: 16
-        textColor: #20435C
+        textColor: #008AD4
 
     heading1: 
         parent: heading
-        fontSize: 150%
+        fontSize: 250%
         fontName: stdBold
 
     heading2: 
         parent: heading
-        fontSize: 130%
+        fontSize: 200%
+        spaceAfter: 20
         fontName: stdBold
 
     heading3: 
         parent: heading
-        fontSize: 110%
+        fontSize: 150%
         fontName: stdBold
-        textColor: #EA3C45
+        spaceAfter: 20
+        textColor: #555555
         
     heading4: 
         parent: heading
         fontSize: 100%
         fontName: stdBold
+        textColor: #555555
 
     heading5: 
         parent: heading
         fontSize: 100%
         fontName: stdFont
-        textColor: #5FC5FA
+        textColor: #555555
 
     heading6: 
         parent: heading
         fontSize: 100%
         fontName: stdFont
-        textColor: #5FC5FA
+        textColor: #555555
 
     hlist:
         alignment: TA_CENTER
