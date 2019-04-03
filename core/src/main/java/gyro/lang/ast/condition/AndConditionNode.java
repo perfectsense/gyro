@@ -1,11 +1,11 @@
-package gyro.lang.ast.expression;
+package gyro.lang.ast.condition;
 
 import gyro.lang.ast.scope.Scope;
 import gyro.parser.antlr4.BeamParser;
 
-public class OrNode extends ExpressionNode {
+public class AndConditionNode extends ConditionNode {
 
-    public OrNode(BeamParser.ExpressionContext context) {
+    public AndConditionNode(BeamParser.AndConditionContext context) {
         super(context);
     }
 
@@ -14,13 +14,13 @@ public class OrNode extends ExpressionNode {
         Boolean leftValue = toBoolean(getLeftNode().evaluate(scope));
         Boolean rightValue = toBoolean(getRightNode().evaluate(scope));
 
-        return leftValue || rightValue;
+        return leftValue && rightValue;
     }
 
     @Override
     public void buildString(StringBuilder builder, int indentDepth) {
         builder.append(getLeftNode());
-        builder.append(" or ");
+        builder.append(" and ");
         builder.append(getRightNode());
     }
 

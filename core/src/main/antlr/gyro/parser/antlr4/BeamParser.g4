@@ -53,23 +53,23 @@ forStatement
 
 ifStatement
     :
-    IF expression NEWLINE
+    IF condition NEWLINE
         blockBody
-    (ELSEIF expression NEWLINE
+    (ELSEIF condition NEWLINE
         blockBody)*
     (ELSE NEWLINE
         blockBody)?
     END
     ;
 
-expression
-    : value                          # ValueExpression
-    | expression operator expression # ComparisonExpression
-    | expression AND expression      # AndExpression
-    | expression OR expression       # OrExpression
-    ;
+comparisonOperator : EQ | NOTEQ;
 
-operator     : EQ | NOTEQ;
+condition
+    : value                             # ValueCondition
+    | value comparisonOperator value    # ComparisonCondition
+    | condition AND condition           # AndCondition
+    | condition OR condition            # OrCondition
+    ;
 
 // -- Key/Value blocks.
 //
@@ -106,10 +106,10 @@ referenceType      : IDENTIFIER (DOT IDENTIFIER)* ;
 referenceName      : ( (SLASH | GLOB | IDENTIFIER)* | stringExpression | IDENTIFIER (DOT IDENTIFIER)*) ;
 
 queryExpression
-    : queryField                          # QueryFieldValue
-    | queryField operator queryValue      # QueryComparisonExpression
-    | queryExpression AND queryExpression # QueryAndExpression
-    | queryExpression OR queryExpression  # QueryOrExpression
+    : queryField                               # QueryFieldValue
+    | queryField comparisonOperator queryValue # QueryComparisonExpression
+    | queryExpression AND queryExpression      # QueryAndExpression
+    | queryExpression OR queryExpression       # QueryOrExpression
     ;
 
 queryField : IDENTIFIER (DOT IDENTIFIER)*;

@@ -1,11 +1,11 @@
-package gyro.lang.ast.expression;
+package gyro.lang.ast.condition;
 
 import gyro.lang.ast.scope.Scope;
 import gyro.parser.antlr4.BeamParser;
 
-public class ValueExpressionNode extends ExpressionNode {
+public class ValueConditionNode extends ConditionNode {
 
-    public ValueExpressionNode(BeamParser.ExpressionContext context) {
+    public ValueConditionNode(BeamParser.ValueConditionContext context) {
         super(context);
     }
 

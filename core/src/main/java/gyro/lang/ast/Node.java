@@ -7,10 +7,10 @@ import gyro.lang.ast.block.RootNode;
 import gyro.lang.ast.block.VirtualResourceNode;
 import gyro.lang.ast.control.ForNode;
 import gyro.lang.ast.control.IfNode;
-import gyro.lang.ast.expression.AndNode;
-import gyro.lang.ast.expression.ComparisonNode;
-import gyro.lang.ast.expression.OrNode;
-import gyro.lang.ast.expression.ValueExpressionNode;
+import gyro.lang.ast.condition.AndConditionNode;
+import gyro.lang.ast.condition.ComparisonConditionNode;
+import gyro.lang.ast.condition.OrConditionNode;
+import gyro.lang.ast.condition.ValueConditionNode;
 import gyro.lang.ast.scope.Scope;
 import gyro.lang.ast.value.BooleanNode;
 import gyro.lang.ast.value.ListNode;
@@ -47,17 +47,17 @@ public abstract class Node {
         } else if (cc.equals(BeamParser.VirtualResourceContext.class)) {
             return new VirtualResourceNode((BeamParser.VirtualResourceContext) context);
 
-        } else if (cc.equals(BeamParser.ComparisonExpressionContext.class)) {
-            return new ComparisonNode((BeamParser.ComparisonExpressionContext) context);
+        } else if (cc.equals(BeamParser.ComparisonConditionContext.class)) {
+            return new ComparisonConditionNode((BeamParser.ComparisonConditionContext) context);
 
-        } else if (cc.equals(BeamParser.OrExpressionContext.class)) {
-            return new OrNode((BeamParser.OrExpressionContext) context);
+        } else if (cc.equals(BeamParser.OrConditionContext.class)) {
+            return new OrConditionNode((BeamParser.OrConditionContext) context);
 
-        } else if (cc.equals(BeamParser.AndExpressionContext.class)) {
-            return new AndNode((BeamParser.AndExpressionContext) context);
+        } else if (cc.equals(BeamParser.AndConditionContext.class)) {
+            return new AndConditionNode((BeamParser.AndConditionContext) context);
 
-        } else if (cc.equals(BeamParser.ValueExpressionContext.class)) {
-            return new ValueExpressionNode((BeamParser.ValueExpressionContext) context);
+        } else if (cc.equals(BeamParser.ValueConditionContext.class)) {
+            return new ValueConditionNode((BeamParser.ValueConditionContext) context);
 
         } else if (cc.equals(BeamParser.ValueContext.class)) {
             return Node.create(context.getChild(0));

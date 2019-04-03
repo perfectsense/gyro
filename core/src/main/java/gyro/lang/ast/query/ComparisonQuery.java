@@ -27,7 +27,7 @@ public class ComparisonQuery extends Query {
     public static final String NOT_EQUALS_OPERATOR = "!=";
 
     public ComparisonQuery(QueryComparisonExpressionContext context) {
-        this.operator = context.operator().getText();
+        this.operator = context.comparisonOperator().getText();
         this.fieldName = context.queryField().getText();
         this.value = Node.create(context.queryValue().getChild(0));
     }
