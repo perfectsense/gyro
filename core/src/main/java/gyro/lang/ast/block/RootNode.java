@@ -16,7 +16,7 @@ import gyro.parser.antlr4.BeamParser;
 
 public class RootNode extends BlockNode {
 
-    public RootNode(BeamParser.BeamFileContext context) {
+    public RootNode(BeamParser.RootContext context) {
         super(context.statement()
                 .stream()
                 .map(c -> Node.create(c.getChild(0)))

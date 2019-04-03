@@ -32,8 +32,8 @@ public abstract class Node {
     public static Node create(ParseTree context) {
         Class<? extends ParseTree> cc = context.getClass();
 
-        if (cc.equals(BeamParser.BeamFileContext.class)) {
-            return new RootNode((BeamParser.BeamFileContext) context);
+        if (cc.equals(BeamParser.RootContext.class)) {
+            return new RootNode((BeamParser.RootContext) context);
 
         } else if (cc.equals(BeamParser.BooleanValueContext.class)) {
             return new BooleanNode((BeamParser.BooleanValueContext) context);

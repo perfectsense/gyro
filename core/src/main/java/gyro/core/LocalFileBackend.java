@@ -44,13 +44,13 @@ public class LocalFileBackend extends FileBackend {
         parser.removeErrorListeners();
         parser.addErrorListener(errorListener);
 
-        BeamParser.BeamFileContext fileContext = parser.beamFile();
+        BeamParser.RootContext rootContext = parser.root();
 
         if (errorListener.getSyntaxErrors() > 0) {
             throw new BeamLanguageException(errorListener.getSyntaxErrors() + " errors while parsing.");
         }
 
-        Node.create(fileContext).evaluate(scope);
+        Node.create(rootContext).evaluate(scope);
 
         return true;
     }

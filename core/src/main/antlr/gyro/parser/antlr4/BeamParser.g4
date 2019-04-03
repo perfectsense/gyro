@@ -2,9 +2,12 @@ parser grammar BeamParser;
 
 options { tokenVocab = BeamLexer; }
 
-beamFile : statement  (NEWLINE
-           statement)* NEWLINE?
-           EOF;
+root
+    :
+    statement  (NEWLINE
+    statement)* NEWLINE?
+    EOF
+    ;
 
 statement
     : keyValueStatement
