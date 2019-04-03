@@ -31,7 +31,8 @@ public class ResourceNode extends BlockNode {
     }
 
     public ResourceNode(BeamParser.ResourceContext context) {
-        super(context.resourceBody()
+        super(context.blockBody()
+                .blockStatement()
                 .stream()
                 .map(c -> Node.create(c.getChild(0)))
                 .collect(Collectors.toList()));

@@ -25,8 +25,8 @@ public class ForNode extends BlockNode {
     }
 
     public ForNode(BeamParser.ForStmtContext context) {
-        super(context.controlBody()
-                .controlStmts()
+        super(context.blockBody()
+                .blockStatement()
                 .stream()
                 .map(c -> Node.create(c.getChild(0)))
                 .collect(Collectors.toList()));

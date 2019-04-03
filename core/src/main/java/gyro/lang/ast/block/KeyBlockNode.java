@@ -19,7 +19,8 @@ public class KeyBlockNode extends BlockNode {
     }
 
     public KeyBlockNode(BeamParser.ResourceContext context) {
-        super(context.resourceBody()
+        super(context.blockBody()
+                .blockStatement()
                 .stream()
                 .map(c -> Node.create(c.getChild(0)))
                 .collect(Collectors.toList()));

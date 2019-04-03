@@ -20,9 +20,9 @@ public class IfNode extends Node {
             .map(e -> Node.create(e))
             .collect(Collectors.toList());
 
-        bodies = context.controlBody()
+        bodies = context.blockBody()
             .stream()
-            .map(cbc -> cbc.controlStmts()
+            .map(cbc -> cbc.blockStatement()
                 .stream()
                 .map(csc -> Node.create(csc.getChild(0)))
                 .collect(Collectors.toList()))

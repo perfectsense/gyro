@@ -18,8 +18,16 @@ statement
     | virtualResource
     ;
 
-resource     : resourceType resourceName? NEWLINE resourceBody* END;
-resourceBody : (keyValueStatement | resource | forStmt | ifStmt) NEWLINE;
+blockBody : (blockStatement NEWLINE)*;
+
+blockStatement
+    : keyValueStatement
+    | resource
+    | forStmt
+    | ifStmt
+    ;
+
+resource : resourceType resourceName? NEWLINE blockBody END;
 
 resourceType : IDENTIFIER;
 resourceName : IDENTIFIER | stringValue;
@@ -28,21 +36,17 @@ importStmt  : IMPORT importPath (AS importName)?;
 importPath  : IDENTIFIER;
 importName  : IDENTIFIER;
 
-virtualResource      : VR virtualResourceName NEWLINE virtualResourceParam* DEFINE NEWLINE virtualResourceBody* END;
+virtualResource      : VR virtualResourceName NEWLINE virtualResourceParam* DEFINE NEWLINE blockBody END;
 virtualResourceParam : PARAM IDENTIFIER NEWLINE;
 virtualResourceName  : IDENTIFIER;
-virtualResourceBody  : (keyValueStatement | resource | forStmt | ifStmt) NEWLINE;
 
 // -- Control Structures
 
-controlBody  : controlStmts*;
-controlStmts : (keyValueStatement | resource | forStmt | ifStmt) NEWLINE;
-
-forStmt      : FOR forVariables IN (listValue | referenceValue) NEWLINE controlBody END;
+forStmt      : FOR forVariables IN (listValue | referenceValue) NEWLINE blockBody END;
 forVariables : forVariable (COMMA forVariable)*;
 forVariable  : IDENTIFIER;
 
-ifStmt       : IF expression NEWLINE controlBody (ELSEIF expression NEWLINE controlBody)* (ELSE NEWLINE controlBody)? END;
+ifStmt : IF expression NEWLINE blockBody (ELSEIF expression NEWLINE blockBody)* (ELSE NEWLINE blockBody)? END;
 
 expression
     : value                          # ValueExpression

@@ -15,7 +15,8 @@ public class PluginNode extends BlockNode {
     }
 
     public PluginNode(BeamParser.ResourceContext context) {
-        super(context.resourceBody()
+        super(context.blockBody()
+                .blockStatement()
                 .stream()
                 .map(c -> Node.create(c.getChild(0)))
                 .collect(Collectors.toList()));

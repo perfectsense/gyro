@@ -19,7 +19,8 @@ public class VirtualResourceNode extends BlockNode {
     private List<VirtualResourceParam> params;
 
     public VirtualResourceNode(VirtualResourceContext context) {
-        super(context.virtualResourceBody()
+        super(context.blockBody()
+                .blockStatement()
                 .stream()
                 .map(b -> Node.create(b.getChild(0)))
                 .collect(Collectors.toList()));
