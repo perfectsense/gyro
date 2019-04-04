@@ -4,9 +4,9 @@ options { tokenVocab = BeamLexer; }
 
 root
     :
-    statement  (NEWLINE
-    statement)* NEWLINE?
-    EOF
+    NEWLINE? statement
+    (NEWLINE statement)*
+    NEWLINE? EOF
     ;
 
 statement
