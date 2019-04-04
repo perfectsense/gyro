@@ -233,7 +233,9 @@ public abstract class Diffable {
             List<Node> items = new ArrayList<>();
 
             for (Object item : (List<?>) value) {
-                items.add(toNode(item));
+                if (item != null) {
+                    items.add(toNode(item));
+                }
             }
 
             return new ListNode(items);
@@ -242,9 +244,11 @@ public abstract class Diffable {
             List<PairNode> entries = new ArrayList<>();
 
             for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
-                entries.add(new PairNode(
-                        (String) entry.getKey(),
-                        toNode(entry.getValue())));
+                Object v = entry.getValue();
+
+                if (v != null) {
+                    entries.add(new PairNode((String) entry.getKey(), toNode(v)));
+                }
             }
 
             return new MapNode(entries);
