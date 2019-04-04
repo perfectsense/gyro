@@ -25,7 +25,7 @@ public class VirtualResourceNode extends BlockNode {
                 .map(b -> Node.create(b.getChild(0)))
                 .collect(Collectors.toList()));
 
-        name = context.resourceName().getText();
+        name = context.resourceType().getText();
 
         params = context.virtualResourceParameter()
                 .stream()

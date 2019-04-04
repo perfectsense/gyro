@@ -1,54 +1,67 @@
 lexer grammar BeamLexer;
 
-DEFINE : 'define';
+// directive
+AT    : '@';
+DOT   : '.';
+SLASH : '/';
+
+// resource
+END : 'end';
+
+// virtual resource
 VIRTUAL_RESOURCE : 'virtual-resource';
-PARAM : 'param';
+PARAM            : 'param';
+DEFINE           : 'define';
+
+// forStatement
 FOR   : 'for';
+COMMA : ',';
 IN    : 'in';
-END   : 'end';
+
+// ifStatement
+IF   : 'if';
+ELSE : 'else';
+EQ   : '=';
+NEQ  : '!=';
+AND  : 'and';
+OR   : 'or';
+
+// pair
+COLON : ':';
+
+// booleanValue
 TRUE  : 'true';
 FALSE : 'false';
-IF    : 'if';
-ELSEIF: 'else if';
-ELSE  : 'else';
-EQ    : '=';
-NEQ : '!=';
-OR    : 'or';
-AND   : 'and';
 
-FLOAT   : '-'? (Digits '.' Digits? | '.' Digits);
-INTEGER : '-'? ('0' | [1-9] (Digits? | '_'+ Digits)) [lL]?;
-STRING  : '\'' String '\'' ;
+// list
+LBRACKET : '[';
+RBRACKET : ']';
 
-AT            : '@';
-DQUOTE         : '"' -> pushMode(IN_STRING_EXPRESSION);
-COLON         : ':';
-HASH          : '#';
-LBRACE        : '{';
-RBRACE        : '}';
-LBRACKET      : '[';
-RBRACKET      : ']';
-LREF          : '$(' -> pushMode(DEFAULT_MODE);
-RREF          : ')' -> popMode;
-COMMA         : ',';
-PIPE          : '|';
-SLASH         : '/';
-DOT           : '.';
-GLOB          : '*';
+// map
+LBRACE : '{';
+RBRACE : '}';
 
-IDENTIFIER : (Common | COLON COLON)+;
+// number
+FLOAT   : '-'? ([0-9] [_0-9]* '.' [_0-9]* | '.' [_0-9]+);
+INTEGER : '-'? [0-9] [_0-9]*;
 
-NEWLINES : [\r\n]+[ \u000C\t\r\n]*;
-WS      : [ \u000C\t]+ -> channel(HIDDEN);
-COMMENT : HASH ~[\r\n]* '\r'? '\n' -> channel(HIDDEN) ;
+// reference
+LREF : '$(' -> pushMode(DEFAULT_MODE);
+RREF : ')' -> popMode;
+GLOB : '*';
+PIPE : '|';
 
-fragment Digits : [0-9] ([0-9_]* [0-9])?;
-fragment Letter : [A-Za-z] ;
-fragment LetterOrDigits : Letter | [0-9];
-fragment Common : LetterOrDigits | '_' | '-';
-fragment String : ~('\'')* ;
+// string
+STRING : '\'' ~('\'')* '\'';
+DQUOTE : '"' -> pushMode(STRING_MODE);
 
-mode IN_STRING_EXPRESSION;
+KEY         : PARAM | DEFINE | IN | AND | OR;
+WHITESPACES : [ \t]+ -> channel(HIDDEN);
+COMMENT     : '#' ~[\n\r]* ('\n' | '\r' | '\r\n') -> channel(HIDDEN);
+NEWLINES    : [\n\r][ \t\n\r]*;
+IDENTIFIER  : [_A-Za-z] [-_0-9A-Za-z]*;
+
+mode STRING_MODE;
 
 TEXT     : ~[$("]+;
 S_LREF   : '$(' -> type(LREF), pushMode(DEFAULT_MODE);

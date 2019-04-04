@@ -35,7 +35,7 @@ resource
     END
     ;
 
-resourceType : IDENTIFIER;
+resourceType : IDENTIFIER (COLON COLON IDENTIFIER)*;
 resourceName : IDENTIFIER | string;
 blockBody : (blockStatement NEWLINES)*;
 
@@ -50,7 +50,7 @@ blockStatement
 // virtual resource
 virtualResource
     :
-    VIRTUAL_RESOURCE resourceName NEWLINES
+    VIRTUAL_RESOURCE resourceType NEWLINES
         (PARAM virtualResourceParameter NEWLINES)*
     DEFINE NEWLINES
         blockBody
@@ -74,7 +74,7 @@ ifStatement
     :
     IF condition NEWLINES
         blockBody
-    (ELSEIF condition NEWLINES
+    (ELSE IF condition NEWLINES
         blockBody)*
     (ELSE NEWLINES
         blockBody)?
@@ -95,10 +95,8 @@ pair : key COLON value;
 
 key
     : IDENTIFIER
-    | STRING
-    | VIRTUAL_RESOURCE
-    | PARAM
-    | DEFINE
+    | KEY
+    | string
     ;
 
 value

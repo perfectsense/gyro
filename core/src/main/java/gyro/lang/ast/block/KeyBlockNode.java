@@ -25,7 +25,7 @@ public class KeyBlockNode extends BlockNode {
                 .map(c -> Node.create(c.getChild(0)))
                 .collect(Collectors.toList()));
 
-        key = context.resourceType().IDENTIFIER().getText();
+        key = context.resourceType().getText();
     }
 
     public String getKey() {

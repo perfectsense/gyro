@@ -83,7 +83,7 @@ public abstract class Node {
                 return new ResourceNode(rc);
 
             } else {
-                String key = rc.resourceType().IDENTIFIER().getText();
+                String key = rc.resourceType().getText();
 
                 if ("plugin".equals(key)) {
                     return new PluginNode(rc);

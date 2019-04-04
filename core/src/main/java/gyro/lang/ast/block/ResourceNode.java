@@ -37,7 +37,7 @@ public class ResourceNode extends BlockNode {
                 .map(c -> Node.create(c.getChild(0)))
                 .collect(Collectors.toList()));
 
-        type = context.resourceType().IDENTIFIER().getText();
+        type = context.resourceType().getText();
         nameNode = Node.create(context.resourceName().getChild(0));
     }
 
