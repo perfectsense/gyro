@@ -77,20 +77,6 @@ public abstract class Node {
         } else if (cc.equals(BeamParser.NumberValueContext.class)) {
             return new NumberNode((BeamParser.NumberValueContext) context);
 
-        } else if (cc.equals(BeamParser.ReferenceBodyContext.class)) {
-            BeamParser.ReferenceBodyContext rbc = (BeamParser.ReferenceBodyContext) context;
-            String type = rbc.referenceType().getText();
-
-            if (type.contains("::")) {
-                return new ResourceReferenceNode(rbc);
-
-            } else {
-                return new ValueReferenceNode(type);
-            }
-
-        } else if (cc.equals(BeamParser.ReferenceValueContext.class)) {
-            return create(((BeamParser.ReferenceValueContext) context).referenceBody());
-
         } else if (cc.equals(BeamParser.ResourceContext.class)) {
             BeamParser.ResourceContext rc = (BeamParser.ResourceContext) context;
 
@@ -108,6 +94,9 @@ public abstract class Node {
                 }
             }
 
+        } else if (cc.equals(BeamParser.ResourceReferenceContext.class)) {
+            return new ResourceReferenceNode((BeamParser.ResourceReferenceContext) context);
+
         } else if (cc.equals(BeamParser.StringExpressionContext.class)) {
             return new StringExpressionNode((BeamParser.StringExpressionContext) context);
 
@@ -118,6 +107,9 @@ public abstract class Node {
             return sec != null
                     ? new StringExpressionNode(sec)
                     : new StringNode(StringUtils.strip(svc.STRING_LITERAL().getText(), "'"));
+
+        } else if (cc.equals(BeamParser.ValueReferenceContext.class)) {
+            return new ValueReferenceNode(context.getText());
 
         } else if (TerminalNode.class.isAssignableFrom(cc)) {
             return new StringNode(context.getText());

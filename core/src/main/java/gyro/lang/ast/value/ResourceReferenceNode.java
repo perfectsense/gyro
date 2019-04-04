@@ -9,20 +9,19 @@ import gyro.lang.ast.DeferError;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.query.AndQuery;
 import gyro.lang.ast.query.ComparisonQuery;
-import gyro.lang.ast.query.FieldQuery;
 import gyro.lang.ast.query.FoundQuery;
 import gyro.lang.ast.query.OrQuery;
 import gyro.lang.ast.query.Query;
 import gyro.lang.ast.scope.RootScope;
 import gyro.lang.ast.scope.Scope;
 import gyro.parser.antlr4.BeamParser;
-import gyro.parser.antlr4.BeamParser.ReferenceBodyContext;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -31,51 +30,32 @@ public class ResourceReferenceNode extends Node {
     private final String type;
     private final Node nameNode;
     private final List<Query> queries;
-    private final String attribute;
+    private final String path;
 
-    public ResourceReferenceNode(ReferenceBodyContext context) {
-        type = context.referenceType().getText();
+    public ResourceReferenceNode(BeamParser.ResourceReferenceContext context) {
+        type = context.resourceType().getText();
 
         BeamParser.ReferenceNameContext rnc = context.referenceName();
-        if (rnc != null) {
-            BeamParser.StringExpressionContext sec = rnc.stringExpression();
 
-            if (sec != null) {
-                nameNode = Node.create(sec);
+        nameNode = Optional.ofNullable(rnc.resourceName())
+            .map(c -> Node.create(c.getChild(0)))
+            .orElseGet(() -> new StringNode(rnc.getText()));
 
-            } else {
-                nameNode = new StringNode(rnc.getText());
-            }
-
-        } else {
-            nameNode = null;
-        }
-
-        List<Query> queryList = context.query()
+        queries = context.query()
             .stream()
             .map(Query::create)
             .collect(Collectors.toList());
 
-        String attributeValue = null;
-        Integer size = queryList.size();
-        if (size > 0) {
-            Query last = queryList.get(size - 1);
-
-            if (last instanceof FieldQuery) {
-                attributeValue = ((FieldQuery) last).getValue();
-                queryList.remove(size - 1);
-            }
-        }
-
-        queries = ImmutableList.copyOf(queryList);
-        this.attribute = attributeValue;
+        path = Optional.ofNullable(context.path())
+            .map(BeamParser.PathContext::getText)
+            .orElse(null);
     }
 
-    public ResourceReferenceNode(String type, Node nameNode, String attribute, Collection<Query> queries) {
+    public ResourceReferenceNode(String type, Node nameNode, Collection<Query> queries, String path) {
         this.type = type;
         this.nameNode = nameNode;
-        this.attribute = attribute;
         this.queries = ImmutableList.copyOf(queries);
+        this.path = path;
     }
 
     private Query optimize(Query query, ResourceFinder<Resource> finder, Scope scope) throws Exception {
@@ -182,8 +162,8 @@ public class ResourceReferenceNode extends Node {
                     throw new DeferError(this);
                 }
 
-                if (attribute != null) {
-                    return resource.get(attribute);
+                if (path != null) {
+                    return resource.get(path);
 
                 } else {
                     return resource;
@@ -194,8 +174,8 @@ public class ResourceReferenceNode extends Node {
                 resources = q.evaluate(type, scope, resources);
             }
 
-            if (attribute != null) {
-                return resources.stream().map(r -> r.get(attribute)).collect(Collectors.toList());
+            if (path != null) {
+                return resources.stream().map(r -> r.get(path)).collect(Collectors.toList());
             } else {
                 return resources;
             }
@@ -206,8 +186,8 @@ public class ResourceReferenceNode extends Node {
                     .stream()
                     .filter(r -> type.equals(r.resourceType()));
 
-            if (attribute != null) {
-                return s.map(r -> r.get(attribute))
+            if (path != null) {
+                return s.map(r -> r.get(path))
                         .collect(Collectors.toList());
 
             } else {
@@ -226,9 +206,9 @@ public class ResourceReferenceNode extends Node {
             builder.append(nameNode);
         }
 
-        if (attribute != null) {
+        if (path != null) {
             builder.append(" | ");
-            builder.append(attribute);
+            builder.append(path);
         }
 
         builder.append(")");

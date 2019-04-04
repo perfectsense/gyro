@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 public class ComparisonQuery extends Query {
 
     private final String operator;
-    private final String fieldName;
+    private final String path;
     private final Node value;
 
     public static final String EQUALS_OPERATOR = "=";
@@ -28,16 +28,16 @@ public class ComparisonQuery extends Query {
 
     public ComparisonQuery(BeamParser.ComparisonQueryContext context) {
         this.operator = context.comparisonOperator().getText();
-        this.fieldName = context.field().getText();
+        this.path = context.path().getText();
         this.value = Node.create(context.value().getChild(0));
     }
 
     public boolean isSupported(ResourceFinder finder) {
-        String mapFieldName = fieldName.split("\\.")[0];
+        String mapFieldName = path.split("\\.")[0];
         for (QueryField field : QueryType.getInstance(finder.getClass()).getFields()) {
             String key = field.getBeamName();
-            if (fieldName.equals(key) && operator.equals(ComparisonQuery.EQUALS_OPERATOR)
-                 || fieldName.contains(".") && mapFieldName.equals(key) && operator.equals(ComparisonQuery.EQUALS_OPERATOR)) {
+            if (path.equals(key) && operator.equals(ComparisonQuery.EQUALS_OPERATOR)
+                 || path.contains(".") && mapFieldName.equals(key) && operator.equals(ComparisonQuery.EQUALS_OPERATOR)) {
                 return true;
             }
         }
@@ -49,12 +49,12 @@ public class ComparisonQuery extends Query {
         Object comparisonValue = value.evaluate(scope);
         Map<String, String> filter = new HashMap<>();
         if (comparisonValue != null) {
-            if (fieldName.contains(".")) {
-                String mapFieldName = fieldName.split("\\.")[0];
-                String mapKey = fieldName.replaceFirst(mapFieldName + ".", "");
+            if (path.contains(".")) {
+                String mapFieldName = path.split("\\.")[0];
+                String mapKey = path.replaceFirst(mapFieldName + ".", "");
                 filter.put(String.format("%s:%s", mapFieldName, mapKey), comparisonValue.toString());
             } else {
-                filter.put(fieldName, comparisonValue.toString());
+                filter.put(path, comparisonValue.toString());
             }
         }
 
@@ -70,7 +70,7 @@ public class ComparisonQuery extends Query {
             boolean validQuery = false;
             for (DiffableField field : DiffableType.getInstance(resourceClass).getFields()) {
                 String key = field.getBeamName();
-                if (key.equals(fieldName)) {
+                if (key.equals(path)) {
                     validQuery = true;
                 }
             }
@@ -78,20 +78,20 @@ public class ComparisonQuery extends Query {
             if (!validQuery) {
                 throw new BeamException(String.format(
                     "No such field [%s] defined %s!",
-                    fieldName, resourceClass));
+                    path, resourceClass));
             }
         }
 
         if (EQUALS_OPERATOR.equals(operator)) {
             return resources.stream()
                 .filter(r -> Objects.equals(
-                    DiffableType.getInstance(r.getClass()).getFieldByBeamName(fieldName).getValue(r), comparisonValue))
+                    DiffableType.getInstance(r.getClass()).getFieldByBeamName(path).getValue(r), comparisonValue))
                 .collect(Collectors.toList());
 
         } else if (NOT_EQUALS_OPERATOR.equals(operator)) {
             return resources.stream()
                 .filter(r -> !Objects.equals(
-                    DiffableType.getInstance(r.getClass()).getFieldByBeamName(fieldName).getValue(r), comparisonValue))
+                    DiffableType.getInstance(r.getClass()).getFieldByBeamName(path).getValue(r), comparisonValue))
                 .collect(Collectors.toList());
 
         } else {

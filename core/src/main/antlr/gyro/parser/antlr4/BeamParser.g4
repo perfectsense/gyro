@@ -118,19 +118,23 @@ numberValue
     | FLOAT_LITERAL
     ;
 
-referenceValue : LREF referenceBody RREF;
-referenceBody : referenceType referenceName (PIPE query)* | referenceType referenceName | referenceType;
-referenceType : IDENTIFIER (DOT IDENTIFIER)* ;
-referenceName : ( (SLASH | GLOB | IDENTIFIER)* | stringExpression | IDENTIFIER (DOT IDENTIFIER)*) ;
-
-query
-    : field                          # FieldQuery
-    | field comparisonOperator value # ComparisonQuery
-    | query AND query                # AndQuery
-    | query OR query                 # OrQuery
+referenceValue
+    : LREF resourceType referenceName (PIPE query)* (PIPE path)? RREF # ResourceReference
+    | LREF path RREF                                                  # ValueReference
     ;
 
-field : IDENTIFIER (DOT IDENTIFIER)*;
+referenceName
+    : GLOB | (IDENTIFIER SLASH GLOB)
+    | resourceName
+    ;
+
+query
+    : path comparisonOperator value # ComparisonQuery
+    | query AND query               # AndQuery
+    | query OR query                # OrQuery
+    ;
+
+path : IDENTIFIER (DOT IDENTIFIER)*;
 
 stringValue : stringExpression | STRING_LITERAL;
 stringExpression : DQUOTE stringContents* DQUOTE;

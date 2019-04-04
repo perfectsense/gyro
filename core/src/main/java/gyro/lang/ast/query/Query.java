@@ -20,10 +20,6 @@ public abstract class Query {
 
         } else if (cc.equals(BeamParser.ComparisonQueryContext.class)) {
             return new ComparisonQuery((BeamParser.ComparisonQueryContext) context);
-
-        } else if (cc.equals(BeamParser.FieldQueryContext.class)) {
-            return new FieldQuery((BeamParser.FieldQueryContext) context);
-
         }
 
         return null;
