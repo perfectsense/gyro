@@ -6,6 +6,7 @@ Gyro User Guide
 
 .. toctree::
 
+    introduction
     installing
     language-features
     creating
