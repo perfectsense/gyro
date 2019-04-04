@@ -4,7 +4,7 @@ import gyro.lang.ast.DeferError;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.condition.ConditionNode;
 import gyro.lang.ast.scope.Scope;
-import gyro.parser.antlr4.BeamParser;
+import gyro.parser.antlr4.GyroParser;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -14,7 +14,7 @@ public class IfNode extends Node {
     private final List<Node> conditions;
     private final List<List<Node>> bodies;
 
-    public IfNode(BeamParser.IfStatementContext context) {
+    public IfNode(GyroParser.IfStatementContext context) {
         conditions = context.condition()
             .stream()
             .map(e -> Node.create(e))

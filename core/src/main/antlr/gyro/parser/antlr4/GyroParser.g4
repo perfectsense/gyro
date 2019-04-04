@@ -1,6 +1,6 @@
-parser grammar BeamParser;
+parser grammar GyroParser;
 
-options { tokenVocab = BeamLexer; }
+options { tokenVocab = GyroLexer; }
 
 root
     :

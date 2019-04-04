@@ -12,11 +12,11 @@ import gyro.lang.ast.PairNode;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.scope.RootScope;
 import gyro.lang.ast.scope.Scope;
-import gyro.parser.antlr4.BeamParser;
+import gyro.parser.antlr4.GyroParser;
 
 public class RootNode extends BlockNode {
 
-    public RootNode(BeamParser.RootContext context) {
+    public RootNode(GyroParser.RootContext context) {
         super(context.statement()
                 .stream()
                 .map(c -> Node.create(c.getChild(0)))

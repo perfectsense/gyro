@@ -2,7 +2,7 @@ package gyro.lang.ast.value;
 
 import gyro.lang.ast.Node;
 import gyro.lang.ast.scope.Scope;
-import gyro.parser.antlr4.BeamParser;
+import gyro.parser.antlr4.GyroParser;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +16,7 @@ public class ListNode extends Node {
         this.items = items;
     }
 
-    public ListNode(BeamParser.ListContext context) {
+    public ListNode(GyroParser.ListContext context) {
         items = context.value()
                 .stream()
                 .map(c -> Node.create(c.getChild(0)))

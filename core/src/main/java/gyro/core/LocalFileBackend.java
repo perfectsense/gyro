@@ -7,8 +7,8 @@ import gyro.lang.ast.Node;
 import gyro.lang.ast.scope.FileScope;
 import gyro.lang.listeners.ErrorListener;
 import gyro.lang.plugins.PluginLoader;
-import gyro.parser.antlr4.BeamLexer;
-import gyro.parser.antlr4.BeamParser;
+import gyro.parser.antlr4.GyroLexer;
+import gyro.parser.antlr4.GyroParser;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 
@@ -36,15 +36,15 @@ public class LocalFileBackend extends FileBackend {
             return false;
         }
 
-        BeamLexer lexer = new BeamLexer(CharStreams.fromFileName(file.toString()));
+        GyroLexer lexer = new GyroLexer(CharStreams.fromFileName(file.toString()));
         CommonTokenStream stream = new CommonTokenStream(lexer);
-        BeamParser parser = new BeamParser(stream);
+        GyroParser parser = new GyroParser(stream);
         ErrorListener errorListener = new ErrorListener();
 
         parser.removeErrorListeners();
         parser.addErrorListener(errorListener);
 
-        BeamParser.RootContext rootContext = parser.root();
+        GyroParser.RootContext rootContext = parser.root();
 
         if (errorListener.getSyntaxErrors() > 0) {
             throw new BeamLanguageException(errorListener.getSyntaxErrors() + " errors while parsing.");

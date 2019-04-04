@@ -9,7 +9,7 @@ import gyro.lang.Resource;
 import gyro.lang.ResourceFinder;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.scope.Scope;
-import gyro.parser.antlr4.BeamParser;
+import gyro.parser.antlr4.GyroParser;
 
 import java.util.HashMap;
 import java.util.List;
@@ -26,7 +26,7 @@ public class ComparisonQuery extends Query {
     public static final String EQUALS_OPERATOR = "=";
     public static final String NOT_EQUALS_OPERATOR = "!=";
 
-    public ComparisonQuery(BeamParser.ComparisonQueryContext context) {
+    public ComparisonQuery(GyroParser.ComparisonQueryContext context) {
         this.operator = context.comparisonOperator().getText();
         this.path = context.path().getText();
         this.value = Node.create(context.value().getChild(0));

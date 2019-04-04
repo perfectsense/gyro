@@ -2,13 +2,13 @@ package gyro.lang.ast.query;
 
 import gyro.lang.Resource;
 import gyro.lang.ast.scope.Scope;
-import gyro.parser.antlr4.BeamParser;
+import gyro.parser.antlr4.GyroParser;
 
 import java.util.List;
 
 public class AndQuery extends AbstractCompoundQuery {
 
-    public AndQuery(BeamParser.AndQueryContext context) {
+    public AndQuery(GyroParser.AndQueryContext context) {
         super(context);
     }
 

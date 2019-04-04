@@ -11,7 +11,7 @@ import gyro.lang.ast.scope.FileScope;
 import gyro.lang.ast.scope.RootScope;
 import gyro.lang.ast.scope.Scope;
 
-import static gyro.parser.antlr4.BeamParser.VirtualResourceContext;
+import static gyro.parser.antlr4.GyroParser.VirtualResourceContext;
 
 public class VirtualResourceNode extends BlockNode {
 

@@ -16,7 +16,7 @@ import gyro.lang.ast.Node;
 import gyro.lang.ast.scope.DiffableScope;
 import gyro.lang.ast.scope.RootScope;
 import gyro.lang.ast.scope.Scope;
-import gyro.parser.antlr4.BeamParser;
+import gyro.parser.antlr4.GyroParser;
 
 public class ResourceNode extends BlockNode {
 
@@ -30,7 +30,7 @@ public class ResourceNode extends BlockNode {
         this.nameNode = nameNode;
     }
 
-    public ResourceNode(BeamParser.ResourceContext context) {
+    public ResourceNode(GyroParser.ResourceContext context) {
         super(context.blockBody()
                 .blockStatement()
                 .stream()

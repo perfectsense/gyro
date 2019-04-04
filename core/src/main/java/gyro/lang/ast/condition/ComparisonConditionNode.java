@@ -1,13 +1,13 @@
 package gyro.lang.ast.condition;
 
 import gyro.lang.ast.scope.Scope;
-import gyro.parser.antlr4.BeamParser;
+import gyro.parser.antlr4.GyroParser;
 
 public class ComparisonConditionNode extends ConditionNode {
 
     private String operator;
 
-    public ComparisonConditionNode(BeamParser.ComparisonConditionContext context) {
+    public ComparisonConditionNode(GyroParser.ComparisonConditionContext context) {
         super(context);
 
         operator = context.comparisonOperator().getText();

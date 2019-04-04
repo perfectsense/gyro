@@ -1,14 +1,14 @@
 package gyro.lang.ast.condition;
 
 import gyro.lang.ast.Node;
-import gyro.parser.antlr4.BeamParser;
+import gyro.parser.antlr4.GyroParser;
 
 public abstract class ConditionNode extends Node {
 
     private Node leftNode;
     private Node rightNode;
 
-    public ConditionNode(BeamParser.ConditionContext context) {
+    public ConditionNode(GyroParser.ConditionContext context) {
         leftNode = Node.create(context.getChild(0));
 
         if (context.getChild(2) != null) {

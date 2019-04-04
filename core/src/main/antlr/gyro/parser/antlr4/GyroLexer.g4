@@ -1,4 +1,4 @@
-lexer grammar BeamLexer;
+lexer grammar GyroLexer;
 
 // directive
 AT    : '@';

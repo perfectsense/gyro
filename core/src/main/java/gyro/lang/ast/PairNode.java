@@ -4,7 +4,7 @@ import java.util.Optional;
 
 import gyro.lang.ast.scope.DiffableScope;
 import gyro.lang.ast.scope.Scope;
-import gyro.parser.antlr4.BeamParser;
+import gyro.parser.antlr4.GyroParser;
 
 public class PairNode extends Node {
 
@@ -16,7 +16,7 @@ public class PairNode extends Node {
         this.value = value;
     }
 
-    public PairNode(BeamParser.PairContext context) {
+    public PairNode(GyroParser.PairContext context) {
         key = context.key().getChild(0).getText();
         value = Node.create(context.value().getChild(0));
     }

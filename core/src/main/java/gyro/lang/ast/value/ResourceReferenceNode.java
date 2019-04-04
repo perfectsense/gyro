@@ -14,7 +14,7 @@ import gyro.lang.ast.query.OrQuery;
 import gyro.lang.ast.query.Query;
 import gyro.lang.ast.scope.RootScope;
 import gyro.lang.ast.scope.Scope;
-import gyro.parser.antlr4.BeamParser;
+import gyro.parser.antlr4.GyroParser;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,10 +32,10 @@ public class ResourceReferenceNode extends Node {
     private final List<Query> queries;
     private final String path;
 
-    public ResourceReferenceNode(BeamParser.ResourceReferenceContext context) {
+    public ResourceReferenceNode(GyroParser.ResourceReferenceContext context) {
         type = context.resourceType().getText();
 
-        BeamParser.ReferenceNameContext rnc = context.referenceName();
+        GyroParser.ReferenceNameContext rnc = context.referenceName();
 
         nameNode = Optional.ofNullable(rnc.string())
             .map(c -> Node.create(c.getChild(0)))
@@ -47,7 +47,7 @@ public class ResourceReferenceNode extends Node {
             .collect(Collectors.toList());
 
         path = Optional.ofNullable(context.path())
-            .map(BeamParser.PathContext::getText)
+            .map(GyroParser.PathContext::getText)
             .orElse(null);
     }
 

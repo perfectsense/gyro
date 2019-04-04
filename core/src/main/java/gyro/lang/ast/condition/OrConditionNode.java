@@ -1,11 +1,11 @@
 package gyro.lang.ast.condition;
 
 import gyro.lang.ast.scope.Scope;
-import gyro.parser.antlr4.BeamParser;
+import gyro.parser.antlr4.GyroParser;
 
 public class OrConditionNode extends ConditionNode {
 
-    public OrConditionNode(BeamParser.OrConditionContext context) {
+    public OrConditionNode(GyroParser.OrConditionContext context) {
         super(context);
     }
 

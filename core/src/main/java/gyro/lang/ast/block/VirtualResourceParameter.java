@@ -1,12 +1,12 @@
 package gyro.lang.ast.block;
 
-import gyro.parser.antlr4.BeamParser;
+import gyro.parser.antlr4.GyroParser;
 
 public class VirtualResourceParameter {
 
     private final String name;
 
-    public VirtualResourceParameter(BeamParser.VirtualResourceParameterContext context) {
+    public VirtualResourceParameter(GyroParser.VirtualResourceParameterContext context) {
         name = context.getText();
     }
 

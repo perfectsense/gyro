@@ -2,7 +2,7 @@ package gyro.lang.ast;
 
 import gyro.lang.ast.scope.FileScope;
 import gyro.lang.ast.scope.Scope;
-import gyro.parser.antlr4.BeamParser;
+import gyro.parser.antlr4.GyroParser;
 
 import java.nio.file.Paths;
 import java.util.Optional;
@@ -12,7 +12,7 @@ public class DirectiveNode extends Node {
     private final String file;
     private final String name;
 
-    public DirectiveNode(BeamParser.DirectiveContext context) {
+    public DirectiveNode(GyroParser.DirectiveContext context) {
         String directive = context.IDENTIFIER().getText();
 
         if (!"import".equals(directive)) {
@@ -23,7 +23,7 @@ public class DirectiveNode extends Node {
         file = context.directiveArgument(0).getText();
 
         name = Optional.ofNullable(context.directiveArgument(2))
-                .map(BeamParser.DirectiveArgumentContext::getText)
+                .map(GyroParser.DirectiveArgumentContext::getText)
                 .orElse(null);
     }
 

@@ -3,7 +3,7 @@ package gyro.lang.ast.block;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.scope.Scope;
 import gyro.lang.plugins.PluginLoader;
-import gyro.parser.antlr4.BeamParser;
+import gyro.parser.antlr4.GyroParser;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -14,7 +14,7 @@ public class PluginNode extends BlockNode {
         super(body);
     }
 
-    public PluginNode(BeamParser.ResourceContext context) {
+    public PluginNode(GyroParser.ResourceContext context) {
         super(context.blockBody()
                 .blockStatement()
                 .stream()

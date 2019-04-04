@@ -2,7 +2,7 @@ package gyro.lang.ast.value;
 
 import gyro.lang.ast.Node;
 import gyro.lang.ast.scope.Scope;
-import gyro.parser.antlr4.BeamParser;
+import gyro.parser.antlr4.GyroParser;
 
 public class ValueReferenceNode extends Node {
 
@@ -12,7 +12,7 @@ public class ValueReferenceNode extends Node {
         this.path = path;
     }
 
-    public ValueReferenceNode(BeamParser.ValueReferenceContext context) {
+    public ValueReferenceNode(GyroParser.ValueReferenceContext context) {
         this(context.path().getText());
     }
 

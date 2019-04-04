@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static gyro.parser.antlr4.BeamParser.MapContext;
+import static gyro.parser.antlr4.GyroParser.MapContext;
 import static java.util.stream.Collectors.joining;
 
 public class MapNode extends Node {
