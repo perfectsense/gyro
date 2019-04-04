@@ -47,10 +47,17 @@ blockStatement
     | pair
     ;
 
-// virtual resource function
-virtualResource      : VR virtualResourceName NEWLINES virtualResourceParam* DEFINE NEWLINES blockBody END;
-virtualResourceParam : PARAM IDENTIFIER NEWLINES;
-virtualResourceName  : IDENTIFIER;
+// virtual resource
+virtualResource
+    :
+    VIRTUAL_RESOURCE resourceName NEWLINES
+        (PARAM virtualResourceParameter NEWLINES)*
+    DEFINE NEWLINES
+        blockBody
+    END
+    ;
+
+virtualResourceParameter : IDENTIFIER;
 
 // forStatement
 forVariable : IDENTIFIER;
@@ -89,7 +96,7 @@ pair : key COLON value;
 key
     : IDENTIFIER
     | STRING
-    | VR
+    | VIRTUAL_RESOURCE
     | PARAM
     | DEFINE
     ;

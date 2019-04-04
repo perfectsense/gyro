@@ -16,7 +16,7 @@ import static gyro.parser.antlr4.BeamParser.VirtualResourceContext;
 public class VirtualResourceNode extends BlockNode {
 
     private String name;
-    private List<VirtualResourceParam> params;
+    private List<VirtualResourceParameter> params;
 
     public VirtualResourceNode(VirtualResourceContext context) {
         super(context.blockBody()
@@ -25,11 +25,11 @@ public class VirtualResourceNode extends BlockNode {
                 .map(b -> Node.create(b.getChild(0)))
                 .collect(Collectors.toList()));
 
-        name = context.virtualResourceName().IDENTIFIER().getText();
+        name = context.resourceName().getText();
 
-        params = context.virtualResourceParam()
+        params = context.virtualResourceParameter()
                 .stream()
-                .map(VirtualResourceParam::new)
+                .map(VirtualResourceParameter::new)
                 .collect(Collectors.toList());
     }
 
@@ -37,7 +37,7 @@ public class VirtualResourceNode extends BlockNode {
         FileScope paramFileScope = paramScope.getFileScope();
         RootScope vrScope = new RootScope(paramFileScope.getFile());
 
-        for (VirtualResourceParam param : params) {
+        for (VirtualResourceParameter param : params) {
             String paramName = param.getName();
 
             if (!paramScope.containsKey(paramName)) {

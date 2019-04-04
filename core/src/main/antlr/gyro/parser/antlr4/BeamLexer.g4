@@ -1,7 +1,7 @@
 lexer grammar BeamLexer;
 
 DEFINE : 'define';
-VR    : 'virtual-resource';
+VIRTUAL_RESOURCE : 'virtual-resource';
 PARAM : 'param';
 FOR   : 'for';
 IN    : 'in';
