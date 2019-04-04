@@ -2,6 +2,7 @@ package gyro.lang.ast.value;
 
 import gyro.lang.ast.Node;
 import gyro.lang.ast.scope.Scope;
+import gyro.parser.antlr4.BeamParser;
 
 public class ValueReferenceNode extends Node {
 
@@ -9,6 +10,10 @@ public class ValueReferenceNode extends Node {
 
     public ValueReferenceNode(String path) {
         this.path = path;
+    }
+
+    public ValueReferenceNode(BeamParser.ValueReferenceContext context) {
+        this(context.path().getText());
     }
 
     @Override
