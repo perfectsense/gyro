@@ -34,10 +34,6 @@ public class Scope implements Map<String, Object> {
         return parent;
     }
 
-    public Map<String, Node> getKeyNodes() {
-        return keyNodes;
-    }
-
     @SuppressWarnings("unchecked")
     public <S extends Scope> S getClosest(Class<S> scopeClass) {
         for (Scope s = this; s != null; s = s.getParent()) {
@@ -121,6 +117,14 @@ public class Scope implements Map<String, Object> {
 
     public void addValueNode(String key, Node value) {
         valueNodes.put(key, value);
+    }
+
+    public Map<String, Node> getValueNodes() {
+        return valueNodes;
+    }
+
+    public Map<String, Node> getKeyNodes() {
+        return keyNodes;
     }
 
     @Override
