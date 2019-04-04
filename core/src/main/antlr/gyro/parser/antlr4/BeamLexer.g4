@@ -1,10 +1,8 @@
 lexer grammar BeamLexer;
 
-IMPORT : 'import' -> pushMode(IN_IMPORT);
 DEFINE : 'define';
 VR    : 'virtual-resource';
 PARAM : 'param';
-AS    : 'as';
 FOR   : 'for';
 IN    : 'in';
 END   : 'end';
@@ -22,6 +20,7 @@ FLOAT   : '-'? (Digits '.' Digits? | '.' Digits);
 INTEGER : '-'? ('0' | [1-9] (Digits? | '_'+ Digits)) [lL]?;
 STRING  : '\'' String '\'' ;
 
+AT            : '@';
 DQUOTE         : '"' -> pushMode(IN_STRING_EXPRESSION);
 COLON         : ':';
 HASH          : '#';
@@ -56,12 +55,3 @@ S_LREF   : '$(' -> type(LREF), pushMode(DEFAULT_MODE);
 S_DOLLAR : '$' -> type(TEXT);
 S_LPAREN : '(' -> type(TEXT);
 S_DQUOTE : '"' -> type(DQUOTE), popMode;
-
-mode IN_IMPORT;
-
-I_AS         : 'as' -> type(AS);
-I_DOT        : '.' -> type(DOT);
-I_SLASH      : '/' -> type(SLASH);
-I_IDENTIFIER : (SLASH | DOT | Common)+ -> type(IDENTIFIER);
-I_NEWLINES    : [\r\n] -> skip, popMode;
-I_WS         : [ \u000C\t]+ -> channel(HIDDEN);

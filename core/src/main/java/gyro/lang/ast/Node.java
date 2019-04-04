@@ -64,8 +64,8 @@ public abstract class Node {
         } else if (cc.equals(BeamParser.PairContext.class)) {
             return new PairNode((BeamParser.PairContext) context);
 
-        } else if (cc.equals(BeamParser.ImportStmtContext.class)) {
-            return new ImportNode((BeamParser.ImportStmtContext) context);
+        } else if (cc.equals(BeamParser.DirectiveContext.class)) {
+            return new DirectiveNode((BeamParser.DirectiveContext) context);
 
         } else if (cc.equals(BeamParser.ListContext.class)) {
             return new ListNode((BeamParser.ListContext) context);

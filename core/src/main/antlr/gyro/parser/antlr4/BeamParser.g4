@@ -10,7 +10,7 @@ root
     ;
 
 statement
-    : importStmt
+    : directive
     | resource
     | virtualResource
     | forStatement
@@ -18,10 +18,14 @@ statement
     | pair
     ;
 
-// import directive
-importStmt  : IMPORT importPath (AS importName)?;
-importPath  : IDENTIFIER;
-importName  : IDENTIFIER;
+// directive
+directive : AT IDENTIFIER directiveArgument*;
+
+directiveArgument
+    : IDENTIFIER
+    | DOT DOT? (SLASH (DOT DOT? | IDENTIFIER))*
+    | value
+    ;
 
 // resource
 resource
@@ -36,7 +40,8 @@ resourceName : IDENTIFIER | string;
 blockBody : (blockStatement NEWLINES)*;
 
 blockStatement
-    : resource
+    : directive
+    | resource
     | forStatement
     | ifStatement
     | pair
@@ -84,8 +89,6 @@ pair : key COLON value;
 key
     : IDENTIFIER
     | STRING
-    | IMPORT
-    | AS
     | VR
     | PARAM
     | DEFINE

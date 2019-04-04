@@ -7,16 +7,23 @@ import gyro.parser.antlr4.BeamParser;
 import java.nio.file.Paths;
 import java.util.Optional;
 
-public class ImportNode extends Node {
+public class DirectiveNode extends Node {
 
     private final String file;
     private final String name;
 
-    public ImportNode(BeamParser.ImportStmtContext context) {
-        file = context.importPath().IDENTIFIER().getText();
+    public DirectiveNode(BeamParser.DirectiveContext context) {
+        String directive = context.IDENTIFIER().getText();
 
-        name = Optional.ofNullable(context.importName())
-                .map(c -> c.IDENTIFIER().getText())
+        if (!"import".equals(directive)) {
+            throw new IllegalArgumentException(
+                String.format("[%s] isn't a valid directive!", directive));
+        }
+
+        file = context.directiveArgument(0).getText();
+
+        name = Optional.ofNullable(context.directiveArgument(2))
+                .map(BeamParser.DirectiveArgumentContext::getText)
                 .orElse(null);
     }
 
@@ -59,7 +66,7 @@ public class ImportNode extends Node {
     @Override
     public void buildString(StringBuilder builder, int indentDepth) {
         buildNewline(builder, indentDepth);
-        builder.append("import ");
+        builder.append("@import ");
         builder.append(file);
 
         if (name != null) {
