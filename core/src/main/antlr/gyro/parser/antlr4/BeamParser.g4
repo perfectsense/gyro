@@ -100,16 +100,9 @@ booleanValue
 listValue
     :
     LBRACKET NEWLINE?
-        (listItemValue (COMMA NEWLINE?
-        listItemValue)*       NEWLINE?)?
+        (value (COMMA NEWLINE?
+        value)*       NEWLINE?)?
     RBRACKET
-    ;
-
-listItemValue
-    : booleanValue
-    | numberValue
-    | referenceValue
-    | stringValue
     ;
 
 mapValue
