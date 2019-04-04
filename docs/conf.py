@@ -67,9 +67,9 @@ todo_include_todos = False
 
 pdf_documents = [
  ('getting-started/index',
-     u'GettingStartedwithGyro',
-     u'Getting Started with Gyro',
-     u'',
+     u'GyroUserGuide',
+     u'Gyro User Guide',
+     u'jeremy@brightspot.com'
  )
 ]
 

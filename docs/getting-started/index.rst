@@ -1,8 +1,8 @@
 
-.. title:: Getting Started with Gyro
+.. title:: Gyro User Guide
 
-Getting Started with Gyro
-=========================
+Gyro User Guide
+===============
 
 .. toctree::
 
