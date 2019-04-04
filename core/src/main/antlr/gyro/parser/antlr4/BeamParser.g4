@@ -118,10 +118,10 @@ numberValue
     | FLOAT_LITERAL
     ;
 
-referenceValue     : DOLLAR LPAREN referenceBody RPAREN ;
-referenceBody      : referenceType referenceName (PIPE query)* | referenceType referenceName | referenceType;
-referenceType      : IDENTIFIER (DOT IDENTIFIER)* ;
-referenceName      : ( (SLASH | GLOB | IDENTIFIER)* | stringExpression | IDENTIFIER (DOT IDENTIFIER)*) ;
+referenceValue : LREF referenceBody RREF;
+referenceBody : referenceType referenceName (PIPE query)* | referenceType referenceName | referenceType;
+referenceType : IDENTIFIER (DOT IDENTIFIER)* ;
+referenceName : ( (SLASH | GLOB | IDENTIFIER)* | stringExpression | IDENTIFIER (DOT IDENTIFIER)*) ;
 
 query
     : field                          # FieldQuery
@@ -132,6 +132,6 @@ query
 
 field : IDENTIFIER (DOT IDENTIFIER)*;
 
-stringValue  : stringExpression | STRING_LITERAL;
-stringExpression : QUOTE stringContents* QUOTE;
-stringContents   : referenceBody | DOLLAR | LPAREN | RPAREN | TEXT;
+stringValue : stringExpression | STRING_LITERAL;
+stringExpression : DQUOTE stringContents* DQUOTE;
+stringContents : TEXT | referenceValue;
