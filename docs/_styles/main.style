@@ -24,6 +24,7 @@ styles:
 
     bullet-list-item:
         parent: bodytext
+        spaceAfter: 0
 
     bodytext:
         fontSize: 12
