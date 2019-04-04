@@ -6,17 +6,17 @@ import gyro.lang.ast.scope.DiffableScope;
 import gyro.lang.ast.scope.Scope;
 import gyro.parser.antlr4.BeamParser;
 
-public class KeyValueNode extends Node {
+public class PairNode extends Node {
 
     private final String key;
     private final Node value;
 
-    public KeyValueNode(String key, Node value) {
+    public PairNode(String key, Node value) {
         this.key = key;
         this.value = value;
     }
 
-    public KeyValueNode(BeamParser.KeyValueStatementContext context) {
+    public PairNode(BeamParser.PairContext context) {
         key = context.key().getChild(0).getText();
         value = Node.create(context.value().getChild(0));
     }

@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 import gyro.lang.Workflow;
 import gyro.lang.ast.DeferError;
 import gyro.lang.ast.ImportNode;
-import gyro.lang.ast.KeyValueNode;
+import gyro.lang.ast.PairNode;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.scope.RootScope;
 import gyro.lang.ast.scope.Scope;
@@ -28,7 +28,7 @@ public class RootNode extends BlockNode {
 
         // Evaluate imports and plugins first.
         List<ImportNode> imports = new ArrayList<>();
-        List<KeyValueNode> keyValues = new ArrayList<>();
+        List<PairNode> keyValues = new ArrayList<>();
         List<PluginNode> plugins = new ArrayList<>();
         Map<String, VirtualResourceNode> virtualResourceNodes = scope.getRootScope().getVirtualResourceNodes();
         List<ResourceNode> workflowNodes = new ArrayList<>();
@@ -38,8 +38,8 @@ public class RootNode extends BlockNode {
             if (node instanceof ImportNode) {
                 imports.add((ImportNode) node);
 
-            } else if (node instanceof KeyValueNode) {
-                keyValues.add((KeyValueNode) node);
+            } else if (node instanceof PairNode) {
+                keyValues.add((PairNode) node);
 
             } else if (node instanceof PluginNode) {
                 plugins.add((PluginNode) node);
@@ -66,7 +66,7 @@ public class RootNode extends BlockNode {
             i.load(scope);
         }
 
-        for (KeyValueNode kv : keyValues) {
+        for (PairNode kv : keyValues) {
             kv.evaluate(scope);
         }
 

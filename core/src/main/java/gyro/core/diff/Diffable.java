@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 import gyro.core.BeamUI;
 import gyro.lang.Resource;
-import gyro.lang.ast.KeyValueNode;
+import gyro.lang.ast.PairNode;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.scope.DiffableScope;
@@ -172,7 +172,7 @@ public abstract class Diffable {
         List<Node> body = new ArrayList<>();
 
         if (configuredFields != null) {
-            body.add(new KeyValueNode("_configured-fields",
+            body.add(new PairNode("_configured-fields",
                     new ListNode(configuredFields.stream()
                             .map(StringNode::new)
                             .collect(Collectors.toList()))));
@@ -188,10 +188,10 @@ public abstract class Diffable {
             String key = field.getBeamName();
 
             if (value instanceof Boolean) {
-                body.add(new KeyValueNode(key, new BooleanNode(Boolean.TRUE.equals(value))));
+                body.add(new PairNode(key, new BooleanNode(Boolean.TRUE.equals(value))));
 
             } else if (value instanceof Date) {
-                body.add(new KeyValueNode(key, new StringNode(value.toString())));
+                body.add(new PairNode(key, new StringNode(value.toString())));
 
             } else if (value instanceof Diffable) {
                 body.add(new KeyBlockNode(key, ((Diffable) value).toBodyNodes()));
@@ -203,17 +203,17 @@ public abstract class Diffable {
                     }
 
                 } else {
-                    body.add(new KeyValueNode(key, toNode(value)));
+                    body.add(new PairNode(key, toNode(value)));
                 }
 
             } else if (value instanceof Map) {
-                body.add(new KeyValueNode(key, toNode(value)));
+                body.add(new PairNode(key, toNode(value)));
 
             } else if (value instanceof Number) {
-                body.add(new KeyValueNode(key, new NumberNode((Number) value)));
+                body.add(new PairNode(key, new NumberNode((Number) value)));
 
             } else if (value instanceof String) {
-                body.add(new KeyValueNode(key, new StringNode((String) value)));
+                body.add(new PairNode(key, new StringNode((String) value)));
 
             } else {
                 throw new UnsupportedOperationException(String.format(
@@ -239,10 +239,10 @@ public abstract class Diffable {
             return new ListNode(items);
 
         } else if (value instanceof Map) {
-            List<KeyValueNode> entries = new ArrayList<>();
+            List<PairNode> entries = new ArrayList<>();
 
             for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
-                entries.add(new KeyValueNode(
+                entries.add(new PairNode(
                         (String) entry.getKey(),
                         toNode(entry.getValue())));
             }

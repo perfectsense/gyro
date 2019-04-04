@@ -10,7 +10,7 @@ root
     ;
 
 statement
-    : keyValueStatement
+    : pair
     | resource
     | forStatement
     | ifStatement
@@ -21,7 +21,7 @@ statement
 blockBody : (blockStatement NEWLINE)*;
 
 blockStatement
-    : keyValueStatement
+    : pair
     | resource
     | forStatement
     | ifStatement
@@ -71,7 +71,7 @@ condition
     | condition OR condition            # OrCondition
     ;
 
-keyValueStatement : key COLON value;
+pair : key COLON value;
 
 key
     : IDENTIFIER
@@ -108,8 +108,8 @@ listValue
 mapValue
     :
     LCURLY NEWLINE?
-        (keyValueStatement (COMMA NEWLINE?
-        keyValueStatement)*       NEWLINE?)?
+        (pair (COMMA NEWLINE?
+        pair)*       NEWLINE?)?
     RCURLY
     ;
 

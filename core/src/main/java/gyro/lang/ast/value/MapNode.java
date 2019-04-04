@@ -1,6 +1,6 @@
 package gyro.lang.ast.value;
 
-import gyro.lang.ast.KeyValueNode;
+import gyro.lang.ast.PairNode;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.scope.Scope;
 
@@ -14,16 +14,16 @@ import static java.util.stream.Collectors.joining;
 
 public class MapNode extends Node {
 
-    private List<KeyValueNode> entries;
+    private List<PairNode> entries;
 
-    public MapNode(List<KeyValueNode> entries) {
+    public MapNode(List<PairNode> entries) {
         this.entries = entries;
     }
 
     public MapNode(MapValueContext context) {
-        entries = context.keyValueStatement()
+        entries = context.pair()
             .stream()
-            .map(kv -> (KeyValueNode) Node.create(kv))
+            .map(kv -> (PairNode) Node.create(kv))
             .collect(Collectors.toList());
     }
 
@@ -32,7 +32,7 @@ public class MapNode extends Node {
         Scope bodyScope = new Scope(scope);
         Map<String, Object> map = new LinkedHashMap<>();
 
-        for (KeyValueNode e : entries) {
+        for (PairNode e : entries) {
             map.put(e.getKey(), e.evaluate(bodyScope));
         }
 
