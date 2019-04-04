@@ -39,7 +39,7 @@ public class ResourceReferenceNode extends Node {
 
         nameNode = Optional.ofNullable(rnc.resourceName())
             .map(c -> Node.create(c.getChild(0)))
-            .orElseGet(() -> new StringNode(rnc.getText()));
+            .orElseGet(() -> new LiteralStringNode(rnc.getText()));
 
         queries = context.query()
             .stream()

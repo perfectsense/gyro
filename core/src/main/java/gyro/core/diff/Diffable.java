@@ -20,7 +20,7 @@ import gyro.lang.ast.value.BooleanNode;
 import gyro.lang.ast.value.ListNode;
 import gyro.lang.ast.value.MapNode;
 import gyro.lang.ast.value.NumberNode;
-import gyro.lang.ast.value.StringNode;
+import gyro.lang.ast.value.LiteralStringNode;
 import com.google.common.collect.ImmutableSet;
 
 public abstract class Diffable {
@@ -174,7 +174,7 @@ public abstract class Diffable {
         if (configuredFields != null) {
             body.add(new PairNode("_configured-fields",
                     new ListNode(configuredFields.stream()
-                            .map(StringNode::new)
+                            .map(LiteralStringNode::new)
                             .collect(Collectors.toList()))));
         }
 
@@ -191,7 +191,7 @@ public abstract class Diffable {
                 body.add(new PairNode(key, new BooleanNode(Boolean.TRUE.equals(value))));
 
             } else if (value instanceof Date) {
-                body.add(new PairNode(key, new StringNode(value.toString())));
+                body.add(new PairNode(key, new LiteralStringNode(value.toString())));
 
             } else if (value instanceof Diffable) {
                 body.add(new KeyBlockNode(key, ((Diffable) value).toBodyNodes()));
@@ -213,7 +213,7 @@ public abstract class Diffable {
                 body.add(new PairNode(key, new NumberNode((Number) value)));
 
             } else if (value instanceof String) {
-                body.add(new PairNode(key, new StringNode((String) value)));
+                body.add(new PairNode(key, new LiteralStringNode((String) value)));
 
             } else {
                 throw new UnsupportedOperationException(String.format(
@@ -253,7 +253,7 @@ public abstract class Diffable {
             return new NumberNode((Number) value);
 
         } else if (value instanceof String) {
-            return new StringNode((String) value);
+            return new LiteralStringNode((String) value);
 
         } else {
             throw new UnsupportedOperationException(String.format(

@@ -7,12 +7,12 @@ import gyro.parser.antlr4.BeamParser;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class StringExpressionNode extends Node {
+public class InterpolatedStringNode extends Node {
 
     private final List<Object> items;
 
-    public StringExpressionNode(BeamParser.StringExpressionContext context) {
-        items = context.stringContents()
+    public InterpolatedStringNode(BeamParser.InterpolatedStringContext context) {
+        items = context.stringContent()
                 .stream()
                 .map(c -> c.getChild(0))
                 .map(c -> c instanceof BeamParser.ReferenceContext ? Node.create(c) : c.getText())

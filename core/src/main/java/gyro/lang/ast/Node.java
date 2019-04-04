@@ -17,13 +17,12 @@ import gyro.lang.ast.value.ListNode;
 import gyro.lang.ast.value.MapNode;
 import gyro.lang.ast.value.NumberNode;
 import gyro.lang.ast.value.ResourceReferenceNode;
-import gyro.lang.ast.value.StringExpressionNode;
-import gyro.lang.ast.value.StringNode;
+import gyro.lang.ast.value.InterpolatedStringNode;
+import gyro.lang.ast.value.LiteralStringNode;
 import gyro.lang.ast.value.ValueReferenceNode;
 import gyro.parser.antlr4.BeamParser;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
 
@@ -97,22 +96,17 @@ public abstract class Node {
         } else if (cc.equals(BeamParser.ResourceReferenceContext.class)) {
             return new ResourceReferenceNode((BeamParser.ResourceReferenceContext) context);
 
-        } else if (cc.equals(BeamParser.StringExpressionContext.class)) {
-            return new StringExpressionNode((BeamParser.StringExpressionContext) context);
+        } else if (cc.equals(BeamParser.LiteralStringContext.class)) {
+            return new LiteralStringNode((BeamParser.LiteralStringContext) context);
 
-        } else if (cc.equals(BeamParser.StringContext.class)) {
-            BeamParser.StringContext svc = (BeamParser.StringContext) context;
-            BeamParser.StringExpressionContext sec = svc.stringExpression();
-
-            return sec != null
-                    ? new StringExpressionNode(sec)
-                    : new StringNode(StringUtils.strip(svc.STRING().getText(), "'"));
+        } else if (cc.equals(BeamParser.InterpolatedStringContext.class)) {
+            return new InterpolatedStringNode((BeamParser.InterpolatedStringContext) context);
 
         } else if (cc.equals(BeamParser.ValueReferenceContext.class)) {
             return new ValueReferenceNode(context.getText());
 
         } else if (TerminalNode.class.isAssignableFrom(cc)) {
-            return new StringNode(context.getText());
+            return new LiteralStringNode(context.getText());
 
         } else {
             return new UnknownNode(context);

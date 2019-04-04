@@ -145,6 +145,12 @@ query
 
 path : IDENTIFIER (DOT IDENTIFIER)*;
 
-string : stringExpression | STRING;
-stringExpression : DQUOTE stringContents* DQUOTE;
-stringContents : TEXT | reference;
+string
+    : STRING                       # LiteralString
+    | DQUOTE stringContent* DQUOTE # InterpolatedString
+    ;
+
+stringContent
+    : TEXT
+    | reference
+    ;
