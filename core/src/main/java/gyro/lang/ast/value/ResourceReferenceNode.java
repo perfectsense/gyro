@@ -38,7 +38,7 @@ public class ResourceReferenceNode extends Node {
         GyroParser.ReferenceNameContext rnc = context.referenceName();
 
         nameNode = Optional.ofNullable(rnc.string())
-            .map(c -> Node.create(c.getChild(0)))
+            .map(Node::create)
             .orElseGet(() -> new LiteralStringNode(rnc.getText()));
 
         queries = context.query()
