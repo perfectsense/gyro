@@ -75,10 +75,17 @@ condition
 //
 // Regular key/value blocks can have values that contain references.
 // Simple key/value blocks cannot have value references.
-keyValueStatement : key value;
-key            : (IDENTIFIER | STRING_LITERAL | keywords) keyDelimiter;
-keywords       : IMPORT | AS | VR | PARAM | DEFINE;
-keyDelimiter   : COLON;
+keyValueStatement : key COLON value;
+
+key
+    : IDENTIFIER
+    | STRING_LITERAL
+    | IMPORT
+    | AS
+    | VR
+    | PARAM
+    | DEFINE
+    ;
 
 // -- Value Types
 value        : listValue | mapValue | stringValue | booleanValue | numberValue | referenceValue;

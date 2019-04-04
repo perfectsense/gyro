@@ -5,7 +5,6 @@ import java.util.Optional;
 import gyro.lang.ast.scope.DiffableScope;
 import gyro.lang.ast.scope.Scope;
 import gyro.parser.antlr4.BeamParser;
-import org.antlr.v4.runtime.tree.ParseTree;
 
 public class KeyValueNode extends Node {
 
@@ -18,8 +17,7 @@ public class KeyValueNode extends Node {
     }
 
     public KeyValueNode(BeamParser.KeyValueStatementContext context) {
-        ParseTree keyChild = context.key().getChild(0);
-        key = (keyChild instanceof BeamParser.KeywordsContext ? keyChild.getChild(0) : keyChild).getText();
+        key = context.key().getChild(0).getText();
         value = Node.create(context.value().getChild(0));
     }
 
