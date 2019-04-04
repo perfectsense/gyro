@@ -37,7 +37,7 @@ public class ResourceReferenceNode extends Node {
 
         BeamParser.ReferenceNameContext rnc = context.referenceName();
 
-        nameNode = Optional.ofNullable(rnc.resourceName())
+        nameNode = Optional.ofNullable(rnc.string())
             .map(c -> Node.create(c.getChild(0)))
             .orElseGet(() -> new LiteralStringNode(rnc.getText()));
 

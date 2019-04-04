@@ -134,7 +134,8 @@ reference
 referenceName
     : GLOB
     | IDENTIFIER SLASH GLOB
-    | resourceName
+    | path
+    | string
     ;
 
 query

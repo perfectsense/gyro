@@ -103,7 +103,7 @@ public abstract class Node {
             return new InterpolatedStringNode((BeamParser.InterpolatedStringContext) context);
 
         } else if (cc.equals(BeamParser.ValueReferenceContext.class)) {
-            return new ValueReferenceNode(context.getText());
+            return new ValueReferenceNode((BeamParser.ValueReferenceContext) context);
 
         } else if (TerminalNode.class.isAssignableFrom(cc)) {
             return new LiteralStringNode(context.getText());
