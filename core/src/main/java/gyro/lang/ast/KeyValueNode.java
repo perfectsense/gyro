@@ -34,6 +34,7 @@ public class KeyValueNode extends Node {
 
         scope.put(key, value.evaluate(scope));
         scope.addValueNode(key, value);
+        scope.getKeyNodes().put(key, this);
         return scope.get(key);
     }
 
