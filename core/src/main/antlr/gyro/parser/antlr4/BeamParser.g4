@@ -71,10 +71,6 @@ condition
     | condition OR condition            # OrCondition
     ;
 
-// -- Key/Value blocks.
-//
-// Regular key/value blocks can have values that contain references.
-// Simple key/value blocks cannot have value references.
 keyValueStatement : key COLON value;
 
 key
@@ -87,13 +83,34 @@ key
     | DEFINE
     ;
 
-// -- Value Types
-value        : listValue | mapValue | stringValue | booleanValue | numberValue | referenceValue;
-numberValue  : DECIMAL_LITERAL | FLOAT_LITERAL;
-booleanValue : TRUE | FALSE;
-stringValue  : stringExpression | STRING_LITERAL;
-stringExpression : QUOTE stringContents* QUOTE;
-stringContents   : referenceBody | DOLLAR | LPAREN | RPAREN | TEXT;
+value
+    : booleanValue
+    | listValue
+    | mapValue
+    | numberValue
+    | referenceValue
+    | stringValue
+    ;
+
+booleanValue
+    : TRUE
+    | FALSE
+    ;
+
+listValue
+    :
+    LBRACKET NEWLINE?
+        (listItemValue (COMMA NEWLINE?
+        listItemValue)*       NEWLINE?)?
+    RBRACKET
+    ;
+
+listItemValue
+    : booleanValue
+    | numberValue
+    | referenceValue
+    | stringValue
+    ;
 
 mapValue
     :
@@ -103,9 +120,10 @@ mapValue
     RCURLY
     ;
 
-listValue : LBRACKET NEWLINE? (listItemValue (COMMA NEWLINE? listItemValue)* NEWLINE?)? RBRACKET;
-
-listItemValue : stringValue | booleanValue | numberValue | referenceValue;
+numberValue
+    : DECIMAL_LITERAL
+    | FLOAT_LITERAL
+    ;
 
 referenceValue     : DOLLAR LPAREN referenceBody RPAREN ;
 referenceBody      : referenceType referenceName (PIPE queryExpression)* | referenceType referenceName | referenceType;
@@ -121,3 +139,7 @@ queryExpression
 
 queryField : IDENTIFIER (DOT IDENTIFIER)*;
 queryValue : referenceValue | stringValue | booleanValue | numberValue;
+
+stringValue  : stringExpression | STRING_LITERAL;
+stringExpression : QUOTE stringContents* QUOTE;
+stringContents   : referenceBody | DOLLAR | LPAREN | RPAREN | TEXT;
