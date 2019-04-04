@@ -13,7 +13,7 @@ public class NumberNode extends Node {
         this.value = value;
     }
 
-    public NumberNode(BeamParser.NumberValueContext context) {
+    public NumberNode(BeamParser.NumberContext context) {
         value = NumberUtils.createNumber(context.getText());
     }
 

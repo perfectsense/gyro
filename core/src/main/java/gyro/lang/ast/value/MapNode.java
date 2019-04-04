@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static gyro.parser.antlr4.BeamParser.MapValueContext;
+import static gyro.parser.antlr4.BeamParser.MapContext;
 import static java.util.stream.Collectors.joining;
 
 public class MapNode extends Node {
@@ -20,7 +20,7 @@ public class MapNode extends Node {
         this.entries = entries;
     }
 
-    public MapNode(MapValueContext context) {
+    public MapNode(MapContext context) {
         entries = context.pair()
             .stream()
             .map(kv -> (PairNode) Node.create(kv))

@@ -36,7 +36,7 @@ public class ForNode extends BlockNode {
                 .map(c -> c.IDENTIFIER().getText())
                 .collect(Collectors.toList());
 
-        items = context.listValue()
+        items = context.list()
                 .value()
                 .stream()
                 .map(c -> Node.create(c.getChild(0)))

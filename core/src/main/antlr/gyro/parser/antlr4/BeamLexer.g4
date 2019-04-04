@@ -14,20 +14,19 @@ IF    : 'if';
 ELSEIF: 'else if';
 ELSE  : 'else';
 EQ    : '=';
-NOTEQ : '!=';
+NEQ : '!=';
 OR    : 'or';
 AND   : 'and';
 
-COMPARISON_OPERATOR : EQ | NOTEQ;
-DECIMAL_LITERAL   : '-'? ('0' | [1-9] (Digits? | '_'+ Digits)) [lL]?;
-FLOAT_LITERAL     : '-'? (Digits '.' Digits? | '.' Digits);
-STRING_LITERAL    : '\'' String '\'' ;
+FLOAT   : '-'? (Digits '.' Digits? | '.' Digits);
+INTEGER : '-'? ('0' | [1-9] (Digits? | '_'+ Digits)) [lL]?;
+STRING  : '\'' String '\'' ;
 
 DQUOTE         : '"' -> pushMode(IN_STRING_EXPRESSION);
 COLON         : ':';
 HASH          : '#';
-LCURLY        : '{';
-RCURLY        : '}';
+LBRACE        : '{';
+RBRACE        : '}';
 LBRACKET      : '[';
 RBRACKET      : ']';
 LREF          : '$(' -> pushMode(DEFAULT_MODE);
@@ -40,7 +39,7 @@ GLOB          : '*';
 
 IDENTIFIER : (Common | COLON COLON)+;
 
-NEWLINE : [\r\n]+[ \u000C\t\r\n]*;
+NEWLINES : [\r\n]+[ \u000C\t\r\n]*;
 WS      : [ \u000C\t]+ -> channel(HIDDEN);
 COMMENT : HASH ~[\r\n]* '\r'? '\n' -> channel(HIDDEN) ;
 
@@ -64,5 +63,5 @@ I_AS         : 'as' -> type(AS);
 I_DOT        : '.' -> type(DOT);
 I_SLASH      : '/' -> type(SLASH);
 I_IDENTIFIER : (SLASH | DOT | Common)+ -> type(IDENTIFIER);
-I_NEWLINE    : [\r\n] -> skip, popMode;
+I_NEWLINES    : [\r\n] -> skip, popMode;
 I_WS         : [ \u000C\t]+ -> channel(HIDDEN);

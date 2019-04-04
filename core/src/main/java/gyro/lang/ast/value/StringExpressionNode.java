@@ -15,7 +15,7 @@ public class StringExpressionNode extends Node {
         items = context.stringContents()
                 .stream()
                 .map(c -> c.getChild(0))
-                .map(c -> c instanceof BeamParser.ReferenceValueContext ? Node.create(c) : c.getText())
+                .map(c -> c instanceof BeamParser.ReferenceContext ? Node.create(c) : c.getText())
                 .collect(Collectors.toList());
     }
 

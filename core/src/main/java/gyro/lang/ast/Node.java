@@ -68,14 +68,14 @@ public abstract class Node {
         } else if (cc.equals(BeamParser.ImportStmtContext.class)) {
             return new ImportNode((BeamParser.ImportStmtContext) context);
 
-        } else if (cc.equals(BeamParser.ListValueContext.class)) {
-            return new ListNode((BeamParser.ListValueContext) context);
+        } else if (cc.equals(BeamParser.ListContext.class)) {
+            return new ListNode((BeamParser.ListContext) context);
 
-        } else if (cc.equals(BeamParser.MapValueContext.class)) {
-            return new MapNode((BeamParser.MapValueContext) context);
+        } else if (cc.equals(BeamParser.MapContext.class)) {
+            return new MapNode((BeamParser.MapContext) context);
 
-        } else if (cc.equals(BeamParser.NumberValueContext.class)) {
-            return new NumberNode((BeamParser.NumberValueContext) context);
+        } else if (cc.equals(BeamParser.NumberContext.class)) {
+            return new NumberNode((BeamParser.NumberContext) context);
 
         } else if (cc.equals(BeamParser.ResourceContext.class)) {
             BeamParser.ResourceContext rc = (BeamParser.ResourceContext) context;
@@ -100,13 +100,13 @@ public abstract class Node {
         } else if (cc.equals(BeamParser.StringExpressionContext.class)) {
             return new StringExpressionNode((BeamParser.StringExpressionContext) context);
 
-        } else if (cc.equals(BeamParser.StringValueContext.class)) {
-            BeamParser.StringValueContext svc = (BeamParser.StringValueContext) context;
+        } else if (cc.equals(BeamParser.StringContext.class)) {
+            BeamParser.StringContext svc = (BeamParser.StringContext) context;
             BeamParser.StringExpressionContext sec = svc.stringExpression();
 
             return sec != null
                     ? new StringExpressionNode(sec)
-                    : new StringNode(StringUtils.strip(svc.STRING_LITERAL().getText(), "'"));
+                    : new StringNode(StringUtils.strip(svc.STRING().getText(), "'"));
 
         } else if (cc.equals(BeamParser.ValueReferenceContext.class)) {
             return new ValueReferenceNode(context.getText());

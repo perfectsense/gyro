@@ -16,7 +16,7 @@ public class ListNode extends Node {
         this.items = items;
     }
 
-    public ListNode(BeamParser.ListValueContext context) {
+    public ListNode(BeamParser.ListContext context) {
         items = context.value()
                 .stream()
                 .map(c -> Node.create(c.getChild(0)))

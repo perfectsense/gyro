@@ -4,78 +4,86 @@ options { tokenVocab = BeamLexer; }
 
 root
     :
-    NEWLINE? statement
-    (NEWLINE statement)*
-    NEWLINE? EOF
+    NEWLINES? statement
+    (NEWLINES statement)*
+    NEWLINES? EOF
     ;
 
 statement
-    : pair
+    : importStmt
     | resource
-    | forStatement
-    | ifStatement
-    | importStmt
     | virtualResource
-    ;
-
-blockBody : (blockStatement NEWLINE)*;
-
-blockStatement
-    : pair
-    | resource
     | forStatement
     | ifStatement
+    | pair
     ;
 
-resource : resourceType resourceName? NEWLINE blockBody END;
-
-resourceType : IDENTIFIER;
-resourceName : IDENTIFIER | stringValue;
-
+// import directive
 importStmt  : IMPORT importPath (AS importName)?;
 importPath  : IDENTIFIER;
 importName  : IDENTIFIER;
 
-virtualResource      : VR virtualResourceName NEWLINE virtualResourceParam* DEFINE NEWLINE blockBody END;
-virtualResourceParam : PARAM IDENTIFIER NEWLINE;
+// resource
+resource
+    :
+    resourceType resourceName? NEWLINES
+        blockBody
+    END
+    ;
+
+resourceType : IDENTIFIER;
+resourceName : IDENTIFIER | string;
+blockBody : (blockStatement NEWLINES)*;
+
+blockStatement
+    : resource
+    | forStatement
+    | ifStatement
+    | pair
+    ;
+
+// virtual resource function
+virtualResource      : VR virtualResourceName NEWLINES virtualResourceParam* DEFINE NEWLINES blockBody END;
+virtualResourceParam : PARAM IDENTIFIER NEWLINES;
 virtualResourceName  : IDENTIFIER;
 
-// -- Control Structures
-
+// forStatement
 forVariable : IDENTIFIER;
 
 forStatement
     :
-    FOR forVariable (COMMA forVariable)* IN (listValue | referenceValue) NEWLINE
+    FOR forVariable (COMMA forVariable)* IN (list | reference) NEWLINES
         blockBody
     END
     ;
 
+// ifStatement
 ifStatement
     :
-    IF condition NEWLINE
+    IF condition NEWLINES
         blockBody
-    (ELSEIF condition NEWLINE
+    (ELSEIF condition NEWLINES
         blockBody)*
-    (ELSE NEWLINE
+    (ELSE NEWLINES
         blockBody)?
     END
     ;
 
-comparisonOperator : EQ | NOTEQ;
+comparisonOperator : EQ | NEQ;
 
 condition
-    : value                             # ValueCondition
-    | value comparisonOperator value    # ComparisonCondition
-    | condition AND condition           # AndCondition
-    | condition OR condition            # OrCondition
+    : value                          # ValueCondition
+    | value comparisonOperator value # ComparisonCondition
+    | condition AND condition        # AndCondition
+    | condition OR condition         # OrCondition
     ;
 
+// pair
 pair : key COLON value;
 
 key
     : IDENTIFIER
-    | STRING_LITERAL
+    | STRING
     | IMPORT
     | AS
     | VR
@@ -85,11 +93,11 @@ key
 
 value
     : booleanValue
-    | listValue
-    | mapValue
-    | numberValue
-    | referenceValue
-    | stringValue
+    | list
+    | map
+    | number
+    | reference
+    | string
     ;
 
 booleanValue
@@ -97,34 +105,35 @@ booleanValue
     | FALSE
     ;
 
-listValue
+list
     :
-    LBRACKET NEWLINE?
-        (value (COMMA NEWLINE?
-        value)*       NEWLINE?)?
+    LBRACKET NEWLINES?
+        (value (COMMA NEWLINES?
+        value)*       NEWLINES?)?
     RBRACKET
     ;
 
-mapValue
+map
     :
-    LCURLY NEWLINE?
-        (pair (COMMA NEWLINE?
-        pair)*       NEWLINE?)?
-    RCURLY
+    LBRACE NEWLINES?
+        (pair (COMMA NEWLINES?
+        pair)*       NEWLINES?)?
+    RBRACE
     ;
 
-numberValue
-    : DECIMAL_LITERAL
-    | FLOAT_LITERAL
+number
+    : FLOAT
+    | INTEGER
     ;
 
-referenceValue
+reference
     : LREF resourceType referenceName (PIPE query)* (PIPE path)? RREF # ResourceReference
     | LREF path RREF                                                  # ValueReference
     ;
 
 referenceName
-    : GLOB | (IDENTIFIER SLASH GLOB)
+    : GLOB
+    | IDENTIFIER SLASH GLOB
     | resourceName
     ;
 
@@ -136,6 +145,6 @@ query
 
 path : IDENTIFIER (DOT IDENTIFIER)*;
 
-stringValue : stringExpression | STRING_LITERAL;
+string : stringExpression | STRING;
 stringExpression : DQUOTE stringContents* DQUOTE;
-stringContents : TEXT | referenceValue;
+stringContents : TEXT | reference;
