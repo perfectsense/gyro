@@ -55,7 +55,7 @@ PIPE : '|';
 STRING : '\'' ~('\'')* '\'';
 DQUOTE : '"' -> pushMode(STRING_MODE);
 
-KEY         : PARAM | DEFINE | IN | AND | OR;
+KEYWORD     : PARAM | DEFINE | IN | AND | OR;
 WHITESPACES : [ \t]+ -> channel(HIDDEN);
 COMMENT     : '#' ~[\n\r]* ('\n' | '\r' | '\r\n') -> channel(HIDDEN);
 NEWLINES    : [\n\r][ \t\n\r]*;

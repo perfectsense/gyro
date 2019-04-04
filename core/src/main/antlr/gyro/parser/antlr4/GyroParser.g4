@@ -95,7 +95,7 @@ pair : key COLON value;
 
 key
     : IDENTIFIER
-    | KEY
+    | KEYWORD
     | string
     ;
 
