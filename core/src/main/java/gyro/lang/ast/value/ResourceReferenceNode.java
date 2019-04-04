@@ -9,7 +9,7 @@ import gyro.lang.ast.DeferError;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.query.AndQuery;
 import gyro.lang.ast.query.ComparisonQuery;
-import gyro.lang.ast.query.FieldValueQuery;
+import gyro.lang.ast.query.FieldQuery;
 import gyro.lang.ast.query.FoundQuery;
 import gyro.lang.ast.query.OrQuery;
 import gyro.lang.ast.query.Query;
@@ -51,7 +51,7 @@ public class ResourceReferenceNode extends Node {
             nameNode = null;
         }
 
-        List<Query> queryList = context.queryExpression()
+        List<Query> queryList = context.query()
             .stream()
             .map(Query::create)
             .collect(Collectors.toList());
@@ -61,8 +61,8 @@ public class ResourceReferenceNode extends Node {
         if (size > 0) {
             Query last = queryList.get(size - 1);
 
-            if (last instanceof FieldValueQuery) {
-                attributeValue = ((FieldValueQuery) last).getValue();
+            if (last instanceof FieldQuery) {
+                attributeValue = ((FieldQuery) last).getValue();
                 queryList.remove(size - 1);
             }
         }

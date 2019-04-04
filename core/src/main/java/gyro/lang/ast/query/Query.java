@@ -12,17 +12,17 @@ public abstract class Query {
     public static Query create(ParseTree context) {
         Class<? extends ParseTree> cc = context.getClass();
 
-        if (cc.equals(BeamParser.QueryAndExpressionContext.class)) {
-            return new AndQuery((BeamParser.QueryAndExpressionContext) context);
+        if (cc.equals(BeamParser.AndQueryContext.class)) {
+            return new AndQuery((BeamParser.AndQueryContext) context);
 
-        } else if (cc.equals(BeamParser.QueryOrExpressionContext.class)) {
-            return new OrQuery((BeamParser.QueryOrExpressionContext) context);
+        } else if (cc.equals(BeamParser.OrQueryContext.class)) {
+            return new OrQuery((BeamParser.OrQueryContext) context);
 
-        } else if (cc.equals(BeamParser.QueryComparisonExpressionContext.class)) {
-            return new ComparisonQuery((BeamParser.QueryComparisonExpressionContext) context);
+        } else if (cc.equals(BeamParser.ComparisonQueryContext.class)) {
+            return new ComparisonQuery((BeamParser.ComparisonQueryContext) context);
 
-        } else if (cc.equals(BeamParser.QueryFieldValueContext.class)) {
-            return new FieldValueQuery((BeamParser.QueryFieldValueContext) context);
+        } else if (cc.equals(BeamParser.FieldQueryContext.class)) {
+            return new FieldQuery((BeamParser.FieldQueryContext) context);
 
         }
 

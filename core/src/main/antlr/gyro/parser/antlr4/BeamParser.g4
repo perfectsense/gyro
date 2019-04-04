@@ -119,19 +119,18 @@ numberValue
     ;
 
 referenceValue     : DOLLAR LPAREN referenceBody RPAREN ;
-referenceBody      : referenceType referenceName (PIPE queryExpression)* | referenceType referenceName | referenceType;
+referenceBody      : referenceType referenceName (PIPE query)* | referenceType referenceName | referenceType;
 referenceType      : IDENTIFIER (DOT IDENTIFIER)* ;
 referenceName      : ( (SLASH | GLOB | IDENTIFIER)* | stringExpression | IDENTIFIER (DOT IDENTIFIER)*) ;
 
-queryExpression
-    : queryField                               # QueryFieldValue
-    | queryField comparisonOperator queryValue # QueryComparisonExpression
-    | queryExpression AND queryExpression      # QueryAndExpression
-    | queryExpression OR queryExpression       # QueryOrExpression
+query
+    : field                          # FieldQuery
+    | field comparisonOperator value # ComparisonQuery
+    | query AND query                # AndQuery
+    | query OR query                 # OrQuery
     ;
 
-queryField : IDENTIFIER (DOT IDENTIFIER)*;
-queryValue : referenceValue | stringValue | booleanValue | numberValue;
+field : IDENTIFIER (DOT IDENTIFIER)*;
 
 stringValue  : stringExpression | STRING_LITERAL;
 stringExpression : QUOTE stringContents* QUOTE;

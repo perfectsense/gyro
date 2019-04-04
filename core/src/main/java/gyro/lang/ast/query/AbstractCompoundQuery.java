@@ -1,7 +1,7 @@
 package gyro.lang.ast.query;
 
 import com.google.common.collect.ImmutableList;
-import gyro.parser.antlr4.BeamParser.QueryExpressionContext;
+import gyro.parser.antlr4.BeamParser;
 
 import java.util.List;
 
@@ -9,7 +9,7 @@ public abstract class AbstractCompoundQuery extends Query {
 
     private final List<Query> children;
 
-    public AbstractCompoundQuery(QueryExpressionContext context) {
+    public AbstractCompoundQuery(BeamParser.QueryContext context) {
         ImmutableList.Builder<Query> list = ImmutableList.builder();
         addChildren(list, Query.create(context.getChild(0)));
         addChildren(list, Query.create(context.getChild(2)));

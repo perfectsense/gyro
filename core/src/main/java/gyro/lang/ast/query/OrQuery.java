@@ -2,14 +2,14 @@ package gyro.lang.ast.query;
 
 import gyro.lang.Resource;
 import gyro.lang.ast.scope.Scope;
-import gyro.parser.antlr4.BeamParser.QueryExpressionContext;
+import gyro.parser.antlr4.BeamParser;
 
 import java.util.LinkedList;
 import java.util.List;
 
 public class OrQuery extends AbstractCompoundQuery {
 
-    public OrQuery(QueryExpressionContext context) {
+    public OrQuery(BeamParser.OrQueryContext context) {
         super(context);
     }
 

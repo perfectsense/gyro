@@ -2,15 +2,15 @@ package gyro.lang.ast.query;
 
 import gyro.lang.Resource;
 import gyro.lang.ast.scope.Scope;
-import gyro.parser.antlr4.BeamParser.QueryFieldValueContext;
+import gyro.parser.antlr4.BeamParser;
 
 import java.util.List;
 
-public class FieldValueQuery extends Query {
+public class FieldQuery extends Query {
 
     private String value;
 
-    public FieldValueQuery(QueryFieldValueContext context) {
+    public FieldQuery(BeamParser.FieldQueryContext context) {
         this.value = context.getText();
     }
 
