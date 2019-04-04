@@ -20,7 +20,7 @@ styles:
         commands: []
                [VALIGN, [ 0, 0 ], [ -1, -1 ], TOP ]
                [RIGHTPADDING, [ 0, 0 ], [ 1, -1 ], 0 ]
-        colWidths: ["20", null]
+        colWidths: ["8", null]
 
     bullet-list-item:
         parent: bodytext
@@ -28,9 +28,10 @@ styles:
 
     bodytext:
         fontSize: 12
-        spaceAfter: 10
         alignment: TA_LEFT
         fontName: stdSans
+        spaceBefore: 12
+        spaceAfter: 12
 
     admonition:
         backColor: #EEFFCC
@@ -133,7 +134,7 @@ styles:
         fontSize: 10
         leading: 10
         leftIndent: 0
-        spaceBefore: 16
+        spaceBefore: 12
         textColor: #008AD4
 
     heading1: 
@@ -144,32 +145,35 @@ styles:
     heading2: 
         parent: heading
         fontSize: 200%
-        spaceAfter: 20
+        spaceAfter: 12
         fontName: stdBold
 
     heading3: 
         parent: heading
         fontSize: 150%
         fontName: stdBold
-        spaceAfter: 20
+        spaceAfter: 12
         textColor: #555555
         
     heading4: 
         parent: heading
         fontSize: 100%
         fontName: stdBold
+        spaceAfter: 12
         textColor: #555555
 
     heading5: 
         parent: heading
         fontSize: 100%
         fontName: stdFont
+        spaceAfter: 12
         textColor: #555555
 
     heading6: 
         parent: heading
         fontSize: 100%
         fontName: stdFont
+        spaceAfter: 12
         textColor: #555555
 
     hlist:
