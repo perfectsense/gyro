@@ -142,6 +142,7 @@ reference
 referenceName
     : GLOB
     | IDENTIFIER SLASH GLOB
+    | IDENTIFIER GLOB
     | path
     | string
     ;
