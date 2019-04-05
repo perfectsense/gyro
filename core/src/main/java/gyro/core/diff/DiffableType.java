@@ -14,6 +14,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import gyro.core.ResourceId;
 
 public class DiffableType<R extends Diffable> {
 
@@ -27,6 +28,7 @@ public class DiffableType<R extends Diffable> {
                 }
             });
 
+    private final DiffableField idField;
     private final List<DiffableField> fields;
     private final Map<String, DiffableField> fieldByJavaName;
     private final Map<String, DiffableField> fieldByBeamName;
@@ -46,6 +48,7 @@ public class DiffableType<R extends Diffable> {
     }
 
     private DiffableType(Class<R> diffableClass) throws IntrospectionException {
+        DiffableField idField = null;
         ImmutableList.Builder<DiffableField> fields = ImmutableList.builder();
         ImmutableMap.Builder<String, DiffableField> fieldByJavaName = ImmutableMap.builder();
         ImmutableMap.Builder<String, DiffableField> fieldByBeamName = ImmutableMap.builder();
@@ -61,6 +64,10 @@ public class DiffableType<R extends Diffable> {
                 if (getterType.equals(setterType)) {
                     DiffableField field = new DiffableField(prop.getName(), getter, setter, getterType);
 
+                    if (getter.isAnnotationPresent(ResourceId.class)) {
+                        idField = field;
+                    }
+
                     fields.add(field);
                     fieldByJavaName.put(field.getJavaName(), field);
                     fieldByBeamName.put(field.getBeamName(), field);
@@ -68,9 +75,14 @@ public class DiffableType<R extends Diffable> {
             }
         }
 
+        this.idField = idField;
         this.fields = fields.build();
         this.fieldByJavaName = fieldByJavaName.build();
         this.fieldByBeamName = fieldByBeamName.build();
+    }
+
+    public DiffableField getIdField() {
+        return idField;
     }
 
     public List<DiffableField> getFields() {

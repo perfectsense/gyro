@@ -3,6 +3,7 @@ package gyro.core.diff;
 import com.google.common.base.CaseFormat;
 import com.psddev.dari.util.Converter;
 import com.psddev.dari.util.ObjectUtils;
+import gyro.lang.Resource;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -19,6 +20,15 @@ public class DiffableField {
         CONVERTER = new Converter();
         CONVERTER.setThrowError(true);
         CONVERTER.putAllStandardFunctions();
+
+        CONVERTER.putDirectFunction(
+            Resource.class,
+            String.class,
+            (converter, returnType, resource) -> ObjectUtils.to(
+                String.class,
+                DiffableType.getInstance(resource.getClass())
+                    .getIdField()
+                    .getValue(resource)));
     }
 
     private final String javaName;
