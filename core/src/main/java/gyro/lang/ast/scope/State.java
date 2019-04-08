@@ -2,6 +2,7 @@ package gyro.lang.ast.scope;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -60,6 +61,7 @@ public class State {
         Map<String, FileScope> pendingImports = pending.getImports().stream()
             .collect(Collectors.toMap(i -> getStateFile(i.getFile()), Function.identity()));
 
+        List<FileScope> removedScopes = new ArrayList<>();
         for (FileScope stateImport : state.getImports()) {
             if (!pendingImports.keySet().contains(stateImport.getFile())) {
                 if (!removeImports.containsKey(state.getFile())) {
@@ -67,12 +69,15 @@ public class State {
                 }
 
                 removeImports.get(state.getFile()).add(stateImport.getFile());
+                removedScopes.add(stateImport);
 
             } else {
-                pendingImports.remove(stateImport.getFile());
                 states.put(stateImport.getFile(), stateImport);
             }
         }
+
+        state.getImports().clear();
+        state.getImports().addAll(removedScopes);
 
         for (Map.Entry<String, FileScope> entry : pendingImports.entrySet()) {
             Path pendingDir = Paths.get(pending.getFile()).getParent() != null ?
