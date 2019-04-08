@@ -90,7 +90,8 @@ public class State {
         state.getBackend().save(state);
 
         for (FileScope i : state.getImports()) {
-            if (removeImports.containsKey(state.getFile())
+            if (!removeImports.containsKey(state.getFile())
+                || removeImports.containsKey(state.getFile())
                     && !removeImports.get(state.getFile()).contains(i.getFile())) {
                 save(i);
             }
