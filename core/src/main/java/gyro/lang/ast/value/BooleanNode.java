@@ -2,7 +2,7 @@ package gyro.lang.ast.value;
 
 import gyro.lang.ast.Node;
 import gyro.lang.ast.scope.Scope;
-import gyro.parser.antlr4.BeamParser;
+import gyro.parser.antlr4.GyroParser;
 
 public class BooleanNode extends Node {
 
@@ -12,7 +12,7 @@ public class BooleanNode extends Node {
         this.value = value;
     }
 
-    public BooleanNode(BeamParser.BooleanValueContext context) {
+    public BooleanNode(GyroParser.BooleanValueContext context) {
         value = context.TRUE() != null;
     }
 

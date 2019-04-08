@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 import gyro.core.BeamUI;
 import gyro.lang.Resource;
-import gyro.lang.ast.KeyValueNode;
+import gyro.lang.ast.PairNode;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.scope.DiffableScope;
@@ -20,7 +20,7 @@ import gyro.lang.ast.value.BooleanNode;
 import gyro.lang.ast.value.ListNode;
 import gyro.lang.ast.value.MapNode;
 import gyro.lang.ast.value.NumberNode;
-import gyro.lang.ast.value.StringNode;
+import gyro.lang.ast.value.LiteralStringNode;
 import com.google.common.collect.ImmutableSet;
 
 public abstract class Diffable {
@@ -172,9 +172,9 @@ public abstract class Diffable {
         List<Node> body = new ArrayList<>();
 
         if (configuredFields != null) {
-            body.add(new KeyValueNode("_configured-fields",
+            body.add(new PairNode("_configured-fields",
                     new ListNode(configuredFields.stream()
-                            .map(StringNode::new)
+                            .map(LiteralStringNode::new)
                             .collect(Collectors.toList()))));
         }
 
@@ -188,10 +188,10 @@ public abstract class Diffable {
             String key = field.getBeamName();
 
             if (value instanceof Boolean) {
-                body.add(new KeyValueNode(key, new BooleanNode(Boolean.TRUE.equals(value))));
+                body.add(new PairNode(key, new BooleanNode(Boolean.TRUE.equals(value))));
 
             } else if (value instanceof Date) {
-                body.add(new KeyValueNode(key, new StringNode(value.toString())));
+                body.add(new PairNode(key, new LiteralStringNode(value.toString())));
 
             } else if (value instanceof Diffable) {
                 body.add(new KeyBlockNode(key, ((Diffable) value).toBodyNodes()));
@@ -203,17 +203,17 @@ public abstract class Diffable {
                     }
 
                 } else {
-                    body.add(new KeyValueNode(key, toNode(value)));
+                    body.add(new PairNode(key, toNode(value)));
                 }
 
             } else if (value instanceof Map) {
-                body.add(new KeyValueNode(key, toNode(value)));
+                body.add(new PairNode(key, toNode(value)));
 
             } else if (value instanceof Number) {
-                body.add(new KeyValueNode(key, new NumberNode((Number) value)));
+                body.add(new PairNode(key, new NumberNode((Number) value)));
 
             } else if (value instanceof String) {
-                body.add(new KeyValueNode(key, new StringNode((String) value)));
+                body.add(new PairNode(key, new LiteralStringNode((String) value)));
 
             } else {
                 throw new UnsupportedOperationException(String.format(
@@ -233,18 +233,22 @@ public abstract class Diffable {
             List<Node> items = new ArrayList<>();
 
             for (Object item : (List<?>) value) {
-                items.add(toNode(item));
+                if (item != null) {
+                    items.add(toNode(item));
+                }
             }
 
             return new ListNode(items);
 
         } else if (value instanceof Map) {
-            List<KeyValueNode> entries = new ArrayList<>();
+            List<PairNode> entries = new ArrayList<>();
 
             for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
-                entries.add(new KeyValueNode(
-                        (String) entry.getKey(),
-                        toNode(entry.getValue())));
+                Object v = entry.getValue();
+
+                if (v != null) {
+                    entries.add(new PairNode((String) entry.getKey(), toNode(v)));
+                }
             }
 
             return new MapNode(entries);
@@ -253,7 +257,7 @@ public abstract class Diffable {
             return new NumberNode((Number) value);
 
         } else if (value instanceof String) {
-            return new StringNode((String) value);
+            return new LiteralStringNode((String) value);
 
         } else {
             throw new UnsupportedOperationException(String.format(

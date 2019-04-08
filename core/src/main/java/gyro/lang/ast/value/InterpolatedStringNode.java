@@ -2,20 +2,20 @@ package gyro.lang.ast.value;
 
 import gyro.lang.ast.Node;
 import gyro.lang.ast.scope.Scope;
-import gyro.parser.antlr4.BeamParser;
+import gyro.parser.antlr4.GyroParser;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class StringExpressionNode extends Node {
+public class InterpolatedStringNode extends Node {
 
     private final List<Object> items;
 
-    public StringExpressionNode(BeamParser.StringExpressionContext context) {
-        items = context.stringContents()
+    public InterpolatedStringNode(GyroParser.InterpolatedStringContext context) {
+        items = context.stringContent()
                 .stream()
                 .map(c -> c.getChild(0))
-                .map(c -> c instanceof BeamParser.ReferenceBodyContext ? Node.create(c) : c.getText())
+                .map(c -> c instanceof GyroParser.ReferenceContext ? Node.create(c) : c.getText())
                 .collect(Collectors.toList());
     }
 
