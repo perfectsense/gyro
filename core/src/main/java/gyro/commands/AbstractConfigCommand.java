@@ -139,8 +139,8 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         }
 
         for (Map.Entry<String, FileScope> entry : pendingImports.entrySet()) {
-            Path pendingDir = Paths.get(pending.getFile()).getParent() != null ?
-                Paths.get(pending.getFile()).getParent() : Paths.get(".");
+            Path pendingDir = Paths.get(pending.getFile()).getParent() != null 
+                ? Paths.get(pending.getFile()).getParent() : Paths.get(".");
 
             FileScope stateImport = new FileScope(current, pendingDir.relativize(Paths.get(entry.getKey())).toString());
             loadCurrent(entry.getValue(), stateImport);
