@@ -1,11 +1,14 @@
 package gyro.lang.ast;
 
+import gyro.lang.Resource;
 import gyro.lang.ast.scope.FileScope;
 import gyro.lang.ast.scope.Scope;
 import gyro.parser.antlr4.BeamParser;
 
 import java.nio.file.Paths;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class ImportNode extends Node {
 
@@ -34,7 +37,10 @@ public class ImportNode extends Node {
 
         if (name != null) {
             if (name.equals("_")) {
-                scope.putAll(fileRootScope);
+                scope.putAll(fileRootScope.entrySet()
+                    .stream()
+                    .filter(e -> !(e.getValue() instanceof Resource))
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
 
             } else {
                 scope.put(name, fileRootScope);
