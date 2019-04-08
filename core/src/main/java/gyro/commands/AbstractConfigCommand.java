@@ -126,6 +126,13 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         }
     }
 
+    private void removeNonCredentialsResource(FileScope scope) {
+        scope.values().removeIf(r -> r instanceof Resource && !(r instanceof Credentials));
+        for (FileScope importScope : scope.getImports()) {
+            removeNonCredentialsResource(importScope);
+        }
+    }
+
     private void loadCurrent(FileScope pending, FileScope current) throws Exception {
         pending.getBackend().load(current);
         Map<String, FileScope> pendingImports = pending.getImports().stream()
@@ -134,7 +141,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         List<FileScope> removedScopes = new ArrayList<>();
         for (FileScope stateImport : current.getImports()) {
             if (!pendingImports.keySet().contains(stateImport.getFile())) {
-                stateImport.values().removeIf(r -> r instanceof Resource && !(r instanceof Credentials));
+                removeNonCredentialsResource(stateImport);
                 removedScopes.add(stateImport);
             }
         }
