@@ -28,6 +28,7 @@ public class UpCommand extends AbstractConfigCommand {
                 diff.executeCreateOrUpdate(ui, state);
                 diff.executeReplace(ui, state);
                 diff.executeDelete(ui, state);
+                state.cleanUp();
             }
 
         } else {
