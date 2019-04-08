@@ -70,9 +70,6 @@ public class State {
 
                 removeImports.get(state.getFile()).add(stateImport.getFile());
                 removedScopes.add(stateImport);
-
-            } else {
-                states.put(stateImport.getFile(), stateImport);
             }
         }
 
