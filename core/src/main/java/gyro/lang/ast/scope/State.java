@@ -131,26 +131,26 @@ public class State {
 
     private void updateSubresource(Resource parent, Resource subresource, boolean delete) {
         for (DiffableField field : DiffableType.getInstance(parent.getClass()).getFields()) {
+            String subresourceName = null;
+
+            if (subresource.getClass().getAnnotation(ResourceNames.class) != null) {
+                for (ResourceName resourceName : subresource.getClass().getAnnotation(ResourceNames.class).value()) {
+                    if (resourceName.parent().equals(parent.getClass().getAnnotation(ResourceName.class).value())) {
+                        subresourceName = resourceName.value();
+                        break;
+                    }
+                }
+            } else {
+                subresourceName = subresource.getClass().getAnnotation(ResourceName.class).value();
+            }
+
+            if (!field.getBeamName().equals(subresourceName)) {
+                continue;
+            }
+
             Object value = field.getValue(parent);
 
             if (value instanceof List) {
-                String subresourceName = null;
-
-                if (subresource.getClass().getAnnotation(ResourceNames.class) != null) {
-                    for (ResourceName resourceName : subresource.getClass().getAnnotation(ResourceNames.class).value()) {
-                        if (resourceName.parent().equals(parent.getClass().getAnnotation(ResourceName.class).value())) {
-                            subresourceName = resourceName.value();
-                            break;
-                        }
-                    }
-                } else {
-                    subresourceName = subresource.getClass().getAnnotation(ResourceName.class).value();
-                }
-
-                if (!subresourceName.equals(field.getBeamName())) {
-                    continue;
-                }
-
                 @SuppressWarnings("unchecked")
                 List<Object> list = (List<Object>) value;
                 boolean found = false;
