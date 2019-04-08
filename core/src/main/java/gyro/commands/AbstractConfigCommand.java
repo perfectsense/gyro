@@ -14,9 +14,13 @@ import com.psddev.dari.util.StringUtils;
 import io.airlift.airline.Arguments;
 import io.airlift.airline.Option;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public abstract class AbstractConfigCommand extends AbstractCommand {
 
@@ -59,11 +63,13 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         RootScope pending = new RootScope(current);
 
         try {
-            backend.load(current);
+            backend.load(pending);
 
         } catch (BeamLanguageException ex) {
             throw new BeamException(ex.getMessage());
         }
+
+        loadCurrent(pending, current);
 
         if (!test) {
             refreshCredentials(current);
@@ -73,6 +79,8 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
                 BeamCore.ui().write("\n");
             }
         }
+
+        pending = new RootScope(current);
 
         try {
             backend.load(pending);
@@ -117,4 +125,38 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         }
     }
 
+    private void loadCurrent(FileScope pending, FileScope current) throws Exception {
+        pending.getBackend().load(current);
+        Map<String, FileScope> pendingImports = pending.getImports().stream()
+            .collect(Collectors.toMap(i -> getStateFile(i.getFile()), Function.identity()));
+
+        for (FileScope stateImport : current.getImports()) {
+            if (!pendingImports.keySet().contains(stateImport.getFile())) {
+                stateImport.values().removeIf(r -> r instanceof Resource && !(r instanceof Credentials));
+            } else {
+                pendingImports.remove(stateImport.getFile());
+            }
+        }
+
+        for (Map.Entry<String, FileScope> entry : pendingImports.entrySet()) {
+            Path pendingDir = Paths.get(pending.getFile()).getParent() != null ?
+                Paths.get(pending.getFile()).getParent() : Paths.get(".");
+
+            FileScope stateImport = new FileScope(current, pendingDir.relativize(Paths.get(entry.getKey())).toString());
+            loadCurrent(entry.getValue(), stateImport);
+            current.getImports().add(stateImport);
+        }
+    }
+
+    private String getStateFile(String file) {
+        if (file.endsWith(".gyro.state")) {
+            return file;
+
+        } else if (file.endsWith(".gyro")) {
+            return file + ".state";
+
+        } else {
+            return file + ".gyro.state";
+        }
+    }
 }
