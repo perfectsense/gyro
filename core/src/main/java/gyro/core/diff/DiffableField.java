@@ -106,6 +106,12 @@ public class DiffableField {
         return testValueRandomSuffix;
     }
 
+    @SuppressWarnings("unchecked")
+    public boolean shouldBeDiffed() {
+        return Diffable.class.isAssignableFrom(itemClass)
+            && DiffableType.getInstance((Class<? extends Diffable>) itemClass).isSubresource();
+    }
+
     public Object getValue(Diffable diffable) {
         try {
             return getter.invoke(diffable);
