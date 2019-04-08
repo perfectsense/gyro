@@ -7,7 +7,7 @@ Overview
 
 The diagram below depicts the reference architecture of a virtual private network with associated resources.
 
-.. image:: images/vpc-overview.png
+.. image:: ../images/vpc-overview.png
 
 This document will focus on the implementation of this architecture in AWS.
 
@@ -40,14 +40,14 @@ Create a file named vpc.gyro with the following configuration :
     end
 
     aws::vpc vpc-example
-    		cidr-block: "10.0.0.0/16"
-		end
+    	cidr-block: "10.0.0.0/16"
+	end
 
-		aws::subnet subnet-public-us-east-1a
-		    vpc-id: $(aws::vpc vpc-example | vpc-id)
-		    cidr-block: "10.0.0.0/24"
-		    availability-zone: "us-east-1a"
-		end
+	aws::subnet subnet-public-us-east-1a
+		vpc-id: $(aws::vpc vpc-example | vpc-id)
+		cidr-block: "10.0.0.0/24"
+		availability-zone: "us-east-1a"
+	end
 
 VPC
 **************
@@ -69,7 +69,7 @@ availability-zone : The name of the availablity zone to create this subnet.
 
 The above given configuration would be creating a VPC resource and a subnet associated to that network as depicted in the diagram below : 
 
-.. image:: images/vpc-subnet-overview.png
+.. image:: ../images/vpc-subnet-overview.png
 
 
 
@@ -85,15 +85,15 @@ You should see output similar to the following :
   $ /usr/local/bin/gyro up --test test.gyro
   Loading plugin: gyro:gyro-aws-provider:0.14-SNAPSHOT...
 
-	Looking for changes...
+  Looking for changes...
 
-	+ Create vpc 10.0.0.0/16 - vpc-example
-	+ Create subnet 10.0.0.0/24 in us-east-1a
+  + Create vpc 10.0.0.0/16 - vpc-example
+  + Create subnet 10.0.0.0/24 in us-east-1a
 	
-	Are you sure you want to change resources? (y/N) y
+  Are you sure you want to change resources? (y/N) y
 	
-	+ Creating vpc 10.0.0.0/16 - vpc-example OK
-	+ Creating subnet 10.0.0.0/24 in us-east-1a OK
+  + Creating vpc 10.0.0.0/16 - vpc-example OK
+  + Creating subnet 10.0.0.0/24 in us-east-1a OK
 
 .. raw:: pdf
 
