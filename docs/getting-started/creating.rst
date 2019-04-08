@@ -11,7 +11,7 @@ The diagram below depicts the reference architecture of a virtual private networ
 
 This document will focus on the implementation of this architecture in AWS.
 
-By the end of this guide you should have a working local Gyro environment along with deploying below given resources on AWS cloud :
+By the end of this guide you should have a working local Gyro environment and deployed below given resources on AWS cloud :
 
 1. Virtual private cloud network (VPC)
 2. Subnets
@@ -41,13 +41,13 @@ Create a file named vpc.gyro with the following configuration :
 
     aws::vpc vpc-example
     	cidr-block: "10.0.0.0/16"
-	end
+    end
 
-	aws::subnet subnet-public-us-east-1a
-		vpc-id: $(aws::vpc vpc-example | vpc-id)
-		cidr-block: "10.0.0.0/24"
-		availability-zone: "us-east-1a"
-	end
+    aws::subnet subnet-public-us-east-1a
+        vpc-id: $(aws::vpc vpc-example | vpc-id)
+        cidr-block: "10.0.0.0/24"
+        availability-zone: "us-east-1a"
+    end
 
 VPC
 **************
@@ -82,7 +82,7 @@ You should see output similar to the following :
 
 .. code:: shell
 
-  $ /usr/local/bin/gyro up --test test.gyro
+  $ /usr/local/bin/gyro up --test vpc.gyro
   Loading plugin: gyro:gyro-aws-provider:0.14-SNAPSHOT...
 
   Looking for changes...
