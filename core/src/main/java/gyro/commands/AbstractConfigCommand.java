@@ -16,6 +16,7 @@ import io.airlift.airline.Option;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -130,14 +131,16 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         Map<String, FileScope> pendingImports = pending.getImports().stream()
             .collect(Collectors.toMap(i -> getStateFile(i.getFile()), Function.identity()));
 
+        List<FileScope> removedScopes = new ArrayList<>();
         for (FileScope stateImport : current.getImports()) {
             if (!pendingImports.keySet().contains(stateImport.getFile())) {
                 stateImport.values().removeIf(r -> r instanceof Resource && !(r instanceof Credentials));
-            } else {
-                pendingImports.remove(stateImport.getFile());
+                removedScopes.add(stateImport);
             }
         }
 
+        current.getImports().clear();
+        current.getImports().addAll(removedScopes);
         for (Map.Entry<String, FileScope> entry : pendingImports.entrySet()) {
             Path pendingDir = Paths.get(pending.getFile()).getParent() != null 
                 ? Paths.get(pending.getFile()).getParent() : Paths.get(".");
