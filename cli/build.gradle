@@ -3,7 +3,10 @@ plugins {
 }
 
 dependencies {
-    compile project(':gyro-core')
+    implementation project(':gyro-core')
+    implementation 'com.psddev:dari-util:3.3.607-xe0f27a'
+    implementation 'io.airlift:airline:0.8'
+    implementation 'org.reflections:reflections:0.9.10'
 }
 
 bootJar {
@@ -44,7 +47,7 @@ publishing {
     publications {
         maven(MavenPublication) {
             artifact 'dist/gyro'
-            
+
             artifact("dist/gyro-cli-${OS_NAME}-${version}.zip") {
                 extension 'zip'
             }

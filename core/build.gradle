@@ -3,34 +3,18 @@ plugins {
 }
 
 dependencies {
-    compile 'org.reflections:reflections:0.9.10'
-    compile 'org.fusesource.jansi:jansi:1.16'
-    compile 'org.apache.httpcomponents:httpclient:4.5'
-    compile 'org.eclipse.aether:aether-impl:1.1.0'
-    compile 'org.eclipse.aether:aether-connector-basic:1.1.0'
-    compile 'org.eclipse.aether:aether-transport-file:1.1.0'
-    compile 'org.eclipse.aether:aether-transport-http:1.1.0'
-    compile 'org.apache.maven:maven-aether-provider:3.3.9'
-    compile 'commons-beanutils:commons-beanutils-core:1.8.3'
-    compile 'io.airlift:airline:0.8'
-    compile 'org.fusesource.jansi:jansi:1.16'
-    compile 'com.psddev:dari-util:3.3.607-xe0f27a'
+    api 'io.airlift:airline:0.8'
 
-    antlr "org.antlr:antlr4:4.7.1"
+    implementation 'com.psddev:dari-util:3.3.607-xe0f27a'
+    implementation 'org.apache.httpcomponents:httpclient:4.5'
+    implementation 'org.apache.maven:maven-aether-provider:3.3.9'
+    implementation 'org.eclipse.aether:aether-connector-basic:1.1.0'
+    implementation 'org.eclipse.aether:aether-impl:1.1.0'
+    implementation 'org.eclipse.aether:aether-transport-file:1.1.0'
+    implementation 'org.eclipse.aether:aether-transport-http:1.1.0'
+    implementation 'org.fusesource.jansi:jansi:1.16'
 
-    // jUnit
-    testCompile 'org.junit.jupiter:junit-jupiter-api:5.3.2'
-    testCompile 'org.junit.jupiter:junit-jupiter-params:5.3.2'
-    testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.3.2'
-
-    // Mockito
-    testCompile 'org.mockito:mockito-junit-jupiter:2.23.0'
-    implementation 'org.mockito:mockito-core:2.23.4'
-    implementation 'org.hamcrest:hamcrest:2.1'
-}
-
-test {
-    useJUnitPlatform()
+    antlr 'org.antlr:antlr4:4.7.1'
 }
 
 generateGrammarSource {
