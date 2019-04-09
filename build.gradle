@@ -13,6 +13,7 @@ plugins {
 defaultTasks 'build', 'checkstyle', 'publishToMavenLocal'
 
 allprojects {
+    group = 'gyro'
     version = '0.14-SNAPSHOT'
 }
 
@@ -20,9 +21,6 @@ subprojects {
     apply plugin: 'idea'
     apply plugin: 'java'
     apply plugin: 'checkstyle'
-
-    group = 'gyro'
-    version = '0.14-SNAPSHOT'
 
     repositories {
         mavenLocal()
