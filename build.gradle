@@ -41,4 +41,27 @@ subprojects {
         classpath = files()
     }
 
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                from components.java
+            }
+        }
+
+        repositories {
+            maven {
+                credentials {
+                    username System.getenv("GRADLE_DEPLOY_USER")
+                    password System.getenv("GRADLE_DEPLOY_PASSWORD")
+                }
+
+                if (project.version.endsWith('-SNAPSHOT')) {
+                    url "https://artifactory.psdops.com/gyro-snapshots"
+
+                } else {
+                    url "https://artifactory.psdops.com/gyro-releases"
+                }
+            }
+        }
+    }
 }
