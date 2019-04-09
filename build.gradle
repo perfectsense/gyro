@@ -22,6 +22,7 @@ subprojects {
 
     repositories {
         mavenCentral()
+
         maven {
             url 'https://artifactory.psdops.com/public'
         }
