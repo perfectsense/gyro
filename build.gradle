@@ -11,14 +11,9 @@ subprojects {
     apply plugin: 'maven-publish'
 
     repositories {
-        mavenLocal()
         mavenCentral()
         maven {
             url "https://artifactory.psdops.com/public"
-        }
-
-        maven {
-            url "https://repo.gradle.org/gradle/libs-releases"
         }
     }
 
