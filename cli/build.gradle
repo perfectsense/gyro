@@ -6,8 +6,6 @@ dependencies {
     compile project(':gyro-core')
 }
 
-sourceCompatibility = 1.8
-
 if (System.getenv("TRAVIS_BRANCH") == null) {
     defaultTasks 'dist'
 } else {

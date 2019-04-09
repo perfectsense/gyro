@@ -2,8 +2,6 @@ plugins {
     id 'antlr'
 }
 
-sourceCompatibility = 1.8
-
 defaultTasks 'build'
 
 def OS_NAME = System.getenv("TRAVIS_OS_NAME") ?: "unix"
