@@ -1,8 +1,5 @@
-plugins {
-    id 'antlr'
-}
-
 dependencies {
+    api project(':gyro-parser')
     api 'io.airlift:airline:0.8'
 
     implementation 'com.psddev:dari-util:3.3.607-xe0f27a'
@@ -13,10 +10,4 @@ dependencies {
     implementation 'org.eclipse.aether:aether-transport-file:1.1.0'
     implementation 'org.eclipse.aether:aether-transport-http:1.1.0'
     implementation 'org.fusesource.jansi:jansi:1.16'
-
-    antlr 'org.antlr:antlr4:4.7.1'
-}
-
-generateGrammarSource {
-    arguments << '-package' << 'gyro.parser.antlr4'
 }

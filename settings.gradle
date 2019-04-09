@@ -2,6 +2,8 @@ rootProject.name = 'gyro'
 
 include 'gyro-cli'
 include 'gyro-core'
+include 'gyro-parser'
 
 project(':gyro-cli').projectDir = file 'cli'
 project(':gyro-core').projectDir = file 'core'
+project(':gyro-parser').projectDir = file 'parser'

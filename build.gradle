@@ -1,8 +1,8 @@
 if (System.getenv('TRAVIS_BRANCH')) {
-    defaultTasks 'publish'
+    defaultTasks 'build', 'publish'
 
 } else {
-    defaultTasks 'publishToMavenLocal'
+    defaultTasks 'build', 'publishToMavenLocal'
 }
 
 allprojects {
@@ -43,17 +43,6 @@ subprojects {
     checkstyle {
         toolVersion = '8.15'
         configFile = rootProject.file('config/checkstyle.xml')
-        checkstyleMain.enabled = false
-        checkstyleTest.enabled = false
-    }
-
-    task checkstyle(type: Checkstyle) {
-        configFile rootProject.file('config/checkstyle.xml')
-        source 'src'
-        include '**/*.java'
-        exclude '**/generated-src/**'
-
-        classpath = files()
     }
 
     test {
