@@ -6,60 +6,48 @@ dependencies {
     compile project(':gyro-core')
 }
 
-if (System.getenv("TRAVIS_BRANCH") == null) {
-    defaultTasks 'dist'
-} else {
-    check.dependsOn 'bundleDistribution', 'publish'
-    defaultTasks 'bundleDistribution', 'publish'
+bootJar {
+    mainClassName = 'gyro.cli.Gyro'
+
+    launchScript {
+        script = file 'scripts/stub.sh'
+    }
 }
 
-publish.dependsOn assemble
-publish.dependsOn 'bundleDistribution'
-publishToMavenLocal.dependsOn 'bundleDistribution'
+task createDistributionDir {
+    mkdir 'dist'
+}
 
-def OS_NAME = System.getenv("TRAVIS_OS_NAME") ?: "unix"
+task createDistributionBinary(type: Copy) {
+    dependsOn bootJar
+    dependsOn createDistributionDir
+
+    from bootJar.archiveFile
+    rename '.+', 'gyro'
+    into 'dist'
+}
+
+def OS_NAME = System.getenv('TRAVIS_OS_NAME') ?: 'unix'
+
+task bundleDistribution(type: Exec) {
+    dependsOn createDistributionBinary
+
+    environment OS_NAME: "${OS_NAME}"
+    environment VERSION: "${version}"
+    commandLine 'sh', '-c', 'scripts/build-gyro-dist.sh'
+}
+
+publish.dependsOn bundleDistribution
+publishToMavenLocal.dependsOn bundleDistribution
 
 publishing {
     publications {
         maven(MavenPublication) {
-            groupId = 'gyro'
-            artifactId = "gyro-${OS_NAME}"
-
+            artifact 'dist/gyro'
+            
             artifact("dist/gyro-cli-${OS_NAME}-${version}.zip") {
                 extension 'zip'
             }
-
-            artifact("dist/gyro")
         }
-    }
-}
-
-task distDir {
-    doLast {
-        mkdir "dist"
-    }
-}
-
-task dist(type: Copy) {
-    from jar.archivePath
-    rename '.+', 'gyro'
-    into 'dist'
-
-    dependsOn 'distDir'
-}
-
-task bundleDistribution(type: Exec) {
-    environment OS_NAME: "${OS_NAME}"
-    environment VERSION: "${version}"
-    commandLine 'sh', '-c', 'scripts/build-gyro-dist.sh'
-
-    dependsOn 'dist'
-}
-
-bootJar {
-    classifier = ''
-    mainClassName = 'gyro.cli.Gyro'
-    launchScript {
-        script = file('scripts/stub.sh')
     }
 }

@@ -2,18 +2,6 @@ plugins {
     id 'antlr'
 }
 
-defaultTasks 'build'
-
-def OS_NAME = System.getenv("TRAVIS_OS_NAME") ?: "unix"
-def BRANCH = System.getenv("TRAVIS_BRANCH")
-
-if (BRANCH == null) {
-    defaultTasks 'build', 'publishToMavenLocal'
-} else if (OS_NAME == 'linux') {
-    check.dependsOn 'publish', 'publishToMavenLocal'
-    defaultTasks 'build', 'publish', 'publishToMavenLocal'
-}
-
 dependencies {
     compile 'org.reflections:reflections:0.9.10'
     compile 'org.fusesource.jansi:jansi:1.16'

@@ -1,4 +1,9 @@
-defaultTasks 'build', 'checkstyle', 'publishToMavenLocal'
+if (System.getenv('TRAVIS_BRANCH')) {
+    defaultTasks 'publish'
+
+} else {
+    defaultTasks 'publishToMavenLocal'
+}
 
 allprojects {
     group = 'gyro'
