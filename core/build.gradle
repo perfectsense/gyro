@@ -46,9 +46,6 @@ dependencies {
 publishing {
     publications {
         maven(MavenPublication) {
-            groupId = 'gyro'
-            artifactId = 'gyro-core'
-
             from components.java
         }
     }
