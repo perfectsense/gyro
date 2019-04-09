@@ -2,6 +2,10 @@ plugins {
     id 'org.springframework.boot' version '2.1.0.RELEASE'
 }
 
+dependencies {
+    compile project(':gyro-core')
+}
+
 sourceCompatibility = 1.8
 
 if (System.getenv("TRAVIS_BRANCH") == null) {
@@ -11,12 +15,9 @@ if (System.getenv("TRAVIS_BRANCH") == null) {
     defaultTasks 'bundleDistribution', 'publish'
 }
 
+publish.dependsOn assemble
 publish.dependsOn 'bundleDistribution'
 publishToMavenLocal.dependsOn 'bundleDistribution'
-
-dependencies {
-    compile "gyro:core:${version}"
-}
 
 def OS_NAME = System.getenv("TRAVIS_OS_NAME") ?: "unix"
 

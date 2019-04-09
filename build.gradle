@@ -42,13 +42,3 @@ subprojects {
     }
 
 }
-
-project(":gyro-cli") {
-    dependencies {
-        compile project(':gyro-core')
-    }
-
-    publish {
-        dependsOn assemble
-    }
-}
