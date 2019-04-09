@@ -128,6 +128,7 @@ public class DiffableField {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public void setValue(Diffable diffable, Object value) {
         try {
             if (value instanceof List
@@ -136,6 +137,10 @@ public class DiffableField {
                 value = ((List<?>) value).stream()
                         .findFirst()
                         .orElse(null);
+            }
+
+            if (value instanceof String && Resource.class.isAssignableFrom(itemClass)) {
+                value = diffable.findById((Class<? extends Resource>) itemClass, (String) value);
             }
 
             setter.invoke(diffable, CONVERTER.convert(setter.getGenericParameterTypes()[0], value));
