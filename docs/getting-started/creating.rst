@@ -14,9 +14,9 @@ This document will focus on the implementation of this architecture in AWS.
 By the end of this guide you should have a working local Gyro environment and deployed below given resources on AWS cloud :
 
 1. Virtual private cloud network (VPC)
-2. Subnets
+2. Subnet
 3. Route Table
-4. Internet gateways
+4. Internet gateway
 
 Configuration
 -----------
@@ -56,7 +56,7 @@ aws::vpc - The name of the resource which will be used by gyro to identify the V
 
 cidr-block - The IPv4 network range for the VPC, in CIDR notation
 
-Subnets
+Subnet
 **************
 
 aws::subnet - The name of the resource which will be used by gyro to identify the subnet resource.
@@ -82,7 +82,7 @@ You should see output similar to the following :
 
 .. code:: shell
 
-  $ /usr/local/bin/gyro up --test vpc.gyro
+  $ /usr/local/bin/gyro up vpc.gyro
   Loading plugin: gyro:gyro-aws-provider:0.14-SNAPSHOT...
 
   Looking for changes...

@@ -4,15 +4,15 @@ Updating Infrastructure
 
 This section will explain how Gyro handles changes to the configuration of the infrastructure.
 
-Gyro will output a diff between the current settings provided by the configuration files and the current state of the environment in the cloud. It will always output its proposed actions before executing them.
+Gyro will output a difference between the current settings provided by the configuration files and the current state of the environment in the cloud. It will always output its proposed actions before executing them.
 The user can then confirm to execute or abort.
 
 Configuration
 -----------
 
-Use Case 1: Create a custom route table associated to your VPC which will control the routing for the subnet.
+Use Case 1: Create a custom route table associated to your VPC which will control the network traffic rules for the subnet.
 
-Use Case 2: Create an internet gateway attached to your VPC and ensure that your subnet's route table points to the internet gateway.
+Use Case 2: Create an internet gateway attached to your VPC and ensure that your subnet's route table has an entry for the internet bound traffic to the internet gateway.
 
 .. image:: ../images/vpc-route.png
 
@@ -60,7 +60,7 @@ aws::route - The name of the route resource. This resource will set the route fo
 
 route-table-id - This is the ID of the route table to add this route to.
 
-gateway-id - This the ID of the internet gateway resource which is needed to add a route that directs internet-bound traffic to the internet gateway
+gateway-id - This is the ID of the internet gateway resource which is needed to add a route that directs internet-bound traffic to the internet gateway
 
 cidr-block - This is the destination IPv4 CIDR block to scope the route to a narrower range of IP's.
 
@@ -69,20 +69,20 @@ This will create a custom route table with the below given entries :
 ================== =================
 Destination             Target
 ================== =================
-**10.0.0.0/16**        `local`_
-**0.0.0.0/0**          `igw-id`_
+**10.0.0.0/16**        local
+**0.0.0.0/0**          igw-id
 ================== =================
 
 Update Infrastructure
 -----------
 
-Gyro will give a diff of variables that have changed for this file, in our case you will see the creates.
+Gyro will give a difference of variables that have changed for this file, in our case you will see the creates.
 
 Apply the configuration changes by running gyro up again. Gyro will show you what actions are required.
 
 .. code:: shell
 
-	$ /usr/local/bin/gyro up --test vpc.gyro
+	$ /usr/local/bin/gyro up vpc.gyro
 
 	Loading plugin: gyro:gyro-aws-provider:0.14-SNAPSHOT...
 	Looking for changes...
