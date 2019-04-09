@@ -45,26 +45,6 @@ test {
     useJUnitPlatform()
 }
 
-final PARSER_PACKAGE_NAME = 'gyro.parser.antlr4'
 generateGrammarSource {
-    outputs.cacheIf { true }
-    arguments += ["-package", PARSER_PACKAGE_NAME]
-    arguments << "-Xexact-output-dir"
-    arguments << "-visitor"
-    arguments << "-lib" << "src/main/antlr/gyro/parser/antlr4"
-
-    doLast {
-        def parserFilePattern = 'Groovy*'
-        def outputPath = generateGrammarSource.outputDirectory.canonicalPath
-        def parserPackagePath = "${outputPath}/${PARSER_PACKAGE_NAME.replace('.', '/')}"
-        file(parserPackagePath).mkdirs()
-        copy {
-            from outputPath
-            into parserPackagePath
-            include parserFilePattern
-        }
-        delete fileTree(outputPath) {
-            include parserFilePattern
-        }
-    }
+    arguments << '-package' << 'gyro.parser.antlr4'
 }
