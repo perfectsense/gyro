@@ -37,7 +37,103 @@ public abstract class Node {
     }
 
     public static Node create(ParseTree context) {
-        Node node = doCreate(context);
+        Class<? extends ParseTree> cc = context.getClass();
+        Node node;
+
+        if (cc.equals(BeamParser.BeamFileContext.class)) {
+            node = new RootNode((BeamParser.BeamFileContext) context);
+
+        } else if (cc.equals(BeamParser.BooleanValueContext.class)) {
+            node = new BooleanNode((BeamParser.BooleanValueContext) context);
+
+        } else if (cc.equals(BeamParser.ForStmtContext.class)) {
+            node = new ForNode((BeamParser.ForStmtContext) context);
+
+        } else if (cc.equals(BeamParser.IfStmtContext.class)) {
+            node = new IfNode((BeamParser.IfStmtContext) context);
+
+        } else if (cc.equals(BeamParser.VirtualResourceContext.class)) {
+            node = new VirtualResourceNode((BeamParser.VirtualResourceContext) context);
+
+        } else if (cc.equals(BeamParser.ComparisonExpressionContext.class)) {
+            node = new ComparisonNode((BeamParser.ComparisonExpressionContext) context);
+
+        } else if (cc.equals(BeamParser.OrExpressionContext.class)) {
+            node = new OrNode((BeamParser.OrExpressionContext) context);
+
+        } else if (cc.equals(BeamParser.AndExpressionContext.class)) {
+            node = new AndNode((BeamParser.AndExpressionContext) context);
+
+        } else if (cc.equals(BeamParser.ValueExpressionContext.class)) {
+            node = new ValueExpressionNode((BeamParser.ValueExpressionContext) context);
+
+        } else if (cc.equals(BeamParser.ValueContext.class)) {
+            node = Node.create(context.getChild(0));
+
+        } else if (cc.equals(BeamParser.KeyValueContext.class)) {
+            node = new KeyValueNode((BeamParser.KeyValueContext) context);
+
+        } else if (cc.equals(BeamParser.ImportStmtContext.class)) {
+            node = new ImportNode((BeamParser.ImportStmtContext) context);
+
+        } else if (cc.equals(BeamParser.ListValueContext.class)) {
+            node = new ListNode((BeamParser.ListValueContext) context);
+
+        } else if (cc.equals(BeamParser.MapValueContext.class)) {
+            node = new MapNode((BeamParser.MapValueContext) context);
+
+        } else if (cc.equals(BeamParser.NumberValueContext.class)) {
+            node = new NumberNode((BeamParser.NumberValueContext) context);
+
+        } else if (cc.equals(BeamParser.ReferenceBodyContext.class)) {
+            BeamParser.ReferenceBodyContext rbc = (BeamParser.ReferenceBodyContext) context;
+            String type = rbc.referenceType().getText();
+
+            if (type.contains("::")) {
+                node = new ResourceReferenceNode(rbc);
+
+            } else {
+                node = new ValueReferenceNode(type);
+            }
+
+        } else if (cc.equals(BeamParser.ReferenceValueContext.class)) {
+            node = create(((BeamParser.ReferenceValueContext) context).referenceBody());
+
+        } else if (cc.equals(BeamParser.ResourceContext.class)) {
+            BeamParser.ResourceContext rc = (BeamParser.ResourceContext) context;
+
+            if (rc.resourceName() != null) {
+                node = new ResourceNode(rc);
+
+            } else {
+                String key = rc.resourceType().IDENTIFIER().getText();
+
+                if ("plugin".equals(key)) {
+                    node = new PluginNode(rc);
+
+                } else {
+                    node = new KeyBlockNode(rc);
+                }
+            }
+
+        } else if (cc.equals(BeamParser.StringExpressionContext.class)) {
+            node = new StringExpressionNode((BeamParser.StringExpressionContext) context);
+
+        } else if (cc.equals(BeamParser.StringValueContext.class)) {
+            BeamParser.StringValueContext svc = (BeamParser.StringValueContext) context;
+            BeamParser.StringExpressionContext sec = svc.stringExpression();
+
+            node = sec != null
+                    ? new StringExpressionNode(sec)
+                    : new StringNode(StringUtils.strip(svc.STRING_LITERAL().getText(), "'"));
+
+        } else if (TerminalNode.class.isAssignableFrom(cc)) {
+            node = new StringNode(context.getText());
+
+        } else {
+            node = new UnknownNode(context);
+        }
+
         String file = null;
         Integer line = null;
         Integer column = null;
@@ -50,104 +146,6 @@ public abstract class Node {
 
         node.location = new NodeLocation(file, line, column);
         return node;
-    }
-
-    public static Node doCreate(ParseTree context) {
-        Class<? extends ParseTree> cc = context.getClass();
-
-        if (cc.equals(BeamParser.BeamFileContext.class)) {
-            return new RootNode((BeamParser.BeamFileContext) context);
-
-        } else if (cc.equals(BeamParser.BooleanValueContext.class)) {
-            return new BooleanNode((BeamParser.BooleanValueContext) context);
-
-        } else if (cc.equals(BeamParser.ForStmtContext.class)) {
-            return new ForNode((BeamParser.ForStmtContext) context);
-
-        } else if (cc.equals(BeamParser.IfStmtContext.class)) {
-            return new IfNode((BeamParser.IfStmtContext) context);
-
-        } else if (cc.equals(BeamParser.VirtualResourceContext.class)) {
-            return new VirtualResourceNode((BeamParser.VirtualResourceContext) context);
-
-        } else if (cc.equals(BeamParser.ComparisonExpressionContext.class)) {
-            return new ComparisonNode((BeamParser.ComparisonExpressionContext) context);
-
-        } else if (cc.equals(BeamParser.OrExpressionContext.class)) {
-            return new OrNode((BeamParser.OrExpressionContext) context);
-
-        } else if (cc.equals(BeamParser.AndExpressionContext.class)) {
-            return new AndNode((BeamParser.AndExpressionContext) context);
-
-        } else if (cc.equals(BeamParser.ValueExpressionContext.class)) {
-            return new ValueExpressionNode((BeamParser.ValueExpressionContext) context);
-
-        } else if (cc.equals(BeamParser.ValueContext.class)) {
-            return Node.create(context.getChild(0));
-
-        } else if (cc.equals(BeamParser.KeyValueContext.class)) {
-            return new KeyValueNode((BeamParser.KeyValueContext) context);
-
-        } else if (cc.equals(BeamParser.ImportStmtContext.class)) {
-            return new ImportNode((BeamParser.ImportStmtContext) context);
-
-        } else if (cc.equals(BeamParser.ListValueContext.class)) {
-            return new ListNode((BeamParser.ListValueContext) context);
-
-        } else if (cc.equals(BeamParser.MapValueContext.class)) {
-            return new MapNode((BeamParser.MapValueContext) context);
-
-        } else if (cc.equals(BeamParser.NumberValueContext.class)) {
-            return new NumberNode((BeamParser.NumberValueContext) context);
-
-        } else if (cc.equals(BeamParser.ReferenceBodyContext.class)) {
-            BeamParser.ReferenceBodyContext rbc = (BeamParser.ReferenceBodyContext) context;
-            String type = rbc.referenceType().getText();
-
-            if (type.contains("::")) {
-                return new ResourceReferenceNode(rbc);
-
-            } else {
-                return new ValueReferenceNode(type);
-            }
-
-        } else if (cc.equals(BeamParser.ReferenceValueContext.class)) {
-            return create(((BeamParser.ReferenceValueContext) context).referenceBody());
-
-        } else if (cc.equals(BeamParser.ResourceContext.class)) {
-            BeamParser.ResourceContext rc = (BeamParser.ResourceContext) context;
-
-            if (rc.resourceName() != null) {
-                return new ResourceNode(rc);
-
-            } else {
-                String key = rc.resourceType().IDENTIFIER().getText();
-
-                if ("plugin".equals(key)) {
-                    return new PluginNode(rc);
-
-                } else {
-                    return new KeyBlockNode(rc);
-                }
-            }
-
-        } else if (cc.equals(BeamParser.StringExpressionContext.class)) {
-            return new StringExpressionNode((BeamParser.StringExpressionContext) context);
-
-        } else if (cc.equals(BeamParser.StringValueContext.class)) {
-            BeamParser.StringValueContext svc = (BeamParser.StringValueContext) context;
-            BeamParser.StringExpressionContext sec = svc.stringExpression();
-
-            return sec != null
-                    ? new StringExpressionNode(sec)
-                    : new StringNode(StringUtils.strip(svc.STRING_LITERAL().getText(), "'"));
-
-        } else if (TerminalNode.class.isAssignableFrom(cc)) {
-            return new StringNode(context.getText());
-
-        } else {
-            return new UnknownNode(context);
-        }
     }
 
     public abstract Object evaluate(Scope scope) throws Exception;
