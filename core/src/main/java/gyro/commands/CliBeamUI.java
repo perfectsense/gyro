@@ -180,11 +180,11 @@ public class CliBeamUI implements BeamUI {
             Files.createDirectories(errorDir);
 
             Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-            File log = Paths.get(errorDir.toString(), String.format("%s.log", timestamp.toString())).toFile();
-            try (PrintWriter printWriter = new PrintWriter(new FileWriter(log))) {
+            Path log = Paths.get(errorDir.toString(), String.format("%s.log", timestamp.toString()));
+            try (PrintWriter printWriter = new PrintWriter(new FileWriter(log.toFile()))) {
                 printWriter.write(String.format("%s: ", error.getClass().getName()));
                 error.printStackTrace(printWriter);
-                write("@|red See '%s' for more details.\n |@", log.getCanonicalPath());
+                write("@|red See '%s' for more details.\n |@", log.toString());
             }
         }
 
