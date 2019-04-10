@@ -16,11 +16,11 @@ public class NodeLocation {
         return file;
     }
 
-    public Integer line() {
+    public Integer getLine() {
         return line;
     }
 
-    public Integer column() {
+    public Integer getColumn() {
         return column;
     }
 
