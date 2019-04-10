@@ -1,5 +1,9 @@
 rootProject.name = 'gyro'
 
-include 'cli', 'core'
+include 'gyro-cli'
+include 'gyro-core'
+include 'gyro-parser'
 
-enableFeaturePreview('STABLE_PUBLISHING')
+project(':gyro-cli').projectDir = file 'cli'
+project(':gyro-core').projectDir = file 'core'
+project(':gyro-parser').projectDir = file 'parser'
