@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.util.HashSet;
@@ -174,13 +176,11 @@ public class CliBeamUI implements BeamUI {
     public void writeError(Throwable error, String message, Object... arguments) throws IOException {
         write(message, arguments);
         if (error != null) {
-            File errorDir = Paths.get(BeamCore.getBeamUserHome(), ".gyro", "error").toFile();
-            if (!errorDir.exists()) {
-                errorDir.mkdirs();
-            }
+            Path errorDir = Paths.get(BeamCore.getBeamUserHome(), ".gyro", "error");
+            Files.createDirectories(errorDir);
 
             Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-            File log = Paths.get(errorDir.getCanonicalPath(), String.format("%s.log", timestamp.toString())).toFile();
+            File log = Paths.get(errorDir.toString(), String.format("%s.log", timestamp.toString())).toFile();
             try (PrintWriter printWriter = new PrintWriter(new FileWriter(log))) {
                 printWriter.write(String.format("%s: ", error.getClass().getName()));
                 error.printStackTrace(printWriter);
