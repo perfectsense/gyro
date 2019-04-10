@@ -17,6 +17,10 @@ matrix:
       jdk:
         - openjdk11
 
+      install: true
+
+      script: ./gradlew
+
     # macOS
     - language: java
       os:
@@ -24,6 +28,10 @@ matrix:
 
       jdk:
         - openjdk11
+
+      install: true
+
+      script: ./gradlew
 
     # Windows
     #- language: shell
