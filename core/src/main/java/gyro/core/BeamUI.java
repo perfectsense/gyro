@@ -1,7 +1,5 @@
 package gyro.core;
 
-import java.io.IOException;
-
 public interface BeamUI {
 
     boolean isVerbose();
