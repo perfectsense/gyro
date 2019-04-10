@@ -1,5 +1,6 @@
 package gyro.lang.ast.value;
 
+import gyro.core.BeamException;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.scope.Scope;
 
@@ -13,7 +14,12 @@ public class ValueReferenceNode extends Node {
 
     @Override
     public Object evaluate(Scope scope) throws Exception {
-        return scope.find(path, this);
+        try {
+            return scope.find(path);
+        } catch (ValueReferenceException vre) {
+            throw new BeamException(String.format("Unable to resolve value reference %s %s%n'%s' is not defined.%n",
+                this, this.getLocation(), vre.getKey()));
+        }
     }
 
     @Override

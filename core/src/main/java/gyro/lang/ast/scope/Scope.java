@@ -9,9 +9,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import gyro.core.BeamException;
 import gyro.lang.Resource;
 import gyro.lang.ast.Node;
+import gyro.lang.ast.value.ValueReferenceException;
 
 public class Scope implements Map<String, Object> {
 
@@ -74,7 +74,7 @@ public class Scope implements Map<String, Object> {
         put(key, list);
     }
 
-    public Object find(String path, Node node) throws Exception {
+    public Object find(String path) throws Exception {
         String[] keys = DOT_PATTERN.split(path);
         String firstKey = keys[0];
         Object value = null;
@@ -91,8 +91,7 @@ public class Scope implements Map<String, Object> {
         }
 
         if (!found) {
-            throw new BeamException(String.format("Unable to resolve value reference %s %s%n'%s' is not defined.%n",
-                node, node.getLocation(), firstKey));
+            throw new ValueReferenceException(firstKey);
         }
 
         if (value == null) {
