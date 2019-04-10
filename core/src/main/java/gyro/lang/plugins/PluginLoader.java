@@ -222,8 +222,8 @@ public class PluginLoader {
 
         Artifact artifact = new DefaultArtifact(artifactKey);
 
-        CollectRequest collectRequest = new CollectRequest(new Dependency(artifact, JavaScopes.COMPILE), repositories);
-        DependencyFilter filter = DependencyFilterUtils.classpathFilter(JavaScopes.COMPILE);
+        CollectRequest collectRequest = new CollectRequest(new Dependency(artifact, JavaScopes.RUNTIME), repositories);
+        DependencyFilter filter = DependencyFilterUtils.classpathFilter(JavaScopes.RUNTIME);
         DependencyRequest request = new DependencyRequest(collectRequest, filter);
         DependencyResult result = system.resolveDependencies(session, request);
 
