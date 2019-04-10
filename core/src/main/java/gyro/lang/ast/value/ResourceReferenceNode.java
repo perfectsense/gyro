@@ -180,10 +180,8 @@ public class ResourceReferenceNode extends Node {
                 String fullName = type + "::" + name;
                 Resource resource = scope.getRootScope().findResource(fullName);
 
-                String resolveError = "Unable to resolve resource reference";
                 if (resource == null) {
-                    throw new DeferError(this, String.format("%s %s %s%nResource '%s %s' is not defined.%n",
-                        resolveError, this, getLocation(), type, name));
+                    throw new DeferError(this);
                 }
 
                 if (attribute != null) {
@@ -194,8 +192,8 @@ public class ResourceReferenceNode extends Node {
                         return resource.get(attribute);
 
                     } else {
-                        throw new BeamException(String.format("%s %s %s%nAttribute '%s' is not allowed in %s.%n",
-                            resolveError, this, getLocation(), attribute, type));
+                        throw new BeamException(String.format("Unable to resolve resource reference %s %s%nAttribute '%s' is not allowed in %s.%n",
+                            this, getLocation(), attribute, type));
                     }
 
                 } else {
@@ -245,6 +243,12 @@ public class ResourceReferenceNode extends Node {
         }
 
         builder.append(")");
+    }
+
+    @Override
+    public String deferFailure() {
+        return String.format("Unable to resolve resource reference %s %s%nResource '%s %s' is not defined.%n",
+            this, getLocation(), type, nameNode);
     }
 
     private Credentials findQueryCredentials(Scope scope) {

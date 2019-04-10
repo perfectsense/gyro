@@ -9,7 +9,6 @@ import java.util.List;
 public class DeferError extends Error {
 
     private final Node node;
-    private final String message;
 
     public static void evaluate(Scope scope, List<Node> body) throws Exception {
         int bodySize = body.size();
@@ -34,7 +33,7 @@ public class DeferError extends Error {
             } else if (bodySize == deferred.size()) {
                 StringBuilder sb = new StringBuilder();
                 for (DeferError error : errors) {
-                    sb.append(error.message);
+                    sb.append(error.getMessage());
                 }
 
                 throw new BeamException(sb.toString());
@@ -46,14 +45,13 @@ public class DeferError extends Error {
         }
     }
 
-    public DeferError(Node node, String message) {
+    public DeferError(Node node) {
         this.node = node;
-        this.message = message;
     }
 
     @Override
     public String getMessage() {
-        return node.toString();
+        return node.deferFailure();
     }
 
     @Override

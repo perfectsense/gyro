@@ -201,6 +201,10 @@ public abstract class Node {
         return sb.toString();
     }
 
+    public String deferFailure() {
+        return toString();
+    }
+
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
