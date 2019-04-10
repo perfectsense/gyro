@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -172,19 +173,27 @@ public class CliBeamUI implements BeamUI {
     }
 
     @Override
-    public void writeError(Throwable error, String message, Object... arguments) throws IOException {
+    public void writeError(Throwable error, String message, Object... arguments) {
         write(message, arguments);
         if (error != null) {
-            Path errorDir = Paths.get(BeamCore.getBeamUserHome(), ".gyro", "error");
-            Files.createDirectories(errorDir);
+            try {
+                Path errorDir = Paths.get(BeamCore.getBeamUserHome(), ".gyro", "error");
+                Files.createDirectories(errorDir);
 
-            ZonedDateTime time = ZonedDateTime.now();
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm:ss z");
-            Path log = Paths.get(errorDir.toString(), String.format("%s.log", formatter.format(time)));
-            try (PrintWriter printWriter = new PrintWriter(Files.newBufferedWriter(log, StandardCharsets.UTF_8))) {
-                printWriter.write(String.format("%s: ", error.getClass().getName()));
-                error.printStackTrace(printWriter);
-                write("@|red See '%s' for more details.\n |@", log.toString());
+                ZonedDateTime time = ZonedDateTime.now();
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm:ss z");
+                Path log = Paths.get(errorDir.toString(), String.format("%s.log", formatter.format(time)));
+                try (PrintWriter printWriter = new PrintWriter(Files.newBufferedWriter(log, StandardCharsets.UTF_8))) {
+                    printWriter.write(String.format("%s: ", error.getClass().getName()));
+                    error.printStackTrace(printWriter);
+                    write("@|red See '%s' for more details.\n |@", log.toString());
+                }
+            } catch (IOException ioe) {
+                System.out.write('\n');
+                write("%s: ", error.getClass().getName());
+                StringWriter sw = new StringWriter();
+                error.printStackTrace(new PrintWriter(sw));
+                write(sw.toString());
             }
         }
 
