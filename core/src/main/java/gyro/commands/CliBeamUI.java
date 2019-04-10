@@ -8,7 +8,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.Timestamp;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -177,8 +178,9 @@ public class CliBeamUI implements BeamUI {
             Path errorDir = Paths.get(BeamCore.getBeamUserHome(), ".gyro", "error");
             Files.createDirectories(errorDir);
 
-            Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-            Path log = Paths.get(errorDir.toString(), String.format("%s.log", timestamp.toString()));
+            ZonedDateTime time = ZonedDateTime.now();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm:ss z");
+            Path log = Paths.get(errorDir.toString(), String.format("%s.log", formatter.format(time)));
             try (PrintWriter printWriter = new PrintWriter(Files.newBufferedWriter(log, StandardCharsets.UTF_8))) {
                 printWriter.write(String.format("%s: ", error.getClass().getName()));
                 error.printStackTrace(printWriter);
