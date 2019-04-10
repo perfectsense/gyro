@@ -1,8 +1,6 @@
 package gyro.commands;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -181,7 +179,7 @@ public class CliBeamUI implements BeamUI {
 
             Timestamp timestamp = new Timestamp(System.currentTimeMillis());
             Path log = Paths.get(errorDir.toString(), String.format("%s.log", timestamp.toString()));
-            try (PrintWriter printWriter = new PrintWriter(new FileWriter(log.toFile()))) {
+            try (PrintWriter printWriter = new PrintWriter(Files.newBufferedWriter(log, StandardCharsets.UTF_8))) {
                 printWriter.write(String.format("%s: ", error.getClass().getName()));
                 error.printStackTrace(printWriter);
                 write("@|red See '%s' for more details.\n |@", log.toString());
