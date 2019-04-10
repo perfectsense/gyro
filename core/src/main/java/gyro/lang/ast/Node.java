@@ -30,10 +30,20 @@ import java.util.List;
 
 public abstract class Node {
 
-    private NodeLocation location;
+    private String file;
+    private Integer line;
+    private Integer column;
 
-    public NodeLocation getLocation() {
-        return location;
+    public String getFile() {
+        return file;
+    }
+
+    public Integer getLine() {
+        return line;
+    }
+
+    public Integer getColumn() {
+        return column;
     }
 
     public static Node create(ParseTree context) {
@@ -134,17 +144,13 @@ public abstract class Node {
             node = new UnknownNode(context);
         }
 
-        String file = null;
-        Integer line = null;
-        Integer column = null;
         if (context instanceof ParserRuleContext) {
             ParserRuleContext parserRuleContext = (ParserRuleContext) context;
-            file = parserRuleContext.getStart().getTokenSource().getSourceName();
-            line = parserRuleContext.getStart().getLine();
-            column = parserRuleContext.getStart().getCharPositionInLine();
+            node.file = parserRuleContext.getStart().getTokenSource().getSourceName();
+            node.line = parserRuleContext.getStart().getLine();
+            node.column = parserRuleContext.getStart().getCharPositionInLine();
         }
 
-        node.location = new NodeLocation(file, line, column);
         return node;
     }
 
@@ -165,6 +171,34 @@ public abstract class Node {
             buildNewline(builder, indentDepth);
             n.buildString(builder, indentDepth);
         }
+    }
+
+    public String getLocation() {
+        StringBuilder sb = new StringBuilder();
+        if (file != null) {
+            sb.append("in ");
+            sb.append(file);
+            sb.append(" ");
+        }
+
+        if (line != null) {
+            sb.append("on line ");
+            sb.append(line);
+            sb.append(" ");
+        }
+
+        if (column != null) {
+            sb.append("at column ");
+            sb.append(column);
+            sb.append(" ");
+        }
+
+        if (sb.length() > 0) {
+            sb.setLength(sb.length() - 1);
+            sb.append(": ");
+        }
+
+        return sb.toString();
     }
 
     @Override
