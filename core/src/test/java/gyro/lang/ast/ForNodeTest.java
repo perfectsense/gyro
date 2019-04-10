@@ -2,7 +2,7 @@ package gyro.lang.ast;
 
 import gyro.lang.ast.control.ForNode;
 import gyro.lang.ast.scope.Scope;
-import gyro.lang.ast.value.StringNode;
+import gyro.lang.ast.value.LiteralStringNode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -27,10 +27,10 @@ class ForNodeTest {
         ForNode node = new ForNode(
                 Arrays.asList("foo", "bar"),
                 Arrays.asList(
-                        new StringNode("foo1"),
-                        new StringNode("bar2"),
-                        new StringNode("foo3"),
-                        new StringNode("bar2")),
+                        new LiteralStringNode("foo1"),
+                        new LiteralStringNode("bar2"),
+                        new LiteralStringNode("foo3"),
+                        new LiteralStringNode("bar2")),
                 Collections.singletonList(body));
 
         Scope scope = new Scope(null);

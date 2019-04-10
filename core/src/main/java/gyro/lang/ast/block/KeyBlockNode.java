@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.scope.DiffableScope;
 import gyro.lang.ast.scope.Scope;
-import gyro.parser.antlr4.BeamParser;
+import gyro.parser.antlr4.GyroParser;
 
 public class KeyBlockNode extends BlockNode {
 
@@ -18,13 +18,14 @@ public class KeyBlockNode extends BlockNode {
         this.key = key;
     }
 
-    public KeyBlockNode(BeamParser.ResourceContext context) {
-        super(context.resourceBody()
+    public KeyBlockNode(GyroParser.ResourceContext context) {
+        super(context.blockBody()
+                .blockStatement()
                 .stream()
                 .map(c -> Node.create(c.getChild(0)))
                 .collect(Collectors.toList()));
 
-        key = context.resourceType().IDENTIFIER().getText();
+        key = context.resourceType().getText();
     }
 
     public String getKey() {

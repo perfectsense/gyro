@@ -11,24 +11,25 @@ import gyro.lang.ast.scope.FileScope;
 import gyro.lang.ast.scope.RootScope;
 import gyro.lang.ast.scope.Scope;
 
-import static gyro.parser.antlr4.BeamParser.VirtualResourceContext;
+import static gyro.parser.antlr4.GyroParser.VirtualResourceContext;
 
 public class VirtualResourceNode extends BlockNode {
 
     private String name;
-    private List<VirtualResourceParam> params;
+    private List<VirtualResourceParameter> params;
 
     public VirtualResourceNode(VirtualResourceContext context) {
-        super(context.virtualResourceBody()
+        super(context.blockBody()
+                .blockStatement()
                 .stream()
                 .map(b -> Node.create(b.getChild(0)))
                 .collect(Collectors.toList()));
 
-        name = context.virtualResourceName().IDENTIFIER().getText();
+        name = context.resourceType().getText();
 
-        params = context.virtualResourceParam()
+        params = context.virtualResourceParameter()
                 .stream()
-                .map(VirtualResourceParam::new)
+                .map(VirtualResourceParameter::new)
                 .collect(Collectors.toList());
     }
 
@@ -36,7 +37,7 @@ public class VirtualResourceNode extends BlockNode {
         FileScope paramFileScope = paramScope.getFileScope();
         RootScope vrScope = new RootScope(paramFileScope.getFile());
 
-        for (VirtualResourceParam param : params) {
+        for (VirtualResourceParameter param : params) {
             String paramName = param.getName();
 
             if (!paramScope.containsKey(paramName)) {

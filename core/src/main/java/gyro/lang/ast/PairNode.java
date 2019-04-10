@@ -1,22 +1,20 @@
 package gyro.lang.ast;
 
 import gyro.lang.ast.scope.Scope;
-import gyro.parser.antlr4.BeamParser;
-import org.antlr.v4.runtime.tree.ParseTree;
+import gyro.parser.antlr4.GyroParser;
 
-public class KeyValueNode extends Node {
+public class PairNode extends Node {
 
     private final String key;
     private final Node value;
 
-    public KeyValueNode(String key, Node value) {
+    public PairNode(String key, Node value) {
         this.key = key;
         this.value = value;
     }
 
-    public KeyValueNode(BeamParser.KeyValueContext context) {
-        ParseTree keyChild = context.key().getChild(0);
-        key = (keyChild instanceof BeamParser.KeywordsContext ? keyChild.getChild(0) : keyChild).getText();
+    public PairNode(GyroParser.PairContext context) {
+        key = context.key().getChild(0).getText();
         value = Node.create(context.value().getChild(0));
     }
 

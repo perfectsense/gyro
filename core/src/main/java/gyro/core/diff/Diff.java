@@ -75,7 +75,7 @@ public class Diff {
         diffable.change(create);
 
         for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
-            if (!Diffable.class.isAssignableFrom(field.getItemClass())) {
+            if (!field.shouldBeDiffed()) {
                 continue;
             }
 
@@ -106,7 +106,7 @@ public class Diff {
         List<Diff> diffs = new ArrayList<>();
 
         for (DiffableField field : DiffableType.getInstance(currentDiffable.getClass()).getFields()) {
-            if (!Diffable.class.isAssignableFrom(field.getItemClass())) {
+            if (!field.shouldBeDiffed()) {
                 continue;
             }
 
@@ -183,7 +183,7 @@ public class Diff {
         for (DiffableField field : DiffableType.getInstance(currentDiffable.getClass()).getFields()) {
 
             // Skip nested diffables since they're handled by the diff system.
-            if (Diffable.class.isAssignableFrom(field.getItemClass())) {
+            if (field.shouldBeDiffed()) {
                 continue;
             }
 
@@ -217,7 +217,7 @@ public class Diff {
         diffable.change(delete);
 
         for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
-            if (!Diffable.class.isAssignableFrom(field.getItemClass())) {
+            if (!field.shouldBeDiffed()) {
                 continue;
             }
 
@@ -387,7 +387,7 @@ public class Diff {
             }
 
             for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
-                if (Diffable.class.isAssignableFrom(field.getItemClass())) {
+                if (field.shouldBeDiffed()) {
                     resolve(field.getValue(diffable));
                 }
             }

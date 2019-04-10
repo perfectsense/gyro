@@ -6,6 +6,7 @@ import com.psddev.dari.util.Converter;
 import com.psddev.dari.util.ObjectUtils;
 import gyro.core.BeamException;
 import gyro.lang.ast.Node;
+import gyro.lang.Resource;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -22,6 +23,15 @@ public class DiffableField {
         CONVERTER = new Converter();
         CONVERTER.setThrowError(true);
         CONVERTER.putAllStandardFunctions();
+
+        CONVERTER.putDirectFunction(
+            Resource.class,
+            String.class,
+            (converter, returnType, resource) -> ObjectUtils.to(
+                String.class,
+                DiffableType.getInstance(resource.getClass())
+                    .getIdField()
+                    .getValue(resource)));
     }
 
     private final String javaName;
@@ -99,6 +109,12 @@ public class DiffableField {
         return testValueRandomSuffix;
     }
 
+    @SuppressWarnings("unchecked")
+    public boolean shouldBeDiffed() {
+        return Diffable.class.isAssignableFrom(itemClass)
+            && DiffableType.getInstance((Class<? extends Diffable>) itemClass).isSubresource();
+    }
+
     public Object getValue(Diffable diffable) {
         try {
             return getter.invoke(diffable);
@@ -115,6 +131,7 @@ public class DiffableField {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public void setValue(Diffable diffable, Object value) {
         Node node = diffable.scope() != null ? diffable.scope().getKeyNodes().get(getBeamName()) : null;
 
@@ -125,6 +142,10 @@ public class DiffableField {
                 value = ((List<?>) value).stream()
                         .findFirst()
                         .orElse(null);
+            }
+
+            if (value instanceof String && Resource.class.isAssignableFrom(itemClass)) {
+                value = diffable.findById((Class<? extends Resource>) itemClass, (String) value);
             }
 
             setter.invoke(diffable, CONVERTER.convert(setter.getGenericParameterTypes()[0], value));

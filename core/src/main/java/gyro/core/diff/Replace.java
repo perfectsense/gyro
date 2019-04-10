@@ -46,7 +46,7 @@ public class Replace extends Change {
         }
 
         for (DiffableField field : DiffableType.getInstance(pendingDiffable.getClass()).getFields()) {
-            if (!Diffable.class.isAssignableFrom(field.getItemClass())) {
+            if (!field.shouldBeDiffed()) {
                 if (changedFields.contains(field)) {
                     writeDifference(ui, field, currentDiffable, pendingDiffable);
 
