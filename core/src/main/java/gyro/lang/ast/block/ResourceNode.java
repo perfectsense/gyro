@@ -67,7 +67,7 @@ public class ResourceNode extends BlockNode {
 
                         // Don't copy nested diffables since they're handled
                         // by the diff system.
-                        if (Diffable.class.isAssignableFrom(f.getItemClass())) {
+                        if (f.shouldBeDiffed()) {
                             continue;
                         }
 
