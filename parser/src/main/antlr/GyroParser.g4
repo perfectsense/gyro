@@ -4,7 +4,7 @@ options { tokenVocab = GyroLexer; }
 
 root
     :
-    NEWLINES? statement
+    NEWLINES? statement?
     (NEWLINES statement)*
     NEWLINES? EOF
     ;
