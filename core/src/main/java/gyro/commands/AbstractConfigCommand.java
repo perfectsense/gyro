@@ -58,9 +58,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             throw new BeamException(String.format("'%s' does not found.", file));
         }
 
-        file = StringUtils.ensureEnd(
-                StringUtils.removeEnd(arguments().get(0), ".gyro"),
-                ".gyro.state");
+        file += ".state";
 
         RootScope current = new RootScope(file);
         RootScope pending = new RootScope(current);
