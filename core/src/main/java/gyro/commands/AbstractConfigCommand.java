@@ -55,7 +55,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
         String file = StringUtils.ensureEnd(arguments().get(0), ".gyro");
         if (!Files.exists(Paths.get(file))) {
-            throw new BeamException(String.format("'%s' does not found.", file));
+            throw new BeamException(String.format("File '%s' not found.", file));
         }
 
         file += ".state";
