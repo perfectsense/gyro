@@ -22,10 +22,12 @@ statement
 directive : AT IDENTIFIER directiveArgument*;
 
 directiveArgument
-    : IDENTIFIER
-    | DOT DOT? (SLASH (DOT DOT? | IDENTIFIER))*
+    : directiveIdentifier
+    | DOT DOT? (SLASH (DOT DOT? | directiveIdentifier))*
     | value
     ;
+
+directiveIdentifier : IDENTIFIER (DOT IDENTIFIER)*;
 
 // resource
 resource
