@@ -1,7 +1,7 @@
 package gyro.lang.ast;
 
 import gyro.lang.ast.value.BooleanNode;
-import gyro.parser.antlr4.BeamParser;
+import gyro.parser.antlr4.GyroParser;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,7 +17,7 @@ import static org.mockito.Mockito.when;
 class BooleanNodeTest {
 
     @Mock
-    private BeamParser.BooleanValueContext context;
+    private GyroParser.BooleanValueContext context;
 
     @Test
     void evaluateTrue() {

@@ -3,23 +3,30 @@ package gyro.lang.ast;
 import gyro.lang.Resource;
 import gyro.lang.ast.scope.FileScope;
 import gyro.lang.ast.scope.Scope;
-import gyro.parser.antlr4.BeamParser;
+import gyro.parser.antlr4.GyroParser;
 
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class ImportNode extends Node {
+public class DirectiveNode extends Node {
 
     private final String file;
     private final String name;
 
-    public ImportNode(BeamParser.ImportStmtContext context) {
-        file = context.importPath().IDENTIFIER().getText();
+    public DirectiveNode(GyroParser.DirectiveContext context) {
+        String directive = context.IDENTIFIER().getText();
 
-        name = Optional.ofNullable(context.importName())
-                .map(c -> c.IDENTIFIER().getText())
+        if (!"import".equals(directive)) {
+            throw new IllegalArgumentException(
+                String.format("[%s] isn't a valid directive!", directive));
+        }
+
+        file = context.directiveArgument(0).getText();
+
+        name = Optional.ofNullable(context.directiveArgument(2))
+                .map(GyroParser.DirectiveArgumentContext::getText)
                 .orElse(null);
     }
 
@@ -65,7 +72,7 @@ public class ImportNode extends Node {
     @Override
     public void buildString(StringBuilder builder, int indentDepth) {
         buildNewline(builder, indentDepth);
-        builder.append("import ");
+        builder.append("@import ");
         builder.append(file);
 
         if (name != null) {

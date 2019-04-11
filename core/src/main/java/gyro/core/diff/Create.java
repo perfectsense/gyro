@@ -19,7 +19,7 @@ public class Create extends Change {
 
     private void writeFields(BeamUI ui) {
         for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
-            if (!Diffable.class.isAssignableFrom(field.getItemClass())) {
+            if (!field.shouldBeDiffed()) {
                 ui.write("\n· %s: %s", field.getBeamName(), stringify(field.getValue(diffable)));
             }
         }
