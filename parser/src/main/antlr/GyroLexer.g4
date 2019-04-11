@@ -57,7 +57,7 @@ DQUOTE : '"' -> pushMode(STRING_MODE);
 
 KEYWORD     : PARAM | DEFINE | IN | AND | OR;
 WHITESPACES : [ \t]+ -> channel(HIDDEN);
-COMMENT     : '#' ~[\n\r]* ('\n' | '\r' | '\r\n') -> channel(HIDDEN);
+COMMENT     : '#' ~[\n\r]* NEWLINES -> channel(HIDDEN);
 NEWLINES    : [\n\r][ \t\n\r]*;
 IDENTIFIER  : [_A-Za-z] [-_0-9A-Za-z]*;
 
