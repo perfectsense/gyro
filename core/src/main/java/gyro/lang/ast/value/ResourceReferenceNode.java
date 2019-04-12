@@ -1,7 +1,7 @@
 package gyro.lang.ast.value;
 
 import com.google.common.collect.ImmutableList;
-import gyro.core.BeamException;
+import gyro.core.GyroException;
 import gyro.core.diff.DiffableField;
 import gyro.core.diff.DiffableType;
 import gyro.lang.Credentials;
@@ -122,7 +122,7 @@ public class ResourceReferenceNode extends Node {
                 Class<? extends ResourceFinder> resourceQueryClass = scope.getRootScope().getResourceFinderClasses().get(type);
 
                 if (resourceQueryClass == null) {
-                    throw new BeamException("Resource type " + type + " does not support external queries.");
+                    throw new GyroException("Resource type " + type + " does not support external queries.");
                 }
 
                 ResourceFinder<Resource> finder = resourceQueryClass.getConstructor().newInstance();
@@ -172,7 +172,7 @@ public class ResourceReferenceNode extends Node {
                         return resource.get(path);
 
                     } else {
-                        throw new BeamException(String.format("Unable to resolve resource reference %s %s%nAttribute '%s' is not allowed in %s.%n",
+                        throw new GyroException(String.format("Unable to resolve resource reference %s %s%nAttribute '%s' is not allowed in %s.%n",
                             this, getLocation(), path, type));
                     }
 

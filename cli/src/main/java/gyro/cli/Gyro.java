@@ -4,7 +4,7 @@ import gyro.commands.AbstractCommand;
 import gyro.commands.BeamCommand;
 import gyro.commands.CliBeamUI;
 import gyro.core.BeamCore;
-import gyro.core.BeamException;
+import gyro.core.GyroException;
 import gyro.core.LocalFileBackend;
 import gyro.lang.ast.scope.RootScope;
 import gyro.lang.plugins.PluginLoader;
@@ -52,7 +52,7 @@ public class Gyro {
             gyro.run();
 
         } catch (Throwable error) {
-            if (error instanceof BeamException) {
+            if (error instanceof GyroException) {
                 BeamCore.ui().writeError(error.getCause(), "\n@|red Error: %s|@\n", error.getMessage());
 
             } else {

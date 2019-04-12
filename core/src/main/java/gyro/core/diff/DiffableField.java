@@ -4,7 +4,7 @@ import com.google.common.base.CaseFormat;
 import com.psddev.dari.util.ConversionException;
 import com.psddev.dari.util.Converter;
 import com.psddev.dari.util.ObjectUtils;
-import gyro.core.BeamException;
+import gyro.core.GyroException;
 import gyro.lang.ast.Node;
 import gyro.lang.Resource;
 
@@ -161,11 +161,11 @@ public class DiffableField {
                     : new RuntimeException(cause);
         } catch (ConversionException e) {
             if (node != null) {
-                throw new BeamException(String.format("Type mismatch when setting field '%s' %s%n%s.%n",
+                throw new GyroException(String.format("Type mismatch when setting field '%s' %s%n%s.%n",
                     getBeamName(), node.getLocation(), node));
             }
 
-            throw new BeamException(String.format("Type mismatch when setting field '%s' with '%s'.",
+            throw new GyroException(String.format("Type mismatch when setting field '%s' with '%s'.",
                 getBeamName(), value));
         }
     }

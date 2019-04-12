@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.psddev.dari.util.TypeDefinition;
-import gyro.core.BeamException;
+import gyro.core.GyroException;
 import gyro.core.BeamUI;
 import gyro.lang.Resource;
 import gyro.lang.ast.PairNode;
@@ -152,11 +152,11 @@ public abstract class Diffable {
                 if (values instanceof Scope) {
                     Node node = ((Scope) values).getKeyNodes().get(entry.getKey());
                     if (node != null) {
-                        throw new BeamException(String.format("Field '%s' is not allowed %s%n%s", entry.getKey(), node.getLocation(), node));
+                        throw new GyroException(String.format("Field '%s' is not allowed %s%n%s", entry.getKey(), node.getLocation(), node));
                     }
                 }
 
-                throw new BeamException(String.format("Field '%s' is not allowed", entry.getKey()));
+                throw new GyroException(String.format("Field '%s' is not allowed", entry.getKey()));
             }
         }
     }

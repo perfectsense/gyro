@@ -1,6 +1,6 @@
 package gyro.lang.ast.query;
 
-import gyro.core.BeamException;
+import gyro.core.GyroException;
 import gyro.core.diff.DiffableField;
 import gyro.core.diff.DiffableType;
 import gyro.core.query.QueryField;
@@ -76,7 +76,7 @@ public class ComparisonQuery extends Query {
             }
 
             if (!validQuery) {
-                throw new BeamException(String.format(
+                throw new GyroException(String.format(
                     "No such field [%s] defined %s!",
                     path, resourceClass));
             }

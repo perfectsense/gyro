@@ -1,7 +1,7 @@
 package gyro.commands;
 
 import gyro.core.BeamCore;
-import gyro.core.BeamException;
+import gyro.core.GyroException;
 import gyro.core.LocalFileBackend;
 import gyro.lang.BeamLanguageException;
 import gyro.lang.Credentials;
@@ -46,7 +46,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
     @Override
     protected void doExecute() throws Exception {
         if (arguments().size() < 1) {
-            throw new BeamException("Beam configuration file required.");
+            throw new GyroException("Beam configuration file required.");
         }
 
         core = new BeamCore();
@@ -55,7 +55,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
         String file = StringUtils.ensureEnd(arguments().get(0), ".gyro");
         if (!Files.exists(Paths.get(file))) {
-            throw new BeamException(String.format("File '%s' not found.", file));
+            throw new GyroException(String.format("File '%s' not found.", file));
         }
 
         file += ".state";
@@ -67,7 +67,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             backend.load(current);
 
         } catch (BeamLanguageException ex) {
-            throw new BeamException(ex.getMessage());
+            throw new GyroException(ex.getMessage());
         }
 
         if (!test) {
@@ -83,7 +83,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             backend.load(pending);
 
         } catch (BeamLanguageException ex) {
-            throw new BeamException(ex.getMessage());
+            throw new GyroException(ex.getMessage());
         }
 
         doExecute(current, pending, new State(pending, test));

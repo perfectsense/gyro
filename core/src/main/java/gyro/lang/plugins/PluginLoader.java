@@ -1,7 +1,7 @@
 package gyro.lang.plugins;
 
 import gyro.core.BeamCore;
-import gyro.core.BeamException;
+import gyro.core.GyroException;
 import gyro.lang.ast.scope.Scope;
 import com.psddev.dari.util.StringUtils;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
@@ -125,7 +125,7 @@ public class PluginLoader {
                 }
             }
         } catch (Exception e) {
-            throw new BeamException(e.getMessage());
+            throw new GyroException(e.getMessage());
         }
 
         init();
