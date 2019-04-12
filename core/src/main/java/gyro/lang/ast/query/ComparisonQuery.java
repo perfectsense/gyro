@@ -35,7 +35,7 @@ public class ComparisonQuery extends Query {
     public boolean isSupported(ResourceFinder finder) {
         String mapFieldName = path.split("\\.")[0];
         for (QueryField field : QueryType.getInstance(finder.getClass()).getFields()) {
-            String key = field.getBeamName();
+            String key = field.getGyroName();
             if (path.equals(key) && operator.equals(ComparisonQuery.EQUALS_OPERATOR)
                  || path.contains(".") && mapFieldName.equals(key) && operator.equals(ComparisonQuery.EQUALS_OPERATOR)) {
                 return true;

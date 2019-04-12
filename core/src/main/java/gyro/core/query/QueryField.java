@@ -23,7 +23,7 @@ public class QueryField {
     }
 
     private final String javaName;
-    private final String beamName;
+    private final String gyroName;
     private final Method getter;
     private final Method setter;
     private final String filterName;
@@ -31,7 +31,7 @@ public class QueryField {
 
     protected QueryField(String javaName, Method getter, Method setter, Type type) {
         this.javaName = javaName;
-        this.beamName = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, javaName);
+        this.gyroName = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, javaName);
         this.getter = getter;
         this.setter = setter;
 
@@ -39,7 +39,7 @@ public class QueryField {
         if (filterable != null) {
             this.filterName = filterable.value();
         } else {
-            this.filterName = getBeamName();
+            this.filterName = getGyroName();
         }
 
         if (type instanceof Class) {
@@ -63,8 +63,8 @@ public class QueryField {
         return javaName;
     }
 
-    public String getBeamName() {
-        return beamName;
+    public String getGyroName() {
+        return gyroName;
     }
 
     public Class<?> getItemClass() {
