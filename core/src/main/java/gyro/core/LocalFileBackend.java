@@ -4,7 +4,7 @@ import gyro.lang.GyroLanguageException;
 import gyro.core.resource.Resource;
 import gyro.lang.ast.Node;
 import gyro.core.scope.FileScope;
-import gyro.lang.listeners.ErrorListener;
+import gyro.lang.GyroErrorListener;
 import gyro.lang.plugins.PluginLoader;
 import gyro.parser.antlr4.GyroLexer;
 import gyro.parser.antlr4.GyroParser;
@@ -38,7 +38,7 @@ public class LocalFileBackend extends FileBackend {
         GyroLexer lexer = new GyroLexer(CharStreams.fromFileName(file.toString()));
         CommonTokenStream stream = new CommonTokenStream(lexer);
         GyroParser parser = new GyroParser(stream);
-        ErrorListener errorListener = new ErrorListener();
+        GyroErrorListener errorListener = new GyroErrorListener();
 
         parser.removeErrorListeners();
         parser.addErrorListener(errorListener);

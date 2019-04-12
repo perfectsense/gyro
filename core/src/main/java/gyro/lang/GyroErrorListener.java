@@ -1,4 +1,4 @@
-package gyro.lang.listeners;
+package gyro.lang;
 
 import org.antlr.v4.runtime.ANTLRErrorListener;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -15,7 +15,7 @@ import java.io.File;
 import java.util.BitSet;
 import java.util.List;
 
-public class ErrorListener implements ANTLRErrorListener {
+public class GyroErrorListener implements ANTLRErrorListener {
 
     private int syntaxErrors = 0;
     private String previousSource;
