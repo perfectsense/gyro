@@ -46,7 +46,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
     @Override
     protected void doExecute() throws Exception {
         if (arguments().size() < 1) {
-            throw new GyroException("Beam configuration file required.");
+            throw new GyroException("Gyro configuration file required.");
         }
 
         core = new GyroCore();
