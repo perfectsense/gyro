@@ -1,5 +1,6 @@
 package gyro.core;
 
+import gyro.lang.GyroErrorStrategy;
 import gyro.lang.GyroLanguageException;
 import gyro.core.resource.Resource;
 import gyro.lang.ast.Node;
@@ -42,6 +43,7 @@ public class LocalFileBackend extends FileBackend {
 
         parser.removeErrorListeners();
         parser.addErrorListener(errorListener);
+        parser.setErrorHandler(new GyroErrorStrategy());
 
         GyroParser.RootContext rootContext = parser.root();
 
