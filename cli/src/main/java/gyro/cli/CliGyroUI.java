@@ -1,4 +1,4 @@
-package gyro.commands;
+package gyro.cli;
 
 import java.io.BufferedReader;
 import java.io.IOException;
