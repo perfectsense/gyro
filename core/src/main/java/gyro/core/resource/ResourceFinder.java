@@ -3,8 +3,7 @@ package gyro.core.resource;
 import java.util.List;
 import java.util.Map;
 
-import gyro.core.resource.Resource;
-import gyro.lang.Credentials;
+import gyro.core.Credentials;
 
 public interface ResourceFinder<R extends Resource> {
 

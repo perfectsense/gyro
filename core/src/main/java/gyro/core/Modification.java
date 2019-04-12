@@ -1,4 +1,4 @@
-package gyro.lang;
+package gyro.core;
 
 import java.util.List;
 import java.util.Set;

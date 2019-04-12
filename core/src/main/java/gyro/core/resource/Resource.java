@@ -8,7 +8,7 @@ import java.util.UUID;
 import gyro.core.diff.Diffable;
 import gyro.core.diff.DiffableField;
 import gyro.core.diff.DiffableType;
-import gyro.lang.Credentials;
+import gyro.core.Credentials;
 import gyro.lang.ast.block.ResourceNode;
 import gyro.core.scope.Scope;
 import gyro.lang.ast.value.LiteralStringNode;

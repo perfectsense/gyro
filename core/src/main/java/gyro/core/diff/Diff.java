@@ -11,7 +11,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import gyro.core.GyroUI;
-import gyro.lang.Credentials;
+import gyro.core.Credentials;
 import gyro.core.resource.Resource;
 import gyro.core.scope.DiffableScope;
 import gyro.core.scope.State;

@@ -1,4 +1,4 @@
-package gyro.lang;
+package gyro.core;
 
 import gyro.core.scope.FileScope;
 

@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableList;
 import gyro.core.GyroException;
 import gyro.core.diff.DiffableField;
 import gyro.core.diff.DiffableType;
-import gyro.lang.Credentials;
+import gyro.core.Credentials;
 import gyro.core.resource.Resource;
 import gyro.core.resource.ResourceFinder;
 import gyro.lang.ast.DeferError;

@@ -1,7 +1,6 @@
 package gyro.core;
 
 import gyro.lang.GyroLanguageException;
-import gyro.lang.FileBackend;
 import gyro.core.resource.Resource;
 import gyro.lang.ast.Node;
 import gyro.core.scope.FileScope;
