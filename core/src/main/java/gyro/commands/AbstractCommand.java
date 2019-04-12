@@ -30,7 +30,7 @@ public abstract class AbstractCommand implements GyroCommand {
     public void execute() throws Exception {
         GyroCore.ui().setVerbose(verbose);
 
-        if (debug || "debug".equalsIgnoreCase(System.getenv("BEAM_LOG"))) {
+        if (debug || "debug".equalsIgnoreCase(System.getenv("GYRO_LOG"))) {
             System.getProperties().setProperty("org.openstack4j.core.transport.internal.HttpLoggingFilter", "true");
 
             ((Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).setLevel(Level.DEBUG);
