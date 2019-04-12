@@ -85,13 +85,13 @@ public class ComparisonQuery extends Query {
         if (EQUALS_OPERATOR.equals(operator)) {
             return resources.stream()
                 .filter(r -> Objects.equals(
-                    DiffableType.getInstance(r.getClass()).getFieldByBeamName(path).getValue(r), comparisonValue))
+                    DiffableType.getInstance(r.getClass()).getFieldByGyroName(path).getValue(r), comparisonValue))
                 .collect(Collectors.toList());
 
         } else if (NOT_EQUALS_OPERATOR.equals(operator)) {
             return resources.stream()
                 .filter(r -> !Objects.equals(
-                    DiffableType.getInstance(r.getClass()).getFieldByBeamName(path).getValue(r), comparisonValue))
+                    DiffableType.getInstance(r.getClass()).getFieldByGyroName(path).getValue(r), comparisonValue))
                 .collect(Collectors.toList());
 
         } else {

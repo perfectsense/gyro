@@ -34,7 +34,7 @@ public class DiffableType<R extends Diffable> {
     private final DiffableField idField;
     private final List<DiffableField> fields;
     private final Map<String, DiffableField> fieldByJavaName;
-    private final Map<String, DiffableField> fieldByBeamName;
+    private final Map<String, DiffableField> fieldByGyroName;
 
     @SuppressWarnings("unchecked")
     public static <R extends Diffable> DiffableType<R> getInstance(Class<R> diffableClass) {
@@ -59,7 +59,7 @@ public class DiffableType<R extends Diffable> {
         DiffableField idField = null;
         ImmutableList.Builder<DiffableField> fields = ImmutableList.builder();
         ImmutableMap.Builder<String, DiffableField> fieldByJavaName = ImmutableMap.builder();
-        ImmutableMap.Builder<String, DiffableField> fieldByBeamName = ImmutableMap.builder();
+        ImmutableMap.Builder<String, DiffableField> fieldByGyroName = ImmutableMap.builder();
 
         for (PropertyDescriptor prop : Introspector.getBeanInfo(diffableClass).getPropertyDescriptors()) {
             Method getter = prop.getReadMethod();
@@ -78,7 +78,7 @@ public class DiffableType<R extends Diffable> {
 
                     fields.add(field);
                     fieldByJavaName.put(field.getJavaName(), field);
-                    fieldByBeamName.put(field.getGyroName(), field);
+                    fieldByGyroName.put(field.getGyroName(), field);
                 }
             }
         }
@@ -86,7 +86,7 @@ public class DiffableType<R extends Diffable> {
         this.idField = idField;
         this.fields = fields.build();
         this.fieldByJavaName = fieldByJavaName.build();
-        this.fieldByBeamName = fieldByBeamName.build();
+        this.fieldByGyroName = fieldByGyroName.build();
     }
 
     public boolean isSubresource() {
@@ -105,8 +105,8 @@ public class DiffableType<R extends Diffable> {
         return fieldByJavaName.get(javaName);
     }
 
-    public DiffableField getFieldByBeamName(String beamName) {
-        return fieldByBeamName.get(beamName);
+    public DiffableField getFieldByGyroName(String gyroName) {
+        return fieldByGyroName.get(gyroName);
     }
 
 }
