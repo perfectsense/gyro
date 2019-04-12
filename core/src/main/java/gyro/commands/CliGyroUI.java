@@ -16,7 +16,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import gyro.core.BeamCore;
+import gyro.core.GyroCore;
 import gyro.core.GyroUI;
 import com.google.common.collect.ImmutableSet;
 import org.fusesource.jansi.AnsiRenderer;
@@ -177,7 +177,7 @@ public class CliGyroUI implements GyroUI {
         write(message, arguments);
         if (error != null) {
             try {
-                Path errorDir = Paths.get(BeamCore.getBeamUserHome(), ".gyro", "error");
+                Path errorDir = Paths.get(GyroCore.getGyroUserHome(), ".gyro", "error");
                 Files.createDirectories(errorDir);
 
                 ZonedDateTime time = ZonedDateTime.now();

@@ -1,6 +1,6 @@
 package gyro.lang.plugins;
 
-import gyro.core.BeamCore;
+import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.lang.ast.scope.Scope;
 import com.psddev.dari.util.StringUtils;
@@ -94,7 +94,7 @@ public class PluginLoader {
         try {
             List<Artifact> artifacts = artifacts();
             if (artifacts == null) {
-                BeamCore.ui().write("@|bold,blue Loading plugin:|@ %s...\n", artifact());
+                GyroCore.ui().write("@|bold,blue Loading plugin:|@ %s...\n", artifact());
 
                 List<RemoteRepository> remoteRepositories = new ArrayList<>();
                 remoteRepositories.add(new RemoteRepository.Builder("central", "default", "http://repo1.maven.org/maven2/").build());

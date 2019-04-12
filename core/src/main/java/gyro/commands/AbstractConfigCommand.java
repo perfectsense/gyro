@@ -1,6 +1,6 @@
 package gyro.commands;
 
-import gyro.core.BeamCore;
+import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.LocalFileBackend;
 import gyro.lang.GyroLanguageException;
@@ -31,13 +31,13 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
     @Arguments
     private List<String> arguments;
 
-    private BeamCore core;
+    private GyroCore core;
 
     public List<String> arguments() {
         return arguments;
     }
 
-    public BeamCore core() {
+    public GyroCore core() {
         return core;
     }
 
@@ -49,7 +49,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             throw new GyroException("Beam configuration file required.");
         }
 
-        core = new BeamCore();
+        core = new GyroCore();
 
         FileBackend backend = new LocalFileBackend();
 
@@ -75,7 +75,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
             if (!skipRefresh) {
                 refreshResources(current);
-                BeamCore.ui().write("\n");
+                GyroCore.ui().write("\n");
             }
         }
 
@@ -108,7 +108,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             if (value instanceof Resource && !(value instanceof Credentials)) {
                 Resource resource = (Resource) value;
 
-                BeamCore.ui().write(
+                GyroCore.ui().write(
                         "@|bold,blue Refreshing|@: @|yellow %s|@ -> %s...",
                         resource.resourceType(),
                         resource.resourceIdentifier());
@@ -117,7 +117,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
                     i.remove();
                 }
 
-                BeamCore.ui().write("\n");
+                GyroCore.ui().write("\n");
             }
         }
     }

@@ -3,7 +3,7 @@ package gyro.core;
 import com.psddev.dari.util.ObjectUtils;
 import com.psddev.dari.util.ThreadLocalStack;
 
-public class BeamCore {
+public class GyroCore {
 
     private static final ThreadLocalStack<GyroUI> UI = new ThreadLocalStack<>();
 
@@ -19,8 +19,8 @@ public class BeamCore {
         return UI.pop();
     }
 
-    public static String getBeamUserHome() {
-        String userHome = System.getenv("BEAM_USER_HOME");
+    public static String getGyroUserHome() {
+        String userHome = System.getenv("GYRO_USER_HOME");
         if (ObjectUtils.isBlank(userHome)) {
             userHome = System.getProperty("user.home");
         }

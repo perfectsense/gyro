@@ -1,6 +1,6 @@
 package gyro.commands;
 
-import gyro.core.BeamCore;
+import gyro.core.GyroCore;
 import gyro.core.GyroUI;
 import gyro.core.diff.Diff;
 import gyro.lang.ast.scope.RootScope;
@@ -12,7 +12,7 @@ public class UpCommand extends AbstractConfigCommand {
 
     @Override
     public void doExecute(RootScope current, RootScope pending, State state) throws Exception {
-        GyroUI ui = BeamCore.ui();
+        GyroUI ui = GyroCore.ui();
 
         ui.write("\n@|bold,white Looking for changes...\n\n|@");
 

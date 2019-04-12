@@ -1,6 +1,6 @@
 package gyro.commands;
 
-import gyro.core.BeamCore;
+import gyro.core.GyroCore;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import io.airlift.airline.Option;
@@ -28,7 +28,7 @@ public abstract class AbstractCommand implements GyroCommand {
 
     @Override
     public void execute() throws Exception {
-        BeamCore.ui().setVerbose(verbose);
+        GyroCore.ui().setVerbose(verbose);
 
         if (debug || "debug".equalsIgnoreCase(System.getenv("BEAM_LOG"))) {
             System.getProperties().setProperty("org.openstack4j.core.transport.internal.HttpLoggingFilter", "true");
