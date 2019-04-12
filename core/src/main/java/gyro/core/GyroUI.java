@@ -1,6 +1,6 @@
 package gyro.core;
 
-public interface BeamUI {
+public interface GyroUI {
 
     boolean isVerbose();
 

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import gyro.core.BeamUI;
+import gyro.core.GyroUI;
 import gyro.core.LocalFileBackend;
 import gyro.core.diff.Diff;
 import gyro.lang.ast.Node;
@@ -62,7 +62,7 @@ public class Workflow {
     }
 
     public void execute(
-            BeamUI ui,
+            GyroUI ui,
             State state,
             Resource pendingResource)
             throws Exception {

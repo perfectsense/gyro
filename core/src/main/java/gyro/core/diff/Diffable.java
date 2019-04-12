@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 
 import com.psddev.dari.util.TypeDefinition;
 import gyro.core.GyroException;
-import gyro.core.BeamUI;
+import gyro.core.GyroUI;
 import gyro.lang.Resource;
 import gyro.lang.ast.PairNode;
 import gyro.lang.ast.Node;
@@ -201,11 +201,11 @@ public abstract class Diffable {
 
     public abstract String toDisplayString();
 
-    public boolean writePlan(BeamUI ui, Change change) {
+    public boolean writePlan(GyroUI ui, Change change) {
         return false;
     }
 
-    public boolean writeExecution(BeamUI ui, Change change) {
+    public boolean writeExecution(GyroUI ui, Change change) {
         return false;
     }
 

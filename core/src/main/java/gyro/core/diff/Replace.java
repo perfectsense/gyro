@@ -3,7 +3,7 @@ package gyro.core.diff;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import gyro.core.BeamUI;
+import gyro.core.GyroUI;
 import gyro.lang.Resource;
 import gyro.lang.Workflow;
 import gyro.lang.ast.scope.State;
@@ -40,7 +40,7 @@ public class Replace extends Change {
         return pendingDiffable;
     }
 
-    private void writeFields(BeamUI ui) {
+    private void writeFields(GyroUI ui) {
         if (!ui.isVerbose()) {
             return;
         }
@@ -60,7 +60,7 @@ public class Replace extends Change {
     }
 
     @Override
-    public void writePlan(BeamUI ui) {
+    public void writePlan(GyroUI ui) {
         ui.write("@|cyan ⇅ Replace %s|@", currentDiffable.toDisplayString());
         ui.write(" (because of %s, ", changedFields.stream()
                 .filter(f -> !f.isUpdatable())
@@ -79,13 +79,13 @@ public class Replace extends Change {
     }
 
     @Override
-    public void writeExecution(BeamUI ui) {
+    public void writeExecution(GyroUI ui) {
         ui.write("@|magenta ⇅ Replacing %s|@", currentDiffable.toDisplayString());
         writeFields(ui);
     }
 
     @Override
-    public boolean execute(BeamUI ui, State state) throws Exception {
+    public boolean execute(GyroUI ui, State state) throws Exception {
         if (workflow == null) {
             return false;
         }

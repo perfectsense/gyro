@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import gyro.core.BeamUI;
+import gyro.core.GyroUI;
 import gyro.core.diff.Diff;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.KeyBlockNode;
@@ -74,7 +74,7 @@ public class Stage {
     }
 
     public String execute(
-            BeamUI ui,
+            GyroUI ui,
             State state,
             Resource pendingResource,
             RootScope currentRootScope,

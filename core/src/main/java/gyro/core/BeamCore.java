@@ -5,17 +5,17 @@ import com.psddev.dari.util.ThreadLocalStack;
 
 public class BeamCore {
 
-    private static final ThreadLocalStack<BeamUI> UI = new ThreadLocalStack<>();
+    private static final ThreadLocalStack<GyroUI> UI = new ThreadLocalStack<>();
 
-    public static BeamUI ui() {
+    public static GyroUI ui() {
         return UI.get();
     }
 
-    public static void pushUi(BeamUI ui) {
+    public static void pushUi(GyroUI ui) {
         UI.push(ui);
     }
 
-    public static BeamUI popUi() {
+    public static GyroUI popUi() {
         return UI.pop();
     }
 

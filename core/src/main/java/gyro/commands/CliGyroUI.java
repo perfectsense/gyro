@@ -17,11 +17,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import gyro.core.BeamCore;
-import gyro.core.BeamUI;
+import gyro.core.GyroUI;
 import com.google.common.collect.ImmutableSet;
 import org.fusesource.jansi.AnsiRenderer;
 
-public class CliBeamUI implements BeamUI {
+public class CliGyroUI implements GyroUI {
 
     private static final Pattern NEWLINES = Pattern.compile("([\r\n]+)");
 

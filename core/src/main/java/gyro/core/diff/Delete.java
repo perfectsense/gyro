@@ -1,6 +1,6 @@
 package gyro.core.diff;
 
-import gyro.core.BeamUI;
+import gyro.core.GyroUI;
 import gyro.lang.Resource;
 import gyro.lang.ast.scope.State;
 
@@ -18,17 +18,17 @@ public class Delete extends Change {
     }
 
     @Override
-    public void writePlan(BeamUI ui) {
+    public void writePlan(GyroUI ui) {
         ui.write("@|red - Delete %s|@", diffable.toDisplayString());
     }
 
     @Override
-    public void writeExecution(BeamUI ui) {
+    public void writeExecution(GyroUI ui) {
         ui.write("@|magenta - Deleting %s|@", diffable.toDisplayString());
     }
 
     @Override
-    public boolean execute(BeamUI ui, State state) {
+    public boolean execute(GyroUI ui, State state) {
         if (!state.isTest()) {
             ((Resource) diffable).delete();
         }

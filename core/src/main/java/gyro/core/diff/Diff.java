@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import gyro.core.BeamUI;
+import gyro.core.GyroUI;
 import gyro.lang.Credentials;
 import gyro.lang.Resource;
 import gyro.lang.ast.scope.DiffableScope;
@@ -263,7 +263,7 @@ public class Diff {
         return false;
     }
 
-    public boolean write(BeamUI ui) {
+    public boolean write(GyroUI ui) {
         if (!hasChanges()) {
             return false;
         }
@@ -310,7 +310,7 @@ public class Diff {
         return written;
     }
 
-    public void executeCreateOrUpdate(BeamUI ui, State state) throws Exception {
+    public void executeCreateOrUpdate(GyroUI ui, State state) throws Exception {
         for (Change change : getChanges()) {
             if (change instanceof Create || change instanceof Update) {
                 execute(ui, state, change);
@@ -322,7 +322,7 @@ public class Diff {
         }
     }
 
-    public void executeReplace(BeamUI ui, State state) throws Exception {
+    public void executeReplace(GyroUI ui, State state) throws Exception {
         for (Change change : getChanges()) {
             if (change instanceof Replace) {
                 execute(ui, state, change);
@@ -334,7 +334,7 @@ public class Diff {
         }
     }
 
-    public void executeDelete(BeamUI ui, State state) throws Exception {
+    public void executeDelete(GyroUI ui, State state) throws Exception {
         for (ListIterator<Change> j = getChanges().listIterator(getChanges().size()); j.hasPrevious();) {
             Change change = j.previous();
 
@@ -348,7 +348,7 @@ public class Diff {
         }
     }
 
-    private void execute(BeamUI ui, State state, Change change) throws Exception {
+    private void execute(GyroUI ui, State state, Change change) throws Exception {
         Diffable diffable = change.getDiffable();
 
         if (!(diffable instanceof Resource)) {

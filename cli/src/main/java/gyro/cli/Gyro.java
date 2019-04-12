@@ -2,7 +2,7 @@ package gyro.cli;
 
 import gyro.commands.AbstractCommand;
 import gyro.commands.BeamCommand;
-import gyro.commands.CliBeamUI;
+import gyro.commands.CliGyroUI;
 import gyro.core.BeamCore;
 import gyro.core.GyroException;
 import gyro.core.LocalFileBackend;
@@ -44,7 +44,7 @@ public class Gyro {
         ((Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).setLevel(Level.OFF);
 
         Gyro gyro = new Gyro();
-        BeamCore.pushUi(new CliBeamUI());
+        BeamCore.pushUi(new CliGyroUI());
 
         try {
             loadPlugins(gyro);

@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import gyro.core.BeamUI;
+import gyro.core.GyroUI;
 import gyro.lang.ast.scope.State;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
@@ -24,11 +24,11 @@ public abstract class Change {
 
     public abstract Diffable getDiffable();
 
-    public abstract void writePlan(BeamUI ui);
+    public abstract void writePlan(GyroUI ui);
 
-    public abstract void writeExecution(BeamUI ui);
+    public abstract void writeExecution(GyroUI ui);
 
-    public abstract boolean execute(BeamUI ui, State state) throws Exception;
+    public abstract boolean execute(GyroUI ui, State state) throws Exception;
 
     protected String stringify(Object value) {
         if (value instanceof List) {
@@ -51,7 +51,7 @@ public abstract class Change {
     }
 
     protected void writeDifference(
-            BeamUI ui,
+            GyroUI ui,
             DiffableField field,
             Diffable currentDiffable,
             Diffable pendingDiffable) {
@@ -122,7 +122,7 @@ public abstract class Change {
         }
     }
 
-    private <V> void writeMap(BeamUI ui, String message, Map<?, V> map, Function<V, String> valueFunction) {
+    private <V> void writeMap(GyroUI ui, String message, Map<?, V> map, Function<V, String> valueFunction) {
         if (map.isEmpty()) {
             return;
         }
@@ -133,11 +133,11 @@ public abstract class Change {
                 .collect(Collectors.joining(", ")));
     }
 
-    private void writeMapPut(BeamUI ui, Map<?, ?> map) {
+    private void writeMapPut(GyroUI ui, Map<?, ?> map) {
         writeMap(ui, " @|green +{|@ %s @|green }|@", map, this::stringify);
     }
 
-    private void writeMapRemove(BeamUI ui, Map<?, ?> map) {
+    private void writeMapRemove(GyroUI ui, Map<?, ?> map) {
         writeMap(ui, " @|red -{|@ %s @|red }|@", map, this::stringify);
     }
 
