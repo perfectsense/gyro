@@ -8,7 +8,7 @@ import io.airlift.airline.OptionType;
 import org.slf4j.LoggerFactory;
 
 /**
- * Basic {@link BeamCommand} implementation that adds the global {@code -debug} option for more detailed logging.
+ * Basic {@link GyroCommand} implementation that adds the global {@code -debug} option for more detailed logging.
  *
  * <p>Subclasses must override:</p>
  *
@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
  * <li>{@link #doExecute}</li>
  * </ul>
  */
-public abstract class AbstractCommand implements BeamCommand {
+public abstract class AbstractCommand implements GyroCommand {
 
     @Option(type = OptionType.GLOBAL, name = "--debug", description = "Debug mode")
     public boolean debug;

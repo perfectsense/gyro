@@ -1,7 +1,7 @@
 package gyro.cli;
 
 import gyro.commands.AbstractCommand;
-import gyro.commands.BeamCommand;
+import gyro.commands.GyroCommand;
 import gyro.commands.CliGyroUI;
 import gyro.core.BeamCore;
 import gyro.core.GyroException;
@@ -68,7 +68,7 @@ public class Gyro {
 
         commands().add(Help.class);
 
-        for (Class<?> c : getReflections().getSubTypesOf(BeamCommand.class)) {
+        for (Class<?> c : getReflections().getSubTypesOf(GyroCommand.class)) {
             if (c.isAnnotationPresent(Command.class)) {
                 commands().add(c);
             }
@@ -108,7 +108,7 @@ public class Gyro {
                 "[%s] must be an instance of [%s] or [%s]!",
                 command.getClass().getName(),
                 Runnable.class.getName(),
-                BeamCommand.class.getName()));
+                GyroCommand.class.getName()));
         }
     }
 
@@ -122,7 +122,7 @@ public class Gyro {
 
             for (PluginLoader loader : pluginConfig.getFileScope().getPluginLoaders()) {
                 for (Class<?> c : loader.classes()) {
-                    if (BeamCommand.class.isAssignableFrom(c) && !Modifier.isAbstract(c.getModifiers())) {
+                    if (GyroCommand.class.isAssignableFrom(c) && !Modifier.isAbstract(c.getModifiers())) {
                         gyro.commands().add(c);
                     }
                 }
