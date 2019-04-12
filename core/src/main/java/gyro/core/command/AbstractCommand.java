@@ -1,4 +1,4 @@
-package gyro.commands;
+package gyro.core.command;
 
 import gyro.core.GyroCore;
 import ch.qos.logback.classic.Level;

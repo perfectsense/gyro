@@ -1,7 +1,7 @@
 package gyro.cli;
 
-import gyro.commands.AbstractCommand;
-import gyro.commands.GyroCommand;
+import gyro.core.command.AbstractCommand;
+import gyro.core.command.GyroCommand;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.LocalFileBackend;

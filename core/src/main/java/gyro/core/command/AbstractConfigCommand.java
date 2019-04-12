@@ -1,4 +1,4 @@
-package gyro.commands;
+package gyro.core.command;
 
 import gyro.core.GyroCore;
 import gyro.core.GyroException;

@@ -1,4 +1,4 @@
-package gyro.commands;
+package gyro.core.command;
 
 /**
  * CLI command.
