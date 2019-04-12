@@ -2,7 +2,6 @@ package gyro.lang;
 
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.NoViableAltException;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
@@ -23,10 +22,6 @@ public class GyroErrorListener extends BaseErrorListener {
 
     @Override
     public void syntaxError(Recognizer<?, ?> recognizer, Object symbol, int line, int column, String message, RecognitionException e) {
-        if (e instanceof NoViableAltException) {
-            return;
-        }
-
         String filename = recognizer.getInputStream().getSourceName();
         filename = new File(filename).getName();
 
