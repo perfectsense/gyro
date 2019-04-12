@@ -1,4 +1,4 @@
-package gyro.lang.ast.query;
+package gyro.lang.query;
 
 import gyro.core.resource.Resource;
 import gyro.core.scope.Scope;

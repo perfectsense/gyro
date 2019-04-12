@@ -1,4 +1,4 @@
-package gyro.lang.ast.query;
+package gyro.lang.query;
 
 import com.google.common.collect.ImmutableList;
 import gyro.core.resource.Resource;

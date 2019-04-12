@@ -1,4 +1,4 @@
-package gyro.lang.ast.query;
+package gyro.lang.query;
 
 import com.google.common.collect.ImmutableList;
 import gyro.parser.antlr4.GyroParser;
@@ -11,8 +11,8 @@ public abstract class AbstractCompoundQuery extends Query {
 
     public AbstractCompoundQuery(GyroParser.QueryContext context) {
         ImmutableList.Builder<Query> list = ImmutableList.builder();
-        addChildren(list, Query.create(context.getChild(0)));
-        addChildren(list, Query.create(context.getChild(2)));
+        addChildren(list, create(context.getChild(0)));
+        addChildren(list, create(context.getChild(2)));
         children = list.build();
     }
 

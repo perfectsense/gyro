@@ -1,4 +1,4 @@
-package gyro.lang.ast.query;
+package gyro.lang.query;
 
 import gyro.core.GyroException;
 import gyro.core.diff.DiffableField;
