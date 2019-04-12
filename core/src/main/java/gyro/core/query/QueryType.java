@@ -30,7 +30,7 @@ public class QueryType<R extends ResourceFinder> {
 
     private final List<QueryField> fields;
     private final Map<String, QueryField> fieldByJavaName;
-    private final Map<String, QueryField> fieldByBeamName;
+    private final Map<String, QueryField> fieldByGyroName;
 
     @SuppressWarnings("unchecked")
     public static <R extends ResourceFinder> QueryType<R> getInstance(Class<R> queryClass) {
@@ -49,7 +49,7 @@ public class QueryType<R extends ResourceFinder> {
     private QueryType(Class<R> queryClass) throws IntrospectionException {
         ImmutableList.Builder<QueryField> fields = ImmutableList.builder();
         ImmutableMap.Builder<String, QueryField> fieldByJavaName = ImmutableMap.builder();
-        ImmutableMap.Builder<String, QueryField> fieldByBeamName = ImmutableMap.builder();
+        ImmutableMap.Builder<String, QueryField> fieldByGyroName = ImmutableMap.builder();
 
         for (PropertyDescriptor prop : Introspector.getBeanInfo(queryClass).getPropertyDescriptors()) {
             Method getter = prop.getReadMethod();
@@ -64,14 +64,14 @@ public class QueryType<R extends ResourceFinder> {
 
                     fields.add(field);
                     fieldByJavaName.put(field.getJavaName(), field);
-                    fieldByBeamName.put(field.getGyroName(), field);
+                    fieldByGyroName.put(field.getGyroName(), field);
                 }
             }
         }
 
         this.fields = fields.build();
         this.fieldByJavaName = fieldByJavaName.build();
-        this.fieldByBeamName = fieldByBeamName.build();
+        this.fieldByGyroName = fieldByGyroName.build();
     }
 
     public List<QueryField> getFields() {
@@ -82,8 +82,8 @@ public class QueryType<R extends ResourceFinder> {
         return fieldByJavaName.get(javaName);
     }
 
-    public QueryField getFieldByBeamName(String beamName) {
-        return fieldByBeamName.get(beamName);
+    public QueryField getFieldByGyroName(String gyroName) {
+        return fieldByGyroName.get(gyroName);
     }
 
 }
