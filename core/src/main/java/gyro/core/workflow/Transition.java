@@ -1,4 +1,4 @@
-package gyro.lang;
+package gyro.core.workflow;
 
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.ResourceNode;

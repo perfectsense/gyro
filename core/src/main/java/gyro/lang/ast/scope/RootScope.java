@@ -8,7 +8,7 @@ import java.util.Map;
 
 import gyro.core.resource.Resource;
 import gyro.core.resource.ResourceFinder;
-import gyro.lang.Workflow;
+import gyro.core.workflow.Workflow;
 import gyro.lang.ast.block.VirtualResourceNode;
 import com.psddev.dari.util.StringUtils;
 

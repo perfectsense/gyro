@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import gyro.lang.Workflow;
+import gyro.core.workflow.Workflow;
 import gyro.lang.ast.DeferError;
 import gyro.lang.ast.DirectiveNode;
 import gyro.lang.ast.PairNode;

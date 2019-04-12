@@ -5,7 +5,7 @@ import java.util.stream.Collectors;
 
 import gyro.core.GyroUI;
 import gyro.core.resource.Resource;
-import gyro.lang.Workflow;
+import gyro.core.workflow.Workflow;
 import gyro.lang.ast.scope.State;
 
 public class Replace extends Change {
