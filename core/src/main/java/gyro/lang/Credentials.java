@@ -3,6 +3,8 @@ package gyro.lang;
 import java.util.Map;
 import java.util.Set;
 
+import gyro.core.resource.Resource;
+
 public abstract class Credentials extends Resource {
 
     /**

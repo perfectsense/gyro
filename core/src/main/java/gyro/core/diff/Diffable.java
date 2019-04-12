@@ -15,7 +15,7 @@ import java.util.stream.Stream;
 import com.psddev.dari.util.TypeDefinition;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
-import gyro.lang.Resource;
+import gyro.core.resource.Resource;
 import gyro.lang.ast.PairNode;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.KeyBlockNode;

@@ -1,4 +1,4 @@
-package gyro.lang;
+package gyro.core.resource;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -8,7 +8,7 @@ import java.util.UUID;
 import gyro.core.diff.Diffable;
 import gyro.core.diff.DiffableField;
 import gyro.core.diff.DiffableType;
-import gyro.core.diff.ResourceName;
+import gyro.lang.Credentials;
 import gyro.lang.ast.block.ResourceNode;
 import gyro.lang.ast.scope.Scope;
 import gyro.lang.ast.value.LiteralStringNode;

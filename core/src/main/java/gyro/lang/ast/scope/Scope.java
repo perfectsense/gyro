@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import gyro.lang.Resource;
+import gyro.core.resource.Resource;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.value.ValueReferenceException;
 

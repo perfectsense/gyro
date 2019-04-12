@@ -1,6 +1,6 @@
 package gyro.lang.ast.query;
 
-import gyro.lang.Resource;
+import gyro.core.resource.Resource;
 import gyro.lang.ast.scope.Scope;
 import gyro.parser.antlr4.GyroParser;
 import org.antlr.v4.runtime.tree.ParseTree;

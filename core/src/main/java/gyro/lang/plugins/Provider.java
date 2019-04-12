@@ -1,8 +1,8 @@
 package gyro.lang.plugins;
 
 import com.psddev.dari.util.ObjectUtils;
-import gyro.core.diff.ResourceName;
-import gyro.lang.ResourceFinder;
+import gyro.core.resource.ResourceName;
+import gyro.core.resource.ResourceFinder;
 
 import java.lang.reflect.Modifier;
 import java.util.HashMap;

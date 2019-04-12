@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import gyro.core.GyroUI;
 import gyro.core.diff.Diff;
+import gyro.core.resource.Resource;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.block.ResourceNode;

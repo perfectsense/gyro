@@ -3,6 +3,8 @@ package gyro.lang;
 import java.util.List;
 import java.util.Set;
 
+import gyro.core.resource.Resource;
+
 public abstract class Modification extends Resource {
 
     public abstract List<String> modifies();

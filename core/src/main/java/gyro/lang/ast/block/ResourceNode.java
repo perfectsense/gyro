@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 import gyro.core.diff.DiffableField;
 import gyro.core.diff.DiffableType;
-import gyro.lang.Resource;
+import gyro.core.resource.Resource;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.scope.DiffableScope;
 import gyro.lang.ast.scope.RootScope;

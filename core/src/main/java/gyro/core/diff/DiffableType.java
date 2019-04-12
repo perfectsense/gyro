@@ -16,7 +16,8 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.psddev.dari.util.ObjectUtils;
-import gyro.core.ResourceId;
+import gyro.core.resource.ResourceId;
+import gyro.core.resource.ResourceName;
 
 public class DiffableType<R extends Diffable> {
 

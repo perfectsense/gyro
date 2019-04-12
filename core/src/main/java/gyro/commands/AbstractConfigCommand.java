@@ -6,7 +6,7 @@ import gyro.core.LocalFileBackend;
 import gyro.lang.GyroLanguageException;
 import gyro.lang.Credentials;
 import gyro.lang.FileBackend;
-import gyro.lang.Resource;
+import gyro.core.resource.Resource;
 import gyro.lang.ast.scope.FileScope;
 import gyro.lang.ast.scope.RootScope;
 import gyro.lang.ast.scope.State;

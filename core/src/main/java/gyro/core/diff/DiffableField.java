@@ -5,8 +5,10 @@ import com.psddev.dari.util.ConversionException;
 import com.psddev.dari.util.Converter;
 import com.psddev.dari.util.ObjectUtils;
 import gyro.core.GyroException;
+import gyro.core.resource.ResourceDiffProperty;
+import gyro.core.resource.ResourceOutput;
 import gyro.lang.ast.Node;
-import gyro.lang.Resource;
+import gyro.core.resource.Resource;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

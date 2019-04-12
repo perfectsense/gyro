@@ -6,8 +6,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import gyro.lang.Resource;
-import gyro.lang.ResourceFinder;
+import gyro.core.resource.Resource;
+import gyro.core.resource.ResourceFinder;
 import gyro.lang.Workflow;
 import gyro.lang.ast.block.VirtualResourceNode;
 import com.psddev.dari.util.StringUtils;

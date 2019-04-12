@@ -2,7 +2,7 @@ package gyro.core;
 
 import gyro.lang.GyroLanguageException;
 import gyro.lang.FileBackend;
-import gyro.lang.Resource;
+import gyro.core.resource.Resource;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.scope.FileScope;
 import gyro.lang.listeners.ErrorListener;

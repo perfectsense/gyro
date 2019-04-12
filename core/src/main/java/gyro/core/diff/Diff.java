@@ -12,7 +12,7 @@ import java.util.Set;
 
 import gyro.core.GyroUI;
 import gyro.lang.Credentials;
-import gyro.lang.Resource;
+import gyro.core.resource.Resource;
 import gyro.lang.ast.scope.DiffableScope;
 import gyro.lang.ast.scope.State;
 

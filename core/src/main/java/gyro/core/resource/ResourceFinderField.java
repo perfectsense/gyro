@@ -1,9 +1,9 @@
-package gyro.core.query;
+package gyro.core.resource;
 
 import com.google.common.base.CaseFormat;
 import com.psddev.dari.util.Converter;
-import gyro.lang.ResourceFinder;
-import gyro.lang.ast.query.ResourceFilter;
+import gyro.core.resource.ResourceFinder;
+import gyro.core.resource.ResourceFilter;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -12,7 +12,7 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Optional;
 
-public class QueryField {
+public class ResourceFinderField {
 
     private static final Converter CONVERTER;
 
@@ -29,7 +29,7 @@ public class QueryField {
     private final String filterName;
     private final Class<?> itemClass;
 
-    protected QueryField(String javaName, Method getter, Method setter, Type type) {
+    protected ResourceFinderField(String javaName, Method getter, Method setter, Type type) {
         this.javaName = javaName;
         this.gyroName = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, javaName);
         this.getter = getter;

@@ -3,10 +3,10 @@ package gyro.lang.ast.query;
 import gyro.core.GyroException;
 import gyro.core.diff.DiffableField;
 import gyro.core.diff.DiffableType;
-import gyro.core.query.QueryField;
-import gyro.core.query.QueryType;
-import gyro.lang.Resource;
-import gyro.lang.ResourceFinder;
+import gyro.core.resource.ResourceFinderField;
+import gyro.core.resource.ResourceFinderType;
+import gyro.core.resource.Resource;
+import gyro.core.resource.ResourceFinder;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.scope.Scope;
 import gyro.parser.antlr4.GyroParser;
@@ -34,7 +34,7 @@ public class ComparisonQuery extends Query {
 
     public boolean isSupported(ResourceFinder finder) {
         String mapFieldName = path.split("\\.")[0];
-        for (QueryField field : QueryType.getInstance(finder.getClass()).getFields()) {
+        for (ResourceFinderField field : ResourceFinderType.getInstance(finder.getClass()).getFields()) {
             String key = field.getGyroName();
             if (path.equals(key) && operator.equals(ComparisonQuery.EQUALS_OPERATOR)
                  || path.contains(".") && mapFieldName.equals(key) && operator.equals(ComparisonQuery.EQUALS_OPERATOR)) {

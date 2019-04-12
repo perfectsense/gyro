@@ -1,4 +1,4 @@
-package gyro.lang.ast.query;
+package gyro.core.resource;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;

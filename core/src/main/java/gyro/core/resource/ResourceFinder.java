@@ -1,7 +1,10 @@
-package gyro.lang;
+package gyro.core.resource;
 
 import java.util.List;
 import java.util.Map;
+
+import gyro.core.resource.Resource;
+import gyro.lang.Credentials;
 
 public interface ResourceFinder<R extends Resource> {
 

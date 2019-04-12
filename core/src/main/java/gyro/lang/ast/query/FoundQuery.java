@@ -1,7 +1,7 @@
 package gyro.lang.ast.query;
 
 import com.google.common.collect.ImmutableList;
-import gyro.lang.Resource;
+import gyro.core.resource.Resource;
 import gyro.lang.ast.scope.Scope;
 
 import java.util.List;

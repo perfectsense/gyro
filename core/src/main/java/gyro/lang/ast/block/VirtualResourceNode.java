@@ -5,7 +5,7 @@ import java.util.stream.Collectors;
 
 import gyro.lang.GyroLanguageException;
 import gyro.lang.Credentials;
-import gyro.lang.Resource;
+import gyro.core.resource.Resource;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.scope.FileScope;
 import gyro.lang.ast.scope.RootScope;

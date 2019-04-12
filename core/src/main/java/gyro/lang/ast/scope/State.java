@@ -13,9 +13,9 @@ import gyro.core.diff.Diffable;
 import gyro.core.diff.DiffableField;
 import gyro.core.diff.DiffableType;
 import gyro.core.diff.Replace;
-import gyro.core.diff.ResourceName;
-import gyro.core.diff.ResourceNames;
-import gyro.lang.Resource;
+import gyro.core.resource.ResourceName;
+import gyro.core.resource.ResourceNames;
+import gyro.core.resource.Resource;
 
 public class State {
 
