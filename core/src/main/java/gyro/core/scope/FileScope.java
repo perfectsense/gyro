@@ -6,7 +6,7 @@ import java.util.List;
 
 import gyro.core.LocalFileBackend;
 import gyro.core.FileBackend;
-import gyro.lang.plugins.PluginLoader;
+import gyro.core.plugin.PluginLoader;
 
 public class FileScope extends Scope {
 

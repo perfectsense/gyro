@@ -5,7 +5,7 @@ import gyro.core.resource.Resource;
 import gyro.lang.ast.Node;
 import gyro.core.scope.FileScope;
 import gyro.lang.GyroErrorListener;
-import gyro.lang.plugins.PluginLoader;
+import gyro.core.plugin.PluginLoader;
 import gyro.parser.antlr4.GyroLexer;
 import gyro.parser.antlr4.GyroParser;
 import org.antlr.v4.runtime.CharStreams;

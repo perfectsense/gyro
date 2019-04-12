@@ -1,4 +1,4 @@
-package gyro.lang.plugins;
+package gyro.core.plugin;
 
 import com.psddev.dari.util.ObjectUtils;
 import gyro.core.resource.ResourceName;

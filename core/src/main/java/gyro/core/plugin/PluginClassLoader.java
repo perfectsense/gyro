@@ -1,4 +1,4 @@
-package gyro.lang.plugins;
+package gyro.core.plugin;
 
 import java.net.URL;
 import java.net.URLClassLoader;

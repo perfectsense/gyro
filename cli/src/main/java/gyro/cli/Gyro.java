@@ -6,7 +6,7 @@ import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.LocalFileBackend;
 import gyro.core.scope.RootScope;
-import gyro.lang.plugins.PluginLoader;
+import gyro.core.plugin.PluginLoader;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import io.airlift.airline.Cli;

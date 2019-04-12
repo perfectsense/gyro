@@ -1,4 +1,4 @@
-package gyro.lang.plugins;
+package gyro.core.plugin;
 
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
