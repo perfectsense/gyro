@@ -3,7 +3,7 @@ package gyro.commands;
 import gyro.core.BeamCore;
 import gyro.core.GyroException;
 import gyro.core.LocalFileBackend;
-import gyro.lang.BeamLanguageException;
+import gyro.lang.GyroLanguageException;
 import gyro.lang.Credentials;
 import gyro.lang.FileBackend;
 import gyro.lang.Resource;
@@ -66,7 +66,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         try {
             backend.load(current);
 
-        } catch (BeamLanguageException ex) {
+        } catch (GyroLanguageException ex) {
             throw new GyroException(ex.getMessage());
         }
 
@@ -82,7 +82,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         try {
             backend.load(pending);
 
-        } catch (BeamLanguageException ex) {
+        } catch (GyroLanguageException ex) {
             throw new GyroException(ex.getMessage());
         }
 

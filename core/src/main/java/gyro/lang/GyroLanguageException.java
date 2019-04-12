@@ -1,13 +1,13 @@
 package gyro.lang;
 
-public class BeamLanguageException extends RuntimeException {
+public class GyroLanguageException extends RuntimeException {
     private static final long serialVersionUID = 1L;
 
-    public BeamLanguageException(String message) {
+    public GyroLanguageException(String message) {
         super(message);
     }
 
-    public BeamLanguageException(String message, Throwable cause) {
+    public GyroLanguageException(String message, Throwable cause) {
         super(message, cause);
     }
 

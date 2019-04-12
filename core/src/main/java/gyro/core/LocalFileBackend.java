@@ -1,6 +1,6 @@
 package gyro.core;
 
-import gyro.lang.BeamLanguageException;
+import gyro.lang.GyroLanguageException;
 import gyro.lang.FileBackend;
 import gyro.lang.Resource;
 import gyro.lang.ast.Node;
@@ -47,7 +47,7 @@ public class LocalFileBackend extends FileBackend {
         GyroParser.RootContext rootContext = parser.root();
 
         if (errorListener.getSyntaxErrors() > 0) {
-            throw new BeamLanguageException(errorListener.getSyntaxErrors() + " errors while parsing.");
+            throw new GyroLanguageException(errorListener.getSyntaxErrors() + " errors while parsing.");
         }
 
         Node.create(rootContext).evaluate(scope);
