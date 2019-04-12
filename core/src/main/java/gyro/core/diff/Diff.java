@@ -13,8 +13,8 @@ import java.util.Set;
 import gyro.core.GyroUI;
 import gyro.lang.Credentials;
 import gyro.core.resource.Resource;
-import gyro.lang.ast.scope.DiffableScope;
-import gyro.lang.ast.scope.State;
+import gyro.core.scope.DiffableScope;
+import gyro.core.scope.State;
 
 public class Diff {
 

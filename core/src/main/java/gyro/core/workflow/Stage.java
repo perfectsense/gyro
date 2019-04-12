@@ -12,9 +12,9 @@ import gyro.core.resource.Resource;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.block.ResourceNode;
-import gyro.lang.ast.scope.RootScope;
-import gyro.lang.ast.scope.Scope;
-import gyro.lang.ast.scope.State;
+import gyro.core.scope.RootScope;
+import gyro.core.scope.Scope;
+import gyro.core.scope.State;
 
 public class Stage {
 

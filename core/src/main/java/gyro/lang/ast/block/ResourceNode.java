@@ -12,9 +12,9 @@ import gyro.core.diff.DiffableField;
 import gyro.core.diff.DiffableType;
 import gyro.core.resource.Resource;
 import gyro.lang.ast.Node;
-import gyro.lang.ast.scope.DiffableScope;
-import gyro.lang.ast.scope.RootScope;
-import gyro.lang.ast.scope.Scope;
+import gyro.core.scope.DiffableScope;
+import gyro.core.scope.RootScope;
+import gyro.core.scope.Scope;
 import gyro.parser.antlr4.GyroParser;
 
 public class ResourceNode extends BlockNode {

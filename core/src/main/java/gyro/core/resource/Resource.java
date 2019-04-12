@@ -10,7 +10,7 @@ import gyro.core.diff.DiffableField;
 import gyro.core.diff.DiffableType;
 import gyro.lang.Credentials;
 import gyro.lang.ast.block.ResourceNode;
-import gyro.lang.ast.scope.Scope;
+import gyro.core.scope.Scope;
 import gyro.lang.ast.value.LiteralStringNode;
 
 public abstract class Resource extends Diffable {

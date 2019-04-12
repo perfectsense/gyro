@@ -1,7 +1,7 @@
 package gyro.lang.ast;
 
 import gyro.core.GyroException;
-import gyro.lang.ast.scope.Scope;
+import gyro.core.scope.Scope;
 
 import java.util.ArrayList;
 import java.util.List;

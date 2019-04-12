@@ -1,4 +1,4 @@
-package gyro.lang.ast.scope;
+package gyro.core.scope;
 
 public class VirtualResourceScope extends Scope {
 

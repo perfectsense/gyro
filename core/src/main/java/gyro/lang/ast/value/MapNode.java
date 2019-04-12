@@ -2,7 +2,7 @@ package gyro.lang.ast.value;
 
 import gyro.lang.ast.PairNode;
 import gyro.lang.ast.Node;
-import gyro.lang.ast.scope.Scope;
+import gyro.core.scope.Scope;
 
 import java.util.LinkedHashMap;
 import java.util.List;

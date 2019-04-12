@@ -7,9 +7,9 @@ import gyro.lang.GyroLanguageException;
 import gyro.lang.Credentials;
 import gyro.core.resource.Resource;
 import gyro.lang.ast.Node;
-import gyro.lang.ast.scope.FileScope;
-import gyro.lang.ast.scope.RootScope;
-import gyro.lang.ast.scope.Scope;
+import gyro.core.scope.FileScope;
+import gyro.core.scope.RootScope;
+import gyro.core.scope.Scope;
 
 import static gyro.parser.antlr4.GyroParser.VirtualResourceContext;
 

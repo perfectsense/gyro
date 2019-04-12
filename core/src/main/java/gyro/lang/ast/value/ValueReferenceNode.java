@@ -2,7 +2,7 @@ package gyro.lang.ast.value;
 
 import gyro.core.GyroException;
 import gyro.lang.ast.Node;
-import gyro.lang.ast.scope.Scope;
+import gyro.core.scope.Scope;
 import gyro.parser.antlr4.GyroParser;
 
 public class ValueReferenceNode extends Node {

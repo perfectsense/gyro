@@ -1,4 +1,4 @@
-package gyro.lang.ast.scope;
+package gyro.core.scope;
 
 import java.util.HashMap;
 import java.util.Map;

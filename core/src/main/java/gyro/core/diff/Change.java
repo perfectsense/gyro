@@ -9,7 +9,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import gyro.core.GyroUI;
-import gyro.lang.ast.scope.State;
+import gyro.core.scope.State;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 

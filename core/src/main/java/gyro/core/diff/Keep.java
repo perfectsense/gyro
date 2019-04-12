@@ -1,7 +1,7 @@
 package gyro.core.diff;
 
 import gyro.core.GyroUI;
-import gyro.lang.ast.scope.State;
+import gyro.core.scope.State;
 
 public class Keep extends Change {
 

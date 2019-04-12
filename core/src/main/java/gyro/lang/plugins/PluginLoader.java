@@ -2,7 +2,7 @@ package gyro.lang.plugins;
 
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
-import gyro.lang.ast.scope.Scope;
+import gyro.core.scope.Scope;
 import com.psddev.dari.util.StringUtils;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;

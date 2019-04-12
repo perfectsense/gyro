@@ -5,7 +5,7 @@ import java.util.stream.Collectors;
 
 import gyro.core.GyroUI;
 import gyro.core.resource.Resource;
-import gyro.lang.ast.scope.State;
+import gyro.core.scope.State;
 
 public class Update extends Change {
 

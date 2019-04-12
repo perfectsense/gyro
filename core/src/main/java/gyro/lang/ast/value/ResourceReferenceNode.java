@@ -14,8 +14,8 @@ import gyro.lang.ast.query.ComparisonQuery;
 import gyro.lang.ast.query.FoundQuery;
 import gyro.lang.ast.query.OrQuery;
 import gyro.lang.ast.query.Query;
-import gyro.lang.ast.scope.RootScope;
-import gyro.lang.ast.scope.Scope;
+import gyro.core.scope.RootScope;
+import gyro.core.scope.Scope;
 import gyro.parser.antlr4.GyroParser;
 
 import java.util.ArrayList;

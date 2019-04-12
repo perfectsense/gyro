@@ -1,6 +1,6 @@
 package gyro.lang;
 
-import gyro.lang.ast.scope.FileScope;
+import gyro.core.scope.FileScope;
 
 public abstract class FileBackend {
 

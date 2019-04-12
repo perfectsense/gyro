@@ -4,7 +4,7 @@ import gyro.lang.GyroLanguageException;
 import gyro.lang.FileBackend;
 import gyro.core.resource.Resource;
 import gyro.lang.ast.Node;
-import gyro.lang.ast.scope.FileScope;
+import gyro.core.scope.FileScope;
 import gyro.lang.listeners.ErrorListener;
 import gyro.lang.plugins.PluginLoader;
 import gyro.parser.antlr4.GyroLexer;

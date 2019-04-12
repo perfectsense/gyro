@@ -3,8 +3,8 @@ package gyro.commands;
 import gyro.core.GyroCore;
 import gyro.core.GyroUI;
 import gyro.core.diff.Diff;
-import gyro.lang.ast.scope.RootScope;
-import gyro.lang.ast.scope.State;
+import gyro.core.scope.RootScope;
+import gyro.core.scope.State;
 import io.airlift.airline.Command;
 
 @Command(name = "up", description = "Updates all resources to match the configuration.")

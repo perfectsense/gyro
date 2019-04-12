@@ -1,7 +1,7 @@
 package gyro.lang.ast;
 
-import gyro.lang.ast.scope.FileScope;
-import gyro.lang.ast.scope.Scope;
+import gyro.core.scope.FileScope;
+import gyro.core.scope.Scope;
 import gyro.parser.antlr4.GyroParser;
 
 import java.nio.file.Paths;

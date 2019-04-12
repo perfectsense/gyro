@@ -6,7 +6,7 @@ import gyro.commands.CliGyroUI;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.LocalFileBackend;
-import gyro.lang.ast.scope.RootScope;
+import gyro.core.scope.RootScope;
 import gyro.lang.plugins.PluginLoader;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
