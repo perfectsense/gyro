@@ -5,7 +5,7 @@ import gyro.lang.ast.Node;
 import gyro.lang.ast.block.BlockNode;
 import gyro.lang.ast.scope.Scope;
 import gyro.parser.antlr4.GyroParser;
-import gyro.util.CascadingMap;
+import gyro.lang.util.CascadingMap;
 
 import java.util.LinkedHashMap;
 import java.util.List;
