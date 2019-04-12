@@ -78,7 +78,7 @@ public class DiffableType<R extends Diffable> {
 
                     fields.add(field);
                     fieldByJavaName.put(field.getJavaName(), field);
-                    fieldByBeamName.put(field.getBeamName(), field);
+                    fieldByBeamName.put(field.getGyroName(), field);
                 }
             }
         }

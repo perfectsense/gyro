@@ -121,7 +121,7 @@ public abstract class Diffable {
 
         Map<String, Object> undefinedValues = new HashMap<>(values);
         for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
-            String key = field.getBeamName();
+            String key = field.getGyroName();
 
             if (!values.containsKey(key)) {
                 continue;
@@ -226,7 +226,7 @@ public abstract class Diffable {
                 continue;
             }
 
-            String key = field.getBeamName();
+            String key = field.getGyroName();
 
             if (value instanceof Boolean) {
                 body.add(new PairNode(key, new BooleanNode(Boolean.TRUE.equals(value))));

@@ -166,7 +166,7 @@ public class ResourceReferenceNode extends Node {
 
                 if (path != null) {
                     if (DiffableType.getInstance(resource.getClass()).getFields().stream()
-                            .map(DiffableField::getBeamName)
+                            .map(DiffableField::getGyroName)
                             .anyMatch(path::equals)) {
 
                         return resource.get(path);

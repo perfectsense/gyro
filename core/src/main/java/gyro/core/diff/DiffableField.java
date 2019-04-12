@@ -35,7 +35,7 @@ public class DiffableField {
     }
 
     private final String javaName;
-    private final String beamName;
+    private final String gyroName;
     private final Method getter;
     private final Method setter;
     private final boolean updatable;
@@ -45,7 +45,7 @@ public class DiffableField {
 
     protected DiffableField(String javaName, Method getter, Method setter, Type type) {
         this.javaName = javaName;
-        this.beamName = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, javaName);
+        this.gyroName = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, javaName);
         this.getter = getter;
         this.setter = setter;
 
@@ -61,7 +61,7 @@ public class DiffableField {
         ResourceOutput output = getter.getAnnotation(ResourceOutput.class);
 
         if (output != null) {
-            this.testValue = !ObjectUtils.isBlank(output.value()) ? output.value() : beamName;
+            this.testValue = !ObjectUtils.isBlank(output.value()) ? output.value() : gyroName;
             this.testValueRandomSuffix = output.randomSuffix();
         } else {
             this.testValue = null;
@@ -89,8 +89,8 @@ public class DiffableField {
         return javaName;
     }
 
-    public String getBeamName() {
-        return beamName;
+    public String getGyroName() {
+        return gyroName;
     }
 
     public boolean isUpdatable() {
@@ -133,7 +133,7 @@ public class DiffableField {
 
     @SuppressWarnings("unchecked")
     public void setValue(Diffable diffable, Object value) {
-        Node node = diffable.scope() != null ? diffable.scope().getKeyNodes().get(getBeamName()) : null;
+        Node node = diffable.scope() != null ? diffable.scope().getKeyNodes().get(getGyroName()) : null;
 
         try {
             if (value instanceof List
@@ -162,11 +162,11 @@ public class DiffableField {
         } catch (ConversionException e) {
             if (node != null) {
                 throw new GyroException(String.format("Type mismatch when setting field '%s' %s%n%s.%n",
-                    getBeamName(), node.getLocation(), node));
+                    getGyroName(), node.getLocation(), node));
             }
 
             throw new GyroException(String.format("Type mismatch when setting field '%s' with '%s'.",
-                getBeamName(), value));
+                getGyroName(), value));
         }
     }
 

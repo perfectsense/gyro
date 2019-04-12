@@ -195,7 +195,7 @@ public class Diff {
                 continue;
             }
 
-            String key = field.getBeamName();
+            String key = field.getGyroName();
 
             // Skip if there isn't a pending value and the field wasn't
             // previously configured. This means that a field was

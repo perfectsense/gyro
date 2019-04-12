@@ -69,7 +69,7 @@ public class ComparisonQuery extends Query {
             Class<? extends Resource> resourceClass = resource.getClass();
             boolean validQuery = false;
             for (DiffableField field : DiffableType.getInstance(resourceClass).getFields()) {
-                String key = field.getBeamName();
+                String key = field.getGyroName();
                 if (key.equals(path)) {
                     validQuery = true;
                 }

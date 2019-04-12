@@ -32,7 +32,7 @@ public class Update extends Change {
 
         } else {
             ui.write(" (change %s)", changedFields.stream()
-                    .map(DiffableField::getBeamName)
+                    .map(DiffableField::getGyroName)
                     .collect(Collectors.joining(", ")));
         }
     }
@@ -55,7 +55,7 @@ public class Update extends Change {
             ((Resource) pendingDiffable).update(
                     (Resource) currentDiffable,
                     changedFields.stream()
-                            .map(DiffableField::getBeamName)
+                            .map(DiffableField::getGyroName)
                             .collect(Collectors.toSet()));
         }
 
