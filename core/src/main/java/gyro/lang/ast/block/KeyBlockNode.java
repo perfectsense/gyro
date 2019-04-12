@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import gyro.lang.ast.Node;
-import gyro.lang.ast.scope.DiffableScope;
-import gyro.lang.ast.scope.Scope;
+import gyro.core.scope.DiffableScope;
+import gyro.core.scope.Scope;
 import gyro.parser.antlr4.GyroParser;
 
 public class KeyBlockNode extends BlockNode {

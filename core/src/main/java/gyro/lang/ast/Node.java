@@ -11,7 +11,7 @@ import gyro.lang.ast.condition.AndConditionNode;
 import gyro.lang.ast.condition.ComparisonConditionNode;
 import gyro.lang.ast.condition.OrConditionNode;
 import gyro.lang.ast.condition.ValueConditionNode;
-import gyro.lang.ast.scope.Scope;
+import gyro.core.scope.Scope;
 import gyro.lang.ast.value.BooleanNode;
 import gyro.lang.ast.value.ListNode;
 import gyro.lang.ast.value.MapNode;

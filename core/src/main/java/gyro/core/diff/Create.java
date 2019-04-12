@@ -1,8 +1,8 @@
 package gyro.core.diff;
 
-import gyro.core.BeamUI;
-import gyro.lang.Resource;
-import gyro.lang.ast.scope.State;
+import gyro.core.GyroUI;
+import gyro.core.resource.Resource;
+import gyro.core.scope.State;
 
 public class Create extends Change {
 
@@ -17,16 +17,16 @@ public class Create extends Change {
         return diffable;
     }
 
-    private void writeFields(BeamUI ui) {
+    private void writeFields(GyroUI ui) {
         for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
             if (!field.shouldBeDiffed()) {
-                ui.write("\n· %s: %s", field.getBeamName(), stringify(field.getValue(diffable)));
+                ui.write("\n· %s: %s", field.getGyroName(), stringify(field.getValue(diffable)));
             }
         }
     }
 
     @Override
-    public void writePlan(BeamUI ui) {
+    public void writePlan(GyroUI ui) {
         ui.write("@|green + Create %s|@", diffable.toDisplayString());
 
         if (ui.isVerbose()) {
@@ -35,7 +35,7 @@ public class Create extends Change {
     }
 
     @Override
-    public void writeExecution(BeamUI ui) {
+    public void writeExecution(GyroUI ui) {
         ui.write("@|magenta + Creating %s|@", diffable.toDisplayString());
 
         if (ui.isVerbose()) {
@@ -44,7 +44,7 @@ public class Create extends Change {
     }
 
     @Override
-    public boolean execute(BeamUI ui, State state) {
+    public boolean execute(GyroUI ui, State state) {
         Resource resource = (Resource) diffable;
 
         if (state.isTest()) {

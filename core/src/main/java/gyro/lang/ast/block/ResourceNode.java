@@ -8,14 +8,13 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import gyro.core.diff.Diffable;
 import gyro.core.diff.DiffableField;
 import gyro.core.diff.DiffableType;
-import gyro.lang.Resource;
+import gyro.core.resource.Resource;
 import gyro.lang.ast.Node;
-import gyro.lang.ast.scope.DiffableScope;
-import gyro.lang.ast.scope.RootScope;
-import gyro.lang.ast.scope.Scope;
+import gyro.core.scope.DiffableScope;
+import gyro.core.scope.RootScope;
+import gyro.core.scope.Scope;
 import gyro.parser.antlr4.GyroParser;
 
 public class ResourceNode extends BlockNode {
@@ -71,7 +70,7 @@ public class ResourceNode extends BlockNode {
                             continue;
                         }
 
-                        String key = f.getBeamName();
+                        String key = f.getGyroName();
 
                         // Skip over fields that were previously configured
                         // so that their removals can be detected by the
@@ -102,7 +101,7 @@ public class ResourceNode extends BlockNode {
             }
 
             for (DiffableField field : DiffableType.getInstance(anotherResource.getClass()).getFields()) {
-                bodyScope.putIfAbsent(field.getBeamName(), field.getValue(anotherResource));
+                bodyScope.putIfAbsent(field.getGyroName(), field.getValue(anotherResource));
             }
 
         } else if (another instanceof Map) {

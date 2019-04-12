@@ -1,7 +1,7 @@
 package gyro.lang.ast;
 
 import gyro.lang.ast.control.ForNode;
-import gyro.lang.ast.scope.Scope;
+import gyro.core.scope.Scope;
 import gyro.lang.ast.value.LiteralStringNode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

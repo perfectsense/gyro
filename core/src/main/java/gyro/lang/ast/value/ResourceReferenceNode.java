@@ -1,21 +1,21 @@
 package gyro.lang.ast.value;
 
 import com.google.common.collect.ImmutableList;
-import gyro.core.BeamException;
+import gyro.core.GyroException;
 import gyro.core.diff.DiffableField;
 import gyro.core.diff.DiffableType;
-import gyro.lang.Credentials;
-import gyro.lang.Resource;
-import gyro.lang.ResourceFinder;
+import gyro.core.Credentials;
+import gyro.core.resource.Resource;
+import gyro.core.resource.ResourceFinder;
 import gyro.lang.ast.DeferError;
 import gyro.lang.ast.Node;
-import gyro.lang.ast.query.AndQuery;
-import gyro.lang.ast.query.ComparisonQuery;
-import gyro.lang.ast.query.FoundQuery;
-import gyro.lang.ast.query.OrQuery;
-import gyro.lang.ast.query.Query;
-import gyro.lang.ast.scope.RootScope;
-import gyro.lang.ast.scope.Scope;
+import gyro.lang.query.AndQuery;
+import gyro.lang.query.ComparisonQuery;
+import gyro.lang.query.FoundQuery;
+import gyro.lang.query.OrQuery;
+import gyro.lang.query.Query;
+import gyro.core.scope.RootScope;
+import gyro.core.scope.Scope;
 import gyro.parser.antlr4.GyroParser;
 
 import java.util.ArrayList;
@@ -122,7 +122,7 @@ public class ResourceReferenceNode extends Node {
                 Class<? extends ResourceFinder> resourceQueryClass = scope.getRootScope().getResourceFinderClasses().get(type);
 
                 if (resourceQueryClass == null) {
-                    throw new BeamException("Resource type " + type + " does not support external queries.");
+                    throw new GyroException("Resource type " + type + " does not support external queries.");
                 }
 
                 ResourceFinder<Resource> finder = resourceQueryClass.getConstructor().newInstance();
@@ -166,13 +166,13 @@ public class ResourceReferenceNode extends Node {
 
                 if (path != null) {
                     if (DiffableType.getInstance(resource.getClass()).getFields().stream()
-                            .map(DiffableField::getBeamName)
+                            .map(DiffableField::getGyroName)
                             .anyMatch(path::equals)) {
 
                         return resource.get(path);
 
                     } else {
-                        throw new BeamException(String.format("Unable to resolve resource reference %s %s%nAttribute '%s' is not allowed in %s.%n",
+                        throw new GyroException(String.format("Unable to resolve resource reference %s %s%nAttribute '%s' is not allowed in %s.%n",
                             this, getLocation(), path, type));
                     }
 

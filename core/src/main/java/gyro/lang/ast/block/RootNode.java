@@ -5,13 +5,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import gyro.lang.Workflow;
+import gyro.core.workflow.Workflow;
 import gyro.lang.ast.DeferError;
 import gyro.lang.ast.DirectiveNode;
 import gyro.lang.ast.PairNode;
 import gyro.lang.ast.Node;
-import gyro.lang.ast.scope.RootScope;
-import gyro.lang.ast.scope.Scope;
+import gyro.core.scope.RootScope;
+import gyro.core.scope.Scope;
 import gyro.parser.antlr4.GyroParser;
 
 public class RootNode extends BlockNode {

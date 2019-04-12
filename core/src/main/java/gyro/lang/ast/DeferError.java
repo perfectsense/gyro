@@ -1,7 +1,7 @@
 package gyro.lang.ast;
 
-import gyro.core.BeamException;
-import gyro.lang.ast.scope.Scope;
+import gyro.core.GyroException;
+import gyro.core.scope.Scope;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +36,7 @@ public class DeferError extends Error {
                     sb.append(error.getMessage());
                 }
 
-                throw new BeamException(sb.toString());
+                throw new GyroException(sb.toString());
 
             } else {
                 body = deferred;

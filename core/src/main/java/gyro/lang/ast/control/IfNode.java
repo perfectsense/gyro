@@ -3,7 +3,7 @@ package gyro.lang.ast.control;
 import gyro.lang.ast.DeferError;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.condition.ConditionNode;
-import gyro.lang.ast.scope.Scope;
+import gyro.core.scope.Scope;
 import gyro.parser.antlr4.GyroParser;
 
 import java.util.List;

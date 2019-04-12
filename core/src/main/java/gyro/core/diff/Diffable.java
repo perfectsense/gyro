@@ -13,14 +13,14 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.psddev.dari.util.TypeDefinition;
-import gyro.core.BeamException;
-import gyro.core.BeamUI;
-import gyro.lang.Resource;
+import gyro.core.GyroException;
+import gyro.core.GyroUI;
+import gyro.core.resource.Resource;
 import gyro.lang.ast.PairNode;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.KeyBlockNode;
-import gyro.lang.ast.scope.DiffableScope;
-import gyro.lang.ast.scope.Scope;
+import gyro.core.scope.DiffableScope;
+import gyro.core.scope.Scope;
 import gyro.lang.ast.value.BooleanNode;
 import gyro.lang.ast.value.ListNode;
 import gyro.lang.ast.value.MapNode;
@@ -121,7 +121,7 @@ public abstract class Diffable {
 
         Map<String, Object> undefinedValues = new HashMap<>(values);
         for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
-            String key = field.getBeamName();
+            String key = field.getGyroName();
 
             if (!values.containsKey(key)) {
                 continue;
@@ -152,11 +152,11 @@ public abstract class Diffable {
                 if (values instanceof Scope) {
                     Node node = ((Scope) values).getKeyNodes().get(entry.getKey());
                     if (node != null) {
-                        throw new BeamException(String.format("Field '%s' is not allowed %s%n%s", entry.getKey(), node.getLocation(), node));
+                        throw new GyroException(String.format("Field '%s' is not allowed %s%n%s", entry.getKey(), node.getLocation(), node));
                     }
                 }
 
-                throw new BeamException(String.format("Field '%s' is not allowed", entry.getKey()));
+                throw new GyroException(String.format("Field '%s' is not allowed", entry.getKey()));
             }
         }
     }
@@ -201,11 +201,11 @@ public abstract class Diffable {
 
     public abstract String toDisplayString();
 
-    public boolean writePlan(BeamUI ui, Change change) {
+    public boolean writePlan(GyroUI ui, Change change) {
         return false;
     }
 
-    public boolean writeExecution(BeamUI ui, Change change) {
+    public boolean writeExecution(GyroUI ui, Change change) {
         return false;
     }
 
@@ -226,7 +226,7 @@ public abstract class Diffable {
                 continue;
             }
 
-            String key = field.getBeamName();
+            String key = field.getGyroName();
 
             if (value instanceof Boolean) {
                 body.add(new PairNode(key, new BooleanNode(Boolean.TRUE.equals(value))));

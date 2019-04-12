@@ -6,6 +6,7 @@ dependencies {
     api project(':gyro-core')
 
     implementation 'com.psddev:dari-util:3.3.607-xe0f27a'
+    implementation 'org.fusesource.jansi:jansi:1.16'
     implementation 'org.reflections:reflections:0.9.10'
 }
 

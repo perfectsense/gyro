@@ -1,6 +1,6 @@
 package gyro.lang.ast;
 
-import gyro.lang.ast.scope.Scope;
+import gyro.core.scope.Scope;
 import gyro.parser.antlr4.GyroParser;
 
 public class PairNode extends Node {

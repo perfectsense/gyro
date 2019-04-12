@@ -24,7 +24,7 @@ templates_path = ['_templates']
 source_suffix = ['.rst', '.txt']
 master_doc = 'index'
 
-project = u'Beam'
+project = u'Gyro'
 copyright = u'2017, Perfect Sense'
 author = u'Perfect Sense'
 release = u'1.0'
@@ -66,8 +66,8 @@ todo_include_todos = False
 
 pdf_documents = [
  ('gyro/index',
-     u'Beam',
-     u'Beam',
+     u'Gyro',
+     u'Gyro',
      u'',
  )
 ]

@@ -3,13 +3,13 @@ package gyro.lang.ast.block;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import gyro.lang.BeamLanguageException;
-import gyro.lang.Credentials;
-import gyro.lang.Resource;
+import gyro.lang.GyroLanguageException;
+import gyro.core.Credentials;
+import gyro.core.resource.Resource;
 import gyro.lang.ast.Node;
-import gyro.lang.ast.scope.FileScope;
-import gyro.lang.ast.scope.RootScope;
-import gyro.lang.ast.scope.Scope;
+import gyro.core.scope.FileScope;
+import gyro.core.scope.RootScope;
+import gyro.core.scope.Scope;
 
 import static gyro.parser.antlr4.GyroParser.VirtualResourceContext;
 
@@ -41,7 +41,7 @@ public class VirtualResourceNode extends BlockNode {
             String paramName = param.getName();
 
             if (!paramScope.containsKey(paramName)) {
-                throw new BeamLanguageException(String.format("Required parameter '%s' is missing.", paramName));
+                throw new GyroLanguageException(String.format("Required parameter '%s' is missing.", paramName));
 
             } else {
                 vrScope.put(paramName, paramScope.get(paramName));
