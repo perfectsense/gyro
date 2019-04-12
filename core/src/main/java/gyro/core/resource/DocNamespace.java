@@ -1,4 +1,4 @@
-package gyro.core.docs;
+package gyro.core.resource;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PACKAGE)
-public @interface DocGroup {
+public @interface DocNamespace {
 
     public String value();
 
