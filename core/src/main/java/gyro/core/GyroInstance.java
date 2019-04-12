@@ -1,6 +1,6 @@
 package gyro.core;
 
-public interface BeamInstance {
+public interface GyroInstance {
 
     public String getInstanceId();
 
