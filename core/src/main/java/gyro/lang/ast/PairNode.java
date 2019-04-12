@@ -1,8 +1,5 @@
 package gyro.lang.ast;
 
-import java.util.Optional;
-
-import gyro.lang.ast.scope.DiffableScope;
 import gyro.lang.ast.scope.Scope;
 import gyro.parser.antlr4.GyroParser;
 
@@ -27,11 +24,9 @@ public class PairNode extends Node {
 
     @Override
     public Object evaluate(Scope scope) throws Exception {
-        Optional.ofNullable(scope.getClosest(DiffableScope.class))
-                .ifPresent(s -> s.add(key, value, scope));
-
         scope.put(key, value.evaluate(scope));
         scope.addValueNode(key, value);
+        scope.getKeyNodes().put(key, this);
         return scope.get(key);
     }
 

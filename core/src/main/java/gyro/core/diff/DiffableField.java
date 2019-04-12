@@ -1,8 +1,11 @@
 package gyro.core.diff;
 
 import com.google.common.base.CaseFormat;
+import com.psddev.dari.util.ConversionException;
 import com.psddev.dari.util.Converter;
 import com.psddev.dari.util.ObjectUtils;
+import gyro.core.BeamException;
+import gyro.lang.ast.Node;
 import gyro.lang.Resource;
 
 import java.lang.reflect.InvocationTargetException;
@@ -130,6 +133,8 @@ public class DiffableField {
 
     @SuppressWarnings("unchecked")
     public void setValue(Diffable diffable, Object value) {
+        Node node = diffable.scope() != null ? diffable.scope().getKeyNodes().get(getBeamName()) : null;
+
         try {
             if (value instanceof List
                     && !List.class.isAssignableFrom(setter.getParameterTypes()[0])) {
@@ -154,6 +159,14 @@ public class DiffableField {
             throw cause instanceof RuntimeException
                     ? (RuntimeException) cause
                     : new RuntimeException(cause);
+        } catch (ConversionException e) {
+            if (node != null) {
+                throw new BeamException(String.format("Type mismatch when setting field '%s' %s%n%s.%n",
+                    getBeamName(), node.getLocation(), node));
+            }
+
+            throw new BeamException(String.format("Type mismatch when setting field '%s' with '%s'.",
+                getBeamName(), value));
         }
     }
 

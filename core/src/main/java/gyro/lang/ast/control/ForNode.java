@@ -63,6 +63,7 @@ public class ForNode extends BlockNode {
             }
 
             DeferError.evaluate(bodyScope, body);
+            scope.getKeyNodes().putAll(bodyScope.getKeyNodes());
         }
 
         return null;

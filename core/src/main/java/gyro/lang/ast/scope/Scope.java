@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 
 import gyro.lang.Resource;
 import gyro.lang.ast.Node;
+import gyro.lang.ast.value.ValueReferenceException;
 
 public class Scope implements Map<String, Object> {
 
@@ -19,6 +20,7 @@ public class Scope implements Map<String, Object> {
     private final Scope parent;
     private final Map<String, Object> values;
     private final Map<String, Node> valueNodes = new HashMap<>();
+    private final Map<String, Node> keyNodes = new HashMap<>();
 
     public Scope(Scope parent, Map<String, Object> values) {
         this.parent = parent;
@@ -77,13 +79,19 @@ public class Scope implements Map<String, Object> {
         String firstKey = keys[0];
         Object value = null;
 
+        boolean found = false;
         Scope startingScope = this instanceof DiffableScope ? this.parent : this;
         for (Scope s = startingScope; s != null; s = s.parent) {
             if (s.containsKey(firstKey)) {
                 Node valueNode = s.valueNodes.get(firstKey);
                 value = valueNode == null ? s.get(firstKey) : valueNode.evaluate(s);
+                found = true;
                 break;
             }
+        }
+
+        if (!found) {
+            throw new ValueReferenceException(firstKey);
         }
 
         if (value == null) {
@@ -116,6 +124,14 @@ public class Scope implements Map<String, Object> {
 
     public void addValueNode(String key, Node value) {
         valueNodes.put(key, value);
+    }
+
+    public Map<String, Node> getValueNodes() {
+        return valueNodes;
+    }
+
+    public Map<String, Node> getKeyNodes() {
+        return keyNodes;
     }
 
     @Override

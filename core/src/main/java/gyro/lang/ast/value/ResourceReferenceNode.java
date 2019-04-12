@@ -2,6 +2,8 @@ package gyro.lang.ast.value;
 
 import com.google.common.collect.ImmutableList;
 import gyro.core.BeamException;
+import gyro.core.diff.DiffableField;
+import gyro.core.diff.DiffableType;
 import gyro.lang.Credentials;
 import gyro.lang.Resource;
 import gyro.lang.ResourceFinder;
@@ -163,7 +165,16 @@ public class ResourceReferenceNode extends Node {
                 }
 
                 if (path != null) {
-                    return resource.get(path);
+                    if (DiffableType.getInstance(resource.getClass()).getFields().stream()
+                            .map(DiffableField::getBeamName)
+                            .anyMatch(path::equals)) {
+
+                        return resource.get(path);
+
+                    } else {
+                        throw new BeamException(String.format("Unable to resolve resource reference %s %s%nAttribute '%s' is not allowed in %s.%n",
+                            this, getLocation(), path, type));
+                    }
 
                 } else {
                     return resource;
@@ -212,6 +223,12 @@ public class ResourceReferenceNode extends Node {
         }
 
         builder.append(")");
+    }
+
+    @Override
+    public String deferFailure() {
+        return String.format("Unable to resolve resource reference %s %s%nResource '%s %s' is not defined.%n",
+            this, getLocation(), type, nameNode);
     }
 
     private Credentials findQueryCredentials(Scope scope) {

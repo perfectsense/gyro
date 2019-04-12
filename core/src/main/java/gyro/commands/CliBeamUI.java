@@ -6,11 +6,17 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import gyro.core.BeamCore;
 import gyro.core.BeamUI;
 import com.google.common.collect.ImmutableSet;
 import org.fusesource.jansi.AnsiRenderer;
@@ -169,16 +175,29 @@ public class CliBeamUI implements BeamUI {
     @Override
     public void writeError(Throwable error, String message, Object... arguments) {
         write(message, arguments);
-        System.out.write('\n');
-
         if (error != null) {
-            write("%s: ", error.getClass().getName());
-            StringWriter sw = new StringWriter();
-            error.printStackTrace(new PrintWriter(sw));
-            write(sw.toString());
+            try {
+                Path errorDir = Paths.get(BeamCore.getBeamUserHome(), ".gyro", "error");
+                Files.createDirectories(errorDir);
+
+                ZonedDateTime time = ZonedDateTime.now();
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm:ss z");
+                Path log = Paths.get(errorDir.toString(), String.format("%s.log", formatter.format(time)));
+                try (PrintWriter printWriter = new PrintWriter(Files.newBufferedWriter(log, StandardCharsets.UTF_8))) {
+                    printWriter.write(String.format("%s: ", error.getClass().getName()));
+                    error.printStackTrace(printWriter);
+                    write("@|red See '%s' for more details.\n |@", log.toString());
+                }
+            } catch (IOException ioe) {
+                System.out.write('\n');
+                write("%s: ", error.getClass().getName());
+                StringWriter sw = new StringWriter();
+                error.printStackTrace(new PrintWriter(sw));
+                write(sw.toString());
+            }
         }
 
+        System.out.write('\n');
         System.out.flush();
     }
-
 }

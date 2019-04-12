@@ -41,6 +41,7 @@ public class KeyBlockNode extends BlockNode {
         }
 
         scope.addValue(key, bodyScope);
+        scope.getKeyNodes().put(key, this);
 
         return null;
     }
