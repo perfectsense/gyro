@@ -70,7 +70,7 @@ public class GyroErrorListener extends BaseErrorListener {
         String input = tokens.getTokenSource().getInputStream().toString();
         String[] lines = input.split("\n");
 
-        String errorLine = lines[line - 1];
+        String errorLine = line - 1 < lines.length ? lines[line - 1] : "";
         sb.append(errorLine).append("\n");
 
         for (int i = 0; i < column; i++) {
