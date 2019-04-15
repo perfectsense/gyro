@@ -10,24 +10,12 @@ root
     ;
 
 statement
-    : directive
-    | resource
+    : resource
     | virtualResource
     | forStatement
     | ifStatement
     | pair
     ;
-
-// directive
-directive : AT IDENTIFIER directiveArgument*;
-
-directiveArgument
-    : directiveIdentifier
-    | DOT DOT? (SLASH (DOT DOT? | directiveIdentifier))*
-    | value
-    ;
-
-directiveIdentifier : IDENTIFIER (DOT IDENTIFIER)*;
 
 // resource
 resource
@@ -42,8 +30,7 @@ resourceName : IDENTIFIER | string;
 blockBody : (blockStatement NEWLINES)*;
 
 blockStatement
-    : directive
-    | resource
+    : resource
     | forStatement
     | ifStatement
     | pair
