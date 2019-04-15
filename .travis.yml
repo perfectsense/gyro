@@ -1,5 +1,12 @@
 sudo: false
 
+if: type = push
+
+branches:
+  only:
+    - master
+    - /^release\/.*/
+
 matrix:
   include:
     # Linux
@@ -10,15 +17,9 @@ matrix:
       jdk:
         - openjdk11
 
-      before_cache:
-        - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
-        - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+      install: true
 
-      cache:
-        directories:
-          - $HOME/.m2
-          - $HOME/.gradle/caches/
-          - $HOME/.gradle/wrapper/
+      script: ./gradlew
 
     # macOS
     - language: java
@@ -28,15 +29,9 @@ matrix:
       jdk:
         - openjdk11
 
-      before_cache:
-        - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
-        - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+      install: true
 
-      cache:
-        directories:
-          - $HOME/.m2
-          - $HOME/.gradle/caches/
-          - $HOME/.gradle/wrapper/
+      script: ./gradlew
 
     # Windows
     #- language: shell

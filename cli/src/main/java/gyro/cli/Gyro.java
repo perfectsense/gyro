@@ -1,16 +1,14 @@
 package gyro.cli;
 
-import gyro.commands.AbstractCommand;
-import gyro.commands.BeamCommand;
-import gyro.commands.CliBeamUI;
-import gyro.core.BeamCore;
-import gyro.core.BeamException;
+import gyro.core.command.AbstractCommand;
+import gyro.core.command.GyroCommand;
+import gyro.core.GyroCore;
+import gyro.core.GyroException;
 import gyro.core.LocalFileBackend;
-import gyro.lang.ast.scope.RootScope;
-import gyro.lang.plugins.PluginLoader;
+import gyro.core.scope.RootScope;
+import gyro.core.plugin.PluginLoader;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
-import com.psddev.dari.util.ObjectUtils;
 import io.airlift.airline.Cli;
 import io.airlift.airline.Command;
 import io.airlift.airline.Help;
@@ -44,7 +42,7 @@ public class Gyro {
         ((Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).setLevel(Level.OFF);
 
         Gyro gyro = new Gyro();
-        BeamCore.pushUi(new CliBeamUI());
+        GyroCore.pushUi(new CliGyroUI());
 
         try {
             loadCommands(gyro);
@@ -52,14 +50,14 @@ public class Gyro {
             gyro.run();
 
         } catch (Throwable error) {
-            if (error instanceof BeamException) {
-                BeamCore.ui().writeError(error.getCause(), "\n@|red Error: %s|@\n", error.getMessage());
+            if (error instanceof GyroException) {
+                GyroCore.ui().writeError(error.getCause(), "\n@|red Error: %s|@\n", error.getMessage());
 
             } else {
-                BeamCore.ui().writeError(error, "\n@|red Unexpected error! Stack trace follows:|@\n");
+                GyroCore.ui().writeError(error, "\n@|red Unexpected error: %s|@\n", error.getMessage());
             }
         } finally {
-            BeamCore.popUi();
+            GyroCore.popUi();
         }
     }
 
@@ -68,7 +66,7 @@ public class Gyro {
 
         commands().add(Help.class);
 
-        for (Class<?> c : getReflections().getSubTypesOf(BeamCommand.class)) {
+        for (Class<?> c : getReflections().getSubTypesOf(GyroCommand.class)) {
             if (c.isAnnotationPresent(Command.class)) {
                 commands().add(c);
             }
@@ -108,13 +106,13 @@ public class Gyro {
                 "[%s] must be an instance of [%s] or [%s]!",
                 command.getClass().getName(),
                 Runnable.class.getName(),
-                BeamCommand.class.getName()));
+                GyroCommand.class.getName()));
         }
     }
 
     public static void loadCommands(Gyro gyro) throws Exception {
         // Load GYRO_ROOT/.gyro/plugins.gyro
-        Path commandPluginPath = BeamCore.findCommandPluginPath();
+        Path commandPluginPath = GyroCore.findCommandPluginPath();
         if (commandPluginPath != null) {
             File plugins = commandPluginPath.toFile();
             if (plugins.exists() && plugins.isFile()) {
@@ -124,7 +122,7 @@ public class Gyro {
 
                 for (PluginLoader loader : pluginConfig.getFileScope().getPluginLoaders()) {
                     for (Class<?> c : loader.classes()) {
-                        if (BeamCommand.class.isAssignableFrom(c) && !Modifier.isAbstract(c.getModifiers())) {
+                        if (GyroCommand.class.isAssignableFrom(c) && !Modifier.isAbstract(c.getModifiers())) {
                             gyro.commands().add(c);
                         }
                     }
@@ -135,15 +133,6 @@ public class Gyro {
 
     public static Reflections getReflections() {
         return reflections;
-    }
-
-    public static String getBeamUserHome() {
-        String userHome = System.getenv("BEAM_USER_HOME");
-        if (ObjectUtils.isBlank(userHome)) {
-            userHome = System.getProperty("user.home");
-        }
-
-        return userHome;
     }
 
 }

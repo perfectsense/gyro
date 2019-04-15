@@ -7,124 +7,137 @@ import gyro.lang.ast.block.RootNode;
 import gyro.lang.ast.block.VirtualResourceNode;
 import gyro.lang.ast.control.ForNode;
 import gyro.lang.ast.control.IfNode;
-import gyro.lang.ast.expression.AndNode;
-import gyro.lang.ast.expression.ComparisonNode;
-import gyro.lang.ast.expression.OrNode;
-import gyro.lang.ast.expression.ValueExpressionNode;
-import gyro.lang.ast.scope.Scope;
+import gyro.lang.ast.condition.AndConditionNode;
+import gyro.lang.ast.condition.ComparisonConditionNode;
+import gyro.lang.ast.condition.OrConditionNode;
+import gyro.lang.ast.condition.ValueConditionNode;
+import gyro.core.scope.Scope;
 import gyro.lang.ast.value.BooleanNode;
 import gyro.lang.ast.value.ListNode;
 import gyro.lang.ast.value.MapNode;
 import gyro.lang.ast.value.NumberNode;
 import gyro.lang.ast.value.ResourceReferenceNode;
-import gyro.lang.ast.value.StringExpressionNode;
-import gyro.lang.ast.value.StringNode;
+import gyro.lang.ast.value.InterpolatedStringNode;
+import gyro.lang.ast.value.LiteralStringNode;
 import gyro.lang.ast.value.ValueReferenceNode;
-import gyro.parser.antlr4.BeamParser;
+import org.antlr.v4.runtime.ParserRuleContext;
+import gyro.parser.antlr4.GyroParser;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import org.apache.commons.lang.StringUtils;
 
 import java.util.List;
 
 public abstract class Node {
 
+    private String file;
+    private Integer line;
+    private Integer column;
+
+    public String getFile() {
+        return file;
+    }
+
+    public Integer getLine() {
+        return line;
+    }
+
+    public Integer getColumn() {
+        return column;
+    }
+
     public static Node create(ParseTree context) {
         Class<? extends ParseTree> cc = context.getClass();
+        Node node;
 
-        if (cc.equals(BeamParser.BeamFileContext.class)) {
-            return new RootNode((BeamParser.BeamFileContext) context);
+        if (cc.equals(GyroParser.RootContext.class)) {
+            node = new RootNode((GyroParser.RootContext) context);
 
-        } else if (cc.equals(BeamParser.BooleanValueContext.class)) {
-            return new BooleanNode((BeamParser.BooleanValueContext) context);
+        } else if (cc.equals(GyroParser.BooleanValueContext.class)) {
+            node = new BooleanNode((GyroParser.BooleanValueContext) context);
 
-        } else if (cc.equals(BeamParser.ForStmtContext.class)) {
-            return new ForNode((BeamParser.ForStmtContext) context);
+        } else if (cc.equals(GyroParser.ForStatementContext.class)) {
+            node = new ForNode((GyroParser.ForStatementContext) context);
 
-        } else if (cc.equals(BeamParser.IfStmtContext.class)) {
-            return new IfNode((BeamParser.IfStmtContext) context);
+        } else if (cc.equals(GyroParser.IfStatementContext.class)) {
+            node = new IfNode((GyroParser.IfStatementContext) context);
 
-        } else if (cc.equals(BeamParser.VirtualResourceContext.class)) {
-            return new VirtualResourceNode((BeamParser.VirtualResourceContext) context);
+        } else if (cc.equals(GyroParser.VirtualResourceContext.class)) {
+            node = new VirtualResourceNode((GyroParser.VirtualResourceContext) context);
 
-        } else if (cc.equals(BeamParser.ComparisonExpressionContext.class)) {
-            return new ComparisonNode((BeamParser.ComparisonExpressionContext) context);
+        } else if (cc.equals(GyroParser.ComparisonConditionContext.class)) {
+            node = new ComparisonConditionNode((GyroParser.ComparisonConditionContext) context);
 
-        } else if (cc.equals(BeamParser.OrExpressionContext.class)) {
-            return new OrNode((BeamParser.OrExpressionContext) context);
+        } else if (cc.equals(GyroParser.OrConditionContext.class)) {
+            node = new OrConditionNode((GyroParser.OrConditionContext) context);
 
-        } else if (cc.equals(BeamParser.AndExpressionContext.class)) {
-            return new AndNode((BeamParser.AndExpressionContext) context);
+        } else if (cc.equals(GyroParser.AndConditionContext.class)) {
+            node = new AndConditionNode((GyroParser.AndConditionContext) context);
 
-        } else if (cc.equals(BeamParser.ValueExpressionContext.class)) {
-            return new ValueExpressionNode((BeamParser.ValueExpressionContext) context);
+        } else if (cc.equals(GyroParser.ValueConditionContext.class)) {
+            node = new ValueConditionNode((GyroParser.ValueConditionContext) context);
 
-        } else if (cc.equals(BeamParser.ValueContext.class)) {
-            return Node.create(context.getChild(0));
+        } else if (cc.equals(GyroParser.ValueContext.class)) {
+            node = Node.create(context.getChild(0));
 
-        } else if (cc.equals(BeamParser.KeyValueContext.class)) {
-            return new KeyValueNode((BeamParser.KeyValueContext) context);
+        } else if (cc.equals(GyroParser.PairContext.class)) {
+            node = new PairNode((GyroParser.PairContext) context);
 
-        } else if (cc.equals(BeamParser.ImportStmtContext.class)) {
-            return new ImportNode((BeamParser.ImportStmtContext) context);
+        } else if (cc.equals(GyroParser.DirectiveContext.class)) {
+            node = new DirectiveNode((GyroParser.DirectiveContext) context);
 
-        } else if (cc.equals(BeamParser.ListValueContext.class)) {
-            return new ListNode((BeamParser.ListValueContext) context);
+        } else if (cc.equals(GyroParser.ListContext.class)) {
+            node = new ListNode((GyroParser.ListContext) context);
 
-        } else if (cc.equals(BeamParser.MapValueContext.class)) {
-            return new MapNode((BeamParser.MapValueContext) context);
+        } else if (cc.equals(GyroParser.MapContext.class)) {
+            node = new MapNode((GyroParser.MapContext) context);
 
-        } else if (cc.equals(BeamParser.NumberValueContext.class)) {
-            return new NumberNode((BeamParser.NumberValueContext) context);
+        } else if (cc.equals(GyroParser.NumberContext.class)) {
+            node = new NumberNode((GyroParser.NumberContext) context);
 
-        } else if (cc.equals(BeamParser.ReferenceBodyContext.class)) {
-            BeamParser.ReferenceBodyContext rbc = (BeamParser.ReferenceBodyContext) context;
-            String type = rbc.referenceType().getText();
-
-            if (type.contains("::")) {
-                return new ResourceReferenceNode(rbc);
-
-            } else {
-                return new ValueReferenceNode(type);
-            }
-
-        } else if (cc.equals(BeamParser.ReferenceValueContext.class)) {
-            return create(((BeamParser.ReferenceValueContext) context).referenceBody());
-
-        } else if (cc.equals(BeamParser.ResourceContext.class)) {
-            BeamParser.ResourceContext rc = (BeamParser.ResourceContext) context;
+        } else if (cc.equals(GyroParser.ResourceContext.class)) {
+            GyroParser.ResourceContext rc = (GyroParser.ResourceContext) context;
 
             if (rc.resourceName() != null) {
-                return new ResourceNode(rc);
+                node = new ResourceNode(rc);
 
             } else {
-                String key = rc.resourceType().IDENTIFIER().getText();
+                String key = rc.resourceType().getText();
 
                 if ("plugin".equals(key)) {
-                    return new PluginNode(rc);
+                    node = new PluginNode(rc);
 
                 } else {
-                    return new KeyBlockNode(rc);
+                    node = new KeyBlockNode(rc);
                 }
             }
 
-        } else if (cc.equals(BeamParser.StringExpressionContext.class)) {
-            return new StringExpressionNode((BeamParser.StringExpressionContext) context);
+        } else if (cc.equals(GyroParser.ResourceReferenceContext.class)) {
+            node = new ResourceReferenceNode((GyroParser.ResourceReferenceContext) context);
 
-        } else if (cc.equals(BeamParser.StringValueContext.class)) {
-            BeamParser.StringValueContext svc = (BeamParser.StringValueContext) context;
-            BeamParser.StringExpressionContext sec = svc.stringExpression();
+        } else if (cc.equals(GyroParser.LiteralStringContext.class)) {
+            node = new LiteralStringNode((GyroParser.LiteralStringContext) context);
 
-            return sec != null
-                    ? new StringExpressionNode(sec)
-                    : new StringNode(StringUtils.strip(svc.STRING_LITERAL().getText(), "'"));
+        } else if (cc.equals(GyroParser.InterpolatedStringContext.class)) {
+            node = new InterpolatedStringNode((GyroParser.InterpolatedStringContext) context);
+
+        } else if (cc.equals(GyroParser.ValueReferenceContext.class)) {
+            node = new ValueReferenceNode((GyroParser.ValueReferenceContext) context);
 
         } else if (TerminalNode.class.isAssignableFrom(cc)) {
-            return new StringNode(context.getText());
+            node = new LiteralStringNode(context.getText());
 
         } else {
-            return new UnknownNode(context);
+            node = new UnknownNode(context);
         }
+
+        if (context instanceof ParserRuleContext) {
+            ParserRuleContext parserRuleContext = (ParserRuleContext) context;
+            node.file = parserRuleContext.getStart().getTokenSource().getSourceName();
+            node.line = parserRuleContext.getStart().getLine();
+            node.column = parserRuleContext.getStart().getCharPositionInLine();
+        }
+
+        return node;
     }
 
     public abstract Object evaluate(Scope scope) throws Exception;
@@ -144,6 +157,38 @@ public abstract class Node {
             buildNewline(builder, indentDepth);
             n.buildString(builder, indentDepth);
         }
+    }
+
+    public String getLocation() {
+        StringBuilder sb = new StringBuilder();
+        if (file != null) {
+            sb.append("in ");
+            sb.append(file);
+            sb.append(" ");
+        }
+
+        if (line != null) {
+            sb.append("on line ");
+            sb.append(line);
+            sb.append(" ");
+        }
+
+        if (column != null) {
+            sb.append("at column ");
+            sb.append(column);
+            sb.append(" ");
+        }
+
+        if (sb.length() > 0) {
+            sb.setLength(sb.length() - 1);
+            sb.append(": ");
+        }
+
+        return sb.toString();
+    }
+
+    public String deferFailure() {
+        return toString();
     }
 
     @Override

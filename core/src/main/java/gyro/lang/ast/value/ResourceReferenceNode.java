@@ -1,28 +1,29 @@
 package gyro.lang.ast.value;
 
 import com.google.common.collect.ImmutableList;
-import gyro.core.BeamException;
-import gyro.lang.Credentials;
-import gyro.lang.Resource;
-import gyro.lang.ResourceFinder;
+import gyro.core.GyroException;
+import gyro.core.diff.DiffableField;
+import gyro.core.diff.DiffableType;
+import gyro.core.Credentials;
+import gyro.core.resource.Resource;
+import gyro.core.resource.ResourceFinder;
 import gyro.lang.ast.DeferError;
 import gyro.lang.ast.Node;
-import gyro.lang.ast.query.AndQuery;
-import gyro.lang.ast.query.ComparisonQuery;
-import gyro.lang.ast.query.FieldValueQuery;
-import gyro.lang.ast.query.FoundQuery;
-import gyro.lang.ast.query.OrQuery;
-import gyro.lang.ast.query.Query;
-import gyro.lang.ast.scope.RootScope;
-import gyro.lang.ast.scope.Scope;
-import gyro.parser.antlr4.BeamParser;
-import gyro.parser.antlr4.BeamParser.ReferenceBodyContext;
+import gyro.lang.query.AndQuery;
+import gyro.lang.query.ComparisonQuery;
+import gyro.lang.query.FoundQuery;
+import gyro.lang.query.OrQuery;
+import gyro.lang.query.Query;
+import gyro.core.scope.RootScope;
+import gyro.core.scope.Scope;
+import gyro.parser.antlr4.GyroParser;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -31,51 +32,32 @@ public class ResourceReferenceNode extends Node {
     private final String type;
     private final Node nameNode;
     private final List<Query> queries;
-    private final String attribute;
+    private final String path;
 
-    public ResourceReferenceNode(ReferenceBodyContext context) {
-        type = context.referenceType().getText();
+    public ResourceReferenceNode(GyroParser.ResourceReferenceContext context) {
+        type = context.resourceType().getText();
 
-        BeamParser.ReferenceNameContext rnc = context.referenceName();
-        if (rnc != null) {
-            BeamParser.StringExpressionContext sec = rnc.stringExpression();
+        GyroParser.ReferenceNameContext rnc = context.referenceName();
 
-            if (sec != null) {
-                nameNode = Node.create(sec);
+        nameNode = Optional.ofNullable(rnc.string())
+            .map(Node::create)
+            .orElseGet(() -> new LiteralStringNode(rnc.getText()));
 
-            } else {
-                nameNode = new StringNode(rnc.getText());
-            }
-
-        } else {
-            nameNode = null;
-        }
-
-        List<Query> queryList = context.queryExpression()
+        queries = context.query()
             .stream()
             .map(Query::create)
             .collect(Collectors.toList());
 
-        String attributeValue = null;
-        Integer size = queryList.size();
-        if (size > 0) {
-            Query last = queryList.get(size - 1);
-
-            if (last instanceof FieldValueQuery) {
-                attributeValue = ((FieldValueQuery) last).getValue();
-                queryList.remove(size - 1);
-            }
-        }
-
-        queries = ImmutableList.copyOf(queryList);
-        this.attribute = attributeValue;
+        path = Optional.ofNullable(context.path())
+            .map(GyroParser.PathContext::getText)
+            .orElse(null);
     }
 
-    public ResourceReferenceNode(String type, Node nameNode, String attribute, Collection<Query> queries) {
+    public ResourceReferenceNode(String type, Node nameNode, Collection<Query> queries, String path) {
         this.type = type;
         this.nameNode = nameNode;
-        this.attribute = attribute;
         this.queries = ImmutableList.copyOf(queries);
+        this.path = path;
     }
 
     private Query optimize(Query query, ResourceFinder<Resource> finder, Scope scope) throws Exception {
@@ -140,7 +122,7 @@ public class ResourceReferenceNode extends Node {
                 Class<? extends ResourceFinder> resourceQueryClass = scope.getRootScope().getResourceFinderClasses().get(type);
 
                 if (resourceQueryClass == null) {
-                    throw new BeamException("Resource type " + type + " does not support external queries.");
+                    throw new GyroException("Resource type " + type + " does not support external queries.");
                 }
 
                 ResourceFinder<Resource> finder = resourceQueryClass.getConstructor().newInstance();
@@ -182,8 +164,17 @@ public class ResourceReferenceNode extends Node {
                     throw new DeferError(this);
                 }
 
-                if (attribute != null) {
-                    return resource.get(attribute);
+                if (path != null) {
+                    if (DiffableType.getInstance(resource.getClass()).getFields().stream()
+                            .map(DiffableField::getGyroName)
+                            .anyMatch(path::equals)) {
+
+                        return resource.get(path);
+
+                    } else {
+                        throw new GyroException(String.format("Unable to resolve resource reference %s %s%nAttribute '%s' is not allowed in %s.%n",
+                            this, getLocation(), path, type));
+                    }
 
                 } else {
                     return resource;
@@ -194,8 +185,8 @@ public class ResourceReferenceNode extends Node {
                 resources = q.evaluate(type, scope, resources);
             }
 
-            if (attribute != null) {
-                return resources.stream().map(r -> r.get(attribute)).collect(Collectors.toList());
+            if (path != null) {
+                return resources.stream().map(r -> r.get(path)).collect(Collectors.toList());
             } else {
                 return resources;
             }
@@ -206,8 +197,8 @@ public class ResourceReferenceNode extends Node {
                     .stream()
                     .filter(r -> type.equals(r.resourceType()));
 
-            if (attribute != null) {
-                return s.map(r -> r.get(attribute))
+            if (path != null) {
+                return s.map(r -> r.get(path))
                         .collect(Collectors.toList());
 
             } else {
@@ -226,12 +217,18 @@ public class ResourceReferenceNode extends Node {
             builder.append(nameNode);
         }
 
-        if (attribute != null) {
+        if (path != null) {
             builder.append(" | ");
-            builder.append(attribute);
+            builder.append(path);
         }
 
         builder.append(")");
+    }
+
+    @Override
+    public String deferFailure() {
+        return String.format("Unable to resolve resource reference %s %s%nResource '%s %s' is not defined.%n",
+            this, getLocation(), type, nameNode);
     }
 
     private Credentials findQueryCredentials(Scope scope) {

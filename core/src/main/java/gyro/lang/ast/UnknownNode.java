@@ -1,6 +1,6 @@
 package gyro.lang.ast;
 
-import gyro.lang.ast.scope.Scope;
+import gyro.core.scope.Scope;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 public class UnknownNode extends Node {

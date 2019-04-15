@@ -9,21 +9,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import gyro.core.BeamCore;
-import gyro.core.BeamException;
-import gyro.lang.Workflow;
+import gyro.core.GyroCore;
+import gyro.core.GyroException;
+import gyro.core.workflow.Workflow;
 import gyro.lang.ast.DeferError;
-import gyro.lang.ast.ImportNode;
-import gyro.lang.ast.KeyValueNode;
+import gyro.lang.ast.DirectiveNode;
+import gyro.lang.ast.PairNode;
 import gyro.lang.ast.Node;
-import gyro.lang.ast.scope.RootScope;
-import gyro.lang.ast.scope.Scope;
-import gyro.parser.antlr4.BeamParser;
+import gyro.core.scope.RootScope;
+import gyro.core.scope.Scope;
+import gyro.parser.antlr4.GyroParser;
 
 public class RootNode extends BlockNode {
 
-    public RootNode(BeamParser.BeamFileContext context) {
-        super(context.file()
+    public RootNode(GyroParser.RootContext context) {
+        super(context.statement()
                 .stream()
                 .map(c -> Node.create(c.getChild(0)))
                 .collect(Collectors.toList()));
@@ -33,19 +33,19 @@ public class RootNode extends BlockNode {
     public Object evaluate(Scope scope) throws Exception {
 
         // Evaluate imports and plugins first.
-        List<ImportNode> imports = new ArrayList<>();
-        List<KeyValueNode> keyValues = new ArrayList<>();
+        List<DirectiveNode> imports = new ArrayList<>();
+        List<PairNode> keyValues = new ArrayList<>();
         List<PluginNode> plugins = new ArrayList<>();
         Map<String, VirtualResourceNode> virtualResourceNodes = scope.getRootScope().getVirtualResourceNodes();
         List<ResourceNode> workflowNodes = new ArrayList<>();
         List<Node> body = new ArrayList<>();
 
         for (Node node : this.body) {
-            if (node instanceof ImportNode) {
-                imports.add((ImportNode) node);
+            if (node instanceof DirectiveNode) {
+                imports.add((DirectiveNode) node);
 
-            } else if (node instanceof KeyValueNode) {
-                keyValues.add((KeyValueNode) node);
+            } else if (node instanceof PairNode) {
+                keyValues.add((PairNode) node);
 
             } else if (node instanceof PluginNode) {
                 plugins.add((PluginNode) node);
@@ -70,10 +70,10 @@ public class RootNode extends BlockNode {
 
         File rootConfig = new File(scope.getFileScope().getFile());
         Path configPath = Paths.get(rootConfig.getCanonicalPath());
-        Path pluginPath = BeamCore.findPluginPath();
+        Path pluginPath = GyroCore.findPluginPath();
 
         if (!plugins.isEmpty() && configPath.toFile().exists() && !Files.isSameFile(pluginPath, configPath)) {
-            throw new BeamException(String.format("Plugins are only allowed to be defined in '%s'.%nThe following plugins are found in '%s':%n%s",
+            throw new GyroException(String.format("Plugins are only allowed to be defined in '%s'.%nThe following plugins are found in '%s':%n%s",
                 pluginPath,
                 configPath,
                 plugins.stream()
@@ -81,11 +81,11 @@ public class RootNode extends BlockNode {
                     .collect(Collectors.joining("\n"))));
         }
 
-        for (ImportNode i : imports) {
+        for (DirectiveNode i : imports) {
             i.load(scope);
         }
 
-        for (KeyValueNode kv : keyValues) {
+        for (PairNode kv : keyValues) {
             kv.evaluate(scope);
         }
 

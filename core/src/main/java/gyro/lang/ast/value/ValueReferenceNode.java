@@ -1,7 +1,9 @@
 package gyro.lang.ast.value;
 
+import gyro.core.GyroException;
 import gyro.lang.ast.Node;
-import gyro.lang.ast.scope.Scope;
+import gyro.core.scope.Scope;
+import gyro.parser.antlr4.GyroParser;
 
 public class ValueReferenceNode extends Node {
 
@@ -11,9 +13,18 @@ public class ValueReferenceNode extends Node {
         this.path = path;
     }
 
+    public ValueReferenceNode(GyroParser.ValueReferenceContext context) {
+        this(context.path().getText());
+    }
+
     @Override
     public Object evaluate(Scope scope) throws Exception {
-        return scope.find(path);
+        try {
+            return scope.find(path);
+        } catch (ValueReferenceException vre) {
+            throw new GyroException(String.format("Unable to resolve value reference %s %s%n'%s' is not defined.%n",
+                this, this.getLocation(), vre.getKey()));
+        }
     }
 
     @Override
