@@ -48,13 +48,13 @@ public class LocalFileBackend extends FileBackend {
         parser.removeErrorListeners();
         parser.addErrorListener(errorListener);
 
-        GyroParser.RootContext rootContext = parser.root();
+        GyroParser.FileContext fileContext = parser.file();
 
         if (errorListener.getSyntaxErrors() > 0) {
             throw new GyroLanguageException(errorListener.getSyntaxErrors() + " errors while parsing.");
         }
 
-        Node.create(rootContext).evaluate(scope);
+        Node.create(fileContext).evaluate(scope);
 
         return true;
     }

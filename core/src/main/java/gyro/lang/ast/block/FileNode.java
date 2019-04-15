@@ -19,9 +19,9 @@ import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
 import gyro.parser.antlr4.GyroParser;
 
-public class RootNode extends BlockNode {
+public class FileNode extends BlockNode {
 
-    public RootNode(GyroParser.RootContext context) {
+    public FileNode(GyroParser.FileContext context) {
         super(context.statement()
                 .stream()
                 .map(c -> Node.create(c.getChild(0)))
