@@ -5,5 +5,5 @@ import java.lang.annotation.Annotation;
 public interface Validator<A extends Annotation> {
     boolean isValid(A annotation, Object value);
 
-    String getMessage();
+    String getMessage(A annotation);
 }

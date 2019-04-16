@@ -63,7 +63,7 @@ public class ValidationProcessor {
                                 Validator validator = (Validator) SINGLETONS.get(annotationProcessorClass.value());
                                 if (!validator.isValid(annotation, invokeObject)) {
                                     validationMessage = String.format("%s· %s: %s. %s", indent,
-                                        ValidationUtils.getFieldName(method.getName()), invokeObject, validator.getMessage());
+                                        ValidationUtils.getFieldName(method.getName()), invokeObject, validator.getMessage(annotation));
                                 }
                             } catch (ExecutionException ex) {
                                 ex.printStackTrace();

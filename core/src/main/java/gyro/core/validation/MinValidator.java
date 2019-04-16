@@ -2,7 +2,7 @@ package gyro.core.validation;
 
 public class MinValidator extends AbstractValidator<Min> {
     @Override
-    boolean validate(Object value) {
+    boolean validate(Min annotation, Object value) {
         if (value instanceof Number) {
             double valueCheck = ValidationUtils.getDoubleValue(value);
 
@@ -13,7 +13,7 @@ public class MinValidator extends AbstractValidator<Min> {
     }
 
     @Override
-    public String getMessage() {
+    public String getMessage(Min annotation) {
         return String.format("Minimum allowed number is %s.", annotation.value());
     }
 }

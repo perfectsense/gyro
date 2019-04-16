@@ -7,7 +7,7 @@ import java.util.HashSet;
 
 public class AllowedNumbersValidator extends AbstractValidator<AllowedNumbers> {
     @Override
-    boolean validate(Object value) {
+    boolean validate(AllowedNumbers annotation, Object value) {
         HashSet<Double> validValues = new HashSet(Doubles.asList(annotation.value()));
 
         if (value instanceof Number) {
@@ -19,7 +19,7 @@ public class AllowedNumbersValidator extends AbstractValidator<AllowedNumbers> {
     }
 
     @Override
-    public String getMessage() {
+    public String getMessage(AllowedNumbers annotation) {
         return String.format("Valid number should be on of %s.", Arrays.toString(annotation.value()));
     }
 }
