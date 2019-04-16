@@ -1,7 +1,7 @@
 package gyro.core.diff;
 
-import gyro.core.BeamUI;
-import gyro.lang.ast.scope.State;
+import gyro.core.GyroUI;
+import gyro.core.scope.State;
 
 public class Keep extends Change {
 
@@ -17,17 +17,17 @@ public class Keep extends Change {
     }
 
     @Override
-    public void writePlan(BeamUI ui) {
+    public void writePlan(GyroUI ui) {
         ui.write("= Keep %s", diffable.toDisplayString());
     }
 
     @Override
-    public void writeExecution(BeamUI ui) {
+    public void writeExecution(GyroUI ui) {
         ui.write("= Keeping %s", diffable.toDisplayString());
     }
 
     @Override
-    public boolean execute(BeamUI ui, State state) {
+    public boolean execute(GyroUI ui, State state) {
         return true;
     }
 

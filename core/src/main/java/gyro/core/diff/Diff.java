@@ -10,13 +10,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import gyro.core.BeamException;
-import gyro.core.BeamUI;
-import gyro.lang.Credentials;
-import gyro.lang.Resource;
-import gyro.lang.ast.scope.DiffableScope;
-import gyro.lang.ast.scope.State;
+import gyro.core.GyroException;
 import gyro.core.validation.ValidationProcessor;
+import gyro.core.GyroUI;
+import gyro.core.Credentials;
+import gyro.core.resource.Resource;
+import gyro.core.scope.DiffableScope;
+import gyro.core.scope.State;
 
 public class Diff {
 
@@ -56,6 +56,8 @@ public class Diff {
         );
 
         for (Diffable pendingDiffable : pendingDiffables) {
+            resolve(pendingDiffable);
+
             Diffable currentDiffable = currentDiffables.remove(pendingDiffable.primaryKey());
 
             changes.add(currentDiffable == null
@@ -75,7 +77,7 @@ public class Diff {
         diffable.change(create);
 
         for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
-            if (!Diffable.class.isAssignableFrom(field.getItemClass())) {
+            if (!field.shouldBeDiffed()) {
                 continue;
             }
 
@@ -106,7 +108,7 @@ public class Diff {
         List<Diff> diffs = new ArrayList<>();
 
         for (DiffableField field : DiffableType.getInstance(currentDiffable.getClass()).getFields()) {
-            if (!Diffable.class.isAssignableFrom(field.getItemClass())) {
+            if (!field.shouldBeDiffed()) {
                 continue;
             }
 
@@ -183,7 +185,7 @@ public class Diff {
         for (DiffableField field : DiffableType.getInstance(currentDiffable.getClass()).getFields()) {
 
             // Skip nested diffables since they're handled by the diff system.
-            if (Diffable.class.isAssignableFrom(field.getItemClass())) {
+            if (field.shouldBeDiffed()) {
                 continue;
             }
 
@@ -195,7 +197,7 @@ public class Diff {
                 continue;
             }
 
-            String key = field.getBeamName();
+            String key = field.getGyroName();
 
             // Skip if there isn't a pending value and the field wasn't
             // previously configured. This means that a field was
@@ -217,7 +219,7 @@ public class Diff {
         diffable.change(delete);
 
         for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
-            if (!Diffable.class.isAssignableFrom(field.getItemClass())) {
+            if (!field.shouldBeDiffed()) {
                 continue;
             }
 
@@ -263,7 +265,7 @@ public class Diff {
         return false;
     }
 
-    public boolean write(BeamUI ui) {
+    public boolean write(GyroUI ui) {
         if (!hasChanges()) {
             return false;
         }
@@ -319,11 +321,11 @@ public class Diff {
         }
 
         if (!errorMessages.isEmpty()) {
-            throw new BeamException("\n" + String.join("\n", errorMessages));
+            throw new GyroException("\n" + String.join("\n", errorMessages));
         }
     }
 
-    public void executeCreateOrUpdate(BeamUI ui, State state) throws Exception {
+    public void executeCreateOrUpdate(GyroUI ui, State state) throws Exception {
         for (Change change : getChanges()) {
             if (change instanceof Create || change instanceof Update) {
                 execute(ui, state, change);
@@ -335,7 +337,7 @@ public class Diff {
         }
     }
 
-    public void executeReplace(BeamUI ui, State state) throws Exception {
+    public void executeReplace(GyroUI ui, State state) throws Exception {
         for (Change change : getChanges()) {
             if (change instanceof Replace) {
                 execute(ui, state, change);
@@ -347,7 +349,7 @@ public class Diff {
         }
     }
 
-    public void executeDelete(BeamUI ui, State state) throws Exception {
+    public void executeDelete(GyroUI ui, State state) throws Exception {
         for (ListIterator<Change> j = getChanges().listIterator(getChanges().size()); j.hasPrevious();) {
             Change change = j.previous();
 
@@ -361,7 +363,7 @@ public class Diff {
         }
     }
 
-    private void execute(BeamUI ui, State state, Change change) throws Exception {
+    private void execute(GyroUI ui, State state, Change change) throws Exception {
         Diffable diffable = change.getDiffable();
 
         if (!(diffable instanceof Resource)) {
@@ -400,7 +402,7 @@ public class Diff {
             }
 
             for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
-                if (Diffable.class.isAssignableFrom(field.getItemClass())) {
+                if (field.shouldBeDiffed()) {
                     resolve(field.getValue(diffable));
                 }
             }

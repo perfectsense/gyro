@@ -1,6 +1,7 @@
 package gyro.lang.ast;
 
-import gyro.lang.ast.scope.Scope;
+import gyro.core.GyroException;
+import gyro.core.scope.Scope;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +31,12 @@ public class DeferError extends Error {
                 break;
 
             } else if (bodySize == deferred.size()) {
-                throw new RuntimeException(errors.toString());
+                StringBuilder sb = new StringBuilder();
+                for (DeferError error : errors) {
+                    sb.append(error.getMessage());
+                }
+
+                throw new GyroException(sb.toString());
 
             } else {
                 body = deferred;
@@ -45,7 +51,7 @@ public class DeferError extends Error {
 
     @Override
     public String getMessage() {
-        return node.toString();
+        return node.deferFailure();
     }
 
     @Override

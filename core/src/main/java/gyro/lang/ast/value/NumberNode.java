@@ -1,8 +1,8 @@
 package gyro.lang.ast.value;
 
 import gyro.lang.ast.Node;
-import gyro.lang.ast.scope.Scope;
-import gyro.parser.antlr4.BeamParser;
+import gyro.core.scope.Scope;
+import gyro.parser.antlr4.GyroParser;
 import org.apache.commons.lang.math.NumberUtils;
 
 public class NumberNode extends Node {
@@ -13,7 +13,7 @@ public class NumberNode extends Node {
         this.value = value;
     }
 
-    public NumberNode(BeamParser.NumberValueContext context) {
+    public NumberNode(GyroParser.NumberContext context) {
         value = NumberUtils.createNumber(context.getText());
     }
 

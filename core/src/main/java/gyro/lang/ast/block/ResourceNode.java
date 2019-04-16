@@ -1,21 +1,21 @@
 package gyro.lang.ast.block;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import gyro.core.diff.Diffable;
 import gyro.core.diff.DiffableField;
 import gyro.core.diff.DiffableType;
-import gyro.lang.Resource;
+import gyro.core.resource.Resource;
 import gyro.lang.ast.Node;
-import gyro.lang.ast.scope.DiffableScope;
-import gyro.lang.ast.scope.RootScope;
-import gyro.lang.ast.scope.Scope;
-import gyro.parser.antlr4.BeamParser;
+import gyro.core.scope.DiffableScope;
+import gyro.core.scope.RootScope;
+import gyro.core.scope.Scope;
+import gyro.parser.antlr4.GyroParser;
 
 public class ResourceNode extends BlockNode {
 
@@ -29,13 +29,14 @@ public class ResourceNode extends BlockNode {
         this.nameNode = nameNode;
     }
 
-    public ResourceNode(BeamParser.ResourceContext context) {
-        super(context.resourceBody()
+    public ResourceNode(GyroParser.ResourceContext context) {
+        super(context.blockBody()
+                .blockStatement()
                 .stream()
                 .map(c -> Node.create(c.getChild(0)))
                 .collect(Collectors.toList()));
 
-        type = context.resourceType().IDENTIFIER().getText();
+        type = context.resourceType().getText();
         nameNode = Node.create(context.resourceName().getChild(0));
     }
 
@@ -65,11 +66,11 @@ public class ResourceNode extends BlockNode {
 
                         // Don't copy nested diffables since they're handled
                         // by the diff system.
-                        if (Diffable.class.isAssignableFrom(f.getItemClass())) {
+                        if (f.shouldBeDiffed()) {
                             continue;
                         }
 
-                        String key = f.getBeamName();
+                        String key = f.getGyroName();
 
                         // Skip over fields that were previously configured
                         // so that their removals can be detected by the
@@ -100,7 +101,7 @@ public class ResourceNode extends BlockNode {
             }
 
             for (DiffableField field : DiffableType.getInstance(anotherResource.getClass()).getFields()) {
-                bodyScope.putIfAbsent(field.getBeamName(), field.getValue(anotherResource));
+                bodyScope.putIfAbsent(field.getGyroName(), field.getValue(anotherResource));
             }
 
         } else if (another instanceof Map) {
@@ -145,7 +146,7 @@ public class ResourceNode extends BlockNode {
         resource.resourceType(type);
         resource.resourceIdentifier(name);
         resource.scope(bodyScope);
-        resource.initialize(bodyScope);
+        resource.initialize(another != null ? new LinkedHashMap<>(bodyScope) : bodyScope);
         scope.getFileScope().put(fullName, resource);
 
         return null;

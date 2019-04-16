@@ -1,14 +1,13 @@
 package gyro.core;
 
-import gyro.lang.BeamLanguageException;
-import gyro.lang.FileBackend;
-import gyro.lang.Resource;
+import gyro.lang.GyroLanguageException;
+import gyro.core.resource.Resource;
 import gyro.lang.ast.Node;
-import gyro.lang.ast.scope.FileScope;
-import gyro.lang.listeners.ErrorListener;
-import gyro.lang.plugins.PluginLoader;
-import gyro.parser.antlr4.BeamLexer;
-import gyro.parser.antlr4.BeamParser;
+import gyro.core.scope.FileScope;
+import gyro.lang.GyroErrorListener;
+import gyro.core.plugin.PluginLoader;
+import gyro.parser.antlr4.GyroLexer;
+import gyro.parser.antlr4.GyroParser;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 
@@ -36,21 +35,21 @@ public class LocalFileBackend extends FileBackend {
             return false;
         }
 
-        BeamLexer lexer = new BeamLexer(CharStreams.fromFileName(file.toString()));
+        GyroLexer lexer = new GyroLexer(CharStreams.fromFileName(file.toString()));
         CommonTokenStream stream = new CommonTokenStream(lexer);
-        BeamParser parser = new BeamParser(stream);
-        ErrorListener errorListener = new ErrorListener();
+        GyroParser parser = new GyroParser(stream);
+        GyroErrorListener errorListener = new GyroErrorListener();
 
         parser.removeErrorListeners();
         parser.addErrorListener(errorListener);
 
-        BeamParser.BeamFileContext fileContext = parser.beamFile();
+        GyroParser.RootContext rootContext = parser.root();
 
         if (errorListener.getSyntaxErrors() > 0) {
-            throw new BeamLanguageException(errorListener.getSyntaxErrors() + " errors while parsing.");
+            throw new GyroLanguageException(errorListener.getSyntaxErrors() + " errors while parsing.");
         }
 
-        Node.create(fileContext).evaluate(scope);
+        Node.create(rootContext).evaluate(scope);
 
         return true;
     }
@@ -80,8 +79,8 @@ public class LocalFileBackend extends FileBackend {
                         importFile += ".state";
                     }
 
-                    out.write("import ");
-                    out.write(dir.relativize(Paths.get(importFile)).toString());
+                    out.write("@import ");
+                    out.write(dir != null ? dir.relativize(Paths.get(importFile)).toString() : importFile);
                     out.write('\n');
                 }
 

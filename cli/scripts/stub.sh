@@ -27,5 +27,5 @@ then
     exit 1;
 fi
 
-exec "$java" $JAVA_OPTS $java_args -Dbeam.app=$0 -jar $MYSELF "$@"
+exec "$java" $JAVA_OPTS $java_args -Dgyro.app=$0 -jar $MYSELF "$@"
 exit 1

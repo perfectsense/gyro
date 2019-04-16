@@ -3,9 +3,9 @@ package gyro.lang.ast.control;
 import gyro.lang.ast.DeferError;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.BlockNode;
-import gyro.lang.ast.scope.Scope;
-import gyro.parser.antlr4.BeamParser;
-import gyro.util.CascadingMap;
+import gyro.core.scope.Scope;
+import gyro.parser.antlr4.GyroParser;
+import gyro.lang.util.CascadingMap;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -24,21 +24,20 @@ public class ForNode extends BlockNode {
         this.items = items;
     }
 
-    public ForNode(BeamParser.ForStmtContext context) {
-        super(context.controlBody()
-                .controlStmts()
+    public ForNode(GyroParser.ForStatementContext context) {
+        super(context.blockBody()
+                .blockStatement()
                 .stream()
                 .map(c -> Node.create(c.getChild(0)))
                 .collect(Collectors.toList()));
 
-        variables = context.forVariables()
-                .forVariable()
+        variables = context.forVariable()
                 .stream()
                 .map(c -> c.IDENTIFIER().getText())
                 .collect(Collectors.toList());
 
-        items = context.listValue()
-                .listItemValue()
+        items = context.list()
+                .value()
                 .stream()
                 .map(c -> Node.create(c.getChild(0)))
                 .collect(Collectors.toList());
@@ -64,6 +63,7 @@ public class ForNode extends BlockNode {
             }
 
             DeferError.evaluate(bodyScope, body);
+            scope.getKeyNodes().putAll(bodyScope.getKeyNodes());
         }
 
         return null;
