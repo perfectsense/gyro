@@ -1,18 +1,13 @@
 package gyro.core.validation;
 
-import com.google.common.primitives.Doubles;
-
 import java.util.Arrays;
-import java.util.HashSet;
 
 public class AllowedNumbersValidator extends AbstractValidator<AllowedNumbers> {
     @Override
     boolean validate(AllowedNumbers annotation, Object value) {
-        HashSet<Double> validValues = new HashSet(Doubles.asList(annotation.value()));
-
         if (value instanceof Number) {
             double valueCheck = ((Number) value).doubleValue();
-            return validValues.contains(valueCheck);
+            return Arrays.stream(annotation.value()).anyMatch(o -> o == valueCheck);
         }
 
         return true;
@@ -20,6 +15,6 @@ public class AllowedNumbersValidator extends AbstractValidator<AllowedNumbers> {
 
     @Override
     public String getMessage(AllowedNumbers annotation) {
-        return String.format("Valid number should be on of %s.", Arrays.toString(annotation.value()));
+        return String.format("Valid number should be one of %s.", Arrays.toString(annotation.value()));
     }
 }
