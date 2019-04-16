@@ -1,12 +1,15 @@
 package gyro.core;
 
 import gyro.core.scope.RootScope;
+import gyro.core.scope.Scope;
 import gyro.lang.GyroLanguageException;
 import gyro.core.resource.Resource;
+import gyro.lang.ast.DeferError;
 import gyro.lang.ast.Node;
 import gyro.core.scope.FileScope;
 import gyro.lang.GyroErrorListener;
 import gyro.core.plugin.PluginLoader;
+import gyro.lang.ast.block.FileNode;
 import gyro.parser.antlr4.GyroLexer;
 import gyro.parser.antlr4.GyroParser;
 import org.antlr.v4.runtime.CharStreams;
@@ -20,6 +23,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -33,6 +38,7 @@ public class LocalFileBackend extends FileBackend {
     @Override
     public boolean load(RootScope scope) throws Exception {
 
+        Map<Node, Scope> deferMap = new HashMap<>();
         if (scope.getInitScope() != null) {
             Path file = Paths.get(scope.getInitScope().getFile());
             GyroCore.verifyConfig(file);
@@ -56,9 +62,16 @@ public class LocalFileBackend extends FileBackend {
             }
 
             // defer error
-            Node.create(fileContext).evaluate(scope.getInitScope());
+            FileNode fileNode = (FileNode) Node.create(fileContext);
+            fileNode.evaluate(scope.getInitScope());
+            for (Node node : fileNode.getResourceNodes()) {
+                deferMap.put(node, scope.getInitScope());
+            }
+
+            DeferError.evaluate(deferMap);
         }
 
+        deferMap.clear();
         Path rootPath = GyroCore.findRootDirectory(Paths.get("").toAbsolutePath());
         Set<Path> paths;
         if (scope.getCurrent() != null) {
@@ -102,9 +115,14 @@ public class LocalFileBackend extends FileBackend {
             }
 
             // defer error
-            Node.create(fileContext).evaluate(fileScope);
+            FileNode fileNode = (FileNode) Node.create(fileContext);
+            fileNode.evaluate(fileScope);
+            for (Node node : fileNode.getResourceNodes()) {
+                deferMap.put(node, fileScope);
+            }
         }
 
+        DeferError.evaluate(deferMap);
         return true;
     }
 

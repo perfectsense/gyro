@@ -23,6 +23,7 @@ public class RootScope extends Scope {
     private final List<Workflow> workflows = new ArrayList<>();
     private final List<FileScope> fileScopes = new ArrayList<>();
     private final FileScope initScope;
+    private final Map<String, Resource> resources = new LinkedHashMap<>();
 
     public RootScope() {
         super(null);
@@ -77,42 +78,16 @@ public class RootScope extends Scope {
         return initScope;
     }
 
-    public List<Resource> findAllResources() {
-        List<Resource> resources = new ArrayList<>();
-        for (FileScope scope : getFileScopes()) {
-            addResources(resources, scope);
-        }
+    public Map<String, Resource> getResources() {
         return resources;
     }
 
-    private void addResources(List<Resource> resources, FileScope scope) {
-        scope.values()
-                .stream()
-                .filter(Resource.class::isInstance)
-                .map(Resource.class::cast)
-                .forEach(resources::add);
+    public List<Resource> findAllResources() {
+        return new ArrayList<>(resources.values());
     }
 
     public Resource findResource(String name) {
-        Resource resource;
-        for (FileScope scope : getFileScopes()) {
-            resource = findResourceInScope(name, scope);
-            if (resource != null) {
-                return resource;
-            }
-        }
-
-        return null;
-    }
-
-    private Resource findResourceInScope(String name, FileScope scope) {
-        Object value = scope.get(name);
-
-        if (value instanceof Resource) {
-            return (Resource) value;
-        }
-
-        return null;
+        return resources.get(name);
     }
 
 }
