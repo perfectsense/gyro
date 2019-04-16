@@ -30,15 +30,7 @@ public class RangesValidator extends AbstractRepeatableValidator<Ranges> {
 
             for (Range range : annotation.value()) {
                 if (!validator.isValid(range, val)) {
-                    if (((RangeValidator) validator).isDouble) {
-                        rangesString.add(String.format("[%s - %s]",
-                            range.low(),
-                            range.high()));
-                    } else {
-                        rangesString.add(String.format("[%s - %s]",
-                            (long) range.low(),
-                            (long) range.high()));
-                    }
+                    rangesString.add(String.format("[%s - %s]", range.low(), range.high()));
                 } else {
                     break;
                 }

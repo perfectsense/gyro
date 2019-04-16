@@ -2,19 +2,17 @@ package gyro.core.validation;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 
-public class AllowedStringsValidator extends AbstractStringValidator<AllowedStrings> {
+public class AllowedStringsValidator extends AbstractValidator<AllowedStrings> {
     @Override
     boolean validate(Object value) {
         HashSet<String> validValues = new HashSet(Arrays.asList(annotation.value()));
-        List<String> valueChecks = getValuesToCheck(value);
 
-        if (!valueChecks.isEmpty()) {
-            return validValues.containsAll(valueChecks);
-        } else {
-            return true;
+        if (value instanceof String) {
+            return validValues.contains(value);
         }
+
+        return true;
     }
 
     @Override
