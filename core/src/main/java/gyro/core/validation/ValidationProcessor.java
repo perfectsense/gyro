@@ -1,5 +1,6 @@
 package gyro.core.validation;
 
+import com.google.common.base.CaseFormat;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -63,7 +64,7 @@ public class ValidationProcessor {
                                 Validator validator = (Validator) SINGLETONS.get(annotationProcessorClass.value());
                                 if (!validator.isValid(annotation, invokeObject)) {
                                     validationMessage = String.format("%s· %s: %s. %s", indent,
-                                        ValidationUtils.getFieldName(method.getName()), invokeObject, validator.getMessage(annotation));
+                                        getFieldName(method.getName()), invokeObject, validator.getMessage(annotation));
                                 }
                             } catch (ExecutionException ex) {
                                 ex.printStackTrace();
@@ -86,7 +87,7 @@ public class ValidationProcessor {
             Object invokeObject = method.invoke(diffable);
 
             if (invokeObject != null) {
-                String fieldName = ValidationUtils.getFieldName(method.getName());
+                String fieldName = getFieldName(method.getName());
 
                 List<String> errorList = new ArrayList<>();
                 if (invokeObject instanceof List) {
@@ -127,4 +128,8 @@ public class ValidationProcessor {
                 return c.newInstance();
             }
         });
+
+    static String getFieldName(String fieldName) {
+        return CaseFormat.UPPER_CAMEL.to(CaseFormat.LOWER_HYPHEN, fieldName).replace("get-", "");
+    }
 }
