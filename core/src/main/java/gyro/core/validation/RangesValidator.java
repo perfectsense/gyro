@@ -2,49 +2,29 @@ package gyro.core.validation;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-public class RangesValidator extends AbstractRepeatableValidator<Ranges> {
+public class RangesValidator extends AbstractValidator<Ranges> {
     @Override
-    public List<String> getValidations(Ranges annotation, Object value) {
-        this.annotation = annotation;
-
-        List<String> validationMessages = new ArrayList<>();
-
+    boolean validate(Object value) {
         RangeValidator validator = new RangeValidator();
 
+        for (Range range : annotation.value()) {
+            if (!validator.isValid(range, value)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    @Override
+    public String getMessage() {
         List<String> rangesString = new ArrayList<>();
 
-        List<Object> values = new ArrayList<>();
-
-        if (value instanceof Number) {
-            values.add(value);
-        } else if (value instanceof List) {
-            values.addAll(((List) value));
-        } else if (value instanceof Map) {
-            values.addAll(((Map) value).keySet());
+        for (Range range : annotation.value()) {
+            rangesString.add(String.format("[%s - %s]", range.low(), range.high()));
         }
 
-        for (Object val : values) {
-            rangesString = new ArrayList<>();
-
-            for (Range range : annotation.value()) {
-                if (!validator.isValid(range, val)) {
-                    rangesString.add(String.format("[%s - %s]", range.low(), range.high()));
-                } else {
-                    break;
-                }
-            }
-
-            if (rangesString.size() == annotation.value().length) {
-                break;
-            }
-        }
-
-        if (rangesString.size() == annotation.value().length) {
-            validationMessages.add(String.format("Valid number should be in one of these ranges %s.", String.join(", ", rangesString)));
-        }
-
-        return validationMessages;
+        return String.format("Valid number should be in one of these ranges %s.", String.join(", ", rangesString));
     }
 }

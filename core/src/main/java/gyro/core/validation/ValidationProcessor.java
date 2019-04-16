@@ -23,8 +23,10 @@ public class ValidationProcessor {
         List<String> validationMessages = new ArrayList<>();
         for (Method method : diffable.getClass().getMethods()) {
             if (method.getName().startsWith("get") && method.getParameterCount() == 0) {
-                List<String> validateFieldMessages = validateFields(method, diffable, indent);
-                validationMessages.addAll(validateFieldMessages);
+                String validationMessage = validateFields(method, diffable, indent);
+                if (!ObjectUtils.isBlank(validationMessage)) {
+                    validationMessages.add(validationMessage);
+                }
             }
         }
 
@@ -46,24 +48,27 @@ public class ValidationProcessor {
         return validationMessages;
     }
 
-    private static List<String> validateFields(Method method, Diffable diffable, String indent) {
-        List<String> validationMessages = new ArrayList<>();
+    private static String validateFields(Method method, Diffable diffable, String indent) {
+        String validationMessage = "";
 
         try {
             Object invokeObject = method.invoke(diffable);
 
             for (Annotation annotation : method.getAnnotations()) {
                 if (annotation.annotationType().isAnnotationPresent(AnnotationProcessorClass.class)) {
-                    String validationMessage = validateFieldAnnotation(invokeObject, annotation, method, diffable, indent);
-                    if (!ObjectUtils.isBlank(validationMessage)) {
-                        validationMessages.add(validationMessage);
-                        break;
-                    }
-                } else if (annotation.annotationType().isAnnotationPresent(RepeatableAnnotationProcessorClass.class)) {
-                    List<String> errorMessages = validateRepeatableAnnotation(annotation, invokeObject, indent, method);
-
-                    if (!errorMessages.isEmpty()) {
-                        validationMessages.addAll(errorMessages);
+                    AnnotationProcessorClass annotationProcessorClass = annotation.annotationType().getAnnotation(AnnotationProcessorClass.class);
+                    if (annotationProcessorClass != null) {
+                        if (!isValueReference(method, diffable) || invokeObject != null) {
+                            try {
+                                Validator validator = (Validator) SINGLETONS.get(annotationProcessorClass.value());
+                                if (!validator.isValid(annotation, invokeObject)) {
+                                    validationMessage = String.format("%s· %s: %s. %s", indent,
+                                        ValidationUtils.getFieldName(method.getName()), invokeObject, validator.getMessage());
+                                }
+                            } catch (ExecutionException ex) {
+                                ex.printStackTrace();
+                            }
+                        }
                     }
                 }
             }
@@ -71,7 +76,7 @@ public class ValidationProcessor {
             ex.printStackTrace();
         }
 
-        return validationMessages;
+        return validationMessage;
     }
 
     private static List<String> validateComplexFields(Method method, Diffable diffable, String indent) {
@@ -107,52 +112,6 @@ public class ValidationProcessor {
             ex.printStackTrace();
         }
 
-        return validationMessages;
-    }
-
-    private static String validateFieldAnnotation(Object invokeObject, Annotation annotation, Method method, Diffable diffable, String indent)
-        throws IllegalArgumentException {
-        String validationMessage = "";
-        AnnotationProcessorClass annotationProcessorClass = annotation.annotationType().getAnnotation(AnnotationProcessorClass.class);
-        if (annotationProcessorClass != null) {
-            if (!isValueReference(method, diffable) || invokeObject != null) {
-                try {
-                    Validator validator = (Validator) SINGLETONS.get(annotationProcessorClass.value());
-                    if (!validator.isValid(annotation, invokeObject)) {
-                        validationMessage = String.format("%s· %s: %s. %s", indent,
-                            ValidationUtils.getFieldName(method.getName()), invokeObject, validator.getMessage());
-                    }
-                } catch (ExecutionException ex) {
-                    ex.printStackTrace();
-                }
-            }
-        }
-
-        return validationMessage;
-    }
-
-    private static List<String> validateRepeatableAnnotation(Annotation annotation, Object object, String indent, Method method) {
-        List<String> validationMessages = new ArrayList<>();
-        try {
-            RepeatableAnnotationProcessorClass annotationProcessorClass = annotation.annotationType()
-                .getAnnotation(RepeatableAnnotationProcessorClass.class);
-            if (annotationProcessorClass != null) {
-                RepeatableValidator annotationProcessor = (RepeatableValidator) SINGLETONS.get(annotationProcessorClass.value());
-
-                List<String> validations = (List<String>) annotationProcessor.getValidations(annotation, object);
-
-                if (!validations.isEmpty()) {
-                    if (method != null) {
-                        validationMessages.addAll(validations.stream().map(o -> String.format("%s· %s: %s. %s", indent,
-                            ValidationUtils.getFieldName(method.getName()), object, o)).collect(Collectors.toList()));
-                    } else {
-                        validationMessages.addAll(validations.stream().map(o -> String.format("%s· %s", indent, o)).collect(Collectors.toList()));
-                    }
-                }
-            }
-        } catch (ExecutionException ex) {
-            ex.printStackTrace();
-        }
         return validationMessages;
     }
 
