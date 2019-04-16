@@ -1,21 +1,17 @@
 package gyro.lang;
 
-import org.antlr.v4.runtime.ANTLRErrorListener;
+import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.NoViableAltException;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.atn.ATNConfigSet;
-import org.antlr.v4.runtime.dfa.DFA;
 import org.fusesource.jansi.AnsiRenderer;
 
 import java.io.File;
-import java.util.BitSet;
 import java.util.List;
 
-public class GyroErrorListener implements ANTLRErrorListener {
+public class GyroErrorListener extends BaseErrorListener {
 
     private int syntaxErrors = 0;
     private String previousSource;
@@ -26,10 +22,6 @@ public class GyroErrorListener implements ANTLRErrorListener {
 
     @Override
     public void syntaxError(Recognizer<?, ?> recognizer, Object symbol, int line, int column, String message, RecognitionException e) {
-        if (e instanceof NoViableAltException) {
-            return;
-        }
-
         String filename = recognizer.getInputStream().getSourceName();
         filename = new File(filename).getName();
 
@@ -48,7 +40,7 @@ public class GyroErrorListener implements ANTLRErrorListener {
                 System.err.println(AnsiRenderer.render(String.format("@|red on line %d: expected %s|@", line, expected)));
                 System.err.println(AnsiRenderer.render(String.format("@|blue %s\n|@", error)));
             } else {
-                System.err.println(AnsiRenderer.render(String.format("@|red on line %d:|@", line)));
+                System.err.println(AnsiRenderer.render(String.format("@|red on line %d: %s|@", line, message)));
                 System.err.println(AnsiRenderer.render(String.format("@|blue %s\n|@", error)));
             }
         } catch (Exception ex) {
@@ -56,21 +48,6 @@ public class GyroErrorListener implements ANTLRErrorListener {
         }
 
         syntaxErrors++;
-    }
-
-    @Override
-    public void reportAmbiguity(Parser parser, DFA dfa, int i, int i1, boolean b, BitSet bitSet, ATNConfigSet atnConfigSet) {
-
-    }
-
-    @Override
-    public void reportAttemptingFullContext(Parser parser, DFA dfa, int i, int i1, BitSet bitSet, ATNConfigSet atnConfigSet) {
-
-    }
-
-    @Override
-    public void reportContextSensitivity(Parser parser, DFA dfa, int i, int i1, int i2, ATNConfigSet atnConfigSet) {
-
     }
 
     private String expected(List<String> stack) {
@@ -93,7 +70,7 @@ public class GyroErrorListener implements ANTLRErrorListener {
         String input = tokens.getTokenSource().getInputStream().toString();
         String[] lines = input.split("\n");
 
-        String errorLine = lines[line - 1];
+        String errorLine = line - 1 < lines.length ? lines[line - 1] : "";
         sb.append(errorLine).append("\n");
 
         for (int i = 0; i < column; i++) {
