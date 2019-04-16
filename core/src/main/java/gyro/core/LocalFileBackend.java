@@ -121,20 +121,6 @@ public class LocalFileBackend extends FileBackend {
                         Files.newOutputStream(newFile),
                         StandardCharsets.UTF_8))) {
 
-                    Path dir = Paths.get(file).getParent();
-
-                    for (FileScope i : fileScope.getImports()) {
-                        String importFile = i.getFile();
-
-                        if (!importFile.endsWith(".state")) {
-                            importFile += ".state";
-                        }
-
-                        out.write("@import ");
-                        out.write(dir != null ? dir.relativize(Paths.get(importFile)).toString() : importFile);
-                        out.write('\n');
-                    }
-
                     for (PluginLoader pluginLoader : fileScope.getPluginLoaders()) {
                         out.write(pluginLoader.toString());
                     }

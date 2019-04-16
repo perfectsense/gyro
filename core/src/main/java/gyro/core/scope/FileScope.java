@@ -13,7 +13,6 @@ public class FileScope extends Scope {
 
     private final String file;
     private FileBackend backend;
-    private final List<FileScope> imports = new ArrayList<>();
     private final List<PluginLoader> pluginLoaders = new ArrayList<>();
 
     public FileScope(RootScope parent, String file) {
@@ -41,10 +40,6 @@ public class FileScope extends Scope {
 
     public void setBackend(FileBackend backend) {
         this.backend = backend;
-    }
-
-    public List<FileScope> getImports() {
-        return imports;
     }
 
     public List<PluginLoader> getPluginLoaders() {

@@ -86,8 +86,6 @@ public class RootScope extends Scope {
     }
 
     private void addResources(List<Resource> resources, FileScope scope) {
-        scope.getImports().forEach(i -> addResources(resources, i));
-
         scope.values()
                 .stream()
                 .filter(Resource.class::isInstance)
@@ -112,14 +110,6 @@ public class RootScope extends Scope {
 
         if (value instanceof Resource) {
             return (Resource) value;
-        }
-
-        for (FileScope s : scope.getImports()) {
-            Resource resource = findResourceInScope(name, s);
-
-            if (resource != null) {
-                return resource;
-            }
         }
 
         return null;
