@@ -16,7 +16,6 @@ public abstract class AbstractNumberValidator<A extends Annotation> extends Abst
         }
 
         setIsDouble(value);
-        setValueType(value);
 
         return validate(value);
     }

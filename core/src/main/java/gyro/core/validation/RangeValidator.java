@@ -27,16 +27,6 @@ public class RangeValidator extends AbstractNumberValidator<Range> {
 
     @Override
     public String getMessage() {
-        if (isDouble) {
-            return String.format("Valid %s should be in the range of [ %s - %s ].",
-                valueType.equals(ValueType.MAP) ? "keys of the map" : (valueType.equals(ValueType.LIST) ? "numbers" : "number"),
-                annotation.low(),
-                annotation.high());
-        } else {
-            return String.format("Valid %s should be in the range of [ %s - %s ].",
-                valueType.equals(ValueType.MAP) ? "keys of the map" : (valueType.equals(ValueType.LIST) ? "numbers" : "number"),
-                (long) annotation.low(),
-                (long) annotation.high());
-        }
+        return String.format("Valid number should be in the range of [ %s - %s ].",annotation.low(), annotation.high());
     }
 }

@@ -18,8 +18,7 @@ public class AllowedRegexValidator extends AbstractStringValidator<AllowedRegex>
 
     @Override
     public String getMessage() {
-        return String.format("Valid %s should be one of these formats %s.",
-            valueType.equals(ValueType.MAP) ? "keys of the map" : (valueType.equals(ValueType.LIST) ? "strings" : "string"),
+        return String.format("Valid value should be one of these formats %s.",
             annotation.display().length == 0 ? Arrays.toString(annotation.value()) : Arrays.toString(annotation.display()));
     }
 
