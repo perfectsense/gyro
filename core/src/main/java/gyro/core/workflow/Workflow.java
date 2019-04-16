@@ -56,7 +56,7 @@ public class Workflow {
     }
 
     private RootScope copyCurrentRootScope() throws Exception {
-        RootScope s = new RootScope(pendingRootScope.getCurrent().getFile());
+        RootScope s = new RootScope();
 
         new LocalFileBackend().load(s);
         return s;

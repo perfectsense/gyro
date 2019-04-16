@@ -1,5 +1,6 @@
 package gyro.core.scope;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -7,7 +8,9 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 
+import gyro.core.FileBackend;
 import gyro.core.GyroCore;
+import gyro.core.LocalFileBackend;
 import gyro.core.diff.Change;
 import gyro.core.diff.Delete;
 import gyro.core.diff.Diffable;
@@ -36,11 +39,22 @@ public class State {
         }
     }
 
+    private Path getStatePath(Path file) throws IOException {
+        Path rootDir = GyroCore.findPluginPath().getParent().getParent();
+        Path relative = rootDir.relativize(file.toAbsolutePath());
+        Path statePath = Paths.get(rootDir.toString(), ".gyro", "state", relative.toString());
+
+        if (statePath.toFile().getParentFile() != null && !statePath.toFile().getParentFile().exists()) {
+            statePath.toFile().getParentFile().mkdirs();
+        }
+
+        return statePath;
+    }
+
     public State(RootScope pending, boolean test) throws Exception {
-        root = new RootScope(getStateFile(pending.getFile()));
+        root = new RootScope();
         this.test = test;
 
-        loadPlugins(root);
         load(pending, root);
     }
 
@@ -48,32 +62,20 @@ public class State {
         return test;
     }
 
-    private void load(FileScope pending, FileScope state) throws Exception {
-        states.put(getStateFile(pending.getFile()), state);
-        pending.getBackend().load(state);
-        state.getImports().clear();
-        state.getPluginLoaders().clear();
-        state.getPluginLoaders().addAll(pending.getPluginLoaders());
-
-        for (FileScope pendingImport : pending.getImports()) {
-            Path pendingDir = Paths.get(pending.getFile()).getParent() != null ?
-                Paths.get(pending.getFile()).getParent() : Paths.get(".");
-            Path pendingImportFile = Paths.get(pendingImport.getFile());
-
-            FileScope stateImport = new FileScope(
-                    pending,
-                    getStateFile(pendingDir.relativize(pendingImportFile).toString()));
-
-            load(pendingImport, stateImport);
-            state.getImports().add(stateImport);
+    private void load(RootScope pending, RootScope state) throws Exception {
+        FileBackend backend = new LocalFileBackend();
+        backend.load(state);
+        for (FileScope fileScope : state.getFileScopes()) {
+            states.put(fileScope.getFile(), fileScope);
         }
-    }
 
-    private void save(FileScope state) throws Exception {
-        state.getBackend().save(state);
-
-        for (FileScope i : state.getImports()) {
-            save(i);
+        for (FileScope fileScope : pending.getFileScopes()) {
+            String statePath = getStatePath(Paths.get(getStateFile(fileScope.getFile()))).toString();
+            if (!states.containsKey(statePath)) {
+                FileScope scope = new FileScope(state, statePath);
+                states.put(statePath, scope);
+                state.getFileScopes().add(scope);
+            }
         }
     }
 
@@ -88,6 +90,7 @@ public class State {
             return;
         }
 
+        FileBackend backend = new LocalFileBackend();
         Resource resource = (Resource) diffable;
 
         // Delete goes through every state to remove the resource.
@@ -112,7 +115,7 @@ public class State {
 
         } else {
             String key = resource.resourceIdentifier();
-            FileScope state = states.get(getStateFile(resource.scope().getFileScope().getFile()));
+            FileScope state = states.get(getStatePath(Paths.get(getStateFile(resource.scope().getFileScope().getFile()))).toString());
 
             // Subresource?
             if (key == null) {
@@ -128,7 +131,7 @@ public class State {
             }
         }
 
-        save(root);
+        backend.save(root);
     }
 
     private void updateSubresource(Resource parent, Resource subresource, boolean delete) {
@@ -183,10 +186,11 @@ public class State {
     }
 
     public void swap(RootScope current, RootScope pending, String type, String x, String y) throws Exception {
+        FileBackend backend = new LocalFileBackend();
         swapResources(current, type, x, y);
         swapResources(pending, type, x, y);
         swapResources(root, type, x, y);
-        save(root);
+        backend.save(root);
     }
 
     private void swapResources(RootScope rootScope, String type, String xName, String yName) {
@@ -206,27 +210,16 @@ public class State {
         }
     }
 
-    private FileScope findScope(String name, FileScope scope) {
-        Object value = scope.get(name);
+    private FileScope findScope(String name, RootScope scope) {
+        for (FileScope fileScope : scope.getFileScopes()) {
+            Object value = fileScope.get(name);
 
-        if (value instanceof Resource) {
-            return scope;
-        }
-
-        for (FileScope i : scope.getImports()) {
-            FileScope r = findScope(name, i);
-
-            if (r != null) {
-                return r;
+            if (value instanceof Resource) {
+                return fileScope;
             }
         }
 
         return null;
     }
 
-    private void loadPlugins(RootScope scope) throws Exception {
-        FileScope parentFileScope = scope.getFileScope();
-        FileScope pluginScope = new FileScope(parentFileScope, GyroCore.findPluginPath().toString());
-        parentFileScope.getBackend().load(pluginScope);
-    }
 }

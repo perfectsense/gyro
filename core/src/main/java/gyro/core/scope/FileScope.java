@@ -1,6 +1,5 @@
 package gyro.core.scope;
 
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,15 +16,11 @@ public class FileScope extends Scope {
     private final List<FileScope> imports = new ArrayList<>();
     private final List<PluginLoader> pluginLoaders = new ArrayList<>();
 
-    public FileScope(FileScope parent, String file) {
+    public FileScope(RootScope parent, String file) {
         super(parent);
 
         if (!file.endsWith(".gyro") && !file.endsWith(".gyro.state")) {
             file += ".gyro";
-        }
-
-        if (parent != null && Paths.get(parent.getFile()).getParent() != null) {
-            file = Paths.get(parent.getFile()).getParent().resolve(file).toString();
         }
 
         this.file = file;

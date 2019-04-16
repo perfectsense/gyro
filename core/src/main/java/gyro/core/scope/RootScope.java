@@ -1,35 +1,50 @@
 package gyro.core.scope;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import gyro.core.GyroCore;
+import gyro.core.GyroException;
 import gyro.core.resource.Resource;
 import gyro.core.resource.ResourceFinder;
 import gyro.core.workflow.Workflow;
 import gyro.lang.ast.block.VirtualResourceNode;
-import com.psddev.dari.util.StringUtils;
 
-public class RootScope extends FileScope {
+public class RootScope extends Scope {
 
     private final RootScope current;
     private final Map<String, Class<?>> resourceClasses = new HashMap<>();
     private final Map<String, Class<? extends ResourceFinder>> resourceFinderClasses = new HashMap<>();
     private final Map<String, VirtualResourceNode> virtualResourceNodes = new LinkedHashMap<>();
     private final List<Workflow> workflows = new ArrayList<>();
+    private final List<FileScope> fileScopes = new ArrayList<>();
+    private final FileScope initScope;
 
-    public RootScope(String file) {
-        super(null, file);
+    public RootScope() {
+        super(null);
         this.current = null;
+
+        try {
+            initScope = new FileScope(this, GyroCore.findPluginPath().toString());
+        } catch (IOException e) {
+            throw new GyroException("Unable to create init scope!");
+        }
 
         put("ENV", System.getenv());
     }
 
     public RootScope(RootScope current) {
-        super(null, StringUtils.removeEnd(current.getFile(), ".state"));
+        super(null);
         this.current = current;
+        try {
+            initScope = new FileScope(this, GyroCore.findPluginPath().toString());
+        } catch (IOException e) {
+            throw new GyroException("Unable to create init scope!");
+        }
 
         put("ENV", System.getenv());
     }
@@ -54,9 +69,19 @@ public class RootScope extends FileScope {
         return workflows;
     }
 
+    public List<FileScope> getFileScopes() {
+        return fileScopes;
+    }
+
+    public FileScope getInitScope() {
+        return initScope;
+    }
+
     public List<Resource> findAllResources() {
         List<Resource> resources = new ArrayList<>();
-        addResources(resources, this);
+        for (FileScope scope : getFileScopes()) {
+            addResources(resources, scope);
+        }
         return resources;
     }
 
@@ -71,7 +96,15 @@ public class RootScope extends FileScope {
     }
 
     public Resource findResource(String name) {
-        return findResourceInScope(name, this);
+        Resource resource;
+        for (FileScope scope : getFileScopes()) {
+            resource = findResourceInScope(name, scope);
+            if (resource != null) {
+                return resource;
+            }
+        }
+
+        return null;
     }
 
     private Resource findResourceInScope(String name, FileScope scope) {

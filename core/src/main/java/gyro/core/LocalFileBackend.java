@@ -1,5 +1,6 @@
 package gyro.core;
 
+import gyro.core.scope.RootScope;
 import gyro.lang.GyroLanguageException;
 import gyro.core.resource.Resource;
 import gyro.lang.ast.Node;
@@ -19,6 +20,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class LocalFileBackend extends FileBackend {
 
@@ -28,104 +31,136 @@ public class LocalFileBackend extends FileBackend {
     }
 
     @Override
-    public boolean load(FileScope scope) throws Exception {
-        Path file = Paths.get(scope.getFile());
-        GyroCore.verifyConfig(file);
+    public boolean load(RootScope scope) throws Exception {
 
-        if (file.toString().endsWith(".state")) {
-            file = getStatePath(file);
+        if (scope.getInitScope() != null) {
+            Path file = Paths.get(scope.getInitScope().getFile());
+            GyroCore.verifyConfig(file);
+
+            if (!Files.exists(file) || Files.isDirectory(file)) {
+                return false;
+            }
+
+            GyroLexer lexer = new GyroLexer(CharStreams.fromFileName(file.toString()));
+            CommonTokenStream stream = new CommonTokenStream(lexer);
+            GyroParser parser = new GyroParser(stream);
+            GyroErrorListener errorListener = new GyroErrorListener();
+
+            parser.removeErrorListeners();
+            parser.addErrorListener(errorListener);
+
+            GyroParser.FileContext fileContext = parser.file();
+
+            if (errorListener.getSyntaxErrors() > 0) {
+                throw new GyroLanguageException(errorListener.getSyntaxErrors() + " errors while parsing.");
+            }
+
+            // defer error
+            Node.create(fileContext).evaluate(scope.getInitScope());
         }
 
-        if (!Files.exists(file) || Files.isDirectory(file)) {
-            return false;
+        Path rootPath = GyroCore.findRootDirectory(Paths.get("").toAbsolutePath());
+        Set<Path> paths;
+        if (scope.getCurrent() != null) {
+            paths = Files.find(rootPath.getParent(), 100,
+                (p, b) -> b.isRegularFile()
+                    && p.toString().endsWith(".gyro")
+                    && !p.toString().startsWith(rootPath.toString()))
+                .collect(Collectors.toSet());
+        } else {
+            paths = Files.find(rootPath, 100,
+                (p, b) -> b.isRegularFile()
+                    && p.toString().endsWith(".gyro.state"))
+                .collect(Collectors.toSet());
         }
 
-        GyroLexer lexer = new GyroLexer(CharStreams.fromFileName(file.toString()));
-        CommonTokenStream stream = new CommonTokenStream(lexer);
-        GyroParser parser = new GyroParser(stream);
-        GyroErrorListener errorListener = new GyroErrorListener();
-
-        parser.removeErrorListeners();
-        parser.addErrorListener(errorListener);
-
-        GyroParser.FileContext fileContext = parser.file();
-
-        if (errorListener.getSyntaxErrors() > 0) {
-            throw new GyroLanguageException(errorListener.getSyntaxErrors() + " errors while parsing.");
+        for (Path path : paths) {
+            FileScope fileScope = new FileScope(scope, path.toString());
+            scope.getFileScopes().add(fileScope);
         }
 
-        Node.create(fileContext).evaluate(scope);
+        for (FileScope fileScope : scope.getFileScopes()) {
+            Path file = Paths.get(fileScope.getFile());
+            GyroCore.verifyConfig(file);
+
+            if (!Files.exists(file) || Files.isDirectory(file)) {
+                return false;
+            }
+
+            GyroLexer lexer = new GyroLexer(CharStreams.fromFileName(file.toString()));
+            CommonTokenStream stream = new CommonTokenStream(lexer);
+            GyroParser parser = new GyroParser(stream);
+            GyroErrorListener errorListener = new GyroErrorListener();
+
+            parser.removeErrorListeners();
+            parser.addErrorListener(errorListener);
+
+            GyroParser.FileContext fileContext = parser.file();
+
+            if (errorListener.getSyntaxErrors() > 0) {
+                throw new GyroLanguageException(errorListener.getSyntaxErrors() + " errors while parsing.");
+            }
+
+            // defer error
+            Node.create(fileContext).evaluate(fileScope);
+        }
 
         return true;
     }
 
     @Override
-    public void save(FileScope scope) throws IOException {
-        String file = scope.getFile();
+    public void save(RootScope scope) throws IOException {
+        for (FileScope fileScope : scope.getFileScopes()) {
+            String file = fileScope.getFile();
 
-        if (!file.endsWith(".state")) {
-            file += ".state";
-        }
+            Path newFile = Files.createTempFile("local-file-backend-", ".gyro.state");
 
-        Path newFile = Files.createTempFile("local-file-backend-", ".gyro.state");
-
-        try {
-            try (BufferedWriter out = new BufferedWriter(
+            try {
+                try (BufferedWriter out = new BufferedWriter(
                     new OutputStreamWriter(
-                            Files.newOutputStream(newFile),
-                            StandardCharsets.UTF_8))) {
+                        Files.newOutputStream(newFile),
+                        StandardCharsets.UTF_8))) {
 
-                Path dir = Paths.get(file).getParent();
+                    Path dir = Paths.get(file).getParent();
 
-                for (FileScope i : scope.getImports()) {
-                    String importFile = i.getFile();
+                    for (FileScope i : fileScope.getImports()) {
+                        String importFile = i.getFile();
 
-                    if (!importFile.endsWith(".state")) {
-                        importFile += ".state";
+                        if (!importFile.endsWith(".state")) {
+                            importFile += ".state";
+                        }
+
+                        out.write("@import ");
+                        out.write(dir != null ? dir.relativize(Paths.get(importFile)).toString() : importFile);
+                        out.write('\n');
                     }
 
-                    out.write("@import ");
-                    out.write(dir != null ? dir.relativize(Paths.get(importFile)).toString() : importFile);
-                    out.write('\n');
-                }
+                    for (PluginLoader pluginLoader : fileScope.getPluginLoaders()) {
+                        out.write(pluginLoader.toString());
+                    }
 
-                for (PluginLoader pluginLoader : scope.getPluginLoaders()) {
-                    out.write(pluginLoader.toString());
-                }
-
-                for (Object value : scope.values()) {
-                    if (value instanceof Resource) {
-                        out.write(((Resource) value).toNode().toString());
+                    for (Object value : fileScope.values()) {
+                        if (value instanceof Resource) {
+                            out.write(((Resource) value).toNode().toString());
+                        }
                     }
                 }
-            }
 
-            Files.move(
+                Files.move(
                     newFile,
-                    getStatePath(Paths.get(file)),
+                    Paths.get(file),
                     StandardCopyOption.ATOMIC_MOVE,
                     StandardCopyOption.REPLACE_EXISTING);
 
-        } catch (IOException error) {
-            Files.deleteIfExists(newFile);
-            throw error;
+            } catch (IOException error) {
+                Files.deleteIfExists(newFile);
+                throw error;
+            }
         }
     }
 
     @Override
     public void delete(String path) {
 
-    }
-
-    private Path getStatePath(Path file) throws IOException {
-        Path rootDir = GyroCore.findPluginPath().getParent().getParent();
-        Path relative = rootDir.relativize(file.toAbsolutePath());
-        Path statePath = Paths.get(rootDir.toString(), ".gyro", "state", relative.toString());
-
-        if (statePath.toFile().getParentFile() != null && !statePath.toFile().getParentFile().exists()) {
-            statePath.toFile().getParentFile().mkdirs();
-        }
-
-        return statePath;
     }
 }

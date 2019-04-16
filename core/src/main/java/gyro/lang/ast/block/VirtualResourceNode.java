@@ -35,7 +35,7 @@ public class VirtualResourceNode extends BlockNode {
 
     public void createResources(String prefix, Scope paramScope) throws Exception {
         FileScope paramFileScope = paramScope.getFileScope();
-        RootScope vrScope = new RootScope(paramFileScope.getFile());
+        RootScope vrScope = new RootScope();
 
         for (VirtualResourceParameter param : params) {
             String paramName = param.getName();

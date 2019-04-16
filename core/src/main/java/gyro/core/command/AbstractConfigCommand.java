@@ -10,12 +10,9 @@ import gyro.core.resource.Resource;
 import gyro.core.scope.FileScope;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.State;
-import com.psddev.dari.util.StringUtils;
 import io.airlift.airline.Arguments;
 import io.airlift.airline.Option;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -45,26 +42,11 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
     @Override
     protected void doExecute() throws Exception {
-        if (arguments().size() < 1) {
-            throw new GyroException("Gyro configuration file required.");
-        }
-
         core = new GyroCore();
 
         FileBackend backend = new LocalFileBackend();
-
-        String file = StringUtils.ensureEnd(arguments().get(0), ".gyro");
-        if (!Files.exists(Paths.get(file))) {
-            throw new GyroException(String.format("File '%s' not found.", file));
-        }
-
-        file += ".state";
-
-        RootScope current = new RootScope(file);
+        RootScope current = new RootScope();
         RootScope pending = new RootScope(current);
-
-        loadPlugins(current);
-        loadPlugins(pending);
 
         try {
             backend.load(current);
@@ -92,42 +74,37 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         doExecute(current, pending, new State(pending, test));
     }
 
-    private void refreshCredentials(FileScope scope) {
-        scope.getImports().forEach(this::refreshCredentials);
-
-        scope.values()
+    private void refreshCredentials(RootScope scope) {
+        for (FileScope fileScope : scope.getFileScopes()) {
+            fileScope.values()
                 .stream()
                 .filter(Credentials.class::isInstance)
                 .map(Credentials.class::cast)
                 .forEach(c -> c.findCredentials(true));
+        }
     }
 
-    private void refreshResources(FileScope scope) {
-        scope.getImports().forEach(this::refreshResources);
+    private void refreshResources(RootScope scope) {
+        for (FileScope fileScope : scope.getFileScopes()) {
+            for (Iterator<Map.Entry<String, Object>> i = fileScope.entrySet().iterator(); i.hasNext(); ) {
+                Object value = i.next().getValue();
 
-        for (Iterator<Map.Entry<String, Object>> i = scope.entrySet().iterator(); i.hasNext();) {
-            Object value = i.next().getValue();
+                if (value instanceof Resource && !(value instanceof Credentials)) {
+                    Resource resource = (Resource) value;
 
-            if (value instanceof Resource && !(value instanceof Credentials)) {
-                Resource resource = (Resource) value;
-
-                GyroCore.ui().write(
+                    GyroCore.ui().write(
                         "@|bold,blue Refreshing|@: @|yellow %s|@ -> %s...",
                         resource.resourceType(),
                         resource.resourceIdentifier());
 
-                if (!resource.refresh()) {
-                    i.remove();
-                }
+                    if (!resource.refresh()) {
+                        i.remove();
+                    }
 
-                GyroCore.ui().write("\n");
+                    GyroCore.ui().write("\n");
+                }
             }
         }
     }
 
-    private void loadPlugins(RootScope scope) throws Exception {
-        FileScope parentFileScope = scope.getFileScope();
-        FileScope pluginScope = new FileScope(parentFileScope, GyroCore.findPluginPath().toString());
-        parentFileScope.getBackend().load(pluginScope);
-    }
 }
