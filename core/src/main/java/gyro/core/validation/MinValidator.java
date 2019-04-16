@@ -3,18 +3,18 @@ package gyro.core.validation;
 import java.util.List;
 import java.util.Map;
 
-public class MinValidator extends AnnotationNumberBaseProcessor<Min> {
+public class MinValidator extends AbstractNumberValidator<Min> {
     private static MinValidator constructor = new MinValidator();
 
     private MinValidator() {
     }
 
-    public static AnnotationProcessor getAnnotationProcessor() {
+    public static Validator getAnnotationProcessor() {
         return constructor;
     }
 
     @Override
-    boolean doValidation(Object value) {
+    boolean validate(Object value) {
         if (value instanceof Number) {
             double valueCheck = ValidationUtils.getDoubleValue(value);
 

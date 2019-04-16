@@ -4,11 +4,13 @@ import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Map;
 
-public abstract class AnnotationNumberBaseProcessor<A extends Annotation> extends AnnotationBaseProcessor<A> {
+public abstract class AbstractNumberValidator<A extends Annotation> extends AbstractValidator<A> {
     boolean isDouble = false;
 
     @Override
-    public boolean isValid(Object value) {
+    public boolean isValid(A annotation, Object value) {
+        this.annotation = annotation;
+
         if (value == null) {
             return true;
         }
@@ -16,7 +18,7 @@ public abstract class AnnotationNumberBaseProcessor<A extends Annotation> extend
         setIsDouble(value);
         setValueType(value);
 
-        return doValidation(value);
+        return validate(value);
     }
 
     private void setIsDouble(Object value) {

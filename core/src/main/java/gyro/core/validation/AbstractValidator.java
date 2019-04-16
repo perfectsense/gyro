@@ -4,29 +4,26 @@ import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Map;
 
-public abstract class AnnotationBaseProcessor<A extends Annotation> implements AnnotationProcessor<A> {
+public abstract class AbstractValidator<A extends Annotation> implements Validator<A> {
     A annotation;
 
     ValueType valueType;
 
     enum ValueType { SINGLE, LIST, MAP }
 
-    abstract boolean doValidation(Object value);
+    abstract boolean validate(Object value);
 
     @Override
-    public void initialize(A annotation) {
+    public boolean isValid(A annotation, Object value) {
         this.annotation = annotation;
-    }
 
-    @Override
-    public boolean isValid(Object value) {
         if (value == null) {
             return true;
         }
 
         setValueType(value);
 
-        return doValidation(value);
+        return validate(value);
     }
 
     void setValueType(Object value) {

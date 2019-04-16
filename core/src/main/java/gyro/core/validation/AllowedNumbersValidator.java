@@ -7,18 +7,18 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-public class AllowedNumbersValidator extends AnnotationNumberBaseProcessor<AllowedNumbers> {
+public class AllowedNumbersValidator extends AbstractNumberValidator<AllowedNumbers> {
     private static AllowedNumbersValidator constructor = new AllowedNumbersValidator();
 
     private AllowedNumbersValidator() {
     }
 
-    public static AnnotationProcessor getAnnotationProcessor() {
+    public static Validator getAnnotationProcessor() {
         return constructor;
     }
 
     @Override
-    boolean doValidation(Object value) {
+    boolean validate(Object value) {
         HashSet<Double> validValues = new HashSet(Doubles.asList(annotation.value()));
         if (value instanceof Number) {
             double valueCheck = ValidationUtils.getDoubleValue(value);

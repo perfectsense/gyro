@@ -3,18 +3,18 @@ package gyro.core.validation;
 import java.util.List;
 import java.util.Map;
 
-public class RangeValidator extends AnnotationNumberBaseProcessor<Range> {
+public class RangeValidator extends AbstractNumberValidator<Range> {
     private static RangeValidator constructor = new RangeValidator();
 
     private RangeValidator() {
     }
 
-    public static AnnotationProcessor getAnnotationProcessor() {
+    public static Validator getAnnotationProcessor() {
         return constructor;
     }
 
     @Override
-    boolean doValidation(Object value) {
+    boolean validate(Object value) {
         if (value instanceof Number) {
             double valueCheck = ValidationUtils.getDoubleValue(value);
 

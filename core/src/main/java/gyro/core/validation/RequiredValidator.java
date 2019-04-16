@@ -1,13 +1,13 @@
 package gyro.core.validation;
 
-public class RequiredValidator implements AnnotationProcessor<Required> {
+public class RequiredValidator implements Validator<Required> {
     private Required annotation;
     private static RequiredValidator constructor = null;
 
     private RequiredValidator() {
     }
 
-    public static AnnotationProcessor getAnnotationProcessor() {
+    public static Validator getAnnotationProcessor() {
         if (constructor == null) {
             constructor = new RequiredValidator();
         }
@@ -16,13 +16,10 @@ public class RequiredValidator implements AnnotationProcessor<Required> {
     }
 
     @Override
-    public boolean isValid(Object value) {
-        return ValidationUtils.isNotNullOrEmpty(value);
-    }
-
-    @Override
-    public void initialize(Required annotation) {
+    public boolean isValid(Required annotation, Object value) {
         this.annotation = annotation;
+
+        return ValidationUtils.isNotNullOrEmpty(value);
     }
 
     @Override

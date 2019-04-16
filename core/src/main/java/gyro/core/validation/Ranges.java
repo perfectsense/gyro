@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 @Documented
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-@RepeatableAnnotationProcessorClass(RangesProcessor.class)
+@RepeatableAnnotationProcessorClass(RangesValidator.class)
 public @interface Ranges {
     Range[] value();
 

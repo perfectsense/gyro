@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-public abstract class AnnotationStringBaseProcessor<A extends Annotation> extends AnnotationBaseProcessor<A> {
+public abstract class AbstractStringValidator<A extends Annotation> extends AbstractValidator<A> {
     List<String> getValuesToCheck(Object value) {
         List<String> valueChecks = new ArrayList<>();
 

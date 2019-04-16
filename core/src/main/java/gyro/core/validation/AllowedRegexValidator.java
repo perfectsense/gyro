@@ -3,18 +3,18 @@ package gyro.core.validation;
 import java.util.Arrays;
 import java.util.List;
 
-public class AllowedRegexValidator extends AnnotationStringBaseProcessor<AllowedRegex> {
+public class AllowedRegexValidator extends AbstractStringValidator<AllowedRegex> {
     private static AllowedRegexValidator constructor = new AllowedRegexValidator();
 
     private AllowedRegexValidator() {
     }
 
-    public static AnnotationProcessor getAnnotationProcessor() {
+    public static Validator getAnnotationProcessor() {
         return constructor;
     }
 
     @Override
-    boolean doValidation(Object value) {
+    boolean validate(Object value) {
         List<String> validValues = Arrays.asList(annotation.value());
         List<String> valueChecks = getValuesToCheck(value);
 

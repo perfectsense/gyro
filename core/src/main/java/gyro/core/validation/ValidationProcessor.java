@@ -113,10 +113,10 @@ public class ValidationProcessor {
         if (annotationProcessorClass != null) {
             if (!isValueReference(method, diffable) || invokeObject != null) {
                 try {
-                    AnnotationProcessor annotationProcessor = getAnnotationProcessor(annotation, annotationProcessorClass);
-                    if (!annotationProcessor.isValid(invokeObject)) {
+                    Validator validator = getAnnotationProcessor(annotation, annotationProcessorClass);
+                    if (!validator.isValid(annotation, invokeObject)) {
                         validationMessage = String.format("%s· %s: %s. %s", indent,
-                            ValidationUtils.getFieldName(method.getName()), invokeObject, annotationProcessor.getMessage());
+                            ValidationUtils.getFieldName(method.getName()), invokeObject, validator.getMessage());
                     }
                 } catch (ClassNotFoundException | NoSuchMethodException ex) {
                     ex.printStackTrace();
@@ -127,13 +127,11 @@ public class ValidationProcessor {
         return validationMessage;
     }
 
-    private static AnnotationProcessor getAnnotationProcessor(Annotation annotation, AnnotationProcessorClass annotationProcessorClass)
+    private static Validator getAnnotationProcessor(Annotation annotation, AnnotationProcessorClass annotationProcessorClass)
         throws IllegalAccessException, InvocationTargetException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException {
         Class<?> cls = Class.forName(annotationProcessorClass.value().getName());
         Method getProcessor = cls.getMethod("getAnnotationProcessor");
-        AnnotationProcessor annotationProcessor = (AnnotationProcessor) getProcessor.invoke(cls);
-        annotationProcessor.initialize(annotation);
-        return annotationProcessor;
+        return (Validator) getProcessor.invoke(cls);
     }
 
     private static List<String> validateRepeatableAnnotation(Annotation annotation, Object object, String indent, Method method) {
@@ -142,7 +140,7 @@ public class ValidationProcessor {
             RepeatableAnnotationProcessorClass annotationProcessorClass = annotation.annotationType()
                 .getAnnotation(RepeatableAnnotationProcessorClass.class);
             if (annotationProcessorClass != null) {
-                RepeatableAnnotationProcessor annotationProcessor = getRepeatableAnnotationProcessor(annotation, annotationProcessorClass);
+                RepeatableValidator annotationProcessor = getRepeatableAnnotationProcessor(annotation, annotationProcessorClass);
 
                 List<String> validations = (List<String>) annotationProcessor.getValidations(object);
 
@@ -161,14 +159,14 @@ public class ValidationProcessor {
         return validationMessages;
     }
 
-    private static RepeatableAnnotationProcessor getRepeatableAnnotationProcessor(Annotation annotation,
-                                                                                  RepeatableAnnotationProcessorClass annotationProcessorClass)
+    private static RepeatableValidator getRepeatableAnnotationProcessor(Annotation annotation,
+                                                                        RepeatableAnnotationProcessorClass annotationProcessorClass)
         throws IllegalAccessException, InvocationTargetException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException {
         Class<?> cls = Class.forName(annotationProcessorClass.value().getName());
         Method getProcessor = cls.getMethod("getRepeatableAnnotationProcessor");
-        RepeatableAnnotationProcessor repeatableAnnotationProcessor = (RepeatableAnnotationProcessor) getProcessor.invoke(cls);
-        repeatableAnnotationProcessor.initialize(annotation);
-        return repeatableAnnotationProcessor;
+        RepeatableValidator repeatableValidator = (RepeatableValidator) getProcessor.invoke(cls);
+        repeatableValidator.initialize(annotation);
+        return repeatableValidator;
     }
 
     private static boolean isValueReference(Method method, Diffable diffable) {

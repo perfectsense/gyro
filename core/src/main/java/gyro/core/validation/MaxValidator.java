@@ -3,18 +3,18 @@ package gyro.core.validation;
 import java.util.List;
 import java.util.Map;
 
-public class MaxValidator extends AnnotationNumberBaseProcessor<Max> {
+public class MaxValidator extends AbstractNumberValidator<Max> {
     private static MaxValidator constructor = new MaxValidator();
 
     private MaxValidator() {
     }
 
-    public static AnnotationProcessor getAnnotationProcessor() {
+    public static Validator getAnnotationProcessor() {
         return constructor;
     }
 
     @Override
-    boolean doValidation(Object value) {
+    boolean validate(Object value) {
         if (value instanceof Number) {
             double valueCheck = ValidationUtils.getDoubleValue(value);
 

@@ -11,5 +11,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.ANNOTATION_TYPE)
 public @interface RepeatableAnnotationProcessorClass {
-    Class<? extends RepeatableAnnotationProcessor<? extends Annotation>> value();
+    Class<? extends RepeatableValidator<? extends Annotation>> value();
 }

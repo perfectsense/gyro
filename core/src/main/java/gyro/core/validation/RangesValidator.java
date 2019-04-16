@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class RangesProcessor extends RepeatableAnnotationBaseProcessor<Ranges> {
-    private static RangesProcessor constructor = new RangesProcessor();
+public class RangesValidator extends AbstractRepeatableValidator<Ranges> {
+    private static RangesValidator constructor = new RangesValidator();
 
-    private RangesProcessor() {
+    private RangesValidator() {
 
     }
 
-    public static RepeatableAnnotationProcessor getRepeatableAnnotationProcessor() {
+    public static RepeatableValidator getRepeatableAnnotationProcessor() {
         return constructor;
     }
 
@@ -19,7 +19,7 @@ public class RangesProcessor extends RepeatableAnnotationBaseProcessor<Ranges> {
     public List<String> getValidations(Object value) {
         List<String> validationMessages = new ArrayList<>();
 
-        AnnotationProcessor annotationProcessor = RangeValidator.getAnnotationProcessor();
+        Validator validator = RangeValidator.getAnnotationProcessor();
 
         List<String> rangesString = new ArrayList<>();
 
@@ -37,9 +37,8 @@ public class RangesProcessor extends RepeatableAnnotationBaseProcessor<Ranges> {
             rangesString = new ArrayList<>();
 
             for (Range range : annotation.value()) {
-                annotationProcessor.initialize(range);
-                if (!annotationProcessor.isValid(val)) {
-                    if (((RangeValidator) annotationProcessor).isDouble) {
+                if (!validator.isValid(range, val)) {
+                    if (((RangeValidator) validator).isDouble) {
                         rangesString.add(String.format("[%s - %s]",
                             range.low(),
                             range.high()));
