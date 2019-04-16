@@ -4,7 +4,5 @@ import java.lang.annotation.Annotation;
 import java.util.List;
 
 public interface RepeatableValidator<A extends Annotation> {
-    void initialize(A annotation);
-
-    List<String> getValidations(Object value);
+    List<String> getValidations(A annotation, Object value);
 }

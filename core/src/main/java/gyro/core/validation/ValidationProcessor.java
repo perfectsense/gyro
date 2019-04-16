@@ -1,5 +1,8 @@
 package gyro.core.validation;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.psddev.dari.util.ObjectUtils;
 import gyro.core.diff.Diffable;
 
@@ -8,6 +11,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 public class ValidationProcessor {
@@ -99,7 +103,7 @@ public class ValidationProcessor {
                 }
             }
 
-        } catch (IllegalAccessException | InvocationTargetException | IllegalArgumentException ex) {
+        } catch (IllegalAccessException | InvocationTargetException ex) {
             ex.printStackTrace();
         }
 
@@ -107,18 +111,18 @@ public class ValidationProcessor {
     }
 
     private static String validateFieldAnnotation(Object invokeObject, Annotation annotation, Method method, Diffable diffable, String indent)
-        throws IllegalAccessException, InvocationTargetException, IllegalArgumentException {
+        throws IllegalArgumentException {
         String validationMessage = "";
         AnnotationProcessorClass annotationProcessorClass = annotation.annotationType().getAnnotation(AnnotationProcessorClass.class);
         if (annotationProcessorClass != null) {
             if (!isValueReference(method, diffable) || invokeObject != null) {
                 try {
-                    Validator validator = getAnnotationProcessor(annotation, annotationProcessorClass);
+                    Validator validator = (Validator) SINGLETONS.get(annotationProcessorClass.value());
                     if (!validator.isValid(annotation, invokeObject)) {
                         validationMessage = String.format("%s· %s: %s. %s", indent,
                             ValidationUtils.getFieldName(method.getName()), invokeObject, validator.getMessage());
                     }
-                } catch (ClassNotFoundException | NoSuchMethodException ex) {
+                } catch (ExecutionException ex) {
                     ex.printStackTrace();
                 }
             }
@@ -127,22 +131,15 @@ public class ValidationProcessor {
         return validationMessage;
     }
 
-    private static Validator getAnnotationProcessor(Annotation annotation, AnnotationProcessorClass annotationProcessorClass)
-        throws IllegalAccessException, InvocationTargetException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException {
-        Class<?> cls = Class.forName(annotationProcessorClass.value().getName());
-        Method getProcessor = cls.getMethod("getAnnotationProcessor");
-        return (Validator) getProcessor.invoke(cls);
-    }
-
     private static List<String> validateRepeatableAnnotation(Annotation annotation, Object object, String indent, Method method) {
         List<String> validationMessages = new ArrayList<>();
         try {
             RepeatableAnnotationProcessorClass annotationProcessorClass = annotation.annotationType()
                 .getAnnotation(RepeatableAnnotationProcessorClass.class);
             if (annotationProcessorClass != null) {
-                RepeatableValidator annotationProcessor = getRepeatableAnnotationProcessor(annotation, annotationProcessorClass);
+                RepeatableValidator annotationProcessor = (RepeatableValidator) SINGLETONS.get(annotationProcessorClass.value());
 
-                List<String> validations = (List<String>) annotationProcessor.getValidations(object);
+                List<String> validations = (List<String>) annotationProcessor.getValidations(annotation, object);
 
                 if (!validations.isEmpty()) {
                     if (method != null) {
@@ -153,24 +150,22 @@ public class ValidationProcessor {
                     }
                 }
             }
-        } catch (IllegalAccessException | InvocationTargetException | IllegalArgumentException | ClassNotFoundException | NoSuchMethodException ex) {
+        } catch (ExecutionException ex) {
             ex.printStackTrace();
         }
         return validationMessages;
-    }
-
-    private static RepeatableValidator getRepeatableAnnotationProcessor(Annotation annotation,
-                                                                        RepeatableAnnotationProcessorClass annotationProcessorClass)
-        throws IllegalAccessException, InvocationTargetException, IllegalArgumentException, ClassNotFoundException, NoSuchMethodException {
-        Class<?> cls = Class.forName(annotationProcessorClass.value().getName());
-        Method getProcessor = cls.getMethod("getRepeatableAnnotationProcessor");
-        RepeatableValidator repeatableValidator = (RepeatableValidator) getProcessor.invoke(cls);
-        repeatableValidator.initialize(annotation);
-        return repeatableValidator;
     }
 
     private static boolean isValueReference(Method method, Diffable diffable) {
         // find out if method returns null as it has a ref
         return false;
     }
+
+    private static final LoadingCache<Class<?>, Object> SINGLETONS = CacheBuilder.newBuilder()
+        .weakKeys()
+        .build(new CacheLoader<Class<?>, Object>() {
+            public Object load(Class<?> c) throws IllegalAccessException, InstantiationException {
+                return c.newInstance();
+            }
+        });
 }

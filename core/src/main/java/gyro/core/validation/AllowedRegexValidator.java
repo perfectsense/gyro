@@ -4,15 +4,6 @@ import java.util.Arrays;
 import java.util.List;
 
 public class AllowedRegexValidator extends AbstractStringValidator<AllowedRegex> {
-    private static AllowedRegexValidator constructor = new AllowedRegexValidator();
-
-    private AllowedRegexValidator() {
-    }
-
-    public static Validator getAnnotationProcessor() {
-        return constructor;
-    }
-
     @Override
     boolean validate(Object value) {
         List<String> validValues = Arrays.asList(annotation.value());

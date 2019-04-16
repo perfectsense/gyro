@@ -8,15 +8,6 @@ import java.util.List;
 import java.util.Map;
 
 public class AllowedNumbersValidator extends AbstractNumberValidator<AllowedNumbers> {
-    private static AllowedNumbersValidator constructor = new AllowedNumbersValidator();
-
-    private AllowedNumbersValidator() {
-    }
-
-    public static Validator getAnnotationProcessor() {
-        return constructor;
-    }
-
     @Override
     boolean validate(Object value) {
         HashSet<Double> validValues = new HashSet(Doubles.asList(annotation.value()));

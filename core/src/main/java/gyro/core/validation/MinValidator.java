@@ -4,15 +4,6 @@ import java.util.List;
 import java.util.Map;
 
 public class MinValidator extends AbstractNumberValidator<Min> {
-    private static MinValidator constructor = new MinValidator();
-
-    private MinValidator() {
-    }
-
-    public static Validator getAnnotationProcessor() {
-        return constructor;
-    }
-
     @Override
     boolean validate(Object value) {
         if (value instanceof Number) {

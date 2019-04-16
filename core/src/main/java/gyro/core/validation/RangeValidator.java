@@ -4,15 +4,6 @@ import java.util.List;
 import java.util.Map;
 
 public class RangeValidator extends AbstractNumberValidator<Range> {
-    private static RangeValidator constructor = new RangeValidator();
-
-    private RangeValidator() {
-    }
-
-    public static Validator getAnnotationProcessor() {
-        return constructor;
-    }
-
     @Override
     boolean validate(Object value) {
         if (value instanceof Number) {

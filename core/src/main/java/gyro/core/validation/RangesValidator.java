@@ -5,21 +5,13 @@ import java.util.List;
 import java.util.Map;
 
 public class RangesValidator extends AbstractRepeatableValidator<Ranges> {
-    private static RangesValidator constructor = new RangesValidator();
-
-    private RangesValidator() {
-
-    }
-
-    public static RepeatableValidator getRepeatableAnnotationProcessor() {
-        return constructor;
-    }
-
     @Override
-    public List<String> getValidations(Object value) {
+    public List<String> getValidations(Ranges annotation, Object value) {
+        this.annotation = annotation;
+
         List<String> validationMessages = new ArrayList<>();
 
-        Validator validator = RangeValidator.getAnnotationProcessor();
+        RangeValidator validator = new RangeValidator();
 
         List<String> rangesString = new ArrayList<>();
 

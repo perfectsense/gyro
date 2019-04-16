@@ -4,9 +4,4 @@ import java.lang.annotation.Annotation;
 
 public abstract class AbstractRepeatableValidator<A extends Annotation> implements RepeatableValidator<A> {
     public A annotation;
-
-    @Override
-    public void initialize(A annotation) {
-        this.annotation = annotation;
-    }
 }
