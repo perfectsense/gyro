@@ -2,7 +2,7 @@ package gyro.core.validation;
 
 public class MaxValidator extends AbstractValidator<Max> {
     @Override
-    boolean validate(Max annotation, Object value) {
+    protected boolean validate(Max annotation, Object value) {
         if (value instanceof Number) {
             double valueCheck = ((Number) value).doubleValue();
 

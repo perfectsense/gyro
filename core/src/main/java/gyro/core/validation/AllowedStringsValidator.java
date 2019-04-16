@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 public class AllowedStringsValidator extends AbstractValidator<AllowedStrings> {
     @Override
-    boolean validate(AllowedStrings annotation, Object value) {
+    protected boolean validate(AllowedStrings annotation, Object value) {
         if (value instanceof String) {
             return Arrays.asList(annotation.value()).contains(value);
         }

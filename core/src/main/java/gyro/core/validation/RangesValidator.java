@@ -5,7 +5,7 @@ import java.util.List;
 
 public class RangesValidator extends AbstractValidator<Ranges> {
     @Override
-    boolean validate(Ranges annotation, Object value) {
+    protected boolean validate(Ranges annotation, Object value) {
         RangeValidator validator = new RangeValidator();
 
         for (Range range : annotation.value()) {

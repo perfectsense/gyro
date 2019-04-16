@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 public class AllowedRegexValidator extends AbstractValidator<AllowedRegex> {
     @Override
-    boolean validate(AllowedRegex annotation, Object value) {
+    protected boolean validate(AllowedRegex annotation, Object value) {
         if (value instanceof String) {
             return Arrays.stream(annotation.value()).anyMatch(((String) value)::matches);
         }

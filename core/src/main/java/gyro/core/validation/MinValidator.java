@@ -2,7 +2,7 @@ package gyro.core.validation;
 
 public class MinValidator extends AbstractValidator<Min> {
     @Override
-    boolean validate(Min annotation, Object value) {
+    protected boolean validate(Min annotation, Object value) {
         if (value instanceof Number) {
             double valueCheck = ((Number) value).doubleValue();
 

@@ -2,7 +2,7 @@ package gyro.core.validation;
 
 public class RangeValidator extends AbstractValidator<Range> {
     @Override
-    boolean validate(Range annotation, Object value) {
+    protected boolean validate(Range annotation, Object value) {
         if (value instanceof Number) {
             double valueCheck = ((Number) value).doubleValue();
 

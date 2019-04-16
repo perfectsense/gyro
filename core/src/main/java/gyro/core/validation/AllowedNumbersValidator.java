@@ -4,7 +4,7 @@ import java.util.Arrays;
 
 public class AllowedNumbersValidator extends AbstractValidator<AllowedNumbers> {
     @Override
-    boolean validate(AllowedNumbers annotation, Object value) {
+    protected boolean validate(AllowedNumbers annotation, Object value) {
         if (value instanceof Number) {
             double valueCheck = ((Number) value).doubleValue();
             return Arrays.stream(annotation.value()).anyMatch(o -> o == valueCheck);
