@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 public abstract class AbstractValidator<A extends Annotation> implements Validator<A> {
-    abstract boolean validate(A annotation, Object value);
+    protected abstract boolean validate(A annotation, Object value);
 
     @Override
     public boolean isValid(A annotation, Object value) {
