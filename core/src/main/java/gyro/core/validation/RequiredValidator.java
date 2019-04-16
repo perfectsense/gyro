@@ -1,8 +1,8 @@
 package gyro.core.validation;
 
-public class RequiredValidator implements Validator<Required> {
+public class RequiredValidator extends AbstractValidator<Required> {
     @Override
-    public boolean isValid(Required annotation, Object value) {
+    public boolean validate(Required annotation, Object value) {
         return ValidationUtils.isNotNullOrEmpty(value);
     }
 
