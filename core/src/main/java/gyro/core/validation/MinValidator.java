@@ -37,9 +37,9 @@ public class MinValidator extends AbstractNumberValidator<Min> {
     @Override
     public String getMessage() {
         if (isDouble) {
-            return String.format(annotation.message(), annotation.value());
+            return String.format("Minimum allowed number is %s.", annotation.value());
         } else {
-            return String.format(annotation.message(), (long) annotation.value());
+            return String.format("Minimum allowed number is %s.", (long) annotation.value());
         }
     }
 }

@@ -37,9 +37,9 @@ public class MaxValidator extends AbstractNumberValidator<Max> {
     @Override
     public String getMessage() {
         if (isDouble) {
-            return String.format(annotation.message(), annotation.value());
+            return String.format("Maximum allowed number is %s.", annotation.value());
         } else {
-            return String.format(annotation.message(), (long) annotation.value());
+            return String.format("Maximum allowed number is %s.", (long) annotation.value());
         }
     }
 }

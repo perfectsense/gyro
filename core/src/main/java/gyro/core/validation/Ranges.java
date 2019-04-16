@@ -12,6 +12,4 @@ import java.lang.annotation.Target;
 @RepeatableAnnotationProcessorClass(RangesValidator.class)
 public @interface Ranges {
     Range[] value();
-
-    String message() default "Valid number should be in one of these ranges %s.";
 }

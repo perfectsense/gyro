@@ -36,7 +36,7 @@ public class AllowedNumbersValidator extends AbstractNumberValidator<AllowedNumb
 
     @Override
     public String getMessage() {
-        return String.format(annotation.message(),
+        return String.format("Valid %s should be one of %s.",
             valueType.equals(ValueType.MAP) ? "keys of the map" : (valueType.equals(ValueType.LIST) ? "numbers" : "number"),
             isDouble ? Arrays.toString(annotation.value())
             : Arrays.toString(Arrays.stream(annotation.value()).mapToLong(o -> (long)o).toArray()));

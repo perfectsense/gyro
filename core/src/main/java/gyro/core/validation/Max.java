@@ -12,6 +12,4 @@ import java.lang.annotation.Target;
 @AnnotationProcessorClass(MaxValidator.class)
 public @interface Max {
     double value();
-
-    String message() default "Maximum allowed number is %s.";
 }

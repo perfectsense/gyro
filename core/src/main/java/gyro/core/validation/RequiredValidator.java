@@ -24,6 +24,6 @@ public class RequiredValidator implements Validator<Required> {
 
     @Override
     public String getMessage() {
-        return annotation.message();
+        return "Required field.";
     }
 }

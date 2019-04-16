@@ -12,6 +12,4 @@ import java.lang.annotation.Target;
 @AnnotationProcessorClass(AllowedNumbersValidator.class)
 public @interface AllowedNumbers {
     double [] value();
-
-    String message() default "Valid %s should be one of %s.";
 }

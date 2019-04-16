@@ -28,7 +28,7 @@ public class AllowedStringsValidator extends AbstractStringValidator<AllowedStri
 
     @Override
     public String getMessage() {
-        return String.format(annotation.message(),
+        return String.format("Valid %s should be one of %s.",
             valueType.equals(ValueType.MAP) ? "keys of the map" : (valueType.equals(ValueType.LIST) ? "strings" : "string"),
             Arrays.toString(annotation.value()));
     }

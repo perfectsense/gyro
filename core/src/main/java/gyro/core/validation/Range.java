@@ -16,6 +16,4 @@ public @interface Range {
     double low();
 
     double high();
-
-    String message() default "Valid %s should be in the range of [ %s - %s ].";
 }

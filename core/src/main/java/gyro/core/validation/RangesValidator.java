@@ -58,7 +58,7 @@ public class RangesValidator extends AbstractRepeatableValidator<Ranges> {
         }
 
         if (rangesString.size() == annotation.value().length) {
-            validationMessages.add(String.format(annotation.message(), String.join(", ", rangesString)));
+            validationMessages.add(String.format("Valid number should be in one of these ranges %s.", String.join(", ", rangesString)));
         }
 
         return validationMessages;

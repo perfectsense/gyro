@@ -12,6 +12,4 @@ import java.lang.annotation.Target;
 @AnnotationProcessorClass(AllowedStringsValidator.class)
 public @interface AllowedStrings {
     String[] value();
-
-    String message() default "Valid %s should be one of %s.";
 }

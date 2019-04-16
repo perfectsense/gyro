@@ -12,6 +12,4 @@ import java.lang.annotation.Target;
 @AnnotationProcessorClass(MinValidator.class)
 public @interface Min {
     double value();
-
-    String message() default "Minimum allowed number is %s.";
 }

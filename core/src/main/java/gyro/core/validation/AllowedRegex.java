@@ -14,6 +14,4 @@ public @interface AllowedRegex {
     String[] value();
 
     String[] display() default {};
-
-    String message() default "Valid %s should be one of these formats %s.";
 }
