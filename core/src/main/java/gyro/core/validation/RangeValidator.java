@@ -4,7 +4,7 @@ public class RangeValidator extends AbstractValidator<Range> {
     @Override
     boolean validate(Range annotation, Object value) {
         if (value instanceof Number) {
-            double valueCheck = ValidationUtils.getDoubleValue(value);
+            double valueCheck = ((Number) value).doubleValue();
 
             return valueCheck >= annotation.low() && valueCheck <= annotation.high();
         }

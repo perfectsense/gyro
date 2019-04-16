@@ -4,7 +4,7 @@ public class MinValidator extends AbstractValidator<Min> {
     @Override
     boolean validate(Min annotation, Object value) {
         if (value instanceof Number) {
-            double valueCheck = ValidationUtils.getDoubleValue(value);
+            double valueCheck = ((Number) value).doubleValue();
 
             return valueCheck >= annotation.value();
         }

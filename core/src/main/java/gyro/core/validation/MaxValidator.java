@@ -4,7 +4,7 @@ public class MaxValidator extends AbstractValidator<Max> {
     @Override
     boolean validate(Max annotation, Object value) {
         if (value instanceof Number) {
-            double valueCheck = ValidationUtils.getDoubleValue(value);
+            double valueCheck = ((Number) value).doubleValue();
 
             return valueCheck <= annotation.value();
         }

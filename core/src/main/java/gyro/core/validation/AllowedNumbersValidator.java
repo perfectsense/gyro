@@ -11,7 +11,7 @@ public class AllowedNumbersValidator extends AbstractValidator<AllowedNumbers> {
         HashSet<Double> validValues = new HashSet(Doubles.asList(annotation.value()));
 
         if (value instanceof Number) {
-            double valueCheck = ValidationUtils.getDoubleValue(value);
+            double valueCheck = ((Number) value).doubleValue();
             return validValues.contains(valueCheck);
         }
 
