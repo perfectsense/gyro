@@ -4,7 +4,6 @@ import gyro.core.GyroException;
 import gyro.core.resource.Resource;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
-import gyro.lang.ast.block.FileNode;
 
 import java.util.ArrayList;
 import java.util.HashMap;
