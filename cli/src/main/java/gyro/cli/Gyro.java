@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.lang.reflect.Modifier;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -114,8 +115,7 @@ public class Gyro {
         // Load GYRO_ROOT/.gyro/init.gyro
         Path commandPluginPath = GyroCore.findCommandPluginPath();
         if (commandPluginPath != null) {
-            File plugins = commandPluginPath.toFile();
-            if (plugins.exists() && plugins.isFile()) {
+            if (Files.exists(commandPluginPath) && Files.isRegularFile(commandPluginPath)) {
                 RootScope scope = new RootScope();
                 new LocalFileBackend().load(scope);
 

@@ -54,7 +54,7 @@ public class GyroCore {
         }
 
         Path pluginPath = rootPath.resolve(Paths.get("init.gyro"));
-        if (!pluginPath.toFile().exists()) {
+        if (!Files.exists(pluginPath)) {
             throw new GyroException(message);
         }
 
@@ -72,9 +72,9 @@ public class GyroCore {
 
     public static Path findRootDirectory(Path path) throws IOException {
         while (path != null) {
-            if (path.toFile().isDirectory()) {
+            if (Files.isDirectory(path)) {
                 try (Stream<Path> stream = Files.list(path)) {
-                    Optional<Path> optional = stream.filter(t -> t.toFile().isDirectory()
+                    Optional<Path> optional = stream.filter(t -> Files.isDirectory(t)
                         && t.getFileName() != null
                         && t.getFileName().toString().equals(".gyro")).findAny();
 

@@ -72,7 +72,7 @@ public class FileNode extends BlockNode {
         Path configPath = Paths.get(rootConfig.getCanonicalPath());
         Path pluginPath = GyroCore.findPluginPath();
 
-        if (!plugins.isEmpty() && configPath.toFile().exists() && !Files.isSameFile(pluginPath, configPath)) {
+        if (!plugins.isEmpty() && Files.exists(configPath) && !Files.isSameFile(pluginPath, configPath)) {
             throw new GyroException(String.format("Plugins are only allowed to be defined in '%s'.%nThe following plugins are found in '%s':%n%s",
                 pluginPath,
                 configPath,

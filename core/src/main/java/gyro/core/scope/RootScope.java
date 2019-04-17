@@ -58,10 +58,7 @@ public class RootScope extends Scope {
                     Path rootDir = GyroCore.findPluginPath().getParent().getParent();
                     Path relative = rootDir.relativize(Paths.get(path).toAbsolutePath());
                     Path statePath = Paths.get(rootDir.toString(), ".gyro", "state", relative.toString());
-
-                    if (statePath.toFile().getParentFile() != null && !statePath.toFile().getParentFile().exists()) {
-                        statePath.toFile().getParentFile().mkdirs();
-                    }
+                    Files.createDirectories(statePath.getParent());
 
                     this.activePaths.add(statePath.toString());
                 }

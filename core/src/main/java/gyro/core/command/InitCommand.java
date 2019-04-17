@@ -7,8 +7,11 @@ import gyro.core.GyroException;
 import io.airlift.airline.Arguments;
 import io.airlift.airline.Command;
 
-import java.io.File;
-import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,32 +51,30 @@ public class InitCommand extends AbstractCommand {
             pluginBuilder.append("\n");
         }
 
-        File rootDir = new File(".gyro");
-        if (!rootDir.exists()) {
-            rootDir.mkdirs();
-            File pluginsFile = new File(rootDir, "init.gyro");
-            try (FileWriter writer = new FileWriter(pluginsFile)) {
-                writer.write(pluginBuilder.toString());
+        Path rootDir = Paths.get(".gyro");
+        if (!Files.exists(rootDir)) {
+            Files.createDirectories(rootDir);
+            try (PrintWriter printWriter = new PrintWriter(Files.newBufferedWriter(Paths.get(rootDir.toString(), "init.gyro"), StandardCharsets.UTF_8))) {
+                printWriter.write(pluginBuilder.toString());
             }
 
             GyroCore.ui().write("New Gyro working directory has been created.\n");
 
-        } else if (rootDir.isDirectory()) {
+        } else if (Files.isDirectory(rootDir)) {
             if (GyroCore.ui().readBoolean(
                     Boolean.FALSE,
                     "\nFound existing Gyro working directory at '%s', are you sure you want to update plugins?",
-                    rootDir.getCanonicalPath())) {
+                    rootDir.normalize())) {
 
-                File pluginsFile = new File(rootDir, "init.gyro");
-                try (FileWriter writer = new FileWriter(pluginsFile)) {
-                    writer.write(pluginBuilder.toString());
+                try (PrintWriter printWriter = new PrintWriter(Files.newBufferedWriter(Paths.get(rootDir.toString(), "init.gyro"), StandardCharsets.UTF_8))) {
+                    printWriter.write(pluginBuilder.toString());
                 }
 
                 GyroCore.ui().write("Gyro working directory has been updated.\n");
             }
 
         } else {
-            throw new GyroException(String.format("Unable to update Gyro working directory, file already exist at '%s'", rootDir.getCanonicalPath()));
+            throw new GyroException(String.format("Unable to update Gyro working directory, file already exist at '%s'", rootDir.normalize()));
         }
     }
 }

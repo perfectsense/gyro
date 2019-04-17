@@ -1,6 +1,7 @@
 package gyro.core.scope;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -44,10 +45,7 @@ public class State {
         Path rootDir = GyroCore.findPluginPath().getParent().getParent();
         Path relative = rootDir.relativize(file.toAbsolutePath());
         Path statePath = Paths.get(rootDir.toString(), ".gyro", "state", relative.toString());
-
-        if (statePath.toFile().getParentFile() != null && !statePath.toFile().getParentFile().exists()) {
-            statePath.toFile().getParentFile().mkdirs();
-        }
+        Files.createDirectories(statePath.getParent());
 
         return statePath;
     }
