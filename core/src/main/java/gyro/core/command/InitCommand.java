@@ -18,7 +18,8 @@ import java.util.List;
 @Command(name = "init", description = "Initialize a Gyro working directory.")
 public class InitCommand extends AbstractCommand {
 
-    @Arguments(description = "A list of plugins specified in the format of <group>:<artifact>:<version>. For example: gyro:gyro-aws-provider:0.1-SNAPSHOT")
+    @Arguments(description = "A list of plugins specified in the format of <group>:<artifact>:<version>. "
+        + "For example: gyro:gyro-aws-provider:0.1-SNAPSHOT")
     private List<String> plugins;
 
     public List<String> plugins() {
@@ -35,7 +36,8 @@ public class InitCommand extends AbstractCommand {
         for (String plugin : plugins()) {
             String [] parts = plugin.split(":");
             if (parts.length != 3) {
-                throw new GyroException("Plugins have to be specified in the format of <group>:<artifact>:<version>. For example: gyro:gyro-aws-provider:0.1-SNAPSHOT");
+                throw new GyroException("Plugins have to be specified in the format of <group>:<artifact>:<version>. "
+                     + "For example: gyro:gyro-aws-provider:0.1-SNAPSHOT");
             }
 
             String group = plugin.split(":")[0];
@@ -54,7 +56,9 @@ public class InitCommand extends AbstractCommand {
         Path rootDir = Paths.get(".gyro");
         if (!Files.exists(rootDir)) {
             Files.createDirectories(rootDir);
-            try (PrintWriter printWriter = new PrintWriter(Files.newBufferedWriter(Paths.get(rootDir.toString(), "init.gyro"), StandardCharsets.UTF_8))) {
+            try (PrintWriter printWriter = new PrintWriter(
+                Files.newBufferedWriter(Paths.get(rootDir.toString(), "init.gyro"), StandardCharsets.UTF_8))) {
+
                 printWriter.write(pluginBuilder.toString());
             }
 
@@ -66,7 +70,9 @@ public class InitCommand extends AbstractCommand {
                     "\nFound existing Gyro working directory at '%s', are you sure you want to update plugins?",
                     rootDir.normalize())) {
 
-                try (PrintWriter printWriter = new PrintWriter(Files.newBufferedWriter(Paths.get(rootDir.toString(), "init.gyro"), StandardCharsets.UTF_8))) {
+                try (PrintWriter printWriter = new PrintWriter(
+                    Files.newBufferedWriter(Paths.get(rootDir.toString(), "init.gyro"), StandardCharsets.UTF_8))) {
+
                     printWriter.write(pluginBuilder.toString());
                 }
 
