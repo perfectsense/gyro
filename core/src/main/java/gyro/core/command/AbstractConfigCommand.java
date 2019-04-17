@@ -92,13 +92,12 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
     }
 
     private void refreshCredentials(RootScope scope) {
-        for (FileScope fileScope : scope.getFileScopes()) {
-            fileScope.values()
-                .stream()
-                .filter(Credentials.class::isInstance)
-                .map(Credentials.class::cast)
-                .forEach(c -> c.findCredentials(true));
-        }
+        FileScope fileScope = scope.getInitScope();
+        fileScope.values()
+            .stream()
+            .filter(Credentials.class::isInstance)
+            .map(Credentials.class::cast)
+            .forEach(c -> c.findCredentials(true));
     }
 
     private void refreshResources(RootScope scope) {
