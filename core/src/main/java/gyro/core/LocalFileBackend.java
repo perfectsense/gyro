@@ -23,7 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -38,7 +38,7 @@ public class LocalFileBackend extends FileBackend {
     @Override
     public boolean load(RootScope scope) throws Exception {
 
-        Map<Node, Scope> deferMap = new HashMap<>();
+        Map<Node, Scope> deferMap = new LinkedHashMap<>();
         if (scope.getInitScope() != null) {
             Path file = Paths.get(scope.getInitScope().getFile());
             GyroCore.verifyConfig(file);
