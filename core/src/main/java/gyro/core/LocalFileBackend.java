@@ -38,29 +38,7 @@ public class LocalFileBackend extends FileBackend {
 
         Map<Node, Scope> deferMap = new LinkedHashMap<>();
         if (scope.getInitScope() != null) {
-            Path file = Paths.get(scope.getInitScope().getFile());
-            GyroCore.verifyConfig(file);
-
-            if (!Files.exists(file) || Files.isDirectory(file)) {
-                return false;
-            }
-
-            GyroLexer lexer = new GyroLexer(CharStreams.fromFileName(file.toString()));
-            CommonTokenStream stream = new CommonTokenStream(lexer);
-            GyroParser parser = new GyroParser(stream);
-            GyroErrorListener errorListener = new GyroErrorListener();
-
-            parser.removeErrorListeners();
-            parser.addErrorListener(errorListener);
-
-            GyroParser.FileContext fileContext = parser.file();
-
-            if (errorListener.getSyntaxErrors() > 0) {
-                throw new GyroLanguageException(errorListener.getSyntaxErrors() + " errors while parsing.");
-            }
-
-            // defer error
-            FileNode fileNode = (FileNode) Node.create(fileContext);
+            FileNode fileNode = parseFile(Paths.get(scope.getInitScope().getFile()));
             fileNode.evaluate(scope.getInitScope());
             for (Node node : fileNode.getResourceNodes()) {
                 deferMap.put(node, scope.getInitScope());
@@ -72,35 +50,14 @@ public class LocalFileBackend extends FileBackend {
 
         deferMap.clear();
         for (FileScope fileScope : scope.getFileScopes()) {
-            Path file = Paths.get(fileScope.getFile());
-            GyroCore.verifyConfig(file);
-
-            if (!Files.exists(file) || Files.isDirectory(file)) {
-                return false;
-            }
-
-            GyroLexer lexer = new GyroLexer(CharStreams.fromFileName(file.toString()));
-            CommonTokenStream stream = new CommonTokenStream(lexer);
-            GyroParser parser = new GyroParser(stream);
-            GyroErrorListener errorListener = new GyroErrorListener();
-
-            parser.removeErrorListeners();
-            parser.addErrorListener(errorListener);
-
-            GyroParser.FileContext fileContext = parser.file();
-
-            if (errorListener.getSyntaxErrors() > 0) {
-                throw new GyroLanguageException(errorListener.getSyntaxErrors() + " errors while parsing.");
-            }
-
-            // defer error
-            FileNode fileNode = (FileNode) Node.create(fileContext);
+            FileNode fileNode = parseFile(Paths.get(fileScope.getFile()));
             fileNode.evaluate(fileScope);
             for (Node node : fileNode.getResourceNodes()) {
                 deferMap.put(node, fileScope);
             }
         }
 
+        // defer error
         DeferError.evaluate(deferMap);
         return true;
     }
@@ -146,4 +103,29 @@ public class LocalFileBackend extends FileBackend {
     public void delete(String path) {
 
     }
+
+    private FileNode parseFile(Path file) throws IOException {
+        GyroCore.verifyConfig(file);
+
+        if (!Files.exists(file) || Files.isDirectory(file)) {
+            throw new GyroException(file + " is not a valid gyro config.");
+        }
+
+        GyroLexer lexer = new GyroLexer(CharStreams.fromFileName(file.toString()));
+        CommonTokenStream stream = new CommonTokenStream(lexer);
+        GyroParser parser = new GyroParser(stream);
+        GyroErrorListener errorListener = new GyroErrorListener();
+
+        parser.removeErrorListeners();
+        parser.addErrorListener(errorListener);
+
+        GyroParser.FileContext fileContext = parser.file();
+
+        if (errorListener.getSyntaxErrors() > 0) {
+            throw new GyroLanguageException(errorListener.getSyntaxErrors() + " errors while parsing.");
+        }
+
+        return (FileNode) Node.create(fileContext);
+    }
+
 }
