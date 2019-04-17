@@ -142,8 +142,9 @@ public class DiffableField {
                     && !List.class.isAssignableFrom(setter.getParameterTypes()[0])) {
 
                 value = ((List<?>) value).stream()
-                        .findFirst()
-                        .orElse(null);
+                    .filter(Objects::nonNull)
+                    .findFirst()
+                    .orElse(null);
             }
 
             if (value instanceof String && Resource.class.isAssignableFrom(itemClass)) {

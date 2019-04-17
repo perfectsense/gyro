@@ -97,8 +97,9 @@ public class ResourceFinderField {
                     && !List.class.isAssignableFrom(setter.getParameterTypes()[0])) {
 
                 value = ((List<?>) value).stream()
-                        .findFirst()
-                        .orElse(null);
+                    .filter(Objects::nonNull)
+                    .findFirst()
+                    .orElse(null);
             }
 
             setter.invoke(query, CONVERTER.convert(setter.getGenericParameterTypes()[0], value));
