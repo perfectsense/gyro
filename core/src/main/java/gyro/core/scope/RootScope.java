@@ -32,7 +32,7 @@ public class RootScope extends Scope {
     private final List<FileScope> fileScopes = new ArrayList<>();
     private final FileScope initScope;
     private final Map<String, Resource> resources = new LinkedHashMap<>();
-    private final Set<String> activePaths = new HashSet<>();
+    private final Set<String> activeScopePaths = new HashSet<>();
 
     public RootScope() {
         this(null, Collections.emptySet());
@@ -78,14 +78,14 @@ public class RootScope extends Scope {
                     Path statePath = Paths.get(rootDir.toString(), ".gyro", "state", relative.toString());
                     Files.createDirectories(statePath.getParent());
 
-                    this.activePaths.add(statePath.toString());
+                    this.activeScopePaths.add(statePath.toString());
                 }
             } else {
-                this.activePaths.addAll(activePaths);
+                this.activeScopePaths.addAll(activePaths);
             }
 
         } catch (IOException e) {
-            throw new GyroException("Unable to create init scope!");
+            throw new GyroException(e.getMessage(), e);
         }
 
         put("ENV", System.getenv());
@@ -123,8 +123,8 @@ public class RootScope extends Scope {
         return resources;
     }
 
-    public Set<String> getActivePaths() {
-        return activePaths;
+    public Set<String> getActiveScopePaths() {
+        return activeScopePaths;
     }
 
     public List<Resource> findAllResources() {
@@ -133,14 +133,14 @@ public class RootScope extends Scope {
 
     public List<Resource> findAllActiveResources() {
 
-        if (getActivePaths().isEmpty()) {
+        if (getActiveScopePaths().isEmpty()) {
             return findAllResources();
         }
 
         try {
             List<FileScope> activeFileScopes = new ArrayList<>();
             for (FileScope fileScope : getFileScopes()) {
-                for (String path : activePaths) {
+                for (String path : activeScopePaths) {
                     if (Files.isSameFile(Paths.get(fileScope.getFile()), Paths.get(path))) {
                         activeFileScopes.add(fileScope);
                     }
