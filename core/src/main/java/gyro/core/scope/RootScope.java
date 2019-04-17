@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
@@ -53,23 +54,20 @@ public class RootScope extends Scope {
             initScope = new FileScope(this, GyroCore.findPluginPath().toString());
 
             Path rootPath = GyroCore.findRootDirectory(Paths.get("").toAbsolutePath());
-            Set<Path> paths;
-            if (getCurrent() != null) {
-                paths = Files.find(rootPath.getParent(), 100,
-                    (p, b) -> b.isRegularFile()
-                        && p.toString().endsWith(".gyro")
-                        && !p.toString().startsWith(rootPath.toString()))
-                    .collect(Collectors.toSet());
-            } else {
-                paths = Files.find(rootPath, 100,
-                    (p, b) -> b.isRegularFile()
-                        && p.toString().endsWith(".gyro.state"))
-                    .collect(Collectors.toSet());
-            }
+            try (Stream<Path> pathStream = getCurrent() != null
+                ? Files.find(rootPath.getParent(), 100,
+                        (p, b) -> b.isRegularFile()
+                            && p.toString().endsWith(".gyro")
+                            && !p.toString().startsWith(rootPath.toString()))
 
-            for (Path path : paths) {
-                FileScope fileScope = new FileScope(this, path.toString());
-                getFileScopes().add(fileScope);
+                : Files.find(rootPath, 100,
+                        (p, b) -> b.isRegularFile()
+                            && p.toString().endsWith(".gyro.state"))) {
+
+                for (Path path : pathStream.collect(Collectors.toSet())) {
+                    FileScope fileScope = new FileScope(this, path.toString());
+                    getFileScopes().add(fileScope);
+                }
             }
 
             if (getCurrent() == null) {
