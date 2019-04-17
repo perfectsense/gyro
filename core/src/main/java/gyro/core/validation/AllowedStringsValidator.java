@@ -14,6 +14,6 @@ public class AllowedStringsValidator extends AbstractValidator<AllowedStrings> {
 
     @Override
     public String getMessage(AllowedStrings annotation) {
-        return String.format("Valid value should be on of %s.",Arrays.toString(annotation.value()));
+        return String.format("Valid value should be one of %s.",Arrays.toString(annotation.value()));
     }
 }
