@@ -25,8 +25,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public class LocalFileBackend extends FileBackend {
 
@@ -73,26 +71,6 @@ public class LocalFileBackend extends FileBackend {
         }
 
         deferMap.clear();
-        Path rootPath = GyroCore.findRootDirectory(Paths.get("").toAbsolutePath());
-        Set<Path> paths;
-        if (scope.getCurrent() != null) {
-            paths = Files.find(rootPath.getParent(), 100,
-                (p, b) -> b.isRegularFile()
-                    && p.toString().endsWith(".gyro")
-                    && !p.toString().startsWith(rootPath.toString()))
-                .collect(Collectors.toSet());
-        } else {
-            paths = Files.find(rootPath, 100,
-                (p, b) -> b.isRegularFile()
-                    && p.toString().endsWith(".gyro.state"))
-                .collect(Collectors.toSet());
-        }
-
-        for (Path path : paths) {
-            FileScope fileScope = new FileScope(scope, path.toString());
-            scope.getFileScopes().add(fileScope);
-        }
-
         for (FileScope fileScope : scope.getFileScopes()) {
             Path file = Paths.get(fileScope.getFile());
             GyroCore.verifyConfig(file);
