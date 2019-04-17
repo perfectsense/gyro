@@ -2,14 +2,13 @@ package gyro.core.resource;
 
 import com.google.common.base.CaseFormat;
 import com.psddev.dari.util.Converter;
-import gyro.core.resource.ResourceFinder;
-import gyro.core.resource.ResourceFilter;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.List;
+import java.util.Collection;
+import java.util.Objects;
 import java.util.Optional;
 
 public class ResourceFinderField {
@@ -93,10 +92,10 @@ public class ResourceFinderField {
 
     public void setValue(ResourceFinder query, Object value) {
         try {
-            if (value instanceof List
-                    && !List.class.isAssignableFrom(setter.getParameterTypes()[0])) {
+            if (value instanceof Collection
+                    && !Collection.class.isAssignableFrom(setter.getParameterTypes()[0])) {
 
-                value = ((List<?>) value).stream()
+                value = ((Collection<?>) value).stream()
                     .filter(Objects::nonNull)
                     .findFirst()
                     .orElse(null);
