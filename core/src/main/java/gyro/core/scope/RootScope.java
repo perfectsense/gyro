@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import gyro.core.Credentials;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.resource.Resource;
@@ -160,4 +161,29 @@ public class RootScope extends Scope {
         return resources.get(name);
     }
 
+    public void validate() {
+        StringBuilder sb = new StringBuilder();
+        for (FileScope fileScope : getFileScopes()) {
+            boolean hasCredentials = fileScope.values()
+                .stream()
+                .anyMatch(Credentials.class::isInstance);
+
+            if (hasCredentials) {
+                sb.append(String.format("Credentials are only allowed in '%s', found in '%s'%n", getInitScope().getFile(), fileScope.getFile()));
+            }
+        }
+
+        boolean hasResources = getInitScope().values()
+            .stream()
+            .anyMatch(r -> r instanceof Resource && !(r instanceof Credentials));
+
+        if (hasResources) {
+            sb.append(String.format("Resources are not allowed in '%s'%n", getInitScope().getFile()));
+        }
+
+        if (sb.length() != 0) {
+            sb.insert(0, "Invalid configs\n");
+            throw new GyroException(sb.toString());
+        }
+    }
 }
