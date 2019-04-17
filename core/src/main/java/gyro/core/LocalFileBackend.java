@@ -69,6 +69,7 @@ public class LocalFileBackend extends FileBackend {
             }
 
             DeferError.evaluate(deferMap);
+            scope.putAll(scope.getInitScope());
         }
 
         deferMap.clear();
