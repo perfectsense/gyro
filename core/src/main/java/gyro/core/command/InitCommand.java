@@ -51,7 +51,7 @@ public class InitCommand extends AbstractCommand {
         File rootDir = new File(".gyro");
         if (!rootDir.exists()) {
             rootDir.mkdirs();
-            File pluginsFile = new File(rootDir, "plugins.gyro");
+            File pluginsFile = new File(rootDir, "init.gyro");
             try (FileWriter writer = new FileWriter(pluginsFile)) {
                 writer.write(pluginBuilder.toString());
             }
@@ -64,7 +64,7 @@ public class InitCommand extends AbstractCommand {
                     "\nFound existing Gyro working directory at '%s', are you sure you want to update plugins?",
                     rootDir.getCanonicalPath())) {
 
-                File pluginsFile = new File(rootDir, "plugins.gyro");
+                File pluginsFile = new File(rootDir, "init.gyro");
                 try (FileWriter writer = new FileWriter(pluginsFile)) {
                     writer.write(pluginBuilder.toString());
                 }

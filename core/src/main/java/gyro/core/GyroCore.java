@@ -53,7 +53,7 @@ public class GyroCore {
             throw new GyroException(message);
         }
 
-        Path pluginPath = rootPath.resolve(Paths.get("plugins.gyro"));
+        Path pluginPath = rootPath.resolve(Paths.get("init.gyro"));
         if (!pluginPath.toFile().exists()) {
             throw new GyroException(message);
         }
@@ -64,7 +64,7 @@ public class GyroCore {
     public static Path findCommandPluginPath() throws IOException {
         Path rootPath = findRootDirectory(Paths.get("").toAbsolutePath());
         if (rootPath != null) {
-            return rootPath.resolve(Paths.get("plugins.gyro"));
+            return rootPath.resolve(Paths.get("init.gyro"));
         } else {
             return null;
         }

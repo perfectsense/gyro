@@ -111,7 +111,7 @@ public class Gyro {
     }
 
     public static void loadCommands(Gyro gyro) throws Exception {
-        // Load GYRO_ROOT/.gyro/plugins.gyro
+        // Load GYRO_ROOT/.gyro/init.gyro
         Path commandPluginPath = GyroCore.findCommandPluginPath();
         if (commandPluginPath != null) {
             File plugins = commandPluginPath.toFile();
