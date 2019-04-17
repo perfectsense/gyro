@@ -56,13 +56,13 @@ public class RootScope extends Scope {
             Path rootPath = GyroCore.findRootDirectory(Paths.get("").toAbsolutePath());
             try (Stream<Path> pathStream = getCurrent() != null
                 ? Files.find(rootPath.getParent(), 100,
-                        (p, b) -> b.isRegularFile()
-                            && p.toString().endsWith(".gyro")
-                            && !p.toString().startsWith(rootPath.toString()))
+                    (p, b) -> b.isRegularFile()
+                        && p.toString().endsWith(".gyro")
+                        && !p.toString().startsWith(rootPath.toString()))
 
                 : Files.find(rootPath, 100,
-                        (p, b) -> b.isRegularFile()
-                            && p.toString().endsWith(".gyro.state"))) {
+                    (p, b) -> b.isRegularFile()
+                        && p.toString().endsWith(".gyro.state"))) {
 
                 for (Path path : pathStream.collect(Collectors.toSet())) {
                     FileScope fileScope = new FileScope(this, path.toString());
