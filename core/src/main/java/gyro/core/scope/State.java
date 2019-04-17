@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -52,7 +53,7 @@ public class State {
     }
 
     public State(RootScope pending, boolean test) throws Exception {
-        root = new RootScope();
+        root = new RootScope(new HashSet<>(pending.getActivePaths()));
         this.test = test;
 
         load(pending, root);

@@ -118,7 +118,7 @@ public class Stage {
             }
         }
 
-        Diff diff = new Diff(currentRootScope.findAllResources(), pendingRootScope.findAllResources());
+        Diff diff = new Diff(currentRootScope.findAllActiveResources(), pendingRootScope.findAllActiveResources());
 
         diff.diff();
 

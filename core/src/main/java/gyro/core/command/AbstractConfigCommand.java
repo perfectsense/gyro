@@ -1,5 +1,6 @@
 package gyro.core.command;
 
+import com.psddev.dari.util.StringUtils;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.LocalFileBackend;
@@ -13,9 +14,14 @@ import gyro.core.scope.State;
 import io.airlift.airline.Arguments;
 import io.airlift.airline.Option;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public abstract class AbstractConfigCommand extends AbstractCommand {
 
@@ -31,7 +37,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
     private GyroCore core;
 
     public List<String> arguments() {
-        return arguments;
+        return arguments != null ? arguments : Collections.emptyList();
     }
 
     public GyroCore core() {
@@ -45,8 +51,19 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         core = new GyroCore();
 
         FileBackend backend = new LocalFileBackend();
-        RootScope current = new RootScope();
-        RootScope pending = new RootScope(current);
+
+        Set<String> activePaths = new HashSet<>();
+        for (String path : arguments()) {
+            String file = StringUtils.ensureEnd(path, ".gyro");
+            if (!Files.exists(Paths.get(file))) {
+                throw new GyroException(String.format("File '%s' not found.", file));
+            }
+
+            activePaths.add(file);
+        }
+
+        RootScope current = new RootScope(activePaths);
+        RootScope pending = new RootScope(current, activePaths);
 
         try {
             backend.load(current);

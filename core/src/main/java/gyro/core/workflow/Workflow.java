@@ -1,6 +1,7 @@
 package gyro.core.workflow;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -56,7 +57,7 @@ public class Workflow {
     }
 
     private RootScope copyCurrentRootScope() throws Exception {
-        RootScope s = new RootScope();
+        RootScope s = new RootScope(new HashSet<>(pendingRootScope.getActivePaths()));
 
         new LocalFileBackend().load(s);
         return s;
@@ -134,7 +135,7 @@ public class Workflow {
             new LocalFileBackend().load(currentRootScope);
             new LocalFileBackend().load(pendingRootScope);
 
-            Diff diff = new Diff(currentRootScope.findAllResources(), pendingRootScope.findAllResources());
+            Diff diff = new Diff(currentRootScope.findAllActiveResources(), pendingRootScope.findAllActiveResources());
 
             diff.diff();
 

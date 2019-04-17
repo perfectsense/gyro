@@ -17,8 +17,8 @@ public class UpCommand extends AbstractConfigCommand {
         ui.write("\n@|bold,white Looking for changes...\n\n|@");
 
         Diff diff = new Diff(
-                current.findAllResources(),
-                pending.findAllResources());
+                current.findAllActiveResources(),
+                pending.findAllActiveResources());
 
         diff.diff();
 
