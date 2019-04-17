@@ -5,7 +5,7 @@ import com.psddev.dari.util.ObjectUtils;
 public class RequiredValidator extends AbstractValidator<Required> {
     @Override
     protected boolean validate(Required annotation, Object value) {
-        return ObjectUtils.isBlank(value);
+        return !ObjectUtils.isBlank(value);
     }
 
     @Override
