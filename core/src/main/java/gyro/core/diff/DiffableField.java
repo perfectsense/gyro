@@ -1,21 +1,28 @@
 package gyro.core.diff;
 
 import com.google.common.base.CaseFormat;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.psddev.dari.util.ConversionException;
 import com.psddev.dari.util.Converter;
 import com.psddev.dari.util.ObjectUtils;
 import gyro.core.GyroException;
 import gyro.core.resource.ResourceDiffProperty;
 import gyro.core.resource.ResourceOutput;
+import gyro.core.validation.AnnotationProcessorClass;
+import gyro.core.validation.Validator;
 import gyro.lang.ast.Node;
 import gyro.core.resource.Resource;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 public class DiffableField {
 
@@ -171,5 +178,43 @@ public class DiffableField {
                 getGyroName(), value));
         }
     }
+
+    public String validate(Diffable diffable) {
+        String validationMessage = "";
+
+        Object object = this.getValue(diffable);
+
+        for (Annotation annotation : getter.getAnnotations()) {
+            AnnotationProcessorClass annotationProcessorClass = annotation.annotationType().getAnnotation(AnnotationProcessorClass.class);
+            if (annotationProcessorClass != null) {
+                if (!isValueReference(getter, diffable) || object != null) {
+                    try {
+                        Validator validator = (Validator) SINGLETONS.get(annotationProcessorClass.value());
+                        if (!validator.isValid(annotation, object)) {
+                            validationMessage = validator.getMessage(annotation);
+                            break;
+                        }
+                    } catch (ExecutionException ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            }
+        }
+
+        return validationMessage;
+    }
+
+    private static boolean isValueReference(Method method, Diffable diffable) {
+        // find out if method returns null as it has a ref
+        return false;
+    }
+
+    private static final LoadingCache<Class<?>, Object> SINGLETONS = CacheBuilder.newBuilder()
+        .weakKeys()
+        .build(new CacheLoader<Class<?>, Object>() {
+            public Object load(Class<?> c) throws IllegalAccessException, InstantiationException {
+                return c.newInstance();
+            }
+        });
 
 }
