@@ -2,7 +2,9 @@ package gyro.core.scope;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -150,28 +152,34 @@ public class State {
 
             Object value = field.getValue(parent);
 
-            if (value instanceof List) {
+            if (value instanceof Collection) {
                 @SuppressWarnings("unchecked")
-                List<Object> list = (List<Object>) value;
-                boolean found = false;
+                Collection<Object> collection = (Collection<Object>) value;
 
-                for (ListIterator<Object> i = list.listIterator(); i.hasNext();) {
-                    Object item = i.next();
+                if (delete) {
+                    collection.removeIf(subresource::equals);
 
-                    if (subresource.equals(item)) {
-                        found = true;
+                } else if (value instanceof List) {
+                    @SuppressWarnings("unchecked")
+                    List<Object> list = (List<Object>) value;
+                    boolean found = false;
 
-                        if (delete) {
-                            i.remove();
+                    for (ListIterator<Object> i = list.listIterator(); i.hasNext();) {
+                        Object item = i.next();
 
-                        } else {
+                        if (subresource.equals(item)) {
                             i.set(subresource);
+                            found = true;
                         }
                     }
-                }
 
-                if (!delete && !found) {
-                    list.add(subresource);
+                    if (!found) {
+                        list.add(subresource);
+                    }
+
+                } else {
+                    collection.removeIf(subresource::equals);
+                    collection.add(subresource);
                 }
 
             } else if (value instanceof Resource) {

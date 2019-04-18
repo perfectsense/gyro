@@ -1,6 +1,7 @@
 package gyro.core.diff;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -22,7 +23,7 @@ public class Diff {
     private final List<Diffable> pendingDiffables;
     private final List<Change> changes = new ArrayList<>();
 
-    public Diff(List<? extends Diffable> currentDiffables, List<? extends Diffable> pendingDiffables) {
+    public Diff(Collection<? extends Diffable> currentDiffables, Collection<? extends Diffable> pendingDiffables) {
         this.currentDiffables = currentDiffables != null
                 ? new ArrayList<>(currentDiffables)
                 : Collections.emptyList();
@@ -82,8 +83,8 @@ public class Diff {
             Object value = field.getValue(diffable);
             Diff diff;
 
-            if (value instanceof List) {
-                diff = new Diff(null, (List<Diffable>) value);
+            if (value instanceof Collection) {
+                diff = new Diff(null, (Collection<Diffable>) value);
 
             } else if (value != null) {
                 diff = new Diff(null, (Diffable) value);
@@ -114,8 +115,8 @@ public class Diff {
             Object pendingValue = field.getValue(pendingDiffable);
             Diff diff;
 
-            if (pendingValue instanceof List) {
-                diff = new Diff((List<Diffable>) currentValue, (List<Diffable>) pendingValue);
+            if (pendingValue instanceof Collection) {
+                diff = new Diff((Collection<Diffable>) currentValue, (Collection<Diffable>) pendingValue);
 
             } else if (currentValue != null) {
                 if (pendingValue != null) {
@@ -224,8 +225,8 @@ public class Diff {
             Object value = field.getValue(diffable);
             Diff diff;
 
-            if (value instanceof List) {
-                diff = new Diff((List<Diffable>) value, null);
+            if (value instanceof Collection) {
+                diff = new Diff((Collection<Diffable>) value, null);
 
             } else if (value != null) {
                 diff = new Diff((Diffable) value, null);
@@ -392,8 +393,8 @@ public class Diff {
                 }
             }
 
-        } else if (object instanceof List) {
-            for (Object item : (List<?>) object) {
+        } else if (object instanceof Collection) {
+            for (Object item : (Collection<?>) object) {
                 resolve(item);
             }
         }
