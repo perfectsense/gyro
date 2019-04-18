@@ -20,7 +20,7 @@ import gyro.parser.antlr4.GyroParser;
 
 public class FileNode extends BlockNode {
 
-    private final List<Node> resourceNodes = new ArrayList<>();
+    private final List<Node> evaluableNodes = new ArrayList<>();
 
     public FileNode(GyroParser.FileContext context) {
         super(context.statement()
@@ -29,8 +29,8 @@ public class FileNode extends BlockNode {
                 .collect(Collectors.toList()));
     }
 
-    public List<Node> getResourceNodes() {
-        return resourceNodes;
+    public List<Node> getEvaluableNodes() {
+        return evaluableNodes;
     }
 
     @Override
@@ -96,7 +96,7 @@ public class FileNode extends BlockNode {
             workflows.add(new Workflow(rootScope, rn));
         }
 
-        resourceNodes.addAll(body);
+        evaluableNodes.addAll(body);
         return null;
     }
 

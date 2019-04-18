@@ -40,7 +40,7 @@ public class LocalFileBackend extends FileBackend {
         if (scope.getInitScope() != null) {
             FileNode fileNode = parseFile(Paths.get(scope.getInitScope().getFile()));
             fileNode.evaluate(scope.getInitScope());
-            for (Node node : fileNode.getResourceNodes()) {
+            for (Node node : fileNode.getEvaluableNodes()) {
                 deferMap.put(node, scope.getInitScope());
             }
 
@@ -52,7 +52,7 @@ public class LocalFileBackend extends FileBackend {
         for (FileScope fileScope : scope.getFileScopes()) {
             FileNode fileNode = parseFile(Paths.get(fileScope.getFile()));
             fileNode.evaluate(fileScope);
-            for (Node node : fileNode.getResourceNodes()) {
+            for (Node node : fileNode.getEvaluableNodes()) {
                 deferMap.put(node, fileScope);
             }
         }
