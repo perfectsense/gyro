@@ -2,6 +2,7 @@ package gyro.core;
 
 import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
+import gyro.lang.GyroErrorStrategy;
 import gyro.lang.GyroLanguageException;
 import gyro.core.resource.Resource;
 import gyro.lang.ast.DeferError;
@@ -119,11 +120,13 @@ public class LocalFileBackend extends FileBackend {
 
         parser.removeErrorListeners();
         parser.addErrorListener(errorListener);
+        parser.setErrorHandler(new GyroErrorStrategy());
 
         GyroParser.FileContext fileContext = parser.file();
 
-        if (errorListener.getSyntaxErrors() > 0) {
-            throw new GyroLanguageException(errorListener.getSyntaxErrors() + " errors while parsing.");
+        int errorCount = errorListener.getSyntaxErrors();
+        if (errorCount > 0) {
+            throw new GyroLanguageException(String.format("%d %s found while parsing.", errorCount, errorCount == 1 ? "error" : "errors"));
         }
 
         return (FileNode) Node.create(fileContext);
