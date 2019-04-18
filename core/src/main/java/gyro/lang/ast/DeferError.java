@@ -65,7 +65,7 @@ public class DeferError extends Error {
                         .stream()
                         .filter(Resource.class::isInstance)
                         .map(Resource.class::cast)
-                        .forEach(r -> rootScope.getResources().put(String.format("%s::%s", r.resourceType(), r.resourceIdentifier()), r));
+                        .forEach(r -> rootScope.putResource(String.format("%s::%s", r.resourceType(), r.resourceIdentifier()), r));
 
                 } catch (DeferError error) {
                     errors.add(error);

@@ -34,6 +34,7 @@ public class RootScope extends Scope {
     private final FileScope initScope;
     private final Map<String, Resource> resources = new LinkedHashMap<>();
     private final Set<String> activeScopePaths = new HashSet<>();
+    private final Map<String, Set<String>> duplicateResources = new HashMap<>();
 
     public RootScope() {
         this(null, Collections.emptySet());
@@ -121,8 +122,19 @@ public class RootScope extends Scope {
         return initScope;
     }
 
-    public Map<String, Resource> getResources() {
-        return resources;
+    public void putResource(String name, Resource resource) {
+        if (resources.containsKey(name)) {
+            Resource old = resources.get(name);
+            String oldPath = old.scope().getFileScope().getFile();
+            String path = resource.scope().getFileScope().getFile();
+            if (!oldPath.equals(path)) {
+                duplicateResources.putIfAbsent(name, new HashSet<>());
+                duplicateResources.get(name).add(oldPath);
+                duplicateResources.get(name).add(path);
+            }
+        }
+
+        resources.put(name, resource);
     }
 
     public Set<String> getActiveScopePaths() {
@@ -180,6 +192,13 @@ public class RootScope extends Scope {
 
         if (hasResources) {
             sb.append(String.format("Resources are not allowed in '%s'%n", getInitScope().getFile()));
+        }
+
+        for (Map.Entry<String, Set<String>> entry : duplicateResources.entrySet()) {
+            sb.append(String.format("%nDuplicate resource %s defined in the following files:%n", entry.getKey()));
+            entry.getValue().stream()
+                .map(p -> p + "\n")
+                .forEach(sb::append);
         }
 
         if (sb.length() != 0) {
