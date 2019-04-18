@@ -52,9 +52,10 @@ public class RootScope extends Scope {
         this.current = current;
 
         try {
-            initScope = new FileScope(this, GyroCore.findPluginPath().toString());
+            Path pluginPath = GyroCore.findPluginPath();
+            initScope = new FileScope(this, pluginPath.toString());
 
-            Path rootPath = GyroCore.findRootDirectory(Paths.get("").toAbsolutePath());
+            Path rootPath = pluginPath.getParent().toAbsolutePath();
             try (Stream<Path> pathStream = getCurrent() != null
                 ? Files.find(rootPath.getParent(), 100,
                     (p, b) -> b.isRegularFile()

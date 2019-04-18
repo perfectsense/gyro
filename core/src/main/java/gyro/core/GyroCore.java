@@ -70,7 +70,7 @@ public class GyroCore {
         }
     }
 
-    public static Path findRootDirectory(Path path) throws IOException {
+    private static Path findRootDirectory(Path path) throws IOException {
         while (path != null) {
             if (Files.isDirectory(path)) {
                 try (Stream<Path> stream = Files.list(path)) {
