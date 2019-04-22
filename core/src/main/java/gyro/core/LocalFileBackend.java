@@ -4,6 +4,7 @@ import gyro.core.scope.RootScope;
 import gyro.lang.GyroErrorStrategy;
 import gyro.lang.GyroLanguageException;
 import gyro.core.resource.Resource;
+import gyro.lang.ast.DeferError;
 import gyro.lang.ast.Node;
 import gyro.core.scope.FileScope;
 import gyro.lang.GyroErrorListener;
@@ -22,6 +23,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class LocalFileBackend extends FileBackend {
 
@@ -35,9 +41,41 @@ public class LocalFileBackend extends FileBackend {
 
         FileNode initNode = parseFile(Paths.get(scope.getFile()));
         initNode.evaluate(scope);
+
+        Map<Node, FileScope> map = new LinkedHashMap<>();
         for (FileScope fileScope : scope.getFileScopes()) {
             FileNode fileNode = parseFile(Paths.get(fileScope.getFile()));
-            fileNode.evaluate(fileScope);
+            map.put(fileNode, fileScope);
+        }
+
+        while (true) {
+            List<DeferError> errors = new ArrayList<>();
+            Map<Node, FileScope> deferred = new HashMap<>();
+
+            for (Map.Entry<Node, FileScope> entry : map.entrySet()) {
+                try {
+                    entry.getKey().evaluate(entry.getValue());
+
+                } catch (DeferError error) {
+                    errors.add(error);
+                    deferred.put(entry.getKey(), entry.getValue());
+                }
+            }
+
+            if (deferred.isEmpty()) {
+                break;
+
+            } else if (map.size() == deferred.size()) {
+                StringBuilder sb = new StringBuilder();
+                for (DeferError error : errors) {
+                    sb.append(error.getMessage());
+                }
+
+                throw new GyroException(sb.toString());
+
+            } else {
+                map = deferred;
+            }
         }
 
         scope.validate();
