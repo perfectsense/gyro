@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.workflow.Workflow;
+import gyro.lang.ast.DeferError;
 import gyro.lang.ast.PairNode;
 import gyro.lang.ast.Node;
 import gyro.core.scope.RootScope;
@@ -20,17 +21,11 @@ import gyro.parser.antlr4.GyroParser;
 
 public class FileNode extends BlockNode {
 
-    private final List<Node> evaluableNodes = new ArrayList<>();
-
     public FileNode(GyroParser.FileContext context) {
         super(context.statement()
                 .stream()
                 .map(c -> Node.create(c.getChild(0)))
                 .collect(Collectors.toList()));
-    }
-
-    public List<Node> getEvaluableNodes() {
-        return evaluableNodes;
     }
 
     @Override
@@ -96,7 +91,7 @@ public class FileNode extends BlockNode {
             workflows.add(new Workflow(rootScope, rn));
         }
 
-        evaluableNodes.addAll(body);
+        DeferError.evaluate(scope, body);
         return null;
     }
 

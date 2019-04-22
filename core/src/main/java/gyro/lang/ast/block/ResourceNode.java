@@ -148,6 +148,7 @@ public class ResourceNode extends BlockNode {
         resource.scope(bodyScope);
         resource.initialize(another != null ? new LinkedHashMap<>(bodyScope) : bodyScope);
         scope.getFileScope().put(fullName, resource);
+        scope.getRootScope().putResource(fullName, resource);
 
         return null;
     }

@@ -1,11 +1,9 @@
 package gyro.core;
 
 import gyro.core.scope.RootScope;
-import gyro.core.scope.Scope;
 import gyro.lang.GyroErrorStrategy;
 import gyro.lang.GyroLanguageException;
 import gyro.core.resource.Resource;
-import gyro.lang.ast.DeferError;
 import gyro.lang.ast.Node;
 import gyro.core.scope.FileScope;
 import gyro.lang.GyroErrorListener;
@@ -24,8 +22,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 public class LocalFileBackend extends FileBackend {
 
@@ -37,26 +33,13 @@ public class LocalFileBackend extends FileBackend {
     @Override
     public boolean load(RootScope scope) throws Exception {
 
-        Map<Node, Scope> deferMap = new LinkedHashMap<>();
         FileNode initNode = parseFile(Paths.get(scope.getFile()));
         initNode.evaluate(scope);
-        for (Node node : initNode.getEvaluableNodes()) {
-            deferMap.put(node, scope);
-        }
-
-        DeferError.evaluate(deferMap);
-
-        deferMap.clear();
         for (FileScope fileScope : scope.getFileScopes()) {
             FileNode fileNode = parseFile(Paths.get(fileScope.getFile()));
             fileNode.evaluate(fileScope);
-            for (Node node : fileNode.getEvaluableNodes()) {
-                deferMap.put(node, fileScope);
-            }
         }
 
-        // defer error
-        DeferError.evaluate(deferMap);
         scope.validate();
         return true;
     }
