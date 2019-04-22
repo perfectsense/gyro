@@ -14,7 +14,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.List;
+import java.util.Collection;
+import java.util.Objects;
 import java.util.Optional;
 
 public class DiffableField {
@@ -138,12 +139,13 @@ public class DiffableField {
         Node node = diffable.scope() != null ? diffable.scope().getKeyNodes().get(getGyroName()) : null;
 
         try {
-            if (value instanceof List
-                    && !List.class.isAssignableFrom(setter.getParameterTypes()[0])) {
+            if (value instanceof Collection
+                    && !Collection.class.isAssignableFrom(setter.getParameterTypes()[0])) {
 
-                value = ((List<?>) value).stream()
-                        .findFirst()
-                        .orElse(null);
+                value = ((Collection<?>) value).stream()
+                    .filter(Objects::nonNull)
+                    .findFirst()
+                    .orElse(null);
             }
 
             if (value instanceof String && Resource.class.isAssignableFrom(itemClass)) {

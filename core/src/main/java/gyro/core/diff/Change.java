@@ -1,6 +1,7 @@
 package gyro.core.diff;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -31,8 +32,8 @@ public abstract class Change {
     public abstract boolean execute(GyroUI ui, State state) throws Exception;
 
     protected String stringify(Object value) {
-        if (value instanceof List) {
-            return "[ " + ((List<?>) value).stream()
+        if (value instanceof Collection) {
+            return "[ " + ((Collection<?>) value).stream()
                     .map(this::stringify)
                     .collect(Collectors.joining(", ")) + " ]";
 
@@ -61,11 +62,11 @@ public abstract class Change {
         Object currentValue = field.getValue(currentDiffable);
         Object pendingValue = field.getValue(pendingDiffable);
 
-        if ((currentValue == null || currentValue instanceof List)
-                && (pendingValue == null || pendingValue instanceof List)) {
+        if ((currentValue == null || currentValue instanceof Collection)
+                && (pendingValue == null || pendingValue instanceof Collection)) {
 
-            List<?> currentList = currentValue != null ? new ArrayList<>((List<?>) currentValue) : new ArrayList<>();
-            List<?> pendingList = pendingValue != null ? new ArrayList<>((List<?>) pendingValue) : new ArrayList<>();
+            List<?> currentList = currentValue != null ? new ArrayList<>((Collection<?>) currentValue) : new ArrayList<>();
+            List<?> pendingList = pendingValue != null ? new ArrayList<>((Collection<?>) pendingValue) : new ArrayList<>();
             int currentListSize = currentList.size();
             int pendingListSize = pendingList.size();
 

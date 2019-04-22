@@ -133,8 +133,8 @@ public abstract class Diffable {
                 @SuppressWarnings("unchecked")
                 Class<? extends Diffable> diffableClass = (Class<? extends Diffable>) field.getItemClass();
 
-                if (value instanceof List) {
-                    value = ((List<?>) value).stream()
+                if (value instanceof Collection) {
+                    value = ((Collection<?>) value).stream()
                             .map(v -> toDiffable(key, diffableClass, v))
                             .collect(Collectors.toList());
 
@@ -242,9 +242,9 @@ public abstract class Diffable {
                     body.add(new PairNode(key, toNode(value)));
                 }
 
-            } else if (value instanceof List) {
+            } else if (value instanceof Collection) {
                 if (field.shouldBeDiffed()) {
-                    for (Object item : (List<?>) value) {
+                    for (Object item : (Collection<?>) value) {
                         body.add(new KeyBlockNode(key, ((Diffable) item).toBodyNodes()));
                     }
 
@@ -275,10 +275,10 @@ public abstract class Diffable {
         if (value instanceof Boolean) {
             return new BooleanNode(Boolean.TRUE.equals(value));
 
-        } else if (value instanceof List) {
+        } else if (value instanceof Collection) {
             List<Node> items = new ArrayList<>();
 
-            for (Object item : (List<?>) value) {
+            for (Object item : (Collection<?>) value) {
                 if (item != null) {
                     items.add(toNode(item));
                 }
