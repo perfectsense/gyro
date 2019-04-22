@@ -118,7 +118,7 @@ public class Gyro {
             if (Files.exists(commandPluginPath) && Files.isRegularFile(commandPluginPath)) {
                 RootScope scope = new RootScope(commandPluginPath.toString());
                 scope.getFileScopes().clear();
-                new LocalFileBackend().load(scope);
+                scope.load(new LocalFileBackend());
 
                 for (PluginLoader loader : scope.getPluginLoaders()) {
                     for (Class<?> c : loader.classes()) {

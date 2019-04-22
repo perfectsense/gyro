@@ -1,6 +1,11 @@
 package gyro.core.scope;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -16,12 +21,22 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import gyro.core.Credentials;
+import gyro.core.FileBackend;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
+import gyro.core.plugin.PluginLoader;
 import gyro.core.resource.Resource;
 import gyro.core.resource.ResourceFinder;
 import gyro.core.workflow.Workflow;
+import gyro.lang.GyroErrorListener;
+import gyro.lang.GyroErrorStrategy;
+import gyro.lang.GyroLanguageException;
+import gyro.lang.ast.DeferError;
+import gyro.lang.ast.Node;
+import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.VirtualResourceNode;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
 
 public class RootScope extends FileScope {
 
@@ -170,6 +185,94 @@ public class RootScope extends FileScope {
 
     public Resource findResource(String name) {
         return resources.get(name);
+    }
+
+    public void load(FileBackend backend) throws Exception {
+        try (InputStream inputStream = backend.read(getFile())) {
+            parse(inputStream).evaluate(this);
+        }
+
+        Map<Node, FileScope> map = new LinkedHashMap<>();
+        for (FileScope fileScope : getFileScopes()) {
+            try (InputStream inputStream = backend.read(fileScope.getFile())) {
+                map.put(parse(inputStream), fileScope);
+            }
+        }
+
+        while (true) {
+            List<DeferError> errors = new ArrayList<>();
+            Map<Node, FileScope> deferred = new HashMap<>();
+
+            for (Map.Entry<Node, FileScope> entry : map.entrySet()) {
+                try {
+                    entry.getKey().evaluate(entry.getValue());
+
+                } catch (DeferError error) {
+                    errors.add(error);
+                    deferred.put(entry.getKey(), entry.getValue());
+                }
+            }
+
+            if (deferred.isEmpty()) {
+                break;
+
+            } else if (map.size() == deferred.size()) {
+                StringBuilder sb = new StringBuilder();
+                for (DeferError error : errors) {
+                    sb.append(error.getMessage());
+                }
+
+                throw new GyroException(sb.toString());
+
+            } else {
+                map = deferred;
+            }
+        }
+
+        validate();
+    }
+
+    public void save(FileBackend backend) throws IOException {
+        for (FileScope fileScope : getFileScopes()) {
+            String file = fileScope.getFile();
+            OutputStream outputStream = backend.write(file);
+
+            try (BufferedWriter out = new BufferedWriter(
+                new OutputStreamWriter(
+                    outputStream,
+                    StandardCharsets.UTF_8))) {
+
+                for (PluginLoader pluginLoader : fileScope.getPluginLoaders()) {
+                    out.write(pluginLoader.toString());
+                }
+
+                for (Object value : fileScope.values()) {
+                    if (value instanceof Resource) {
+                        out.write(((Resource) value).toNode().toString());
+                    }
+                }
+            }
+        }
+    }
+
+    private FileNode parse(InputStream inputStream) throws IOException {
+        gyro.parser.antlr4.GyroLexer lexer = new gyro.parser.antlr4.GyroLexer(CharStreams.fromStream(inputStream));
+        CommonTokenStream stream = new CommonTokenStream(lexer);
+        gyro.parser.antlr4.GyroParser parser = new gyro.parser.antlr4.GyroParser(stream);
+        GyroErrorListener errorListener = new GyroErrorListener();
+
+        parser.removeErrorListeners();
+        parser.addErrorListener(errorListener);
+        parser.setErrorHandler(new GyroErrorStrategy());
+
+        gyro.parser.antlr4.GyroParser.FileContext fileContext = parser.file();
+
+        int errorCount = errorListener.getSyntaxErrors();
+        if (errorCount > 0) {
+            throw new GyroLanguageException(String.format("%d %s found while parsing.", errorCount, errorCount == 1 ? "error" : "errors"));
+        }
+
+        return (FileNode) Node.create(fileContext);
     }
 
     public void validate() {

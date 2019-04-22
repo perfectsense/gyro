@@ -59,7 +59,7 @@ public class Workflow {
     private RootScope copyCurrentRootScope() throws Exception {
         RootScope s = new RootScope(pendingRootScope.getFile(), new HashSet<>(pendingRootScope.getActiveScopePaths()));
 
-        new LocalFileBackend().load(s);
+        s.load(new LocalFileBackend());
         return s;
     }
 
@@ -132,8 +132,8 @@ public class Workflow {
             currentRootScope.clear();
             pendingRootScope.clear();
 
-            new LocalFileBackend().load(currentRootScope);
-            new LocalFileBackend().load(pendingRootScope);
+            currentRootScope.load(new LocalFileBackend());
+            pendingRootScope.load(new LocalFileBackend());
 
             Diff diff = new Diff(currentRootScope.findAllActiveResources(), pendingRootScope.findAllActiveResources());
 

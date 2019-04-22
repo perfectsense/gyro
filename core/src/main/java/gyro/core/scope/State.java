@@ -60,7 +60,7 @@ public class State {
     }
 
     private void load(RootScope pending, RootScope state) throws Exception {
-        pending.getBackend().load(state);
+        state.load(pending.getBackend());
         for (FileScope fileScope : state.getFileScopes()) {
             states.put(fileScope.getFile(), fileScope);
         }
@@ -126,7 +126,7 @@ public class State {
             }
         }
 
-        root.getBackend().save(root);
+        root.save(root.getBackend());
     }
 
     private void updateSubresource(Resource parent, Resource subresource, boolean delete) {
@@ -184,7 +184,7 @@ public class State {
         swapResources(current, type, x, y);
         swapResources(pending, type, x, y);
         swapResources(root, type, x, y);
-        root.getBackend().save(root);
+        root.save(root.getBackend());
     }
 
     private void swapResources(RootScope rootScope, String type, String xName, String yName) {

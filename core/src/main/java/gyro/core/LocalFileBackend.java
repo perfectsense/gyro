@@ -1,35 +1,16 @@
 package gyro.core;
 
-import gyro.core.scope.RootScope;
-import gyro.lang.GyroErrorStrategy;
-import gyro.lang.GyroLanguageException;
-import gyro.core.resource.Resource;
-import gyro.lang.ast.DeferError;
-import gyro.lang.ast.Node;
-import gyro.core.scope.FileScope;
-import gyro.lang.GyroErrorListener;
-import gyro.core.plugin.PluginLoader;
-import gyro.lang.ast.block.FileNode;
-import gyro.parser.antlr4.GyroLexer;
-import gyro.parser.antlr4.GyroParser;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
-
-import java.io.BufferedWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 
-public class LocalFileBackend extends FileBackend {
+public class LocalFileBackend implements FileBackend {
 
     @Override
     public String name() {
@@ -37,117 +18,32 @@ public class LocalFileBackend extends FileBackend {
     }
 
     @Override
-    public boolean load(RootScope scope) throws Exception {
-
-        FileNode initNode = parseFile(Paths.get(scope.getFile()));
-        initNode.evaluate(scope);
-
-        Map<Node, FileScope> map = new LinkedHashMap<>();
-        for (FileScope fileScope : scope.getFileScopes()) {
-            FileNode fileNode = parseFile(Paths.get(fileScope.getFile()));
-            map.put(fileNode, fileScope);
-        }
-
-        while (true) {
-            List<DeferError> errors = new ArrayList<>();
-            Map<Node, FileScope> deferred = new HashMap<>();
-
-            for (Map.Entry<Node, FileScope> entry : map.entrySet()) {
-                try {
-                    entry.getKey().evaluate(entry.getValue());
-
-                } catch (DeferError error) {
-                    errors.add(error);
-                    deferred.put(entry.getKey(), entry.getValue());
-                }
-            }
-
-            if (deferred.isEmpty()) {
-                break;
-
-            } else if (map.size() == deferred.size()) {
-                StringBuilder sb = new StringBuilder();
-                for (DeferError error : errors) {
-                    sb.append(error.getMessage());
-                }
-
-                throw new GyroException(sb.toString());
-
-            } else {
-                map = deferred;
-            }
-        }
-
-        scope.validate();
-        return true;
+    public InputStream read(String file) throws Exception {
+        return new FileInputStream(file);
     }
 
     @Override
-    public void save(RootScope scope) throws IOException {
-        for (FileScope fileScope : scope.getFileScopes()) {
-            String file = fileScope.getFile();
+    public OutputStream write(String file) throws IOException {
+        Path newFile = Files.createTempFile("local-file-backend-", ".gyro.state");
+        newFile.toFile().deleteOnExit();
 
-            Path newFile = Files.createTempFile("local-file-backend-", ".gyro.state");
+        return new FileOutputStream(newFile.toString()) {
 
-            try {
-                try (BufferedWriter out = new BufferedWriter(
-                    new OutputStreamWriter(
-                        Files.newOutputStream(newFile),
-                        StandardCharsets.UTF_8))) {
-
-                    for (PluginLoader pluginLoader : fileScope.getPluginLoaders()) {
-                        out.write(pluginLoader.toString());
-                    }
-
-                    for (Object value : fileScope.values()) {
-                        if (value instanceof Resource) {
-                            out.write(((Resource) value).toNode().toString());
-                        }
-                    }
-                }
-
+            @Override
+            public void close() throws IOException {
+                super.close();
                 Files.move(
                     newFile,
                     Paths.get(file),
                     StandardCopyOption.ATOMIC_MOVE,
                     StandardCopyOption.REPLACE_EXISTING);
-
-            } catch (IOException error) {
-                Files.deleteIfExists(newFile);
-                throw error;
             }
-        }
+        };
     }
 
     @Override
-    public void delete(String path) {
+    public void delete(String file) {
 
-    }
-
-    private FileNode parseFile(Path file) throws IOException {
-        GyroCore.verifyConfig(file);
-
-        if (!Files.exists(file) || Files.isDirectory(file)) {
-            throw new GyroException(file + " is not a valid gyro config.");
-        }
-
-        GyroLexer lexer = new GyroLexer(CharStreams.fromFileName(file.toString()));
-        CommonTokenStream stream = new CommonTokenStream(lexer);
-        GyroParser parser = new GyroParser(stream);
-        GyroErrorListener errorListener = new GyroErrorListener();
-
-        parser.removeErrorListeners();
-        parser.addErrorListener(errorListener);
-        parser.setErrorHandler(new GyroErrorStrategy());
-
-        GyroParser.FileContext fileContext = parser.file();
-
-        int errorCount = errorListener.getSyntaxErrors();
-        if (errorCount > 0) {
-            throw new GyroLanguageException(String.format("%d %s found while parsing.", errorCount, errorCount == 1 ? "error" : "errors"));
-        }
-
-        return (FileNode) Node.create(fileContext);
     }
 
 }

@@ -66,7 +66,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         RootScope pending = new RootScope(current, activePaths);
 
         try {
-            backend.load(current);
+            current.load(backend);
 
         } catch (GyroLanguageException ex) {
             throw new GyroException(ex.getMessage());
@@ -82,7 +82,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         }
 
         try {
-            backend.load(pending);
+            pending.load(backend);
 
         } catch (GyroLanguageException ex) {
             throw new GyroException(ex.getMessage());
