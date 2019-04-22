@@ -35,17 +35,6 @@ public class GyroCore {
         return userHome;
     }
 
-    public static boolean verifyConfig(Path path) throws IOException {
-        Path rootPath = findPluginPath().getParent();
-        Path configRootPath = findRootDirectory(Paths.get(path.toFile().getCanonicalPath()));
-
-        if (configRootPath == null || !Files.isSameFile(rootPath, configRootPath)) {
-            throw new GyroException(String.format("'%s' is not located within the current working directory '%s'!", path, rootPath.getParent()));
-        }
-
-        return true;
-    }
-
     public static Path findPluginPath() throws IOException {
         Path rootPath = findRootDirectory(Paths.get("").toAbsolutePath());
         String message = "Not a gyro project directory, use 'gyro init <plugins>...' to create one. See 'gyro help init' for detailed usage.";
