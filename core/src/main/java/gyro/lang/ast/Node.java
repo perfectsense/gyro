@@ -82,6 +82,9 @@ public abstract class Node {
         } else if (cc.equals(GyroParser.PairContext.class)) {
             node = new PairNode((GyroParser.PairContext) context);
 
+        } else if (cc.equals(GyroParser.DirectiveContext.class)) {
+            node = new DirectiveNode((GyroParser.DirectiveContext) context);
+
         } else if (cc.equals(GyroParser.ListContext.class)) {
             node = new ListNode((GyroParser.ListContext) context);
 

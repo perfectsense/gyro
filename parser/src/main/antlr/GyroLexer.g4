@@ -1,5 +1,10 @@
 lexer grammar GyroLexer;
 
+// directive
+AT    : '@';
+DOT   : '.';
+SLASH : '/';
+
 // resource
 END : 'end';
 
@@ -45,8 +50,6 @@ LREF : '$(' -> pushMode(DEFAULT_MODE);
 RREF : ')' -> popMode;
 GLOB : '*';
 PIPE : '|';
-DOT   : '.';
-SLASH : '/';
 
 // string
 STRING : '\'' ~('\'')* '\'';
