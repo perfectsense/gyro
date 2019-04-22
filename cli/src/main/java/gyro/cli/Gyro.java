@@ -116,11 +116,11 @@ public class Gyro {
         Path commandPluginPath = GyroCore.findCommandPluginPath();
         if (commandPluginPath != null) {
             if (Files.exists(commandPluginPath) && Files.isRegularFile(commandPluginPath)) {
-                RootScope scope = new RootScope();
+                RootScope scope = new RootScope(commandPluginPath.toString());
                 scope.getFileScopes().clear();
                 new LocalFileBackend().load(scope);
 
-                for (PluginLoader loader : scope.getInitScope().getPluginLoaders()) {
+                for (PluginLoader loader : scope.getPluginLoaders()) {
                     for (Class<?> c : loader.classes()) {
                         if (GyroCommand.class.isAssignableFrom(c) && !Modifier.isAbstract(c.getModifiers())) {
                             gyro.commands().add(c);

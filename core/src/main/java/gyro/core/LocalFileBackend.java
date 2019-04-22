@@ -38,16 +38,13 @@ public class LocalFileBackend extends FileBackend {
     public boolean load(RootScope scope) throws Exception {
 
         Map<Node, Scope> deferMap = new LinkedHashMap<>();
-        if (scope.getInitScope() != null) {
-            FileNode fileNode = parseFile(Paths.get(scope.getInitScope().getFile()));
-            fileNode.evaluate(scope.getInitScope());
-            for (Node node : fileNode.getEvaluableNodes()) {
-                deferMap.put(node, scope.getInitScope());
-            }
-
-            DeferError.evaluate(deferMap);
-            scope.putAll(scope.getInitScope());
+        FileNode initNode = parseFile(Paths.get(scope.getFile()));
+        initNode.evaluate(scope);
+        for (Node node : initNode.getEvaluableNodes()) {
+            deferMap.put(node, scope);
         }
+
+        DeferError.evaluate(deferMap);
 
         deferMap.clear();
         for (FileScope fileScope : scope.getFileScopes()) {

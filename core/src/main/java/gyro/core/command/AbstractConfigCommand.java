@@ -62,7 +62,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             activePaths.add(file);
         }
 
-        RootScope current = new RootScope(activePaths);
+        RootScope current = new RootScope(GyroCore.findPluginPath().toString(), activePaths);
         RootScope pending = new RootScope(current, activePaths);
 
         try {
@@ -92,8 +92,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
     }
 
     private void refreshCredentials(RootScope scope) {
-        FileScope fileScope = scope.getInitScope();
-        fileScope.values()
+        scope.values()
             .stream()
             .filter(Credentials.class::isInstance)
             .map(Credentials.class::cast)

@@ -23,7 +23,7 @@ import gyro.core.resource.ResourceFinder;
 import gyro.core.workflow.Workflow;
 import gyro.lang.ast.block.VirtualResourceNode;
 
-public class RootScope extends Scope {
+public class RootScope extends FileScope {
 
     private final RootScope current;
     private final Map<String, Class<?>> resourceClasses = new HashMap<>();
@@ -31,32 +31,34 @@ public class RootScope extends Scope {
     private final Map<String, VirtualResourceNode> virtualResourceNodes = new LinkedHashMap<>();
     private final List<Workflow> workflows = new ArrayList<>();
     private final List<FileScope> fileScopes = new ArrayList<>();
-    private final FileScope initScope;
     private final Map<String, Resource> resources = new LinkedHashMap<>();
     private final Set<String> activeScopePaths = new HashSet<>();
     private final Map<String, Set<String>> duplicateResources = new HashMap<>();
 
-    public RootScope() {
-        this(null, Collections.emptySet());
-    }
-
-    public RootScope(Set<String> activePaths) {
-        this(null, activePaths);
+    public RootScope(String file) {
+        this(file, null, Collections.emptySet());
     }
 
     public RootScope(RootScope current) {
-        this(current, Collections.emptySet());
+        this(current.getFile(), current, Collections.emptySet());
+    }
+
+    public RootScope(String file, Set<String> activePaths) {
+        this(file, null, activePaths);
     }
 
     public RootScope(RootScope current, Set<String> activePaths) {
-        super(null);
+        this(current.getFile(), current, activePaths);
+    }
+
+    private RootScope(String file, RootScope current, Set<String> activePaths) {
+        super(null, file);
         this.current = current;
 
-        try {
-            Path pluginPath = GyroCore.findPluginPath();
-            initScope = new FileScope(this, pluginPath.toString());
+        put("ENV", System.getenv());
 
-            Path rootPath = pluginPath.getParent().toAbsolutePath();
+        try {
+            Path rootPath = Paths.get(file).toAbsolutePath().getParent();
             try (Stream<Path> pathStream = getCurrent() != null
                 ? Files.find(rootPath.getParent(), 100,
                     (p, b) -> b.isRegularFile()
@@ -116,10 +118,6 @@ public class RootScope extends Scope {
 
     public List<FileScope> getFileScopes() {
         return fileScopes;
-    }
-
-    public FileScope getInitScope() {
-        return initScope;
     }
 
     public void putResource(String name, Resource resource) {
@@ -182,16 +180,16 @@ public class RootScope extends Scope {
                 .anyMatch(Credentials.class::isInstance);
 
             if (hasCredentials) {
-                sb.append(String.format("Credentials are only allowed in '%s', found in '%s'%n", getInitScope().getFile(), fileScope.getFile()));
+                sb.append(String.format("Credentials are only allowed in '%s', found in '%s'%n", getFile(), fileScope.getFile()));
             }
         }
 
-        boolean hasResources = getInitScope().values()
+        boolean hasResources = this.values()
             .stream()
             .anyMatch(r -> r instanceof Resource && !(r instanceof Credentials));
 
         if (hasResources) {
-            sb.append(String.format("Resources are not allowed in '%s'%n", getInitScope().getFile()));
+            sb.append(String.format("Resources are not allowed in '%s'%n", getFile()));
         }
 
         for (Map.Entry<String, Set<String>> entry : duplicateResources.entrySet()) {

@@ -10,9 +10,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 
-import gyro.core.FileBackend;
 import gyro.core.GyroCore;
-import gyro.core.LocalFileBackend;
 import gyro.core.diff.Change;
 import gyro.core.diff.Delete;
 import gyro.core.diff.Diffable;
@@ -51,7 +49,7 @@ public class State {
     }
 
     public State(RootScope pending, boolean test) throws Exception {
-        root = new RootScope(new HashSet<>(pending.getActiveScopePaths()));
+        root = new RootScope(pending.getFile(), new HashSet<>(pending.getActiveScopePaths()));
         this.test = test;
 
         load(pending, root);
@@ -62,7 +60,7 @@ public class State {
     }
 
     private void load(RootScope pending, RootScope state) throws Exception {
-        pending.getInitScope().getBackend().load(state);
+        pending.getBackend().load(state);
         for (FileScope fileScope : state.getFileScopes()) {
             states.put(fileScope.getFile(), fileScope);
         }
@@ -128,7 +126,7 @@ public class State {
             }
         }
 
-        root.getInitScope().getBackend().save(root);
+        root.getBackend().save(root);
     }
 
     private void updateSubresource(Resource parent, Resource subresource, boolean delete) {
@@ -186,7 +184,7 @@ public class State {
         swapResources(current, type, x, y);
         swapResources(pending, type, x, y);
         swapResources(root, type, x, y);
-        root.getInitScope().getBackend().save(root);
+        root.getBackend().save(root);
     }
 
     private void swapResources(RootScope rootScope, String type, String xName, String yName) {

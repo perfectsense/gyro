@@ -3,6 +3,7 @@ package gyro.lang.ast.block;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import gyro.core.GyroCore;
 import gyro.lang.GyroLanguageException;
 import gyro.core.Credentials;
 import gyro.core.resource.Resource;
@@ -35,7 +36,7 @@ public class VirtualResourceNode extends BlockNode {
 
     public void createResources(String prefix, Scope paramScope) throws Exception {
         FileScope paramFileScope = paramScope.getFileScope();
-        RootScope vrScope = new RootScope();
+        RootScope vrScope = new RootScope(GyroCore.findPluginPath().toString());
 
         for (VirtualResourceParameter param : params) {
             String paramName = param.getName();
