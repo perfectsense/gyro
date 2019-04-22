@@ -1,10 +1,8 @@
 package gyro.lang.ast;
 
-import gyro.core.scope.FileScope;
 import gyro.core.scope.Scope;
 import gyro.parser.antlr4.GyroParser;
 
-import java.nio.file.Paths;
 import java.util.Optional;
 
 public class DirectiveNode extends Node {
@@ -28,34 +26,7 @@ public class DirectiveNode extends Node {
     }
 
     public void load(Scope scope) throws Exception {
-        FileScope parentFileScope = scope.getFileScope();
-        FileScope fileRootScope = new FileScope(parentFileScope, file);
-
-        if (!parentFileScope.getBackend().load(fileRootScope)) {
-            throw new IllegalArgumentException(String.format(
-                    "Can't find [%s]!",
-                    file));
-        }
-
-        parentFileScope.getImports().add(fileRootScope);
-
-        if (name != null) {
-            if (name.equals("_")) {
-                scope.putAll(fileRootScope);
-
-            } else {
-                scope.put(name, fileRootScope);
-            }
-
-        } else {
-            scope.put(
-                    Paths.get(fileRootScope.getFile())
-                            .getFileName()
-                            .toString()
-                            .replace(".gyro", "")
-                            .replace(".gyro.state", ""),
-                    fileRootScope);
-        }
+        throw new UnsupportedOperationException();
     }
 
     @Override
