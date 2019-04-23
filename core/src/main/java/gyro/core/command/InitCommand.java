@@ -56,7 +56,7 @@ public class InitCommand extends AbstractCommand {
         if (!Files.exists(rootDir)) {
             Files.createDirectories(rootDir);
             try (PrintWriter printWriter = new PrintWriter(
-                Files.newBufferedWriter(Paths.get(rootDir.toString(), "init.gyro"), StandardCharsets.UTF_8))) {
+                Files.newBufferedWriter(rootDir.resolve("init.gyro"), StandardCharsets.UTF_8))) {
 
                 printWriter.write(initBuilder.toString());
             }
