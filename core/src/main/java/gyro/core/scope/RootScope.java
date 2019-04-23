@@ -91,8 +91,6 @@ public class RootScope extends FileScope {
         } catch (IOException e) {
             throw new GyroException(e.getMessage(), e);
         }
-
-        put("ENV", System.getenv());
     }
 
     public RootScope getCurrent() {
