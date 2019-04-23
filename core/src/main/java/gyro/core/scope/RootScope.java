@@ -70,7 +70,7 @@ public class RootScope extends FileScope {
 
         try {
             Path rootPath = Paths.get(file).toAbsolutePath().getParent();
-            try (Stream<Path> pathStream = getCurrent() != null
+            try (Stream<Path> pathStream = this.current != null
                 ? Files.find(rootPath.getParent(), 100,
                     (p, b) -> b.isRegularFile()
                         && p.toString().endsWith(".gyro")
@@ -86,7 +86,7 @@ public class RootScope extends FileScope {
                 }
             }
 
-            if (getCurrent() == null) {
+            if (this.current == null) {
                 for (String path : activePaths) {
                     path += ".state";
                     Path rootDir = GyroCore.getRootInitFile().getParent().getParent();
