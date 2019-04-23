@@ -34,6 +34,8 @@ import gyro.lang.ast.DeferError;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.VirtualResourceNode;
+import gyro.parser.antlr4.GyroLexer;
+import gyro.parser.antlr4.GyroParser;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 
@@ -250,16 +252,16 @@ public class RootScope extends FileScope {
     }
 
     private FileNode parse(InputStream inputStream) throws IOException {
-        gyro.parser.antlr4.GyroLexer lexer = new gyro.parser.antlr4.GyroLexer(CharStreams.fromStream(inputStream));
+        GyroLexer lexer = new GyroLexer(CharStreams.fromStream(inputStream));
         CommonTokenStream stream = new CommonTokenStream(lexer);
-        gyro.parser.antlr4.GyroParser parser = new gyro.parser.antlr4.GyroParser(stream);
+        GyroParser parser = new GyroParser(stream);
         GyroErrorListener errorListener = new GyroErrorListener();
 
         parser.removeErrorListeners();
         parser.addErrorListener(errorListener);
         parser.setErrorHandler(new GyroErrorStrategy());
 
-        gyro.parser.antlr4.GyroParser.FileContext fileContext = parser.file();
+        GyroParser.FileContext fileContext = parser.file();
 
         int errorCount = errorListener.getSyntaxErrors();
         if (errorCount > 0) {
