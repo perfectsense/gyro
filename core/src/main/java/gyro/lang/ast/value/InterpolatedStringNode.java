@@ -11,11 +11,11 @@ public class InterpolatedStringNode extends Node {
 
     private final List<Object> items;
 
-    public InterpolatedStringNode(GyroParser.InterpolatedStringContext context) {
+    public InterpolatedStringNode(GyroParser.InterpolatedStringContext context, String file) {
         items = context.stringContent()
                 .stream()
                 .map(c -> c.getChild(0))
-                .map(c -> c instanceof GyroParser.ReferenceContext ? Node.create(c) : c.getText())
+                .map(c -> c instanceof GyroParser.ReferenceContext ? Node.create(c, file) : c.getText())
                 .collect(Collectors.toList());
     }
 

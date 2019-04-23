@@ -34,18 +34,18 @@ public class ResourceReferenceNode extends Node {
     private final List<Query> queries;
     private final String path;
 
-    public ResourceReferenceNode(GyroParser.ResourceReferenceContext context) {
+    public ResourceReferenceNode(GyroParser.ResourceReferenceContext context, String file) {
         type = context.resourceType().getText();
 
         GyroParser.ReferenceNameContext rnc = context.referenceName();
 
         nameNode = Optional.ofNullable(rnc.string())
-            .map(Node::create)
+            .map(r -> Node.create(r, file))
             .orElseGet(() -> new LiteralStringNode(rnc.getText()));
 
         queries = context.query()
             .stream()
-            .map(Query::create)
+            .map(q -> Query.create(q, file))
             .collect(Collectors.toList());
 
         path = Optional.ofNullable(context.path())

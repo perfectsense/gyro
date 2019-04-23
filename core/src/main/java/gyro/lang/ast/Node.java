@@ -45,51 +45,51 @@ public abstract class Node {
         return column;
     }
 
-    public static Node create(ParseTree context) {
+    public static Node create(ParseTree context, String file) {
         Class<? extends ParseTree> cc = context.getClass();
         Node node;
 
         if (cc.equals(GyroParser.FileContext.class)) {
-            node = new FileNode((GyroParser.FileContext) context);
+            node = new FileNode((GyroParser.FileContext) context, file);
 
         } else if (cc.equals(GyroParser.BooleanValueContext.class)) {
             node = new BooleanNode((GyroParser.BooleanValueContext) context);
 
         } else if (cc.equals(GyroParser.ForStatementContext.class)) {
-            node = new ForNode((GyroParser.ForStatementContext) context);
+            node = new ForNode((GyroParser.ForStatementContext) context, file);
 
         } else if (cc.equals(GyroParser.IfStatementContext.class)) {
-            node = new IfNode((GyroParser.IfStatementContext) context);
+            node = new IfNode((GyroParser.IfStatementContext) context, file);
 
         } else if (cc.equals(GyroParser.VirtualResourceContext.class)) {
-            node = new VirtualResourceNode((GyroParser.VirtualResourceContext) context);
+            node = new VirtualResourceNode((GyroParser.VirtualResourceContext) context, file);
 
         } else if (cc.equals(GyroParser.ComparisonConditionContext.class)) {
-            node = new ComparisonConditionNode((GyroParser.ComparisonConditionContext) context);
+            node = new ComparisonConditionNode((GyroParser.ComparisonConditionContext) context, file);
 
         } else if (cc.equals(GyroParser.OrConditionContext.class)) {
-            node = new OrConditionNode((GyroParser.OrConditionContext) context);
+            node = new OrConditionNode((GyroParser.OrConditionContext) context, file);
 
         } else if (cc.equals(GyroParser.AndConditionContext.class)) {
-            node = new AndConditionNode((GyroParser.AndConditionContext) context);
+            node = new AndConditionNode((GyroParser.AndConditionContext) context, file);
 
         } else if (cc.equals(GyroParser.ValueConditionContext.class)) {
-            node = new ValueConditionNode((GyroParser.ValueConditionContext) context);
+            node = new ValueConditionNode((GyroParser.ValueConditionContext) context, file);
 
         } else if (cc.equals(GyroParser.ValueContext.class)) {
-            node = Node.create(context.getChild(0));
+            node = Node.create(context.getChild(0), file);
 
         } else if (cc.equals(GyroParser.PairContext.class)) {
-            node = new PairNode((GyroParser.PairContext) context);
+            node = new PairNode((GyroParser.PairContext) context, file);
 
         } else if (cc.equals(GyroParser.DirectiveContext.class)) {
             node = new DirectiveNode((GyroParser.DirectiveContext) context);
 
         } else if (cc.equals(GyroParser.ListContext.class)) {
-            node = new ListNode((GyroParser.ListContext) context);
+            node = new ListNode((GyroParser.ListContext) context, file);
 
         } else if (cc.equals(GyroParser.MapContext.class)) {
-            node = new MapNode((GyroParser.MapContext) context);
+            node = new MapNode((GyroParser.MapContext) context, file);
 
         } else if (cc.equals(GyroParser.NumberContext.class)) {
             node = new NumberNode((GyroParser.NumberContext) context);
@@ -98,27 +98,27 @@ public abstract class Node {
             GyroParser.ResourceContext rc = (GyroParser.ResourceContext) context;
 
             if (rc.resourceName() != null) {
-                node = new ResourceNode(rc);
+                node = new ResourceNode(rc, file);
 
             } else {
                 String key = rc.resourceType().getText();
 
                 if ("plugin".equals(key)) {
-                    node = new PluginNode(rc);
+                    node = new PluginNode(rc, file);
 
                 } else {
-                    node = new KeyBlockNode(rc);
+                    node = new KeyBlockNode(rc, file);
                 }
             }
 
         } else if (cc.equals(GyroParser.ResourceReferenceContext.class)) {
-            node = new ResourceReferenceNode((GyroParser.ResourceReferenceContext) context);
+            node = new ResourceReferenceNode((GyroParser.ResourceReferenceContext) context, file);
 
         } else if (cc.equals(GyroParser.LiteralStringContext.class)) {
             node = new LiteralStringNode((GyroParser.LiteralStringContext) context);
 
         } else if (cc.equals(GyroParser.InterpolatedStringContext.class)) {
-            node = new InterpolatedStringNode((GyroParser.InterpolatedStringContext) context);
+            node = new InterpolatedStringNode((GyroParser.InterpolatedStringContext) context, file);
 
         } else if (cc.equals(GyroParser.ValueReferenceContext.class)) {
             node = new ValueReferenceNode((GyroParser.ValueReferenceContext) context);
@@ -132,7 +132,7 @@ public abstract class Node {
 
         if (context instanceof ParserRuleContext) {
             ParserRuleContext parserRuleContext = (ParserRuleContext) context;
-            node.file = parserRuleContext.getStart().getTokenSource().getSourceName();
+            node.file = file;
             node.line = parserRuleContext.getStart().getLine();
             node.column = parserRuleContext.getStart().getCharPositionInLine();
         }

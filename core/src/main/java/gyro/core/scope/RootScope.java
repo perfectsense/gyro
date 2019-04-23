@@ -162,7 +162,7 @@ public class RootScope extends FileScope {
 
     public void load(FileBackend backend, boolean createFileScope) throws Exception {
         try (InputStream inputStream = backend.read(getFile())) {
-            parse(inputStream).evaluate(this);
+            parse(inputStream, getFile()).evaluate(this);
         }
 
         if (createFileScope) {
@@ -193,7 +193,7 @@ public class RootScope extends FileScope {
         List<FileScope> scopes = new ArrayList<>();
         for (FileScope fileScope : getFileScopes()) {
             try (InputStream inputStream = backend.read(fileScope.getFile())) {
-                nodes.add(parse(inputStream));
+                nodes.add(parse(inputStream, fileScope.getFile()));
                 scopes.add(fileScope);
             }
         }
@@ -289,7 +289,7 @@ public class RootScope extends FileScope {
         }
     }
 
-    private FileNode parse(InputStream inputStream) throws IOException {
+    private FileNode parse(InputStream inputStream, String file) throws IOException {
         GyroLexer lexer = new GyroLexer(CharStreams.fromStream(inputStream));
         CommonTokenStream stream = new CommonTokenStream(lexer);
         GyroParser parser = new GyroParser(stream);
@@ -306,6 +306,6 @@ public class RootScope extends FileScope {
             throw new GyroLanguageException(String.format("%d %s found while parsing.", errorCount, errorCount == 1 ? "error" : "errors"));
         }
 
-        return (FileNode) Node.create(fileContext);
+        return (FileNode) Node.create(fileContext, file);
     }
 }

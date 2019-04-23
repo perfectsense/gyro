@@ -19,11 +19,11 @@ public class VirtualResourceNode extends BlockNode {
     private String name;
     private List<VirtualResourceParameter> params;
 
-    public VirtualResourceNode(VirtualResourceContext context) {
+    public VirtualResourceNode(VirtualResourceContext context, String file) {
         super(context.blockBody()
                 .blockStatement()
                 .stream()
-                .map(b -> Node.create(b.getChild(0)))
+                .map(b -> Node.create(b.getChild(0), file))
                 .collect(Collectors.toList()));
 
         name = context.resourceType().getText();

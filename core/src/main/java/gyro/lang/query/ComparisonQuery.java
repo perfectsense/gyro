@@ -26,10 +26,10 @@ public class ComparisonQuery extends Query {
     public static final String EQUALS_OPERATOR = "=";
     public static final String NOT_EQUALS_OPERATOR = "!=";
 
-    public ComparisonQuery(GyroParser.ComparisonQueryContext context) {
+    public ComparisonQuery(GyroParser.ComparisonQueryContext context, String file) {
         this.operator = context.comparisonOperator().getText();
         this.path = context.path().getText();
-        this.value = Node.create(context.value().getChild(0));
+        this.value = Node.create(context.value().getChild(0), file);
     }
 
     public boolean isSupported(ResourceFinder finder) {

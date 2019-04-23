@@ -9,17 +9,17 @@ import java.util.List;
 
 public abstract class Query {
 
-    public static Query create(ParseTree context) {
+    public static Query create(ParseTree context, String file) {
         Class<? extends ParseTree> cc = context.getClass();
 
         if (cc.equals(GyroParser.AndQueryContext.class)) {
-            return new AndQuery((GyroParser.AndQueryContext) context);
+            return new AndQuery((GyroParser.AndQueryContext) context, file);
 
         } else if (cc.equals(GyroParser.OrQueryContext.class)) {
-            return new OrQuery((GyroParser.OrQueryContext) context);
+            return new OrQuery((GyroParser.OrQueryContext) context, file);
 
         } else if (cc.equals(GyroParser.ComparisonQueryContext.class)) {
-            return new ComparisonQuery((GyroParser.ComparisonQueryContext) context);
+            return new ComparisonQuery((GyroParser.ComparisonQueryContext) context, file);
         }
 
         return null;

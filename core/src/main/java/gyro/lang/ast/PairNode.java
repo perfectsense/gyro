@@ -13,9 +13,9 @@ public class PairNode extends Node {
         this.value = value;
     }
 
-    public PairNode(GyroParser.PairContext context) {
+    public PairNode(GyroParser.PairContext context, String file) {
         key = context.key().getChild(0).getText();
-        value = Node.create(context.value().getChild(0));
+        value = Node.create(context.value().getChild(0), file);
     }
 
     public String getKey() {

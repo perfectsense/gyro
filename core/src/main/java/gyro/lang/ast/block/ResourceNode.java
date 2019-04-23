@@ -29,15 +29,15 @@ public class ResourceNode extends BlockNode {
         this.nameNode = nameNode;
     }
 
-    public ResourceNode(GyroParser.ResourceContext context) {
+    public ResourceNode(GyroParser.ResourceContext context, String file) {
         super(context.blockBody()
                 .blockStatement()
                 .stream()
-                .map(c -> Node.create(c.getChild(0)))
+                .map(c -> Node.create(c.getChild(0), file))
                 .collect(Collectors.toList()));
 
         type = context.resourceType().getText();
-        nameNode = Node.create(context.resourceName().getChild(0));
+        nameNode = Node.create(context.resourceName().getChild(0), file);
     }
 
     public String getType() {

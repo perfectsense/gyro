@@ -24,11 +24,11 @@ public class ForNode extends BlockNode {
         this.items = items;
     }
 
-    public ForNode(GyroParser.ForStatementContext context) {
+    public ForNode(GyroParser.ForStatementContext context, String file) {
         super(context.blockBody()
                 .blockStatement()
                 .stream()
-                .map(c -> Node.create(c.getChild(0)))
+                .map(c -> Node.create(c.getChild(0), file))
                 .collect(Collectors.toList()));
 
         variables = context.forVariable()
@@ -39,7 +39,7 @@ public class ForNode extends BlockNode {
         items = context.list()
                 .value()
                 .stream()
-                .map(c -> Node.create(c.getChild(0)))
+                .map(c -> Node.create(c.getChild(0), file))
                 .collect(Collectors.toList());
     }
 

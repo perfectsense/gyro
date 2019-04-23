@@ -5,8 +5,8 @@ import gyro.parser.antlr4.GyroParser;
 
 public class AndConditionNode extends ConditionNode {
 
-    public AndConditionNode(GyroParser.AndConditionContext context) {
-        super(context);
+    public AndConditionNode(GyroParser.AndConditionContext context, String file) {
+        super(context, file);
     }
 
     @Override

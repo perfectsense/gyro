@@ -7,8 +7,8 @@ public class ComparisonConditionNode extends ConditionNode {
 
     private String operator;
 
-    public ComparisonConditionNode(GyroParser.ComparisonConditionContext context) {
-        super(context);
+    public ComparisonConditionNode(GyroParser.ComparisonConditionContext context, String file) {
+        super(context, file);
 
         operator = context.comparisonOperator().getText();
     }

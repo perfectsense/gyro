@@ -9,10 +9,10 @@ public abstract class AbstractCompoundQuery extends Query {
 
     private final List<Query> children;
 
-    public AbstractCompoundQuery(GyroParser.QueryContext context) {
+    public AbstractCompoundQuery(GyroParser.QueryContext context, String file) {
         ImmutableList.Builder<Query> list = ImmutableList.builder();
-        addChildren(list, create(context.getChild(0)));
-        addChildren(list, create(context.getChild(2)));
+        addChildren(list, create(context.getChild(0), file));
+        addChildren(list, create(context.getChild(2), file));
         children = list.build();
     }
 
