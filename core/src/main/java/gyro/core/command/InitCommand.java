@@ -56,7 +56,7 @@ public class InitCommand extends AbstractCommand {
         if (!Files.exists(rootDir)) {
             Files.createDirectories(rootDir);
             try (BufferedWriter writer = Files.newBufferedWriter(rootDir.resolve("init.gyro"), StandardCharsets.UTF_8)) {
-                writer.write(initBuilder.toString());
+                writer.append(initBuilder);
             }
 
             GyroCore.ui().write("New Gyro working directory has been created.\n");
@@ -68,7 +68,7 @@ public class InitCommand extends AbstractCommand {
                     rootDir.normalize())) {
 
                 try (BufferedWriter writer = Files.newBufferedWriter(rootDir.resolve("init.gyro"), StandardCharsets.UTF_8)) {
-                    writer.write(initBuilder.toString());
+                    writer.append(initBuilder);
                 }
 
                 GyroCore.ui().write("Gyro working directory has been updated.\n");
