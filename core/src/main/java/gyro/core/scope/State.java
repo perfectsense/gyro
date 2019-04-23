@@ -50,7 +50,7 @@ public class State {
     }
 
     public State(RootScope pending, boolean test) throws Exception {
-        root = new RootScope(pending.getFile(), new HashSet<>(pending.getActiveScopePaths()));
+        root = new RootScope(pending.getFile(), new HashSet<>(pending.getActiveFiles()));
         this.test = test;
 
         load(pending, root);

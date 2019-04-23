@@ -47,7 +47,7 @@ public class RootScope extends FileScope {
     private final List<Workflow> workflows = new ArrayList<>();
     private final List<FileScope> fileScopes = new ArrayList<>();
     private final Map<String, Resource> resources = new LinkedHashMap<>();
-    private final Set<String> activeScopePaths = new HashSet<>();
+    private final Set<String> activeFiles = new HashSet<>();
     private final Map<String, Set<String>> duplicateResources = new HashMap<>();
 
     public RootScope(String file) {
@@ -98,10 +98,10 @@ public class RootScope extends FileScope {
                     Path statePath = Paths.get(rootDir.toString(), ".gyro", "state", relative.toString());
                     Files.createDirectories(statePath.getParent());
 
-                    this.activeScopePaths.add(statePath.toString());
+                    this.activeFiles.add(statePath.toString());
                 }
             } else {
-                this.activeScopePaths.addAll(activePaths);
+                this.activeFiles.addAll(activePaths);
             }
 
         } catch (IOException e) {
@@ -150,8 +150,8 @@ public class RootScope extends FileScope {
         resources.put(name, resource);
     }
 
-    public Set<String> getActiveScopePaths() {
-        return activeScopePaths;
+    public Set<String> getActiveFiles() {
+        return activeFiles;
     }
 
     public List<Resource> findAllResources() {
@@ -160,14 +160,14 @@ public class RootScope extends FileScope {
 
     public List<Resource> findAllActiveResources() {
 
-        if (getActiveScopePaths().isEmpty()) {
+        if (getActiveFiles().isEmpty()) {
             return findAllResources();
         }
 
         try {
             List<FileScope> activeFileScopes = new ArrayList<>();
             for (FileScope fileScope : getFileScopes()) {
-                for (String path : activeScopePaths) {
+                for (String path : activeFiles) {
                     if (Files.isSameFile(Paths.get(fileScope.getFile()), Paths.get(path))) {
                         activeFileScopes.add(fileScope);
                     }
