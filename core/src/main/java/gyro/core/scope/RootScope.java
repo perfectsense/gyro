@@ -69,28 +69,6 @@ public class RootScope extends FileScope {
         this.activeFiles.addAll(activeFiles);
 
         put("ENV", System.getenv());
-
-        try {
-            Path rootPath = Paths.get(file).toAbsolutePath().getParent();
-            try (Stream<Path> pathStream = this.current != null
-                ? Files.find(rootPath.getParent(), Integer.MAX_VALUE,
-                    (p, b) -> b.isRegularFile()
-                        && p.toString().endsWith(".gyro")
-                        && !p.toString().startsWith(rootPath.toString()))
-
-                : Files.find(rootPath, Integer.MAX_VALUE,
-                    (p, b) -> b.isRegularFile()
-                        && p.toString().endsWith(".gyro.state"))) {
-
-                for (Path path : (Iterable<Path>) pathStream::iterator) {
-                    FileScope fileScope = new FileScope(this, path.toString());
-                    getFileScopes().add(fileScope);
-                }
-            }
-
-        } catch (IOException e) {
-            throw new GyroException(e.getMessage(), e);
-        }
     }
 
     public RootScope getCurrent() {
@@ -179,6 +157,28 @@ public class RootScope extends FileScope {
     }
 
     public void load(FileBackend backend) throws Exception {
+        try {
+            Path gyroDir = GyroCore.getRootInitFile().getParent();
+            try (Stream<Path> pathStream = this.current != null
+                ? Files.find(gyroDir.getParent(), Integer.MAX_VALUE,
+                (p, b) -> b.isRegularFile()
+                    && p.toString().endsWith(".gyro")
+                    && !p.toString().startsWith(gyroDir.toString()))
+
+                : Files.find(gyroDir.resolve(Paths.get("state")), Integer.MAX_VALUE,
+                (p, b) -> b.isRegularFile()
+                    && p.toString().endsWith(".gyro.state"))) {
+
+                for (Path path : (Iterable<Path>) pathStream::iterator) {
+                    FileScope fileScope = new FileScope(this, path.toString());
+                    getFileScopes().add(fileScope);
+                }
+            }
+
+        } catch (IOException e) {
+            throw new GyroException(e.getMessage(), e);
+        }
+
         try (InputStream inputStream = backend.read(getFile())) {
             parse(inputStream).evaluate(this);
         }
