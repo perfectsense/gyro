@@ -1,5 +1,6 @@
 package gyro.cli;
 
+import gyro.core.InitFileNotFoundException;
 import gyro.core.command.AbstractCommand;
 import gyro.core.command.GyroCommand;
 import gyro.core.GyroCore;
@@ -18,8 +19,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.lang.reflect.Modifier;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -113,16 +112,20 @@ public class Gyro {
 
     public static void loadCommands(Gyro gyro) throws Exception {
         // Load GYRO_ROOT/.gyro/init.gyro
-        RootScope scope = new RootScope(GyroCore.getRootInitFile().toString());
-        scope.getFileScopes().clear();
-        scope.load(new LocalFileBackend());
+        try {
+            RootScope scope = new RootScope(GyroCore.getRootInitFile().toString());
+            scope.getFileScopes().clear();
+            scope.load(new LocalFileBackend());
 
-        for (PluginLoader loader : scope.getPluginLoaders()) {
-            for (Class<?> c : loader.classes()) {
-                if (GyroCommand.class.isAssignableFrom(c) && !Modifier.isAbstract(c.getModifiers())) {
-                    gyro.commands().add(c);
+            for (PluginLoader loader : scope.getPluginLoaders()) {
+                for (Class<?> c : loader.classes()) {
+                    if (GyroCommand.class.isAssignableFrom(c) && !Modifier.isAbstract(c.getModifiers())) {
+                        gyro.commands().add(c);
+                    }
                 }
             }
+        } catch (InitFileNotFoundException e) {
+            // Ignore when loading commands
         }
 
     }

@@ -1,8 +1,8 @@
 package gyro.core;
 
-class InitFileNotFoundException extends GyroException {
+public class InitFileNotFoundException extends GyroException {
 
-    InitFileNotFoundException(String message) {
+    public InitFileNotFoundException(String message) {
         super(message);
     }
 }
