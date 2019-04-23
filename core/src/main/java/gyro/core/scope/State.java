@@ -41,7 +41,7 @@ public class State {
     }
 
     private Path getStatePath(Path file) throws IOException {
-        Path rootDir = GyroCore.findPluginPath().getParent().getParent();
+        Path rootDir = GyroCore.getRootInitFile().getParent().getParent();
         Path relative = rootDir.relativize(file.toAbsolutePath());
         Path statePath = Paths.get(rootDir.toString(), ".gyro", "state", relative.toString());
         Files.createDirectories(statePath.getParent());

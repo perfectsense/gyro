@@ -113,7 +113,7 @@ public class Gyro {
 
     public static void loadCommands(Gyro gyro) throws Exception {
         // Load GYRO_ROOT/.gyro/init.gyro
-        Path commandPluginPath = GyroCore.findCommandPluginPath();
+        Path commandPluginPath = GyroCore.getRootInitFile();
         if (commandPluginPath != null) {
             if (Files.exists(commandPluginPath) && Files.isRegularFile(commandPluginPath)) {
                 RootScope scope = new RootScope(commandPluginPath.toString());

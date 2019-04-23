@@ -93,7 +93,7 @@ public class RootScope extends FileScope {
             if (getCurrent() == null) {
                 for (String path : activePaths) {
                     path += ".state";
-                    Path rootDir = GyroCore.findPluginPath().getParent().getParent();
+                    Path rootDir = GyroCore.getRootInitFile().getParent().getParent();
                     Path relative = rootDir.relativize(Paths.get(path).toAbsolutePath());
                     Path statePath = Paths.get(rootDir.toString(), ".gyro", "state", relative.toString());
                     Files.createDirectories(statePath.getParent());

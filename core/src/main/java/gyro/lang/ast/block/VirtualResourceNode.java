@@ -36,7 +36,7 @@ public class VirtualResourceNode extends BlockNode {
 
     public void createResources(String prefix, Scope paramScope) throws Exception {
         FileScope paramFileScope = paramScope.getFileScope();
-        RootScope vrScope = new RootScope(GyroCore.findPluginPath().toString());
+        RootScope vrScope = new RootScope(GyroCore.getRootInitFile().toString());
 
         for (VirtualResourceParameter param : params) {
             String paramName = param.getName();

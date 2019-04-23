@@ -35,28 +35,17 @@ public class GyroCore {
         return userHome;
     }
 
-    public static Path findPluginPath() throws IOException {
-        Path rootPath = findRootDirectory(Paths.get("").toAbsolutePath());
-        String message = "Not a gyro project directory, use 'gyro init <plugins>...' to create one. See 'gyro help init' for detailed usage.";
-        if (rootPath == null) {
-            throw new GyroException(message);
+    public static Path getRootInitFile() throws IOException {
+        Path rootDir = findRootDirectory(Paths.get("").toAbsolutePath());
+        if (rootDir != null) {
+            Path initFile = rootDir.resolve(Paths.get("init.gyro"));
+            if (Files.exists(initFile) && Files.isRegularFile(initFile)) {
+                return initFile;
+            }
         }
 
-        Path pluginPath = rootPath.resolve(Paths.get("init.gyro"));
-        if (!Files.exists(pluginPath)) {
-            throw new GyroException(message);
-        }
-
-        return pluginPath;
-    }
-
-    public static Path findCommandPluginPath() throws IOException {
-        Path rootPath = findRootDirectory(Paths.get("").toAbsolutePath());
-        if (rootPath != null) {
-            return rootPath.resolve(Paths.get("init.gyro"));
-        } else {
-            return null;
-        }
+        throw new InitFileNotFoundException("Not a gyro project directory, use 'gyro init <plugins>...' to create one. "
+             + "See 'gyro help init' for detailed usage.");
     }
 
     private static Path findRootDirectory(Path path) throws IOException {

@@ -62,7 +62,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             activePaths.add(file);
         }
 
-        RootScope current = new RootScope(GyroCore.findPluginPath().toString(), activePaths);
+        RootScope current = new RootScope(GyroCore.getRootInitFile().toString(), activePaths);
         RootScope pending = new RootScope(current, activePaths);
 
         try {
