@@ -157,37 +157,45 @@ public class RootScope extends FileScope {
     }
 
     public void load(FileBackend backend) throws Exception {
+        load(backend, true);
+    }
+
+    public void load(FileBackend backend, boolean createFileScope) throws Exception {
         try (InputStream inputStream = backend.read(getFile())) {
             parse(inputStream).evaluate(this);
         }
 
-        List<Node> nodes = new ArrayList<>();
-        List<FileScope> scopes = new ArrayList<>();
-        try {
-            Path gyroDir = GyroCore.getRootInitFile().getParent();
-            try (Stream<Path> pathStream = this.current != null
-                ? Files.find(gyroDir.getParent(), Integer.MAX_VALUE,
-                (p, b) -> b.isRegularFile()
-                    && p.toString().endsWith(".gyro")
-                    && !p.toString().startsWith(gyroDir.toString()))
+        if (createFileScope) {
+            try {
+                Path gyroDir = GyroCore.getRootInitFile().getParent();
+                try (Stream<Path> pathStream = this.current != null
+                    ? Files.find(gyroDir.getParent(), Integer.MAX_VALUE,
+                    (p, b) -> b.isRegularFile()
+                        && p.toString().endsWith(".gyro")
+                        && !p.toString().startsWith(gyroDir.toString()))
 
-                : Files.find(gyroDir.resolve(Paths.get("state")), Integer.MAX_VALUE,
-                (p, b) -> b.isRegularFile()
-                    && p.toString().endsWith(".gyro.state"))) {
+                    : Files.find(gyroDir.resolve(Paths.get("state")), Integer.MAX_VALUE,
+                    (p, b) -> b.isRegularFile()
+                        && p.toString().endsWith(".gyro.state"))) {
 
-                for (Path path : (Iterable<Path>) pathStream::iterator) {
-                    FileScope fileScope = new FileScope(this, path.toString());
-                    getFileScopes().add(fileScope);
-                    scopes.add(fileScope);
-
-                    try (InputStream inputStream = backend.read(fileScope.getFile())) {
-                        nodes.add(parse(inputStream));
+                    for (Path path : (Iterable<Path>) pathStream::iterator) {
+                        FileScope fileScope = new FileScope(this, path.toString());
+                        getFileScopes().add(fileScope);
                     }
                 }
-            }
 
-        } catch (IOException e) {
-            throw new GyroException(e.getMessage(), e);
+            } catch (IOException e) {
+                throw new GyroException(e.getMessage(), e);
+            }
+        }
+
+        List<Node> nodes = new ArrayList<>();
+        List<FileScope> scopes = new ArrayList<>();
+        for (FileScope fileScope : getFileScopes()) {
+            try (InputStream inputStream = backend.read(fileScope.getFile())) {
+                nodes.add(parse(inputStream));
+                scopes.add(fileScope);
+            }
         }
 
         while (true) {
