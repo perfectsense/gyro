@@ -54,10 +54,6 @@ public class RootScope extends FileScope {
         this(file, null, Collections.emptySet());
     }
 
-    public RootScope(RootScope current) {
-        this(current.getFile(), current, Collections.emptySet());
-    }
-
     public RootScope(String file, Set<String> activePaths) {
         this(file, null, activePaths);
     }
