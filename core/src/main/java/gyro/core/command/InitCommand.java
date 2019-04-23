@@ -7,7 +7,7 @@ import gyro.core.GyroException;
 import io.airlift.airline.Arguments;
 import io.airlift.airline.Command;
 
-import java.io.PrintWriter;
+import java.io.BufferedWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -55,10 +55,8 @@ public class InitCommand extends AbstractCommand {
         Path rootDir = Paths.get(".gyro");
         if (!Files.exists(rootDir)) {
             Files.createDirectories(rootDir);
-            try (PrintWriter printWriter = new PrintWriter(
-                Files.newBufferedWriter(rootDir.resolve("init.gyro"), StandardCharsets.UTF_8))) {
-
-                printWriter.write(initBuilder.toString());
+            try (BufferedWriter writer = Files.newBufferedWriter(rootDir.resolve("init.gyro"), StandardCharsets.UTF_8)) {
+                writer.write(initBuilder.toString());
             }
 
             GyroCore.ui().write("New Gyro working directory has been created.\n");
@@ -69,10 +67,8 @@ public class InitCommand extends AbstractCommand {
                     "\nFound existing Gyro working directory at '%s', are you sure you want to update plugins?",
                     rootDir.normalize())) {
 
-                try (PrintWriter printWriter = new PrintWriter(
-                    Files.newBufferedWriter(Paths.get(rootDir.toString(), "init.gyro"), StandardCharsets.UTF_8))) {
-
-                    printWriter.write(initBuilder.toString());
+                try (BufferedWriter writer = Files.newBufferedWriter(rootDir.resolve("init.gyro"), StandardCharsets.UTF_8)) {
+                    writer.write(initBuilder.toString());
                 }
 
                 GyroCore.ui().write("Gyro working directory has been updated.\n");
