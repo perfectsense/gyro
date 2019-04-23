@@ -157,6 +157,12 @@ public class RootScope extends FileScope {
     }
 
     public void load(FileBackend backend) throws Exception {
+        try (InputStream inputStream = backend.read(getFile())) {
+            parse(inputStream).evaluate(this);
+        }
+
+        List<Node> nodes = new ArrayList<>();
+        List<FileScope> scopes = new ArrayList<>();
         try {
             Path gyroDir = GyroCore.getRootInitFile().getParent();
             try (Stream<Path> pathStream = this.current != null
@@ -172,6 +178,11 @@ public class RootScope extends FileScope {
                 for (Path path : (Iterable<Path>) pathStream::iterator) {
                     FileScope fileScope = new FileScope(this, path.toString());
                     getFileScopes().add(fileScope);
+                    scopes.add(fileScope);
+
+                    try (InputStream inputStream = backend.read(fileScope.getFile())) {
+                        nodes.add(parse(inputStream));
+                    }
                 }
             }
 
@@ -179,35 +190,26 @@ public class RootScope extends FileScope {
             throw new GyroException(e.getMessage(), e);
         }
 
-        try (InputStream inputStream = backend.read(getFile())) {
-            parse(inputStream).evaluate(this);
-        }
-
-        Map<Node, FileScope> map = new LinkedHashMap<>();
-        for (FileScope fileScope : getFileScopes()) {
-            try (InputStream inputStream = backend.read(fileScope.getFile())) {
-                map.put(parse(inputStream), fileScope);
-            }
-        }
-
         while (true) {
             List<DeferError> errors = new ArrayList<>();
-            Map<Node, FileScope> deferred = new HashMap<>();
+            List<Node> deferredNodes = new ArrayList<>();
+            List<FileScope> deferredScopes = new ArrayList<>();
 
-            for (Map.Entry<Node, FileScope> entry : map.entrySet()) {
+            for (int i = 0; i < nodes.size(); i++) {
                 try {
-                    entry.getKey().evaluate(entry.getValue());
+                    nodes.get(i).evaluate(scopes.get(i));
 
                 } catch (DeferError error) {
                     errors.add(error);
-                    deferred.put(entry.getKey(), entry.getValue());
+                    deferredNodes.add(nodes.get(i));
+                    deferredScopes.add(scopes.get(i));
                 }
             }
 
-            if (deferred.isEmpty()) {
+            if (deferredNodes.isEmpty()) {
                 break;
 
-            } else if (map.size() == deferred.size()) {
+            } else if (nodes.size() == deferredNodes.size()) {
                 StringBuilder sb = new StringBuilder();
                 for (DeferError error : errors) {
                     sb.append(error.getMessage());
@@ -216,7 +218,8 @@ public class RootScope extends FileScope {
                 throw new GyroException(sb.toString());
 
             } else {
-                map = deferred;
+                nodes = deferredNodes;
+                scopes = deferredScopes;
             }
         }
 
