@@ -40,9 +40,9 @@ public class InitCommand extends AbstractCommand {
                      + "For example: gyro:gyro-aws-provider:0.1-SNAPSHOT");
             }
 
-            String group = plugin.split(":")[0];
-            String artifact = plugin.split(":")[1];
-            String version = plugin.split(":")[2];
+            String group = parts[0];
+            String artifact = parts[1];
+            String version = parts[2];
 
             String template = IoUtils.toString(getClass().getResourceAsStream("/plugin.gyro"), Charsets.UTF_8);
 
