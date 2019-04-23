@@ -32,7 +32,7 @@ public class InitCommand extends AbstractCommand {
 
     @Override
     protected void doExecute() throws Exception {
-        StringBuilder pluginBuilder = new StringBuilder();
+        StringBuilder initBuilder = new StringBuilder();
         for (String plugin : plugins()) {
             String [] parts = plugin.split(":");
             if (parts.length != 3) {
@@ -49,7 +49,7 @@ public class InitCommand extends AbstractCommand {
             template = template.replace("${GROUP}", group);
             template = template.replace("${ARTIFACT}", artifact);
             template = template.replace("${VERSION}", version);
-            pluginBuilder.append(template);
+            initBuilder.append(template);
         }
 
         Path rootDir = Paths.get(".gyro");
@@ -58,7 +58,7 @@ public class InitCommand extends AbstractCommand {
             try (PrintWriter printWriter = new PrintWriter(
                 Files.newBufferedWriter(Paths.get(rootDir.toString(), "init.gyro"), StandardCharsets.UTF_8))) {
 
-                printWriter.write(pluginBuilder.toString());
+                printWriter.write(initBuilder.toString());
             }
 
             GyroCore.ui().write("New Gyro working directory has been created.\n");
@@ -72,7 +72,7 @@ public class InitCommand extends AbstractCommand {
                 try (PrintWriter printWriter = new PrintWriter(
                     Files.newBufferedWriter(Paths.get(rootDir.toString(), "init.gyro"), StandardCharsets.UTF_8))) {
 
-                    printWriter.write(pluginBuilder.toString());
+                    printWriter.write(initBuilder.toString());
                 }
 
                 GyroCore.ui().write("Gyro working directory has been updated.\n");
