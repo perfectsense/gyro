@@ -234,6 +234,26 @@ public class RootScope extends FileScope {
         validate();
     }
 
+    private FileNode parse(InputStream inputStream, String file) throws IOException {
+        GyroLexer lexer = new GyroLexer(CharStreams.fromStream(inputStream));
+        CommonTokenStream stream = new CommonTokenStream(lexer);
+        GyroParser parser = new GyroParser(stream);
+        GyroErrorListener errorListener = new GyroErrorListener();
+
+        parser.removeErrorListeners();
+        parser.addErrorListener(errorListener);
+        parser.setErrorHandler(new GyroErrorStrategy());
+
+        GyroParser.FileContext fileContext = parser.file();
+
+        int errorCount = errorListener.getSyntaxErrors();
+        if (errorCount > 0) {
+            throw new GyroLanguageException(String.format("%d %s found while parsing.", errorCount, errorCount == 1 ? "error" : "errors"));
+        }
+
+        return (FileNode) Node.create(fileContext, file);
+    }
+
     private void validate() {
         StringBuilder sb = new StringBuilder();
         for (FileScope fileScope : getFileScopes()) {
@@ -287,25 +307,5 @@ public class RootScope extends FileScope {
                 }
             }
         }
-    }
-
-    private FileNode parse(InputStream inputStream, String file) throws IOException {
-        GyroLexer lexer = new GyroLexer(CharStreams.fromStream(inputStream));
-        CommonTokenStream stream = new CommonTokenStream(lexer);
-        GyroParser parser = new GyroParser(stream);
-        GyroErrorListener errorListener = new GyroErrorListener();
-
-        parser.removeErrorListeners();
-        parser.addErrorListener(errorListener);
-        parser.setErrorHandler(new GyroErrorStrategy());
-
-        GyroParser.FileContext fileContext = parser.file();
-
-        int errorCount = errorListener.getSyntaxErrors();
-        if (errorCount > 0) {
-            throw new GyroLanguageException(String.format("%d %s found while parsing.", errorCount, errorCount == 1 ? "error" : "errors"));
-        }
-
-        return (FileNode) Node.create(fileContext, file);
     }
 }
