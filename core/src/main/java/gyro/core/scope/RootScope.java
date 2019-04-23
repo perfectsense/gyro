@@ -55,17 +55,18 @@ public class RootScope extends FileScope {
         this(file, null, Collections.emptySet());
     }
 
-    public RootScope(String file, Set<String> activePaths) {
-        this(file, null, activePaths);
+    public RootScope(String file, Set<String> activeFiles) {
+        this(file, null, activeFiles);
     }
 
-    public RootScope(RootScope current, Set<String> activePaths) {
-        this(current.getFile(), current, activePaths);
+    public RootScope(RootScope current, Set<String> activeFiles) {
+        this(current.getFile(), current, activeFiles);
     }
 
-    private RootScope(String file, RootScope current, Set<String> activePaths) {
+    private RootScope(String file, RootScope current, Set<String> activeFiles) {
         super(null, file);
         this.current = current;
+        this.activeFiles.addAll(activeFiles);
 
         put("ENV", System.getenv());
 
@@ -85,20 +86,6 @@ public class RootScope extends FileScope {
                     FileScope fileScope = new FileScope(this, path.toString());
                     getFileScopes().add(fileScope);
                 }
-            }
-
-            if (this.current == null) {
-                for (String path : activePaths) {
-                    path += ".state";
-                    Path rootDir = GyroCore.getRootInitFile().getParent().getParent();
-                    Path relative = rootDir.relativize(Paths.get(path).toAbsolutePath());
-                    Path statePath = Paths.get(rootDir.toString(), ".gyro", "state", relative.toString());
-                    Files.createDirectories(statePath.getParent());
-
-                    this.activeFiles.add(statePath.toString());
-                }
-            } else {
-                this.activeFiles.addAll(activePaths);
             }
 
         } catch (IOException e) {
@@ -156,28 +143,37 @@ public class RootScope extends FileScope {
     }
 
     public List<Resource> findAllActiveResources() {
-
-        if (getActiveFiles().isEmpty()) {
+        if (activeFiles.isEmpty()) {
             return findAllResources();
         }
 
-        try {
-            List<FileScope> activeFileScopes = new ArrayList<>();
-            for (FileScope fileScope : getFileScopes()) {
-                for (String path : activeFiles) {
-                    if (Files.isSameFile(Paths.get(fileScope.getFile()), Paths.get(path))) {
-                        activeFileScopes.add(fileScope);
-                    }
+        List<FileScope> activeFileScopes = new ArrayList<>();
+        for (String path : activeFiles) {
+            String activeFile = path;
+            if (this.current == null) {
+                path += ".state";
+                Path rootDir = GyroCore.getRootInitFile().getParent().getParent();
+                Path relative = rootDir.relativize(Paths.get(path).toAbsolutePath());
+                Path state = Paths.get(rootDir.toString(), ".gyro", "state", relative.toString());
+                if (Files.exists(state)) {
+                    activeFile = state.toString();
                 }
             }
 
-            return resources.values().stream()
-                .filter(r -> activeFileScopes.contains(r.scope().getFileScope()))
-                .collect(Collectors.toList());
-
-        } catch (IOException e) {
-            throw new GyroException(e.getMessage(), e);
+            for (FileScope fileScope : getFileScopes()) {
+                try {
+                    if (Files.isSameFile(Paths.get(fileScope.getFile()), Paths.get(activeFile))) {
+                        activeFileScopes.add(fileScope);
+                    }
+                } catch (IOException e) {
+                    throw new GyroException(e.getMessage(), e);
+                }
+            }
         }
+
+        return resources.values().stream()
+            .filter(r -> activeFileScopes.contains(r.scope().getFileScope()))
+            .collect(Collectors.toList());
     }
 
     public Resource findResource(String name) {
