@@ -80,7 +80,7 @@ public class RootScope extends FileScope {
                     (p, b) -> b.isRegularFile()
                         && p.toString().endsWith(".gyro.state"))) {
 
-                for (Path path : pathStream.collect(Collectors.toSet())) {
+                for (Path path : (Iterable<Path>) pathStream::iterator) {
                     FileScope fileScope = new FileScope(this, path.toString());
                     getFileScopes().add(fileScope);
                 }
