@@ -229,6 +229,39 @@ public class RootScope extends FileScope {
         validate();
     }
 
+    private void validate() {
+        StringBuilder sb = new StringBuilder();
+        for (FileScope fileScope : getFileScopes()) {
+            boolean hasCredentials = fileScope.values()
+                .stream()
+                .anyMatch(Credentials.class::isInstance);
+
+            if (hasCredentials) {
+                sb.append(String.format("Credentials are only allowed in '%s', found in '%s'%n", getFile(), fileScope.getFile()));
+            }
+        }
+
+        boolean hasResources = this.values()
+            .stream()
+            .anyMatch(r -> r instanceof Resource && !(r instanceof Credentials));
+
+        if (hasResources) {
+            sb.append(String.format("Resources are not allowed in '%s'%n", getFile()));
+        }
+
+        for (Map.Entry<String, Set<String>> entry : duplicateResources.entrySet()) {
+            sb.append(String.format("%nDuplicate resource %s defined in the following files:%n", entry.getKey()));
+            entry.getValue().stream()
+                .map(p -> p + "\n")
+                .forEach(sb::append);
+        }
+
+        if (sb.length() != 0) {
+            sb.insert(0, "Invalid configs\n");
+            throw new GyroException(sb.toString());
+        }
+    }
+
     public void save(FileBackend backend) throws IOException {
         for (FileScope fileScope : getFileScopes()) {
             String file = fileScope.getFile();
@@ -269,38 +302,5 @@ public class RootScope extends FileScope {
         }
 
         return (FileNode) Node.create(fileContext);
-    }
-
-    public void validate() {
-        StringBuilder sb = new StringBuilder();
-        for (FileScope fileScope : getFileScopes()) {
-            boolean hasCredentials = fileScope.values()
-                .stream()
-                .anyMatch(Credentials.class::isInstance);
-
-            if (hasCredentials) {
-                sb.append(String.format("Credentials are only allowed in '%s', found in '%s'%n", getFile(), fileScope.getFile()));
-            }
-        }
-
-        boolean hasResources = this.values()
-            .stream()
-            .anyMatch(r -> r instanceof Resource && !(r instanceof Credentials));
-
-        if (hasResources) {
-            sb.append(String.format("Resources are not allowed in '%s'%n", getFile()));
-        }
-
-        for (Map.Entry<String, Set<String>> entry : duplicateResources.entrySet()) {
-            sb.append(String.format("%nDuplicate resource %s defined in the following files:%n", entry.getKey()));
-            entry.getValue().stream()
-                .map(p -> p + "\n")
-                .forEach(sb::append);
-        }
-
-        if (sb.length() != 0) {
-            sb.insert(0, "Invalid configs\n");
-            throw new GyroException(sb.toString());
-        }
     }
 }
