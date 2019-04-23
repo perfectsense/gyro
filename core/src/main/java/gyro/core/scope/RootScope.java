@@ -71,12 +71,12 @@ public class RootScope extends FileScope {
         try {
             Path rootPath = Paths.get(file).toAbsolutePath().getParent();
             try (Stream<Path> pathStream = this.current != null
-                ? Files.find(rootPath.getParent(), 100,
+                ? Files.find(rootPath.getParent(), Integer.MAX_VALUE,
                     (p, b) -> b.isRegularFile()
                         && p.toString().endsWith(".gyro")
                         && !p.toString().startsWith(rootPath.toString()))
 
-                : Files.find(rootPath, 100,
+                : Files.find(rootPath, Integer.MAX_VALUE,
                     (p, b) -> b.isRegularFile()
                         && p.toString().endsWith(".gyro.state"))) {
 
