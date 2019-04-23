@@ -113,22 +113,18 @@ public class Gyro {
 
     public static void loadCommands(Gyro gyro) throws Exception {
         // Load GYRO_ROOT/.gyro/init.gyro
-        Path commandPluginPath = GyroCore.getRootInitFile();
-        if (commandPluginPath != null) {
-            if (Files.exists(commandPluginPath) && Files.isRegularFile(commandPluginPath)) {
-                RootScope scope = new RootScope(commandPluginPath.toString());
-                scope.getFileScopes().clear();
-                scope.load(new LocalFileBackend());
+        RootScope scope = new RootScope(GyroCore.getRootInitFile().toString());
+        scope.getFileScopes().clear();
+        scope.load(new LocalFileBackend());
 
-                for (PluginLoader loader : scope.getPluginLoaders()) {
-                    for (Class<?> c : loader.classes()) {
-                        if (GyroCommand.class.isAssignableFrom(c) && !Modifier.isAbstract(c.getModifiers())) {
-                            gyro.commands().add(c);
-                        }
-                    }
+        for (PluginLoader loader : scope.getPluginLoaders()) {
+            for (Class<?> c : loader.classes()) {
+                if (GyroCommand.class.isAssignableFrom(c) && !Modifier.isAbstract(c.getModifiers())) {
+                    gyro.commands().add(c);
                 }
             }
         }
+
     }
 
     public static Reflections getReflections() {
