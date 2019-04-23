@@ -3,7 +3,6 @@ package gyro.core.scope;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -231,11 +230,10 @@ public class RootScope extends FileScope {
     public void save(FileBackend backend) throws IOException {
         for (FileScope fileScope : getFileScopes()) {
             String file = fileScope.getFile();
-            OutputStream outputStream = backend.write(file);
 
             try (BufferedWriter out = new BufferedWriter(
                 new OutputStreamWriter(
-                    outputStream,
+                    backend.write(file),
                     StandardCharsets.UTF_8))) {
 
                 for (PluginLoader pluginLoader : fileScope.getPluginLoaders()) {
