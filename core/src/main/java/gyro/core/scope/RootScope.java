@@ -170,13 +170,13 @@ public class RootScope extends FileScope {
                 Path gyroDir = GyroCore.getRootInitFile().getParent();
                 try (Stream<Path> pathStream = this.current != null
                     ? Files.find(gyroDir.getParent(), Integer.MAX_VALUE,
-                    (p, b) -> b.isRegularFile()
-                        && p.toString().endsWith(".gyro")
-                        && !p.toString().startsWith(gyroDir.toString()))
+                        (p, b) -> b.isRegularFile()
+                            && p.toString().endsWith(".gyro")
+                            && !p.toString().startsWith(gyroDir.toString()))
 
                     : Files.find(gyroDir.resolve(Paths.get("state")), Integer.MAX_VALUE,
-                    (p, b) -> b.isRegularFile()
-                        && p.toString().endsWith(".gyro.state"))) {
+                        (p, b) -> b.isRegularFile()
+                            && p.toString().endsWith(".gyro.state"))) {
 
                     for (Path path : (Iterable<Path>) pathStream::iterator) {
                         FileScope fileScope = new FileScope(this, path.toString());
