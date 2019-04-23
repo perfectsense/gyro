@@ -46,9 +46,9 @@ public class InitCommand extends AbstractCommand {
 
             String template = IoUtils.toString(getClass().getResourceAsStream("/plugin.gyro"), Charsets.UTF_8);
 
-            template = template.replaceAll("\\$\\{GROUP}", group);
-            template = template.replaceAll("\\$\\{ARTIFACT}", artifact);
-            template = template.replaceAll("\\$\\{VERSION}", version);
+            template = template.replace("${GROUP}", group);
+            template = template.replace("${ARTIFACT}", artifact);
+            template = template.replace("${VERSION}", version);
             pluginBuilder.append(template);
             pluginBuilder.append("\n");
         }
