@@ -50,7 +50,6 @@ public class InitCommand extends AbstractCommand {
             template = template.replace("${ARTIFACT}", artifact);
             template = template.replace("${VERSION}", version);
             pluginBuilder.append(template);
-            pluginBuilder.append("\n");
         }
 
         Path rootDir = Paths.get(".gyro");
