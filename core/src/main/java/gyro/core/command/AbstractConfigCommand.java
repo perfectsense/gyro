@@ -52,18 +52,18 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
         FileBackend backend = new LocalFileBackend();
 
-        Set<String> activePaths = new HashSet<>();
+        Set<String> activeFiles = new HashSet<>();
         for (String path : arguments()) {
             String file = StringUtils.ensureEnd(path, ".gyro");
             if (!Files.exists(Paths.get(file))) {
                 throw new GyroException(String.format("File '%s' not found.", file));
             }
 
-            activePaths.add(file);
+            activeFiles.add(file);
         }
 
-        RootScope current = new RootScope(GyroCore.getRootInitFile().toString(), activePaths);
-        RootScope pending = new RootScope(current, activePaths);
+        RootScope current = new RootScope(GyroCore.getRootInitFile().toString(), activeFiles);
+        RootScope pending = new RootScope(current, activeFiles);
 
         try {
             current.load(backend);
