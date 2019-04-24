@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -114,7 +115,7 @@ public class Gyro {
         // Load GYRO_ROOT/.gyro/init.gyro
         try {
             RootScope scope = new RootScope(GyroCore.getRootInitFile().toString());
-            scope.load(new LocalFileBackend(), false);
+            scope.load(new LocalFileBackend(), Collections.emptyList());
 
             for (PluginLoader loader : scope.getPluginLoaders()) {
                 for (Class<?> c : loader.classes()) {

@@ -157,15 +157,16 @@ public class RootScope extends FileScope {
     }
 
     public void load(FileBackend backend) throws Exception {
-        load(backend, true);
+        load(backend, null);
     }
 
-    public void load(FileBackend backend, boolean createFileScope) throws Exception {
+    public void load(FileBackend backend, List<String> files) throws Exception {
         try (InputStream inputStream = backend.read(getFile())) {
             parse(inputStream, getFile()).evaluate(this);
         }
 
-        if (createFileScope) {
+        if (files == null) {
+            files = new ArrayList<>();
             try {
                 Path gyroDir = GyroCore.getRootInitFile().getParent();
                 try (Stream<Path> pathStream = this.current != null
@@ -179,8 +180,7 @@ public class RootScope extends FileScope {
                             && p.toString().endsWith(".gyro.state"))) {
 
                     for (Path path : (Iterable<Path>) pathStream::iterator) {
-                        FileScope fileScope = new FileScope(this, path.toString());
-                        getFileScopes().add(fileScope);
+                        files.add(path.toString());
                     }
                 }
 
@@ -190,47 +190,13 @@ public class RootScope extends FileScope {
         }
 
         List<Node> nodes = new ArrayList<>();
-        List<FileScope> scopes = new ArrayList<>();
-        for (FileScope fileScope : getFileScopes()) {
-            try (InputStream inputStream = backend.read(fileScope.getFile())) {
-                nodes.add(parse(inputStream, fileScope.getFile()));
-                scopes.add(fileScope);
+        for (String file : files) {
+            try (InputStream inputStream = backend.read(file)) {
+                nodes.add(parse(inputStream, file));
             }
         }
 
-        while (true) {
-            List<DeferError> errors = new ArrayList<>();
-            List<Node> deferredNodes = new ArrayList<>();
-            List<FileScope> deferredScopes = new ArrayList<>();
-
-            for (int i = 0; i < nodes.size(); i++) {
-                try {
-                    nodes.get(i).evaluate(scopes.get(i));
-
-                } catch (DeferError error) {
-                    errors.add(error);
-                    deferredNodes.add(nodes.get(i));
-                    deferredScopes.add(scopes.get(i));
-                }
-            }
-
-            if (deferredNodes.isEmpty()) {
-                break;
-
-            } else if (nodes.size() == deferredNodes.size()) {
-                StringBuilder sb = new StringBuilder();
-                for (DeferError error : errors) {
-                    sb.append(error.getMessage());
-                }
-
-                throw new GyroException(sb.toString());
-
-            } else {
-                nodes = deferredNodes;
-                scopes = deferredScopes;
-            }
-        }
-
+        DeferError.evaluate(this, nodes);
         validate();
     }
 

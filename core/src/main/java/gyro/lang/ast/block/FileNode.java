@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
+import gyro.core.scope.FileScope;
 import gyro.core.workflow.Workflow;
 import gyro.lang.ast.DeferError;
 import gyro.lang.ast.DirectiveNode;
@@ -31,12 +32,25 @@ public class FileNode extends BlockNode {
 
     @Override
     public Object evaluate(Scope scope) throws Exception {
+        RootScope rootScope = scope.getRootScope();
+        FileScope fileScope = null;
+
+        for (FileScope s : rootScope.getFileScopes()) {
+            if (s.getFile().equals(getFile())) {
+                fileScope = s;
+            }
+        }
+
+        if (fileScope == null) {
+            fileScope = new FileScope(rootScope, getFile());
+            rootScope.getFileScopes().add(fileScope);
+        }
 
         // Evaluate imports and plugins first.
         List<DirectiveNode> imports = new ArrayList<>();
         List<PairNode> keyValues = new ArrayList<>();
         List<PluginNode> plugins = new ArrayList<>();
-        Map<String, VirtualResourceNode> virtualResourceNodes = scope.getRootScope().getVirtualResourceNodes();
+        Map<String, VirtualResourceNode> virtualResourceNodes = rootScope.getVirtualResourceNodes();
         List<ResourceNode> workflowNodes = new ArrayList<>();
         List<Node> body = new ArrayList<>();
 
@@ -68,7 +82,7 @@ public class FileNode extends BlockNode {
             }
         }
 
-        File rootConfig = new File(scope.getFileScope().getFile());
+        File rootConfig = new File(fileScope.getFile());
         Path configPath = Paths.get(rootConfig.getCanonicalPath());
         Path initFile = GyroCore.getRootInitFile();
 
@@ -82,25 +96,24 @@ public class FileNode extends BlockNode {
         }
 
         for (DirectiveNode i : imports) {
-            i.load(scope);
+            i.load(fileScope);
         }
 
         for (PairNode kv : keyValues) {
-            kv.evaluate(scope);
+            kv.evaluate(fileScope);
         }
 
         for (PluginNode plugin : plugins) {
-            plugin.load(scope);
+            plugin.load(fileScope);
         }
 
-        RootScope rootScope = scope.getRootScope();
         List<Workflow> workflows = rootScope.getWorkflows();
 
         for (ResourceNode rn : workflowNodes) {
             workflows.add(new Workflow(rootScope, rn));
         }
 
-        DeferError.evaluate(scope, body);
+        DeferError.evaluate(fileScope, body);
         return null;
     }
 
