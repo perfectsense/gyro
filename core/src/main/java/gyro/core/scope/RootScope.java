@@ -199,7 +199,12 @@ public class RootScope extends FileScope {
             }
         }
 
-        DeferError.evaluate(this, nodes);
+        try {
+            DeferError.evaluate(this, nodes);
+        } catch (DeferError e) {
+            throw new GyroException(e.getMessage());
+        }
+
         validate();
     }
 
