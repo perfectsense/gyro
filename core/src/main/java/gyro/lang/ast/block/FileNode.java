@@ -34,10 +34,13 @@ public class FileNode extends BlockNode {
     public Object evaluate(Scope scope) throws Exception {
         RootScope rootScope = scope.getRootScope();
         FileScope fileScope = null;
-
-        for (FileScope s : rootScope.getFileScopes()) {
-            if (s.getFile().equals(getFile())) {
-                fileScope = s;
+        if (rootScope.getFile().equals(getFile())) {
+            fileScope = rootScope;
+        } else {
+            for (FileScope s : rootScope.getFileScopes()) {
+                if (s.getFile().equals(getFile())) {
+                    fileScope = s;
+                }
             }
         }
 
