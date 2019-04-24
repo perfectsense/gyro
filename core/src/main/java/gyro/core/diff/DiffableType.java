@@ -16,6 +16,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.psddev.dari.util.ObjectUtils;
+import gyro.core.resource.Resource;
 import gyro.core.resource.ResourceId;
 import gyro.core.resource.ResourceName;
 
@@ -52,10 +53,11 @@ public class DiffableType<R extends Diffable> {
     }
 
     private DiffableType(Class<R> diffableClass) throws IntrospectionException {
-        this.subresource = Optional.ofNullable(diffableClass.getAnnotation(ResourceName.class))
-            .map(ResourceName::parent)
-            .filter(n -> !ObjectUtils.isBlank(n))
-            .isPresent();
+        this.subresource = !Resource.class.isAssignableFrom(diffableClass)
+            || Optional.ofNullable(diffableClass.getAnnotation(ResourceName.class))
+                .map(ResourceName::parent)
+                .filter(n -> !ObjectUtils.isBlank(n))
+                .isPresent();
 
         DiffableField idField = null;
         ImmutableList.Builder<DiffableField> fields = ImmutableList.builder();
