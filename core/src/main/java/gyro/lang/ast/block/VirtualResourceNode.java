@@ -3,14 +3,14 @@ package gyro.lang.ast.block;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import gyro.core.GyroCore;
-import gyro.lang.GyroLanguageException;
 import gyro.core.Credentials;
+import gyro.core.GyroCore;
 import gyro.core.resource.Resource;
-import gyro.lang.ast.Node;
 import gyro.core.scope.FileScope;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
+import gyro.lang.GyroLanguageException;
+import gyro.lang.ast.Node;
 
 import static gyro.parser.antlr4.GyroParser.VirtualResourceContext;
 
@@ -37,6 +37,7 @@ public class VirtualResourceNode extends BlockNode {
     public void createResources(String prefix, Scope paramScope) throws Exception {
         FileScope paramFileScope = paramScope.getFileScope();
         RootScope vrScope = new RootScope(GyroCore.getRootInitFile().toString());
+        FileScope resourceScope = new FileScope(vrScope, paramFileScope.getFile());
 
         for (VirtualResourceParameter param : params) {
             String paramName = param.getName();
@@ -59,12 +60,11 @@ public class VirtualResourceNode extends BlockNode {
                 .forEach(c -> vrScope.put(c.resourceType() + "::" + c.resourceIdentifier(), c));
 
         for (Node node : body) {
-            node.evaluate(vrScope);
+            node.evaluate(resourceScope);
         }
 
-        for (Object value : vrScope.values()) {
-            if (value instanceof Resource && !(value instanceof Credentials)) {
-                Resource resource = (Resource) value;
+        for (Resource resource : vrScope.findAllResources()) {
+            if (!(resource instanceof Credentials)) {
                 String newId = prefix + "." + resource.resourceIdentifier();
 
                 resource.resourceIdentifier(newId);
