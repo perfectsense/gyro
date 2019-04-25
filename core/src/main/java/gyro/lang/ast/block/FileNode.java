@@ -33,9 +33,8 @@ public class FileNode extends BlockNode {
     @Override
     public Object evaluate(Scope scope) throws Exception {
         RootScope rootScope = scope.getRootScope();
-        boolean isRoot = rootScope.getFile().equals(getFile());
         FileScope fileScope = null;
-        if (isRoot) {
+        if (rootScope.getFile().equals(getFile())) {
             fileScope = rootScope;
         } else {
             for (FileScope s : rootScope.getFileScopes()) {
@@ -117,10 +116,11 @@ public class FileNode extends BlockNode {
             workflows.add(new Workflow(rootScope, rn));
         }
 
-        DeferError.evaluate(fileScope, body);
-        if (!isRoot) {
+        try {
+            DeferError.evaluate(fileScope, body);
+        } catch (DeferError e) {
             rootScope.getFileScopes().remove(fileScope);
-            rootScope.getFileScopes().add(fileScope);
+            throw e;
         }
 
         return null;
