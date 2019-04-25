@@ -3,6 +3,7 @@ package gyro.core.scope;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -201,7 +202,7 @@ public class RootScope extends FileScope {
 
     public void load(FileBackend backend, List<String> files) throws Exception {
         try (InputStream inputStream = backend.read(getFile())) {
-            parse(inputStream).evaluate(this);
+            parse(inputStream, getFile()).evaluate(this);
         }
 
         if (files == null) {
@@ -211,7 +212,7 @@ public class RootScope extends FileScope {
         List<Node> nodes = new ArrayList<>();
         for (String file : files) {
             try (InputStream inputStream = backend.read(file)) {
-                nodes.add(parse(inputStream));
+                nodes.add(parse(inputStream, file));
             }
         }
 
@@ -224,8 +225,8 @@ public class RootScope extends FileScope {
         validate();
     }
 
-    private FileNode parse(InputStream inputStream) throws IOException {
-        GyroLexer lexer = new GyroLexer(CharStreams.fromStream(inputStream));
+    private FileNode parse(InputStream inputStream, String file) throws IOException {
+        GyroLexer lexer = new GyroLexer(CharStreams.fromReader(new InputStreamReader(inputStream), file));
         CommonTokenStream stream = new CommonTokenStream(lexer);
         GyroParser parser = new GyroParser(stream);
         GyroErrorListener errorListener = new GyroErrorListener();
