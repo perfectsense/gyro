@@ -16,10 +16,10 @@ public class ListNode extends Node {
         this.items = items;
     }
 
-    public ListNode(GyroParser.ListContext context, String file) {
+    public ListNode(GyroParser.ListContext context) {
         items = context.value()
                 .stream()
-                .map(c -> Node.create(c.getChild(0), file))
+                .map(c -> Node.create(c.getChild(0)))
                 .collect(Collectors.toList());
     }
 

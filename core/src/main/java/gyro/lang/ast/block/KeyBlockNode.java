@@ -18,11 +18,11 @@ public class KeyBlockNode extends BlockNode {
         this.key = key;
     }
 
-    public KeyBlockNode(GyroParser.ResourceContext context, String file) {
+    public KeyBlockNode(GyroParser.ResourceContext context) {
         super(context.blockBody()
                 .blockStatement()
                 .stream()
-                .map(c -> Node.create(c.getChild(0), file))
+                .map(c -> Node.create(c.getChild(0)))
                 .collect(Collectors.toList()));
 
         key = context.resourceType().getText();

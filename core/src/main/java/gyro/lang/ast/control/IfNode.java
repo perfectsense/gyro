@@ -14,17 +14,17 @@ public class IfNode extends Node {
     private final List<Node> conditions;
     private final List<List<Node>> bodies;
 
-    public IfNode(GyroParser.IfStatementContext context, String file) {
+    public IfNode(GyroParser.IfStatementContext context) {
         conditions = context.condition()
             .stream()
-            .map(e -> Node.create(e, file))
+            .map(e -> Node.create(e))
             .collect(Collectors.toList());
 
         bodies = context.blockBody()
             .stream()
             .map(cbc -> cbc.blockStatement()
                 .stream()
-                .map(csc -> Node.create(csc.getChild(0), file))
+                .map(csc -> Node.create(csc.getChild(0)))
                 .collect(Collectors.toList()))
             .collect(Collectors.toList());
     }

@@ -20,10 +20,10 @@ public class MapNode extends Node {
         this.entries = entries;
     }
 
-    public MapNode(MapContext context, String file) {
+    public MapNode(MapContext context) {
         entries = context.pair()
             .stream()
-            .map(kv -> (PairNode) Node.create(kv, file))
+            .map(kv -> (PairNode) Node.create(kv))
             .collect(Collectors.toList());
     }
 

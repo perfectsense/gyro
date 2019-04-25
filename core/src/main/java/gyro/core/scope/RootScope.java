@@ -201,7 +201,7 @@ public class RootScope extends FileScope {
 
     public void load(FileBackend backend, List<String> files) throws Exception {
         try (InputStream inputStream = backend.read(getFile())) {
-            parse(inputStream, getFile()).evaluate(this);
+            parse(inputStream).evaluate(this);
         }
 
         if (files == null) {
@@ -211,7 +211,7 @@ public class RootScope extends FileScope {
         List<Node> nodes = new ArrayList<>();
         for (String file : files) {
             try (InputStream inputStream = backend.read(file)) {
-                nodes.add(parse(inputStream, file));
+                nodes.add(parse(inputStream));
             }
         }
 
@@ -224,7 +224,7 @@ public class RootScope extends FileScope {
         validate();
     }
 
-    private FileNode parse(InputStream inputStream, String file) throws IOException {
+    private FileNode parse(InputStream inputStream) throws IOException {
         GyroLexer lexer = new GyroLexer(CharStreams.fromStream(inputStream));
         CommonTokenStream stream = new CommonTokenStream(lexer);
         GyroParser parser = new GyroParser(stream);
@@ -241,7 +241,7 @@ public class RootScope extends FileScope {
             throw new GyroLanguageException(String.format("%d %s found while parsing.", errorCount, errorCount == 1 ? "error" : "errors"));
         }
 
-        return (FileNode) Node.create(fileContext, file);
+        return (FileNode) Node.create(fileContext);
     }
 
     private void validate() {

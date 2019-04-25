@@ -8,8 +8,8 @@ import java.util.List;
 
 public class AndQuery extends AbstractCompoundQuery {
 
-    public AndQuery(GyroParser.AndQueryContext context, String file) {
-        super(context, file);
+    public AndQuery(GyroParser.AndQueryContext context) {
+        super(context);
     }
 
     public AndQuery(List<Query> children) {

@@ -14,11 +14,11 @@ public class PluginNode extends BlockNode {
         super(body);
     }
 
-    public PluginNode(GyroParser.ResourceContext context, String file) {
+    public PluginNode(GyroParser.ResourceContext context) {
         super(context.blockBody()
                 .blockStatement()
                 .stream()
-                .map(c -> Node.create(c.getChild(0), file))
+                .map(c -> Node.create(c.getChild(0)))
                 .collect(Collectors.toList()));
     }
 

@@ -8,11 +8,11 @@ public abstract class ConditionNode extends Node {
     private Node leftNode;
     private Node rightNode;
 
-    public ConditionNode(GyroParser.ConditionContext context, String file) {
-        leftNode = Node.create(context.getChild(0), file);
+    public ConditionNode(GyroParser.ConditionContext context) {
+        leftNode = Node.create(context.getChild(0));
 
         if (context.getChild(2) != null) {
-            rightNode = Node.create(context.getChild(2), file);
+            rightNode = Node.create(context.getChild(2));
         }
     }
 

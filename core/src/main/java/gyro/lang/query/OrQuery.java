@@ -9,8 +9,8 @@ import java.util.List;
 
 public class OrQuery extends AbstractCompoundQuery {
 
-    public OrQuery(GyroParser.OrQueryContext context, String file) {
-        super(context, file);
+    public OrQuery(GyroParser.OrQueryContext context) {
+        super(context);
     }
 
     public OrQuery(List<Query> children) {

@@ -23,10 +23,10 @@ import gyro.parser.antlr4.GyroParser;
 
 public class FileNode extends BlockNode {
 
-    public FileNode(GyroParser.FileContext context, String file) {
+    public FileNode(GyroParser.FileContext context) {
         super(context.statement()
                 .stream()
-                .map(c -> Node.create(c.getChild(0), file))
+                .map(c -> Node.create(c.getChild(0)))
                 .collect(Collectors.toList()));
     }
 
