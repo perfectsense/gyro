@@ -33,7 +33,6 @@ import gyro.lang.GyroErrorStrategy;
 import gyro.lang.GyroLanguageException;
 import gyro.lang.ast.DeferError;
 import gyro.lang.ast.Node;
-import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.VirtualResourceNode;
 import gyro.parser.antlr4.GyroLexer;
 import gyro.parser.antlr4.GyroParser;
@@ -225,7 +224,7 @@ public class RootScope extends FileScope {
         validate();
     }
 
-    private FileNode parse(InputStream inputStream, String file) throws IOException {
+    private Node parse(InputStream inputStream, String file) throws IOException {
         GyroLexer lexer = new GyroLexer(CharStreams.fromReader(new InputStreamReader(inputStream), file));
         CommonTokenStream stream = new CommonTokenStream(lexer);
         GyroParser parser = new GyroParser(stream);
@@ -242,7 +241,7 @@ public class RootScope extends FileScope {
             throw new GyroLanguageException(String.format("%d %s found while parsing.", errorCount, errorCount == 1 ? "error" : "errors"));
         }
 
-        return (FileNode) Node.create(fileContext);
+        return Node.create(fileContext);
     }
 
     private void validate() {
