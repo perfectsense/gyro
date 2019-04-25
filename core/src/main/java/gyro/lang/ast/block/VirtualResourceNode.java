@@ -53,6 +53,7 @@ public class VirtualResourceNode extends BlockNode {
         RootScope paramRootScope = paramScope.getRootScope();
 
         vrScope.getResourceClasses().putAll(paramRootScope.getResourceClasses());
+        vrScope.getFileScopes().add(resourceScope);
 
         paramRootScope.findAllResources()
                 .stream()

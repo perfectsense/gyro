@@ -171,22 +171,11 @@ public class Scope implements Map<String, Object> {
 
     @Override
     public Object put(String key, Object value) {
-        if (value instanceof Resource) {
-            Resource resource = (Resource) value;
-            String fullName = resource.resourceType() + "::" + resource.resourceIdentifier();
-            getRootScope().putResource(fullName, resource);
-        }
-
         return values.put(key, value);
     }
 
     @Override
     public void putAll(Map<? extends String, ?> map) {
-        map.values().stream()
-            .filter(Resource.class::isInstance)
-            .map(Resource.class::cast)
-            .forEach(r -> getRootScope().putResource(r.resourceType() + "::" + r.resourceIdentifier(), r));
-
         values.putAll(map);
     }
 

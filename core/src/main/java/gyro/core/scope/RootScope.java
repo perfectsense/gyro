@@ -47,9 +47,7 @@ public class RootScope extends FileScope {
     private final Map<String, VirtualResourceNode> virtualResourceNodes = new LinkedHashMap<>();
     private final List<Workflow> workflows = new ArrayList<>();
     private final List<FileScope> fileScopes = new ArrayList<>();
-    private final Map<String, Resource> resources = new LinkedHashMap<>();
     private final Set<String> activeFiles = new HashSet<>();
-    private final Map<String, Set<String>> duplicateResources = new HashMap<>();
 
     public RootScope(String file) {
         this(file, null, Collections.emptySet());
@@ -95,27 +93,23 @@ public class RootScope extends FileScope {
         return fileScopes;
     }
 
-    public void putResource(String name, Resource resource) {
-        if (resources.containsKey(name)) {
-            Resource old = resources.get(name);
-            String oldPath = old.scope().getFileScope().getFile();
-            String path = resource.scope().getFileScope().getFile();
-            if (!oldPath.equals(path)) {
-                duplicateResources.putIfAbsent(name, new HashSet<>());
-                duplicateResources.get(name).add(oldPath);
-                duplicateResources.get(name).add(path);
-            }
-        }
-
-        resources.put(name, resource);
-    }
-
     public Set<String> getActiveFiles() {
         return activeFiles;
     }
 
     public List<Resource> findAllResources() {
-        return new ArrayList<>(resources.values());
+        List<Resource> resources = new ArrayList<>();
+        addResources(resources, this);
+        getFileScopes().forEach(f -> addResources(resources, f));
+        return resources;
+    }
+
+    private void addResources(List<Resource> resources, FileScope scope) {
+        scope.values()
+            .stream()
+            .filter(Resource.class::isInstance)
+            .map(Resource.class::cast)
+            .forEach(resources::add);
     }
 
     public List<Resource> findAllActiveResources() {
@@ -147,13 +141,35 @@ public class RootScope extends FileScope {
             }
         }
 
-        return resources.values().stream()
+        return findAllResources().stream()
             .filter(r -> activeFileScopes.contains(r.scope().getFileScope()))
             .collect(Collectors.toList());
     }
 
     public Resource findResource(String name) {
-        return resources.get(name);
+        Resource resource = findResourceInScope(name, this);
+        if (resource != null) {
+            return resource;
+        }
+
+        for (FileScope scope : getFileScopes()) {
+            resource = findResourceInScope(name, scope);
+            if (resource != null) {
+                return resource;
+            }
+        }
+
+        return null;
+    }
+
+    private Resource findResourceInScope(String name, FileScope scope) {
+        Object value = scope.get(name);
+
+        if (value instanceof Resource) {
+            return (Resource) value;
+        }
+
+        return null;
     }
 
     public void load(FileBackend backend) throws Exception {
@@ -248,11 +264,20 @@ public class RootScope extends FileScope {
             sb.append(String.format("Resources are not allowed in '%s'%n", getFile()));
         }
 
-        for (Map.Entry<String, Set<String>> entry : duplicateResources.entrySet()) {
-            sb.append(String.format("%nDuplicate resource %s defined in the following files:%n", entry.getKey()));
-            entry.getValue().stream()
-                .map(p -> p + "\n")
-                .forEach(sb::append);
+        Map<String, List<String>> duplicateResources = new HashMap<>();
+        for (Resource resource : findAllResources()) {
+            String fullName = resource.resourceType() + "::" + resource.resourceIdentifier();
+            duplicateResources.putIfAbsent(fullName, new ArrayList<>());
+            duplicateResources.get(fullName).add(resource.scope().getFileScope().getFile());
+        }
+
+        for (Map.Entry<String, List<String>> entry : duplicateResources.entrySet()) {
+            if (entry.getValue().size() > 1) {
+                sb.append(String.format("%nDuplicate resource %s defined in the following files:%n", entry.getKey()));
+                entry.getValue().stream()
+                    .map(p -> p + "\n")
+                    .forEach(sb::append);
+            }
         }
 
         if (sb.length() != 0) {
