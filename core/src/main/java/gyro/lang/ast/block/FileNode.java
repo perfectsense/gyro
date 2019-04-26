@@ -33,18 +33,10 @@ public class FileNode extends BlockNode {
     @Override
     public Object evaluate(Scope scope) throws Exception {
         RootScope rootScope = scope.getRootScope();
-        FileScope fileScope = null;
+        FileScope fileScope;
         if (rootScope.getFile().equals(getFile())) {
             fileScope = rootScope;
         } else {
-            for (FileScope s : rootScope.getFileScopes()) {
-                if (s.getFile().equals(getFile())) {
-                    fileScope = s;
-                }
-            }
-        }
-
-        if (fileScope == null) {
             fileScope = new FileScope(rootScope, getFile());
             rootScope.getFileScopes().add(fileScope);
         }
