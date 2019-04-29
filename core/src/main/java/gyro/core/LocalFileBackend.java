@@ -18,12 +18,12 @@ public class LocalFileBackend implements FileBackend {
     }
 
     @Override
-    public InputStream read(String file) throws Exception {
+    public InputStream openInput(String file) throws Exception {
         return new FileInputStream(file);
     }
 
     @Override
-    public OutputStream write(String file) throws IOException {
+    public OutputStream openOutput(String file) throws IOException {
         Path newFile = Files.createTempFile("local-file-backend-", ".gyro.state");
         newFile.toFile().deleteOnExit();
 

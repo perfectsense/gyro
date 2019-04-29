@@ -8,9 +8,9 @@ public interface FileBackend {
 
     String name();
 
-    InputStream read(String file) throws Exception;
+    InputStream openInput(String file) throws Exception;
 
-    OutputStream write(String file) throws IOException;
+    OutputStream openOutput(String file) throws IOException;
 
     void delete(String file);
 

@@ -200,7 +200,7 @@ public class RootScope extends FileScope {
     }
 
     public void load(FileBackend backend, List<String> files) throws Exception {
-        try (InputStream inputStream = backend.read(getFile())) {
+        try (InputStream inputStream = backend.openInput(getFile())) {
             parse(inputStream, getFile()).evaluate(this);
         }
 
@@ -210,7 +210,7 @@ public class RootScope extends FileScope {
 
         List<Node> nodes = new ArrayList<>();
         for (String file : files) {
-            try (InputStream inputStream = backend.read(file)) {
+            try (InputStream inputStream = backend.openInput(file)) {
                 nodes.add(parse(inputStream, file));
             }
         }
@@ -292,7 +292,7 @@ public class RootScope extends FileScope {
 
             try (BufferedWriter out = new BufferedWriter(
                 new OutputStreamWriter(
-                    backend.write(file),
+                    backend.openOutput(file),
                     StandardCharsets.UTF_8))) {
 
                 for (PluginLoader pluginLoader : fileScope.getPluginLoaders()) {
