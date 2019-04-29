@@ -13,11 +13,6 @@ import java.nio.file.StandardCopyOption;
 public class LocalFileBackend implements FileBackend {
 
     @Override
-    public String name() {
-        return "local";
-    }
-
-    @Override
     public InputStream openInput(String file) throws Exception {
         return new FileInputStream(file);
     }
@@ -39,11 +34,6 @@ public class LocalFileBackend implements FileBackend {
                     StandardCopyOption.REPLACE_EXISTING);
             }
         };
-    }
-
-    @Override
-    public void delete(String file) {
-
     }
 
 }

@@ -6,12 +6,8 @@ import java.io.OutputStream;
 
 public interface FileBackend {
 
-    String name();
-
     InputStream openInput(String file) throws Exception;
 
     OutputStream openOutput(String file) throws IOException;
-
-    void delete(String file);
 
 }
