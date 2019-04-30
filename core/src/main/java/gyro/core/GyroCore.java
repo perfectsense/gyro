@@ -1,8 +1,8 @@
 package gyro.core;
 
 import com.psddev.dari.util.Lazy;
-import com.psddev.dari.util.ObjectUtils;
 import com.psddev.dari.util.ThreadLocalStack;
+import org.apache.commons.lang3.StringUtils;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,6 +13,18 @@ public class GyroCore {
     public static final String INIT_FILE = ".gyro/init.gyro";
 
     private static final ThreadLocalStack<GyroUI> UI = new ThreadLocalStack<>();
+
+    private static final Lazy<Path> HOME_DIRECTORY = new Lazy<Path>() {
+
+        @Override
+        protected Path create() {
+            String homeDir = System.getenv("GYRO_USER_HOME");
+
+            return Paths.get(StringUtils.isNotBlank(homeDir)
+                ? homeDir
+                : System.getProperty("user.home"));
+        }
+    };
 
     private static final Lazy<Path> ROOT_DIRECTORY = new Lazy<Path>() {
 
@@ -31,6 +43,14 @@ public class GyroCore {
         }
     };
 
+    private static final Lazy<FileBackend> ROOT_DIRECTORY_BACKEND = new Lazy<FileBackend>() {
+
+        @Override
+        protected FileBackend create() {
+            return new LocalFileBackend(ROOT_DIRECTORY.get());
+        }
+    };
+
     public static GyroUI ui() {
         return UI.get();
     }
@@ -43,16 +63,16 @@ public class GyroCore {
         return UI.pop();
     }
 
-    public static String getGyroUserHome() {
-        String userHome = System.getenv("GYRO_USER_HOME");
-        if (ObjectUtils.isBlank(userHome)) {
-            userHome = System.getProperty("user.home");
-        }
-
-        return userHome;
+    public static Path getHomeDirectory() {
+        return HOME_DIRECTORY.get();
     }
 
     public static Path getRootDirectory() {
         return ROOT_DIRECTORY.get();
     }
+
+    public static FileBackend getRootDirectoryBackend() {
+        return ROOT_DIRECTORY_BACKEND.get();
+    }
+
 }

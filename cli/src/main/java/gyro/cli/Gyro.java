@@ -115,7 +115,8 @@ public class Gyro {
         // Load GYRO_ROOT/.gyro/init.gyro
         try {
             RootScope scope = new RootScope(GyroCore.INIT_FILE);
-            scope.load(new LocalFileBackend(), Collections.emptyList());
+
+            scope.load(GyroCore.getRootDirectoryBackend(), Collections.emptyList());
 
             for (PluginLoader loader : scope.getPluginLoaders()) {
                 for (Class<?> c : loader.classes()) {

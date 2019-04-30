@@ -61,7 +61,8 @@ public class State {
     }
 
     private void load(RootScope pending, RootScope state) throws Exception {
-        state.load(pending.getBackend());
+        state.load(GyroCore.getRootDirectoryBackend());
+
         for (FileScope fileScope : state.getFileScopes()) {
             states.put(fileScope.getFile(), fileScope);
         }
@@ -127,7 +128,7 @@ public class State {
             }
         }
 
-        root.save(root.getBackend());
+        root.save(GyroCore.getRootDirectoryBackend());
     }
 
     private void updateSubresource(Resource parent, Resource subresource, boolean delete) {
@@ -191,7 +192,7 @@ public class State {
         swapResources(current, type, x, y);
         swapResources(pending, type, x, y);
         swapResources(root, type, x, y);
-        root.save(root.getBackend());
+        root.save(GyroCore.getRootDirectoryBackend());
     }
 
     private void swapResources(RootScope rootScope, String type, String xName, String yName) {

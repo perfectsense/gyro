@@ -64,7 +64,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
         RootScope current = new RootScope(GyroCore.INIT_FILE, activeFiles);
         RootScope pending = new RootScope(current);
-        FileBackend backend = new LocalFileBackend();
+        FileBackend backend = GyroCore.getRootDirectoryBackend();
 
         try {
             current.load(backend);
