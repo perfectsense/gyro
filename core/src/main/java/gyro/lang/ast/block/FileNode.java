@@ -77,14 +77,10 @@ public class FileNode extends BlockNode {
             }
         }
 
-        File rootConfig = new File(fileScope.getFile());
-        Path configPath = Paths.get(rootConfig.getCanonicalPath());
-        Path initFile = GyroCore.getRootInitFile();
-
-        if (!plugins.isEmpty() && Files.exists(configPath) && !Files.isSameFile(initFile, configPath)) {
+        if (!plugins.isEmpty() && !GyroCore.INIT_FILE.equals(fileScope.getFile())) {
             throw new GyroException(String.format("Plugins are only allowed to be defined in '%s'.%nThe following plugins are found in '%s':%n%s",
-                initFile,
-                configPath,
+                GyroCore.INIT_FILE,
+                fileScope.getFile(),
                 plugins.stream()
                     .map(Node::toString)
                     .collect(Collectors.joining("\n"))));

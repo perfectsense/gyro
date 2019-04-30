@@ -122,7 +122,7 @@ public class RootScope extends FileScope {
             String activeFile = path;
             if (this.current == null) {
                 path += ".state";
-                Path rootDir = GyroCore.getRootInitFile().getParent().getParent();
+                Path rootDir = GyroCore.getRootDirectory();
                 Path relative = rootDir.relativize(Paths.get(path).toAbsolutePath());
                 Path state = Paths.get(rootDir.toString(), ".gyro", "state", relative.toString());
                 if (Files.exists(state)) {
@@ -176,9 +176,11 @@ public class RootScope extends FileScope {
         List<String> files = new ArrayList<>();
 
         try {
-            Path gyroDir = GyroCore.getRootInitFile().getParent();
+            Path rootDir = GyroCore.getRootDirectory();
+            Path gyroDir = rootDir.resolve(".gyro");
+
             try (Stream<Path> pathStream = this.current != null
-                ? Files.find(gyroDir.getParent(), Integer.MAX_VALUE,
+                ? Files.find(rootDir, Integer.MAX_VALUE,
                     (p, b) -> b.isRegularFile()
                         && p.toString().endsWith(".gyro")
                         && !p.toString().startsWith(gyroDir.toString()))

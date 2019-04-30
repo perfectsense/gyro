@@ -114,7 +114,7 @@ public class Gyro {
     public static void loadCommands(Gyro gyro) throws Exception {
         // Load GYRO_ROOT/.gyro/init.gyro
         try {
-            RootScope scope = new RootScope(GyroCore.getRootInitFile().toString());
+            RootScope scope = new RootScope(GyroCore.INIT_FILE);
             scope.load(new LocalFileBackend(), Collections.emptyList());
 
             for (PluginLoader loader : scope.getPluginLoaders()) {

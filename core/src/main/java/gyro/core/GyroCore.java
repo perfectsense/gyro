@@ -9,6 +9,8 @@ import java.nio.file.Paths;
 
 public class GyroCore {
 
+    public static final String INIT_FILE = ".gyro/init.gyro";
+
     private static final ThreadLocalStack<GyroUI> UI = new ThreadLocalStack<>();
 
     public static GyroUI ui() {
@@ -32,20 +34,16 @@ public class GyroCore {
         return userHome;
     }
 
-    public static Path getRootInitFile() {
-        Path path = Paths.get("").toAbsolutePath();
-        while (path != null) {
-            if (Files.isDirectory(path)) {
-                Path initFile = path.resolve(Paths.get(".gyro", "init.gyro"));
-                if (Files.exists(initFile) && Files.isRegularFile(initFile)) {
-                    return initFile;
-                }
-            }
+    public static Path getRootDirectory() {
+        for (Path dir = Paths.get("").toAbsolutePath(); dir != null; dir = dir.getParent()) {
+            Path initFile = dir.resolve(INIT_FILE);
 
-            path = path.getParent();
+            if (Files.exists(initFile) && Files.isRegularFile(initFile)) {
+                return dir;
+            }
         }
 
         throw new InitFileNotFoundException("Not a gyro project directory, use 'gyro init <plugins>...' to create one. "
-             + "See 'gyro help init' for detailed usage.");
+            + "See 'gyro help init' for detailed usage.");
     }
 }

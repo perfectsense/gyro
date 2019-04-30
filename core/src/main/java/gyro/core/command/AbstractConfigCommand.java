@@ -15,8 +15,8 @@ import io.airlift.airline.Arguments;
 import io.airlift.airline.Option;
 
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -36,10 +36,6 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
     private GyroCore core;
 
-    public List<String> arguments() {
-        return arguments != null ? arguments : Collections.emptyList();
-    }
-
     public GyroCore core() {
         return core;
     }
@@ -50,20 +46,25 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
     protected void doExecute() throws Exception {
         core = new GyroCore();
 
-        FileBackend backend = new LocalFileBackend();
-
         Set<String> activeFiles = new HashSet<>();
-        for (String path : arguments()) {
-            String file = StringUtils.ensureEnd(path, ".gyro");
-            if (!Files.exists(Paths.get(file))) {
-                throw new GyroException(String.format("File '%s' not found.", file));
-            }
 
-            activeFiles.add(file);
+        if (arguments != null) {
+            Path rootDir = GyroCore.getRootDirectory();
+
+            for (String file : arguments) {
+                file = StringUtils.ensureEnd(file, ".gyro");
+
+                if (!Files.exists(Paths.get(file))) {
+                    throw new GyroException(String.format("File '%s' not found.", file));
+                }
+
+                activeFiles.add(rootDir.relativize(Paths.get(file).toAbsolutePath()).toString());
+            }
         }
 
-        RootScope current = new RootScope(GyroCore.getRootInitFile().toString(), activeFiles);
+        RootScope current = new RootScope(GyroCore.INIT_FILE, activeFiles);
         RootScope pending = new RootScope(current);
+        FileBackend backend = new LocalFileBackend();
 
         try {
             current.load(backend);
