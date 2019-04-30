@@ -20,9 +20,9 @@ public class GyroCore {
         protected Path create() {
             String homeDir = System.getenv("GYRO_USER_HOME");
 
-            return Paths.get(StringUtils.isNotBlank(homeDir)
-                ? homeDir
-                : System.getProperty("user.home"));
+            return Paths.get(
+                StringUtils.isNotBlank(homeDir) ? homeDir : System.getProperty("user.home"),
+                ".gyro");
         }
     };
 
