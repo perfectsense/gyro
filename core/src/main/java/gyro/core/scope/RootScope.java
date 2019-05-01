@@ -4,11 +4,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -77,55 +79,31 @@ public class RootScope extends FileScope {
         return fileScopes;
     }
 
-    public List<Resource> findAllResources() {
-        List<Resource> resources = new ArrayList<>();
-        addResources(resources, this);
-        getFileScopes().forEach(f -> addResources(resources, f));
-        return resources;
+    public List<Resource> findResources() {
+        return findResourcesIn(null);
     }
 
-    private void addResources(List<Resource> resources, FileScope scope) {
-        scope.values()
-            .stream()
+    public List<Resource> findResourcesIn(Set<String> diffFiles) {
+        Stream<Resource> stream = Stream.concat(Stream.of(this), getFileScopes().stream())
+            .map(Map::values)
+            .flatMap(Collection::stream)
             .filter(Resource.class::isInstance)
-            .map(Resource.class::cast)
-            .forEach(resources::add);
-    }
+            .map(Resource.class::cast);
 
-    public List<Resource> findAllActiveResources(Set<String> diffFiles) {
-        if (diffFiles == null || diffFiles.isEmpty()) {
-            return findAllResources();
+        if (diffFiles != null && diffFiles.isEmpty()) {
+            stream = stream.filter(r -> diffFiles.contains(r.scope().getFileScope().getFile()));
         }
 
-        return findAllResources().stream()
-            .filter(r -> diffFiles.contains(r.scope().getFileScope().getFile()))
-            .collect(Collectors.toList());
+        return stream.collect(Collectors.toList());
     }
 
     public Resource findResource(String name) {
-        Resource resource = findResourceInScope(name, this);
-        if (resource != null) {
-            return resource;
-        }
-
-        for (FileScope scope : getFileScopes()) {
-            resource = findResourceInScope(name, scope);
-            if (resource != null) {
-                return resource;
-            }
-        }
-
-        return null;
-    }
-
-    private Resource findResourceInScope(String name, FileScope scope) {
-        Object value = scope.get(name);
-
-        if (value instanceof Resource) {
-            return (Resource) value;
-        }
-
-        return null;
+        return Stream.concat(Stream.of(this), getFileScopes().stream())
+            .map(s -> s.get(name))
+            .filter(Resource.class::isInstance)
+            .map(Resource.class::cast)
+            .findFirst()
+            .orElse(null);
     }
 
     public void load() throws Exception {
@@ -204,7 +182,7 @@ public class RootScope extends FileScope {
         }
 
         Map<String, List<String>> duplicateResources = new HashMap<>();
-        for (Resource resource : findAllResources()) {
+        for (Resource resource : findResources()) {
             String fullName = resource.resourceType() + "::" + resource.resourceIdentifier();
             duplicateResources.putIfAbsent(fullName, new ArrayList<>());
             duplicateResources.get(fullName).add(resource.scope().getFileScope().getFile());

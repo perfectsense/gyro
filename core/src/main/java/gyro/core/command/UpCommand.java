@@ -21,8 +21,8 @@ public class UpCommand extends AbstractConfigCommand {
         Set<String> diffFiles = state.getDiffFiles();
 
         Diff diff = new Diff(
-            current.findAllActiveResources(diffFiles),
-            pending.findAllActiveResources(diffFiles));
+            current.findResourcesIn(diffFiles),
+            pending.findResourcesIn(diffFiles));
 
         diff.diff();
 

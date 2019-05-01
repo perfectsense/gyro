@@ -56,7 +56,7 @@ public abstract class Resource extends Diffable {
                     name = "default";
                 }
 
-                for (Resource resource : scope.getRootScope().findAllResources()) {
+                for (Resource resource : scope.getRootScope().findResources()) {
                     if (resource instanceof Credentials) {
                         Credentials credentials = (Credentials) resource;
 

@@ -55,7 +55,7 @@ public class VirtualResourceNode extends BlockNode {
         vrScope.getResourceClasses().putAll(paramRootScope.getResourceClasses());
         vrScope.getFileScopes().add(resourceScope);
 
-        paramRootScope.findAllResources()
+        paramRootScope.findResources()
                 .stream()
                 .filter(Credentials.class::isInstance)
                 .forEach(c -> vrScope.put(c.resourceType() + "::" + c.resourceIdentifier(), c));
@@ -64,7 +64,7 @@ public class VirtualResourceNode extends BlockNode {
             node.evaluate(resourceScope);
         }
 
-        for (Resource resource : vrScope.findAllResources()) {
+        for (Resource resource : vrScope.findResources()) {
             if (!(resource instanceof Credentials)) {
                 String newId = prefix + "." + resource.resourceIdentifier();
 

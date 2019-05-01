@@ -147,7 +147,7 @@ public class ResourceReferenceNode extends Node {
 
             } else if (name.endsWith("*")) {
                 RootScope rootScope = scope.getRootScope();
-                Stream<Resource> s = rootScope.findAllResources().stream().filter(r -> type.equals(r.resourceType()));
+                Stream<Resource> s = rootScope.findResources().stream().filter(r -> type.equals(r.resourceType()));
 
                 if (!name.equals("*")) {
                     String prefix = name.substring(0, name.length() - 1);
@@ -193,7 +193,7 @@ public class ResourceReferenceNode extends Node {
 
         } else {
             Stream<Resource> s = scope.getRootScope()
-                    .findAllResources()
+                    .findResources()
                     .stream()
                     .filter(r -> type.equals(r.resourceType()));
 
@@ -242,7 +242,7 @@ public class ResourceReferenceNode extends Node {
                 name = "default";
             }
 
-            for (Resource resource : scope.getRootScope().findAllResources()) {
+            for (Resource resource : scope.getRootScope().findResources()) {
                 if (resource instanceof Credentials) {
                     Credentials credentials = (Credentials) resource;
 

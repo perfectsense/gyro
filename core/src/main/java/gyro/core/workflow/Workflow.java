@@ -141,8 +141,8 @@ public class Workflow {
             Set<String> diffFiles = state.getDiffFiles();
 
             Diff diff = new Diff(
-                currentRootScope.findAllActiveResources(diffFiles),
-                pendingRootScope.findAllActiveResources(diffFiles));
+                currentRootScope.findResourcesIn(diffFiles),
+                pendingRootScope.findResourcesIn(diffFiles));
 
             diff.diff();
 
