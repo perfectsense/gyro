@@ -1,6 +1,5 @@
 package gyro.cli;
 
-import gyro.core.InitFileNotFoundException;
 import gyro.core.LocalFileBackend;
 import gyro.core.command.AbstractCommand;
 import gyro.core.command.GyroCommand;
@@ -46,7 +45,21 @@ public class Gyro {
         GyroCore.pushUi(new CliGyroUI());
 
         try {
-            loadCommands(gyro);
+            RootScope scope = new RootScope(
+                GyroCore.INIT_FILE,
+                new LocalFileBackend(GyroCore.getRootDirectory()),
+                null);
+
+            scope.load(Collections.emptyList());
+
+            for (PluginLoader loader : scope.getPluginLoaders()) {
+                for (Class<?> c : loader.classes()) {
+                    if (GyroCommand.class.isAssignableFrom(c) && !Modifier.isAbstract(c.getModifiers())) {
+                        gyro.commands().add(c);
+                    }
+                }
+            }
+
             gyro.init(Arrays.asList(arguments));
             gyro.run();
 
@@ -109,26 +122,6 @@ public class Gyro {
                 Runnable.class.getName(),
                 GyroCommand.class.getName()));
         }
-    }
-
-    public static void loadCommands(Gyro gyro) throws Exception {
-        // Load GYRO_ROOT/.gyro/init.gyro
-        try {
-            RootScope scope = new RootScope(GyroCore.INIT_FILE, new LocalFileBackend(GyroCore.getRootDirectory()), null);
-
-            scope.load(Collections.emptyList());
-
-            for (PluginLoader loader : scope.getPluginLoaders()) {
-                for (Class<?> c : loader.classes()) {
-                    if (GyroCommand.class.isAssignableFrom(c) && !Modifier.isAbstract(c.getModifiers())) {
-                        gyro.commands().add(c);
-                    }
-                }
-            }
-        } catch (InitFileNotFoundException e) {
-            // Ignore when loading commands
-        }
-
     }
 
     public static Reflections getReflections() {
