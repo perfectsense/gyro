@@ -1,9 +1,9 @@
 package gyro.core.scope;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 
+import gyro.core.FileBackend;
 import gyro.core.GyroCore;
 import gyro.core.diff.Change;
 import gyro.core.diff.Delete;
@@ -18,6 +19,7 @@ import gyro.core.diff.Diffable;
 import gyro.core.diff.DiffableField;
 import gyro.core.diff.DiffableType;
 import gyro.core.diff.Replace;
+import gyro.core.plugin.PluginLoader;
 import gyro.core.resource.ResourceName;
 import gyro.core.resource.ResourceNames;
 import gyro.core.resource.Resource;
@@ -28,53 +30,32 @@ public class State {
     private final boolean test;
     private final Map<String, FileScope> states = new HashMap<>();
 
-    private String getStateFile(String file) {
-        if (file.endsWith(".gyro.state")) {
-            return file;
+    public State(RootScope pending, boolean test) throws Exception {
+        this.root = new RootScope(pending.getFile(), new HashSet<>(pending.getActiveFiles()));
+        this.test = test;
 
-        } else if (file.endsWith(".gyro")) {
-            return file + ".state";
+        root.load(GyroCore.getRootDirectoryBackend());
 
-        } else {
-            return file + ".gyro.state";
+        for (FileScope state : root.getFileScopes()) {
+            states.put(state.getFile(), state);
+        }
+
+        for (FileScope state : pending.getFileScopes()) {
+            String stateFile = getStateFile(state);
+
+            if (!states.containsKey(stateFile)) {
+                states.put(stateFile, new FileScope(root, stateFile));
+            }
         }
     }
 
-    private Path getStatePath(Path file) throws IOException {
-        Path rootDir = GyroCore.getRootDirectory();
-        Path relative = rootDir.relativize(file.toAbsolutePath());
-        Path statePath = Paths.get(rootDir.toString(), ".gyro", "state", relative.toString());
-        Files.createDirectories(statePath.getParent());
-
-        return statePath;
-    }
-
-    public State(RootScope pending, boolean test) throws Exception {
-        root = new RootScope(pending.getFile(), new HashSet<>(pending.getActiveFiles()));
-        this.test = test;
-
-        load(pending, root);
+    private String getStateFile(FileScope state) {
+        String file = state.getFile();
+        return file.endsWith(".state") ? file : ".gyro/state/" + file + ".state";
     }
 
     public boolean isTest() {
         return test;
-    }
-
-    private void load(RootScope pending, RootScope state) throws Exception {
-        state.load(GyroCore.getRootDirectoryBackend());
-
-        for (FileScope fileScope : state.getFileScopes()) {
-            states.put(fileScope.getFile(), fileScope);
-        }
-
-        for (FileScope fileScope : pending.getFileScopes()) {
-            String statePath = getStatePath(Paths.get(getStateFile(fileScope.getFile()))).toString();
-            if (!states.containsKey(statePath)) {
-                FileScope scope = new FileScope(state, statePath);
-                states.put(statePath, scope);
-                state.getFileScopes().add(scope);
-            }
-        }
     }
 
     public void update(Change change) throws Exception {
@@ -112,7 +93,7 @@ public class State {
 
         } else {
             String key = resource.resourceIdentifier();
-            FileScope state = states.get(getStatePath(Paths.get(getStateFile(resource.scope().getFileScope().getFile()))).toString());
+            FileScope state = states.get(getStateFile(resource.scope().getFileScope()));
 
             // Subresource?
             if (key == null) {
@@ -128,7 +109,31 @@ public class State {
             }
         }
 
-        root.save(GyroCore.getRootDirectoryBackend());
+        save();
+    }
+
+    private void save() throws IOException {
+        FileBackend backend = GyroCore.getRootDirectoryBackend();
+
+        for (FileScope state : states.values()) {
+            String file = state.getFile();
+
+            try (BufferedWriter out = new BufferedWriter(
+                new OutputStreamWriter(
+                    backend.openOutput(file),
+                    StandardCharsets.UTF_8))) {
+
+                for (PluginLoader pluginLoader : state.getPluginLoaders()) {
+                    out.write(pluginLoader.toString());
+                }
+
+                for (Object value : state.values()) {
+                    if (value instanceof Resource) {
+                        out.write(((Resource) value).toNode().toString());
+                    }
+                }
+            }
+        }
     }
 
     private void updateSubresource(Resource parent, Resource subresource, boolean delete) {
@@ -192,14 +197,14 @@ public class State {
         swapResources(current, type, x, y);
         swapResources(pending, type, x, y);
         swapResources(root, type, x, y);
-        root.save(GyroCore.getRootDirectoryBackend());
+        save();
     }
 
     private void swapResources(RootScope rootScope, String type, String xName, String yName) {
         String xFullName = type + "::" + xName;
         String yFullName = type + "::" + yName;
-        FileScope xScope = findScope(xFullName, rootScope);
-        FileScope yScope = findScope(yFullName, rootScope);
+        FileScope xScope = findFileScope(rootScope, xFullName);
+        FileScope yScope = findFileScope(rootScope, yFullName);
 
         if (xScope != null && yScope != null) {
             Resource x = (Resource) xScope.get(xFullName);
@@ -212,8 +217,8 @@ public class State {
         }
     }
 
-    private FileScope findScope(String name, RootScope scope) {
-        for (FileScope fileScope : scope.getFileScopes()) {
+    private FileScope findFileScope(RootScope rootScope, String name) {
+        for (FileScope fileScope : rootScope.getFileScopes()) {
             Object value = fileScope.get(name);
 
             if (value instanceof Resource) {

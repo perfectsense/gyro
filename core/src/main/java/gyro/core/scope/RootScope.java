@@ -1,11 +1,8 @@
 package gyro.core.scope;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -24,7 +21,6 @@ import gyro.core.Credentials;
 import gyro.core.FileBackend;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
-import gyro.core.plugin.PluginLoader;
 import gyro.core.resource.Resource;
 import gyro.core.resource.ResourceFinder;
 import gyro.core.workflow.Workflow;
@@ -190,7 +186,7 @@ public class RootScope extends FileScope {
                         && p.toString().endsWith(".gyro.state"))) {
 
                 for (Path path : (Iterable<Path>) pathStream::iterator) {
-                    files.add(path.toString());
+                    files.add(rootDir.relativize(path).toString());
                 }
             }
 
@@ -288,25 +284,4 @@ public class RootScope extends FileScope {
         }
     }
 
-    public void save(FileBackend backend) throws IOException {
-        for (FileScope fileScope : getFileScopes()) {
-            String file = fileScope.getFile();
-
-            try (BufferedWriter out = new BufferedWriter(
-                new OutputStreamWriter(
-                    backend.openOutput(file),
-                    StandardCharsets.UTF_8))) {
-
-                for (PluginLoader pluginLoader : fileScope.getPluginLoaders()) {
-                    out.write(pluginLoader.toString());
-                }
-
-                for (Object value : fileScope.values()) {
-                    if (value instanceof Resource) {
-                        out.write(((Resource) value).toNode().toString());
-                    }
-                }
-            }
-        }
-    }
 }
