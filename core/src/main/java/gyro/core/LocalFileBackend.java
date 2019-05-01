@@ -19,15 +19,20 @@ public class LocalFileBackend implements FileBackend {
 
     @Override
     public Stream<String> list() throws IOException {
-        return Files.find(rootDirectory, Integer.MAX_VALUE, (file, attributes) -> attributes.isRegularFile())
-            .map(rootDirectory::relativize)
-            .map(Path::toString)
-            .filter(f -> !f.startsWith(".gyro/") && f.endsWith(".gyro"));
+        if (Files.exists(rootDirectory)) {
+            return Files.find(rootDirectory, Integer.MAX_VALUE, (file, attributes) -> attributes.isRegularFile())
+                .map(rootDirectory::relativize)
+                .map(Path::toString)
+                .filter(f -> !f.startsWith(".gyro/") && f.endsWith(".gyro"));
+
+        } else {
+            return Stream.empty();
+        }
     }
 
     @Override
     public InputStream openInput(String file) throws IOException {
-        return Files.newInputStream(rootDirectory.resolve(file));
+        return Files.newInputStream(rootDirectory.resolve(file).normalize());
     }
 
     @Override
