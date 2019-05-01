@@ -12,11 +12,6 @@ public class FileScope extends Scope {
 
     public FileScope(RootScope parent, String file) {
         super(parent);
-
-        if (!file.endsWith(".gyro") && !file.endsWith(".gyro.state")) {
-            file += ".gyro";
-        }
-
         this.file = file;
     }
 

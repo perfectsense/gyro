@@ -1,12 +1,10 @@
 package gyro.core.command;
 
-import com.psddev.dari.util.StringUtils;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.LocalFileBackend;
 import gyro.lang.GyroLanguageException;
 import gyro.core.Credentials;
-import gyro.core.FileBackend;
 import gyro.core.resource.Resource;
 import gyro.core.scope.FileScope;
 import gyro.core.scope.RootScope;
@@ -14,14 +12,9 @@ import gyro.core.scope.State;
 import io.airlift.airline.Arguments;
 import io.airlift.airline.Option;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public abstract class AbstractConfigCommand extends AbstractCommand {
 
@@ -32,7 +25,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
     private boolean test;
 
     @Arguments
-    private List<String> arguments;
+    private List<String> diffFiles;
 
     private GyroCore core;
 
@@ -46,28 +39,13 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
     protected void doExecute() throws Exception {
         core = new GyroCore();
 
-        Set<String> activeFiles = new HashSet<>();
-
-        if (arguments != null) {
-            Path rootDir = GyroCore.getRootDirectory();
-
-            for (String file : arguments) {
-                file = StringUtils.ensureEnd(file, ".gyro");
-
-                if (!Files.exists(Paths.get(file))) {
-                    throw new GyroException(String.format("File '%s' not found.", file));
-                }
-
-                activeFiles.add(rootDir.relativize(Paths.get(file).toAbsolutePath()).toString());
-            }
-        }
-
-        RootScope current = new RootScope(GyroCore.INIT_FILE, activeFiles);
-        RootScope pending = new RootScope(current);
-        FileBackend backend = GyroCore.getRootDirectoryBackend();
+        RootScope current = new RootScope(
+            "../../" + GyroCore.INIT_FILE,
+            new LocalFileBackend(GyroCore.getRootDirectory().resolve(".gyro/state")),
+            null);
 
         try {
-            current.load(backend);
+            current.load();
 
         } catch (GyroLanguageException ex) {
             throw new GyroException(ex.getMessage());
@@ -82,14 +60,19 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             }
         }
 
+        RootScope pending = new RootScope(
+            GyroCore.INIT_FILE,
+            new LocalFileBackend(GyroCore.getRootDirectory()),
+            current);
+
         try {
-            pending.load(backend);
+            pending.load();
 
         } catch (GyroLanguageException ex) {
             throw new GyroException(ex.getMessage());
         }
 
-        doExecute(current, pending, new State(pending, test));
+        doExecute(current, pending, new State(current, pending, test, diffFiles));
     }
 
     private void refreshCredentials(RootScope scope) {

@@ -77,7 +77,7 @@ public class FileNode extends BlockNode {
             }
         }
 
-        if (!plugins.isEmpty() && !GyroCore.INIT_FILE.equals(fileScope.getFile())) {
+        if (!plugins.isEmpty() && !(fileScope instanceof RootScope)) {
             throw new GyroException(String.format("Plugins are only allowed to be defined in '%s'.%nThe following plugins are found in '%s':%n%s",
                 GyroCore.INIT_FILE,
                 fileScope.getFile(),

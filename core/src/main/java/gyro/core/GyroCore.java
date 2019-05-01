@@ -43,14 +43,6 @@ public class GyroCore {
         }
     };
 
-    private static final Lazy<FileBackend> ROOT_DIRECTORY_BACKEND = new Lazy<FileBackend>() {
-
-        @Override
-        protected FileBackend create() {
-            return new LocalFileBackend(ROOT_DIRECTORY.get());
-        }
-    };
-
     public static GyroUI ui() {
         return UI.get();
     }
@@ -69,10 +61,6 @@ public class GyroCore {
 
     public static Path getRootDirectory() {
         return ROOT_DIRECTORY.get();
-    }
-
-    public static FileBackend getRootDirectoryBackend() {
-        return ROOT_DIRECTORY_BACKEND.get();
     }
 
 }

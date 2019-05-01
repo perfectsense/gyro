@@ -4,15 +4,21 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Set;
 
+import com.google.common.collect.ImmutableSet;
 import gyro.core.FileBackend;
 import gyro.core.GyroCore;
+import gyro.core.GyroException;
 import gyro.core.diff.Change;
 import gyro.core.diff.Delete;
 import gyro.core.diff.Diffable;
@@ -26,36 +32,67 @@ import gyro.core.resource.Resource;
 
 public class State {
 
+    private final FileBackend backend;
     private final RootScope root;
     private final boolean test;
     private final Map<String, FileScope> states = new HashMap<>();
+    private final Set<String> diffFiles;
 
-    public State(RootScope pending, boolean test) throws Exception {
-        this.root = new RootScope(pending.getFile(), new HashSet<>(pending.getActiveFiles()));
+    public State(RootScope current, RootScope pending, boolean test, Collection<String> diffFiles) throws Exception {
+        this.backend = current.getBackend();
+        this.root = new RootScope(current.getFile(), backend, null);
         this.test = test;
 
-        root.load(GyroCore.getRootDirectoryBackend());
+        root.load();
 
         for (FileScope state : root.getFileScopes()) {
             states.put(state.getFile(), state);
         }
 
         for (FileScope state : pending.getFileScopes()) {
-            String stateFile = getStateFile(state);
+            String stateFile = state.getFile();
 
             if (!states.containsKey(stateFile)) {
                 states.put(stateFile, new FileScope(root, stateFile));
             }
         }
-    }
 
-    private String getStateFile(FileScope state) {
-        String file = state.getFile();
-        return file.endsWith(".state") ? file : ".gyro/state/" + file + ".state";
+        if (diffFiles != null) {
+            Path rootDir = GyroCore.getRootDirectory();
+            ImmutableSet.Builder<String> found = ImmutableSet.builder();
+            Set<String> notFound = new HashSet<>();
+
+            for (String file : diffFiles) {
+                file = file.endsWith(".gyro")
+                    ? rootDir.relativize(Paths.get("").toAbsolutePath().resolve(file)).normalize().toString()
+                    : file + ".gyro";
+
+                if (states.containsKey(file)) {
+                    found.add(file);
+
+                } else {
+                    notFound.add(file);
+                }
+            }
+
+            if (notFound.isEmpty()) {
+                this.diffFiles = found.build();
+
+            } else {
+                throw new GyroException(String.format("Files not found! %s", notFound));
+            }
+
+        } else {
+            this.diffFiles = null;
+        }
     }
 
     public boolean isTest() {
         return test;
+    }
+
+    public Set<String> getDiffFiles() {
+        return diffFiles;
     }
 
     public void update(Change change) throws Exception {
@@ -93,7 +130,7 @@ public class State {
 
         } else {
             String key = resource.resourceIdentifier();
-            FileScope state = states.get(getStateFile(resource.scope().getFileScope()));
+            FileScope state = states.get(resource.scope().getFileScope().getFile());
 
             // Subresource?
             if (key == null) {
@@ -113,8 +150,6 @@ public class State {
     }
 
     private void save() throws IOException {
-        FileBackend backend = GyroCore.getRootDirectoryBackend();
-
         for (FileScope state : states.values()) {
             String file = state.getFile();
 

@@ -1,14 +1,11 @@
 package gyro.core.workflow;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
-import gyro.core.FileBackend;
-import gyro.core.GyroCore;
 import gyro.core.GyroUI;
-import gyro.core.LocalFileBackend;
 import gyro.core.diff.Diff;
 import gyro.core.resource.Resource;
 import gyro.lang.ast.Node;
@@ -59,9 +56,12 @@ public class Workflow {
     }
 
     private RootScope copyCurrentRootScope() throws Exception {
-        RootScope s = new RootScope(pendingRootScope.getFile(), new HashSet<>(pendingRootScope.getActiveFiles()));
+        RootScope s = new RootScope(
+            pendingRootScope.getFile(),
+            pendingRootScope.getBackend(),
+            null);
 
-        s.load(GyroCore.getRootDirectoryBackend());
+        s.load();
 
         return s;
     }
@@ -135,12 +135,14 @@ public class Workflow {
             currentRootScope.clear();
             pendingRootScope.clear();
 
-            FileBackend backend = GyroCore.getRootDirectoryBackend();
+            currentRootScope.load();
+            pendingRootScope.load();
 
-            currentRootScope.load(backend);
-            pendingRootScope.load(backend);
+            Set<String> diffFiles = state.getDiffFiles();
 
-            Diff diff = new Diff(currentRootScope.findAllActiveResources(), pendingRootScope.findAllActiveResources());
+            Diff diff = new Diff(
+                currentRootScope.findAllActiveResources(diffFiles),
+                pendingRootScope.findAllActiveResources(diffFiles));
 
             diff.diff();
 

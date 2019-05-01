@@ -1,11 +1,11 @@
 package gyro.cli;
 
 import gyro.core.InitFileNotFoundException;
+import gyro.core.LocalFileBackend;
 import gyro.core.command.AbstractCommand;
 import gyro.core.command.GyroCommand;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
-import gyro.core.LocalFileBackend;
 import gyro.core.scope.RootScope;
 import gyro.core.plugin.PluginLoader;
 import ch.qos.logback.classic.Level;
@@ -114,9 +114,9 @@ public class Gyro {
     public static void loadCommands(Gyro gyro) throws Exception {
         // Load GYRO_ROOT/.gyro/init.gyro
         try {
-            RootScope scope = new RootScope(GyroCore.INIT_FILE);
+            RootScope scope = new RootScope(GyroCore.INIT_FILE, new LocalFileBackend(GyroCore.getRootDirectory()), null);
 
-            scope.load(GyroCore.getRootDirectoryBackend(), Collections.emptyList());
+            scope.load(Collections.emptyList());
 
             for (PluginLoader loader : scope.getPluginLoaders()) {
                 for (Class<?> c : loader.classes()) {
