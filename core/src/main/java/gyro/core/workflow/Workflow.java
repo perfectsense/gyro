@@ -59,7 +59,8 @@ public class Workflow {
         RootScope s = new RootScope(
             pendingRootScope.getFile(),
             pendingRootScope.getBackend(),
-            null);
+            null,
+            pendingRootScope.getLoadFiles());
 
         s.load();
 

@@ -28,6 +28,7 @@ public class Gyro {
 
     private Cli<Object> cli;
     private List<String> arguments;
+    private RootScope init;
     private Set<Class<?>> commands = new HashSet<Class<?>>();
 
     public static Reflections reflections;
@@ -48,9 +49,10 @@ public class Gyro {
             RootScope scope = new RootScope(
                 GyroCore.INIT_FILE,
                 new LocalFileBackend(GyroCore.getRootDirectory()),
-                null);
+                null,
+                Collections.emptySet());
 
-            scope.load(Collections.emptyList());
+            scope.load();
 
             for (PluginLoader loader : scope.getPluginLoaders()) {
                 for (Class<?> c : loader.classes()) {
@@ -60,7 +62,7 @@ public class Gyro {
                 }
             }
 
-            gyro.init(Arrays.asList(arguments));
+            gyro.init(Arrays.asList(arguments), scope);
             gyro.run();
 
         } catch (Throwable error) {
@@ -75,7 +77,7 @@ public class Gyro {
         }
     }
 
-    public void init(List<String> arguments) {
+    public void init(List<String> arguments, RootScope init) {
         ((Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).setLevel(Level.OFF);
 
         commands().add(Help.class);
@@ -101,6 +103,7 @@ public class Gyro {
 
         this.cli = builder.build();
         this.arguments = arguments;
+        this.init = init;
     }
 
     public Set<Class<?>> commands() {
@@ -114,7 +117,9 @@ public class Gyro {
             ((Runnable) command).run();
 
         } else if (command instanceof AbstractCommand) {
+            ((AbstractCommand) command).setInit(init);
             ((AbstractCommand) command).execute();
+
         } else {
             throw new IllegalStateException(String.format(
                 "[%s] must be an instance of [%s] or [%s]!",

@@ -4,12 +4,8 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -17,8 +13,6 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
 import gyro.core.FileBackend;
-import gyro.core.GyroCore;
-import gyro.core.GyroException;
 import gyro.core.diff.Change;
 import gyro.core.diff.Delete;
 import gyro.core.diff.Diffable;
@@ -38,10 +32,11 @@ public class State {
     private final Map<String, FileScope> states = new HashMap<>();
     private final Set<String> diffFiles;
 
-    public State(RootScope current, RootScope pending, boolean test, Collection<String> diffFiles) throws Exception {
+    public State(RootScope current, RootScope pending, boolean test, Set<String> diffFiles) throws Exception {
         this.backend = current.getBackend();
-        this.root = new RootScope(current.getFile(), backend, null);
+        this.root = new RootScope(current.getFile(), backend, null, current.getLoadFiles());
         this.test = test;
+        this.diffFiles = diffFiles != null ? ImmutableSet.copyOf(diffFiles) : null;
 
         root.load();
 
@@ -55,35 +50,6 @@ public class State {
             if (!states.containsKey(stateFile)) {
                 states.put(stateFile, new FileScope(root, stateFile));
             }
-        }
-
-        if (diffFiles != null) {
-            Path rootDir = GyroCore.getRootDirectory();
-            ImmutableSet.Builder<String> found = ImmutableSet.builder();
-            Set<String> notFound = new HashSet<>();
-
-            for (String file : diffFiles) {
-                file = file.endsWith(".gyro")
-                    ? rootDir.relativize(Paths.get("").toAbsolutePath().resolve(file)).normalize().toString()
-                    : file + ".gyro";
-
-                if (states.containsKey(file)) {
-                    found.add(file);
-
-                } else {
-                    notFound.add(file);
-                }
-            }
-
-            if (notFound.isEmpty()) {
-                this.diffFiles = found.build();
-
-            } else {
-                throw new GyroException(String.format("Files not found! %s", notFound));
-            }
-
-        } else {
-            this.diffFiles = null;
         }
     }
 

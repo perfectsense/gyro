@@ -36,7 +36,13 @@ public class VirtualResourceNode extends BlockNode {
 
     public void createResources(String prefix, Scope paramScope) throws Exception {
         FileScope paramFileScope = paramScope.getFileScope();
-        RootScope vrScope = new RootScope(GyroCore.INIT_FILE, paramScope.getRootScope().getBackend(), null);
+
+        RootScope vrScope = new RootScope(
+            GyroCore.INIT_FILE,
+            paramScope.getRootScope().getBackend(),
+            null,
+            paramScope.getRootScope().getLoadFiles());
+
         FileScope resourceScope = new FileScope(vrScope, paramFileScope.getFile());
 
         for (VirtualResourceParameter param : params) {

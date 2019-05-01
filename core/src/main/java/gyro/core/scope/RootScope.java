@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.google.common.collect.ImmutableSet;
 import gyro.core.Credentials;
 import gyro.core.FileBackend;
 import gyro.core.GyroException;
@@ -36,17 +37,22 @@ public class RootScope extends FileScope {
 
     private final FileBackend backend;
     private final RootScope current;
+    private final Set<String> loadFiles;
     private final Map<String, Class<?>> resourceClasses = new HashMap<>();
     private final Map<String, Class<? extends ResourceFinder>> resourceFinderClasses = new HashMap<>();
     private final Map<String, VirtualResourceNode> virtualResourceNodes = new LinkedHashMap<>();
     private final List<Workflow> workflows = new ArrayList<>();
     private final List<FileScope> fileScopes = new ArrayList<>();
 
-    public RootScope(String file, FileBackend backend, RootScope current) {
+    public RootScope(String file, FileBackend backend, RootScope current, Set<String> loadFiles) throws Exception {
         super(null, file);
 
         this.backend = backend;
         this.current = current;
+
+        try (Stream<String> s = backend.list()) {
+            this.loadFiles = (loadFiles != null ? s.filter(loadFiles::contains) : s).collect(Collectors.toSet());
+        }
 
         put("ENV", System.getenv());
     }
@@ -57,6 +63,10 @@ public class RootScope extends FileScope {
 
     public RootScope getCurrent() {
         return current;
+    }
+
+    public Set<String> getLoadFiles() {
+        return loadFiles;
     }
 
     public Map<String, Class<?>> getResourceClasses() {
@@ -107,26 +117,13 @@ public class RootScope extends FileScope {
     }
 
     public void load() throws Exception {
-        List<String> files = new ArrayList<>();
-
-        try (Stream<String> s = backend.list()) {
-            s.forEach(files::add);
-        }
-
-        load(files);
-    }
-
-    public void load(List<String> files) throws Exception {
-        try (InputStream inputStream = backend.openInput(getFile())) {
-            parse(inputStream, getFile()).evaluate(this);
-        }
-
-        if (files == null) {
-            files = Collections.emptyList();
+        try (InputStream input = backend.openInput(getFile())) {
+            parse(input, getFile()).evaluate(this);
         }
 
         List<Node> nodes = new ArrayList<>();
-        for (String file : files) {
+
+        for (String file : loadFiles) {
             try (InputStream inputStream = backend.openInput(file)) {
                 nodes.add(parse(inputStream, file));
             }
@@ -134,6 +131,7 @@ public class RootScope extends FileScope {
 
         try {
             DeferError.evaluate(this, nodes);
+
         } catch (DeferError e) {
             throw new GyroException(e.getMessage());
         }
