@@ -23,21 +23,20 @@ public class LocalFileBackend implements FileBackend {
 
     @Override
     public OutputStream openOutput(String file) throws IOException {
-        Path newFile = Files.createTempFile("local-file-backend-", ".gyro.state");
+        Path tempFile = Files.createTempFile("local-file-backend-", ".gyro.state");
 
-        newFile.toFile().deleteOnExit();
+        tempFile.toFile().deleteOnExit();
 
-        return new FileOutputStream(newFile.toString()) {
+        return new FileOutputStream(tempFile.toString()) {
 
             @Override
             public void close() throws IOException {
                 super.close();
 
-                Files.move(
-                    newFile,
-                    rootDirectory.resolve(file),
-                    StandardCopyOption.ATOMIC_MOVE,
-                    StandardCopyOption.REPLACE_EXISTING);
+                Path f = rootDirectory.resolve(file);
+
+                Files.createDirectories(f.getParent());
+                Files.move(tempFile, f, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
             }
         };
     }
