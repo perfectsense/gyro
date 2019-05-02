@@ -1,9 +1,5 @@
 package gyro.lang.ast.block;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +10,6 @@ import gyro.core.GyroException;
 import gyro.core.scope.FileScope;
 import gyro.core.workflow.Workflow;
 import gyro.lang.ast.DeferError;
-import gyro.lang.ast.DirectiveNode;
 import gyro.lang.ast.PairNode;
 import gyro.lang.ast.Node;
 import gyro.core.scope.RootScope;
@@ -42,7 +37,6 @@ public class FileNode extends BlockNode {
         }
 
         // Evaluate imports and plugins first.
-        List<DirectiveNode> imports = new ArrayList<>();
         List<PairNode> keyValues = new ArrayList<>();
         List<PluginNode> plugins = new ArrayList<>();
         Map<String, VirtualResourceNode> virtualResourceNodes = rootScope.getVirtualResourceNodes();
@@ -50,10 +44,7 @@ public class FileNode extends BlockNode {
         List<Node> body = new ArrayList<>();
 
         for (Node node : this.body) {
-            if (node instanceof DirectiveNode) {
-                imports.add((DirectiveNode) node);
-
-            } else if (node instanceof PairNode) {
+            if (node instanceof PairNode) {
                 keyValues.add((PairNode) node);
 
             } else if (node instanceof PluginNode) {
@@ -84,10 +75,6 @@ public class FileNode extends BlockNode {
                 plugins.stream()
                     .map(Node::toString)
                     .collect(Collectors.joining("\n"))));
-        }
-
-        for (DirectiveNode i : imports) {
-            i.load(fileScope);
         }
 
         for (PairNode kv : keyValues) {
