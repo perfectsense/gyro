@@ -9,6 +9,7 @@ import gyro.core.scope.RootScope;
 import gyro.core.plugin.PluginLoader;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
+import gyro.core.scope.Scope;
 import io.airlift.airline.Cli;
 import io.airlift.airline.Command;
 import io.airlift.airline.Help;
@@ -18,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.lang.reflect.Modifier;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -28,7 +30,7 @@ public class Gyro {
 
     private Cli<Object> cli;
     private List<String> arguments;
-    private RootScope init;
+    private Scope init;
     private Set<Class<?>> commands = new HashSet<Class<?>>();
 
     public static Reflections reflections;
@@ -46,23 +48,31 @@ public class Gyro {
         GyroCore.pushUi(new CliGyroUI());
 
         try {
-            RootScope scope = new RootScope(
-                GyroCore.INIT_FILE,
-                new LocalFileBackend(GyroCore.getRootDirectory()),
-                null,
-                Collections.emptySet());
+            Path rootDir = GyroCore.getRootDirectory();
+            RootScope init;
 
-            scope.load();
+            if (rootDir != null) {
+                init = new RootScope(
+                    GyroCore.INIT_FILE,
+                    new LocalFileBackend(GyroCore.getRootDirectory()),
+                    null,
+                    Collections.emptySet());
 
-            for (PluginLoader loader : scope.getPluginLoaders()) {
-                for (Class<?> c : loader.classes()) {
-                    if (GyroCommand.class.isAssignableFrom(c) && !Modifier.isAbstract(c.getModifiers())) {
-                        gyro.commands().add(c);
+                init.load();
+
+                for (PluginLoader loader : init.getPluginLoaders()) {
+                    for (Class<?> c : loader.classes()) {
+                        if (GyroCommand.class.isAssignableFrom(c) && !Modifier.isAbstract(c.getModifiers())) {
+                            gyro.commands().add(c);
+                        }
                     }
                 }
+
+            } else {
+                init = null;
             }
 
-            gyro.init(Arrays.asList(arguments), scope);
+            gyro.init(Arrays.asList(arguments), init);
             gyro.run();
 
         } catch (Throwable error) {
@@ -77,7 +87,7 @@ public class Gyro {
         }
     }
 
-    public void init(List<String> arguments, RootScope init) {
+    public void init(List<String> arguments, Scope init) {
         ((Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).setLevel(Level.OFF);
 
         commands().add(Help.class);

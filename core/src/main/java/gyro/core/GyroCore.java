@@ -38,8 +38,7 @@ public class GyroCore {
                 }
             }
 
-            throw new InitFileNotFoundException("Not a gyro project directory, use 'gyro init <plugins>...' to create one. "
-                + "See 'gyro help init' for detailed usage.");
+            return null;
         }
     };
 

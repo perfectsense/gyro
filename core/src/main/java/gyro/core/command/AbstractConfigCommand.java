@@ -1,6 +1,5 @@
 package gyro.core.command;
 
-import com.google.common.collect.ImmutableSet;
 import com.psddev.dari.util.ObjectUtils;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
@@ -18,7 +17,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -46,13 +44,19 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
     @Override
     protected void doExecute() throws Exception {
+        Path rootDir = GyroCore.getRootDirectory();
+
+        if (rootDir == null) {
+            throw new GyroException("Not a gyro project directory, use 'gyro init <plugins>...' to create one. See 'gyro help init' for detailed usage.");
+        }
+
         Set<String> loadFiles;
         Set<String> diffFiles;
 
         if (ObjectUtils.to(boolean.class, getInit().get("HIGHLANDER"))) {
             if (files != null) {
                 if (files.size() == 1) {
-                    loadFiles = Collections.singleton(resolve(files.get(0)));
+                    loadFiles = Collections.singleton(resolve(rootDir, files.get(0)));
                     diffFiles = null;
 
                 } else {
@@ -66,7 +70,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         } else if (files != null) {
             loadFiles = null;
             diffFiles = files.stream()
-                .map(this::resolve)
+                .map(f -> resolve(rootDir, f))
                 .collect(Collectors.toSet());
 
         } else {
@@ -78,7 +82,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
         RootScope current = new RootScope(
             "../../" + GyroCore.INIT_FILE,
-            new LocalFileBackend(GyroCore.getRootDirectory().resolve(".gyro/state")),
+            new LocalFileBackend(rootDir.resolve(".gyro/state")),
             null,
             loadFiles);
 
@@ -100,7 +104,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
         RootScope pending = new RootScope(
             GyroCore.INIT_FILE,
-            new LocalFileBackend(GyroCore.getRootDirectory()),
+            new LocalFileBackend(rootDir),
             current,
             loadFiles);
 
@@ -114,9 +118,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         doExecute(current, pending, new State(current, pending, test, diffFiles));
     }
 
-    private String resolve(String file) {
-        Path rootDir = GyroCore.getRootDirectory();
-
+    private String resolve(Path rootDir, String file) {
         file = file.endsWith(".gyro")
             ? rootDir.relativize(Paths.get("").toAbsolutePath().resolve(file)).normalize().toString()
             : file + ".gyro";
