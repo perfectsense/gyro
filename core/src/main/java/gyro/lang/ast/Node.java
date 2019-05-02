@@ -3,7 +3,7 @@ package gyro.lang.ast;
 import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.block.PluginNode;
 import gyro.lang.ast.block.ResourceNode;
-import gyro.lang.ast.block.RootNode;
+import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.VirtualResourceNode;
 import gyro.lang.ast.control.ForNode;
 import gyro.lang.ast.control.IfNode;
@@ -49,8 +49,8 @@ public abstract class Node {
         Class<? extends ParseTree> cc = context.getClass();
         Node node;
 
-        if (cc.equals(GyroParser.RootContext.class)) {
-            node = new RootNode((GyroParser.RootContext) context);
+        if (cc.equals(GyroParser.FileContext.class)) {
+            node = new FileNode((GyroParser.FileContext) context);
 
         } else if (cc.equals(GyroParser.BooleanValueContext.class)) {
             node = new BooleanNode((GyroParser.BooleanValueContext) context);

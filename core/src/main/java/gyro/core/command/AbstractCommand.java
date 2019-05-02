@@ -3,6 +3,8 @@ package gyro.core.command;
 import gyro.core.GyroCore;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
+import gyro.core.scope.RootScope;
+import gyro.core.scope.Scope;
 import io.airlift.airline.Option;
 import io.airlift.airline.OptionType;
 import org.slf4j.LoggerFactory;
@@ -23,6 +25,19 @@ public abstract class AbstractCommand implements GyroCommand {
 
     @Option(name = { "--verbose" })
     private boolean verbose;
+
+    private Scope init;
+
+    public Scope getInit() {
+        if (init == null) {
+            init = new Scope(null);
+        }
+        return init;
+    }
+
+    public void setInit(Scope init) {
+        this.init = init;
+    }
 
     protected abstract void doExecute() throws Exception;
 

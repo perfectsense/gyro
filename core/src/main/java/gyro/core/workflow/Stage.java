@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import gyro.core.GyroUI;
@@ -118,7 +119,11 @@ public class Stage {
             }
         }
 
-        Diff diff = new Diff(currentRootScope.findAllResources(), pendingRootScope.findAllResources());
+        Set<String> diffFiles = state.getDiffFiles();
+
+        Diff diff = new Diff(
+            currentRootScope.findResourcesIn(diffFiles),
+            pendingRootScope.findResourcesIn(diffFiles));
 
         diff.diff();
 

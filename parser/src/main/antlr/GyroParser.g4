@@ -2,7 +2,7 @@ parser grammar GyroParser;
 
 options { tokenVocab = GyroLexer; }
 
-root
+file
     :
     NEWLINES? statement?
     (NEWLINES statement)*

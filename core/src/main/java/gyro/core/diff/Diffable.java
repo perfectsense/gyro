@@ -77,7 +77,7 @@ public abstract class Diffable {
 
     public <T extends Resource> Stream<T> findByType(Class<T> resourceClass) {
         return scope.getRootScope()
-            .findAllResources()
+            .findResources()
             .stream()
             .filter(resourceClass::isInstance)
             .map(resourceClass::cast);

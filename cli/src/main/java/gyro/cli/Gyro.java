@@ -1,14 +1,15 @@
 package gyro.cli;
 
+import gyro.core.LocalFileBackend;
 import gyro.core.command.AbstractCommand;
 import gyro.core.command.GyroCommand;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
-import gyro.core.LocalFileBackend;
 import gyro.core.scope.RootScope;
 import gyro.core.plugin.PluginLoader;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
+import gyro.core.scope.Scope;
 import io.airlift.airline.Cli;
 import io.airlift.airline.Command;
 import io.airlift.airline.Help;
@@ -18,8 +19,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.lang.reflect.Modifier;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -28,6 +30,7 @@ public class Gyro {
 
     private Cli<Object> cli;
     private List<String> arguments;
+    private Scope init;
     private Set<Class<?>> commands = new HashSet<Class<?>>();
 
     public static Reflections reflections;
@@ -45,8 +48,31 @@ public class Gyro {
         GyroCore.pushUi(new CliGyroUI());
 
         try {
-            loadPlugins(gyro);
-            gyro.init(Arrays.asList(arguments));
+            Path rootDir = GyroCore.getRootDirectory();
+            RootScope init;
+
+            if (rootDir != null) {
+                init = new RootScope(
+                    GyroCore.INIT_FILE,
+                    new LocalFileBackend(GyroCore.getRootDirectory()),
+                    null,
+                    Collections.emptySet());
+
+                init.load();
+
+                for (PluginLoader loader : init.getPluginLoaders()) {
+                    for (Class<?> c : loader.classes()) {
+                        if (GyroCommand.class.isAssignableFrom(c) && !Modifier.isAbstract(c.getModifiers())) {
+                            gyro.commands().add(c);
+                        }
+                    }
+                }
+
+            } else {
+                init = null;
+            }
+
+            gyro.init(Arrays.asList(arguments), init);
             gyro.run();
 
         } catch (Throwable error) {
@@ -61,7 +87,7 @@ public class Gyro {
         }
     }
 
-    public void init(List<String> arguments) {
+    public void init(List<String> arguments, Scope init) {
         ((Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).setLevel(Level.OFF);
 
         commands().add(Help.class);
@@ -87,6 +113,7 @@ public class Gyro {
 
         this.cli = builder.build();
         this.arguments = arguments;
+        this.init = init;
     }
 
     public Set<Class<?>> commands() {
@@ -100,31 +127,15 @@ public class Gyro {
             ((Runnable) command).run();
 
         } else if (command instanceof AbstractCommand) {
+            ((AbstractCommand) command).setInit(init);
             ((AbstractCommand) command).execute();
+
         } else {
             throw new IllegalStateException(String.format(
                 "[%s] must be an instance of [%s] or [%s]!",
                 command.getClass().getName(),
                 Runnable.class.getName(),
                 GyroCommand.class.getName()));
-        }
-    }
-
-    public static void loadPlugins(Gyro gyro) throws Exception {
-        // Load ~/.gyro/plugins.gyro
-        File plugins = Paths.get(GyroCore.getGyroUserHome(), ".gyro", "plugins.gyro").toFile();
-        if (plugins.exists() && plugins.isFile()) {
-            RootScope pluginConfig = new RootScope(plugins.toString());
-
-            new LocalFileBackend().load(pluginConfig);
-
-            for (PluginLoader loader : pluginConfig.getFileScope().getPluginLoaders()) {
-                for (Class<?> c : loader.classes()) {
-                    if (GyroCommand.class.isAssignableFrom(c) && !Modifier.isAbstract(c.getModifiers())) {
-                        gyro.commands().add(c);
-                    }
-                }
-            }
         }
     }
 

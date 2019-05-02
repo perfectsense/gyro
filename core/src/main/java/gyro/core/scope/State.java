@@ -1,80 +1,64 @@
 package gyro.core.scope;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Set;
 
+import com.google.common.collect.ImmutableSet;
+import gyro.core.FileBackend;
 import gyro.core.diff.Change;
 import gyro.core.diff.Delete;
 import gyro.core.diff.Diffable;
 import gyro.core.diff.DiffableField;
 import gyro.core.diff.DiffableType;
 import gyro.core.diff.Replace;
+import gyro.core.plugin.PluginLoader;
 import gyro.core.resource.ResourceName;
 import gyro.core.resource.ResourceNames;
 import gyro.core.resource.Resource;
 
 public class State {
 
+    private final FileBackend backend;
     private final RootScope root;
     private final boolean test;
     private final Map<String, FileScope> states = new HashMap<>();
+    private final Set<String> diffFiles;
 
-    private String getStateFile(String file) {
-        if (file.endsWith(".gyro.state")) {
-            return file;
-
-        } else if (file.endsWith(".gyro")) {
-            return file + ".state";
-
-        } else {
-            return file + ".gyro.state";
-        }
-    }
-
-    public State(RootScope pending, boolean test) throws Exception {
-        root = new RootScope(getStateFile(pending.getFile()));
+    public State(RootScope current, RootScope pending, boolean test, Set<String> diffFiles) throws Exception {
+        this.backend = current.getBackend();
+        this.root = new RootScope(current.getFile(), backend, null, current.getLoadFiles());
         this.test = test;
+        this.diffFiles = diffFiles != null ? ImmutableSet.copyOf(diffFiles) : null;
 
-        load(pending, root);
+        root.load();
+
+        for (FileScope state : root.getFileScopes()) {
+            states.put(state.getFile(), state);
+        }
+
+        for (FileScope state : pending.getFileScopes()) {
+            String stateFile = state.getFile();
+
+            if (!states.containsKey(stateFile)) {
+                states.put(stateFile, new FileScope(root, stateFile));
+            }
+        }
     }
 
     public boolean isTest() {
         return test;
     }
 
-    private void load(FileScope pending, FileScope state) throws Exception {
-        states.put(getStateFile(pending.getFile()), state);
-        pending.getBackend().load(state);
-        state.getImports().clear();
-        state.getPluginLoaders().clear();
-        state.getPluginLoaders().addAll(pending.getPluginLoaders());
-
-        for (FileScope pendingImport : pending.getImports()) {
-            Path pendingDir = Paths.get(pending.getFile()).getParent() != null ?
-                Paths.get(pending.getFile()).getParent() : Paths.get(".");
-            Path pendingImportFile = Paths.get(pendingImport.getFile());
-
-            FileScope stateImport = new FileScope(
-                    pending,
-                    getStateFile(pendingDir.relativize(pendingImportFile).toString()));
-
-            load(pendingImport, stateImport);
-            state.getImports().add(stateImport);
-        }
-    }
-
-    private void save(FileScope state) throws Exception {
-        state.getBackend().save(state);
-
-        for (FileScope i : state.getImports()) {
-            save(i);
-        }
+    public Set<String> getDiffFiles() {
+        return diffFiles;
     }
 
     public void update(Change change) throws Exception {
@@ -112,7 +96,7 @@ public class State {
 
         } else {
             String key = resource.resourceIdentifier();
-            FileScope state = states.get(getStateFile(resource.scope().getFileScope().getFile()));
+            FileScope state = states.get(resource.scope().getFileScope().getFile());
 
             // Subresource?
             if (key == null) {
@@ -128,7 +112,29 @@ public class State {
             }
         }
 
-        save(root);
+        save();
+    }
+
+    private void save() throws IOException {
+        for (FileScope state : states.values()) {
+            String file = state.getFile();
+
+            try (BufferedWriter out = new BufferedWriter(
+                new OutputStreamWriter(
+                    backend.openOutput(file),
+                    StandardCharsets.UTF_8))) {
+
+                for (PluginLoader pluginLoader : state.getPluginLoaders()) {
+                    out.write(pluginLoader.toString());
+                }
+
+                for (Object value : state.values()) {
+                    if (value instanceof Resource) {
+                        out.write(((Resource) value).toNode().toString());
+                    }
+                }
+            }
+        }
     }
 
     private void updateSubresource(Resource parent, Resource subresource, boolean delete) {
@@ -192,14 +198,14 @@ public class State {
         swapResources(current, type, x, y);
         swapResources(pending, type, x, y);
         swapResources(root, type, x, y);
-        save(root);
+        save();
     }
 
     private void swapResources(RootScope rootScope, String type, String xName, String yName) {
         String xFullName = type + "::" + xName;
         String yFullName = type + "::" + yName;
-        FileScope xScope = findScope(xFullName, rootScope);
-        FileScope yScope = findScope(yFullName, rootScope);
+        FileScope xScope = findFileScope(rootScope, xFullName);
+        FileScope yScope = findFileScope(rootScope, yFullName);
 
         if (xScope != null && yScope != null) {
             Resource x = (Resource) xScope.get(xFullName);
@@ -212,18 +218,12 @@ public class State {
         }
     }
 
-    private FileScope findScope(String name, FileScope scope) {
-        Object value = scope.get(name);
+    private FileScope findFileScope(RootScope rootScope, String name) {
+        for (FileScope fileScope : rootScope.getFileScopes()) {
+            Object value = fileScope.get(name);
 
-        if (value instanceof Resource) {
-            return scope;
-        }
-
-        for (FileScope i : scope.getImports()) {
-            FileScope r = findScope(name, i);
-
-            if (r != null) {
-                return r;
+            if (value instanceof Resource) {
+                return fileScope;
             }
         }
 

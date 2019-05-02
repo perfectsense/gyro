@@ -3,9 +3,9 @@ package gyro.core.workflow;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import gyro.core.GyroUI;
-import gyro.core.LocalFileBackend;
 import gyro.core.diff.Diff;
 import gyro.core.resource.Resource;
 import gyro.lang.ast.Node;
@@ -56,9 +56,14 @@ public class Workflow {
     }
 
     private RootScope copyCurrentRootScope() throws Exception {
-        RootScope s = new RootScope(pendingRootScope.getCurrent().getFile());
+        RootScope s = new RootScope(
+            pendingRootScope.getFile(),
+            pendingRootScope.getBackend(),
+            null,
+            pendingRootScope.getLoadFiles());
 
-        new LocalFileBackend().load(s);
+        s.load();
+
         return s;
     }
 
@@ -131,10 +136,14 @@ public class Workflow {
             currentRootScope.clear();
             pendingRootScope.clear();
 
-            new LocalFileBackend().load(currentRootScope);
-            new LocalFileBackend().load(pendingRootScope);
+            currentRootScope.load();
+            pendingRootScope.load();
 
-            Diff diff = new Diff(currentRootScope.findAllResources(), pendingRootScope.findAllResources());
+            Set<String> diffFiles = state.getDiffFiles();
+
+            Diff diff = new Diff(
+                currentRootScope.findResourcesIn(diffFiles),
+                pendingRootScope.findResourcesIn(diffFiles));
 
             diff.diff();
 

@@ -177,7 +177,7 @@ public class CliGyroUI implements GyroUI {
         write(message, arguments);
         if (error != null) {
             try {
-                Path errorDir = Paths.get(GyroCore.getGyroUserHome(), ".gyro", "error");
+                Path errorDir = GyroCore.getHomeDirectory().resolve("error");
                 Files.createDirectories(errorDir);
 
                 ZonedDateTime time = ZonedDateTime.now();

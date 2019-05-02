@@ -1,118 +1,58 @@
 package gyro.core;
 
-import gyro.lang.GyroErrorStrategy;
-import gyro.lang.GyroLanguageException;
-import gyro.core.resource.Resource;
-import gyro.lang.ast.Node;
-import gyro.core.scope.FileScope;
-import gyro.lang.GyroErrorListener;
-import gyro.core.plugin.PluginLoader;
-import gyro.parser.antlr4.GyroLexer;
-import gyro.parser.antlr4.GyroParser;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
-
-import java.io.BufferedWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.stream.Stream;
 
-public class LocalFileBackend extends FileBackend {
+public class LocalFileBackend implements FileBackend {
 
-    @Override
-    public String name() {
-        return "local";
+    private final Path rootDirectory;
+
+    public LocalFileBackend(Path rootDirectory) {
+        this.rootDirectory = rootDirectory;
     }
 
     @Override
-    public boolean load(FileScope scope) throws Exception {
-        Path file = Paths.get(scope.getFile());
+    public Stream<String> list() throws IOException {
+        if (Files.exists(rootDirectory)) {
+            return Files.find(rootDirectory, Integer.MAX_VALUE, (file, attributes) -> attributes.isRegularFile())
+                .map(rootDirectory::relativize)
+                .map(Path::toString)
+                .filter(f -> !f.startsWith(".gyro/") && f.endsWith(".gyro"));
 
-        if (!Files.exists(file) || Files.isDirectory(file)) {
-            return false;
+        } else {
+            return Stream.empty();
         }
-
-        GyroLexer lexer = new GyroLexer(CharStreams.fromFileName(file.toString()));
-        CommonTokenStream stream = new CommonTokenStream(lexer);
-        GyroParser parser = new GyroParser(stream);
-        GyroErrorListener errorListener = new GyroErrorListener();
-
-        parser.removeErrorListeners();
-        parser.addErrorListener(errorListener);
-        parser.setErrorHandler(new GyroErrorStrategy());
-
-        GyroParser.RootContext rootContext = parser.root();
-
-        int errorCount = errorListener.getSyntaxErrors();
-        if (errorCount > 0) {
-            throw new GyroLanguageException(String.format("%d %s found while parsing.", errorCount, errorCount == 1 ? "error" : "errors"));
-        }
-
-        Node.create(rootContext).evaluate(scope);
-
-        return true;
     }
 
     @Override
-    public void save(FileScope scope) throws IOException {
-        String file = scope.getFile();
+    public InputStream openInput(String file) throws IOException {
+        return Files.newInputStream(rootDirectory.resolve(file).normalize());
+    }
 
-        if (!file.endsWith(".state")) {
-            file += ".state";
-        }
+    @Override
+    public OutputStream openOutput(String file) throws IOException {
+        Path tempFile = Files.createTempFile("local-file-backend-", ".gyro");
 
-        Path newFile = Files.createTempFile("local-file-backend-", ".gyro.state");
+        tempFile.toFile().deleteOnExit();
 
-        try {
-            try (BufferedWriter out = new BufferedWriter(
-                    new OutputStreamWriter(
-                            Files.newOutputStream(newFile),
-                            StandardCharsets.UTF_8))) {
+        return new FileOutputStream(tempFile.toString()) {
 
-                Path dir = Paths.get(file).getParent();
+            @Override
+            public void close() throws IOException {
+                super.close();
 
-                for (FileScope i : scope.getImports()) {
-                    String importFile = i.getFile();
+                Path f = rootDirectory.resolve(file);
 
-                    if (!importFile.endsWith(".state")) {
-                        importFile += ".state";
-                    }
-
-                    out.write("@import ");
-                    out.write(dir != null ? dir.relativize(Paths.get(importFile)).toString() : importFile);
-                    out.write('\n');
-                }
-
-                for (PluginLoader pluginLoader : scope.getPluginLoaders()) {
-                    out.write(pluginLoader.toString());
-                }
-
-                for (Object value : scope.values()) {
-                    if (value instanceof Resource) {
-                        out.write(((Resource) value).toNode().toString());
-                    }
-                }
+                Files.createDirectories(f.getParent());
+                Files.move(tempFile, f, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
             }
-
-            Files.move(
-                    newFile,
-                    Paths.get(file),
-                    StandardCopyOption.ATOMIC_MOVE,
-                    StandardCopyOption.REPLACE_EXISTING);
-
-        } catch (IOException error) {
-            Files.deleteIfExists(newFile);
-            throw error;
-        }
-    }
-
-    @Override
-    public void delete(String path) {
-
+        };
     }
 
 }
