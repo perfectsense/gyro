@@ -1,15 +1,11 @@
 package gyro.lang.ast.control;
 
-import gyro.lang.ast.DeferError;
+import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.BlockNode;
-import gyro.core.scope.Scope;
 import gyro.parser.antlr4.GyroParser;
-import gyro.lang.util.CascadingMap;
 
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ForNode extends BlockNode {
@@ -43,30 +39,17 @@ public class ForNode extends BlockNode {
                 .collect(Collectors.toList());
     }
 
+    public List<String> getVariables() {
+        return variables;
+    }
+
+    public List<Node> getItems() {
+        return items;
+    }
+
     @Override
-    public Object evaluate(Scope scope) throws Exception {
-        int variablesSize = variables.size();
-        int itemsSize = items.size();
-
-        for (int i = 0; i < itemsSize; i += variablesSize) {
-            Map<String, Object> values = new LinkedHashMap<>();
-            Scope bodyScope = new Scope(scope, new CascadingMap<>(scope, values));
-
-            for (int j = 0; j < variablesSize; j++) {
-                int k = i + j;
-
-                values.put(
-                        variables.get(j),
-                        k < itemsSize
-                                ? items.get(k).evaluate(scope)
-                                : null);
-            }
-
-            DeferError.evaluate(bodyScope, body);
-            scope.getKeyNodes().putAll(bodyScope.getKeyNodes());
-        }
-
-        return null;
+    public <C> Object accept(NodeVisitor<C> visitor, C context) {
+        return visitor.visitFor(this, context);
     }
 
     @Override

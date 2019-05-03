@@ -1,19 +1,9 @@
 package gyro.lang.ast.block;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
-import gyro.core.GyroCore;
-import gyro.core.GyroException;
-import gyro.core.scope.FileScope;
-import gyro.core.workflow.Workflow;
-import gyro.lang.ast.DeferError;
-import gyro.lang.ast.PairNode;
+import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.Node;
-import gyro.core.scope.RootScope;
-import gyro.core.scope.Scope;
 import gyro.parser.antlr4.GyroParser;
 
 public class FileNode extends BlockNode {
@@ -26,79 +16,8 @@ public class FileNode extends BlockNode {
     }
 
     @Override
-    public Object evaluate(Scope scope) throws Exception {
-        RootScope rootScope = scope.getRootScope();
-        FileScope fileScope;
-        if (rootScope.getFile().equals(getFile())) {
-            fileScope = rootScope;
-        } else {
-            fileScope = new FileScope(rootScope, getFile());
-            rootScope.getFileScopes().add(fileScope);
-        }
-
-        // Evaluate imports and plugins first.
-        List<PairNode> keyValues = new ArrayList<>();
-        List<PluginNode> plugins = new ArrayList<>();
-        Map<String, VirtualResourceNode> virtualResourceNodes = rootScope.getVirtualResourceNodes();
-        List<ResourceNode> workflowNodes = new ArrayList<>();
-        List<Node> body = new ArrayList<>();
-
-        for (Node node : this.body) {
-            if (node instanceof PairNode) {
-                keyValues.add((PairNode) node);
-
-            } else if (node instanceof PluginNode) {
-                plugins.add((PluginNode) node);
-
-            } else if (node instanceof VirtualResourceNode) {
-                VirtualResourceNode vrNode = (VirtualResourceNode) node;
-                virtualResourceNodes.put(vrNode.getName(), vrNode);
-
-            } else {
-                if (node instanceof ResourceNode) {
-                    ResourceNode rnNode = (ResourceNode) node;
-
-                    if (rnNode.getType().equals("workflow")) {
-                        workflowNodes.add(rnNode);
-                        continue;
-                    }
-                }
-
-                body.add(node);
-            }
-        }
-
-        if (!plugins.isEmpty() && !(fileScope instanceof RootScope)) {
-            throw new GyroException(String.format("Plugins are only allowed to be defined in '%s'.%nThe following plugins are found in '%s':%n%s",
-                GyroCore.INIT_FILE,
-                fileScope.getFile(),
-                plugins.stream()
-                    .map(Node::toString)
-                    .collect(Collectors.joining("\n"))));
-        }
-
-        for (PairNode kv : keyValues) {
-            kv.evaluate(fileScope);
-        }
-
-        for (PluginNode plugin : plugins) {
-            plugin.load(fileScope);
-        }
-
-        List<Workflow> workflows = rootScope.getWorkflows();
-
-        for (ResourceNode rn : workflowNodes) {
-            workflows.add(new Workflow(rootScope, rn));
-        }
-
-        try {
-            DeferError.evaluate(fileScope, body);
-        } catch (DeferError e) {
-            rootScope.getFileScopes().remove(fileScope);
-            throw e;
-        }
-
-        return null;
+    public <C> Object accept(NodeVisitor<C> visitor, C context) {
+        return visitor.visitFile(this, context);
     }
 
     @Override

@@ -1,31 +1,31 @@
 package gyro.lang.ast;
 
+import java.util.List;
+
+import gyro.lang.GyroLanguageException;
+import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.block.PluginNode;
 import gyro.lang.ast.block.ResourceNode;
-import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.VirtualResourceNode;
-import gyro.lang.ast.control.ForNode;
-import gyro.lang.ast.control.IfNode;
 import gyro.lang.ast.condition.AndConditionNode;
 import gyro.lang.ast.condition.ComparisonConditionNode;
 import gyro.lang.ast.condition.OrConditionNode;
 import gyro.lang.ast.condition.ValueConditionNode;
-import gyro.core.scope.Scope;
+import gyro.lang.ast.control.ForNode;
+import gyro.lang.ast.control.IfNode;
 import gyro.lang.ast.value.BooleanNode;
+import gyro.lang.ast.value.InterpolatedStringNode;
 import gyro.lang.ast.value.ListNode;
+import gyro.lang.ast.value.LiteralStringNode;
 import gyro.lang.ast.value.MapNode;
 import gyro.lang.ast.value.NumberNode;
 import gyro.lang.ast.value.ResourceReferenceNode;
-import gyro.lang.ast.value.InterpolatedStringNode;
-import gyro.lang.ast.value.LiteralStringNode;
 import gyro.lang.ast.value.ValueReferenceNode;
-import org.antlr.v4.runtime.ParserRuleContext;
 import gyro.parser.antlr4.GyroParser;
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
-
-import java.util.List;
 
 public abstract class Node {
 
@@ -127,7 +127,7 @@ public abstract class Node {
             node = new LiteralStringNode(context.getText());
 
         } else {
-            node = new UnknownNode(context);
+            throw new GyroLanguageException(String.format("Unrecognized node! [%s]", cc.getName()));
         }
 
         if (context instanceof ParserRuleContext) {
@@ -140,7 +140,7 @@ public abstract class Node {
         return node;
     }
 
-    public abstract Object evaluate(Scope scope) throws Exception;
+    public abstract <C> Object accept(NodeVisitor<C> visitor, C context);
 
     public abstract void buildString(StringBuilder builder, int indentDepth);
 

@@ -3,23 +3,16 @@ package gyro.lang.ast.block;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import gyro.core.Credentials;
-import gyro.core.GyroCore;
-import gyro.core.resource.Resource;
-import gyro.core.scope.FileScope;
-import gyro.core.scope.RootScope;
-import gyro.core.scope.Scope;
-import gyro.lang.GyroLanguageException;
+import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.Node;
-
-import static gyro.parser.antlr4.GyroParser.VirtualResourceContext;
+import gyro.parser.antlr4.GyroParser;
 
 public class VirtualResourceNode extends BlockNode {
 
     private String name;
     private List<VirtualResourceParameter> params;
 
-    public VirtualResourceNode(VirtualResourceContext context) {
+    public VirtualResourceNode(GyroParser.VirtualResourceContext context) {
         super(context.blockBody()
                 .blockStatement()
                 .stream()
@@ -34,59 +27,17 @@ public class VirtualResourceNode extends BlockNode {
                 .collect(Collectors.toList());
     }
 
-    public void createResources(String prefix, Scope paramScope) throws Exception {
-        FileScope paramFileScope = paramScope.getFileScope();
+    public String getName() {
+        return name;
+    }
 
-        RootScope vrScope = new RootScope(
-            GyroCore.INIT_FILE,
-            paramScope.getRootScope().getBackend(),
-            null,
-            paramScope.getRootScope().getLoadFiles());
-
-        FileScope resourceScope = new FileScope(vrScope, paramFileScope.getFile());
-
-        for (VirtualResourceParameter param : params) {
-            String paramName = param.getName();
-
-            if (!paramScope.containsKey(paramName)) {
-                throw new GyroLanguageException(String.format("Required parameter '%s' is missing.", paramName));
-
-            } else {
-                vrScope.put(paramName, paramScope.get(paramName));
-            }
-        }
-
-        RootScope paramRootScope = paramScope.getRootScope();
-
-        vrScope.getResourceClasses().putAll(paramRootScope.getResourceClasses());
-        vrScope.getFileScopes().add(resourceScope);
-
-        paramRootScope.findResources()
-                .stream()
-                .filter(Credentials.class::isInstance)
-                .forEach(c -> vrScope.put(c.resourceType() + "::" + c.resourceIdentifier(), c));
-
-        for (Node node : body) {
-            node.evaluate(resourceScope);
-        }
-
-        for (Resource resource : vrScope.findResources()) {
-            if (!(resource instanceof Credentials)) {
-                String newId = prefix + "." + resource.resourceIdentifier();
-
-                resource.resourceIdentifier(newId);
-                paramFileScope.put(resource.resourceType() + "::" + newId, resource);
-            }
-        }
+    public List<VirtualResourceParameter> getParams() {
+        return params;
     }
 
     @Override
-    public Object evaluate(Scope scope) {
-        throw new UnsupportedOperationException();
-    }
-
-    public String getName() {
-        return name;
+    public <C> Object accept(NodeVisitor<C> visitor, C context) {
+        return visitor.visitVirtualResource(this, context);
     }
 
     @Override

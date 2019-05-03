@@ -1,7 +1,7 @@
 package gyro.lang.ast.value;
 
+import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.Node;
-import gyro.core.scope.Scope;
 import gyro.parser.antlr4.GyroParser;
 import org.apache.commons.lang.StringUtils;
 
@@ -17,9 +17,13 @@ public class LiteralStringNode extends Node {
         this(StringUtils.strip(context.STRING().getText(), "'"));
     }
 
-    @Override
-    public Object evaluate(Scope scope) {
+    public String getValue() {
         return value;
+    }
+
+    @Override
+    public <C> Object accept(NodeVisitor<C> visitor, C context) {
+        return visitor.visitLiteralString(this, context);
     }
 
     @Override

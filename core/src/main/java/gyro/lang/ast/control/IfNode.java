@@ -1,9 +1,7 @@
 package gyro.lang.ast.control;
 
-import gyro.lang.ast.DeferError;
+import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.Node;
-import gyro.lang.ast.condition.ConditionNode;
-import gyro.core.scope.Scope;
 import gyro.parser.antlr4.GyroParser;
 
 import java.util.List;
@@ -29,23 +27,17 @@ public class IfNode extends Node {
             .collect(Collectors.toList());
     }
 
+    public List<Node> getConditions() {
+        return conditions;
+    }
+
+    public List<List<Node>> getBodies() {
+        return bodies;
+    }
+
     @Override
-    public Object evaluate(Scope scope) throws Exception {
-        for (int i = 0; i < conditions.size(); i++) {
-            Node expression = conditions.get(i);
-            Boolean value = ConditionNode.toBoolean(expression.evaluate(scope));
-
-            if (value) {
-                DeferError.evaluate(scope, bodies.get(i));
-                return null;
-            }
-        }
-
-        if (bodies.size() > conditions.size()) {
-            DeferError.evaluate(scope, bodies.get(bodies.size() - 1));
-        }
-
-        return null;
+    public <C> Object accept(NodeVisitor<C> visitor, C context) {
+        return visitor.visitIf(this, context);
     }
 
     @Override

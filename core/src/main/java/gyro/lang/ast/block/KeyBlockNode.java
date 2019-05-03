@@ -3,9 +3,8 @@ package gyro.lang.ast.block;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.Node;
-import gyro.core.scope.DiffableScope;
-import gyro.core.scope.Scope;
 import gyro.parser.antlr4.GyroParser;
 
 public class KeyBlockNode extends BlockNode {
@@ -33,17 +32,8 @@ public class KeyBlockNode extends BlockNode {
     }
 
     @Override
-    public Object evaluate(Scope scope) throws Exception {
-        DiffableScope bodyScope = new DiffableScope(scope);
-
-        for (Node node : body) {
-            node.evaluate(bodyScope);
-        }
-
-        scope.addValue(key, bodyScope);
-        scope.getKeyNodes().put(key, this);
-
-        return null;
+    public <C> Object accept(NodeVisitor<C> visitor, C context) {
+        return visitor.visitKeyBlock(this, context);
     }
 
     @Override

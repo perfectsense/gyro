@@ -8,6 +8,7 @@ import java.util.Set;
 import gyro.core.GyroUI;
 import gyro.core.diff.Diff;
 import gyro.core.resource.Resource;
+import gyro.core.scope.NodeEvaluator;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.ResourceNode;
 import gyro.core.scope.RootScope;
@@ -21,8 +22,9 @@ public class Workflow {
     private final String forType;
     private final List<Stage> stages = new ArrayList<>();
 
-    public Workflow(Scope parent, ResourceNode node) throws Exception {
+    public Workflow(Scope parent, ResourceNode node) {
         Scope scope = new Scope(parent);
+        NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
 
         for (Iterator<Node> i = node.getBody().iterator(); i.hasNext();) {
             Node item = i.next();
@@ -39,11 +41,11 @@ public class Workflow {
                 }
             }
 
-            item.evaluate(scope);
+            evaluator.visit(item, scope);
         }
 
         pendingRootScope = parent.getRootScope();
-        name = (String) node.getNameNode().evaluate(parent);
+        name = (String) evaluator.visit(node.getNameNode(), parent);
         forType = (String) scope.get("for-type");
     }
 

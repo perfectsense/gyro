@@ -1,10 +1,9 @@
 package gyro.lang.ast.value;
 
+import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.Node;
-import gyro.core.scope.Scope;
 import gyro.parser.antlr4.GyroParser;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,14 +27,8 @@ public class ListNode extends Node {
     }
 
     @Override
-    public Object evaluate(Scope scope) throws Exception {
-        List<Object> list = new ArrayList<>();
-
-        for (Node n : items) {
-            list.add(n.evaluate(scope));
-        }
-
-        return list;
+    public <C> Object accept(NodeVisitor<C> visitor, C context) {
+        return visitor.visitList(this, context);
     }
 
     @Override

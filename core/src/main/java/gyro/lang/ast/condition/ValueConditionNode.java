@@ -1,6 +1,6 @@
 package gyro.lang.ast.condition;
 
-import gyro.core.scope.Scope;
+import gyro.lang.ast.NodeVisitor;
 import gyro.parser.antlr4.GyroParser;
 
 public class ValueConditionNode extends ConditionNode {
@@ -10,8 +10,8 @@ public class ValueConditionNode extends ConditionNode {
     }
 
     @Override
-    public Object evaluate(Scope scope) throws Exception {
-        return getLeftNode().evaluate(scope);
+    public <C> Object accept(NodeVisitor<C> visitor, C context) {
+        return visitor.visitValueCondition(this, context);
     }
 
     @Override

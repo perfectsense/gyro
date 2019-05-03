@@ -1,8 +1,7 @@
 package gyro.lang.ast.block;
 
+import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.Node;
-import gyro.core.scope.Scope;
-import gyro.core.plugin.PluginLoader;
 import gyro.parser.antlr4.GyroParser;
 
 import java.util.List;
@@ -22,22 +21,9 @@ public class PluginNode extends BlockNode {
                 .collect(Collectors.toList()));
     }
 
-    public void load(Scope scope) throws Exception {
-        Scope bodyScope = new Scope(scope);
-
-        for (Node node : body) {
-            node.evaluate(bodyScope);
-        }
-
-        PluginLoader loader = new PluginLoader(bodyScope);
-
-        loader.load();
-        scope.getFileScope().getPluginLoaders().add(loader);
-    }
-
     @Override
-    public Object evaluate(Scope scope) {
-        throw new IllegalArgumentException();
+    public <C> Object accept(NodeVisitor<C> visitor, C context) {
+        return visitor.visitPlugin(this, context);
     }
 
     @Override

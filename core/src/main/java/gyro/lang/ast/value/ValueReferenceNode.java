@@ -1,8 +1,7 @@
 package gyro.lang.ast.value;
 
-import gyro.core.GyroException;
+import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.Node;
-import gyro.core.scope.Scope;
 import gyro.parser.antlr4.GyroParser;
 
 public class ValueReferenceNode extends Node {
@@ -17,14 +16,13 @@ public class ValueReferenceNode extends Node {
         this(context.path().getText());
     }
 
+    public String getPath() {
+        return path;
+    }
+
     @Override
-    public Object evaluate(Scope scope) throws Exception {
-        try {
-            return scope.find(path);
-        } catch (ValueReferenceException vre) {
-            throw new GyroException(String.format("Unable to resolve value reference %s %s%n'%s' is not defined.%n",
-                this, this.getLocation(), vre.getKey()));
-        }
+    public <C> Object accept(NodeVisitor<C> visitor, C context) {
+        return visitor.visitValueRefence(this, context);
     }
 
     @Override

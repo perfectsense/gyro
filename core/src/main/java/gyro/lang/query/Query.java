@@ -1,11 +1,7 @@
 package gyro.lang.query;
 
-import gyro.core.resource.Resource;
-import gyro.core.scope.Scope;
 import gyro.parser.antlr4.GyroParser;
 import org.antlr.v4.runtime.tree.ParseTree;
-
-import java.util.List;
 
 public abstract class Query {
 
@@ -25,5 +21,6 @@ public abstract class Query {
         return null;
     }
 
-    public abstract List<Resource> evaluate(String type, Scope scope, List<Resource> resources) throws Exception;
+    public abstract <C, R> R accept(QueryVisitor<C, R> visitor, C context);
+
 }

@@ -1,12 +1,10 @@
 package gyro.lang.ast.value;
 
+import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.PairNode;
 import gyro.lang.ast.Node;
-import gyro.core.scope.Scope;
 
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import static gyro.parser.antlr4.GyroParser.MapContext;
@@ -27,16 +25,13 @@ public class MapNode extends Node {
             .collect(Collectors.toList());
     }
 
+    public List<PairNode> getEntries() {
+        return entries;
+    }
+
     @Override
-    public Object evaluate(Scope scope) throws Exception {
-        Scope bodyScope = new Scope(scope);
-        Map<String, Object> map = new LinkedHashMap<>();
-
-        for (PairNode e : entries) {
-            map.put(e.getKey(), e.evaluate(bodyScope));
-        }
-
-        return map;
+    public <C> Object accept(NodeVisitor<C> visitor, C context) {
+        return visitor.visitMap(this, context);
     }
 
     @Override

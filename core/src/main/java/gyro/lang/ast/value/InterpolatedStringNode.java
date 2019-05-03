@@ -1,7 +1,7 @@
 package gyro.lang.ast.value;
 
+import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.Node;
-import gyro.core.scope.Scope;
 import gyro.parser.antlr4.GyroParser;
 
 import java.util.List;
@@ -19,21 +19,13 @@ public class InterpolatedStringNode extends Node {
                 .collect(Collectors.toList());
     }
 
+    public List<Object> getItems() {
+        return items;
+    }
+
     @Override
-    public Object evaluate(Scope scope) throws Exception {
-        StringBuilder builder = new StringBuilder();
-
-        for (Object item : items) {
-            if (item instanceof Node) {
-                item = ((Node) item).evaluate(scope);
-            }
-
-            if (item != null) {
-                builder.append(item);
-            }
-        }
-
-        return builder.toString();
+    public <C> Object accept(NodeVisitor<C> visitor, C context) {
+        return visitor.visitInterpolatedString(this, context);
     }
 
     @Override

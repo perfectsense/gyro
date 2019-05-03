@@ -1,6 +1,5 @@
 package gyro.lang.ast;
 
-import gyro.core.scope.Scope;
 import gyro.parser.antlr4.GyroParser;
 
 public class PairNode extends Node {
@@ -22,12 +21,13 @@ public class PairNode extends Node {
         return key;
     }
 
+    public Node getValue() {
+        return value;
+    }
+
     @Override
-    public Object evaluate(Scope scope) throws Exception {
-        scope.put(key, value.evaluate(scope));
-        scope.addValueNode(key, value);
-        scope.getKeyNodes().put(key, this);
-        return scope.get(key);
+    public <C> Object accept(NodeVisitor<C> visitor, C context) {
+        return visitor.visitPair(this, context);
     }
 
     @Override
@@ -36,4 +36,5 @@ public class PairNode extends Node {
         builder.append(": ");
         value.buildString(builder, indentDepth);
     }
+
 }

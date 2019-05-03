@@ -2,7 +2,6 @@ package gyro.lang.query;
 
 import com.google.common.collect.ImmutableList;
 import gyro.core.resource.Resource;
-import gyro.core.scope.Scope;
 
 import java.util.List;
 
@@ -14,8 +13,13 @@ public class FoundQuery extends Query {
         this.resources = ImmutableList.copyOf(resources);
     }
 
-    @Override
-    public List<Resource> evaluate(String type, Scope scope, List<Resource> resources) throws Exception {
-        return this.resources;
+    public List<Resource> getResources() {
+        return resources;
     }
+
+    @Override
+    public <C, R> R accept(QueryVisitor<C, R> visitor, C context) {
+        return visitor.visitFound(this, context);
+    }
+
 }

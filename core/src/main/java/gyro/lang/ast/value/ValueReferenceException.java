@@ -1,6 +1,6 @@
 package gyro.lang.ast.value;
 
-public class ValueReferenceException extends Exception {
+public class ValueReferenceException extends RuntimeException {
 
     private final String key;
 

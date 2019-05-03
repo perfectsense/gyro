@@ -1,7 +1,7 @@
 package gyro.lang.ast.value;
 
+import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.Node;
-import gyro.core.scope.Scope;
 import gyro.parser.antlr4.GyroParser;
 
 public class BooleanNode extends Node {
@@ -16,9 +16,13 @@ public class BooleanNode extends Node {
         value = context.TRUE() != null;
     }
 
-    @Override
-    public Object evaluate(Scope scope) {
+    public boolean getValue() {
         return value;
+    }
+
+    @Override
+    public <C> Object accept(NodeVisitor<C> visitor, C context) {
+        return visitor.visitBoolean(this, context);
     }
 
     @Override

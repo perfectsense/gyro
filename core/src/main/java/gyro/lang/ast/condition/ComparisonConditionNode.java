@@ -1,11 +1,11 @@
 package gyro.lang.ast.condition;
 
-import gyro.core.scope.Scope;
+import gyro.lang.ast.NodeVisitor;
 import gyro.parser.antlr4.GyroParser;
 
 public class ComparisonConditionNode extends ConditionNode {
 
-    private String operator;
+    private final String operator;
 
     public ComparisonConditionNode(GyroParser.ComparisonConditionContext context) {
         super(context);
@@ -13,16 +13,13 @@ public class ComparisonConditionNode extends ConditionNode {
         operator = context.comparisonOperator().getText();
     }
 
-    @Override
-    public Object evaluate(Scope scope) throws Exception {
-        Object leftValue = getLeftNode().evaluate(scope);
-        Object rightValue = getRightNode().evaluate(scope);
+    public String getOperator() {
+        return operator;
+    }
 
-        switch (operator) {
-            case "==" : return leftValue.equals(rightValue);
-            case "!=" : return !leftValue.equals(rightValue);
-            default   : return false;
-        }
+    @Override
+    public <C> Object accept(NodeVisitor<C> visitor, C context) {
+        return visitor.visitComparisonCondition(this, context);
     }
 
     @Override

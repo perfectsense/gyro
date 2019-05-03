@@ -1,7 +1,5 @@
 package gyro.lang.ast;
 
-import gyro.core.GyroException;
-import gyro.core.scope.Scope;
 import gyro.parser.antlr4.GyroParser;
 
 import java.util.Optional;
@@ -21,9 +19,13 @@ public class DirectiveNode extends Node {
                 .orElse(null);
     }
 
+    public String getDirective() {
+        return directive;
+    }
+
     @Override
-    public Object evaluate(Scope scope) {
-        throw new GyroException(String.format("[%s] directive isn't supported!", directive));
+    public <C> Object accept(NodeVisitor<C> visitor, C context) {
+        return visitor.visitDirective(this, context);
     }
 
     @Override
