@@ -32,7 +32,7 @@ public class KeyBlockNode extends BlockNode {
     }
 
     @Override
-    public <C> Object accept(NodeVisitor<C> visitor, C context) {
+    public <C, R> R accept(NodeVisitor<C, R> visitor, C context) {
         return visitor.visitKeyBlock(this, context);
     }
 

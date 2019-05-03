@@ -20,52 +20,52 @@ import gyro.lang.ast.value.NumberNode;
 import gyro.lang.ast.value.ResourceReferenceNode;
 import gyro.lang.ast.value.ValueReferenceNode;
 
-public interface NodeVisitor<C> {
+public interface NodeVisitor<C, R> {
 
-    default Object visit(Node node, C context) {
+    default R visit(Node node, C context) {
         return node.accept(this, context);
     }
 
-    Object visitDirective(DirectiveNode node, C context);
+    R visitDirective(DirectiveNode node, C context);
 
-    Object visitPair(PairNode node, C context);
+    R visitPair(PairNode node, C context);
 
-    Object visitFile(FileNode node, C context);
+    R visitFile(FileNode node, C context);
 
-    Object visitKeyBlock(KeyBlockNode node, C context);
+    R visitKeyBlock(KeyBlockNode node, C context);
 
-    Object visitPlugin(PluginNode node, C context);
+    R visitPlugin(PluginNode node, C context);
 
-    Object visitResource(ResourceNode node, C context);
+    R visitResource(ResourceNode node, C context);
 
-    Object visitVirtualResource(VirtualResourceNode node, C context);
+    R visitVirtualResource(VirtualResourceNode node, C context);
 
-    Object visitAndCondition(AndConditionNode node, C context);
+    R visitAndCondition(AndConditionNode node, C context);
 
-    Object visitComparisonCondition(ComparisonConditionNode node, C context);
+    R visitComparisonCondition(ComparisonConditionNode node, C context);
 
-    Object visitOrCondition(OrConditionNode node, C context);
+    R visitOrCondition(OrConditionNode node, C context);
 
-    Object visitValueCondition(ValueConditionNode node, C context);
+    R visitValueCondition(ValueConditionNode node, C context);
 
-    Object visitFor(ForNode node, C context);
+    R visitFor(ForNode node, C context);
 
-    Object visitIf(IfNode node, C context);
+    R visitIf(IfNode node, C context);
 
-    Object visitBoolean(BooleanNode node, C context);
+    R visitBoolean(BooleanNode node, C context);
 
-    Object visitInterpolatedString(InterpolatedStringNode node, C context);
+    R visitInterpolatedString(InterpolatedStringNode node, C context);
 
-    Object visitList(ListNode node, C context);
+    R visitList(ListNode node, C context);
 
-    Object visitLiteralString(LiteralStringNode node, C context);
+    R visitLiteralString(LiteralStringNode node, C context);
 
-    Object visitMap(MapNode node, C context);
+    R visitMap(MapNode node, C context);
 
-    Object visitNumber(NumberNode node, C context);
+    R visitNumber(NumberNode node, C context);
 
-    Object visitResourceReference(ResourceReferenceNode node, C context);
+    R visitResourceReference(ResourceReferenceNode node, C context);
 
-    Object visitValueRefence(ValueReferenceNode node, C context);
+    R visitValueRefence(ValueReferenceNode node, C context);
 
 }

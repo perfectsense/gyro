@@ -140,7 +140,7 @@ public abstract class Node {
         return node;
     }
 
-    public abstract <C> Object accept(NodeVisitor<C> visitor, C context);
+    public abstract <C, R> R accept(NodeVisitor<C, R> visitor, C context);
 
     public abstract void buildString(StringBuilder builder, int indentDepth);
 

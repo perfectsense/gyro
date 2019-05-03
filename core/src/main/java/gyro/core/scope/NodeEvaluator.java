@@ -48,7 +48,7 @@ import gyro.lang.ast.value.ValueReferenceNode;
 import gyro.lang.query.Query;
 import gyro.util.CascadingMap;
 
-public class NodeEvaluator implements NodeVisitor<Scope> {
+public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
     public void visitBody(List<Node> body, Scope scope) {
         int bodySize = body.size();
