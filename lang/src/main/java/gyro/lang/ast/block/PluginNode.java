@@ -26,15 +26,4 @@ public class PluginNode extends BlockNode {
         return visitor.visitPlugin(this, context);
     }
 
-    @Override
-    public void buildString(StringBuilder builder, int indentDepth) {
-        buildNewline(builder, indentDepth);
-        builder.append("plugin");
-
-        buildBody(builder, indentDepth + 1, body);
-
-        buildNewline(builder, indentDepth);
-        builder.append("end");
-    }
-
 }

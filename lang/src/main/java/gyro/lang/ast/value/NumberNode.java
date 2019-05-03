@@ -26,8 +26,4 @@ public class NumberNode extends Node {
         return visitor.visitNumber(this, context);
     }
 
-    @Override
-    public void buildString(StringBuilder builder, int indentDepth) {
-        builder.append(value);
-    }
 }

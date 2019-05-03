@@ -23,21 +23,17 @@ public class DirectiveNode extends Node {
         return directive;
     }
 
-    @Override
-    public <C, R> R accept(NodeVisitor<C, R> visitor, C context) {
-        return visitor.visitDirective(this, context);
+    public String getDirectiveFile() {
+        return file;
+    }
+
+    public String getName() {
+        return name;
     }
 
     @Override
-    public void buildString(StringBuilder builder, int indentDepth) {
-        buildNewline(builder, indentDepth);
-        builder.append("@import ");
-        builder.append(file);
-
-        if (name != null) {
-            builder.append(" as ");
-            builder.append(name);
-        }
+    public <C, R> R accept(NodeVisitor<C, R> visitor, C context) {
+        return visitor.visitDirective(this, context);
     }
 
 }

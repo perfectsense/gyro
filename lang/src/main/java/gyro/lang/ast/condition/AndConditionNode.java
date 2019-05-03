@@ -14,11 +14,4 @@ public class AndConditionNode extends ConditionNode {
         return visitor.visitAndCondition(this, context);
     }
 
-    @Override
-    public void buildString(StringBuilder builder, int indentDepth) {
-        builder.append(getLeftNode());
-        builder.append(" and ");
-        builder.append(getRightNode());
-    }
-
 }

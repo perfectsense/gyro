@@ -43,20 +43,4 @@ public class ResourceNode extends BlockNode {
         return visitor.visitResource(this, context);
     }
 
-    @Override
-    public void buildString(StringBuilder builder, int indentDepth) {
-        buildNewline(builder, indentDepth);
-        builder.append(type);
-
-        if (nameNode != null) {
-            builder.append(' ');
-            builder.append(nameNode);
-        }
-
-        buildBody(builder, indentDepth + 1, body);
-
-        buildNewline(builder, indentDepth);
-        builder.append("end");
-    }
-
 }

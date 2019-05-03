@@ -30,11 +30,4 @@ public class PairNode extends Node {
         return visitor.visitPair(this, context);
     }
 
-    @Override
-    public void buildString(StringBuilder builder, int indentDepth) {
-        builder.append(key);
-        builder.append(": ");
-        value.buildString(builder, indentDepth);
-    }
-
 }

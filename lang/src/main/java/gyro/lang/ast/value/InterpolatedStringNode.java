@@ -28,10 +28,4 @@ public class InterpolatedStringNode extends Node {
         return visitor.visitInterpolatedString(this, context);
     }
 
-    @Override
-    public void buildString(StringBuilder builder, int indentDepth) {
-        builder.append('"');
-        items.forEach(n -> builder.append(n.toString()));
-        builder.append('"');
-    }
 }

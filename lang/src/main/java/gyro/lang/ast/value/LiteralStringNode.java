@@ -26,10 +26,4 @@ public class LiteralStringNode extends Node {
         return visitor.visitLiteralString(this, context);
     }
 
-    @Override
-    public void buildString(StringBuilder builder, int indentDepth) {
-        builder.append('\"');
-        builder.append(value);
-        builder.append('\"');
-    }
 }

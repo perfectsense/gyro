@@ -25,8 +25,4 @@ public class BooleanNode extends Node {
         return visitor.visitBoolean(this, context);
     }
 
-    @Override
-    public void buildString(StringBuilder builder, int indentDepth) {
-        builder.append(value);
-    }
 }

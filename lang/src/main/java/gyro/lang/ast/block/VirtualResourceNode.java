@@ -40,9 +40,4 @@ public class VirtualResourceNode extends BlockNode {
         return visitor.visitVirtualResource(this, context);
     }
 
-    @Override
-    public void buildString(StringBuilder builder, int indentDepth) {
-
-    }
-
 }

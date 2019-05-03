@@ -36,15 +36,4 @@ public class KeyBlockNode extends BlockNode {
         return visitor.visitKeyBlock(this, context);
     }
 
-    @Override
-    public void buildString(StringBuilder builder, int indentDepth) {
-        buildNewline(builder, indentDepth);
-        builder.append(key);
-
-        buildBody(builder, indentDepth + 1, body);
-
-        buildNewline(builder, indentDepth);
-        builder.append("end");
-    }
-
 }

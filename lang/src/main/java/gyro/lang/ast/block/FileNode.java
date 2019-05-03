@@ -20,9 +20,4 @@ public class FileNode extends BlockNode {
         return visitor.visitFile(this, context);
     }
 
-    @Override
-    public void buildString(StringBuilder builder, int indentDepth) {
-        buildBody(builder, indentDepth, body);
-    }
-
 }

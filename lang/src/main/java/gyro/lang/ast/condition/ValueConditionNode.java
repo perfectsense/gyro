@@ -14,9 +14,4 @@ public class ValueConditionNode extends ConditionNode {
         return visitor.visitValueCondition(this, context);
     }
 
-    @Override
-    public void buildString(StringBuilder builder, int indentDepth) {
-        builder.append(getLeftNode());
-    }
-
 }

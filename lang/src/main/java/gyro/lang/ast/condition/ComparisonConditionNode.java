@@ -22,12 +22,4 @@ public class ComparisonConditionNode extends ConditionNode {
         return visitor.visitComparisonCondition(this, context);
     }
 
-    @Override
-    public void buildString(StringBuilder builder, int indentDepth) {
-        builder.append(getLeftNode());
-        builder.append(" ");
-        builder.append(operator);
-        builder.append(" ");
-        builder.append(getRightNode());
-    }
 }

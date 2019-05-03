@@ -3,12 +3,10 @@ package gyro.lang.ast.value;
 import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.PairNode;
 import gyro.lang.ast.Node;
+import gyro.parser.antlr4.GyroParser;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static gyro.parser.antlr4.GyroParser.MapContext;
-import static java.util.stream.Collectors.joining;
 
 public class MapNode extends Node {
 
@@ -18,7 +16,7 @@ public class MapNode extends Node {
         this.entries = entries;
     }
 
-    public MapNode(MapContext context) {
+    public MapNode(GyroParser.MapContext context) {
         entries = context.pair()
             .stream()
             .map(kv -> (PairNode) Node.create(kv))
@@ -32,13 +30,6 @@ public class MapNode extends Node {
     @Override
     public <C, R> R accept(NodeVisitor<C, R> visitor, C context) {
         return visitor.visitMap(this, context);
-    }
-
-    @Override
-    public void buildString(StringBuilder builder, int indentDepth) {
-        builder.append('{');
-        builder.append(entries.stream().map(Node::toString).collect(joining(", ")));
-        builder.append('}');
     }
 
 }

@@ -40,23 +40,4 @@ public class IfNode extends Node {
         return visitor.visitIf(this, context);
     }
 
-    @Override
-    public void buildString(StringBuilder builder, int indentDepth) {
-        for (int i = 0; i < conditions.size(); i++) {
-            builder.append(i == 0 ? "if " : "else if ");
-            builder.append(conditions.get(i));
-            buildBody(builder, indentDepth + 1, bodies.get(i));
-            buildNewline(builder, indentDepth);
-        }
-
-        if (bodies.size() > conditions.size()) {
-            buildNewline(builder, indentDepth);
-            builder.append("else");
-            buildBody(builder, indentDepth + 1, bodies.get(bodies.size() - 1));
-        }
-
-        buildNewline(builder, indentDepth);
-        builder.append("end");
-    }
-
 }

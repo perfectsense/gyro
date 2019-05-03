@@ -1,7 +1,5 @@
 package gyro.lang.ast;
 
-import java.util.List;
-
 import gyro.lang.GyroLanguageException;
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;
@@ -142,23 +140,6 @@ public abstract class Node {
 
     public abstract <C, R> R accept(NodeVisitor<C, R> visitor, C context);
 
-    public abstract void buildString(StringBuilder builder, int indentDepth);
-
-    protected void buildNewline(StringBuilder builder, int indentDepth) {
-        builder.append('\n');
-
-        for (int i = 0; i < indentDepth; i++) {
-            builder.append("    ");
-        }
-    }
-
-    protected void buildBody(StringBuilder builder, int indentDepth, List<Node> body) {
-        for (Node n : body) {
-            buildNewline(builder, indentDepth);
-            n.buildString(builder, indentDepth);
-        }
-    }
-
     public String getLocation() {
         StringBuilder sb = new StringBuilder();
         if (file != null) {
@@ -193,8 +174,7 @@ public abstract class Node {
 
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder();
-        buildString(builder, 0);
-        return builder.toString();
+        return null;
     }
+
 }

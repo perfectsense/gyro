@@ -66,24 +66,6 @@ public class ResourceReferenceNode extends Node {
     }
 
     @Override
-    public void buildString(StringBuilder builder, int indentDepth) {
-        builder.append("$(");
-        builder.append(type);
-
-        if (nameNode != null) {
-            builder.append(' ');
-            builder.append(nameNode);
-        }
-
-        if (path != null) {
-            builder.append(" | ");
-            builder.append(path);
-        }
-
-        builder.append(")");
-    }
-
-    @Override
     public String deferFailure() {
         return String.format("Unable to resolve resource reference %s %s%nResource '%s %s' is not defined.%n",
             this, getLocation(), type, nameNode);

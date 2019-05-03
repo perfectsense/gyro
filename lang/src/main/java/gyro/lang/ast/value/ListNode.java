@@ -31,10 +31,4 @@ public class ListNode extends Node {
         return visitor.visitList(this, context);
     }
 
-    @Override
-    public void buildString(StringBuilder builder, int indentDepth) {
-        builder.append('[');
-        builder.append(items.stream().map(Node::toString).collect(Collectors.joining(", ")));
-        builder.append(']');
-    }
 }

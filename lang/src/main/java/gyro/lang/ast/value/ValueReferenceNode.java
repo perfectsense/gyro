@@ -25,10 +25,4 @@ public class ValueReferenceNode extends Node {
         return visitor.visitValueReference(this, context);
     }
 
-    @Override
-    public void buildString(StringBuilder builder, int indentDepth) {
-        builder.append("$(");
-        builder.append(path);
-        builder.append(")");
-    }
 }

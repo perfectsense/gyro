@@ -52,18 +52,4 @@ public class ForNode extends BlockNode {
         return visitor.visitFor(this, context);
     }
 
-    @Override
-    public void buildString(StringBuilder builder, int indentDepth) {
-        buildNewline(builder, indentDepth);
-        builder.append("for ");
-        builder.append(String.join(", ", variables));
-        builder.append(" in [");
-        builder.append(items.stream().map(Node::toString).collect(Collectors.joining(", ")));
-        builder.append("]");
-
-        buildBody(builder, indentDepth + 1, body);
-
-        buildNewline(builder, indentDepth);
-        builder.append("end");
-    }
 }

@@ -14,11 +14,4 @@ public class OrConditionNode extends ConditionNode {
         return visitor.visitOrCondition(this, context);
     }
 
-    @Override
-    public void buildString(StringBuilder builder, int indentDepth) {
-        builder.append(getLeftNode());
-        builder.append(" or ");
-        builder.append(getRightNode());
-    }
-
 }
