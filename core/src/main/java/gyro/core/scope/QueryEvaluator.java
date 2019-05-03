@@ -17,7 +17,6 @@ import gyro.core.resource.ResourceFinderField;
 import gyro.core.resource.ResourceFinderType;
 import gyro.lang.query.AndQuery;
 import gyro.lang.query.ComparisonQuery;
-import gyro.lang.query.FoundQuery;
 import gyro.lang.query.OrQuery;
 import gyro.lang.query.Query;
 import gyro.lang.query.QueryVisitor;
@@ -199,11 +198,6 @@ public class QueryEvaluator implements QueryVisitor<QueryContext, List<Resource>
         } else {
             throw new UnsupportedOperationException(String.format("Operator %s is not supported!", operator));
         }
-    }
-
-    @Override
-    public List<Resource> visitFound(FoundQuery query, QueryContext context) {
-        return query.getResources();
     }
 
     @Override

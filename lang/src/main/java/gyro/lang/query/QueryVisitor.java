@@ -10,8 +10,6 @@ public interface QueryVisitor<C, R> {
 
     R visitComparison(ComparisonQuery query, C context);
 
-    R visitFound(FoundQuery query, C context);
-
     R visitOr(OrQuery query, C context);
 
 }
