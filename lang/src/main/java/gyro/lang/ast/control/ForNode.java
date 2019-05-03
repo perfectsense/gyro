@@ -1,5 +1,7 @@
 package gyro.lang.ast.control;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.BlockNode;
@@ -16,27 +18,30 @@ public class ForNode extends BlockNode {
     public ForNode(List<String> variables, List<Node> items, List<Node> body) {
         super(body);
 
-        this.variables = variables;
-        this.items = items;
+        this.variables = ImmutableList.copyOf(Preconditions.checkNotNull(variables));
+        this.items = ImmutableList.copyOf(Preconditions.checkNotNull(items));
     }
 
     public ForNode(GyroParser.ForStatementContext context) {
-        super(context.blockBody()
+        this(
+            Preconditions.checkNotNull(context)
+                .forVariable()
+                .stream()
+                .map(c -> c.IDENTIFIER().getText())
+                .collect(Collectors.toList()),
+
+            context.list()
+                .value()
+                .stream()
+                .map(c -> Node.create(c.getChild(0)))
+                .collect(Collectors.toList()),
+
+            context.blockBody()
                 .blockStatement()
                 .stream()
                 .map(c -> Node.create(c.getChild(0)))
                 .collect(Collectors.toList()));
 
-        variables = context.forVariable()
-                .stream()
-                .map(c -> c.IDENTIFIER().getText())
-                .collect(Collectors.toList());
-
-        items = context.list()
-                .value()
-                .stream()
-                .map(c -> Node.create(c.getChild(0)))
-                .collect(Collectors.toList());
     }
 
     public List<String> getVariables() {
