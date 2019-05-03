@@ -88,7 +88,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
     @Override
     public Object visitPair(PairNode node, Scope scope) {
         String key = node.getKey();
-        Node value = node.getValue();
+        Node value = node.getValueNode();
 
         scope.put(key, visit(value, scope));
         scope.addValueNode(key, value);

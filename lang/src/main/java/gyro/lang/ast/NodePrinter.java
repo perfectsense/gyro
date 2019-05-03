@@ -62,7 +62,7 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
     public Void visitPair(PairNode node, PrinterContext context) {
         context.append(node.getKey());
         context.append(": ");
-        visit(node.getValue(), context.indented());
+        visit(node.getValueNode(), context.indented());
 
         return null;
     }

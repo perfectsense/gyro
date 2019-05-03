@@ -1,28 +1,30 @@
 package gyro.lang.ast;
 
+import com.google.common.base.Preconditions;
 import gyro.parser.antlr4.GyroParser;
 
 public class PairNode extends Node {
 
     private final String key;
-    private final Node value;
+    private final Node valueNode;
 
-    public PairNode(String key, Node value) {
-        this.key = key;
-        this.value = value;
+    public PairNode(String key, Node valueNode) {
+        this.key = Preconditions.checkNotNull(key);
+        this.valueNode = Preconditions.checkNotNull(valueNode);
     }
 
     public PairNode(GyroParser.PairContext context) {
-        key = context.key().getChild(0).getText();
-        value = Node.create(context.value().getChild(0));
+        this(
+            Preconditions.checkNotNull(context).key().getChild(0).getText(),
+            Node.create(context.value().getChild(0)));
     }
 
     public String getKey() {
         return key;
     }
 
-    public Node getValue() {
-        return value;
+    public Node getValueNode() {
+        return valueNode;
     }
 
     @Override
