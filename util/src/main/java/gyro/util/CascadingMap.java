@@ -1,4 +1,4 @@
-package gyro.lang.util;
+package gyro.util;
 
 import java.util.Collection;
 import java.util.Collections;

@@ -46,7 +46,7 @@ import gyro.lang.ast.value.NumberNode;
 import gyro.lang.ast.value.ResourceReferenceNode;
 import gyro.lang.ast.value.ValueReferenceNode;
 import gyro.lang.query.Query;
-import gyro.lang.util.CascadingMap;
+import gyro.util.CascadingMap;
 
 public class NodeEvaluator implements NodeVisitor<Scope> {
 

@@ -1,5 +1,6 @@
 dependencies {
     api project(':gyro-lang')
+    api project(':gyro-util')
     api 'io.airlift:airline:0.8'
 
     implementation 'com.psddev:dari-util:3.3.607-xe0f27a'
