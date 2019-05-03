@@ -3,6 +3,7 @@ package gyro.lang.ast.block;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.google.common.base.Preconditions;
 import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.Node;
 import gyro.parser.antlr4.GyroParser;
@@ -14,17 +15,17 @@ public class KeyBlockNode extends BlockNode {
     public KeyBlockNode(String key, List<Node> body) {
         super(body);
 
-        this.key = key;
+        this.key = Preconditions.checkNotNull(key);
     }
 
     public KeyBlockNode(GyroParser.ResourceContext context) {
-        super(context.blockBody()
+        this(
+            Preconditions.checkNotNull(context).resourceType().getText(),
+            context.blockBody()
                 .blockStatement()
                 .stream()
                 .map(c -> Node.create(c.getChild(0)))
                 .collect(Collectors.toList()));
-
-        key = context.resourceType().getText();
     }
 
     public String getKey() {
