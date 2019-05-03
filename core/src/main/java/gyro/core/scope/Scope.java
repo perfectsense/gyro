@@ -11,7 +11,6 @@ import java.util.regex.Pattern;
 
 import gyro.core.resource.Resource;
 import gyro.lang.ast.Node;
-import gyro.lang.ast.value.ValueReferenceException;
 
 public class Scope implements Map<String, Object> {
 

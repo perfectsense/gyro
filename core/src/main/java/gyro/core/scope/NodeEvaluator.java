@@ -44,7 +44,6 @@ import gyro.lang.ast.value.LiteralStringNode;
 import gyro.lang.ast.value.MapNode;
 import gyro.lang.ast.value.NumberNode;
 import gyro.lang.ast.value.ResourceReferenceNode;
-import gyro.lang.ast.value.ValueReferenceException;
 import gyro.lang.ast.value.ValueReferenceNode;
 import gyro.lang.query.Query;
 import gyro.lang.util.CascadingMap;

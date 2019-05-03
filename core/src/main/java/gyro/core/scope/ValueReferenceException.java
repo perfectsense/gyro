@@ -1,4 +1,4 @@
-package gyro.lang.ast.value;
+package gyro.core.scope;
 
 public class ValueReferenceException extends RuntimeException {
 
