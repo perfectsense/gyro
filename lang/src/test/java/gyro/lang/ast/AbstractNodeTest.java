@@ -28,7 +28,8 @@ public abstract class AbstractNodeTest<N extends Node> {
         .put(String.class, "foo")
         .build();
 
-    private final Class<?> nodeClass = (Class<?>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
+    @SuppressWarnings("unchecked")
+    private final Class<N> nodeClass = (Class<N>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
 
     public static <T extends Tree> T parse(String text, Function<GyroParser, T> function) {
         GyroLexer lexer = new GyroLexer(CharStreams.fromString(text));
@@ -54,6 +55,11 @@ public abstract class AbstractNodeTest<N extends Node> {
         return tree;
     }
 
+    private static Object getTestValue(Class<?> c) {
+        Object v = TEST_VALUES.get(c);
+        return v != null ? v : mock(c);
+    }
+
     @TestFactory
     public List<DynamicTest> constructorNull() {
         List<DynamicTest> tests = new ArrayList<>();
@@ -62,21 +68,33 @@ public abstract class AbstractNodeTest<N extends Node> {
             Class<?>[] paramTypes = constructor.getParameterTypes();
 
             for (int i = 0, length = paramTypes.length; i < length; ++i) {
-                final int index = i;
+                StringBuilder name = new StringBuilder("(");
+                Object[] params = new Object[length];
 
-                tests.add(DynamicTest.dynamicTest(constructor.toGenericString(), () -> {
-                    Object[] params = new Object[length];
-                    Class<?> paramType = paramTypes[index];
-                    params[index] = TEST_VALUES.get(paramType);
+                for (int j = 0; j < length; ++j) {
+                    Class<?> paramType = paramTypes[j];
 
-                    if (params[index] == null) {
-                        params[index] = mock(paramType);
+                    name.append(paramType.getName());
+
+                    if (i == j) {
+                        name.append("=null");
+
+                    } else {
+                        params[j] = getTestValue(paramType);
                     }
 
-                    assertThatExceptionOfType(InvocationTargetException.class)
+                    name.append(", ");
+                }
+
+                name.setLength(name.length() - 2);
+                name.append(")");
+
+                tests.add(DynamicTest.dynamicTest(
+                    name.toString(),
+                    () -> assertThatExceptionOfType(InvocationTargetException.class)
                         .isThrownBy(() -> constructor.newInstance(params))
-                        .withCauseInstanceOf(NullPointerException.class);
-                }));
+                        .withCauseInstanceOf(NullPointerException.class)
+                ));
             }
         }
 
