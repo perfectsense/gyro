@@ -66,6 +66,6 @@ public interface NodeVisitor<C, R> {
 
     R visitResourceReference(ResourceReferenceNode node, C context);
 
-    R visitValueRefence(ValueReferenceNode node, C context);
+    R visitValueReference(ValueReferenceNode node, C context);
 
 }

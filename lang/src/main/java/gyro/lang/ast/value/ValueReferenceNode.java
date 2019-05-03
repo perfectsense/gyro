@@ -22,7 +22,7 @@ public class ValueReferenceNode extends Node {
 
     @Override
     public <C, R> R accept(NodeVisitor<C, R> visitor, C context) {
-        return visitor.visitValueRefence(this, context);
+        return visitor.visitValueReference(this, context);
     }
 
     @Override

@@ -612,7 +612,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
     }
 
     @Override
-    public Object visitValueRefence(ValueReferenceNode node, Scope scope) {
+    public Object visitValueReference(ValueReferenceNode node, Scope scope) {
         try {
             return scope.find(node.getPath());
 
