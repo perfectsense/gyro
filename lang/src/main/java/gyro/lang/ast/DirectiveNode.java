@@ -1,34 +1,39 @@
 package gyro.lang.ast;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
+import gyro.lang.ast.value.ValueNode;
 import gyro.parser.antlr4.GyroParser;
+import gyro.util.ImmutableCollectors;
 
-import java.util.Optional;
+import java.util.List;
 
 public class DirectiveNode extends Node {
 
-    private final String directive;
-    private final String file;
     private final String name;
+    private final List<ValueNode> arguments;
+
+    public DirectiveNode(String name, List<ValueNode> arguments) {
+        this.name = Preconditions.checkNotNull(name);
+        this.arguments = ImmutableList.copyOf(Preconditions.checkNotNull(arguments));
+    }
 
     public DirectiveNode(GyroParser.DirectiveContext context) {
-        directive = context.IDENTIFIER().getText();
-        file = context.directiveArgument(0).getText();
-
-        name = Optional.ofNullable(context.directiveArgument(2))
-                .map(GyroParser.DirectiveArgumentContext::getText)
-                .orElse(null);
-    }
-
-    public String getDirective() {
-        return directive;
-    }
-
-    public String getDirectiveFile() {
-        return file;
+        this(
+            Preconditions.checkNotNull(context).IDENTIFIER().getText(),
+            context.value()
+                .stream()
+                .map(Node::create)
+                .map(ValueNode.class::cast)
+                .collect(ImmutableCollectors.toList()));
     }
 
     public String getName() {
         return name;
+    }
+
+    public List<ValueNode> getArguments() {
+        return arguments;
     }
 
     @Override

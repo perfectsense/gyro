@@ -44,14 +44,13 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
     @Override
     public Void visitDirective(DirectiveNode node, PrinterContext context) {
         context.appendNewline();
-        context.append("@import ");
-        context.append(node.getDirectiveFile());
+        context.append('@');
+        context.append(node.getName());
 
-        Optional.ofNullable(node.getName())
-            .ifPresent(name -> {
-                context.append(" as ");
-                context.append(name);
-            });
+        for (ValueNode arg : node.getArguments()) {
+            context.append(' ');
+            visit(arg, context);
+        }
 
         return null;
     }

@@ -80,7 +80,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
     @Override
     public Object visitDirective(DirectiveNode node, Scope scope) {
-        throw new GyroException(String.format("[%s] directive isn't supported!", node.getDirective()));
+        throw new GyroException(String.format("[%s] directive isn't supported!", node.getName()));
     }
 
     @Override
