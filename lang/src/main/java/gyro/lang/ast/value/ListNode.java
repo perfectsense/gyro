@@ -1,25 +1,28 @@
 package gyro.lang.ast.value;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.Node;
 import gyro.parser.antlr4.GyroParser;
+import gyro.util.ImmutableCollectors;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class ListNode extends Node {
 
     private final List<Node> items;
 
     public ListNode(List<Node> items) {
-        this.items = items;
+        this.items = ImmutableList.copyOf(Preconditions.checkNotNull(items));
     }
 
     public ListNode(GyroParser.ListContext context) {
-        items = context.value()
-                .stream()
-                .map(c -> Node.create(c.getChild(0)))
-                .collect(Collectors.toList());
+        items = Preconditions.checkNotNull(context)
+            .value()
+            .stream()
+            .map(c -> Node.create(c.getChild(0)))
+            .collect(ImmutableCollectors.toList());
     }
 
     public List<Node> getItems() {
