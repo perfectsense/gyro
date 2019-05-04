@@ -1,26 +1,29 @@
 package gyro.lang.ast.value;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.PairNode;
 import gyro.lang.ast.Node;
 import gyro.parser.antlr4.GyroParser;
+import gyro.util.ImmutableCollectors;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class MapNode extends Node {
 
     private List<PairNode> entries;
 
     public MapNode(List<PairNode> entries) {
-        this.entries = entries;
+        this.entries = ImmutableList.copyOf(Preconditions.checkNotNull(entries));
     }
 
     public MapNode(GyroParser.MapContext context) {
-        entries = context.pair()
+        entries = Preconditions.checkNotNull(context)
+            .pair()
             .stream()
             .map(kv -> (PairNode) Node.create(kv))
-            .collect(Collectors.toList());
+            .collect(ImmutableCollectors.toList());
     }
 
     public List<PairNode> getEntries() {
