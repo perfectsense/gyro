@@ -19,11 +19,12 @@ public class MapNode extends Node {
     }
 
     public MapNode(GyroParser.MapContext context) {
-        entries = Preconditions.checkNotNull(context)
+        this(Preconditions.checkNotNull(context)
             .pair()
             .stream()
-            .map(kv -> (PairNode) Node.create(kv))
-            .collect(ImmutableCollectors.toList());
+            .map(Node::create)
+            .map(PairNode.class::cast)
+            .collect(ImmutableCollectors.toList()));
     }
 
     public List<PairNode> getEntries() {
