@@ -158,7 +158,7 @@ public abstract class Node {
 
     @Override
     public String toString() {
-        return null;
+        return NodePrinter.toString(this);
     }
 
 }
