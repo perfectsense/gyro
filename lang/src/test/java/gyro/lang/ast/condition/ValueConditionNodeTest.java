@@ -15,7 +15,7 @@ class ValueConditionNodeTest extends AbstractNodeTest<ValueConditionNode> {
         ValueConditionNode node = new ValueConditionNode(
             (GyroParser.ValueConditionContext) parse("true", GyroParser::condition));
 
-        assertThat(node.getValue().getValue()).isEqualTo(Boolean.TRUE);
+        assertThat(((ValueNode) node.getValue()).getValue()).isEqualTo(Boolean.TRUE);
     }
 
     @Test
