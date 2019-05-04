@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 public class ResourceReferenceNode extends Node {
 
     private final String type;
-    private final Node nameNode;
+    private final Node name;
     private final List<Query> queries;
     private final String path;
 
@@ -23,7 +23,7 @@ public class ResourceReferenceNode extends Node {
 
         GyroParser.ReferenceNameContext rnc = context.referenceName();
 
-        nameNode = Optional.ofNullable(rnc.string())
+        name = Optional.ofNullable(rnc.string())
             .map(Node::create)
             .orElseGet(() -> new LiteralStringNode(rnc.getText()));
 
@@ -37,9 +37,9 @@ public class ResourceReferenceNode extends Node {
             .orElse(null);
     }
 
-    public ResourceReferenceNode(String type, Node nameNode, Collection<Query> queries, String path) {
+    public ResourceReferenceNode(String type, Node name, Collection<Query> queries, String path) {
         this.type = type;
-        this.nameNode = nameNode;
+        this.name = name;
         this.queries = ImmutableList.copyOf(queries);
         this.path = path;
     }
@@ -48,8 +48,8 @@ public class ResourceReferenceNode extends Node {
         return type;
     }
 
-    public Node getNameNode() {
-        return nameNode;
+    public Node getName() {
+        return name;
     }
 
     public List<Query> getQueries() {
@@ -68,7 +68,7 @@ public class ResourceReferenceNode extends Node {
     @Override
     public String deferFailure() {
         return String.format("Unable to resolve resource reference %s %s%nResource '%s %s' is not defined.%n",
-            this, getLocation(), type, nameNode);
+            this, getLocation(), type, name);
     }
 
 }

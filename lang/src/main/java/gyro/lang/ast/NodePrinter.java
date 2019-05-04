@@ -62,7 +62,7 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
     public Void visitPair(PairNode node, PrinterContext context) {
         context.append(node.getKey());
         context.append(": ");
-        visit(node.getValueNode(), context.indented());
+        visit(node.getValue(), context.indented());
 
         return null;
     }
@@ -101,7 +101,7 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
         context.appendNewline();
         context.append(node.getType());
 
-        Optional.ofNullable(node.getNameNode())
+        Optional.ofNullable(node.getName())
             .ifPresent(nameNode -> {
                 context.append(' ');
                 visit(nameNode, context);
@@ -121,36 +121,36 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
 
     @Override
     public Void visitAndCondition(AndConditionNode node, PrinterContext context) {
-        visit(node.getLeftNode(), context);
+        visit(node.getLeft(), context);
         context.append(" and ");
-        visit(node.getRightNode(), context);
+        visit(node.getRight(), context);
 
         return null;
     }
 
     @Override
     public Void visitComparisonCondition(ComparisonConditionNode node, PrinterContext context) {
-        visit(node.getLeftNode(), context);
+        visit(node.getLeft(), context);
         context.append(" ");
         context.append(node.getOperator());
         context.append(" ");
-        visit(node.getRightNode(), context);
+        visit(node.getRight(), context);
 
         return null;
     }
 
     @Override
     public Void visitOrCondition(OrConditionNode node, PrinterContext context) {
-        visit(node.getLeftNode(), context);
+        visit(node.getLeft(), context);
         context.append(" or ");
-        visit(node.getRightNode(), context);
+        visit(node.getRight(), context);
 
         return null;
     }
 
     @Override
     public Void visitValueCondition(ValueConditionNode node, PrinterContext context) {
-        visit(node.getLeftNode(), context);
+        visit(node.getLeft(), context);
 
         return null;
     }
@@ -288,7 +288,7 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
         context.append("$(");
         context.append(node.getType());
 
-        Optional.ofNullable(node.getNameNode())
+        Optional.ofNullable(node.getName())
             .ifPresent(nameNode -> {
                 context.append(' ');
                 visit(nameNode, context);

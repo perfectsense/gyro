@@ -5,31 +5,31 @@ import gyro.parser.antlr4.GyroParser;
 
 public abstract class ConditionNode extends Node {
 
-    private Node leftNode;
-    private Node rightNode;
+    private Node left;
+    private Node right;
 
     public ConditionNode(GyroParser.ConditionContext context) {
-        leftNode = Node.create(context.getChild(0));
+        left = Node.create(context.getChild(0));
 
         if (context.getChild(2) != null) {
-            rightNode = Node.create(context.getChild(2));
+            right = Node.create(context.getChild(2));
         }
     }
 
-    public Node getLeftNode() {
-        return leftNode;
+    public Node getLeft() {
+        return left;
     }
 
-    public void setLeftNode(Node leftNode) {
-        this.leftNode = leftNode;
+    public void setLeft(Node left) {
+        this.left = left;
     }
 
-    public Node getRightNode() {
-        return rightNode;
+    public Node getRight() {
+        return right;
     }
 
-    public void setRightNode(Node rightNode) {
-        this.rightNode = rightNode;
+    public void setRight(Node right) {
+        this.right = right;
     }
 
 }

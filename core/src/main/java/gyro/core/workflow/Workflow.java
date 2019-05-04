@@ -45,7 +45,7 @@ public class Workflow {
         }
 
         pendingRootScope = parent.getRootScope();
-        name = (String) evaluator.visit(node.getNameNode(), parent);
+        name = (String) evaluator.visit(node.getName(), parent);
         forType = (String) scope.get("for-type");
     }
 

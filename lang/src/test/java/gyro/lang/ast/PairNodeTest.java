@@ -12,7 +12,7 @@ class PairNodeTest extends AbstractNodeTest<PairNode> {
     @Test
     void constructorContext() {
         PairNode node = new PairNode(parse("foo: 'bar'", GyroParser::pair));
-        Node valueNode = node.getValueNode();
+        Node valueNode = node.getValue();
 
         assertThat(node.getKey()).isEqualTo("foo");
         assertThat(valueNode).isInstanceOf(LiteralStringNode.class);
@@ -32,7 +32,7 @@ class PairNodeTest extends AbstractNodeTest<PairNode> {
         Node valueNode = mock(Node.class);
         PairNode node = new PairNode("foo", valueNode);
 
-        assertThat(node.getValueNode()).isEqualTo(valueNode);
+        assertThat(node.getValue()).isEqualTo(valueNode);
     }
 
 }

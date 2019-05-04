@@ -88,7 +88,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
     @Override
     public Object visitPair(PairNode node, Scope scope) {
         String key = node.getKey();
-        Node value = node.getValueNode();
+        Node value = node.getValue();
 
         scope.put(key, visit(value, scope));
         scope.addValueNode(key, value);
@@ -209,7 +209,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
     @Override
     @SuppressWarnings("unchecked")
     public Object visitResource(ResourceNode node, Scope scope) {
-        String name = (String) visit(node.getNameNode(), scope);
+        String name = (String) visit(node.getName(), scope);
         String type = node.getType();
         String fullName = type + "::" + name;
         DiffableScope bodyScope = new DiffableScope(scope);
@@ -322,7 +322,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
         FileScope resourceScope = new FileScope(vrScope, paramFileScope.getFile());
 
-        for (VirtualResourceParameter param : node.getParams()) {
+        for (VirtualResourceParameter param : node.getParameters()) {
             String paramName = param.getName();
 
             if (!paramScope.containsKey(paramName)) {
@@ -364,8 +364,8 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
     @Override
     public Object visitAndCondition(AndConditionNode node, Scope scope) {
-        Boolean leftValue = toBoolean(visit(node.getLeftNode(), scope));
-        Boolean rightValue = toBoolean(visit(node.getRightNode(), scope));
+        Boolean leftValue = toBoolean(visit(node.getLeft(), scope));
+        Boolean rightValue = toBoolean(visit(node.getRight(), scope));
 
         return leftValue && rightValue;
     }
@@ -383,8 +383,8 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
     @Override
     public Object visitComparisonCondition(ComparisonConditionNode node, Scope scope) {
-        Object leftValue = visit(node.getLeftNode(), scope);
-        Object rightValue = visit(node.getRightNode(), scope);
+        Object leftValue = visit(node.getLeft(), scope);
+        Object rightValue = visit(node.getRight(), scope);
 
         switch (node.getOperator()) {
             case "==" : return leftValue.equals(rightValue);
@@ -395,15 +395,15 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
     @Override
     public Object visitOrCondition(OrConditionNode node, Scope scope) {
-        Boolean leftValue = toBoolean(visit(node.getLeftNode(), scope));
-        Boolean rightValue = toBoolean(visit(node.getRightNode(), scope));
+        Boolean leftValue = toBoolean(visit(node.getLeft(), scope));
+        Boolean rightValue = toBoolean(visit(node.getRight(), scope));
 
         return leftValue || rightValue;
     }
 
     @Override
     public Object visitValueCondition(ValueConditionNode node, Scope scope) {
-        return visit(node.getLeftNode(), scope);
+        return visit(node.getLeft(), scope);
     }
 
     @Override
@@ -514,7 +514,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
     @Override
     public Object visitResourceReference(ResourceReferenceNode node, Scope scope) {
         String type = node.getType();
-        Node nameNode = node.getNameNode();
+        Node nameNode = node.getName();
         String path = node.getPath();
 
         if (nameNode != null) {

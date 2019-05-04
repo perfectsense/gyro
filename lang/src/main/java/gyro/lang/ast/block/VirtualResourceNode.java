@@ -10,7 +10,7 @@ import gyro.parser.antlr4.GyroParser;
 public class VirtualResourceNode extends BlockNode {
 
     private String name;
-    private List<VirtualResourceParameter> params;
+    private List<VirtualResourceParameter> parameters;
 
     public VirtualResourceNode(GyroParser.VirtualResourceContext context) {
         super(context.blockBody()
@@ -21,7 +21,7 @@ public class VirtualResourceNode extends BlockNode {
 
         name = context.resourceType().getText();
 
-        params = context.virtualResourceParameter()
+        parameters = context.virtualResourceParameter()
                 .stream()
                 .map(VirtualResourceParameter::new)
                 .collect(Collectors.toList());
@@ -31,8 +31,8 @@ public class VirtualResourceNode extends BlockNode {
         return name;
     }
 
-    public List<VirtualResourceParameter> getParams() {
-        return params;
+    public List<VirtualResourceParameter> getParameters() {
+        return parameters;
     }
 
     @Override

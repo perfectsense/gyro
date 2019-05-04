@@ -6,11 +6,11 @@ import gyro.parser.antlr4.GyroParser;
 public class PairNode extends Node {
 
     private final String key;
-    private final Node valueNode;
+    private final Node value;
 
-    public PairNode(String key, Node valueNode) {
+    public PairNode(String key, Node value) {
         this.key = Preconditions.checkNotNull(key);
-        this.valueNode = Preconditions.checkNotNull(valueNode);
+        this.value = Preconditions.checkNotNull(value);
     }
 
     public PairNode(GyroParser.PairContext context) {
@@ -23,8 +23,8 @@ public class PairNode extends Node {
         return key;
     }
 
-    public Node getValueNode() {
-        return valueNode;
+    public Node getValue() {
+        return value;
     }
 
     @Override

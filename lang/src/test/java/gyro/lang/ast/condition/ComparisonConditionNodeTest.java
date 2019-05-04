@@ -16,8 +16,8 @@ class ComparisonConditionNodeTest extends AbstractNodeTest<ComparisonConditionNo
         ComparisonConditionNode node = new ComparisonConditionNode(
             (GyroParser.ComparisonConditionContext) parse("'foo' = 'bar'", GyroParser::condition));
 
-        Node leftNode = node.getLeftNode();
-        Node rightNode = node.getRightNode();
+        Node leftNode = node.getLeft();
+        Node rightNode = node.getRight();
 
         assertThat(leftNode).isInstanceOf(LiteralStringNode.class);
         assertThat(((LiteralStringNode) leftNode).getValue()).isEqualTo("foo");
@@ -31,7 +31,7 @@ class ComparisonConditionNodeTest extends AbstractNodeTest<ComparisonConditionNo
         Node leftNode = mock(Node.class);
         ComparisonConditionNode node = new ComparisonConditionNode(leftNode, "=", mock(Node.class));
 
-        assertThat(node.getLeftNode()).isEqualTo(leftNode);
+        assertThat(node.getLeft()).isEqualTo(leftNode);
     }
 
     @Test
@@ -47,7 +47,7 @@ class ComparisonConditionNodeTest extends AbstractNodeTest<ComparisonConditionNo
         Node rightNode = mock(Node.class);
         ComparisonConditionNode node = new ComparisonConditionNode(mock(Node.class), "=", rightNode);
 
-        assertThat(node.getRightNode()).isEqualTo(rightNode);
+        assertThat(node.getRight()).isEqualTo(rightNode);
     }
 
 }

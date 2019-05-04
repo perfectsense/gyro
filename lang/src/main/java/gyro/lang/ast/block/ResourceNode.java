@@ -11,13 +11,13 @@ import gyro.parser.antlr4.GyroParser;
 public class ResourceNode extends BlockNode {
 
     private final String type;
-    private final Node nameNode;
+    private final Node name;
 
-    public ResourceNode(String type, Node nameNode, List<Node> body) {
+    public ResourceNode(String type, Node name, List<Node> body) {
         super(body);
 
         this.type = Preconditions.checkNotNull(type);
-        this.nameNode = Preconditions.checkNotNull(nameNode);
+        this.name = Preconditions.checkNotNull(name);
     }
 
     public ResourceNode(GyroParser.ResourceContext context) {
@@ -35,8 +35,8 @@ public class ResourceNode extends BlockNode {
         return type;
     }
 
-    public Node getNameNode() {
-        return nameNode;
+    public Node getName() {
+        return name;
     }
 
     @Override

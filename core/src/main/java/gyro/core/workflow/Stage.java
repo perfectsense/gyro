@@ -67,7 +67,7 @@ public class Stage {
             evaluator.visit(item, scope);
         }
 
-        name = (String) evaluator.visit(node.getNameNode(), parent);
+        name = (String) evaluator.visit(node.getName(), parent);
         confirmDiff = Boolean.TRUE.equals(scope.get("confirm-diff"));
         transitionPrompt = (String) scope.get("transition-prompt");
     }

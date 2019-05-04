@@ -19,7 +19,7 @@ public class Transition {
             evaluator.visit(item, scope);
         }
 
-        name = (String) evaluator.visit(node.getNameNode(), parent);
+        name = (String) evaluator.visit(node.getName(), parent);
         to = (String) scope.get("to");
         description = (String) scope.get("description");
     }

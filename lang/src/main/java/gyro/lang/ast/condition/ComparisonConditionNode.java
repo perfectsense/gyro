@@ -7,14 +7,14 @@ import gyro.parser.antlr4.GyroParser;
 
 public class ComparisonConditionNode extends Node {
 
-    private final Node leftNode;
+    private final Node left;
     private final String operator;
-    private final Node rightNode;
+    private final Node right;
 
-    public ComparisonConditionNode(Node leftNode, String operator, Node rightNode) {
-        this.leftNode = Preconditions.checkNotNull(leftNode);
+    public ComparisonConditionNode(Node left, String operator, Node right) {
+        this.left = Preconditions.checkNotNull(left);
         this.operator = Preconditions.checkNotNull(operator);
-        this.rightNode = Preconditions.checkNotNull(rightNode);
+        this.right = Preconditions.checkNotNull(right);
     }
 
     public ComparisonConditionNode(GyroParser.ComparisonConditionContext context) {
@@ -24,16 +24,16 @@ public class ComparisonConditionNode extends Node {
             Node.create(context.getChild(2)));
     }
 
-    public Node getLeftNode() {
-        return leftNode;
+    public Node getLeft() {
+        return left;
     }
 
     public String getOperator() {
         return operator;
     }
 
-    public Node getRightNode() {
-        return rightNode;
+    public Node getRight() {
+        return right;
     }
 
     @Override

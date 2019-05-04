@@ -16,7 +16,7 @@ class ResourceNodeTest extends AbstractNodeTest<ResourceNode> {
     @Test
     void constructorContext() {
         ResourceNode node = new ResourceNode(parse("foo::bar qux\nend", GyroParser::resource));
-        Node nameNode = node.getNameNode();
+        Node nameNode = node.getName();
 
         assertThat(node.getType()).isEqualTo("foo::bar");
         assertThat(nameNode).isInstanceOf(LiteralStringNode.class);
@@ -37,7 +37,7 @@ class ResourceNodeTest extends AbstractNodeTest<ResourceNode> {
         Node nameNode = mock(Node.class);
         ResourceNode node = new ResourceNode("foo", nameNode, Collections.emptyList());
 
-        assertThat(node.getNameNode()).isEqualTo(nameNode);
+        assertThat(node.getName()).isEqualTo(nameNode);
     }
 
 }
