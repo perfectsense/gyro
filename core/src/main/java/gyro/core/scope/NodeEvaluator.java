@@ -2,6 +2,7 @@ package gyro.core.scope;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -362,21 +363,30 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
     @Override
     public Object visitAndCondition(AndConditionNode node, Scope scope) {
-        Boolean leftValue = toBoolean(visit(node.getLeft(), scope));
-        Boolean rightValue = toBoolean(visit(node.getRight(), scope));
-
-        return leftValue && rightValue;
+        return test(node.getLeft(), scope) && test(node.getRight(), scope);
     }
 
-    private Boolean toBoolean(Object value) {
+    private boolean test(Node node, Scope scope) {
+        Object value = visit(node, scope);
+
         if (value instanceof Boolean) {
-            return (Boolean) value;
+            return Boolean.TRUE.equals(value);
+
+        } else if (value instanceof Collection) {
+            return !((Collection<?>) value).isEmpty();
+
+        } else if (value instanceof Map) {
+            return !((Map<?, ?>) value).isEmpty();
 
         } else if (value instanceof Number) {
-            return ((Number) value).intValue() == 1;
-        }
+            return ((Number) value).intValue() != 0;
 
-        return false;
+        } else if (value instanceof String) {
+            return !((String) value).isEmpty();
+
+        } else {
+            return value != null;
+        }
     }
 
     @Override
@@ -393,15 +403,12 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
     @Override
     public Object visitOrCondition(OrConditionNode node, Scope scope) {
-        Boolean leftValue = toBoolean(visit(node.getLeft(), scope));
-        Boolean rightValue = toBoolean(visit(node.getRight(), scope));
-
-        return leftValue || rightValue;
+        return test(node.getLeft(), scope) || test(node.getRight(), scope);
     }
 
     @Override
     public Object visitValueCondition(ValueConditionNode node, Scope scope) {
-        return visit(node.getValue(), scope);
+        return test(node.getValue(), scope);
     }
 
     @Override
@@ -438,10 +445,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
         List<List<Node>> bodies = node.getBodies();
 
         for (int i = 0; i < conditions.size(); i++) {
-            Node expression = conditions.get(i);
-            Boolean value = toBoolean(visit(expression, scope));
-
-            if (value) {
+            if (test(conditions.get(i), scope)) {
                 visitBody(bodies.get(i), scope);
                 return null;
             }
