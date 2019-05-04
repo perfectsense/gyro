@@ -22,8 +22,6 @@ import gyro.parser.antlr4.GyroParser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 
 public abstract class Node {
 
@@ -45,13 +43,18 @@ public abstract class Node {
 
     public static Node create(ParseTree context) {
         Class<? extends ParseTree> cc = context.getClass();
+
+        if (cc.equals(GyroParser.ValueContext.class)) {
+            return create(context.getChild(0));
+        }
+
         Node node;
 
         if (cc.equals(GyroParser.FileContext.class)) {
             node = new FileNode((GyroParser.FileContext) context);
 
         } else if (cc.equals(GyroParser.BooleanValueContext.class)) {
-            node = new ValueNode(((GyroParser.BooleanValueContext) context).TRUE() != null);
+            node = new ValueNode((GyroParser.BooleanValueContext) context);
 
         } else if (cc.equals(GyroParser.ForStatementContext.class)) {
             node = new ForNode((GyroParser.ForStatementContext) context);
@@ -74,9 +77,6 @@ public abstract class Node {
         } else if (cc.equals(GyroParser.ValueConditionContext.class)) {
             node = new ValueConditionNode((GyroParser.ValueConditionContext) context);
 
-        } else if (cc.equals(GyroParser.ValueContext.class)) {
-            node = Node.create(context.getChild(0));
-
         } else if (cc.equals(GyroParser.PairContext.class)) {
             node = new PairNode((GyroParser.PairContext) context);
 
@@ -90,7 +90,7 @@ public abstract class Node {
             node = new MapNode((GyroParser.MapContext) context);
 
         } else if (cc.equals(GyroParser.NumberContext.class)) {
-            node = new ValueNode(NumberUtils.createNumber(context.getText()));
+            node = new ValueNode((GyroParser.NumberContext) context);
 
         } else if (cc.equals(GyroParser.ResourceContext.class)) {
             GyroParser.ResourceContext rc = (GyroParser.ResourceContext) context;
@@ -113,7 +113,7 @@ public abstract class Node {
             node = new ResourceReferenceNode((GyroParser.ResourceReferenceContext) context);
 
         } else if (cc.equals(GyroParser.LiteralStringContext.class)) {
-            node = new ValueNode(StringUtils.strip(((GyroParser.LiteralStringContext) context).STRING().getText(), "'"));
+            node = new ValueNode((GyroParser.LiteralStringContext) context);
 
         } else if (cc.equals(GyroParser.InterpolatedStringContext.class)) {
             node = new InterpolatedStringNode((GyroParser.InterpolatedStringContext) context);

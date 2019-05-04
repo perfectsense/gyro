@@ -4,6 +4,8 @@ import com.google.common.base.Preconditions;
 import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.Node;
 import gyro.parser.antlr4.GyroParser;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 
 public class ValueNode extends Node {
 
@@ -13,8 +15,16 @@ public class ValueNode extends Node {
         this.value = Preconditions.checkNotNull(value);
     }
 
-    public ValueNode(GyroParser.ValueContext context) {
-        this(Node.create(Preconditions.checkNotNull(context).getChild(0)));
+    public ValueNode(GyroParser.BooleanValueContext context) {
+        this(context.TRUE() != null);
+    }
+
+    public ValueNode(GyroParser.NumberContext context) {
+        this(NumberUtils.createNumber(context.getText()));
+    }
+
+    public ValueNode(GyroParser.LiteralStringContext context) {
+        this(StringUtils.strip(context.getText(), "'"));
     }
 
     public Object getValue() {

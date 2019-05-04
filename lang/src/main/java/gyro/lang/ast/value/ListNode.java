@@ -21,7 +21,7 @@ public class ListNode extends Node {
         items = Preconditions.checkNotNull(context)
             .value()
             .stream()
-            .map(c -> Node.create(c.getChild(0)))
+            .map(Node::create)
             .collect(ImmutableCollectors.toList());
     }
 

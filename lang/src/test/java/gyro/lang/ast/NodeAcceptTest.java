@@ -18,6 +18,7 @@ import gyro.lang.ast.value.InterpolatedStringNode;
 import gyro.lang.ast.value.ListNode;
 import gyro.lang.ast.value.MapNode;
 import gyro.lang.ast.value.ResourceReferenceNode;
+import gyro.lang.ast.value.ValueNode;
 import gyro.lang.ast.value.ValueReferenceNode;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
@@ -46,6 +47,7 @@ class NodeAcceptTest {
             create(ListNode.class, NodeVisitor::visitList),
             create(MapNode.class, NodeVisitor::visitMap),
             create(ResourceReferenceNode.class, NodeVisitor::visitResourceReference),
+            create(ValueNode.class, NodeVisitor::visitValue),
             create(ValueReferenceNode.class, NodeVisitor::visitValueReference)
         );
     }

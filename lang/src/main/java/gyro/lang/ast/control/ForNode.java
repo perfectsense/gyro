@@ -33,7 +33,7 @@ public class ForNode extends BlockNode {
             context.list()
                 .value()
                 .stream()
-                .map(c -> Node.create(c.getChild(0)))
+                .map(Node::create)
                 .collect(Collectors.toList()),
 
             context.blockBody()
