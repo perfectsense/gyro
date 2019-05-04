@@ -21,13 +21,11 @@ import gyro.lang.ast.Node;
 import gyro.lang.ast.block.KeyBlockNode;
 import gyro.core.scope.DiffableScope;
 import gyro.core.scope.Scope;
-import gyro.lang.ast.value.BooleanNode;
 import gyro.lang.ast.value.ListNode;
 import gyro.lang.ast.value.MapNode;
-import gyro.lang.ast.value.NumberNode;
-import gyro.lang.ast.value.LiteralStringNode;
 import gyro.lang.ast.value.ResourceReferenceNode;
 import com.google.common.collect.ImmutableSet;
+import gyro.lang.ast.value.ValueNode;
 
 public abstract class Diffable {
 
@@ -214,9 +212,9 @@ public abstract class Diffable {
 
         if (configuredFields != null) {
             body.add(new PairNode("_configured-fields",
-                    new ListNode(configuredFields.stream()
-                            .map(LiteralStringNode::new)
-                            .collect(Collectors.toList()))));
+                new ListNode(configuredFields.stream()
+                    .map(ValueNode::new)
+                    .collect(Collectors.toList()))));
         }
 
         for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
@@ -228,11 +226,14 @@ public abstract class Diffable {
 
             String key = field.getGyroName();
 
-            if (value instanceof Boolean) {
-                body.add(new PairNode(key, new BooleanNode(Boolean.TRUE.equals(value))));
+            if (value instanceof Boolean
+                || value instanceof Number
+                || value instanceof String) {
+
+                body.add(new PairNode(key, new ValueNode(value)));
 
             } else if (value instanceof Date) {
-                body.add(new PairNode(key, new LiteralStringNode(value.toString())));
+                body.add(new PairNode(key, new ValueNode(value.toString())));
 
             } else if (value instanceof Diffable) {
                 if (field.shouldBeDiffed()) {
@@ -255,12 +256,6 @@ public abstract class Diffable {
             } else if (value instanceof Map) {
                 body.add(new PairNode(key, toNode(value)));
 
-            } else if (value instanceof Number) {
-                body.add(new PairNode(key, new NumberNode((Number) value)));
-
-            } else if (value instanceof String) {
-                body.add(new PairNode(key, new LiteralStringNode((String) value)));
-
             } else {
                 throw new UnsupportedOperationException(String.format(
                         "Can't convert an instance of [%s] into a node!",
@@ -272,8 +267,11 @@ public abstract class Diffable {
     }
 
     private Node toNode(Object value) {
-        if (value instanceof Boolean) {
-            return new BooleanNode(Boolean.TRUE.equals(value));
+        if (value instanceof Boolean
+            || value instanceof Number
+            || value instanceof String) {
+
+            return new ValueNode(value);
 
         } else if (value instanceof Collection) {
             List<Node> items = new ArrayList<>();
@@ -299,20 +297,14 @@ public abstract class Diffable {
 
             return new MapNode(entries);
 
-        } else if (value instanceof Number) {
-            return new NumberNode((Number) value);
-
         } else if (value instanceof Resource) {
             Resource resource = (Resource) value;
 
             return new ResourceReferenceNode(
                 resource.resourceType(),
-                new LiteralStringNode(resource.resourceIdentifier()),
+                new ValueNode(resource.resourceIdentifier()),
                 Collections.emptyList(),
                 null);
-
-        } else if (value instanceof String) {
-            return new LiteralStringNode((String) value);
 
         } else {
             throw new UnsupportedOperationException(String.format(

@@ -11,13 +11,11 @@ import gyro.lang.ast.condition.OrConditionNode;
 import gyro.lang.ast.condition.ValueConditionNode;
 import gyro.lang.ast.control.ForNode;
 import gyro.lang.ast.control.IfNode;
-import gyro.lang.ast.value.BooleanNode;
 import gyro.lang.ast.value.InterpolatedStringNode;
 import gyro.lang.ast.value.ListNode;
-import gyro.lang.ast.value.LiteralStringNode;
 import gyro.lang.ast.value.MapNode;
-import gyro.lang.ast.value.NumberNode;
 import gyro.lang.ast.value.ResourceReferenceNode;
+import gyro.lang.ast.value.ValueNode;
 import gyro.lang.ast.value.ValueReferenceNode;
 
 public interface NodeVisitor<C, R> {
@@ -52,19 +50,15 @@ public interface NodeVisitor<C, R> {
 
     R visitIf(IfNode node, C context);
 
-    R visitBoolean(BooleanNode node, C context);
-
     R visitInterpolatedString(InterpolatedStringNode node, C context);
 
     R visitList(ListNode node, C context);
 
-    R visitLiteralString(LiteralStringNode node, C context);
-
     R visitMap(MapNode node, C context);
 
-    R visitNumber(NumberNode node, C context);
-
     R visitResourceReference(ResourceReferenceNode node, C context);
+
+    R visitValue(ValueNode node, C context);
 
     R visitValueReference(ValueReferenceNode node, C context);
 

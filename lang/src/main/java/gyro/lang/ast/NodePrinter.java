@@ -15,13 +15,11 @@ import gyro.lang.ast.condition.OrConditionNode;
 import gyro.lang.ast.condition.ValueConditionNode;
 import gyro.lang.ast.control.ForNode;
 import gyro.lang.ast.control.IfNode;
-import gyro.lang.ast.value.BooleanNode;
 import gyro.lang.ast.value.InterpolatedStringNode;
 import gyro.lang.ast.value.ListNode;
-import gyro.lang.ast.value.LiteralStringNode;
 import gyro.lang.ast.value.MapNode;
-import gyro.lang.ast.value.NumberNode;
 import gyro.lang.ast.value.ResourceReferenceNode;
+import gyro.lang.ast.value.ValueNode;
 import gyro.lang.ast.value.ValueReferenceNode;
 
 public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
@@ -36,7 +34,7 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
         return builder.toString();
     }
 
-    public void visitBody(List<Node> body, PrinterContext context) {
+    private void visitBody(List<Node> body, PrinterContext context) {
         for (Node item : body) {
             context.appendNewline();
             visit(item, context);
@@ -205,13 +203,6 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
     }
 
     @Override
-    public Void visitBoolean(BooleanNode node, PrinterContext context) {
-        context.append(String.valueOf(node.getValue()));
-
-        return null;
-    }
-
-    @Override
     public Void visitInterpolatedString(InterpolatedStringNode node, PrinterContext context) {
         context.append('"');
 
@@ -249,15 +240,6 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
     }
 
     @Override
-    public Void visitLiteralString(LiteralStringNode node, PrinterContext context) {
-        context.append('\"');
-        context.append(node.getValue());
-        context.append('\"');
-
-        return null;
-    }
-
-    @Override
     public Void visitMap(MapNode node, PrinterContext context) {
         context.append('{');
 
@@ -272,13 +254,6 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
         }
 
         context.append('}');
-
-        return null;
-    }
-
-    @Override
-    public Void visitNumber(NumberNode node, PrinterContext context) {
-        context.append(String.valueOf(node.getValue()));
 
         return null;
     }
@@ -301,6 +276,22 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
             });
 
         context.append(")");
+
+        return null;
+    }
+
+    @Override
+    public Void visitValue(ValueNode node, PrinterContext context) {
+        Object value = node.getValue();
+
+        if (value instanceof String) {
+            context.append('\'');
+            context.append((String) value);
+            context.append('\'');
+
+        } else {
+            context.append(value.toString());
+        }
 
         return null;
     }

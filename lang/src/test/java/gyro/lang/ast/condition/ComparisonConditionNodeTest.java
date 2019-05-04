@@ -2,7 +2,7 @@ package gyro.lang.ast.condition;
 
 import gyro.lang.ast.AbstractNodeTest;
 import gyro.lang.ast.Node;
-import gyro.lang.ast.value.LiteralStringNode;
+import gyro.lang.ast.value.ValueNode;
 import gyro.parser.antlr4.GyroParser;
 import org.junit.jupiter.api.Test;
 
@@ -16,22 +16,22 @@ class ComparisonConditionNodeTest extends AbstractNodeTest<ComparisonConditionNo
         ComparisonConditionNode node = new ComparisonConditionNode(
             (GyroParser.ComparisonConditionContext) parse("'foo' = 'bar'", GyroParser::condition));
 
-        Node leftNode = node.getLeft();
-        Node rightNode = node.getRight();
+        Node left = node.getLeft();
+        Node right = node.getRight();
 
-        assertThat(leftNode).isInstanceOf(LiteralStringNode.class);
-        assertThat(((LiteralStringNode) leftNode).getValue()).isEqualTo("foo");
+        assertThat(left).isInstanceOf(ValueNode.class);
+        assertThat(((ValueNode) left).getValue()).isEqualTo("foo");
         assertThat(node.getOperator()).isEqualTo("=");
-        assertThat(rightNode).isInstanceOf(LiteralStringNode.class);
-        assertThat(((LiteralStringNode) rightNode).getValue()).isEqualTo("bar");
+        assertThat(right).isInstanceOf(ValueNode.class);
+        assertThat(((ValueNode) right).getValue()).isEqualTo("bar");
     }
 
     @Test
     void getLeftNode() {
-        Node leftNode = mock(Node.class);
-        ComparisonConditionNode node = new ComparisonConditionNode(leftNode, "=", mock(Node.class));
+        Node left = mock(Node.class);
+        ComparisonConditionNode node = new ComparisonConditionNode(left, "=", mock(Node.class));
 
-        assertThat(node.getLeft()).isEqualTo(leftNode);
+        assertThat(node.getLeft()).isEqualTo(left);
     }
 
     @Test
@@ -44,10 +44,10 @@ class ComparisonConditionNodeTest extends AbstractNodeTest<ComparisonConditionNo
 
     @Test
     void getRightNode() {
-        Node rightNode = mock(Node.class);
-        ComparisonConditionNode node = new ComparisonConditionNode(mock(Node.class), "=", rightNode);
+        Node right = mock(Node.class);
+        ComparisonConditionNode node = new ComparisonConditionNode(mock(Node.class), "=", right);
 
-        assertThat(node.getRight()).isEqualTo(rightNode);
+        assertThat(node.getRight()).isEqualTo(right);
     }
 
 }

@@ -11,7 +11,7 @@ import gyro.core.diff.DiffableType;
 import gyro.core.Credentials;
 import gyro.lang.ast.block.ResourceNode;
 import gyro.core.scope.Scope;
-import gyro.lang.ast.value.LiteralStringNode;
+import gyro.lang.ast.value.ValueNode;
 
 public abstract class Resource extends Diffable {
 
@@ -128,9 +128,9 @@ public abstract class Resource extends Diffable {
 
     public ResourceNode toNode() {
         return new ResourceNode(
-                resourceType(),
-                new LiteralStringNode(resourceIdentifier()),
-                toBodyNodes());
+            resourceType(),
+            new ValueNode(resourceIdentifier()),
+            toBodyNodes());
     }
 
     @Override

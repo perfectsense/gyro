@@ -14,12 +14,9 @@ import gyro.lang.ast.condition.OrConditionNode;
 import gyro.lang.ast.condition.ValueConditionNode;
 import gyro.lang.ast.control.ForNode;
 import gyro.lang.ast.control.IfNode;
-import gyro.lang.ast.value.BooleanNode;
 import gyro.lang.ast.value.InterpolatedStringNode;
 import gyro.lang.ast.value.ListNode;
-import gyro.lang.ast.value.LiteralStringNode;
 import gyro.lang.ast.value.MapNode;
-import gyro.lang.ast.value.NumberNode;
 import gyro.lang.ast.value.ResourceReferenceNode;
 import gyro.lang.ast.value.ValueReferenceNode;
 import org.junit.jupiter.api.DynamicTest;
@@ -45,12 +42,9 @@ class NodeAcceptTest {
             create(ValueConditionNode.class, NodeVisitor::visitValueCondition),
             create(ForNode.class, NodeVisitor::visitFor),
             create(IfNode.class, NodeVisitor::visitIf),
-            create(BooleanNode.class, NodeVisitor::visitBoolean),
             create(InterpolatedStringNode.class, NodeVisitor::visitInterpolatedString),
             create(ListNode.class, NodeVisitor::visitList),
-            create(LiteralStringNode.class, NodeVisitor::visitLiteralString),
             create(MapNode.class, NodeVisitor::visitMap),
-            create(NumberNode.class, NodeVisitor::visitNumber),
             create(ResourceReferenceNode.class, NodeVisitor::visitResourceReference),
             create(ValueReferenceNode.class, NodeVisitor::visitValueReference)
         );

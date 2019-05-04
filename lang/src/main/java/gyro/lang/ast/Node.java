@@ -12,18 +12,18 @@ import gyro.lang.ast.condition.OrConditionNode;
 import gyro.lang.ast.condition.ValueConditionNode;
 import gyro.lang.ast.control.ForNode;
 import gyro.lang.ast.control.IfNode;
-import gyro.lang.ast.value.BooleanNode;
 import gyro.lang.ast.value.InterpolatedStringNode;
 import gyro.lang.ast.value.ListNode;
-import gyro.lang.ast.value.LiteralStringNode;
 import gyro.lang.ast.value.MapNode;
-import gyro.lang.ast.value.NumberNode;
 import gyro.lang.ast.value.ResourceReferenceNode;
+import gyro.lang.ast.value.ValueNode;
 import gyro.lang.ast.value.ValueReferenceNode;
 import gyro.parser.antlr4.GyroParser;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 
 public abstract class Node {
 
@@ -51,7 +51,7 @@ public abstract class Node {
             node = new FileNode((GyroParser.FileContext) context);
 
         } else if (cc.equals(GyroParser.BooleanValueContext.class)) {
-            node = new BooleanNode((GyroParser.BooleanValueContext) context);
+            node = new ValueNode(((GyroParser.BooleanValueContext) context).TRUE() != null);
 
         } else if (cc.equals(GyroParser.ForStatementContext.class)) {
             node = new ForNode((GyroParser.ForStatementContext) context);
@@ -90,7 +90,7 @@ public abstract class Node {
             node = new MapNode((GyroParser.MapContext) context);
 
         } else if (cc.equals(GyroParser.NumberContext.class)) {
-            node = new NumberNode((GyroParser.NumberContext) context);
+            node = new ValueNode(NumberUtils.createNumber(context.getText()));
 
         } else if (cc.equals(GyroParser.ResourceContext.class)) {
             GyroParser.ResourceContext rc = (GyroParser.ResourceContext) context;
@@ -113,7 +113,7 @@ public abstract class Node {
             node = new ResourceReferenceNode((GyroParser.ResourceReferenceContext) context);
 
         } else if (cc.equals(GyroParser.LiteralStringContext.class)) {
-            node = new LiteralStringNode((GyroParser.LiteralStringContext) context);
+            node = new ValueNode(StringUtils.strip(((GyroParser.LiteralStringContext) context).STRING().getText(), "'"));
 
         } else if (cc.equals(GyroParser.InterpolatedStringContext.class)) {
             node = new InterpolatedStringNode((GyroParser.InterpolatedStringContext) context);
@@ -122,7 +122,7 @@ public abstract class Node {
             node = new ValueReferenceNode((GyroParser.ValueReferenceContext) context);
 
         } else if (TerminalNode.class.isAssignableFrom(cc)) {
-            node = new LiteralStringNode(context.getText());
+            node = new ValueNode(context.getText());
 
         } else {
             throw new GyroLanguageException(String.format("Unrecognized node! [%s]", cc.getName()));

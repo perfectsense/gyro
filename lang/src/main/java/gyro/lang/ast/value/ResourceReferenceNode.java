@@ -25,7 +25,7 @@ public class ResourceReferenceNode extends Node {
 
         name = Optional.ofNullable(rnc.string())
             .map(Node::create)
-            .orElseGet(() -> new LiteralStringNode(rnc.getText()));
+            .orElseGet(() -> new ValueNode(rnc.getText()));
 
         queries = context.query()
             .stream()

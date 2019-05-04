@@ -4,7 +4,7 @@ import java.util.Collections;
 
 import gyro.lang.ast.AbstractNodeTest;
 import gyro.lang.ast.Node;
-import gyro.lang.ast.value.LiteralStringNode;
+import gyro.lang.ast.value.ValueNode;
 import gyro.parser.antlr4.GyroParser;
 import org.junit.jupiter.api.Test;
 
@@ -16,11 +16,11 @@ class ResourceNodeTest extends AbstractNodeTest<ResourceNode> {
     @Test
     void constructorContext() {
         ResourceNode node = new ResourceNode(parse("foo::bar qux\nend", GyroParser::resource));
-        Node nameNode = node.getName();
+        Node name = node.getName();
 
         assertThat(node.getType()).isEqualTo("foo::bar");
-        assertThat(nameNode).isInstanceOf(LiteralStringNode.class);
-        assertThat(((LiteralStringNode) nameNode).getValue()).isEqualTo("qux");
+        assertThat(name).isInstanceOf(ValueNode.class);
+        assertThat(((ValueNode) name).getValue()).isEqualTo("qux");
         assertThat(node.getBody()).isEmpty();
     }
 
@@ -34,10 +34,10 @@ class ResourceNodeTest extends AbstractNodeTest<ResourceNode> {
 
     @Test
     void getNameNode() {
-        Node nameNode = mock(Node.class);
-        ResourceNode node = new ResourceNode("foo", nameNode, Collections.emptyList());
+        Node name = mock(Node.class);
+        ResourceNode node = new ResourceNode("foo", name, Collections.emptyList());
 
-        assertThat(node.getName()).isEqualTo(nameNode);
+        assertThat(node.getName()).isEqualTo(name);
     }
 
 }

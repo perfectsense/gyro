@@ -1,6 +1,6 @@
 package gyro.lang.ast;
 
-import gyro.lang.ast.value.LiteralStringNode;
+import gyro.lang.ast.value.ValueNode;
 import gyro.parser.antlr4.GyroParser;
 import org.junit.jupiter.api.Test;
 
@@ -15,8 +15,8 @@ class PairNodeTest extends AbstractNodeTest<PairNode> {
         Node valueNode = node.getValue();
 
         assertThat(node.getKey()).isEqualTo("foo");
-        assertThat(valueNode).isInstanceOf(LiteralStringNode.class);
-        assertThat(((LiteralStringNode) valueNode).getValue()).isEqualTo("bar");
+        assertThat(valueNode).isInstanceOf(ValueNode.class);
+        assertThat(((ValueNode) valueNode).getValue()).isEqualTo("bar");
     }
 
     @Test

@@ -20,9 +20,9 @@ class ListNodeTest extends AbstractNodeTest<ListNode> {
         List<Node> items = node.getItems();
 
         assertThat(items).hasSize(2);
-        items.forEach(item -> assertThat(item).isInstanceOf(LiteralStringNode.class));
-        assertThat(((LiteralStringNode) items.get(0)).getValue()).isEqualTo("foo");
-        assertThat(((LiteralStringNode) items.get(1)).getValue()).isEqualTo("bar");
+        items.forEach(item -> assertThat(item).isInstanceOf(ValueNode.class));
+        assertThat(((ValueNode) items.get(0)).getValue()).isEqualTo("foo");
+        assertThat(((ValueNode) items.get(1)).getValue()).isEqualTo("bar");
     }
 
     @Test

@@ -20,7 +20,7 @@ class MapNodeTest extends AbstractNodeTest<MapNode> {
         List<PairNode> entries = node.getEntries();
 
         assertThat(entries).hasSize(2);
-        entries.forEach(entry -> assertThat(entry.getValue()).isInstanceOf(NumberNode.class));
+        entries.forEach(entry -> assertThat(entry.getValue()).isInstanceOf(ValueNode.class));
     }
 
     @Test

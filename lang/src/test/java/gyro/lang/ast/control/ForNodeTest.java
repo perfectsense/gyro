@@ -6,7 +6,7 @@ import java.util.List;
 
 import gyro.lang.ast.AbstractNodeTest;
 import gyro.lang.ast.Node;
-import gyro.lang.ast.value.LiteralStringNode;
+import gyro.lang.ast.value.ValueNode;
 import gyro.parser.antlr4.GyroParser;
 import org.junit.jupiter.api.Test;
 
@@ -22,11 +22,8 @@ class ForNodeTest extends AbstractNodeTest<ForNode> {
 
         assertThat(node.getVariables()).containsExactly("foo");
         assertThat(items).hasSize(1);
-
-        Node firstItem = items.get(0);
-
-        assertThat(firstItem).isInstanceOf(LiteralStringNode.class);
-        assertThat(((LiteralStringNode) firstItem).getValue()).isEqualTo("bar");
+        assertThat(items.get(0)).isInstanceOf(ValueNode.class);
+        assertThat(((ValueNode) items.get(0)).getValue()).isEqualTo("bar");
         assertThat(node.getBody()).hasSize(0);
     }
 

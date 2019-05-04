@@ -37,13 +37,11 @@ import gyro.lang.ast.condition.OrConditionNode;
 import gyro.lang.ast.condition.ValueConditionNode;
 import gyro.lang.ast.control.ForNode;
 import gyro.lang.ast.control.IfNode;
-import gyro.lang.ast.value.BooleanNode;
 import gyro.lang.ast.value.InterpolatedStringNode;
 import gyro.lang.ast.value.ListNode;
-import gyro.lang.ast.value.LiteralStringNode;
 import gyro.lang.ast.value.MapNode;
-import gyro.lang.ast.value.NumberNode;
 import gyro.lang.ast.value.ResourceReferenceNode;
+import gyro.lang.ast.value.ValueNode;
 import gyro.lang.ast.value.ValueReferenceNode;
 import gyro.lang.query.Query;
 import gyro.util.CascadingMap;
@@ -457,11 +455,6 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
     }
 
     @Override
-    public Object visitBoolean(BooleanNode node, Scope scope) {
-        return node.getValue();
-    }
-
-    @Override
     public Object visitInterpolatedString(InterpolatedStringNode node, Scope scope) {
         StringBuilder builder = new StringBuilder();
 
@@ -490,11 +483,6 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
     }
 
     @Override
-    public Object visitLiteralString(LiteralStringNode node, Scope scope) {
-        return node.getValue();
-    }
-
-    @Override
     public Object visitMap(MapNode node, Scope scope) {
         Scope bodyScope = new Scope(scope);
         Map<String, Object> map = new LinkedHashMap<>();
@@ -504,11 +492,6 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
         }
 
         return map;
-    }
-
-    @Override
-    public Object visitNumber(NumberNode node, Scope scope) {
-        return node.getValue();
     }
 
     @Override
@@ -609,6 +592,11 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
                 return s.collect(Collectors.toList());
             }
         }
+    }
+
+    @Override
+    public Object visitValue(ValueNode node, Scope scope) {
+        return node.getValue();
     }
 
     @Override
