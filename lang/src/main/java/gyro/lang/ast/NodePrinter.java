@@ -147,7 +147,7 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
 
     @Override
     public Void visitValueCondition(ValueConditionNode node, PrinterContext context) {
-        visit(node.getLeft(), context);
+        visit(node.getValue(), context);
 
         return null;
     }

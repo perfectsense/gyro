@@ -401,7 +401,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
     @Override
     public Object visitValueCondition(ValueConditionNode node, Scope scope) {
-        return visit(node.getLeft(), scope);
+        return visit(node.getValue(), scope);
     }
 
     @Override
