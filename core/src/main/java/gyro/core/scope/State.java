@@ -23,6 +23,8 @@ import gyro.core.plugin.PluginLoader;
 import gyro.core.resource.ResourceName;
 import gyro.core.resource.ResourceNames;
 import gyro.core.resource.Resource;
+import gyro.lang.ast.NodePrinter;
+import gyro.lang.ast.PrinterContext;
 
 public class State {
 
@@ -116,6 +118,8 @@ public class State {
     }
 
     private void save() throws IOException {
+        NodePrinter printer = new NodePrinter();
+
         for (FileScope state : states.values()) {
             String file = state.getFile();
 
@@ -128,9 +132,11 @@ public class State {
                     out.write(pluginLoader.toString());
                 }
 
+                PrinterContext context = new PrinterContext(out, 0);
+
                 for (Object value : state.values()) {
                     if (value instanceof Resource) {
-                        out.write(((Resource) value).toNode().toString());
+                        printer.visit(((Resource) value).toNode(), context);
                     }
                 }
             }

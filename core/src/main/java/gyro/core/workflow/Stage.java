@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import gyro.core.GyroUI;
 import gyro.core.diff.Diff;
 import gyro.core.resource.Resource;
+import gyro.core.scope.NodeEvaluator;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.block.ResourceNode;
@@ -26,9 +27,9 @@ public class Stage {
     private final List<KeyBlockNode> swaps = new ArrayList<>();
     private final List<Transition> transitions = new ArrayList<>();
 
-    @SuppressWarnings("unchecked")
-    public Stage(Scope parent, ResourceNode node) throws Exception {
+    public Stage(Scope parent, ResourceNode node) {
         Scope scope = new Scope(parent);
+        NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
 
         for (Iterator<Node> i = node.getBody().iterator(); i.hasNext();) {
             Node item = i.next();
@@ -63,10 +64,10 @@ public class Stage {
                 }
             }
 
-            item.evaluate(scope);
+            evaluator.visit(item, scope);
         }
 
-        name = (String) node.getNameNode().evaluate(parent);
+        name = (String) evaluator.visit(node.getName(), parent);
         confirmDiff = Boolean.TRUE.equals(scope.get("confirm-diff"));
         transitionPrompt = (String) scope.get("transition-prompt");
     }
@@ -84,12 +85,13 @@ public class Stage {
             throws Exception {
 
         Scope executeScope = new Scope(pendingRootScope);
+        NodeEvaluator evaluator = executeScope.getRootScope().getEvaluator();
 
         executeScope.put("NAME", pendingResource.resourceIdentifier());
         executeScope.put("PENDING", pendingResource.scope().resolve());
 
         for (Node change : changes) {
-            change.evaluate(executeScope);
+            evaluator.visit(change, executeScope);
         }
 
         @SuppressWarnings("unchecked")
@@ -102,7 +104,7 @@ public class Stage {
         }
 
         for (KeyBlockNode swap : swaps) {
-            swap.evaluate(executeScope);
+            evaluator.visit(swap, executeScope);
         }
 
         @SuppressWarnings("unchecked")

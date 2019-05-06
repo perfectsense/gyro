@@ -16,12 +16,13 @@ public class DiffableScope extends Scope {
         return getValueNodes().keySet();
     }
 
-    public Map<String, Object> resolve() throws Exception {
+    public Map<String, Object> resolve() {
+        NodeEvaluator evaluator = getRootScope().getEvaluator();
         Map<String, Object> resolved = new HashMap<>();
 
         for (Map.Entry<String, Node> entry : getValueNodes().entrySet()) {
             Node node = entry.getValue();
-            resolved.put(entry.getKey(), node.evaluate(this));
+            resolved.put(entry.getKey(), evaluator.visit(node, this));
         }
 
         return resolved;

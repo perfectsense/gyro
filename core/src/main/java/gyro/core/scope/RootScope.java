@@ -5,17 +5,14 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.google.common.collect.ImmutableSet;
 import gyro.core.Credentials;
 import gyro.core.FileBackend;
 import gyro.core.GyroException;
@@ -25,7 +22,6 @@ import gyro.core.workflow.Workflow;
 import gyro.lang.GyroErrorListener;
 import gyro.lang.GyroErrorStrategy;
 import gyro.lang.GyroLanguageException;
-import gyro.lang.ast.DeferError;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.VirtualResourceNode;
 import gyro.parser.antlr4.GyroLexer;
@@ -35,6 +31,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 
 public class RootScope extends FileScope {
 
+    private final NodeEvaluator evaluator;
     private final FileBackend backend;
     private final RootScope current;
     private final Set<String> loadFiles;
@@ -44,17 +41,25 @@ public class RootScope extends FileScope {
     private final List<Workflow> workflows = new ArrayList<>();
     private final List<FileScope> fileScopes = new ArrayList<>();
 
-    public RootScope(String file, FileBackend backend, RootScope current, Set<String> loadFiles) throws Exception {
+    public RootScope(String file, FileBackend backend, RootScope current, Set<String> loadFiles) {
         super(null, file);
 
+        this.evaluator = new NodeEvaluator();
         this.backend = backend;
         this.current = current;
 
         try (Stream<String> s = backend.list()) {
             this.loadFiles = (loadFiles != null ? s.filter(loadFiles::contains) : s).collect(Collectors.toSet());
+
+        } catch (Exception error) {
+            throw new GyroException("Can't list files from the file backend!");
         }
 
         put("ENV", System.getenv());
+    }
+
+    public NodeEvaluator getEvaluator() {
+        return evaluator;
     }
 
     public FileBackend getBackend() {
@@ -118,7 +123,7 @@ public class RootScope extends FileScope {
 
     public void load() throws Exception {
         try (InputStream input = backend.openInput(getFile())) {
-            parse(input, getFile()).evaluate(this);
+            evaluator.visit(parse(input, getFile()), this);
         }
 
         List<Node> nodes = new ArrayList<>();
@@ -130,7 +135,7 @@ public class RootScope extends FileScope {
         }
 
         try {
-            DeferError.evaluate(this, nodes);
+            evaluator.visitBody(nodes, this);
 
         } catch (DeferError e) {
             throw new GyroException(e.getMessage());

@@ -11,7 +11,6 @@ import java.util.regex.Pattern;
 
 import gyro.core.resource.Resource;
 import gyro.lang.ast.Node;
-import gyro.lang.ast.value.ValueReferenceException;
 
 public class Scope implements Map<String, Object> {
 
@@ -74,7 +73,7 @@ public class Scope implements Map<String, Object> {
         put(key, list);
     }
 
-    public Object find(String path) throws Exception {
+    public Object find(String path) {
         String[] keys = DOT_PATTERN.split(path);
         String firstKey = keys[0];
         Object value = null;
@@ -84,7 +83,7 @@ public class Scope implements Map<String, Object> {
         for (Scope s = startingScope; s != null; s = s.parent) {
             if (s.containsKey(firstKey)) {
                 Node valueNode = s.valueNodes.get(firstKey);
-                value = valueNode == null ? s.get(firstKey) : valueNode.evaluate(s);
+                value = valueNode == null ? s.get(firstKey) : getRootScope().getEvaluator().visit(valueNode, s);
                 found = true;
                 break;
             }
