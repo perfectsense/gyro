@@ -38,9 +38,4 @@ public abstract class Modification extends Resource {
         return null;
     }
 
-    @Override
-    public Class resourceCredentialsClass() {
-        return null;
-    }
-
 }

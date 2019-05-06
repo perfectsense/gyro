@@ -43,8 +43,6 @@ public abstract class Resource extends Diffable {
 
     public abstract void delete();
 
-    public abstract Class resourceCredentialsClass();
-
     public Credentials resourceCredentials() {
         for (Resource r = this; r != null; r = r.parentResource()) {
             Scope scope = r.scope();

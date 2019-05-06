@@ -49,9 +49,4 @@ public abstract class Credentials extends Resource {
         return null;
     }
 
-    @Override
-    public final Class resourceCredentialsClass() {
-        return null;
-    }
-
 }
