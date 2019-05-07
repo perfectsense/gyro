@@ -20,8 +20,6 @@ import gyro.core.diff.DiffableField;
 import gyro.core.diff.DiffableType;
 import gyro.core.diff.Replace;
 import gyro.core.plugin.PluginLoader;
-import gyro.core.resource.ResourceName;
-import gyro.core.resource.ResourceNames;
 import gyro.core.resource.Resource;
 import gyro.lang.ast.NodePrinter;
 import gyro.lang.ast.PrinterContext;
@@ -140,59 +138,41 @@ public class State {
     }
 
     private void updateSubresource(Resource parent, Resource subresource, boolean delete) {
-        for (DiffableField field : DiffableType.getInstance(parent.getClass()).getFields()) {
-            String subresourceName = null;
+        DiffableField field = DiffableType.getInstance(parent.getClass()).getFieldByName(subresource.getParentFieldName());
+        Object value = field.getValue(parent);
 
-            if (subresource.getClass().getAnnotation(ResourceNames.class) != null) {
-                for (ResourceName resourceName : subresource.getClass().getAnnotation(ResourceNames.class).value()) {
-                    if (resourceName.parent().equals(parent.getClass().getAnnotation(ResourceName.class).value())) {
-                        subresourceName = resourceName.value();
-                        break;
-                    }
-                }
-            } else {
-                subresourceName = subresource.getClass().getAnnotation(ResourceName.class).value();
-            }
+        if (value instanceof Collection) {
+            @SuppressWarnings("unchecked")
+            Collection<Object> collection = (Collection<Object>) value;
 
-            if (!field.getName().equals(subresourceName)) {
-                continue;
-            }
+            if (delete) {
+                collection.removeIf(subresource::equals);
 
-            Object value = field.getValue(parent);
-
-            if (value instanceof Collection) {
+            } else if (value instanceof List) {
                 @SuppressWarnings("unchecked")
-                Collection<Object> collection = (Collection<Object>) value;
+                List<Object> list = (List<Object>) value;
+                boolean found = false;
 
-                if (delete) {
-                    collection.removeIf(subresource::equals);
+                for (ListIterator<Object> i = list.listIterator(); i.hasNext();) {
+                    Object item = i.next();
 
-                } else if (value instanceof List) {
-                    @SuppressWarnings("unchecked")
-                    List<Object> list = (List<Object>) value;
-                    boolean found = false;
-
-                    for (ListIterator<Object> i = list.listIterator(); i.hasNext();) {
-                        Object item = i.next();
-
-                        if (subresource.equals(item)) {
-                            i.set(subresource);
-                            found = true;
-                        }
+                    if (subresource.equals(item)) {
+                        i.set(subresource);
+                        found = true;
                     }
-
-                    if (!found) {
-                        list.add(subresource);
-                    }
-
-                } else {
-                    collection.removeIf(subresource::equals);
-                    collection.add(subresource);
                 }
 
-            } else if (value instanceof Resource) {
-                field.setValue(parent, delete ? null : subresource);
+                if (!found) {
+                    list.add(subresource);
+                }
+
+            } else {
+                collection.removeIf(subresource::equals);
+                collection.add(subresource);
             }
+
+        } else if (value instanceof Resource) {
+            field.setValue(parent, delete ? null : subresource);
         }
     }
 
