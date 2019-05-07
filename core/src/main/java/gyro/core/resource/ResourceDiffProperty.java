@@ -11,10 +11,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface ResourceDiffProperty {
 
-    public boolean updatable() default false;
-
-    public boolean nullable() default false;
-
-    public boolean subresource() default false;
+    boolean updatable() default false;
 
 }
