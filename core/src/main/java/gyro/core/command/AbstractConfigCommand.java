@@ -4,6 +4,7 @@ import com.psddev.dari.util.ObjectUtils;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.LocalFileBackend;
+import gyro.core.diff.DiffableType;
 import gyro.lang.GyroLanguageException;
 import gyro.core.Credentials;
 import gyro.core.resource.Resource;
@@ -149,7 +150,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
                     GyroCore.ui().write(
                         "@|bold,blue Refreshing|@: @|yellow %s|@ -> %s...",
-                        resource.resourceType(),
+                        DiffableType.getInstance(resource.getClass()).getName(),
                         resource.resourceIdentifier());
 
                     if (!resource.refresh()) {

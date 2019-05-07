@@ -92,7 +92,7 @@ public class State {
 
             } else {
                 for (FileScope state : states.values()) {
-                    state.remove(resource.resourceType() + "::" + key);
+                    state.remove(resource.primaryKey());
                 }
             }
 
@@ -103,14 +103,10 @@ public class State {
             // Subresource?
             if (key == null) {
                 Resource parent = resource.parentResource();
-
-                updateSubresource(
-                        (Resource) state.get(parent.resourceType() + "::" + parent.resourceIdentifier()),
-                        resource,
-                        false);
+                updateSubresource((Resource) state.get(parent.primaryKey()), resource, false);
 
             } else {
-                state.put(resource.resourceType() + "::" + key, resource);
+                state.put(resource.primaryKey(), resource);
             }
         }
 

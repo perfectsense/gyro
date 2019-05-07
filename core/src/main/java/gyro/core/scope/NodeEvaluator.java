@@ -301,7 +301,6 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
                     : new RuntimeException(cause);
         }
 
-        resource.resourceType(type);
         resource.resourceIdentifier(name);
         resource.scope(bodyScope);
         resource.initialize(another != null ? new LinkedHashMap<>(bodyScope) : bodyScope);
@@ -340,7 +339,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
         paramRootScope.findResources()
                 .stream()
                 .filter(Credentials.class::isInstance)
-                .forEach(c -> vrScope.put(c.resourceType() + "::" + c.resourceIdentifier(), c));
+                .forEach(c -> vrScope.put(c.primaryKey(), c));
 
         for (Node item : node.getBody()) {
             visit(item, resourceScope);
@@ -348,10 +347,8 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
         for (Resource resource : vrScope.findResources()) {
             if (!(resource instanceof Credentials)) {
-                String newId = prefix + "." + resource.resourceIdentifier();
-
-                resource.resourceIdentifier(newId);
-                paramFileScope.put(resource.resourceType() + "::" + newId, resource);
+                resource.resourceIdentifier(prefix + "." + resource.resourceIdentifier());
+                paramFileScope.put(resource.primaryKey(), resource);
             }
         }
     }
@@ -538,7 +535,10 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
             } else if (name.endsWith("*")) {
                 RootScope rootScope = scope.getRootScope();
-                Stream<Resource> s = rootScope.findResources().stream().filter(r -> type.equals(r.resourceType()));
+
+                Stream<Resource> s = rootScope.findResources()
+                    .stream()
+                    .filter(r -> type.equals(DiffableType.getInstance(r.getClass()).getName()));
 
                 if (!name.equals("*")) {
                     String prefix = name.substring(0, name.length() - 1);
@@ -586,7 +586,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
             Stream<Resource> s = scope.getRootScope()
                     .findResources()
                     .stream()
-                    .filter(r -> type.equals(r.resourceType()));
+                    .filter(r -> type.equals(DiffableType.getInstance(r.getClass()).getName()));
 
             if (path != null) {
                 return s.map(r -> r.get(path))

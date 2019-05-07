@@ -32,6 +32,7 @@ public class DiffableType<R extends Diffable> {
                 }
             });
 
+    private final String name;
     private final boolean subresource;
     private final DiffableField idField;
     private final List<DiffableField> fields;
@@ -53,6 +54,10 @@ public class DiffableType<R extends Diffable> {
     }
 
     private DiffableType(Class<R> diffableClass) throws IntrospectionException {
+        this.name = Optional.ofNullable(diffableClass.getAnnotation(ResourceName.class))
+            .map(ResourceName::value)
+            .orElse(null);
+
         this.subresource = !Resource.class.isAssignableFrom(diffableClass)
             || Optional.ofNullable(diffableClass.getAnnotation(ResourceName.class))
                 .map(ResourceName::parent)
@@ -90,6 +95,10 @@ public class DiffableType<R extends Diffable> {
         this.fields = fields.build();
         this.fieldByJavaName = fieldByJavaName.build();
         this.fieldByGyroName = fieldByGyroName.build();
+    }
+
+    public String getName() {
+        return name;
     }
 
     public boolean isSubresource() {

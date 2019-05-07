@@ -186,7 +186,7 @@ public class RootScope extends FileScope {
 
         Map<String, List<String>> duplicateResources = new HashMap<>();
         for (Resource resource : findResources()) {
-            String fullName = resource.resourceType() + "::" + resource.resourceIdentifier();
+            String fullName = resource.primaryKey();
             duplicateResources.putIfAbsent(fullName, new ArrayList<>());
             duplicateResources.get(fullName).add(resource.scope().getFileScope().getFile());
         }

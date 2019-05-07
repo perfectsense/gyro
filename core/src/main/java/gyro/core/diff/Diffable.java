@@ -31,6 +31,7 @@ public abstract class Diffable {
 
     private DiffableScope scope;
     private Diffable parent;
+    private String parentFieldName;
     private Change change;
     private Set<String> configuredFields;
 
@@ -59,6 +60,10 @@ public abstract class Diffable {
         }
 
         return null;
+    }
+
+    public String getParentFieldName() {
+        return parentFieldName;
     }
 
     public Change change() {
@@ -119,13 +124,13 @@ public abstract class Diffable {
 
         Map<String, Object> undefinedValues = new HashMap<>(values);
         for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
-            String key = field.getGyroName();
+            String fieldName = field.getGyroName();
 
-            if (!values.containsKey(key)) {
+            if (!values.containsKey(fieldName)) {
                 continue;
             }
 
-            Object value = values.get(key);
+            Object value = values.get(fieldName);
 
             if (field.shouldBeDiffed()) {
                 @SuppressWarnings("unchecked")
@@ -133,16 +138,16 @@ public abstract class Diffable {
 
                 if (value instanceof Collection) {
                     value = ((Collection<?>) value).stream()
-                            .map(v -> toDiffable(key, diffableClass, v))
+                            .map(v -> toDiffable(fieldName, diffableClass, v))
                             .collect(Collectors.toList());
 
                 } else if (value instanceof DiffableScope) {
-                    value = toDiffable(key, diffableClass, value);
+                    value = toDiffable(fieldName, diffableClass, value);
                 }
             }
 
             field.setValue(this, value);
-            undefinedValues.remove(key);
+            undefinedValues.remove(fieldName);
         }
 
         for (Map.Entry<String, Object> entry : undefinedValues.entrySet()) {
@@ -159,7 +164,7 @@ public abstract class Diffable {
         }
     }
 
-    private Object toDiffable(String key, Class<? extends Diffable> diffableClass, Object object) {
+    private Object toDiffable(String fieldName, Class<? extends Diffable> diffableClass, Object object) {
         if (!(object instanceof DiffableScope)) {
             return object;
         }
@@ -184,10 +189,7 @@ public abstract class Diffable {
                     : new RuntimeException(cause);
         }
 
-        if (diffable instanceof Resource) {
-            ((Resource) diffable).resourceType(key);
-        }
-
+        diffable.parentFieldName = fieldName;
         diffable.scope(scope);
         diffable.parent(this);
         diffable.initialize(scope);
@@ -301,7 +303,7 @@ public abstract class Diffable {
             Resource resource = (Resource) value;
 
             return new ResourceReferenceNode(
-                resource.resourceType(),
+                DiffableType.getInstance(resource.getClass()).getName(),
                 new ValueNode(resource.resourceIdentifier()),
                 Collections.emptyList(),
                 null);

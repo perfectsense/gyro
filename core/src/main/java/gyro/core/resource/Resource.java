@@ -12,13 +12,15 @@ import gyro.core.Credentials;
 import gyro.lang.ast.block.ResourceNode;
 import gyro.core.scope.Scope;
 import gyro.lang.ast.value.ValueNode;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public abstract class Resource extends Diffable {
 
-    private String type;
     private String name;
 
-    // -- Resource Implementation API
+    public String primaryKey() {
+        return String.format("%s::%s", DiffableType.getInstance(getClass()).getName(), resourceIdentifier());
+    }
 
     public abstract boolean refresh();
 
@@ -69,31 +71,12 @@ public abstract class Resource extends Diffable {
         throw new IllegalStateException();
     }
 
-    // -- Diff Engine
-
-    public String primaryKey() {
-        return String.format("%s %s", resourceType(), resourceIdentifier());
-    }
-
     // -- Base Resource
 
     public Object get(String key) {
         return Optional.ofNullable(DiffableType.getInstance(getClass()).getFieldByGyroName(key))
                 .map(f -> f.getValue(this))
                 .orElse(null);
-    }
-
-    public String resourceType() {
-        if (type == null) {
-            ResourceName name = getClass().getAnnotation(ResourceName.class);
-            return name != null ? name.value() : null;
-        }
-
-        return type;
-    }
-
-    public void resourceType(String type) {
-        this.type = type;
     }
 
     public String resourceIdentifier() {
@@ -126,18 +109,16 @@ public abstract class Resource extends Diffable {
 
     public ResourceNode toNode() {
         return new ResourceNode(
-            resourceType(),
+            DiffableType.getInstance(getClass()).getName(),
             new ValueNode(resourceIdentifier()),
             toBodyNodes());
     }
 
     @Override
     public String toString() {
-        if (resourceIdentifier() == null) {
-            return String.format("Resource[type: %s]", resourceType());
-        }
-
-        return String.format("Resource[type: %s, id: %s]", resourceType(), resourceIdentifier());
+        return new ToStringBuilder(this)
+            .append("primaryKey", primaryKey())
+            .build();
     }
 
 }
