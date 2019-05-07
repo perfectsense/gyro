@@ -18,6 +18,7 @@ import com.google.common.collect.ImmutableMap;
 import gyro.core.resource.Resource;
 import gyro.core.resource.ResourceId;
 import gyro.core.resource.ResourceName;
+import gyro.core.resource.ResourceNamespace;
 import org.apache.commons.lang3.StringUtils;
 
 public class DiffableType<R extends Diffable> {
@@ -31,6 +32,41 @@ public class DiffableType<R extends Diffable> {
                     return new DiffableType<>(diffableClass);
                 }
             });
+
+    private static final LoadingCache<ClassLoader, LoadingCache<String, String>> NAMESPACES_BY_LOADER = CacheBuilder.newBuilder()
+        .weakKeys()
+        .build(new CacheLoader<ClassLoader, LoadingCache<String, String>>() {
+
+            @Override
+            public LoadingCache<String, String> load(ClassLoader loader) {
+                return CacheBuilder.newBuilder()
+                    .build(new CacheLoader<String, String>() {
+
+                        @Override
+                        public String load(String name) {
+                            Package pkg;
+
+                            try {
+                                pkg = Class.forName(name + ".package-info", true, loader).getPackage();
+
+                            } catch (ClassNotFoundException error) {
+                                pkg = null;
+                            }
+
+                            return Optional.ofNullable(pkg)
+                                .map(p -> p.getAnnotation(ResourceNamespace.class))
+                                .map(ResourceNamespace::value)
+                                .orElseGet(() -> {
+                                    int lastDotAt = name.lastIndexOf('.');
+
+                                    return lastDotAt > -1
+                                        ? NAMESPACES_BY_LOADER.getUnchecked(loader).getUnchecked(name.substring(0, lastDotAt))
+                                        : "";
+                                });
+                        }
+                    });
+            }
+        });
 
     private final boolean root;
     private final String name;
@@ -61,6 +97,19 @@ public class DiffableType<R extends Diffable> {
 
         this.name = Optional.ofNullable(diffableClass.getAnnotation(ResourceName.class))
             .map(ResourceName::value)
+            .map(n -> {
+                String namespace = Optional.ofNullable(diffableClass.getAnnotation(ResourceNamespace.class))
+                    .map(ResourceNamespace::value)
+                    .orElseGet(() -> {
+                        Package pkg = diffableClass.getPackage();
+
+                        return pkg != null
+                            ? NAMESPACES_BY_LOADER.getUnchecked(diffableClass.getClassLoader()).getUnchecked(pkg.getName())
+                            : "";
+                    });
+
+                return namespace.isEmpty() ? n : namespace + "::" + n;
+            })
             .orElse(null);
 
         DiffableField idField = null;
