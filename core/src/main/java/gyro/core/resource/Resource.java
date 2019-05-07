@@ -87,26 +87,6 @@ public abstract class Resource extends Diffable {
         this.name = name;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        Resource that = (Resource) o;
-
-        return Objects.equals(primaryKey(), that.primaryKey());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(primaryKey());
-    }
-
     public ResourceNode toNode() {
         return new ResourceNode(
             DiffableType.getInstance(getClass()).getName(),
@@ -115,8 +95,32 @@ public abstract class Resource extends Diffable {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(parent(), getParentFieldName(), primaryKey());
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+
+        if (other == null || getClass() != other.getClass()) {
+            return false;
+        }
+
+        Resource otherResource = (Resource) other;
+
+        return Objects.equals(parent(), otherResource.parent())
+            && Objects.equals(getParentFieldName(), otherResource.getParentFieldName())
+            && Objects.equals(primaryKey(), otherResource.primaryKey());
+    }
+
+    @Override
     public String toString() {
         return new ToStringBuilder(this)
+            .append("parent", parent())
+            .append("parentFieldName", getParentFieldName())
             .append("primaryKey", primaryKey())
             .build();
     }
