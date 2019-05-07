@@ -15,7 +15,6 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import gyro.core.resource.Resource;
 import gyro.core.resource.ResourceId;
 import gyro.core.resource.ResourceName;
 import gyro.core.resource.ResourceNamespace;
@@ -89,28 +88,30 @@ public class DiffableType<R extends Diffable> {
     }
 
     private DiffableType(Class<R> diffableClass) throws IntrospectionException {
-        this.root = Resource.class.isAssignableFrom(diffableClass)
-            && Optional.ofNullable(diffableClass.getAnnotation(ResourceName.class))
-                .map(ResourceName::parent)
-                .filter(StringUtils::isBlank)
-                .isPresent();
+        ResourceName nameAnnotation = diffableClass.getAnnotation(ResourceName.class);
 
-        this.name = Optional.ofNullable(diffableClass.getAnnotation(ResourceName.class))
-            .map(ResourceName::value)
-            .map(n -> {
-                String namespace = Optional.ofNullable(diffableClass.getAnnotation(ResourceNamespace.class))
-                    .map(ResourceNamespace::value)
-                    .orElseGet(() -> {
-                        Package pkg = diffableClass.getPackage();
+        if (nameAnnotation != null) {
+            String namespace = Optional.ofNullable(diffableClass.getAnnotation(ResourceNamespace.class))
+                .map(ResourceNamespace::value)
+                .orElseGet(() -> {
+                    Package pkg = diffableClass.getPackage();
 
-                        return pkg != null
-                            ? NAMESPACES_BY_LOADER.getUnchecked(diffableClass.getClassLoader()).getUnchecked(pkg.getName())
-                            : "";
-                    });
+                    return pkg != null
+                        ? NAMESPACES_BY_LOADER.getUnchecked(diffableClass.getClassLoader()).getUnchecked(pkg.getName())
+                        : "";
+                });
 
-                return namespace.isEmpty() ? n : namespace + "::" + n;
-            })
-            .orElse(null);
+            if (!namespace.isEmpty()) {
+                namespace += "::";
+            }
+
+            this.root = true;
+            this.name = namespace + nameAnnotation.value();
+
+        } else {
+            this.root = false;
+            this.name = null;
+        }
 
         DiffableField idField = null;
         ImmutableList.Builder<DiffableField> fields = ImmutableList.builder();

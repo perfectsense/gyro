@@ -1,6 +1,5 @@
 package gyro.core.plugin;
 
-import com.psddev.dari.util.ObjectUtils;
 import gyro.core.resource.ResourceName;
 import gyro.core.resource.ResourceFinder;
 
@@ -19,18 +18,15 @@ public abstract class Provider extends Plugin {
 
         for (ResourceName name : klass.getAnnotationsByType(ResourceName.class)) {
             if (ResourceFinder.class.isAssignableFrom(klass)) {
-                registerResourceFinder(klass, name.value(), name.parent());
+                registerResourceFinder(klass, name.value());
             } else {
-                registerResource(klass, name.value(), name.parent());
+                registerResource(klass, name.value());
             }
         }
     }
 
-    private void registerResource(Class resourceClass, String resourceName, String parentName) {
+    private void registerResource(Class resourceClass, String resourceName) {
         String fullName = String.format("%s::%s", name(), resourceName);
-        if (!ObjectUtils.isBlank(parentName)) {
-            fullName = String.format("%s::%s::%s", name(), parentName, resourceName);
-        }
 
         Map<String, Class> cache = PROVIDER_CLASS_CACHE.computeIfAbsent(artifact(), f -> new HashMap<>());
         if (!cache.containsKey(fullName)) {
@@ -40,11 +36,8 @@ public abstract class Provider extends Plugin {
         getScope().getRootScope().getResourceClasses().put(fullName, cache.get(fullName));
     }
 
-    private void registerResourceFinder(Class queryClass, String resourceName, String parentName) {
+    private void registerResourceFinder(Class queryClass, String resourceName) {
         String fullName = String.format("%s::%s", name(), resourceName);
-        if (!ObjectUtils.isBlank(parentName)) {
-            fullName = String.format("%s::%s::%s", name(), parentName, resourceName);
-        }
 
         String registerName = String.format("%s::%s", fullName, "_query");
         Map<String, Class> cache = PROVIDER_CLASS_CACHE.computeIfAbsent(artifact(), f -> new HashMap<>());
