@@ -19,7 +19,7 @@ public abstract class Resource extends Diffable {
     private String name;
 
     public String primaryKey() {
-        return String.format("%s::%s", DiffableType.getInstance(getClass()).getName(), resourceIdentifier());
+        return String.format("%s::%s", DiffableType.getInstance(getClass()).getName(), name());
     }
 
     public abstract boolean refresh();
@@ -60,7 +60,7 @@ public abstract class Resource extends Diffable {
                     if (resource instanceof Credentials) {
                         Credentials credentials = (Credentials) resource;
 
-                        if (credentials.resourceIdentifier().equals(name)) {
+                        if (credentials.name().equals(name)) {
                             return credentials;
                         }
                     }
@@ -79,18 +79,18 @@ public abstract class Resource extends Diffable {
                 .orElse(null);
     }
 
-    public String resourceIdentifier() {
+    public String name() {
         return name;
     }
 
-    public void resourceIdentifier(String name) {
+    public void name(String name) {
         this.name = name;
     }
 
     public ResourceNode toNode() {
         return new ResourceNode(
             DiffableType.getInstance(getClass()).getName(),
-            new ValueNode(resourceIdentifier()),
+            new ValueNode(name()),
             toBodyNodes());
     }
 
