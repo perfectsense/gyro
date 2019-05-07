@@ -124,7 +124,7 @@ public abstract class Diffable {
 
         Map<String, Object> undefinedValues = new HashMap<>(values);
         for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
-            String fieldName = field.getGyroName();
+            String fieldName = field.getName();
 
             if (!values.containsKey(fieldName)) {
                 continue;
@@ -226,7 +226,7 @@ public abstract class Diffable {
                 continue;
             }
 
-            String key = field.getGyroName();
+            String key = field.getName();
 
             if (value instanceof Boolean
                 || value instanceof Number

@@ -52,7 +52,7 @@ public class Replace extends Change {
 
                 } else {
                     ui.write("\n· %s: %s",
-                            field.getGyroName(),
+                            field.getName(),
                             stringify(field.getValue(pendingDiffable)));
                 }
             }
@@ -64,7 +64,7 @@ public class Replace extends Change {
         ui.write("@|cyan ⇅ Replace %s|@", currentDiffable.toDisplayString());
         ui.write(" (because of %s, ", changedFields.stream()
                 .filter(f -> !f.isUpdatable())
-                .map(DiffableField::getGyroName)
+                .map(DiffableField::getName)
                 .collect(Collectors.joining(", ")));
 
         if (workflow != null) {

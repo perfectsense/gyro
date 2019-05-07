@@ -228,7 +228,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
                             continue;
                         }
 
-                        String key = f.getGyroName();
+                        String key = f.getName();
 
                         // Skip over fields that were previously configured
                         // so that their removals can be detected by the
@@ -259,7 +259,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
             }
 
             for (DiffableField field : DiffableType.getInstance(anotherResource.getClass()).getFields()) {
-                bodyScope.putIfAbsent(field.getGyroName(), field.getValue(anotherResource));
+                bodyScope.putIfAbsent(field.getName(), field.getValue(anotherResource));
             }
 
         } else if (another instanceof Map) {
@@ -557,7 +557,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
                 if (path != null) {
                     if (DiffableType.getInstance(resource.getClass()).getFields().stream()
-                            .map(DiffableField::getGyroName)
+                            .map(DiffableField::getName)
                             .anyMatch(path::equals)) {
 
                         return resource.get(path);

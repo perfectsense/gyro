@@ -74,7 +74,7 @@ public abstract class Resource extends Diffable {
     // -- Base Resource
 
     public Object get(String key) {
-        return Optional.ofNullable(DiffableType.getInstance(getClass()).getFieldByGyroName(key))
+        return Optional.ofNullable(DiffableType.getInstance(getClass()).getFieldByName(key))
                 .map(f -> f.getValue(this))
                 .orElse(null);
     }

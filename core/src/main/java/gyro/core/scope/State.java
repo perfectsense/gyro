@@ -154,7 +154,7 @@ public class State {
                 subresourceName = subresource.getClass().getAnnotation(ResourceName.class).value();
             }
 
-            if (!field.getGyroName().equals(subresourceName)) {
+            if (!field.getName().equals(subresourceName)) {
                 continue;
             }
 

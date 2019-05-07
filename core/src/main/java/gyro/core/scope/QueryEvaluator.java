@@ -166,7 +166,7 @@ public class QueryEvaluator implements QueryVisitor<QueryContext, List<Resource>
             boolean validQuery = false;
 
             for (DiffableField field : DiffableType.getInstance(resourceClass).getFields()) {
-                String key = field.getGyroName();
+                String key = field.getName();
 
                 if (key.equals(path)) {
                     validQuery = true;
@@ -186,13 +186,13 @@ public class QueryEvaluator implements QueryVisitor<QueryContext, List<Resource>
         if (ComparisonQuery.EQUALS_OPERATOR.equals(operator)) {
             return resources.stream()
                 .filter(r -> Objects.equals(
-                    DiffableType.getInstance(r.getClass()).getFieldByGyroName(path).getValue(r), comparisonValue))
+                    DiffableType.getInstance(r.getClass()).getFieldByName(path).getValue(r), comparisonValue))
                 .collect(Collectors.toList());
 
         } else if (ComparisonQuery.NOT_EQUALS_OPERATOR.equals(operator)) {
             return resources.stream()
                 .filter(r -> !Objects.equals(
-                    DiffableType.getInstance(r.getClass()).getFieldByGyroName(path).getValue(r), comparisonValue))
+                    DiffableType.getInstance(r.getClass()).getFieldByName(path).getValue(r), comparisonValue))
                 .collect(Collectors.toList());
 
         } else {

@@ -20,7 +20,7 @@ public class Create extends Change {
     private void writeFields(GyroUI ui) {
         for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
             if (!field.shouldBeDiffed()) {
-                ui.write("\n· %s: %s", field.getGyroName(), stringify(field.getValue(diffable)));
+                ui.write("\n· %s: %s", field.getName(), stringify(field.getValue(diffable)));
             }
         }
     }
