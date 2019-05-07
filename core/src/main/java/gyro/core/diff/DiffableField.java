@@ -5,8 +5,8 @@ import com.psddev.dari.util.ConversionException;
 import com.psddev.dari.util.Converter;
 import com.psddev.dari.util.ObjectUtils;
 import gyro.core.GyroException;
-import gyro.core.resource.ResourceDiffProperty;
 import gyro.core.resource.ResourceOutput;
+import gyro.core.resource.ResourceUpdatable;
 import gyro.lang.ast.Node;
 import gyro.core.resource.Resource;
 
@@ -49,15 +49,7 @@ public class DiffableField {
         this.name = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, javaName);
         this.getter = getter;
         this.setter = setter;
-
-        ResourceDiffProperty annotation = getter.getAnnotation(ResourceDiffProperty.class);
-
-        if (annotation != null) {
-            this.updatable = annotation.updatable();
-
-        } else {
-            this.updatable = false;
-        }
+        this.updatable = getter.isAnnotationPresent(ResourceUpdatable.class);
 
         ResourceOutput output = getter.getAnnotation(ResourceOutput.class);
 

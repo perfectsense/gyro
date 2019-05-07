@@ -9,8 +9,6 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface ResourceDiffProperty {
-
-    boolean updatable() default false;
+public @interface ResourceUpdatable {
 
 }
