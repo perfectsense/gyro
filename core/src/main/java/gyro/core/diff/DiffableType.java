@@ -15,10 +15,10 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.psddev.dari.util.ObjectUtils;
 import gyro.core.resource.Resource;
 import gyro.core.resource.ResourceId;
 import gyro.core.resource.ResourceName;
+import org.apache.commons.lang3.StringUtils;
 
 public class DiffableType<R extends Diffable> {
 
@@ -32,8 +32,8 @@ public class DiffableType<R extends Diffable> {
                 }
             });
 
+    private final boolean root;
     private final String name;
-    private final boolean subresource;
     private final DiffableField idField;
     private final List<DiffableField> fields;
     private final Map<String, DiffableField> fieldByName;
@@ -53,15 +53,15 @@ public class DiffableType<R extends Diffable> {
     }
 
     private DiffableType(Class<R> diffableClass) throws IntrospectionException {
+        this.root = Resource.class.isAssignableFrom(diffableClass)
+            && Optional.ofNullable(diffableClass.getAnnotation(ResourceName.class))
+                .map(ResourceName::parent)
+                .filter(StringUtils::isBlank)
+                .isPresent();
+
         this.name = Optional.ofNullable(diffableClass.getAnnotation(ResourceName.class))
             .map(ResourceName::value)
             .orElse(null);
-
-        this.subresource = !Resource.class.isAssignableFrom(diffableClass)
-            || Optional.ofNullable(diffableClass.getAnnotation(ResourceName.class))
-                .map(ResourceName::parent)
-                .filter(n -> !ObjectUtils.isBlank(n))
-                .isPresent();
 
         DiffableField idField = null;
         ImmutableList.Builder<DiffableField> fields = ImmutableList.builder();
@@ -93,12 +93,12 @@ public class DiffableType<R extends Diffable> {
         this.fieldByName = fieldByName.build();
     }
 
-    public String getName() {
-        return name;
+    public boolean isRoot() {
+        return root;
     }
 
-    public boolean isSubresource() {
-        return subresource;
+    public String getName() {
+        return name;
     }
 
     public DiffableField getIdField() {

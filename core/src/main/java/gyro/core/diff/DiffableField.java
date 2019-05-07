@@ -109,7 +109,7 @@ public class DiffableField {
     @SuppressWarnings("unchecked")
     public boolean shouldBeDiffed() {
         return Diffable.class.isAssignableFrom(itemClass)
-            && DiffableType.getInstance((Class<? extends Diffable>) itemClass).isSubresource();
+            && !DiffableType.getInstance((Class<? extends Diffable>) itemClass).isRoot();
     }
 
     public Object getValue(Diffable diffable) {
