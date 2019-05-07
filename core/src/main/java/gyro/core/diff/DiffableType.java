@@ -16,9 +16,8 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import gyro.core.resource.ResourceId;
-import gyro.core.resource.ResourceName;
+import gyro.core.resource.ResourceType;
 import gyro.core.resource.ResourceNamespace;
-import org.apache.commons.lang3.StringUtils;
 
 public class DiffableType<R extends Diffable> {
 
@@ -88,9 +87,9 @@ public class DiffableType<R extends Diffable> {
     }
 
     private DiffableType(Class<R> diffableClass) throws IntrospectionException {
-        ResourceName nameAnnotation = diffableClass.getAnnotation(ResourceName.class);
+        ResourceType typeAnnotation = diffableClass.getAnnotation(ResourceType.class);
 
-        if (nameAnnotation != null) {
+        if (typeAnnotation != null) {
             String namespace = Optional.ofNullable(diffableClass.getAnnotation(ResourceNamespace.class))
                 .map(ResourceNamespace::value)
                 .orElseGet(() -> {
@@ -106,7 +105,7 @@ public class DiffableType<R extends Diffable> {
             }
 
             this.root = true;
-            this.name = namespace + nameAnnotation.value();
+            this.name = namespace + typeAnnotation.value();
 
         } else {
             this.root = false;
