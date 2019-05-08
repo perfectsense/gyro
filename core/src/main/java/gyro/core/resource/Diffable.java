@@ -21,7 +21,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 public abstract class Diffable {
 
     DiffableScope scope;
-    private Diffable parent;
+    Diffable parent;
     String name;
     Change change;
     Set<String> configuredFields;
@@ -195,6 +195,25 @@ public abstract class Diffable {
 
     public boolean writeExecution(GyroUI ui, Change change) {
         return false;
+    }
+
+    public void updateInternals() {
+        for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
+            if (field.shouldBeDiffed()) {
+                String fieldName = field.getName();
+                Object value = field.getValue(this);
+
+                (value instanceof Collection ? ((Collection<?>) value).stream() : Stream.of(value))
+                    .filter(Diffable.class::isInstance)
+                    .map(Diffable.class::cast)
+                    .forEach(d -> {
+                        d.parent = this;
+                        d.name = fieldName;
+
+                        d.updateInternals();
+                    });
+            }
+        }
     }
 
     @Override

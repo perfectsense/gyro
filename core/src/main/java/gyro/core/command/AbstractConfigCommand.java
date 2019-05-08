@@ -3,6 +3,7 @@ package gyro.core.command;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -15,6 +16,8 @@ import gyro.core.Credentials;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.LocalFileBackend;
+import gyro.core.resource.Diffable;
+import gyro.core.resource.DiffableField;
 import gyro.core.resource.DiffableType;
 import gyro.core.resource.FileScope;
 import gyro.core.resource.Resource;
@@ -153,7 +156,10 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
                         DiffableType.getInstance(resource.getClass()).getName(),
                         resource.name());
 
-                    if (!resource.refresh()) {
+                    if (resource.refresh()) {
+                        resource.updateInternals();
+
+                    } else {
                         i.remove();
                     }
 
