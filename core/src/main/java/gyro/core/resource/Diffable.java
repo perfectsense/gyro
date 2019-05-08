@@ -197,7 +197,9 @@ public abstract class Diffable {
         return diffable;
     }
 
-    public abstract String primaryKey();
+    public String primaryKey() {
+        return String.format("%s::%s", DiffableType.getInstance(getClass()).getName(), name());
+    }
 
     public abstract String toDisplayString();
 

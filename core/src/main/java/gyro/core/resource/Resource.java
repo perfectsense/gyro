@@ -8,10 +8,6 @@ import gyro.core.Credentials;
 
 public abstract class Resource extends Diffable {
 
-    public String primaryKey() {
-        return String.format("%s::%s", DiffableType.getInstance(getClass()).getName(), name());
-    }
-
     public abstract boolean refresh();
 
     public abstract void create();
