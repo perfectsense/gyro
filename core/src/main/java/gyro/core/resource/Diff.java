@@ -103,8 +103,9 @@ public class Diff {
     @SuppressWarnings("unchecked")
     private Change newUpdate(Diffable currentDiffable, Diffable pendingDiffable) throws Exception {
         List<Diff> diffs = new ArrayList<>();
+        DiffableType<? extends Diffable> type = DiffableType.getInstance(currentDiffable.getClass());
 
-        for (DiffableField field : DiffableType.getInstance(currentDiffable.getClass()).getFields()) {
+        for (DiffableField field : type.getFields()) {
             if (!field.shouldBeDiffed()) {
                 continue;
             }
@@ -138,9 +139,20 @@ public class Diff {
         }
 
         Set<DiffableField> changedFields = diffFields(currentDiffable, pendingDiffable);
+
+        diffs.stream()
+            .map(Diff::getChanges)
+            .flatMap(List::stream)
+            .filter(c -> !(c instanceof Keep))
+            .map(Change::getDiffable)
+            .filter(d -> !(d instanceof Resource))
+            .map(Diffable::name)
+            .map(type::getFieldByName)
+            .forEach(changedFields::add);
+
         Change change;
 
-        if (changedFields.isEmpty() && !hasNonResourceChanges(diffs)) {
+        if (changedFields.isEmpty()) {
             change = new Keep(pendingDiffable);
 
         } else if (changedFields.stream().allMatch(DiffableField::isUpdatable)) {
@@ -155,24 +167,6 @@ public class Diff {
         change.getDiffs().addAll(diffs);
 
         return change;
-    }
-
-    private boolean hasNonResourceChanges(List<Diff> diffs) {
-        for (Diff diff : diffs) {
-            for (Change change : diff.getChanges()) {
-                if (!(change instanceof Keep)
-                    && !(change.getDiffable() instanceof Resource)) {
-
-                    return true;
-                }
-
-                if (hasNonResourceChanges(change.getDiffs())) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
     }
 
     private Set<DiffableField> diffFields(Diffable currentDiffable, Diffable pendingDiffable) {
