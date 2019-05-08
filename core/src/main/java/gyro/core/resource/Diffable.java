@@ -1,6 +1,8 @@
 package gyro.core.resource;
 
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -84,6 +86,17 @@ public abstract class Diffable {
                 idField.setValue(r, id);
                 return r;
             });
+    }
+
+    public InputStream openInput(String file) {
+        FileScope fileScope = scope.getFileScope();
+
+        return fileScope.getRootScope()
+            .getBackend()
+            .openInput(Paths.get(fileScope.getFile())
+                .getParent()
+                .resolve(file)
+                .toString());
     }
 
     public void initialize(Map<String, Object> values) {
