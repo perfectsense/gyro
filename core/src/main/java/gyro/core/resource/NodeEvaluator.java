@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.google.common.collect.ImmutableSet;
 import com.psddev.dari.util.TypeDefinition;
 import gyro.core.Credentials;
 import gyro.core.GyroCore;
@@ -213,7 +214,9 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
         Optional.ofNullable(scope.getRootScope().getCurrent())
                 .map(s -> s.findResource(fullName))
                 .ifPresent(r -> {
-                    Set<String> configuredFields = r.configuredFields();
+                    Set<String> configuredFields = r.configuredFields != null
+                        ? r.configuredFields
+                        : ImmutableSet.of();
 
                     for (DiffableField f : DiffableType.getInstance(r.getClass()).getFields()) {
 

@@ -4,7 +4,6 @@ import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Paths;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -24,12 +23,8 @@ public abstract class Diffable {
     DiffableScope scope;
     private Diffable parent;
     String name;
-    private Change change;
-    private Set<String> configuredFields;
-
-    public DiffableScope scope() {
-        return scope;
-    }
+    Change change;
+    Set<String> configuredFields;
 
     public Diffable parent() {
         return parent;
@@ -56,14 +51,6 @@ public abstract class Diffable {
 
     public Change change() {
         return change;
-    }
-
-    public void change(Change change) {
-        this.change = change;
-    }
-
-    public Set<String> configuredFields() {
-        return configuredFields != null ? configuredFields : Collections.emptySet();
     }
 
     public <T extends Resource> Stream<T> findByType(Class<T> resourceClass) {

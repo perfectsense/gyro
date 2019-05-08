@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableSet;
 import gyro.core.Credentials;
 import gyro.core.GyroUI;
 
@@ -70,7 +71,7 @@ public class Diff {
     private Change newCreate(Diffable diffable) throws Exception {
         Create create = new Create(diffable);
 
-        diffable.change(create);
+        diffable.change = create;
 
         for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
             if (!field.shouldBeDiffed()) {
@@ -149,8 +150,8 @@ public class Diff {
             change = new Replace(currentDiffable, pendingDiffable, changedFields);
         }
 
-        currentDiffable.change(change);
-        pendingDiffable.change(change);
+        currentDiffable.change = change;
+        pendingDiffable.change = change;
         change.getDiffs().addAll(diffs);
 
         return change;
@@ -175,7 +176,10 @@ public class Diff {
     }
 
     private Set<DiffableField> diffFields(Diffable currentDiffable, Diffable pendingDiffable) {
-        Set<String> currentConfiguredFields = currentDiffable.configuredFields();
+        Set<String> currentConfiguredFields = currentDiffable.configuredFields != null
+            ? currentDiffable.configuredFields
+            : ImmutableSet.of();
+
         Set<DiffableField> changedFields = new LinkedHashSet<>();
 
         for (DiffableField field : DiffableType.getInstance(currentDiffable.getClass()).getFields()) {
@@ -212,7 +216,7 @@ public class Diff {
     private Change newDelete(Diffable diffable) throws Exception {
         Delete delete = new Delete(diffable);
 
-        diffable.change(delete);
+        diffable.change = delete;
 
         for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
             if (!field.shouldBeDiffed()) {
@@ -378,7 +382,7 @@ public class Diff {
     private void resolve(Object object) throws Exception {
         if (object instanceof Diffable) {
             Diffable diffable = (Diffable) object;
-            DiffableScope scope = diffable.scope();
+            DiffableScope scope = diffable.scope;
 
             if (scope != null) {
                 diffable.initialize(scope.resolve());

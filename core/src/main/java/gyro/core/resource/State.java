@@ -186,9 +186,9 @@ public class State {
 
     private List<Node> toBodyNodes(Diffable diffable) {
         List<Node> body = new ArrayList<>();
-        Set<String> configuredFields = diffable.configuredFields();
+        Set<String> configuredFields = diffable.configuredFields;
 
-        if (!configuredFields.isEmpty()) {
+        if (configuredFields != null && !configuredFields.isEmpty()) {
             body.add(new PairNode("_configured-fields",
                 new ListNode(configuredFields.stream()
                     .map(ValueNode::new)
