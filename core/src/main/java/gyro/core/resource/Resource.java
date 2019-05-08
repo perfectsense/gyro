@@ -27,7 +27,7 @@ public abstract class Resource extends Diffable {
         }
     }
 
-    public abstract void update(Resource current, Set<String> changedProperties);
+    public abstract void update(Resource current, Set<String> changedFieldNames);
 
     public abstract void delete();
 

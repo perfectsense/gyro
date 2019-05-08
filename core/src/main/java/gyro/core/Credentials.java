@@ -35,7 +35,7 @@ public abstract class Credentials extends Resource {
     }
 
     @Override
-    public final void update(Resource current, Set<String> changedProperties) {
+    public final void update(Resource current, Set<String> changedFieldNames) {
 
     }
 
