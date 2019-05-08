@@ -1,4 +1,4 @@
-package gyro.core.diff;
+package gyro.core.resource;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,12 +13,6 @@ import java.util.Set;
 
 import gyro.core.Credentials;
 import gyro.core.GyroUI;
-import gyro.core.resource.Diffable;
-import gyro.core.resource.DiffableField;
-import gyro.core.resource.DiffableScope;
-import gyro.core.resource.DiffableType;
-import gyro.core.resource.Resource;
-import gyro.core.resource.State;
 
 public class Diff {
 

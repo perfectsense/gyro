@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Set;
 
 import gyro.core.GyroUI;
-import gyro.core.diff.Diff;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.ResourceNode;
 

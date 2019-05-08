@@ -16,7 +16,6 @@ import com.google.common.collect.ImmutableSet;
 import com.psddev.dari.util.TypeDefinition;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
-import gyro.core.diff.Change;
 import gyro.lang.ast.Node;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 

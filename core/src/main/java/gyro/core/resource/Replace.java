@@ -1,15 +1,9 @@
-package gyro.core.diff;
+package gyro.core.resource;
 
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import gyro.core.GyroUI;
-import gyro.core.resource.Diffable;
-import gyro.core.resource.DiffableField;
-import gyro.core.resource.DiffableType;
-import gyro.core.resource.Resource;
-import gyro.core.resource.State;
-import gyro.core.resource.Workflow;
 
 public class Replace extends Change {
 

@@ -17,9 +17,6 @@ import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableSet;
 import gyro.core.FileBackend;
-import gyro.core.diff.Change;
-import gyro.core.diff.Delete;
-import gyro.core.diff.Replace;
 import gyro.core.plugin.PluginLoader;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.NodePrinter;
