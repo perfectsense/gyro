@@ -9,8 +9,6 @@ import gyro.core.diff.Diffable;
 import gyro.core.diff.DiffableField;
 import gyro.core.diff.DiffableType;
 import gyro.core.scope.Scope;
-import gyro.lang.ast.block.ResourceNode;
-import gyro.lang.ast.value.ValueNode;
 
 public abstract class Resource extends Diffable {
 
@@ -67,19 +65,10 @@ public abstract class Resource extends Diffable {
         throw new IllegalStateException();
     }
 
-    // -- Base Resource
-
     public Object get(String key) {
         return Optional.ofNullable(DiffableType.getInstance(getClass()).getFieldByName(key))
                 .map(f -> f.getValue(this))
                 .orElse(null);
-    }
-
-    public ResourceNode toNode() {
-        return new ResourceNode(
-            DiffableType.getInstance(getClass()).getName(),
-            new ValueNode(name()),
-            toBodyNodes());
     }
 
 }

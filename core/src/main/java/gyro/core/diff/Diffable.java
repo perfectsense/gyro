@@ -1,12 +1,9 @@
 package gyro.core.diff;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -21,12 +18,6 @@ import gyro.core.resource.Resource;
 import gyro.core.scope.DiffableScope;
 import gyro.core.scope.Scope;
 import gyro.lang.ast.Node;
-import gyro.lang.ast.PairNode;
-import gyro.lang.ast.block.KeyBlockNode;
-import gyro.lang.ast.value.ListNode;
-import gyro.lang.ast.value.MapNode;
-import gyro.lang.ast.value.ResourceReferenceNode;
-import gyro.lang.ast.value.ValueNode;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public abstract class Diffable {
@@ -213,112 +204,6 @@ public abstract class Diffable {
 
     public boolean writeExecution(GyroUI ui, Change change) {
         return false;
-    }
-
-    public List<Node> toBodyNodes() {
-        List<Node> body = new ArrayList<>();
-
-        if (configuredFields != null) {
-            body.add(new PairNode("_configured-fields",
-                new ListNode(configuredFields.stream()
-                    .map(ValueNode::new)
-                    .collect(Collectors.toList()))));
-        }
-
-        for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
-            Object value = field.getValue(this);
-
-            if (value == null) {
-                continue;
-            }
-
-            String key = field.getName();
-
-            if (value instanceof Boolean
-                || value instanceof Number
-                || value instanceof String) {
-
-                body.add(new PairNode(key, new ValueNode(value)));
-
-            } else if (value instanceof Date) {
-                body.add(new PairNode(key, new ValueNode(value.toString())));
-
-            } else if (value instanceof Diffable) {
-                if (field.shouldBeDiffed()) {
-                    body.add(new KeyBlockNode(key, ((Diffable) value).toBodyNodes()));
-
-                } else {
-                    body.add(new PairNode(key, toNode(value)));
-                }
-
-            } else if (value instanceof Collection) {
-                if (field.shouldBeDiffed()) {
-                    for (Object item : (Collection<?>) value) {
-                        body.add(new KeyBlockNode(key, ((Diffable) item).toBodyNodes()));
-                    }
-
-                } else {
-                    body.add(new PairNode(key, toNode(value)));
-                }
-
-            } else if (value instanceof Map) {
-                body.add(new PairNode(key, toNode(value)));
-
-            } else {
-                throw new UnsupportedOperationException(String.format(
-                        "Can't convert an instance of [%s] into a node!",
-                        value.getClass().getName()));
-            }
-        }
-
-        return body;
-    }
-
-    private Node toNode(Object value) {
-        if (value instanceof Boolean
-            || value instanceof Number
-            || value instanceof String) {
-
-            return new ValueNode(value);
-
-        } else if (value instanceof Collection) {
-            List<Node> items = new ArrayList<>();
-
-            for (Object item : (Collection<?>) value) {
-                if (item != null) {
-                    items.add(toNode(item));
-                }
-            }
-
-            return new ListNode(items);
-
-        } else if (value instanceof Map) {
-            List<PairNode> entries = new ArrayList<>();
-
-            for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
-                Object v = entry.getValue();
-
-                if (v != null) {
-                    entries.add(new PairNode((String) entry.getKey(), toNode(v)));
-                }
-            }
-
-            return new MapNode(entries);
-
-        } else if (value instanceof Resource) {
-            Resource resource = (Resource) value;
-
-            return new ResourceReferenceNode(
-                DiffableType.getInstance(resource.getClass()).getName(),
-                new ValueNode(resource.name()),
-                Collections.emptyList(),
-                null);
-
-        } else {
-            throw new UnsupportedOperationException(String.format(
-                    "Can't convert an instance of [%s] into a node!",
-                    value.getClass().getName()));
-        }
     }
 
     @Override
