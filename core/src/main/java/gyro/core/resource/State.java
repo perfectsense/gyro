@@ -311,8 +311,8 @@ public class State {
             Resource x = (Resource) xScope.get(xFullName);
             Resource y = (Resource) yScope.get(yFullName);
 
-            x.name(yName);
-            y.name(xName);
+            x.name = yName;
+            y.name = xName;
             xScope.put(xFullName, y);
             yScope.put(yFullName, x);
         }

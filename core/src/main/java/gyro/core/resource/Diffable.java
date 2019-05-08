@@ -20,18 +20,14 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public abstract class Diffable {
 
-    private DiffableScope scope;
+    DiffableScope scope;
     private Diffable parent;
-    private String name;
+    String name;
     private Change change;
     private Set<String> configuredFields;
 
     public DiffableScope scope() {
         return scope;
-    }
-
-    public void scope(DiffableScope scope) {
-        this.scope = scope;
     }
 
     public Diffable parent() {
@@ -55,10 +51,6 @@ public abstract class Diffable {
 
     public String name() {
         return name;
-    }
-
-    public void name(String name) {
-        this.name = name;
     }
 
     public Change change() {
@@ -185,7 +177,7 @@ public abstract class Diffable {
         }
 
         diffable.name = fieldName;
-        diffable.scope(scope);
+        diffable.scope = scope;
         diffable.parent(this);
         diffable.initialize(scope);
 

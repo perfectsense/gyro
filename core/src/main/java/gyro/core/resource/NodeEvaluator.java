@@ -296,8 +296,8 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
                     : new RuntimeException(cause);
         }
 
-        resource.name(name);
-        resource.scope(bodyScope);
+        resource.name = name;
+        resource.scope = bodyScope;
         resource.initialize(another != null ? new LinkedHashMap<>(bodyScope) : bodyScope);
         scope.getFileScope().put(fullName, resource);
 
@@ -342,7 +342,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
         for (Resource resource : vrScope.findResources()) {
             if (!(resource instanceof Credentials)) {
-                resource.name(prefix + "." + resource.name());
+                resource.name = prefix + "." + resource.name;
                 paramFileScope.put(resource.primaryKey(), resource);
             }
         }
