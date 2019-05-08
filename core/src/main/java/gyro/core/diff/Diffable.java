@@ -327,7 +327,7 @@ public abstract class Diffable {
     }
 
     @Override
-    public boolean equals(Object other) {
+    public final boolean equals(Object other) {
         if (this == other) {
             return true;
         }
