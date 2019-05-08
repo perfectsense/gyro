@@ -1,11 +1,10 @@
-package gyro.core.scope;
-
-import com.google.common.collect.ImmutableList;
-import gyro.core.resource.Resource;
-import gyro.lang.query.Query;
-import gyro.lang.query.QueryVisitor;
+package gyro.core.resource;
 
 import java.util.List;
+
+import com.google.common.collect.ImmutableList;
+import gyro.lang.query.Query;
+import gyro.lang.query.QueryVisitor;
 
 public class FoundQuery extends Query {
 

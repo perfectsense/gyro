@@ -1,11 +1,11 @@
 package gyro.core.plugin;
 
-import gyro.core.resource.ResourceType;
-import gyro.core.resource.ResourceFinder;
-
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
+
+import gyro.core.resource.ResourceFinder;
+import gyro.core.resource.ResourceType;
 
 public abstract class Provider extends Plugin {
 

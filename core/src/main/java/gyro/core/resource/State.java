@@ -1,4 +1,4 @@
-package gyro.core.scope;
+package gyro.core.resource;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -19,12 +19,8 @@ import com.google.common.collect.ImmutableSet;
 import gyro.core.FileBackend;
 import gyro.core.diff.Change;
 import gyro.core.diff.Delete;
-import gyro.core.diff.Diffable;
-import gyro.core.diff.DiffableField;
-import gyro.core.diff.DiffableType;
 import gyro.core.diff.Replace;
 import gyro.core.plugin.PluginLoader;
-import gyro.core.resource.Resource;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.NodePrinter;
 import gyro.lang.ast.PairNode;

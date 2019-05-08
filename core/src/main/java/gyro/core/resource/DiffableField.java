@@ -1,14 +1,4 @@
-package gyro.core.diff;
-
-import com.google.common.base.CaseFormat;
-import com.psddev.dari.util.ConversionException;
-import com.psddev.dari.util.Converter;
-import com.psddev.dari.util.ObjectUtils;
-import gyro.core.GyroException;
-import gyro.core.resource.ResourceOutput;
-import gyro.core.resource.ResourceUpdatable;
-import gyro.lang.ast.Node;
-import gyro.core.resource.Resource;
+package gyro.core.resource;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -17,6 +7,13 @@ import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
+
+import com.google.common.base.CaseFormat;
+import com.psddev.dari.util.ConversionException;
+import com.psddev.dari.util.Converter;
+import com.psddev.dari.util.ObjectUtils;
+import gyro.core.GyroException;
+import gyro.lang.ast.Node;
 
 public class DiffableField {
 

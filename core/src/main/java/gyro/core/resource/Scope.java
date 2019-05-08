@@ -1,4 +1,4 @@
-package gyro.core.scope;
+package gyro.core.resource;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import gyro.core.resource.Resource;
 import gyro.lang.ast.Node;
 
 public class Scope implements Map<String, Object> {

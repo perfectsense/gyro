@@ -1,12 +1,5 @@
 package gyro.core.command;
 
-import com.google.common.base.Charsets;
-import com.psddev.dari.util.IoUtils;
-import gyro.core.GyroCore;
-import gyro.core.GyroException;
-import io.airlift.airline.Arguments;
-import io.airlift.airline.Command;
-
 import java.io.BufferedWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -14,6 +7,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.google.common.base.Charsets;
+import com.psddev.dari.util.IoUtils;
+import gyro.core.GyroCore;
+import gyro.core.GyroException;
+import io.airlift.airline.Arguments;
+import io.airlift.airline.Command;
 
 @Command(name = "init", description = "Initialize a Gyro working directory.")
 public class InitCommand extends AbstractCommand {

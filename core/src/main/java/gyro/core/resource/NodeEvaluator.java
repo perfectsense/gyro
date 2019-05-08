@@ -1,4 +1,4 @@
-package gyro.core.scope;
+package gyro.core.resource;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -15,16 +15,11 @@ import com.psddev.dari.util.TypeDefinition;
 import gyro.core.Credentials;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
-import gyro.core.diff.DiffableField;
-import gyro.core.diff.DiffableType;
 import gyro.core.plugin.PluginLoader;
-import gyro.core.resource.Resource;
-import gyro.core.resource.ResourceFinder;
-import gyro.core.workflow.Workflow;
 import gyro.lang.GyroLanguageException;
-import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.DirectiveNode;
 import gyro.lang.ast.Node;
+import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.PairNode;
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;

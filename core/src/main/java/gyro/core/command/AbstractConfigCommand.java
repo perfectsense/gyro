@@ -1,19 +1,5 @@
 package gyro.core.command;
 
-import com.psddev.dari.util.ObjectUtils;
-import gyro.core.GyroCore;
-import gyro.core.GyroException;
-import gyro.core.LocalFileBackend;
-import gyro.core.diff.DiffableType;
-import gyro.lang.GyroLanguageException;
-import gyro.core.Credentials;
-import gyro.core.resource.Resource;
-import gyro.core.scope.FileScope;
-import gyro.core.scope.RootScope;
-import gyro.core.scope.State;
-import io.airlift.airline.Arguments;
-import io.airlift.airline.Option;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -23,6 +9,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import com.psddev.dari.util.ObjectUtils;
+import gyro.core.Credentials;
+import gyro.core.GyroCore;
+import gyro.core.GyroException;
+import gyro.core.LocalFileBackend;
+import gyro.core.resource.DiffableType;
+import gyro.core.resource.FileScope;
+import gyro.core.resource.Resource;
+import gyro.core.resource.RootScope;
+import gyro.core.resource.State;
+import gyro.lang.GyroLanguageException;
+import io.airlift.airline.Arguments;
+import io.airlift.airline.Option;
 
 public abstract class AbstractConfigCommand extends AbstractCommand {
 

@@ -1,4 +1,4 @@
-package gyro.core.scope;
+package gyro.core.resource;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,9 +16,6 @@ import java.util.stream.Stream;
 import gyro.core.Credentials;
 import gyro.core.FileBackend;
 import gyro.core.GyroException;
-import gyro.core.resource.Resource;
-import gyro.core.resource.ResourceFinder;
-import gyro.core.workflow.Workflow;
 import gyro.lang.GyroErrorListener;
 import gyro.lang.GyroErrorStrategy;
 import gyro.lang.GyroLanguageException;

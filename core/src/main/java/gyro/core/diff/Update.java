@@ -4,8 +4,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import gyro.core.GyroUI;
+import gyro.core.resource.Diffable;
+import gyro.core.resource.DiffableField;
 import gyro.core.resource.Resource;
-import gyro.core.scope.State;
+import gyro.core.resource.State;
 
 public class Update extends Change {
 
@@ -32,8 +34,8 @@ public class Update extends Change {
 
         } else {
             ui.write(" (change %s)", changedFields.stream()
-                    .map(DiffableField::getName)
-                    .collect(Collectors.joining(", ")));
+                .map(DiffableField::getName)
+                .collect(Collectors.joining(", ")));
         }
     }
 
@@ -53,10 +55,10 @@ public class Update extends Change {
     public boolean execute(GyroUI ui, State state) {
         if (!state.isTest()) {
             ((Resource) pendingDiffable).update(
-                    (Resource) currentDiffable,
-                    changedFields.stream()
-                            .map(DiffableField::getName)
-                            .collect(Collectors.toSet()));
+                (Resource) currentDiffable,
+                changedFields.stream()
+                    .map(DiffableField::getName)
+                    .collect(Collectors.toSet()));
         }
 
         return true;

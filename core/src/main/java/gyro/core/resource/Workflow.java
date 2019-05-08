@@ -1,4 +1,4 @@
-package gyro.core.workflow;
+package gyro.core.resource;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -7,13 +7,8 @@ import java.util.Set;
 
 import gyro.core.GyroUI;
 import gyro.core.diff.Diff;
-import gyro.core.resource.Resource;
-import gyro.core.scope.NodeEvaluator;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.ResourceNode;
-import gyro.core.scope.RootScope;
-import gyro.core.scope.Scope;
-import gyro.core.scope.State;
 
 public class Workflow {
 

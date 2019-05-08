@@ -1,9 +1,20 @@
 package gyro.core.plugin;
 
+import java.io.File;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+
+import com.psddev.dari.util.StringUtils;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
-import gyro.core.scope.Scope;
-import com.psddev.dari.util.StringUtils;
+import gyro.core.resource.Scope;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
@@ -25,17 +36,6 @@ import org.eclipse.aether.transport.file.FileTransporterFactory;
 import org.eclipse.aether.transport.http.HttpTransporterFactory;
 import org.eclipse.aether.util.artifact.JavaScopes;
 import org.eclipse.aether.util.filter.DependencyFilterUtils;
-
-import java.io.File;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 
 public class PluginLoader {
 

@@ -1,4 +1,4 @@
-package gyro.core.diff;
+package gyro.core.resource;
 
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -15,9 +15,6 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import gyro.core.resource.ResourceId;
-import gyro.core.resource.ResourceType;
-import gyro.core.resource.ResourceNamespace;
 
 public class DiffableType<R extends Diffable> {
 

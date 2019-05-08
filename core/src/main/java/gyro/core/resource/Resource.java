@@ -5,10 +5,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import gyro.core.Credentials;
-import gyro.core.diff.Diffable;
-import gyro.core.diff.DiffableField;
-import gyro.core.diff.DiffableType;
-import gyro.core.scope.Scope;
 
 public abstract class Resource extends Diffable {
 

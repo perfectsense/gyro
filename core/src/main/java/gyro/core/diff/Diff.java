@@ -11,11 +11,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import gyro.core.GyroUI;
 import gyro.core.Credentials;
+import gyro.core.GyroUI;
+import gyro.core.resource.Diffable;
+import gyro.core.resource.DiffableField;
+import gyro.core.resource.DiffableScope;
+import gyro.core.resource.DiffableType;
 import gyro.core.resource.Resource;
-import gyro.core.scope.DiffableScope;
-import gyro.core.scope.State;
+import gyro.core.resource.State;
 
 public class Diff {
 
@@ -25,22 +28,22 @@ public class Diff {
 
     public Diff(Collection<? extends Diffable> currentDiffables, Collection<? extends Diffable> pendingDiffables) {
         this.currentDiffables = currentDiffables != null
-                ? new ArrayList<>(currentDiffables)
-                : Collections.emptyList();
+            ? new ArrayList<>(currentDiffables)
+            : Collections.emptyList();
 
         this.pendingDiffables = pendingDiffables != null
-                ? new ArrayList<>(pendingDiffables)
-                : Collections.emptyList();
+            ? new ArrayList<>(pendingDiffables)
+            : Collections.emptyList();
     }
 
     public Diff(Diffable currentDiffable, Diffable pendingDiffable) {
         this.currentDiffables = currentDiffable != null
-                ? Collections.singletonList(currentDiffable)
-                : Collections.emptyList();
+            ? Collections.singletonList(currentDiffable)
+            : Collections.emptyList();
 
         this.pendingDiffables = pendingDiffable != null
-                ? Collections.singletonList(pendingDiffable)
-                : Collections.emptyList();
+            ? Collections.singletonList(pendingDiffable)
+            : Collections.emptyList();
     }
 
     public List<Change> getChanges() {
@@ -60,8 +63,8 @@ public class Diff {
             Diffable currentDiffable = currentDiffables.remove(pendingDiffable.primaryKey());
 
             changes.add(currentDiffable == null
-                    ? newCreate(pendingDiffable)
-                    : newUpdate(currentDiffable, pendingDiffable));
+                ? newCreate(pendingDiffable)
+                : newUpdate(currentDiffable, pendingDiffable));
         }
 
         for (Diffable resource : currentDiffables.values()) {
@@ -163,7 +166,7 @@ public class Diff {
         for (Diff diff : diffs) {
             for (Change change : diff.getChanges()) {
                 if (!(change instanceof Keep)
-                        && !(change.getDiffable() instanceof Resource)) {
+                    && !(change.getDiffable() instanceof Resource)) {
 
                     return true;
                 }
@@ -336,7 +339,7 @@ public class Diff {
     }
 
     public void executeDelete(GyroUI ui, State state) throws Exception {
-        for (ListIterator<Change> j = getChanges().listIterator(getChanges().size()); j.hasPrevious();) {
+        for (ListIterator<Change> j = getChanges().listIterator(getChanges().size()); j.hasPrevious(); ) {
             Change change = j.previous();
 
             for (Diff d : change.getDiffs()) {

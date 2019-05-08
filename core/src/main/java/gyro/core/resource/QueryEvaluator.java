@@ -1,4 +1,4 @@
-package gyro.core.scope;
+package gyro.core.resource;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,12 +9,6 @@ import java.util.stream.Collectors;
 
 import gyro.core.Credentials;
 import gyro.core.GyroException;
-import gyro.core.diff.DiffableField;
-import gyro.core.diff.DiffableType;
-import gyro.core.resource.Resource;
-import gyro.core.resource.ResourceFinder;
-import gyro.core.resource.ResourceFinderField;
-import gyro.core.resource.ResourceFinderType;
 import gyro.lang.query.AndQuery;
 import gyro.lang.query.ComparisonQuery;
 import gyro.lang.query.OrQuery;
