@@ -37,7 +37,7 @@ public abstract class Resource extends Diffable {
 
     public Credentials resourceCredentials() {
         for (Resource r = this; r != null; r = r.parentResource()) {
-            Scope scope = r.scope();
+            Scope scope = r.scope;
 
             if (scope != null) {
                 String name = (String) scope.get("resource-credentials");

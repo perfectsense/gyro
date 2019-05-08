@@ -119,7 +119,8 @@ public class DiffableField {
 
     @SuppressWarnings("unchecked")
     public void setValue(Diffable diffable, Object value) {
-        Node node = diffable.scope() != null ? diffable.scope().getKeyNodes().get(getName()) : null;
+        Scope scope = diffable.scope;
+        Node node = scope != null ? scope.getKeyNodes().get(getName()) : null;
 
         try {
             if (value instanceof Collection

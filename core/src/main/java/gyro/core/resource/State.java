@@ -101,7 +101,7 @@ public class State {
             }
 
         } else {
-            FileScope state = states.get(resource.scope().getFileScope().getFile());
+            FileScope state = states.get(resource.scope.getFileScope().getFile());
 
             if (typeRoot) {
                 state.put(resource.primaryKey(), resource);

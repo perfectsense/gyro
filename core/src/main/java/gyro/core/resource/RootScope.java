@@ -100,7 +100,7 @@ public class RootScope extends FileScope {
             .map(Resource.class::cast);
 
         if (diffFiles != null && diffFiles.isEmpty()) {
-            stream = stream.filter(r -> diffFiles.contains(r.scope().getFileScope().getFile()));
+            stream = stream.filter(r -> diffFiles.contains(r.scope.getFileScope().getFile()));
         }
 
         return stream.collect(Collectors.toList());
@@ -182,7 +182,7 @@ public class RootScope extends FileScope {
         for (Resource resource : findResources()) {
             String fullName = resource.primaryKey();
             duplicateResources.putIfAbsent(fullName, new ArrayList<>());
-            duplicateResources.get(fullName).add(resource.scope().getFileScope().getFile());
+            duplicateResources.get(fullName).add(resource.scope.getFileScope().getFile());
         }
 
         for (Map.Entry<String, List<String>> entry : duplicateResources.entrySet()) {
