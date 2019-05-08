@@ -1,4 +1,4 @@
-package gyro.core.diff;
+package gyro.core.resource;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -9,10 +9,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import gyro.core.GyroUI;
-import gyro.core.scope.State;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
+import gyro.core.GyroUI;
 
 public abstract class Change {
 
@@ -34,14 +33,14 @@ public abstract class Change {
     protected String stringify(Object value) {
         if (value instanceof Collection) {
             return "[ " + ((Collection<?>) value).stream()
-                    .map(this::stringify)
-                    .collect(Collectors.joining(", ")) + " ]";
+                .map(this::stringify)
+                .collect(Collectors.joining(", ")) + " ]";
 
         } else if (value instanceof Map) {
             return "{ " + ((Map<?, ?>) value).entrySet()
-                    .stream()
-                    .map(e -> e.getKey() + ": " + stringify(e.getValue()))
-                    .collect(Collectors.joining(", ")) + " }";
+                .stream()
+                .map(e -> e.getKey() + ": " + stringify(e.getValue()))
+                .collect(Collectors.joining(", ")) + " }";
 
         } else if (value instanceof String) {
             return "'" + value + "'";
@@ -52,21 +51,23 @@ public abstract class Change {
     }
 
     protected void writeDifference(
-            GyroUI ui,
-            DiffableField field,
-            Diffable currentDiffable,
-            Diffable pendingDiffable) {
+        GyroUI ui,
+        DiffableField field,
+        Diffable currentDiffable,
+        Diffable pendingDiffable) {
 
-        ui.write("\n· %s: ", field.getGyroName());
+        ui.write("\n· %s: ", field.getName());
 
         Object currentValue = field.getValue(currentDiffable);
         Object pendingValue = field.getValue(pendingDiffable);
 
         if ((currentValue == null || currentValue instanceof Collection)
-                && (pendingValue == null || pendingValue instanceof Collection)) {
+            && (pendingValue == null || pendingValue instanceof Collection)) {
 
-            List<?> currentList = currentValue != null ? new ArrayList<>((Collection<?>) currentValue) : new ArrayList<>();
-            List<?> pendingList = pendingValue != null ? new ArrayList<>((Collection<?>) pendingValue) : new ArrayList<>();
+            List<?> currentList =
+                currentValue != null ? new ArrayList<>((Collection<?>) currentValue) : new ArrayList<>();
+            List<?> pendingList =
+                pendingValue != null ? new ArrayList<>((Collection<?>) pendingValue) : new ArrayList<>();
             int currentListSize = currentList.size();
             int pendingListSize = pendingList.size();
 
@@ -93,7 +94,7 @@ public abstract class Change {
             }
 
         } else if ((currentValue == null || currentValue instanceof Map)
-                && (pendingValue == null || pendingValue instanceof Map)) {
+            && (pendingValue == null || pendingValue instanceof Map)) {
 
             if (currentValue == null) {
                 writeMapPut(ui, (Map<?, ?>) pendingValue);
@@ -111,9 +112,9 @@ public abstract class Change {
                     " @|yellow ⟳ {|@ %s @|yellow }|@",
                     diff.entriesDiffering(),
                     e -> String.format(
-                            "%s → %s",
-                            stringify(e.leftValue()),
-                            stringify(e.rightValue())));
+                        "%s → %s",
+                        stringify(e.leftValue()),
+                        stringify(e.rightValue())));
 
                 writeMapPut(ui, diff.entriesOnlyOnRight());
             }
@@ -129,9 +130,9 @@ public abstract class Change {
         }
 
         ui.write(message, map.entrySet()
-                .stream()
-                .map(e -> e.getKey() + ": " + valueFunction.apply(e.getValue()))
-                .collect(Collectors.joining(", ")));
+            .stream()
+            .map(e -> e.getKey() + ": " + valueFunction.apply(e.getValue()))
+            .collect(Collectors.joining(", ")));
     }
 
     private void writeMapPut(GyroUI ui, Map<?, ?> map) {

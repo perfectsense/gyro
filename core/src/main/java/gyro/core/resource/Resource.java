@@ -1,24 +1,12 @@
 package gyro.core.resource;
 
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import gyro.core.diff.Diffable;
-import gyro.core.diff.DiffableField;
-import gyro.core.diff.DiffableType;
 import gyro.core.Credentials;
-import gyro.lang.ast.block.ResourceNode;
-import gyro.core.scope.Scope;
-import gyro.lang.ast.value.ValueNode;
 
 public abstract class Resource extends Diffable {
-
-    private String type;
-    private String name;
-
-    // -- Resource Implementation API
 
     public abstract boolean refresh();
 
@@ -39,15 +27,13 @@ public abstract class Resource extends Diffable {
         }
     }
 
-    public abstract void update(Resource current, Set<String> changedProperties);
+    public abstract void update(Resource current, Set<String> changedFieldNames);
 
     public abstract void delete();
 
-    public abstract Class resourceCredentialsClass();
-
     public Credentials resourceCredentials() {
         for (Resource r = this; r != null; r = r.parentResource()) {
-            Scope scope = r.scope();
+            Scope scope = r.scope;
 
             if (scope != null) {
                 String name = (String) scope.get("resource-credentials");
@@ -60,7 +46,7 @@ public abstract class Resource extends Diffable {
                     if (resource instanceof Credentials) {
                         Credentials credentials = (Credentials) resource;
 
-                        if (credentials.resourceIdentifier().equals(name)) {
+                        if (credentials.name().equals(name)) {
                             return credentials;
                         }
                     }
@@ -71,75 +57,10 @@ public abstract class Resource extends Diffable {
         throw new IllegalStateException();
     }
 
-    // -- Diff Engine
-
-    public String primaryKey() {
-        return String.format("%s %s", resourceType(), resourceIdentifier());
-    }
-
-    // -- Base Resource
-
     public Object get(String key) {
-        return Optional.ofNullable(DiffableType.getInstance(getClass()).getFieldByGyroName(key))
+        return Optional.ofNullable(DiffableType.getInstance(getClass()).getField(key))
                 .map(f -> f.getValue(this))
                 .orElse(null);
-    }
-
-    public String resourceType() {
-        if (type == null) {
-            ResourceName name = getClass().getAnnotation(ResourceName.class);
-            return name != null ? name.value() : null;
-        }
-
-        return type;
-    }
-
-    public void resourceType(String type) {
-        this.type = type;
-    }
-
-    public String resourceIdentifier() {
-        return name;
-    }
-
-    public void resourceIdentifier(String name) {
-        this.name = name;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        Resource that = (Resource) o;
-
-        return Objects.equals(primaryKey(), that.primaryKey());
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(primaryKey());
-    }
-
-    public ResourceNode toNode() {
-        return new ResourceNode(
-            resourceType(),
-            new ValueNode(resourceIdentifier()),
-            toBodyNodes());
-    }
-
-    @Override
-    public String toString() {
-        if (resourceIdentifier() == null) {
-            return String.format("Resource[type: %s]", resourceType());
-        }
-
-        return String.format("Resource[type: %s, id: %s]", resourceType(), resourceIdentifier());
     }
 
 }

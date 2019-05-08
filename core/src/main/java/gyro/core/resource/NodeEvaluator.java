@@ -1,4 +1,4 @@
-package gyro.core.scope;
+package gyro.core.resource;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -11,20 +11,16 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.google.common.collect.ImmutableSet;
 import com.psddev.dari.util.TypeDefinition;
 import gyro.core.Credentials;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
-import gyro.core.diff.DiffableField;
-import gyro.core.diff.DiffableType;
 import gyro.core.plugin.PluginLoader;
-import gyro.core.resource.Resource;
-import gyro.core.resource.ResourceFinder;
-import gyro.core.workflow.Workflow;
 import gyro.lang.GyroLanguageException;
-import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.DirectiveNode;
 import gyro.lang.ast.Node;
+import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.PairNode;
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;
@@ -218,7 +214,9 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
         Optional.ofNullable(scope.getRootScope().getCurrent())
                 .map(s -> s.findResource(fullName))
                 .ifPresent(r -> {
-                    Set<String> configuredFields = r.configuredFields();
+                    Set<String> configuredFields = r.configuredFields != null
+                        ? r.configuredFields
+                        : ImmutableSet.of();
 
                     for (DiffableField f : DiffableType.getInstance(r.getClass()).getFields()) {
 
@@ -228,7 +226,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
                             continue;
                         }
 
-                        String key = f.getGyroName();
+                        String key = f.getName();
 
                         // Skip over fields that were previously configured
                         // so that their removals can be detected by the
@@ -259,7 +257,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
             }
 
             for (DiffableField field : DiffableType.getInstance(anotherResource.getClass()).getFields()) {
-                bodyScope.putIfAbsent(field.getGyroName(), field.getValue(anotherResource));
+                bodyScope.putIfAbsent(field.getName(), field.getValue(anotherResource));
             }
 
         } else if (another instanceof Map) {
@@ -301,9 +299,8 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
                     : new RuntimeException(cause);
         }
 
-        resource.resourceType(type);
-        resource.resourceIdentifier(name);
-        resource.scope(bodyScope);
+        resource.name = name;
+        resource.scope = bodyScope;
         resource.initialize(another != null ? new LinkedHashMap<>(bodyScope) : bodyScope);
         scope.getFileScope().put(fullName, resource);
 
@@ -340,7 +337,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
         paramRootScope.findResources()
                 .stream()
                 .filter(Credentials.class::isInstance)
-                .forEach(c -> vrScope.put(c.resourceType() + "::" + c.resourceIdentifier(), c));
+                .forEach(c -> vrScope.put(c.primaryKey(), c));
 
         for (Node item : node.getBody()) {
             visit(item, resourceScope);
@@ -348,10 +345,8 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
         for (Resource resource : vrScope.findResources()) {
             if (!(resource instanceof Credentials)) {
-                String newId = prefix + "." + resource.resourceIdentifier();
-
-                resource.resourceIdentifier(newId);
-                paramFileScope.put(resource.resourceType() + "::" + newId, resource);
+                resource.name = prefix + "." + resource.name;
+                paramFileScope.put(resource.primaryKey(), resource);
             }
         }
     }
@@ -538,11 +533,14 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
             } else if (name.endsWith("*")) {
                 RootScope rootScope = scope.getRootScope();
-                Stream<Resource> s = rootScope.findResources().stream().filter(r -> type.equals(r.resourceType()));
+
+                Stream<Resource> s = rootScope.findResources()
+                    .stream()
+                    .filter(r -> type.equals(DiffableType.getInstance(r.getClass()).getName()));
 
                 if (!name.equals("*")) {
                     String prefix = name.substring(0, name.length() - 1);
-                    s = s.filter(r -> r.resourceIdentifier().startsWith(prefix));
+                    s = s.filter(r -> r.name().startsWith(prefix));
                 }
 
                 resources = s.collect(Collectors.toList());
@@ -557,7 +555,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
                 if (path != null) {
                     if (DiffableType.getInstance(resource.getClass()).getFields().stream()
-                            .map(DiffableField::getGyroName)
+                            .map(DiffableField::getName)
                             .anyMatch(path::equals)) {
 
                         return resource.get(path);
@@ -586,7 +584,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
             Stream<Resource> s = scope.getRootScope()
                     .findResources()
                     .stream()
-                    .filter(r -> type.equals(r.resourceType()));
+                    .filter(r -> type.equals(DiffableType.getInstance(r.getClass()).getName()));
 
             if (path != null) {
                 return s.map(r -> r.get(path))

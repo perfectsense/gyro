@@ -1,8 +1,6 @@
-package gyro.core.scope;
+package gyro.core.resource;
 
 import java.util.List;
-
-import gyro.core.resource.Resource;
 
 public class QueryContext {
 

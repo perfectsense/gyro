@@ -1,27 +1,31 @@
 package gyro.core.command;
 
-import com.psddev.dari.util.ObjectUtils;
-import gyro.core.GyroCore;
-import gyro.core.GyroException;
-import gyro.core.LocalFileBackend;
-import gyro.lang.GyroLanguageException;
-import gyro.core.Credentials;
-import gyro.core.resource.Resource;
-import gyro.core.scope.FileScope;
-import gyro.core.scope.RootScope;
-import gyro.core.scope.State;
-import io.airlift.airline.Arguments;
-import io.airlift.airline.Option;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import com.psddev.dari.util.ObjectUtils;
+import gyro.core.Credentials;
+import gyro.core.GyroCore;
+import gyro.core.GyroException;
+import gyro.core.LocalFileBackend;
+import gyro.core.resource.Diffable;
+import gyro.core.resource.DiffableField;
+import gyro.core.resource.DiffableType;
+import gyro.core.resource.FileScope;
+import gyro.core.resource.Resource;
+import gyro.core.resource.RootScope;
+import gyro.core.resource.State;
+import gyro.lang.GyroLanguageException;
+import io.airlift.airline.Arguments;
+import io.airlift.airline.Option;
 
 public abstract class AbstractConfigCommand extends AbstractCommand {
 
@@ -149,10 +153,13 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
                     GyroCore.ui().write(
                         "@|bold,blue Refreshing|@: @|yellow %s|@ -> %s...",
-                        resource.resourceType(),
-                        resource.resourceIdentifier());
+                        DiffableType.getInstance(resource.getClass()).getName(),
+                        resource.name());
 
-                    if (!resource.refresh()) {
+                    if (resource.refresh()) {
+                        resource.updateInternals();
+
+                    } else {
                         i.remove();
                     }
 

@@ -1,4 +1,4 @@
-package gyro.core.scope;
+package gyro.core.resource;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,12 +9,6 @@ import java.util.stream.Collectors;
 
 import gyro.core.Credentials;
 import gyro.core.GyroException;
-import gyro.core.diff.DiffableField;
-import gyro.core.diff.DiffableType;
-import gyro.core.resource.Resource;
-import gyro.core.resource.ResourceFinder;
-import gyro.core.resource.ResourceFinderField;
-import gyro.core.resource.ResourceFinderType;
 import gyro.lang.query.AndQuery;
 import gyro.lang.query.ComparisonQuery;
 import gyro.lang.query.OrQuery;
@@ -135,7 +129,7 @@ public class QueryEvaluator implements QueryVisitor<QueryContext, List<Resource>
                 if (resource instanceof Credentials) {
                     Credentials credentials = (Credentials) resource;
 
-                    if (credentials.resourceIdentifier().equals(name)) {
+                    if (credentials.name().equals(name)) {
                         return credentials;
                     }
                 }
@@ -166,7 +160,7 @@ public class QueryEvaluator implements QueryVisitor<QueryContext, List<Resource>
             boolean validQuery = false;
 
             for (DiffableField field : DiffableType.getInstance(resourceClass).getFields()) {
-                String key = field.getGyroName();
+                String key = field.getName();
 
                 if (key.equals(path)) {
                     validQuery = true;
@@ -186,13 +180,13 @@ public class QueryEvaluator implements QueryVisitor<QueryContext, List<Resource>
         if (ComparisonQuery.EQUALS_OPERATOR.equals(operator)) {
             return resources.stream()
                 .filter(r -> Objects.equals(
-                    DiffableType.getInstance(r.getClass()).getFieldByGyroName(path).getValue(r), comparisonValue))
+                    DiffableType.getInstance(r.getClass()).getField(path).getValue(r), comparisonValue))
                 .collect(Collectors.toList());
 
         } else if (ComparisonQuery.NOT_EQUALS_OPERATOR.equals(operator)) {
             return resources.stream()
                 .filter(r -> !Objects.equals(
-                    DiffableType.getInstance(r.getClass()).getFieldByGyroName(path).getValue(r), comparisonValue))
+                    DiffableType.getInstance(r.getClass()).getField(path).getValue(r), comparisonValue))
                 .collect(Collectors.toList());
 
         } else {
