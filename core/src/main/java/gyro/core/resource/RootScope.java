@@ -47,9 +47,6 @@ public class RootScope extends FileScope {
 
         try (Stream<String> s = backend.list()) {
             this.loadFiles = (loadFiles != null ? s.filter(loadFiles::contains) : s).collect(Collectors.toSet());
-
-        } catch (Exception error) {
-            throw new GyroException("Can't list files from the file backend!");
         }
 
         put("ENV", System.getenv());
