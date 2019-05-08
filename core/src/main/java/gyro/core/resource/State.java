@@ -113,7 +113,7 @@ public class State {
     }
 
     private void updateSubresource(Resource parent, Resource subresource, boolean delete) {
-        DiffableField field = DiffableType.getInstance(parent.getClass()).getFieldByName(subresource.name());
+        DiffableField field = DiffableType.getInstance(parent.getClass()).getField(subresource.name());
         Object value = field.getValue(parent);
 
         if (value instanceof Collection) {

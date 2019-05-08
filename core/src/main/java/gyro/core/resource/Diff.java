@@ -147,7 +147,7 @@ public class Diff {
             .map(Change::getDiffable)
             .filter(d -> !(d instanceof Resource))
             .map(Diffable::name)
-            .map(type::getFieldByName)
+            .map(type::getField)
             .forEach(changedFields::add);
 
         Change change;

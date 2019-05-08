@@ -155,7 +155,7 @@ public class DiffableType<R extends Diffable> {
         return fields;
     }
 
-    public DiffableField getFieldByName(String name) {
+    public DiffableField getField(String name) {
         return fieldByName.get(name);
     }
 
