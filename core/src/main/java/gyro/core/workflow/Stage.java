@@ -87,7 +87,7 @@ public class Stage {
         Scope executeScope = new Scope(pendingRootScope);
         NodeEvaluator evaluator = executeScope.getRootScope().getEvaluator();
 
-        executeScope.put("NAME", pendingResource.resourceIdentifier());
+        executeScope.put("NAME", pendingResource.name());
         executeScope.put("PENDING", pendingResource.scope().resolve());
 
         for (Node change : changes) {

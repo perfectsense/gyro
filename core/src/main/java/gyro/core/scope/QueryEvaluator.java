@@ -135,7 +135,7 @@ public class QueryEvaluator implements QueryVisitor<QueryContext, List<Resource>
                 if (resource instanceof Credentials) {
                     Credentials credentials = (Credentials) resource;
 
-                    if (credentials.resourceIdentifier().equals(name)) {
+                    if (credentials.name().equals(name)) {
                         return credentials;
                     }
                 }

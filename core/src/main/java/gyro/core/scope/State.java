@@ -73,38 +73,34 @@ public class State {
         }
 
         Resource resource = (Resource) diffable;
+        boolean typeRoot = DiffableType.getInstance(resource.getClass()).isRoot();
 
         // Delete goes through every state to remove the resource.
         if (change instanceof Delete) {
-            String key = resource.resourceIdentifier();
-
-            // Subresource?
-            if (key == null) {
-                states.values()
-                        .stream()
-                        .flatMap(s -> s.values().stream())
-                        .filter(Resource.class::isInstance)
-                        .map(Resource.class::cast)
-                        .filter(r -> r.equals(resource.parentResource()))
-                        .forEach(r -> updateSubresource(r, resource, true));
-
-            } else {
+            if (typeRoot) {
                 for (FileScope state : states.values()) {
                     state.remove(resource.primaryKey());
                 }
+
+            } else {
+                states.values()
+                    .stream()
+                    .flatMap(s -> s.values().stream())
+                    .filter(Resource.class::isInstance)
+                    .map(Resource.class::cast)
+                    .filter(r -> r.equals(resource.parentResource()))
+                    .forEach(r -> updateSubresource(r, resource, true));
             }
 
         } else {
-            String key = resource.resourceIdentifier();
             FileScope state = states.get(resource.scope().getFileScope().getFile());
 
-            // Subresource?
-            if (key == null) {
-                Resource parent = resource.parentResource();
-                updateSubresource((Resource) state.get(parent.primaryKey()), resource, false);
+            if (typeRoot) {
+                state.put(resource.primaryKey(), resource);
 
             } else {
-                state.put(resource.primaryKey(), resource);
+                Resource parent = resource.parentResource();
+                updateSubresource((Resource) state.get(parent.primaryKey()), resource, false);
             }
         }
 
@@ -138,7 +134,7 @@ public class State {
     }
 
     private void updateSubresource(Resource parent, Resource subresource, boolean delete) {
-        DiffableField field = DiffableType.getInstance(parent.getClass()).getFieldByName(subresource.getParentFieldName());
+        DiffableField field = DiffableType.getInstance(parent.getClass()).getFieldByName(subresource.name());
         Object value = field.getValue(parent);
 
         if (value instanceof Collection) {
@@ -193,8 +189,8 @@ public class State {
             Resource x = (Resource) xScope.get(xFullName);
             Resource y = (Resource) yScope.get(yFullName);
 
-            x.resourceIdentifier(yName);
-            y.resourceIdentifier(xName);
+            x.name(yName);
+            y.name(xName);
             xScope.put(xFullName, y);
             yScope.put(yFullName, x);
         }

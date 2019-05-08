@@ -8,30 +8,32 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.google.common.collect.ImmutableSet;
 import com.psddev.dari.util.TypeDefinition;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.resource.Resource;
-import gyro.lang.ast.PairNode;
-import gyro.lang.ast.Node;
-import gyro.lang.ast.block.KeyBlockNode;
 import gyro.core.scope.DiffableScope;
 import gyro.core.scope.Scope;
+import gyro.lang.ast.Node;
+import gyro.lang.ast.PairNode;
+import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.value.ListNode;
 import gyro.lang.ast.value.MapNode;
 import gyro.lang.ast.value.ResourceReferenceNode;
-import com.google.common.collect.ImmutableSet;
 import gyro.lang.ast.value.ValueNode;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public abstract class Diffable {
 
     private DiffableScope scope;
     private Diffable parent;
-    private String parentFieldName;
+    private String name;
     private Change change;
     private Set<String> configuredFields;
 
@@ -62,8 +64,12 @@ public abstract class Diffable {
         return null;
     }
 
-    public String getParentFieldName() {
-        return parentFieldName;
+    public String name() {
+        return name;
+    }
+
+    public void name(String name) {
+        this.name = name;
     }
 
     public Change change() {
@@ -189,7 +195,7 @@ public abstract class Diffable {
                     : new RuntimeException(cause);
         }
 
-        diffable.parentFieldName = fieldName;
+        diffable.name = fieldName;
         diffable.scope(scope);
         diffable.parent(this);
         diffable.initialize(scope);
@@ -304,7 +310,7 @@ public abstract class Diffable {
 
             return new ResourceReferenceNode(
                 DiffableType.getInstance(resource.getClass()).getName(),
-                new ValueNode(resource.resourceIdentifier()),
+                new ValueNode(resource.name()),
                 Collections.emptyList(),
                 null);
 
@@ -313,6 +319,37 @@ public abstract class Diffable {
                     "Can't convert an instance of [%s] into a node!",
                     value.getClass().getName()));
         }
+    }
+
+    @Override
+    public final int hashCode() {
+        return Objects.hash(parent(), name(), primaryKey());
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+
+        if (other == null || getClass() != other.getClass()) {
+            return false;
+        }
+
+        Resource otherResource = (Resource) other;
+
+        return Objects.equals(parent(), otherResource.parent())
+            && Objects.equals(name(), otherResource.name())
+            && Objects.equals(primaryKey(), otherResource.primaryKey());
+    }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this)
+            .append("parent", parent())
+            .append("name", name())
+            .append("primaryKey", primaryKey())
+            .build();
     }
 
 }
