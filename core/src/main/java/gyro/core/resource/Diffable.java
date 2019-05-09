@@ -226,11 +226,11 @@ public abstract class Diffable {
             return false;
         }
 
-        Resource otherResource = (Resource) other;
+        Diffable otherDiffable = (Diffable) other;
 
-        return Objects.equals(parent(), otherResource.parent())
-            && Objects.equals(name(), otherResource.name())
-            && Objects.equals(primaryKey(), otherResource.primaryKey());
+        return Objects.equals(parent(), otherDiffable.parent())
+            && Objects.equals(name(), otherDiffable.name())
+            && Objects.equals(primaryKey(), otherDiffable.primaryKey());
     }
 
     @Override
