@@ -1,10 +1,12 @@
 package gyro.core.command;
 
+import java.util.Set;
+
 import gyro.core.GyroCore;
 import gyro.core.GyroUI;
-import gyro.core.diff.Diff;
-import gyro.core.scope.RootScope;
-import gyro.core.scope.State;
+import gyro.core.resource.Diff;
+import gyro.core.resource.RootScope;
+import gyro.core.resource.State;
 import io.airlift.airline.Command;
 
 @Command(name = "up", description = "Updates all resources to match the configuration.")
@@ -16,9 +18,11 @@ public class UpCommand extends AbstractConfigCommand {
 
         ui.write("\n@|bold,white Looking for changes...\n\n|@");
 
+        Set<String> diffFiles = state.getDiffFiles();
+
         Diff diff = new Diff(
-                current.findAllResources(),
-                pending.findAllResources());
+            current.findResourcesIn(diffFiles),
+            pending.findResourcesIn(diffFiles));
 
         diff.diff();
         diff.validate();

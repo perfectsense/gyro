@@ -2,7 +2,7 @@ parser grammar GyroParser;
 
 options { tokenVocab = GyroLexer; }
 
-root
+file
     :
     NEWLINES? statement?
     (NEWLINES statement)*
@@ -19,15 +19,7 @@ statement
     ;
 
 // directive
-directive : AT IDENTIFIER directiveArgument*;
-
-directiveArgument
-    : directiveIdentifier
-    | DOT DOT? (SLASH (DOT DOT? | directiveIdentifier))*
-    | value
-    ;
-
-directiveIdentifier : IDENTIFIER (DOT IDENTIFIER)*;
+directive : AT IDENTIFIER value*;
 
 // resource
 resource

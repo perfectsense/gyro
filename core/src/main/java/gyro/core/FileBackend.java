@@ -1,15 +1,15 @@
 package gyro.core;
 
-import gyro.core.scope.FileScope;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.stream.Stream;
 
-public abstract class FileBackend {
+public interface FileBackend {
 
-    public abstract String name();
+    Stream<String> list();
 
-    public abstract boolean load(FileScope scope) throws Exception;
+    InputStream openInput(String file);
 
-    public abstract void save(FileScope scope) throws Exception;
-
-    public abstract void delete(String path);
+    OutputStream openOutput(String file);
 
 }

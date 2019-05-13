@@ -5,6 +5,14 @@ AWS
 
     aws/index
 
+Azure
+=========
+
+.. toctree::
+
+    azure/index
+
+
 Openstack
 =========
 

@@ -1,0 +1,10 @@
+dependencies {
+    api project(':gyro-parser')
+
+    implementation project(':gyro-util')
+    implementation 'com.google.guava:guava:23.0'
+    implementation 'org.apache.commons:commons-lang3:3.9'
+    implementation 'org.fusesource.jansi:jansi:1.16'
+
+    testImplementation project(':gyro-parser')
+}

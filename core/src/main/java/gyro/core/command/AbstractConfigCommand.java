@@ -1,24 +1,31 @@
 package gyro.core.command;
 
-import gyro.core.GyroCore;
-import gyro.core.GyroException;
-import gyro.core.LocalFileBackend;
-import gyro.lang.GyroLanguageException;
-import gyro.core.Credentials;
-import gyro.core.FileBackend;
-import gyro.core.resource.Resource;
-import gyro.core.scope.FileScope;
-import gyro.core.scope.RootScope;
-import gyro.core.scope.State;
-import com.psddev.dari.util.StringUtils;
-import io.airlift.airline.Arguments;
-import io.airlift.airline.Option;
-
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import com.psddev.dari.util.ObjectUtils;
+import gyro.core.Credentials;
+import gyro.core.GyroCore;
+import gyro.core.GyroException;
+import gyro.core.LocalFileBackend;
+import gyro.core.resource.Diffable;
+import gyro.core.resource.DiffableField;
+import gyro.core.resource.DiffableType;
+import gyro.core.resource.FileScope;
+import gyro.core.resource.Resource;
+import gyro.core.resource.RootScope;
+import gyro.core.resource.State;
+import gyro.lang.GyroLanguageException;
+import io.airlift.airline.Arguments;
+import io.airlift.airline.Option;
 
 public abstract class AbstractConfigCommand extends AbstractCommand {
 
@@ -29,13 +36,9 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
     private boolean test;
 
     @Arguments
-    private List<String> arguments;
+    private List<String> files;
 
     private GyroCore core;
-
-    public List<String> arguments() {
-        return arguments;
-    }
 
     public GyroCore core() {
         return core;
@@ -45,26 +48,50 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
     @Override
     protected void doExecute() throws Exception {
-        if (arguments().size() < 1) {
-            throw new GyroException("Gyro configuration file required.");
+        Path rootDir = GyroCore.getRootDirectory();
+
+        if (rootDir == null) {
+            throw new GyroException("Not a gyro project directory, use 'gyro init <plugins>...' to create one. See 'gyro help init' for detailed usage.");
+        }
+
+        Set<String> loadFiles;
+        Set<String> diffFiles;
+
+        if (ObjectUtils.to(boolean.class, getInit().get("HIGHLANDER"))) {
+            if (files != null) {
+                if (files.size() == 1) {
+                    loadFiles = Collections.singleton(resolve(rootDir, files.get(0)));
+                    diffFiles = null;
+
+                } else {
+                    throw new GyroException("Can't specify more than one file in highlander mode!");
+                }
+
+            } else {
+                throw new GyroException("Must specify a file in highlander mode!");
+            }
+
+        } else if (files != null) {
+            loadFiles = null;
+            diffFiles = files.stream()
+                .map(f -> resolve(rootDir, f))
+                .collect(Collectors.toSet());
+
+        } else {
+            loadFiles = null;
+            diffFiles = null;
         }
 
         core = new GyroCore();
 
-        FileBackend backend = new LocalFileBackend();
-
-        String file = StringUtils.ensureEnd(arguments().get(0), ".gyro");
-        if (!Files.exists(Paths.get(file))) {
-            throw new GyroException(String.format("File '%s' not found.", file));
-        }
-
-        file += ".state";
-
-        RootScope current = new RootScope(file);
-        RootScope pending = new RootScope(current);
+        RootScope current = new RootScope(
+            "../../" + GyroCore.INIT_FILE,
+            new LocalFileBackend(rootDir.resolve(".gyro/state")),
+            null,
+            loadFiles);
 
         try {
-            backend.load(current);
+            current.load();
 
         } catch (GyroLanguageException ex) {
             throw new GyroException(ex.getMessage());
@@ -79,45 +106,65 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             }
         }
 
+        RootScope pending = new RootScope(
+            GyroCore.INIT_FILE,
+            new LocalFileBackend(rootDir),
+            current,
+            loadFiles);
+
         try {
-            backend.load(pending);
+            pending.load();
 
         } catch (GyroLanguageException ex) {
             throw new GyroException(ex.getMessage());
         }
 
-        doExecute(current, pending, new State(pending, test));
+        doExecute(current, pending, new State(current, pending, test, diffFiles));
     }
 
-    private void refreshCredentials(FileScope scope) {
-        scope.getImports().forEach(this::refreshCredentials);
+    private String resolve(Path rootDir, String file) {
+        file = file.endsWith(".gyro")
+            ? rootDir.relativize(Paths.get("").toAbsolutePath().resolve(file)).normalize().toString()
+            : file + ".gyro";
 
+        if (Files.exists(rootDir.resolve(file))) {
+            return file;
+
+        } else {
+            throw new GyroException(String.format("File not found! %s", file));
+        }
+    }
+
+    private void refreshCredentials(RootScope scope) {
         scope.values()
-                .stream()
-                .filter(Credentials.class::isInstance)
-                .map(Credentials.class::cast)
-                .forEach(c -> c.findCredentials(true));
+            .stream()
+            .filter(Credentials.class::isInstance)
+            .map(Credentials.class::cast)
+            .forEach(c -> c.findCredentials(true));
     }
 
-    private void refreshResources(FileScope scope) {
-        scope.getImports().forEach(this::refreshResources);
+    private void refreshResources(RootScope scope) {
+        for (FileScope fileScope : scope.getFileScopes()) {
+            for (Iterator<Map.Entry<String, Object>> i = fileScope.entrySet().iterator(); i.hasNext(); ) {
+                Object value = i.next().getValue();
 
-        for (Iterator<Map.Entry<String, Object>> i = scope.entrySet().iterator(); i.hasNext();) {
-            Object value = i.next().getValue();
+                if (value instanceof Resource && !(value instanceof Credentials)) {
+                    Resource resource = (Resource) value;
 
-            if (value instanceof Resource && !(value instanceof Credentials)) {
-                Resource resource = (Resource) value;
-
-                GyroCore.ui().write(
+                    GyroCore.ui().write(
                         "@|bold,blue Refreshing|@: @|yellow %s|@ -> %s...",
-                        resource.resourceType(),
-                        resource.resourceIdentifier());
+                        DiffableType.getInstance(resource.getClass()).getName(),
+                        resource.name());
 
-                if (!resource.refresh()) {
-                    i.remove();
+                    if (resource.refresh()) {
+                        resource.updateInternals();
+
+                    } else {
+                        i.remove();
+                    }
+
+                    GyroCore.ui().write("\n");
                 }
-
-                GyroCore.ui().write("\n");
             }
         }
     }
