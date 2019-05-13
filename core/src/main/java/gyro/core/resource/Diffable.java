@@ -229,9 +229,15 @@ public abstract class Diffable {
 
         Diffable otherDiffable = (Diffable) other;
 
-        return Objects.equals(parent(), otherDiffable.parent())
-            && Objects.equals(name(), otherDiffable.name())
-            && Objects.equals(primaryKey(), otherDiffable.primaryKey());
+        if (external) {
+            DiffableField idField = DiffableType.getInstance(getClass()).getIdField();
+            return Objects.equals(idField.getValue(this), idField.getValue(otherDiffable));
+
+        } else {
+            return Objects.equals(parent(), otherDiffable.parent())
+                && Objects.equals(name(), otherDiffable.name())
+                && Objects.equals(primaryKey(), otherDiffable.primaryKey());
+        }
     }
 
     @Override
