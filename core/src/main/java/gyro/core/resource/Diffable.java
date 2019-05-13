@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableSet;
-import com.psddev.dari.util.TypeDefinition;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.lang.ast.Node;
@@ -49,25 +48,12 @@ public abstract class Diffable {
         return change;
     }
 
-    public <T extends Resource> Stream<T> findByType(Class<T> resourceClass) {
-        return scope.getRootScope()
-            .findResources()
-            .stream()
-            .filter(resourceClass::isInstance)
-            .map(resourceClass::cast);
+    public <T extends Resource> Stream<T> findByClass(Class<T> resourceClass) {
+        return scope.getRootScope().findResourcesByClass(resourceClass);
     }
 
-    public <T extends Resource> T findById(Class<T> resourceClass, String id) {
-        DiffableField idField = DiffableType.getInstance(resourceClass).getIdField();
-
-        return findByType(resourceClass)
-            .filter(r -> id.equals(idField.getValue(r)))
-            .findFirst()
-            .orElseGet(() -> {
-                T r = TypeDefinition.getInstance(resourceClass).newInstance();
-                idField.setValue(r, id);
-                return r;
-            });
+    public <T extends Resource> T findById(Class<T> resourceClass, Object id) {
+        return scope.getRootScope().findResourceById(resourceClass, id);
     }
 
     public InputStream openInput(String file) {
