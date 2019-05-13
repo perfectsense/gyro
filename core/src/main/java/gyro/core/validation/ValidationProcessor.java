@@ -1,9 +1,9 @@
 package gyro.core.validation;
 
 import com.psddev.dari.util.ObjectUtils;
-import gyro.core.diff.Diffable;
-import gyro.core.diff.DiffableField;
-import gyro.core.diff.DiffableType;
+import gyro.core.resource.Diffable;
+import gyro.core.resource.DiffableField;
+import gyro.core.resource.DiffableType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,9 +20,9 @@ public class ValidationProcessor {
         List<String> validationMessages = new ArrayList<>();
 
         for (DiffableField field : fields) {
-            String validationMessage = validateFields(field, diffable, indent);
-            if (!ObjectUtils.isBlank(validationMessage)) {
-                validationMessages.add(validationMessage);
+            List<String> fieldValidationMessages = validateFields(field, diffable, indent);
+            if (!fieldValidationMessages.isEmpty()) {
+                validationMessages.addAll(fieldValidationMessages);
             }
         }
 
@@ -42,15 +42,11 @@ public class ValidationProcessor {
         return validationMessages;
     }
 
-    private static String validateFields(DiffableField field, Diffable diffable, String indent) {
-        String validationMessage = field.validate(diffable);
+    private static List<String> validateFields(DiffableField field, Diffable diffable, String indent) {
+        List<String> validationMessages = field.validate(diffable);
 
-        if (!ObjectUtils.isBlank(validationMessage)) {
-            validationMessage = String.format("%s· %s: %s. %s", indent,
-                field.getGyroName(), field.getValue(diffable), validationMessage);
-        }
-
-        return validationMessage;
+        return validationMessages.stream().filter(ObjectUtils::isBlank).map(o -> String.format("%s· %s: %s. %s", indent,
+            field.getName(), field.getValue(diffable), o)).collect(Collectors.toList());
     }
 
     private static List<String> validateComplexFields(DiffableField field, Diffable diffable, String indent) {
@@ -65,12 +61,12 @@ public class ValidationProcessor {
                 if (!invokeList.isEmpty() && invokeList.get(0) instanceof Diffable) {
                     for (Object invokeListObject : invokeList) {
                         Diffable diffableObject = (Diffable) invokeListObject;
-                        errorList = validateResource(diffableObject, field.getGyroName(), indent + "    ");
+                        errorList = validateResource(diffableObject, field.getName(), indent + "    ");
                     }
                 }
             } else {
                 if (object instanceof Diffable) {
-                    errorList = validateResource((Diffable) object, field.getGyroName(), indent + "    ");
+                    errorList = validateResource((Diffable) object, field.getName(), indent + "    ");
                 }
             }
 

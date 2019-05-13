@@ -4,7 +4,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -166,34 +168,27 @@ public class DiffableField {
         }
     }
 
-    public String validate(Diffable diffable) {
-        String validationMessage = "";
+    public List<String> validate(Diffable diffable) {
+        List<String> validationMessages = new ArrayList<>();
 
         Object object = this.getValue(diffable);
 
         for (Annotation annotation : getter.getAnnotations()) {
             AnnotationProcessorClass annotationProcessorClass = annotation.annotationType().getAnnotation(AnnotationProcessorClass.class);
             if (annotationProcessorClass != null) {
-                if (!isValueReference(getter, diffable) || object != null) {
-                    try {
-                        Validator validator = (Validator) SINGLETONS.get(annotationProcessorClass.value());
-                        if (!validator.isValid(annotation, object)) {
-                            validationMessage = validator.getMessage(annotation);
-                            break;
-                        }
-                    } catch (ExecutionException ex) {
-                        ex.printStackTrace();
+                try {
+                    Validator validator = (Validator) SINGLETONS.get(annotationProcessorClass.value());
+                    if (!validator.isValid(annotation, object)) {
+                        validationMessages.add(validator.getMessage(annotation));
+                        break;
                     }
+                } catch (ExecutionException ex) {
+                    ex.printStackTrace();
                 }
             }
         }
 
-        return validationMessage;
-    }
-
-    private static boolean isValueReference(Method method, Diffable diffable) {
-        // find out if method returns null as it has a ref
-        return false;
+        return validationMessages;
     }
 
     private static final LoadingCache<Class<?>, Object> SINGLETONS = CacheBuilder.newBuilder()
