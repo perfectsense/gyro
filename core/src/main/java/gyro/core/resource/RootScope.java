@@ -3,6 +3,7 @@ package gyro.core.resource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -13,6 +14,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.psddev.dari.util.Converter;
+import com.psddev.dari.util.TypeDefinition;
 import gyro.core.Credentials;
 import gyro.core.FileBackend;
 import gyro.core.GyroException;
@@ -28,6 +31,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 
 public class RootScope extends FileScope {
 
+    private final Converter converter;
     private final NodeEvaluator evaluator;
     private final FileBackend backend;
     private final RootScope current;
@@ -38,8 +42,30 @@ public class RootScope extends FileScope {
     private final List<Workflow> workflows = new ArrayList<>();
     private final List<FileScope> fileScopes = new ArrayList<>();
 
+    @SuppressWarnings("unchecked")
     public RootScope(String file, FileBackend backend, RootScope current, Set<String> loadFiles) {
         super(null, file);
+
+        converter = new Converter();
+
+        converter.setThrowError(true);
+        converter.putAllStandardFunctions();
+
+        converter.putInheritableFunction(
+            Object.class,
+            Resource.class,
+            (c, returnType, id) -> c.convert(
+                returnType,
+                findResourceById((Class<? extends Resource>) returnType, id)));
+
+        converter.putInheritableFunction(
+            Resource.class,
+            Object.class,
+            (c, returnType, resource) -> c.convert(
+                returnType,
+                DiffableType.getInstance(resource.getClass())
+                    .getIdField()
+                    .getValue(resource)));
 
         this.evaluator = new NodeEvaluator();
         this.backend = backend;
@@ -88,6 +114,10 @@ public class RootScope extends FileScope {
         return fileScopes;
     }
 
+    public Object convertValue(Type returnType, Object object) {
+        return converter.convert(returnType, object);
+    }
+
     public List<Resource> findResources() {
         return findResourcesIn(null);
     }
@@ -106,6 +136,13 @@ public class RootScope extends FileScope {
         return stream.collect(Collectors.toList());
     }
 
+    public <T extends Resource> Stream<T> findResourcesByClass(Class<T> resourceClass) {
+        return findResources()
+            .stream()
+            .filter(resourceClass::isInstance)
+            .map(resourceClass::cast);
+    }
+
     public Resource findResource(String name) {
         return Stream.concat(Stream.of(this), getFileScopes().stream())
             .map(s -> s.get(name))
@@ -113,6 +150,21 @@ public class RootScope extends FileScope {
             .map(Resource.class::cast)
             .findFirst()
             .orElse(null);
+    }
+
+    public <T extends Resource> T findResourceById(Class<T> resourceClass, Object id) {
+        DiffableField idField = DiffableType.getInstance(resourceClass).getIdField();
+
+        return findResourcesByClass(resourceClass)
+            .filter(r -> id.equals(idField.getValue(r)))
+            .findFirst()
+            .orElseGet(() -> {
+                T r = TypeDefinition.getInstance(resourceClass).newInstance();
+                r.external = true;
+                r.scope = new DiffableScope(this);
+                idField.setValue(r, id);
+                return r;
+            });
     }
 
     public void load() throws Exception {

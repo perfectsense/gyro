@@ -117,10 +117,8 @@ public class DiffableField {
         }
     }
 
-    @SuppressWarnings("unchecked")
     public void setValue(Diffable diffable, Object value) {
         Scope scope = diffable.scope;
-        Node node = scope != null ? scope.getKeyNodes().get(getName()) : null;
 
         try {
             if (value instanceof Collection
@@ -132,11 +130,7 @@ public class DiffableField {
                     .orElse(null);
             }
 
-            if (value instanceof String && Resource.class.isAssignableFrom(itemClass)) {
-                value = diffable.findById((Class<? extends Resource>) itemClass, (String) value);
-            }
-
-            setter.invoke(diffable, CONVERTER.convert(setter.getGenericParameterTypes()[0], value));
+            setter.invoke(diffable, scope.getRootScope().convertValue(setter.getGenericParameterTypes()[0], value));
 
         } catch (IllegalAccessException error) {
             throw new IllegalStateException(error);
@@ -147,7 +141,10 @@ public class DiffableField {
             throw cause instanceof RuntimeException
                     ? (RuntimeException) cause
                     : new RuntimeException(cause);
-        } catch (ConversionException e) {
+
+        } catch (ConversionException error) {
+            Node node = scope.getKeyNodes().get(getName());
+
             if (node != null) {
                 throw new GyroException(String.format("Type mismatch when setting field '%s' %s%n%s.%n",
                     getName(), node.getLocation(), node));

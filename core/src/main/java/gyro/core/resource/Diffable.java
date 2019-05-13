@@ -20,6 +20,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public abstract class Diffable {
 
+    boolean external;
     DiffableScope scope;
     Diffable parent;
     String name;
