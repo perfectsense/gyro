@@ -15,7 +15,6 @@ import com.google.common.collect.ImmutableSet;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.lang.ast.Node;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public abstract class Diffable {
 
@@ -228,11 +227,29 @@ public abstract class Diffable {
 
     @Override
     public String toString() {
-        return new ToStringBuilder(this)
-            .append("parent", parent())
-            .append("name", name())
-            .append("primaryKey", primaryKey())
-            .build();
+        StringBuilder builder = new StringBuilder();
+        DiffableType type = DiffableType.getInstance(getClass());
+        String typeName = type.getName();
+
+        if (typeName != null) {
+            builder.append(typeName);
+            builder.append(' ');
+
+            if (external) {
+                builder.append("id=");
+                builder.append(type.getIdField().getValue(this));
+
+            } else {
+                builder.append(name);
+            }
+
+        } else {
+            builder.append(name);
+            builder.append(' ');
+            builder.append(primaryKey());
+        }
+
+        return builder.toString();
     }
 
 }
