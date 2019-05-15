@@ -180,7 +180,6 @@ public class DiffableField {
                     Validator validator = (Validator) SINGLETONS.get(annotationProcessorClass.value());
                     if (!validator.isValid(annotation, object)) {
                         validationMessages.add(validator.getMessage(annotation));
-                        break;
                     }
                 } catch (ExecutionException ex) {
                     ex.printStackTrace();
