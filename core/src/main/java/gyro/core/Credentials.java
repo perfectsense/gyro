@@ -1,11 +1,10 @@
 package gyro.core;
 
-import java.util.Map;
 import java.util.Set;
 
 import gyro.core.resource.Resource;
 
-public abstract class Credentials extends Resource {
+public abstract class Credentials<T> extends Resource {
 
     /**
      * Return the name of this cloud.
@@ -14,13 +13,13 @@ public abstract class Credentials extends Resource {
      */
     public abstract String getCloudName();
 
-    public Map<String, String> findCredentials() {
+    public T findCredentials() {
         return findCredentials(false);
     }
 
-    public abstract Map<String, String> findCredentials(boolean refresh);
+    public abstract T findCredentials(boolean refresh);
 
-    public Map<String, String> findCredentials(boolean refresh, boolean extended) {
+    public T findCredentials(boolean refresh, boolean extended) {
         return findCredentials(refresh);
     }
 
