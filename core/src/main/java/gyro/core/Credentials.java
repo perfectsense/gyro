@@ -1,6 +1,5 @@
 package gyro.core;
 
-import java.util.Map;
 import java.util.Set;
 
 import gyro.core.resource.Resource;
