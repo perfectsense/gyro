@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface ResourceNames {
-    ResourceName[] value();
+@Target(ElementType.METHOD)
+public @interface ResourceUpdatable {
+
 }

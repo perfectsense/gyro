@@ -1,8 +1,6 @@
-package gyro.core.diff;
+package gyro.core.resource;
 
 import gyro.core.GyroUI;
-import gyro.core.resource.Resource;
-import gyro.core.scope.State;
 
 public class Delete extends Change {
 

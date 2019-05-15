@@ -1,12 +1,9 @@
-package gyro.core.diff;
+package gyro.core.resource;
 
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import gyro.core.GyroUI;
-import gyro.core.resource.Resource;
-import gyro.core.workflow.Workflow;
-import gyro.core.scope.State;
 
 public class Replace extends Change {
 
@@ -23,13 +20,13 @@ public class Replace extends Change {
         if (pendingDiffable instanceof Resource) {
             Resource pendingResource = (Resource) pendingDiffable;
 
-            this.workflow = pendingResource.scope()
-                    .getRootScope()
-                    .getWorkflows()
-                    .stream()
-                    .filter(w -> w.getForType().equals(pendingResource.resourceType()))
-                    .findFirst()
-                    .orElse(null);
+            this.workflow = pendingResource.scope
+                .getRootScope()
+                .getWorkflows()
+                .stream()
+                .filter(w -> w.getForType().equals(DiffableType.getInstance(pendingResource.getClass()).getName()))
+                .findFirst()
+                .orElse(null);
         } else {
             workflow = null;
         }
@@ -51,9 +48,10 @@ public class Replace extends Change {
                     writeDifference(ui, field, currentDiffable, pendingDiffable);
 
                 } else {
-                    ui.write("\n· %s: %s",
-                            field.getGyroName(),
-                            stringify(field.getValue(pendingDiffable)));
+                    ui.write(
+                        "\n· %s: %s",
+                        field.getName(),
+                        stringify(field.getValue(pendingDiffable)));
                 }
             }
         }
@@ -63,9 +61,9 @@ public class Replace extends Change {
     public void writePlan(GyroUI ui) {
         ui.write("@|cyan ⇅ Replace %s|@", currentDiffable.toDisplayString());
         ui.write(" (because of %s, ", changedFields.stream()
-                .filter(f -> !f.isUpdatable())
-                .map(DiffableField::getGyroName)
-                .collect(Collectors.joining(", ")));
+            .filter(f -> !f.isUpdatable())
+            .map(DiffableField::getName)
+            .collect(Collectors.joining(", ")));
 
         if (workflow != null) {
             ui.write("using %s", workflow.getName());

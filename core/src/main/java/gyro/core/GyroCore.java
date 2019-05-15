@@ -1,12 +1,12 @@
 package gyro.core;
 
-import com.psddev.dari.util.Lazy;
-import com.psddev.dari.util.ThreadLocalStack;
-import org.apache.commons.lang3.StringUtils;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import com.psddev.dari.util.Lazy;
+import com.psddev.dari.util.ThreadLocalStack;
+import org.apache.commons.lang3.StringUtils;
 
 public class GyroCore {
 

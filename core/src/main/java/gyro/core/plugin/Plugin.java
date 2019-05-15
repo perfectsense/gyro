@@ -1,6 +1,6 @@
 package gyro.core.plugin;
 
-import gyro.core.scope.Scope;
+import gyro.core.resource.Scope;
 
 public abstract class Plugin {
 

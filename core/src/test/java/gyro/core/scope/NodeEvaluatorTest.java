@@ -3,6 +3,8 @@ package gyro.core.scope;
 import java.util.Collections;
 import java.util.stream.Stream;
 
+import gyro.core.resource.NodeEvaluator;
+import gyro.core.resource.Scope;
 import gyro.lang.ast.PairNode;
 import gyro.lang.ast.condition.ValueConditionNode;
 import gyro.lang.ast.value.InterpolatedStringNode;

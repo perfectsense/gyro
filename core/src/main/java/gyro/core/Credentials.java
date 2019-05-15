@@ -35,7 +35,7 @@ public abstract class Credentials<T> extends Resource {
     }
 
     @Override
-    public final void update(Resource current, Set<String> changedProperties) {
+    public final void update(Resource current, Set<String> changedFieldNames) {
 
     }
 
@@ -46,11 +46,6 @@ public abstract class Credentials<T> extends Resource {
 
     @Override
     public final String toDisplayString() {
-        return null;
-    }
-
-    @Override
-    public final Class resourceCredentialsClass() {
         return null;
     }
 

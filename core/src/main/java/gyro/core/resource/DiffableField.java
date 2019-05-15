@@ -1,14 +1,4 @@
-package gyro.core.diff;
-
-import com.google.common.base.CaseFormat;
-import com.psddev.dari.util.ConversionException;
-import com.psddev.dari.util.Converter;
-import com.psddev.dari.util.ObjectUtils;
-import gyro.core.GyroException;
-import gyro.core.resource.ResourceDiffProperty;
-import gyro.core.resource.ResourceOutput;
-import gyro.lang.ast.Node;
-import gyro.core.resource.Resource;
+package gyro.core.resource;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -17,6 +7,13 @@ import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
+
+import com.google.common.base.CaseFormat;
+import com.psddev.dari.util.ConversionException;
+import com.psddev.dari.util.Converter;
+import com.psddev.dari.util.ObjectUtils;
+import gyro.core.GyroException;
+import gyro.lang.ast.Node;
 
 public class DiffableField {
 
@@ -37,8 +34,7 @@ public class DiffableField {
                     .getValue(resource)));
     }
 
-    private final String javaName;
-    private final String gyroName;
+    private final String name;
     private final Method getter;
     private final Method setter;
     private final boolean updatable;
@@ -47,24 +43,15 @@ public class DiffableField {
     private final Class<?> itemClass;
 
     protected DiffableField(String javaName, Method getter, Method setter, Type type) {
-        this.javaName = javaName;
-        this.gyroName = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, javaName);
+        this.name = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, javaName);
         this.getter = getter;
         this.setter = setter;
-
-        ResourceDiffProperty annotation = getter.getAnnotation(ResourceDiffProperty.class);
-
-        if (annotation != null) {
-            this.updatable = annotation.updatable();
-
-        } else {
-            this.updatable = false;
-        }
+        this.updatable = getter.isAnnotationPresent(ResourceUpdatable.class);
 
         ResourceOutput output = getter.getAnnotation(ResourceOutput.class);
 
         if (output != null) {
-            this.testValue = !ObjectUtils.isBlank(output.value()) ? output.value() : gyroName;
+            this.testValue = !ObjectUtils.isBlank(output.value()) ? output.value() : name;
             this.testValueRandomSuffix = output.randomSuffix();
         } else {
             this.testValue = null;
@@ -88,12 +75,8 @@ public class DiffableField {
         }
     }
 
-    public String getJavaName() {
-        return javaName;
-    }
-
-    public String getGyroName() {
-        return gyroName;
+    public String getName() {
+        return name;
     }
 
     public boolean isUpdatable() {
@@ -115,7 +98,7 @@ public class DiffableField {
     @SuppressWarnings("unchecked")
     public boolean shouldBeDiffed() {
         return Diffable.class.isAssignableFrom(itemClass)
-            && DiffableType.getInstance((Class<? extends Diffable>) itemClass).isSubresource();
+            && !DiffableType.getInstance((Class<? extends Diffable>) itemClass).isRoot();
     }
 
     public Object getValue(Diffable diffable) {
@@ -136,7 +119,8 @@ public class DiffableField {
 
     @SuppressWarnings("unchecked")
     public void setValue(Diffable diffable, Object value) {
-        Node node = diffable.scope() != null ? diffable.scope().getKeyNodes().get(getGyroName()) : null;
+        Scope scope = diffable.scope;
+        Node node = scope != null ? scope.getKeyNodes().get(getName()) : null;
 
         try {
             if (value instanceof Collection
@@ -166,11 +150,11 @@ public class DiffableField {
         } catch (ConversionException e) {
             if (node != null) {
                 throw new GyroException(String.format("Type mismatch when setting field '%s' %s%n%s.%n",
-                    getGyroName(), node.getLocation(), node));
+                    getName(), node.getLocation(), node));
             }
 
             throw new GyroException(String.format("Type mismatch when setting field '%s' with '%s'.",
-                getGyroName(), value));
+                getName(), value));
         }
     }
 

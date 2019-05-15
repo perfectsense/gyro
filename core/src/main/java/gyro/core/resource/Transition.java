@@ -1,9 +1,7 @@
-package gyro.core.workflow;
+package gyro.core.resource;
 
-import gyro.core.scope.NodeEvaluator;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.ResourceNode;
-import gyro.core.scope.Scope;
 
 public class Transition {
 

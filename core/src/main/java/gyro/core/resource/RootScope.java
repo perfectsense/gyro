@@ -1,4 +1,4 @@
-package gyro.core.scope;
+package gyro.core.resource;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,9 +16,6 @@ import java.util.stream.Stream;
 import gyro.core.Credentials;
 import gyro.core.FileBackend;
 import gyro.core.GyroException;
-import gyro.core.resource.Resource;
-import gyro.core.resource.ResourceFinder;
-import gyro.core.workflow.Workflow;
 import gyro.lang.GyroErrorListener;
 import gyro.lang.GyroErrorStrategy;
 import gyro.lang.GyroLanguageException;
@@ -50,9 +47,6 @@ public class RootScope extends FileScope {
 
         try (Stream<String> s = backend.list()) {
             this.loadFiles = (loadFiles != null ? s.filter(loadFiles::contains) : s).collect(Collectors.toSet());
-
-        } catch (Exception error) {
-            throw new GyroException("Can't list files from the file backend!");
         }
 
         put("ENV", System.getenv());
@@ -106,7 +100,7 @@ public class RootScope extends FileScope {
             .map(Resource.class::cast);
 
         if (diffFiles != null && diffFiles.isEmpty()) {
-            stream = stream.filter(r -> diffFiles.contains(r.scope().getFileScope().getFile()));
+            stream = stream.filter(r -> diffFiles.contains(r.scope.getFileScope().getFile()));
         }
 
         return stream.collect(Collectors.toList());
@@ -186,9 +180,9 @@ public class RootScope extends FileScope {
 
         Map<String, List<String>> duplicateResources = new HashMap<>();
         for (Resource resource : findResources()) {
-            String fullName = resource.resourceType() + "::" + resource.resourceIdentifier();
+            String fullName = resource.primaryKey();
             duplicateResources.putIfAbsent(fullName, new ArrayList<>());
-            duplicateResources.get(fullName).add(resource.scope().getFileScope().getFile());
+            duplicateResources.get(fullName).add(resource.scope.getFileScope().getFile());
         }
 
         for (Map.Entry<String, List<String>> entry : duplicateResources.entrySet()) {
