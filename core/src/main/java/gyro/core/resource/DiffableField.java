@@ -24,6 +24,7 @@ import gyro.lang.ast.Node;
 
 import java.lang.annotation.Annotation;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Stream;
 
 public class DiffableField {
 
@@ -173,6 +174,27 @@ public class DiffableField {
 
         Object object = this.getValue(diffable);
 
+        // New Way
+        /*try {
+            Stream.of(getter.getAnnotations())
+                .map(Annotation::annotationType)
+                .map(a -> a.getAnnotation(AnnotationProcessorClass.class))
+                .filter(Objects::nonNull)
+                .map(AnnotationProcessorClass::value)
+                .map(this::getValidator)
+                .filter(Objects::nonNull)
+                .forEach(
+                    v -> {
+                        if (!v.isValid(o -> o, object)) {
+
+                        }
+                    }
+                );
+        } catch (ExecutionException ex) {
+            ex.printStackTrace();
+        }*/
+
+        // Old way
         for (Annotation annotation : getter.getAnnotations()) {
             AnnotationProcessorClass annotationProcessorClass = annotation.annotationType().getAnnotation(AnnotationProcessorClass.class);
             if (annotationProcessorClass != null) {
@@ -188,6 +210,18 @@ public class DiffableField {
         }
 
         return validationMessages;
+    }
+
+
+    // Helper new way
+    private Validator getValidator(Class itemClass) {
+        try {
+            return (Validator) SINGLETONS.get(itemClass);
+        } catch (ExecutionException ex) {
+            ex.printStackTrace();
+        }
+
+        return null;
     }
 
     private static final LoadingCache<Class<?>, Object> SINGLETONS = CacheBuilder.newBuilder()
