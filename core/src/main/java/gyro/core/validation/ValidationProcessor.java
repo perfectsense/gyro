@@ -45,7 +45,7 @@ public class ValidationProcessor {
     private static List<String> validateFields(DiffableField field, Diffable diffable, String indent) {
         List<String> validationMessages = field.validate(diffable);
 
-        return validationMessages.stream().filter(ObjectUtils::isBlank).map(o -> String.format("%s· %s: %s. %s", indent,
+        return validationMessages.stream().filter(o -> !ObjectUtils.isBlank(o)).map(o -> String.format("%s· %s: %s. %s", indent,
             field.getName(), field.getValue(diffable), o)).collect(Collectors.toList());
     }
 
