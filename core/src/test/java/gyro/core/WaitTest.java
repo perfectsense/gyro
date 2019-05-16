@@ -19,4 +19,9 @@ class WaitTest {
         assertThat(System.currentTimeMillis() - startTime)
             .isGreaterThanOrEqualTo(TimeUnit.SECONDS.toMillis(10));
     }
+
+    @Test
+    void until() {
+        assertThat(Wait.until(() -> true)).isTrue();
+    }
 }
