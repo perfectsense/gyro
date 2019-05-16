@@ -513,6 +513,8 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
                 }
 
                 ResourceFinder<Resource> finder = TypeDefinition.getInstance(resourceQueryClass).newInstance();
+
+                queries.clear();
                 boolean isHead = true;
 
                 for (Query q : node.getQueries()) {
