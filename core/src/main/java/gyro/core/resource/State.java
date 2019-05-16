@@ -277,12 +277,18 @@ public class State {
 
         } else if (value instanceof Resource) {
             Resource resource = (Resource) value;
+            DiffableType type = DiffableType.getInstance(resource.getClass());
 
-            return new ResourceReferenceNode(
-                DiffableType.getInstance(resource.getClass()).getName(),
-                new ValueNode(resource.name()),
-                Collections.emptyList(),
-                null);
+            if (resource.external) {
+                return new ValueNode(type.getIdField().getValue(resource));
+
+            } else {
+                return new ResourceReferenceNode(
+                    type.getName(),
+                    new ValueNode(resource.name()),
+                    Collections.emptyList(),
+                    null);
+            }
 
         } else {
             throw new UnsupportedOperationException(String.format(

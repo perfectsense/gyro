@@ -12,14 +12,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableSet;
-import com.psddev.dari.util.TypeDefinition;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.lang.ast.Node;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public abstract class Diffable {
 
+    boolean external;
     DiffableScope scope;
     Diffable parent;
     String name;
@@ -48,25 +47,12 @@ public abstract class Diffable {
         return change;
     }
 
-    public <T extends Resource> Stream<T> findByType(Class<T> resourceClass) {
-        return scope.getRootScope()
-            .findResources()
-            .stream()
-            .filter(resourceClass::isInstance)
-            .map(resourceClass::cast);
+    public <T extends Resource> Stream<T> findByClass(Class<T> resourceClass) {
+        return scope.getRootScope().findResourcesByClass(resourceClass);
     }
 
-    public <T extends Resource> T findById(Class<T> resourceClass, String id) {
-        DiffableField idField = DiffableType.getInstance(resourceClass).getIdField();
-
-        return findByType(resourceClass)
-            .filter(r -> id.equals(idField.getValue(r)))
-            .findFirst()
-            .orElseGet(() -> {
-                T r = TypeDefinition.getInstance(resourceClass).newInstance();
-                idField.setValue(r, id);
-                return r;
-            });
+    public <T extends Resource> T findById(Class<T> resourceClass, Object id) {
+        return scope.getRootScope().findResourceById(resourceClass, id);
     }
 
     public InputStream openInput(String file) {
@@ -228,18 +214,42 @@ public abstract class Diffable {
 
         Diffable otherDiffable = (Diffable) other;
 
-        return Objects.equals(parent(), otherDiffable.parent())
-            && Objects.equals(name(), otherDiffable.name())
-            && Objects.equals(primaryKey(), otherDiffable.primaryKey());
+        if (external) {
+            DiffableField idField = DiffableType.getInstance(getClass()).getIdField();
+            return Objects.equals(idField.getValue(this), idField.getValue(otherDiffable));
+
+        } else {
+            return Objects.equals(parent(), otherDiffable.parent())
+                && Objects.equals(name(), otherDiffable.name())
+                && Objects.equals(primaryKey(), otherDiffable.primaryKey());
+        }
     }
 
     @Override
     public String toString() {
-        return new ToStringBuilder(this)
-            .append("parent", parent())
-            .append("name", name())
-            .append("primaryKey", primaryKey())
-            .build();
+        StringBuilder builder = new StringBuilder();
+        DiffableType type = DiffableType.getInstance(getClass());
+        String typeName = type.getName();
+
+        if (typeName != null) {
+            builder.append(typeName);
+            builder.append(' ');
+
+            if (external) {
+                builder.append("id=");
+                builder.append(type.getIdField().getValue(this));
+
+            } else {
+                builder.append(name);
+            }
+
+        } else {
+            builder.append(name);
+            builder.append(' ');
+            builder.append(primaryKey());
+        }
+
+        return builder.toString();
     }
 
 }
