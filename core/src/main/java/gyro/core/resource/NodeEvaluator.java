@@ -515,7 +515,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
                 ResourceFinder<Resource> finder = TypeDefinition.getInstance(resourceQueryClass).newInstance();
                 boolean isHead = true;
 
-                for (Query q : queries) {
+                for (Query q : node.getQueries()) {
                     if (isHead) {
                         isHead = false;
                         Query optimized = evaluator.optimize(q, finder, scope);
