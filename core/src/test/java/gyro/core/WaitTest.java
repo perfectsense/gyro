@@ -12,7 +12,7 @@ class WaitTest {
     void atMost() {
         long startTime = System.currentTimeMillis();
 
-        Wait.atMost(1, TimeUnit.SECONDS)
+        Wait.atMost(10, TimeUnit.SECONDS)
             .prompt(false)
             .until(() -> false);
 
