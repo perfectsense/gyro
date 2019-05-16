@@ -16,7 +16,7 @@ public class Wait {
         return new WaitBuilder().prompt(prompt);
     }
 
-    public static void until(WaitCheck check) {
-        new WaitBuilder().until(check);
+    public static boolean until(WaitCheck check) {
+        return new WaitBuilder().until(check);
     }
 }

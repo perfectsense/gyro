@@ -12,9 +12,9 @@ class WaitTest {
     void atMost() {
         long startTime = System.currentTimeMillis();
 
-        Wait.atMost(10, TimeUnit.SECONDS)
+        assertThat(Wait.atMost(10, TimeUnit.SECONDS)
             .prompt(false)
-            .until(() -> false);
+            .until(() -> false)).isFalse();
 
         assertThat(System.currentTimeMillis() - startTime)
             .isGreaterThanOrEqualTo(TimeUnit.SECONDS.toMillis(10));

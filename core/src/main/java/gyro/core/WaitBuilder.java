@@ -34,14 +34,14 @@ public class WaitBuilder {
         return this;
     }
 
-    public void until(WaitCheck check) {
+    public boolean until(WaitCheck check) {
         do {
             long startTime = System.currentTimeMillis();
 
             while (true) {
                 try {
                     if (check.check()) {
-                        return;
+                        return true;
                     }
 
                 } catch (Throwable error) {
@@ -61,5 +61,7 @@ public class WaitBuilder {
                 }
             }
         } while (prompt && GyroCore.ui().readBoolean(Boolean.FALSE, "\nWait for completion?"));
+
+        return false;
     }
 }
