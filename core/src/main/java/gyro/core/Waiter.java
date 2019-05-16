@@ -5,31 +5,31 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class WaitBuilder {
+public class Waiter {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(WaitBuilder.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Waiter.class);
 
     private long atMost;
     private long checkEvery;
     private boolean prompt;
 
-    public WaitBuilder() {
+    Waiter() {
         atMost(10, TimeUnit.SECONDS);
         checkEvery(1, TimeUnit.SECONDS);
         prompt(true);
     }
 
-    public WaitBuilder atMost(long duration, TimeUnit unit) {
+    public Waiter atMost(long duration, TimeUnit unit) {
         this.atMost = unit.toMillis(duration);
         return this;
     }
 
-    public WaitBuilder checkEvery(long duration, TimeUnit unit) {
+    public Waiter checkEvery(long duration, TimeUnit unit) {
         this.checkEvery = unit.toMillis(duration);
         return this;
     }
 
-    public WaitBuilder prompt(boolean prompt) {
+    public Waiter prompt(boolean prompt) {
         this.prompt = prompt;
         return this;
     }
