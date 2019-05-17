@@ -23,7 +23,6 @@ import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.PairNode;
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;
-import gyro.lang.ast.block.PluginNode;
 import gyro.lang.ast.block.ResourceNode;
 import gyro.lang.ast.block.VirtualResourceNode;
 import gyro.lang.ast.block.VirtualResourceParameter;
@@ -125,7 +124,6 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
             rootScope.getFileScopes().add(fileScope);
         }
 
-        // Evaluate imports and plugins first.
         List<PairNode> keyValues = new ArrayList<>();
         Map<String, VirtualResourceNode> virtualResourceNodes = rootScope.getVirtualResourceNodes();
         List<ResourceNode> workflowNodes = new ArrayList<>();
@@ -188,11 +186,6 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
         scope.getKeyNodes().put(key, node);
 
         return null;
-    }
-
-    @Override
-    public Object visitPlugin(PluginNode node, Scope scope) {
-        throw new UnsupportedOperationException();
     }
 
     @Override

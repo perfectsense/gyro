@@ -5,7 +5,6 @@ import java.util.List;
 
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;
-import gyro.lang.ast.block.PluginNode;
 import gyro.lang.ast.block.ResourceNode;
 import gyro.lang.ast.block.VirtualResourceNode;
 import gyro.lang.ast.condition.AndConditionNode;
@@ -34,7 +33,6 @@ class NodeAcceptTest {
             create(PairNode.class, NodeVisitor::visitPair),
             create(FileNode.class, NodeVisitor::visitFile),
             create(KeyBlockNode.class, NodeVisitor::visitKeyBlock),
-            create(PluginNode.class, NodeVisitor::visitPlugin),
             create(ResourceNode.class, NodeVisitor::visitResource),
             create(VirtualResourceNode.class, NodeVisitor::visitVirtualResource),
             create(AndConditionNode.class, NodeVisitor::visitAndCondition),
