@@ -6,7 +6,6 @@ import gyro.core.command.GyroCommand;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.resource.RootScope;
-import gyro.core.plugin.PluginLoader;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import gyro.core.resource.Scope;
@@ -18,7 +17,6 @@ import org.reflections.util.ClasspathHelper;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.lang.reflect.Modifier;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
@@ -59,14 +57,6 @@ public class Gyro {
                     Collections.emptySet());
 
                 init.load();
-
-                for (PluginLoader loader : init.getPluginLoaders()) {
-                    for (Class<?> c : loader.classes()) {
-                        if (GyroCommand.class.isAssignableFrom(c) && !Modifier.isAbstract(c.getModifiers())) {
-                            gyro.commands().add(c);
-                        }
-                    }
-                }
 
             } else {
                 init = null;

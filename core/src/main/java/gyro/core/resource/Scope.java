@@ -9,6 +9,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import gyro.lang.ast.Node;
 
 public class Scope implements Map<String, Object> {
@@ -19,6 +22,15 @@ public class Scope implements Map<String, Object> {
     private final Map<String, Object> values;
     private final Map<String, Node> valueNodes = new HashMap<>();
     private final Map<String, Node> keyNodes = new HashMap<>();
+
+    private final LoadingCache<Class<? extends Settings>, Settings> settingsByClass = CacheBuilder.newBuilder()
+        .build(new CacheLoader<Class<? extends Settings>, Settings>() {
+
+            @Override
+            public Settings load(Class<? extends Settings> settingsClass) throws IllegalAccessException, InstantiationException {
+                return settingsClass.newInstance();
+            }
+        });
 
     public Scope(Scope parent, Map<String, Object> values) {
         this.parent = parent;
@@ -130,6 +142,11 @@ public class Scope implements Map<String, Object> {
 
     public Map<String, Node> getKeyNodes() {
         return keyNodes;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <S extends Settings> S getSettings(Class<S> settingsClass) {
+        return (S) settingsByClass.getUnchecked(settingsClass);
     }
 
     @Override

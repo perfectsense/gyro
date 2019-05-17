@@ -16,7 +16,6 @@ import com.psddev.dari.util.TypeDefinition;
 import gyro.core.Credentials;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
-import gyro.core.plugin.PluginLoader;
 import gyro.lang.GyroLanguageException;
 import gyro.lang.ast.DirectiveNode;
 import gyro.lang.ast.Node;
@@ -77,7 +76,28 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
     @Override
     public Object visitDirective(DirectiveNode node, Scope scope) {
-        throw new GyroException(String.format("[%s] directive isn't supported!", node.getName()));
+        String name = node.getName();
+        DirectiveProcessor processor = scope.getRootScope().getDirectiveProcessors().get(name);
+
+        if (processor == null) {
+            throw new GyroException(String.format(
+                "Can't find a processor for @%s directive!",
+                name));
+        }
+
+        try {
+            processor.process(
+                scope,
+                node.getArguments()
+                    .stream()
+                    .map(a -> visit(a, scope))
+                    .collect(Collectors.toList()));
+
+        } catch (Exception error) {
+            throw new RuntimeException(error);
+        }
+
+        return null;
     }
 
     @Override
@@ -107,7 +127,6 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
         // Evaluate imports and plugins first.
         List<PairNode> keyValues = new ArrayList<>();
-        List<PluginNode> plugins = new ArrayList<>();
         Map<String, VirtualResourceNode> virtualResourceNodes = rootScope.getVirtualResourceNodes();
         List<ResourceNode> workflowNodes = new ArrayList<>();
         List<Node> body = new ArrayList<>();
@@ -115,9 +134,6 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
         for (Node item : node.getBody()) {
             if (item instanceof PairNode) {
                 keyValues.add((PairNode) item);
-
-            } else if (item instanceof PluginNode) {
-                plugins.add((PluginNode) item);
 
             } else if (item instanceof VirtualResourceNode) {
                 VirtualResourceNode vrNode = (VirtualResourceNode) item;
@@ -137,30 +153,8 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
             }
         }
 
-        if (!plugins.isEmpty() && !(fileScope instanceof RootScope)) {
-            throw new GyroException(String.format("Plugins are only allowed to be defined in '%s'.%nThe following plugins are found in '%s':%n%s",
-                GyroCore.INIT_FILE,
-                fileScope.getFile(),
-                plugins.stream()
-                    .map(Node::toString)
-                    .collect(Collectors.joining("\n"))));
-        }
-
         for (PairNode kv : keyValues) {
             visit(kv, fileScope);
-        }
-
-        for (PluginNode plugin : plugins) {
-            Scope bodyScope = new Scope(scope);
-
-            for (Node item : plugin.getBody()) {
-                visit(item, bodyScope);
-            }
-
-            PluginLoader loader = new PluginLoader(bodyScope);
-
-            loader.load();
-            scope.getFileScope().getPluginLoaders().add(loader);
         }
 
         List<Workflow> workflows = rootScope.getWorkflows();

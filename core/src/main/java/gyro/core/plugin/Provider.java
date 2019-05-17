@@ -6,10 +6,36 @@ import java.util.Map;
 
 import gyro.core.resource.ResourceFinder;
 import gyro.core.resource.ResourceType;
+import gyro.core.resource.Scope;
 
-public abstract class Provider extends Plugin {
+public abstract class Provider {
 
     private static Map<String, Map<String, Class>> PROVIDER_CLASS_CACHE = new HashMap<>();
+
+    private String artifact;
+    private Scope scope;
+
+    public abstract String name();
+
+    public void init() {
+
+    }
+
+    public final void artifact(String artifact) {
+        this.artifact = artifact;
+    }
+
+    public final String artifact() {
+        return artifact;
+    }
+
+    public Scope getScope() {
+        return scope;
+    }
+
+    public void setScope(Scope scope) {
+        this.scope = scope;
+    }
 
     public void classLoaded(Class<?> klass) {
         if (Modifier.isAbstract(klass.getModifiers())) {
@@ -47,4 +73,5 @@ public abstract class Provider extends Plugin {
 
         getScope().getRootScope().getResourceFinderClasses().put(fullName, cache.get(registerName));
     }
+
 }

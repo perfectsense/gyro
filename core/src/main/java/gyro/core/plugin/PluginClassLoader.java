@@ -1,26 +1,26 @@
 package gyro.core.plugin;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.net.URLStreamHandlerFactory;
+import java.util.stream.Stream;
 
-public class PluginClassLoader extends URLClassLoader {
+import org.eclipse.aether.resolution.ArtifactResult;
+import org.eclipse.aether.resolution.DependencyResult;
 
-    public PluginClassLoader(URL[] urls, ClassLoader parent) {
-        super(urls, parent);
+class PluginClassLoader extends URLClassLoader {
+
+    public PluginClassLoader() {
+        super(new URL[0], PluginClassLoader.class.getClassLoader());
     }
 
-    public PluginClassLoader(URL[] urls) {
-        super(urls);
-    }
+    public void add(DependencyResult result) throws MalformedURLException {
+        for (ArtifactResult r : result.getArtifactResults()) {
+            URL url = r.getArtifact().getFile().toURI().toURL();
 
-    public PluginClassLoader(URL[] urls, ClassLoader parent, URLStreamHandlerFactory factory) {
-        super(urls, parent, factory);
-    }
-
-    public void addAllUrls(URL[] urls) {
-        for (URL url : urls) {
-            addURL(url);
+            if (Stream.of(getURLs()).noneMatch(url::equals)) {
+                addURL(url);
+            }
         }
     }
 
