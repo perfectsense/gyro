@@ -25,8 +25,8 @@ public class CredentialsDirectiveProcessor implements DirectiveProcessor {
         @SuppressWarnings("unchecked")
         Map<String, Object> values = (Map<String, Object>) arguments.get(2);
 
-        RootScope rootScope = scope.getRootScope();
-        CredentialsSettings settings = rootScope.getSettings(CredentialsSettings.class);
+        RootScope root = scope.getRootScope();
+        CredentialsSettings settings = root.getSettings(CredentialsSettings.class);
         Class<? extends Credentials<?>> credentialsClass = settings.getCredentialsClasses().get(type);
         Credentials<?> credentials = credentialsClass.newInstance();
 
@@ -34,7 +34,7 @@ public class CredentialsDirectiveProcessor implements DirectiveProcessor {
             Method setter = property.getWriteMethod();
 
             if (setter != null) {
-                setter.invoke(credentials, rootScope.convertValue(
+                setter.invoke(credentials, root.convertValue(
                     setter.getGenericParameterTypes()[0],
                     values.get(CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, property.getName()))));
             }

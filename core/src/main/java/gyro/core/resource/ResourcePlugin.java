@@ -5,12 +5,12 @@ import gyro.core.plugin.Plugin;
 public class ResourcePlugin implements Plugin {
 
     @Override
-    public void onClassLoaded(RootScope rootScope, Class<?> loadedClass) {
-        if (Resource.class.isAssignableFrom(loadedClass)) {
+    public void onEachClass(RootScope root, Class<?> aClass) {
+        if (Resource.class.isAssignableFrom(aClass)) {
             @SuppressWarnings("unchecked")
-            Class<? extends Resource> resourceClass = (Class<? extends Resource>) loadedClass;
+            Class<? extends Resource> resourceClass = (Class<? extends Resource>) aClass;
 
-            rootScope.getResourceClasses().put(
+            root.getResourceClasses().put(
                 DiffableType.getInstance(resourceClass).getName(),
                 resourceClass);
         }

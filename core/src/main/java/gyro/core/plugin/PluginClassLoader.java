@@ -15,8 +15,8 @@ class PluginClassLoader extends URLClassLoader {
     }
 
     public void add(DependencyResult result) throws MalformedURLException {
-        for (ArtifactResult r : result.getArtifactResults()) {
-            URL url = r.getArtifact().getFile().toURI().toURL();
+        for (ArtifactResult ar : result.getArtifactResults()) {
+            URL url = ar.getArtifact().getFile().toURI().toURL();
 
             if (Stream.of(getURLs()).noneMatch(url::equals)) {
                 addURL(url);

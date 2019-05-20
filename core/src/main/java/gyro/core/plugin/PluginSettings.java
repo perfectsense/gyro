@@ -16,7 +16,7 @@ public class PluginSettings extends Settings {
     private List<Plugin> plugins;
     private List<Class<?>> otherClasses;
 
-    private final LoadingCache<Plugin, LoadingCache<Class<?>, Boolean>> loaded = CacheBuilder.newBuilder()
+    private final LoadingCache<Plugin, LoadingCache<Class<?>, Boolean>> call = CacheBuilder.newBuilder()
         .build(new CacheLoader<Plugin, LoadingCache<Class<?>, Boolean>>() {
 
             @Override
@@ -26,7 +26,7 @@ public class PluginSettings extends Settings {
 
                         @Override
                         public Boolean load(Class<?> otherClass) throws Exception {
-                            plugin.onClassLoaded((RootScope) getScope(), otherClass);
+                            plugin.onEachClass((RootScope) getScope(), otherClass);
                             return Boolean.TRUE;
                         }
                     });
@@ -73,7 +73,7 @@ public class PluginSettings extends Settings {
         for (Plugin plugin : plugins) {
             for (Class<?> otherClass : otherClasses) {
                 try {
-                    loaded.get(plugin).get(otherClass);
+                    call.get(plugin).get(otherClass);
 
                 } catch (ExecutionException error) {
                     Throwable cause = error.getCause();

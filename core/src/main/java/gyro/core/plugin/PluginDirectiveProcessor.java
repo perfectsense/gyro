@@ -57,9 +57,12 @@ public class PluginDirectiveProcessor implements DirectiveProcessor {
 
         Thread.currentThread().setContextClassLoader(PLUGIN_CLASS_LOADER);
 
-        scope.getSettings(PluginSettings.class).addClasses(CLASSES_BY_ARTIFACT_COORDS.computeIfAbsent((String) arguments.get(0), artifactCoords -> {
+        PluginSettings settings = scope.getSettings(PluginSettings.class);
+        String artifactCoords = (String) arguments.get(0);
+
+        settings.addClasses(CLASSES_BY_ARTIFACT_COORDS.computeIfAbsent(artifactCoords, ac -> {
             try {
-                GyroCore.ui().write("@|magenta ↓ Loading %s plugin|@\n", artifactCoords);
+                GyroCore.ui().write("@|magenta ↓ Loading %s plugin|@\n", ac);
 
                 DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
 
@@ -75,11 +78,12 @@ public class PluginDirectiveProcessor implements DirectiveProcessor {
 
                 session.setLocalRepositoryManager(manager);
 
-                Artifact artifact = new DefaultArtifact(artifactCoords);
+                Artifact artifact = new DefaultArtifact(ac);
                 Dependency dependency = new Dependency(artifact, JavaScopes.RUNTIME);
                 DependencyFilter filter = DependencyFilterUtils.classpathFilter(JavaScopes.RUNTIME);
                 List<RemoteRepository> repositories = scope.getSettings(RepositorySettings.class).getRepositories();
-                DependencyRequest request = new DependencyRequest(new CollectRequest(dependency, repositories), filter);
+                CollectRequest collectRequest = new CollectRequest(dependency, repositories);
+                DependencyRequest request = new DependencyRequest(collectRequest, filter);
                 DependencyResult result = system.resolveDependencies(session, request);
 
                 PLUGIN_CLASS_LOADER.add(result);
@@ -117,7 +121,7 @@ public class PluginDirectiveProcessor implements DirectiveProcessor {
             } catch (Exception error) {
                 throw new GyroException(String.format(
                     "Can't load [%s] plugin! %s: %s",
-                    artifactCoords,
+                    ac,
                     error.getClass().getName(),
                     error.getMessage()));
             }
