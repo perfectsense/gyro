@@ -20,6 +20,7 @@ import gyro.core.FileBackend;
 import gyro.core.GyroException;
 import gyro.core.auth.CredentialsDirectiveProcessor;
 import gyro.core.auth.CredentialsPlugin;
+import gyro.core.directive.DirectivePlugin;
 import gyro.core.directive.DirectiveSettings;
 import gyro.core.plugin.PluginDirectiveProcessor;
 import gyro.core.plugin.PluginSettings;
@@ -82,6 +83,7 @@ public class RootScope extends FileScope {
 
         Stream.of(
             new CredentialsPlugin(),
+            new DirectivePlugin(),
             new ResourcePlugin())
             .forEach(p -> getSettings(PluginSettings.class).getPlugins().add(p));
 
