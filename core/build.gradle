@@ -1,101 +1,14 @@
-
-plugins {
-    id 'maven-publish'
-    id 'antlr'
-    id 'idea'
-}
-
-sourceCompatibility = 1.8
-
-defaultTasks 'build'
-
-def OS_NAME = System.getenv("TRAVIS_OS_NAME") ?: "unix"
-def BRANCH = System.getenv("TRAVIS_BRANCH")
-
-if (BRANCH == null) {
-    defaultTasks 'build', 'publishToMavenLocal'
-} else if (OS_NAME == 'linux') {
-    check.dependsOn 'publish', 'publishToMavenLocal'
-    defaultTasks 'build', 'publish', 'publishToMavenLocal'
-}
-
 dependencies {
-    compile 'org.reflections:reflections:0.9.10'
-    compile 'org.fusesource.jansi:jansi:1.16'
-    compile 'org.apache.httpcomponents:httpclient:4.5'
-    compile 'org.eclipse.aether:aether-impl:1.1.0'
-    compile 'org.eclipse.aether:aether-connector-basic:1.1.0'
-    compile 'org.eclipse.aether:aether-transport-file:1.1.0'
-    compile 'org.eclipse.aether:aether-transport-http:1.1.0'
-    compile 'org.apache.maven:maven-aether-provider:3.3.9'
-    compile 'commons-beanutils:commons-beanutils-core:1.8.3'
-    compile 'io.airlift:airline:0.8'
-    compile 'org.fusesource.jansi:jansi:1.16'
-    compile 'com.psddev:dari-util:3.3.607-xe0f27a'
+    api project(':gyro-lang')
+    api project(':gyro-util')
+    api 'io.airlift:airline:0.8'
 
-    antlr "org.antlr:antlr4:4.7.1"
-
-    // jUnit
-    testCompile 'org.junit.jupiter:junit-jupiter-api:5.3.2'
-    testCompile 'org.junit.jupiter:junit-jupiter-params:5.3.2'
-    testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.3.2'
-
-    // Mockito
-    testCompile 'org.mockito:mockito-junit-jupiter:2.23.0'
-    implementation 'org.mockito:mockito-core:2.23.4'
-    implementation 'org.hamcrest:hamcrest:2.1'
-}
-
-publishing {
-    publications {
-        maven(MavenPublication) {
-            groupId = 'gyro'
-            artifactId = 'gyro-core'
-
-            from components.java
-        }
-    }
-
-    repositories {
-        maven {
-            credentials {
-                username System.getenv("GRADLE_DEPLOY_USER")
-                password System.getenv("GRADLE_DEPLOY_PASSWORD")
-            }
-
-            if (project.version.endsWith('-SNAPSHOT')) {
-                url "https://artifactory.psdops.com/gyro-snapshots"
-            } else {
-                url "https://artifactory.psdops.com/gyro-releases"
-            }
-        }
-    }
-}
-
-test {
-    useJUnitPlatform()
-}
-
-final PARSER_PACKAGE_NAME = 'gyro.parser.antlr4'
-generateGrammarSource {
-    outputs.cacheIf { true }
-    arguments += ["-package", PARSER_PACKAGE_NAME]
-    arguments << "-Xexact-output-dir"
-    arguments << "-visitor"
-    arguments << "-lib" << "src/main/antlr/gyro/parser/antlr4"
-
-    doLast {
-        def parserFilePattern = 'Groovy*'
-        def outputPath = generateGrammarSource.outputDirectory.canonicalPath
-        def parserPackagePath = "${outputPath}/${PARSER_PACKAGE_NAME.replace('.', '/')}"
-        file(parserPackagePath).mkdirs()
-        copy {
-            from outputPath
-            into parserPackagePath
-            include parserFilePattern
-        }
-        delete fileTree(outputPath) {
-            include parserFilePattern
-        }
-    }
+    implementation 'com.psddev:dari-util:3.3.607-xe0f27a'
+    implementation 'org.apache.httpcomponents:httpclient:4.5.6'
+    implementation 'org.apache.httpcomponents:httpcore:4.4.10'
+    implementation 'org.apache.maven:maven-aether-provider:3.3.9'
+    implementation 'org.eclipse.aether:aether-connector-basic:1.1.0'
+    implementation 'org.eclipse.aether:aether-impl:1.1.0'
+    implementation 'org.eclipse.aether:aether-transport-file:1.1.0'
+    implementation 'org.eclipse.aether:aether-transport-http:1.1.0'
 }

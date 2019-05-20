@@ -24,7 +24,7 @@ templates_path = ['_templates']
 source_suffix = ['.rst']
 master_doc = 'index'
 
-project = u'Beam'
+project = u'Gyro'
 copyright = u'2017, Perfect Sense'
 author = u'Perfect Sense'
 release = u'1.0'
