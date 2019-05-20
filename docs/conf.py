@@ -66,7 +66,7 @@ html_show_sphinx = False
 todo_include_todos = False
 
 pdf_documents = [
- ('getting-started/index',
+ ('guides/gyro-user-guide',
      u'GyroUserGuide',
      u'Gyro User Guide',
      u'jeremy@brightspot.com'
