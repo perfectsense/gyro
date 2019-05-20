@@ -16,6 +16,8 @@ import com.psddev.dari.util.TypeDefinition;
 import gyro.core.Credentials;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
+import gyro.core.directive.DirectiveProcessor;
+import gyro.core.directive.DirectiveSettings;
 import gyro.lang.GyroLanguageException;
 import gyro.lang.ast.DirectiveNode;
 import gyro.lang.ast.Node;
@@ -76,7 +78,11 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
     @Override
     public Object visitDirective(DirectiveNode node, Scope scope) {
         String name = node.getName();
-        DirectiveProcessor processor = scope.getRootScope().getDirectiveProcessors().get(name);
+
+        DirectiveProcessor processor = scope.getRootScope()
+            .getSettings(DirectiveSettings.class)
+            .getProcessors()
+            .get(name);
 
         if (processor == null) {
             throw new GyroException(String.format(
@@ -93,7 +99,11 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
                     .collect(Collectors.toList()));
 
         } catch (Exception error) {
-            throw new RuntimeException(error);
+            throw new GyroException(String.format(
+                "Can't process @%s directive! %s: %s",
+                name,
+                error.getClass().getName(),
+                error.getMessage()));
         }
 
         return null;

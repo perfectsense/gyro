@@ -1,6 +1,8 @@
-package gyro.core.resource;
+package gyro.core.directive;
 
 import java.util.List;
+
+import gyro.core.resource.Scope;
 
 public interface DirectiveProcessor {
 

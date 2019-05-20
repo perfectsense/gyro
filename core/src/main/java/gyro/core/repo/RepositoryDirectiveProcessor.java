@@ -1,9 +1,9 @@
-package gyro.core.plugin;
+package gyro.core.repo;
 
 import java.util.List;
 
 import gyro.core.GyroException;
-import gyro.core.resource.DirectiveProcessor;
+import gyro.core.directive.DirectiveProcessor;
 import gyro.core.resource.RootScope;
 import gyro.core.resource.Scope;
 import org.eclipse.aether.repository.RemoteRepository;

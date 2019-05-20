@@ -1,5 +1,11 @@
 package gyro.core.resource;
 
-public interface Settings {
+public abstract class Settings {
+
+    Scope scope;
+
+    public Scope getScope() {
+        return scope;
+    }
 
 }

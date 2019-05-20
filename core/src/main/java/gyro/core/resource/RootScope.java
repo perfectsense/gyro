@@ -19,8 +19,10 @@ import com.psddev.dari.util.TypeDefinition;
 import gyro.core.Credentials;
 import gyro.core.FileBackend;
 import gyro.core.GyroException;
+import gyro.core.directive.DirectiveSettings;
 import gyro.core.plugin.PluginDirectiveProcessor;
-import gyro.core.plugin.RepositoryDirectiveProcessor;
+import gyro.core.plugin.PluginSettings;
+import gyro.core.repo.RepositoryDirectiveProcessor;
 import gyro.lang.GyroErrorListener;
 import gyro.lang.GyroErrorStrategy;
 import gyro.lang.GyroLanguageException;
@@ -38,7 +40,6 @@ public class RootScope extends FileScope {
     private final FileBackend backend;
     private final RootScope current;
     private final Set<String> loadFiles;
-    private final Map<String, DirectiveProcessor> directiveProcessors = new HashMap<>();
     private final Map<String, Class<?>> resourceClasses = new HashMap<>();
     private final Map<String, Class<? extends ResourceFinder>> resourceFinderClasses = new HashMap<>();
     private final Map<String, VirtualResourceNode> virtualResourceNodes = new LinkedHashMap<>();
@@ -78,8 +79,11 @@ public class RootScope extends FileScope {
             this.loadFiles = (loadFiles != null ? s.filter(loadFiles::contains) : s).collect(Collectors.toSet());
         }
 
+        Stream.of(new ResourcePlugin())
+            .forEach(p -> getSettings(PluginSettings.class).getPlugins().add(p));
+
         Stream.of(new RepositoryDirectiveProcessor(), new PluginDirectiveProcessor())
-            .forEach(p -> directiveProcessors.put(p.getName(), p));
+            .forEach(p -> getSettings(DirectiveSettings.class).getProcessors().put(p.getName(), p));
 
         put("ENV", System.getenv());
     }
@@ -98,10 +102,6 @@ public class RootScope extends FileScope {
 
     public Set<String> getLoadFiles() {
         return loadFiles;
-    }
-
-    public Map<String, DirectiveProcessor> getDirectiveProcessors() {
-        return directiveProcessors;
     }
 
     public Map<String, Class<?>> getResourceClasses() {

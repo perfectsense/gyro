@@ -1,4 +1,4 @@
-package gyro.core.plugin;
+package gyro.core.repo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,7 +6,7 @@ import java.util.List;
 import gyro.core.resource.Settings;
 import org.eclipse.aether.repository.RemoteRepository;
 
-public class RepositorySettings implements Settings {
+public class RepositorySettings extends Settings {
 
     /**
      * The default Maven central repository.

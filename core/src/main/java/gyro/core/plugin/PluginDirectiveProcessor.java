@@ -1,13 +1,20 @@
 package gyro.core.plugin;
 
+import java.lang.reflect.Modifier;
 import java.nio.file.Paths;
-import java.util.HashMap;
+import java.util.Enumeration;
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
-import gyro.core.resource.DirectiveProcessor;
+import gyro.core.directive.DirectiveProcessor;
+import gyro.core.repo.RepositorySettings;
 import gyro.core.resource.RootScope;
 import gyro.core.resource.Scope;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
@@ -34,7 +41,8 @@ import org.eclipse.aether.util.filter.DependencyFilterUtils;
 
 public class PluginDirectiveProcessor implements DirectiveProcessor {
 
-    private static final Map<String, Plugin> PLUGINS = new HashMap<>();
+    private static final ConcurrentMap<String, Set<Class<?>>> CLASSES_BY_ARTIFACT_COORDS = new ConcurrentHashMap<>();
+    private static final PluginClassLoader PLUGIN_CLASS_LOADER = new PluginClassLoader();
 
     @Override
     public String getName() {
@@ -47,11 +55,10 @@ public class PluginDirectiveProcessor implements DirectiveProcessor {
             throw new GyroException("@plugin directive can only be used within the init.gyro file!");
         }
 
-        synchronized (PluginDirectiveProcessor.class) {
-            String artifactCoords = (String) arguments.get(0);
-            Plugin plugin = PLUGINS.get(artifactCoords);
+        Thread.currentThread().setContextClassLoader(PLUGIN_CLASS_LOADER);
 
-            if (plugin == null) {
+        scope.getSettings(PluginSettings.class).addClasses(CLASSES_BY_ARTIFACT_COORDS.computeIfAbsent((String) arguments.get(0), artifactCoords -> {
+            try {
                 GyroCore.ui().write("@|magenta ↓ Loading %s plugin|@\n", artifactCoords);
 
                 DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
@@ -74,13 +81,47 @@ public class PluginDirectiveProcessor implements DirectiveProcessor {
                 List<RemoteRepository> repositories = scope.getSettings(RepositorySettings.class).getRepositories();
                 DependencyRequest request = new DependencyRequest(new CollectRequest(dependency, repositories), filter);
                 DependencyResult result = system.resolveDependencies(session, request);
-                plugin = new Plugin(result);
 
-                PLUGINS.put(artifactCoords, plugin);
+                PLUGIN_CLASS_LOADER.add(result);
+
+                Set<Class<?>> classes = new LinkedHashSet<>();
+
+                try (JarFile jar = new JarFile(result.getRoot().getArtifact().getFile())) {
+                    for (Enumeration<JarEntry> e = jar.entries(); e.hasMoreElements(); ) {
+                        JarEntry entry = e.nextElement();
+
+                        if (entry.isDirectory()) {
+                            continue;
+                        }
+
+                        String name = entry.getName();
+
+                        if (!name.endsWith(".class")) {
+                            continue;
+                        }
+
+                        name = name.substring(0, name.length() - 6);
+                        name = name.replace('/', '.');
+                        Class<?> c = Class.forName(name, false, PLUGIN_CLASS_LOADER);
+
+                        int modifiers = c.getModifiers();
+
+                        if (!Modifier.isAbstract(modifiers) && !Modifier.isInterface(modifiers)) {
+                            classes.add(c);
+                        }
+                    }
+                }
+
+                return classes;
+
+            } catch (Exception error) {
+                throw new GyroException(String.format(
+                    "Can't load [%s] plugin! %s: %s",
+                    artifactCoords,
+                    error.getClass().getName(),
+                    error.getMessage()));
             }
-
-            plugin.execute((RootScope) scope);
-        }
+        }));
     }
 
 }

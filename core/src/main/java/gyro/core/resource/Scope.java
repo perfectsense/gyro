@@ -28,7 +28,10 @@ public class Scope implements Map<String, Object> {
 
             @Override
             public Settings load(Class<? extends Settings> settingsClass) throws IllegalAccessException, InstantiationException {
-                return settingsClass.newInstance();
+                Settings settings = settingsClass.newInstance();
+                settings.scope = Scope.this;
+
+                return settings;
             }
         });
 
