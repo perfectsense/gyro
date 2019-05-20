@@ -7,7 +7,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 import com.google.common.cache.CacheBuilder;
@@ -15,51 +14,17 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import gyro.core.NamespaceUtils;
 
 public class DiffableType<R extends Diffable> {
 
     private static final LoadingCache<Class<? extends Diffable>, DiffableType<? extends Diffable>> INSTANCES = CacheBuilder
-            .newBuilder()
-            .build(new CacheLoader<Class<? extends Diffable>, DiffableType<? extends Diffable>>() {
-
-                @Override
-                public DiffableType<? extends Diffable> load(Class<? extends Diffable> diffableClass) throws IntrospectionException {
-                    return new DiffableType<>(diffableClass);
-                }
-            });
-
-    private static final LoadingCache<ClassLoader, LoadingCache<String, String>> NAMESPACES_BY_LOADER = CacheBuilder.newBuilder()
-        .weakKeys()
-        .build(new CacheLoader<ClassLoader, LoadingCache<String, String>>() {
+        .newBuilder()
+        .build(new CacheLoader<Class<? extends Diffable>, DiffableType<? extends Diffable>>() {
 
             @Override
-            public LoadingCache<String, String> load(ClassLoader loader) {
-                return CacheBuilder.newBuilder()
-                    .build(new CacheLoader<String, String>() {
-
-                        @Override
-                        public String load(String name) {
-                            Package pkg;
-
-                            try {
-                                pkg = Class.forName(name + ".package-info", true, loader).getPackage();
-
-                            } catch (ClassNotFoundException error) {
-                                pkg = null;
-                            }
-
-                            return Optional.ofNullable(pkg)
-                                .map(p -> p.getAnnotation(ResourceNamespace.class))
-                                .map(ResourceNamespace::value)
-                                .orElseGet(() -> {
-                                    int lastDotAt = name.lastIndexOf('.');
-
-                                    return lastDotAt > -1
-                                        ? NAMESPACES_BY_LOADER.getUnchecked(loader).getUnchecked(name.substring(0, lastDotAt))
-                                        : "";
-                                });
-                        }
-                    });
+            public DiffableType<? extends Diffable> load(Class<? extends Diffable> diffableClass) throws IntrospectionException {
+                return new DiffableType<>(diffableClass);
             }
         });
 
@@ -87,22 +52,8 @@ public class DiffableType<R extends Diffable> {
         ResourceType typeAnnotation = diffableClass.getAnnotation(ResourceType.class);
 
         if (typeAnnotation != null) {
-            String namespace = Optional.ofNullable(diffableClass.getAnnotation(ResourceNamespace.class))
-                .map(ResourceNamespace::value)
-                .orElseGet(() -> {
-                    Package pkg = diffableClass.getPackage();
-
-                    return pkg != null
-                        ? NAMESPACES_BY_LOADER.getUnchecked(diffableClass.getClassLoader()).getUnchecked(pkg.getName())
-                        : "";
-                });
-
-            if (!namespace.isEmpty()) {
-                namespace += "::";
-            }
-
             this.root = true;
-            this.name = namespace + typeAnnotation.value();
+            this.name = NamespaceUtils.getNamespacePrefix(diffableClass)+ typeAnnotation.value();
 
         } else {
             this.root = false;
