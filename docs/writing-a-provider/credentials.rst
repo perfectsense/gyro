@@ -1,2 +1,0 @@
-Providing Credentials
----------------------

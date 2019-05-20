@@ -5,8 +5,7 @@
    :maxdepth: 3
 
    getting-started/index
-   writing-a-provider/index
-   writing-a-command-plugin/index
+   guides/writing-a-provider
 
 .. toctree::
     :caption: Providers
