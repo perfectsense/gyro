@@ -46,7 +46,7 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
         context.append('@');
         context.append(node.getName());
 
-        for (ValueNode arg : node.getArguments()) {
+        for (Node arg : node.getArguments()) {
             context.append(' ');
             visit(arg, context);
         }

@@ -2,7 +2,6 @@ package gyro.lang.ast;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import gyro.lang.ast.value.ValueNode;
 import gyro.parser.antlr4.GyroParser;
 import gyro.util.ImmutableCollectors;
 
@@ -11,9 +10,9 @@ import java.util.List;
 public class DirectiveNode extends Node {
 
     private final String name;
-    private final List<ValueNode> arguments;
+    private final List<Node> arguments;
 
-    public DirectiveNode(String name, List<ValueNode> arguments) {
+    public DirectiveNode(String name, List<Node> arguments) {
         this.name = Preconditions.checkNotNull(name);
         this.arguments = ImmutableList.copyOf(Preconditions.checkNotNull(arguments));
     }
@@ -24,7 +23,6 @@ public class DirectiveNode extends Node {
             context.value()
                 .stream()
                 .map(Node::create)
-                .map(ValueNode.class::cast)
                 .collect(ImmutableCollectors.toList()));
     }
 
@@ -32,7 +30,7 @@ public class DirectiveNode extends Node {
         return name;
     }
 
-    public List<ValueNode> getArguments() {
+    public List<Node> getArguments() {
         return arguments;
     }
 
