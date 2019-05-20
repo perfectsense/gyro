@@ -11,5 +11,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface Filter {
 
-    public String value();
+    String value();
+
 }
