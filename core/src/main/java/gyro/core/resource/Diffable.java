@@ -188,6 +188,7 @@ public abstract class Diffable {
                     .filter(Diffable.class::isInstance)
                     .map(Diffable.class::cast)
                     .forEach(d -> {
+                        d.scope = new DiffableScope(scope);
                         d.parent = this;
                         d.name = fieldName;
 
