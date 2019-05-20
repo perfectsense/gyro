@@ -22,6 +22,7 @@ import gyro.core.auth.CredentialsDirectiveProcessor;
 import gyro.core.auth.CredentialsPlugin;
 import gyro.core.directive.DirectivePlugin;
 import gyro.core.directive.DirectiveSettings;
+import gyro.core.finder.Finder;
 import gyro.core.plugin.PluginDirectiveProcessor;
 import gyro.core.plugin.PluginSettings;
 import gyro.core.repo.RepositoryDirectiveProcessor;
@@ -43,7 +44,7 @@ public class RootScope extends FileScope {
     private final RootScope current;
     private final Set<String> loadFiles;
     private final Map<String, Class<?>> resourceClasses = new HashMap<>();
-    private final Map<String, Class<? extends ResourceFinder>> resourceFinderClasses = new HashMap<>();
+    private final Map<String, Class<? extends Finder>> resourceFinderClasses = new HashMap<>();
     private final Map<String, VirtualResourceNode> virtualResourceNodes = new LinkedHashMap<>();
     private final List<Workflow> workflows = new ArrayList<>();
     private final List<FileScope> fileScopes = new ArrayList<>();
@@ -116,7 +117,7 @@ public class RootScope extends FileScope {
         return resourceClasses;
     }
 
-    public Map<String, Class<? extends ResourceFinder>> getResourceFinderClasses() {
+    public Map<String, Class<? extends Finder>> getResourceFinderClasses() {
         return resourceFinderClasses;
     }
 

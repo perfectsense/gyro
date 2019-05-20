@@ -1,4 +1,4 @@
-package gyro.core.resource;
+package gyro.core.finder;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,6 +11,11 @@ import gyro.core.NamespaceUtils;
 import gyro.core.auth.Credentials;
 import gyro.core.GyroException;
 import gyro.core.auth.CredentialsSettings;
+import gyro.core.resource.DiffableField;
+import gyro.core.resource.DiffableType;
+import gyro.core.resource.NodeEvaluator;
+import gyro.core.resource.Resource;
+import gyro.core.resource.Scope;
 import gyro.lang.query.AndQuery;
 import gyro.lang.query.ComparisonQuery;
 import gyro.lang.query.OrQuery;
@@ -25,7 +30,7 @@ public class QueryEvaluator implements QueryVisitor<QueryContext, List<Resource>
         this.nodeEvaluator = nodeEvaluator;
     }
 
-    public Query optimize(Query query, ResourceFinder<Resource> finder, Scope scope) {
+    public Query optimize(Query query, Finder<Resource> finder, Scope scope) {
         if (query instanceof AndQuery) {
             Map<String, String> filters = new HashMap<>();
             List<Query> unsupported = new ArrayList<>();
@@ -79,12 +84,12 @@ public class QueryEvaluator implements QueryVisitor<QueryContext, List<Resource>
         }
     }
 
-    private boolean isSupported(ComparisonQuery comparisonQuery, ResourceFinder finder) {
+    private boolean isSupported(ComparisonQuery comparisonQuery, Finder finder) {
         String path = comparisonQuery.getPath();
         String operator = comparisonQuery.getOperator();
         String mapFieldName = path.split("\\.")[0];
 
-        for (ResourceFinderField field : ResourceFinderType.getInstance(finder.getClass()).getFields()) {
+        for (FinderField field : FinderType.getInstance(finder.getClass()).getFields()) {
             String key = field.getGyroName();
 
             if (path.equals(key) && operator.equals(ComparisonQuery.EQUALS_OPERATOR)

@@ -1,8 +1,9 @@
-package gyro.core.resource;
+package gyro.core.finder;
 
 import java.util.List;
 
 import com.google.common.collect.ImmutableList;
+import gyro.core.resource.Resource;
 import gyro.lang.query.Query;
 import gyro.lang.query.QueryVisitor;
 

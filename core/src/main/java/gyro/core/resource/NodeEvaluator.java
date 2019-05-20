@@ -17,6 +17,9 @@ import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.directive.DirectiveSettings;
+import gyro.core.finder.Finder;
+import gyro.core.finder.QueryContext;
+import gyro.core.finder.QueryEvaluator;
 import gyro.lang.GyroLanguageException;
 import gyro.lang.ast.DirectiveNode;
 import gyro.lang.ast.Node;
@@ -495,13 +498,13 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
             List<Query> queries = new ArrayList<>(node.getQueries());
 
             if (name.startsWith("EXTERNAL/*")) {
-                Class<? extends ResourceFinder> resourceQueryClass = scope.getRootScope().getResourceFinderClasses().get(type);
+                Class<? extends Finder> resourceQueryClass = scope.getRootScope().getResourceFinderClasses().get(type);
 
                 if (resourceQueryClass == null) {
                     throw new GyroException("Resource type " + type + " does not support external queries.");
                 }
 
-                ResourceFinder<Resource> finder = TypeDefinition.getInstance(resourceQueryClass).newInstance();
+                Finder<Resource> finder = TypeDefinition.getInstance(resourceQueryClass).newInstance();
                 boolean isHead = true;
 
                 for (Query q : queries) {
