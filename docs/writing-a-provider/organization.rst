@@ -1,2 +1,0 @@
-Organizing Code
----------------
