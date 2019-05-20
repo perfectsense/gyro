@@ -1,3 +1,0 @@
-
-Destroying Infrastructure
--------------------------
