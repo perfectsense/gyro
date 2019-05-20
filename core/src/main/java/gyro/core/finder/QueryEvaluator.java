@@ -7,10 +7,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import gyro.core.NamespaceUtils;
 import gyro.core.auth.Credentials;
 import gyro.core.GyroException;
-import gyro.core.auth.CredentialsSettings;
 import gyro.core.resource.DiffableField;
 import gyro.core.resource.DiffableType;
 import gyro.core.resource.NodeEvaluator;
@@ -30,7 +28,7 @@ public class QueryEvaluator implements QueryVisitor<QueryContext, List<Resource>
         this.nodeEvaluator = nodeEvaluator;
     }
 
-    public Query optimize(Query query, Finder<Resource> finder, Scope scope) {
+    public Query optimize(Credentials<?> credentials, Query query, Finder<Resource> finder, Scope scope) {
         if (query instanceof AndQuery) {
             Map<String, String> filters = new HashMap<>();
             List<Query> unsupported = new ArrayList<>();
@@ -53,7 +51,7 @@ public class QueryEvaluator implements QueryVisitor<QueryContext, List<Resource>
             }
 
             if (!filters.isEmpty()) {
-                newChildren.add(new FoundQuery(finder.find(findQueryCredentials(scope), filters)));
+                newChildren.add(new FoundQuery(finder.find(credentials, filters)));
             }
 
             newChildren.addAll(unsupported);
@@ -64,7 +62,7 @@ public class QueryEvaluator implements QueryVisitor<QueryContext, List<Resource>
             ComparisonQuery comparisonQuery = (ComparisonQuery) query;
 
             if (isSupported(comparisonQuery, finder)) {
-                return new FoundQuery(finder.find(findQueryCredentials(scope), getFilter(comparisonQuery, scope)));
+                return new FoundQuery(finder.find(credentials, getFilter(comparisonQuery, scope)));
 
             } else {
                 return query;
@@ -74,7 +72,7 @@ public class QueryEvaluator implements QueryVisitor<QueryContext, List<Resource>
             List<Query> newChildren = new ArrayList<>();
 
             for (Query child : ((OrQuery) query).getChildren()) {
-                newChildren.add(optimize(child, finder, scope));
+                newChildren.add(optimize(credentials, child, finder, scope));
             }
 
             return new OrQuery(newChildren);
@@ -119,24 +117,6 @@ public class QueryEvaluator implements QueryVisitor<QueryContext, List<Resource>
         }
 
         return filter;
-    }
-
-
-    public Credentials<?> findQueryCredentials(Scope scope) {
-        String name = NamespaceUtils.getNamespacePrefix(getClass()) + "default";
-
-        Credentials<?> credentials = scope.getRootScope()
-            .getSettings(CredentialsSettings.class)
-            .getCredentialsByName()
-            .get(name);
-
-        if (credentials == null) {
-            throw new GyroException(String.format(
-                "Can't find [%s] credentials!",
-                name));
-        }
-
-        return credentials;
     }
 
     @Override

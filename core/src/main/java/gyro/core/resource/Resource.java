@@ -4,10 +4,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import gyro.core.GyroException;
-import gyro.core.NamespaceUtils;
 import gyro.core.auth.Credentials;
-import gyro.core.auth.CredentialsSettings;
 
 public abstract class Resource extends Diffable {
 
@@ -35,20 +32,7 @@ public abstract class Resource extends Diffable {
     public abstract void delete();
 
     public Credentials<?> credentials() {
-        String name = NamespaceUtils.getNamespacePrefix(getClass()) + "default";
-
-        Credentials<?> credentials = scope.getRootScope()
-            .getSettings(CredentialsSettings.class)
-            .getCredentialsByName()
-            .get(name);
-
-        if (credentials == null) {
-            throw new GyroException(String.format(
-                "Can't find [%s] credentials!",
-                name));
-        }
-
-        return credentials;
+        return Credentials.getInstance(getClass(), scope);
     }
 
     public Object get(String key) {

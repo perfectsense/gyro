@@ -14,6 +14,8 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import gyro.core.NamespaceUtils;
+import gyro.core.resource.ResourceType;
 
 public class FinderType<R extends Finder> {
 
@@ -22,19 +24,20 @@ public class FinderType<R extends Finder> {
             .build(new CacheLoader<Class<? extends Finder>, FinderType<? extends Finder>>() {
 
                 @Override
-                public FinderType<? extends Finder> load(Class<? extends Finder> queryClass) throws IntrospectionException {
-                    return new FinderType<>(queryClass);
+                public FinderType<? extends Finder> load(Class<? extends Finder> finderClass) throws IntrospectionException {
+                    return new FinderType<>(finderClass);
                 }
             });
 
+    private final String name;
     private final List<FinderField> fields;
     private final Map<String, FinderField> fieldByJavaName;
     private final Map<String, FinderField> fieldByGyroName;
 
     @SuppressWarnings("unchecked")
-    public static <R extends Finder> FinderType<R> getInstance(Class<R> queryClass) {
+    public static <R extends Finder> FinderType<R> getInstance(Class<R> finderClass) {
         try {
-            return (FinderType<R>) INSTANCES.get(queryClass);
+            return (FinderType<R>) INSTANCES.get(finderClass);
 
         } catch (ExecutionException error) {
             Throwable cause = error.getCause();
@@ -45,12 +48,14 @@ public class FinderType<R extends Finder> {
         }
     }
 
-    private FinderType(Class<R> queryClass) throws IntrospectionException {
+    private FinderType(Class<R> finderClass) throws IntrospectionException {
+        this.name = NamespaceUtils.getNamespacePrefix(finderClass ) + finderClass.getAnnotation(ResourceType.class).value();
+
         ImmutableList.Builder<FinderField> fields = ImmutableList.builder();
         ImmutableMap.Builder<String, FinderField> fieldByJavaName = ImmutableMap.builder();
         ImmutableMap.Builder<String, FinderField> fieldByGyroName = ImmutableMap.builder();
 
-        for (PropertyDescriptor prop : Introspector.getBeanInfo(queryClass).getPropertyDescriptors()) {
+        for (PropertyDescriptor prop : Introspector.getBeanInfo(finderClass).getPropertyDescriptors()) {
             Method getter = prop.getReadMethod();
             Method setter = prop.getWriteMethod();
 
@@ -71,6 +76,10 @@ public class FinderType<R extends Finder> {
         this.fields = fields.build();
         this.fieldByJavaName = fieldByJavaName.build();
         this.fieldByGyroName = fieldByGyroName.build();
+    }
+
+    public String getName() {
+        return name;
     }
 
     public List<FinderField> getFields() {

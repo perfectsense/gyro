@@ -15,9 +15,13 @@ import com.google.common.collect.ImmutableSet;
 import com.psddev.dari.util.TypeDefinition;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
+import gyro.core.NamespaceUtils;
+import gyro.core.auth.Credentials;
+import gyro.core.auth.CredentialsSettings;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.directive.DirectiveSettings;
 import gyro.core.finder.Finder;
+import gyro.core.finder.FinderSettings;
 import gyro.core.finder.QueryContext;
 import gyro.core.finder.QueryEvaluator;
 import gyro.lang.GyroLanguageException;
@@ -498,24 +502,28 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
             List<Query> queries = new ArrayList<>(node.getQueries());
 
             if (name.startsWith("EXTERNAL/*")) {
-                Class<? extends Finder> resourceQueryClass = scope.getRootScope().getResourceFinderClasses().get(type);
+                Class<? extends Finder> finderClass = scope.getRootScope()
+                    .getSettings(FinderSettings.class)
+                    .getFinderClasses()
+                    .get(type);
 
-                if (resourceQueryClass == null) {
+                if (finderClass == null) {
                     throw new GyroException("Resource type " + type + " does not support external queries.");
                 }
 
-                Finder<Resource> finder = TypeDefinition.getInstance(resourceQueryClass).newInstance();
+                Credentials<?> credentials = Credentials.getInstance(finderClass, scope);
+                Finder<Resource> finder = TypeDefinition.getInstance(finderClass).newInstance();
                 boolean isHead = true;
 
                 for (Query q : queries) {
                     if (isHead) {
                         isHead = false;
-                        Query optimized = evaluator.optimize(q, finder, scope);
+                        Query optimized = evaluator.optimize(credentials, q, finder, scope);
                         queries.add(optimized);
 
                         resources = evaluator.visit(optimized, new QueryContext(type, scope, resources));
                         if (resources.isEmpty()) {
-                            resources = finder.findAll(evaluator.findQueryCredentials(scope));
+                            resources = finder.findAll(credentials);
                         }
 
                     } else {
