@@ -16,9 +16,10 @@ import java.util.stream.Stream;
 
 import com.psddev.dari.util.Converter;
 import com.psddev.dari.util.TypeDefinition;
-import gyro.core.Credentials;
 import gyro.core.FileBackend;
 import gyro.core.GyroException;
+import gyro.core.auth.CredentialsDirectiveProcessor;
+import gyro.core.auth.CredentialsPlugin;
 import gyro.core.directive.DirectiveSettings;
 import gyro.core.plugin.PluginDirectiveProcessor;
 import gyro.core.plugin.PluginSettings;
@@ -79,10 +80,15 @@ public class RootScope extends FileScope {
             this.loadFiles = (loadFiles != null ? s.filter(loadFiles::contains) : s).collect(Collectors.toSet());
         }
 
-        Stream.of(new ResourcePlugin())
+        Stream.of(
+            new CredentialsPlugin(),
+            new ResourcePlugin())
             .forEach(p -> getSettings(PluginSettings.class).getPlugins().add(p));
 
-        Stream.of(new RepositoryDirectiveProcessor(), new PluginDirectiveProcessor())
+        Stream.of(
+            new CredentialsDirectiveProcessor(),
+            new RepositoryDirectiveProcessor(),
+            new PluginDirectiveProcessor())
             .forEach(p -> getSettings(DirectiveSettings.class).getProcessors().put(p.getName(), p));
 
         put("ENV", System.getenv());
@@ -222,21 +228,8 @@ public class RootScope extends FileScope {
 
     private void validate() {
         StringBuilder sb = new StringBuilder();
-        for (FileScope fileScope : getFileScopes()) {
-            boolean hasCredentials = fileScope.values()
-                .stream()
-                .anyMatch(Credentials.class::isInstance);
 
-            if (hasCredentials) {
-                sb.append(String.format("Credentials are only allowed in '%s', found in '%s'%n", getFile(), fileScope.getFile()));
-            }
-        }
-
-        boolean hasResources = this.values()
-            .stream()
-            .anyMatch(r -> r instanceof Resource && !(r instanceof Credentials));
-
-        if (hasResources) {
+        if (values().stream().anyMatch(Resource.class::isInstance)) {
             sb.append(String.format("Resources are not allowed in '%s'%n", getFile()));
         }
 

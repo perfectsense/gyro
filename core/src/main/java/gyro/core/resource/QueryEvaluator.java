@@ -7,8 +7,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import gyro.core.Credentials;
+import gyro.core.NamespaceUtils;
+import gyro.core.auth.Credentials;
 import gyro.core.GyroException;
+import gyro.core.auth.CredentialsSettings;
 import gyro.lang.query.AndQuery;
 import gyro.lang.query.ComparisonQuery;
 import gyro.lang.query.OrQuery;
@@ -115,28 +117,21 @@ public class QueryEvaluator implements QueryVisitor<QueryContext, List<Resource>
     }
 
 
-    public Credentials findQueryCredentials(Scope scope) {
-        scope = scope.getRootScope();
+    public Credentials<?> findQueryCredentials(Scope scope) {
+        String name = NamespaceUtils.getNamespacePrefix(getClass()) + "default";
 
-        if (scope != null) {
-            String name = (String) scope.get("resource-credentials");
+        Credentials<?> credentials = scope.getRootScope()
+            .getSettings(CredentialsSettings.class)
+            .getCredentialsByName()
+            .get(name);
 
-            if (name == null) {
-                name = "default";
-            }
-
-            for (Resource resource : scope.getRootScope().findResources()) {
-                if (resource instanceof Credentials) {
-                    Credentials credentials = (Credentials) resource;
-
-                    if (credentials.name().equals(name)) {
-                        return credentials;
-                    }
-                }
-            }
+        if (credentials == null) {
+            throw new GyroException(String.format(
+                "Can't find [%s] credentials!",
+                name));
         }
 
-        throw new IllegalStateException();
+        return credentials;
     }
 
     @Override

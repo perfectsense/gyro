@@ -13,7 +13,6 @@ import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableSet;
 import com.psddev.dari.util.TypeDefinition;
-import gyro.core.Credentials;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
@@ -331,20 +330,13 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
         vrScope.getResourceClasses().putAll(paramRootScope.getResourceClasses());
         vrScope.getFileScopes().add(resourceScope);
 
-        paramRootScope.findResources()
-                .stream()
-                .filter(Credentials.class::isInstance)
-                .forEach(c -> vrScope.put(c.primaryKey(), c));
-
         for (Node item : node.getBody()) {
             visit(item, resourceScope);
         }
 
         for (Resource resource : vrScope.findResources()) {
-            if (!(resource instanceof Credentials)) {
-                resource.name = prefix + "." + resource.name;
-                paramFileScope.put(resource.primaryKey(), resource);
-            }
+            resource.name = prefix + "." + resource.name;
+            paramFileScope.put(resource.primaryKey(), resource);
         }
     }
 
