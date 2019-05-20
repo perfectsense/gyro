@@ -25,10 +25,10 @@ public class CredentialsDirectiveProcessor implements DirectiveProcessor {
         @SuppressWarnings("unchecked")
         Map<String, Object> values = (Map<String, Object>) arguments.get(2);
 
-        CredentialsSettings settings = scope.getRootScope().getSettings(CredentialsSettings.class);
+        RootScope rootScope = scope.getRootScope();
+        CredentialsSettings settings = rootScope.getSettings(CredentialsSettings.class);
         Class<? extends Credentials<?>> credentialsClass = settings.getCredentialsClasses().get(type);
         Credentials<?> credentials = credentialsClass.newInstance();
-        RootScope rootScope = scope.getRootScope();
 
         for (PropertyDescriptor property : Introspector.getBeanInfo(credentialsClass).getPropertyDescriptors()) {
             Method setter = property.getWriteMethod();
@@ -41,7 +41,7 @@ public class CredentialsDirectiveProcessor implements DirectiveProcessor {
         }
 
         credentials.getNamespaces().stream()
-            .map(ns -> ns + name)
+            .map(ns -> ns + "::" + name)
             .forEach(n -> settings.getCredentialsByName().put(n, credentials));
     }
 
