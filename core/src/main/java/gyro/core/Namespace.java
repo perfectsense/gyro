@@ -1,4 +1,4 @@
-package gyro.core.resource;
+package gyro.core;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.PACKAGE, ElementType.TYPE })
-public @interface ResourceNamespace {
+public @interface Namespace {
 
     String value();
 

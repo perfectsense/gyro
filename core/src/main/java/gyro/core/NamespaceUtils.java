@@ -5,7 +5,6 @@ import java.util.Optional;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import gyro.core.resource.ResourceNamespace;
 
 public class NamespaceUtils {
 
@@ -30,8 +29,8 @@ public class NamespaceUtils {
                             }
 
                             return Optional.ofNullable(pkg)
-                                .map(p -> p.getAnnotation(ResourceNamespace.class))
-                                .map(ResourceNamespace::value)
+                                .map(p -> p.getAnnotation(Namespace.class))
+                                .map(Namespace::value)
                                 .orElseGet(() -> {
                                     int lastDotAt = name.lastIndexOf('.');
 
@@ -45,8 +44,8 @@ public class NamespaceUtils {
         });
 
     public static String getNamespace(Class<?> c) {
-        return Optional.ofNullable(c.getAnnotation(ResourceNamespace.class))
-            .map(ResourceNamespace::value)
+        return Optional.ofNullable(c.getAnnotation(Namespace.class))
+            .map(Namespace::value)
             .orElseGet(() -> {
                 Package pkg = c.getPackage();
 
