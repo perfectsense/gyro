@@ -476,7 +476,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
             QueryEvaluator evaluator = new QueryEvaluator(this);
             String name = (String) visit(nameNode, scope);
             List<Resource> resources = new ArrayList<>();
-            List<Query> queries = new ArrayList<>(node.getQueries());
+            List<Query> queries = null;
 
             if (name.startsWith("EXTERNAL/*")) {
                 Class<? extends Finder<Resource>> finderClass = scope.getRootScope()
@@ -489,22 +489,21 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
                 }
 
                 Finder<Resource> finder = FinderType.getInstance(finderClass).newInstance(scope);
-                boolean isHead = true;
+                List<Query> nodeQueries = node.getQueries();
+                queries = new ArrayList<>();
 
-                for (Query q : queries) {
-                    if (isHead) {
-                        isHead = false;
-                        Query optimized = evaluator.optimize(q, finder, scope);
-                        queries.add(optimized);
+                if (!nodeQueries.isEmpty()) {
+                    Query optimized = evaluator.optimize(nodeQueries.get(0), finder, scope);
+                    resources = evaluator.visit(optimized, new QueryContext(type, scope, resources));
 
-                        resources = evaluator.visit(optimized, new QueryContext(type, scope, resources));
-                        if (resources.isEmpty()) {
-                            resources = finder.findAll();
-                        }
+                    queries.add(optimized);
 
-                    } else {
-                        queries.add(q);
+                    if (resources.isEmpty()) {
+                        resources = finder.findAll();
                     }
+
+                } else {
+                    nodeQueries.subList(1, nodeQueries.size()).forEach(queries::add);
                 }
 
             } else if (name.endsWith("*")) {
@@ -546,7 +545,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
                 }
             }
 
-            for (Query q : queries) {
+            for (Query q : (queries != null ? queries : node.getQueries())) {
                 resources = evaluator.visit(q, new QueryContext(type, scope, resources));
             }
 
