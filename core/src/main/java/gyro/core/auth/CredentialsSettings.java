@@ -9,6 +9,7 @@ public class CredentialsSettings extends Settings {
 
     private Map<String, Class<? extends Credentials<?>>> credentialsClasses;
     private Map<String, Credentials<?>> credentialsByName;
+    private String useCredentials;
 
     public Map<String, Class<? extends Credentials<?>>> getCredentialsClasses() {
         if (credentialsClasses == null) {
@@ -32,6 +33,14 @@ public class CredentialsSettings extends Settings {
 
     public void setCredentialsByName(Map<String, Credentials<?>> credentialsByName) {
         this.credentialsByName = credentialsByName;
+    }
+
+    public String getUseCredentials() {
+        return useCredentials;
+    }
+
+    public void setUseCredentials(String useCredentials) {
+        this.useCredentials = useCredentials;
     }
 
 }

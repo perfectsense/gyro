@@ -5,12 +5,17 @@ import java.util.Set;
 import com.google.common.collect.ImmutableSet;
 import gyro.core.GyroException;
 import gyro.core.NamespaceUtils;
+import gyro.core.resource.DiffableScope;
 import gyro.core.resource.Scope;
 
 public abstract class Credentials<T> {
 
     public static Credentials<?> getInstance(Class<?> aClass, Scope scope) {
-        String name = NamespaceUtils.getNamespacePrefix(aClass) + "default";
+        String name = scope.getClosest(DiffableScope.class)
+            .getSettings(CredentialsSettings.class)
+            .getUseCredentials();
+
+        name = NamespaceUtils.getNamespacePrefix(aClass) + (name != null ? name : "default");
 
         Credentials<?> credentials = scope.getRootScope()
             .getSettings(CredentialsSettings.class)
