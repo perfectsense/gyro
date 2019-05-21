@@ -20,15 +20,30 @@ public class CredentialsDirectiveProcessor implements DirectiveProcessor {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void process(Scope scope, List<Object> arguments) throws Exception {
         if (!(scope instanceof RootScope)) {
             throw new GyroException("@credentials directive can only be used within the init.gyro file!");
         }
 
+        int argumentsSize = arguments.size();
+
+        if (argumentsSize < 2 || argumentsSize > 3) {
+            throw new GyroException("@credentials directive only takes 2 or 3 arguments!");
+        }
+
         String type = (String) arguments.get(0);
-        String name = (String) arguments.get(1);
-        @SuppressWarnings("unchecked")
-        Map<String, Object> values = (Map<String, Object>) arguments.get(2);
+        String name;
+        Map<String, Object> values;
+
+        if (argumentsSize == 2) {
+            name = "default";
+            values = (Map<String, Object>) arguments.get(1);
+
+        } else {
+            name = (String) arguments.get(1);
+            values = (Map<String, Object>) arguments.get(2);
+        }
 
         RootScope root = (RootScope) scope;
         CredentialsSettings settings = root.getSettings(CredentialsSettings.class);
