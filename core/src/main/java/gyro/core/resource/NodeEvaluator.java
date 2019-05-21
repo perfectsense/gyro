@@ -13,7 +13,6 @@ import java.util.stream.Stream;
 import com.google.common.collect.ImmutableSet;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
-import gyro.core.auth.Credentials;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.directive.DirectiveSettings;
 import gyro.core.finder.Finder;
@@ -489,14 +488,13 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
                     throw new GyroException("Resource type " + type + " does not support external queries.");
                 }
 
-                Credentials<?> credentials = Credentials.getInstance(finderClass, scope);
                 Finder<Resource> finder = FinderType.getInstance(finderClass).newInstance(scope);
                 boolean isHead = true;
 
                 for (Query q : queries) {
                     if (isHead) {
                         isHead = false;
-                        Query optimized = evaluator.optimize(credentials, q, finder, scope);
+                        Query optimized = evaluator.optimize(q, finder, scope);
                         queries.add(optimized);
 
                         resources = evaluator.visit(optimized, new QueryContext(type, scope, resources));

@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import gyro.core.auth.Credentials;
 import gyro.core.GyroException;
 import gyro.core.resource.DiffableField;
 import gyro.core.resource.DiffableType;
@@ -28,7 +27,7 @@ public class QueryEvaluator implements QueryVisitor<QueryContext, List<Resource>
         this.nodeEvaluator = nodeEvaluator;
     }
 
-    public Query optimize(Credentials<?> credentials, Query query, Finder<Resource> finder, Scope scope) {
+    public Query optimize(Query query, Finder<Resource> finder, Scope scope) {
         if (query instanceof AndQuery) {
             Map<String, String> filters = new HashMap<>();
             List<Query> unsupported = new ArrayList<>();
@@ -72,7 +71,7 @@ public class QueryEvaluator implements QueryVisitor<QueryContext, List<Resource>
             List<Query> newChildren = new ArrayList<>();
 
             for (Query child : ((OrQuery) query).getChildren()) {
-                newChildren.add(optimize(credentials, child, finder, scope));
+                newChildren.add(optimize(child, finder, scope));
             }
 
             return new OrQuery(newChildren);
