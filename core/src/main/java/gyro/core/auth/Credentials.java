@@ -13,14 +13,17 @@ import gyro.core.resource.Scope;
 
 public abstract class Credentials {
 
-    public static Credentials getInstance(Class<?> aClass, Scope scope) {
+    Scope scope;
+
+    @SuppressWarnings("unchecked")
+    public static <C extends Credentials> C getInstance(Class<C> credentialsClass, Class<?> contextClass, Scope scope) {
         DiffableScope diffableScope = scope.getClosest(DiffableScope.class);
 
         String name = diffableScope != null
             ? diffableScope.getSettings(CredentialsSettings.class).getUseCredentials()
             : null;
 
-        name = NamespaceUtils.getNamespacePrefix(aClass) + (name != null ? name : "default");
+        name = NamespaceUtils.getNamespacePrefix(contextClass) + (name != null ? name : "default");
 
         Credentials credentials = scope.getRootScope()
             .getSettings(CredentialsSettings.class)
@@ -33,10 +36,15 @@ public abstract class Credentials {
                 name));
         }
 
-        return credentials;
-    }
+        if (!credentialsClass.isInstance(credentials)) {
+            throw new GyroException(String.format(
+                "Need [%s] credentials but have [%s] instead!",
+                credentialsClass.getName(),
+                credentials.getClass().getName()));
+        }
 
-    Scope scope;
+        return (C) credentials;
+    }
 
     public Set<String> getNamespaces() {
         return ImmutableSet.of(NamespaceUtils.getNamespace(getClass()));

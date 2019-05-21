@@ -31,8 +31,9 @@ public abstract class Resource extends Diffable {
 
     public abstract void delete();
 
-    public Credentials credentials() {
-        return Credentials.getInstance(getClass(), scope);
+    @SuppressWarnings("unchecked")
+    public <C extends Credentials> C credentials(Class<C> credentialsClass) {
+        return Credentials.getInstance(credentialsClass, getClass(), scope);
     }
 
     public Object get(String key) {

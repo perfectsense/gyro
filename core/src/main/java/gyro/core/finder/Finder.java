@@ -18,8 +18,8 @@ public abstract class Finder<R extends Resource> {
 
     public abstract List<R> find(Map<String, String> filters);
 
-    public Credentials credentials() {
-        return Credentials.getInstance(getClass(), scope);
+    public <C extends Credentials> C credentials(Class<C> credentialsClass) {
+        return Credentials.getInstance(credentialsClass, getClass(), scope);
     }
 
     public R newResource() {
