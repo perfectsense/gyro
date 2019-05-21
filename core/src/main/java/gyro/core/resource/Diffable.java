@@ -135,6 +135,7 @@ public abstract class Diffable {
             return object;
         }
 
+        DiffableScope scope = (DiffableScope) object;
         Diffable diffable = DiffableType.getInstance(diffableClass).newDiffable(this, fieldName, scope);
 
         diffable.initialize(scope);
