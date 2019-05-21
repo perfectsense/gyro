@@ -16,12 +16,17 @@ public class UseCredentialsDirectiveProcessor implements DirectiveProcessor {
 
     @Override
     public void process(Scope scope, List<Object> arguments) {
+        DiffableScope diffableScope = scope.getClosest(DiffableScope.class);
+
+        if (diffableScope == null) {
+            throw new GyroException("@use-credentials can only be used inside a resource!");
+        }
+
         if (arguments.size() != 1) {
             throw new GyroException("@use-credentials directive only takes 1 argument!");
         }
 
-        scope.getClosest(DiffableScope.class)
-            .getSettings(CredentialsSettings.class)
+        diffableScope.getSettings(CredentialsSettings.class)
             .setUseCredentials((String) arguments.get(0));
     }
 
