@@ -46,9 +46,9 @@ public class DiffableField {
         this.name = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, javaName);
         this.getter = getter;
         this.setter = setter;
-        this.updatable = getter.isAnnotationPresent(ResourceUpdatable.class);
+        this.updatable = getter.isAnnotationPresent(Updatable.class);
 
-        ResourceOutput output = getter.getAnnotation(ResourceOutput.class);
+        Output output = getter.getAnnotation(Output.class);
 
         if (output != null) {
             this.testValue = !ObjectUtils.isBlank(output.value()) ? output.value() : name;

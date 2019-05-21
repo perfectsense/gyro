@@ -78,7 +78,7 @@ public class DiffableType<R extends Diffable> {
                 if (getterType.equals(setterType)) {
                     DiffableField field = new DiffableField(prop.getName(), getter, setter, getterType);
 
-                    if (getter.isAnnotationPresent(ResourceId.class)) {
+                    if (getter.isAnnotationPresent(Id.class)) {
                         idField = field;
                     }
 
