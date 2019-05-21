@@ -4,7 +4,6 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -15,7 +14,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import gyro.core.NamespaceUtils;
-import gyro.core.resource.ResourceType;
+import gyro.core.Type;
 import gyro.core.resource.Scope;
 
 public class FinderType<F extends Finder> {
@@ -52,7 +51,7 @@ public class FinderType<F extends Finder> {
 
     private FinderType(Class<F> finderClass) throws IntrospectionException {
         this.finderClass = finderClass;
-        this.name = NamespaceUtils.getNamespacePrefix(finderClass ) + finderClass.getAnnotation(ResourceType.class).value();
+        this.name = NamespaceUtils.getNamespacePrefix(finderClass ) + finderClass.getAnnotation(Type.class).value();
 
         ImmutableList.Builder<FinderField> fields = ImmutableList.builder();
         ImmutableMap.Builder<String, FinderField> fieldByJavaName = ImmutableMap.builder();
@@ -63,8 +62,8 @@ public class FinderType<F extends Finder> {
             Method setter = prop.getWriteMethod();
 
             if (getter != null && setter != null) {
-                Type getterType = getter.getGenericReturnType();
-                Type setterType = setter.getGenericParameterTypes()[0];
+                java.lang.reflect.Type getterType = getter.getGenericReturnType();
+                java.lang.reflect.Type setterType = setter.getGenericParameterTypes()[0];
 
                 if (getterType.equals(setterType)) {
                     FinderField field = new FinderField(prop.getName(), getter, setter, getterType);

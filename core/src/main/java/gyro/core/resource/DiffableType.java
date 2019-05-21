@@ -4,7 +4,6 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -15,6 +14,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import gyro.core.NamespaceUtils;
+import gyro.core.Type;
 
 public class DiffableType<R extends Diffable> {
 
@@ -52,7 +52,7 @@ public class DiffableType<R extends Diffable> {
     private DiffableType(Class<R> diffableClass) throws IntrospectionException {
         this.diffableClass = diffableClass;
 
-        ResourceType typeAnnotation = diffableClass.getAnnotation(ResourceType.class);
+        Type typeAnnotation = diffableClass.getAnnotation(Type.class);
 
         if (typeAnnotation != null) {
             this.root = true;
@@ -72,8 +72,8 @@ public class DiffableType<R extends Diffable> {
             Method setter = prop.getWriteMethod();
 
             if (getter != null && setter != null) {
-                Type getterType = getter.getGenericReturnType();
-                Type setterType = setter.getGenericParameterTypes()[0];
+                java.lang.reflect.Type getterType = getter.getGenericReturnType();
+                java.lang.reflect.Type setterType = setter.getGenericParameterTypes()[0];
 
                 if (getterType.equals(setterType)) {
                     DiffableField field = new DiffableField(prop.getName(), getter, setter, getterType);
