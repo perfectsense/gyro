@@ -4,12 +4,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.stream.Stream;
 
-public interface FileBackend {
+public abstract class FileBackend {
 
-    Stream<String> list();
+    public abstract Stream<String> list();
 
-    InputStream openInput(String file);
+    public abstract InputStream openInput(String file);
 
-    OutputStream openOutput(String file);
+    public abstract OutputStream openOutput(String file);
 
 }

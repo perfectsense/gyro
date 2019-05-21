@@ -9,7 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.stream.Stream;
 
-public class LocalFileBackend implements FileBackend {
+public class LocalFileBackend extends FileBackend {
 
     private final Path rootDirectory;
 
