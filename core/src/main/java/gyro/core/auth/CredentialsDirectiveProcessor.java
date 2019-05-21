@@ -34,6 +34,7 @@ public class CredentialsDirectiveProcessor implements DirectiveProcessor {
         CredentialsSettings settings = root.getSettings(CredentialsSettings.class);
         Class<? extends Credentials<?>> credentialsClass = settings.getCredentialsClasses().get(type);
         Credentials<?> credentials = credentialsClass.newInstance();
+        credentials.scope = scope;
 
         for (PropertyDescriptor property : Introspector.getBeanInfo(credentialsClass).getPropertyDescriptors()) {
             Method setter = property.getWriteMethod();
