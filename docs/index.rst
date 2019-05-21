@@ -4,7 +4,7 @@
    :caption: Guides
    :maxdepth: 3
 
-   getting-started/index
+   guides/gyro-user-guide
    guides/writing-a-provider
 
 .. toctree::
