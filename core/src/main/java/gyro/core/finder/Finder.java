@@ -18,7 +18,7 @@ public abstract class Finder<R extends Resource> {
 
     public abstract List<R> find(Map<String, String> filters);
 
-    public Credentials<?> credentials() {
+    public Credentials credentials() {
         return Credentials.getInstance(getClass(), scope);
     }
 

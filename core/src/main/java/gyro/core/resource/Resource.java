@@ -31,7 +31,7 @@ public abstract class Resource extends Diffable {
 
     public abstract void delete();
 
-    public Credentials<?> credentials() {
+    public Credentials credentials() {
         return Credentials.getInstance(getClass(), scope);
     }
 

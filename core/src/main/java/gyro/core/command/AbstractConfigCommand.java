@@ -14,6 +14,7 @@ import com.psddev.dari.util.ObjectUtils;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.LocalFileBackend;
+import gyro.core.auth.Credentials;
 import gyro.core.auth.CredentialsSettings;
 import gyro.core.resource.DiffableType;
 import gyro.core.resource.FileScope;
@@ -95,7 +96,10 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         }
 
         if (!test) {
-            refreshCredentials(current);
+            current.getSettings(CredentialsSettings.class)
+                .getCredentialsByName()
+                .values()
+                .forEach(Credentials::refresh);
 
             if (!skipRefresh) {
                 refreshResources(current);
@@ -130,13 +134,6 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         } else {
             throw new GyroException(String.format("File not found! %s", file));
         }
-    }
-
-    private void refreshCredentials(RootScope scope) {
-        scope.getSettings(CredentialsSettings.class)
-            .getCredentialsByName()
-            .values()
-            .forEach(c -> c.findCredentials(true));
     }
 
     private void refreshResources(RootScope scope) {

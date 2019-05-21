@@ -7,11 +7,11 @@ import gyro.core.resource.Settings;
 
 public class CredentialsSettings extends Settings {
 
-    private Map<String, Class<? extends Credentials<?>>> credentialsClasses;
-    private Map<String, Credentials<?>> credentialsByName;
+    private Map<String, Class<? extends Credentials>> credentialsClasses;
+    private Map<String, Credentials> credentialsByName;
     private String useCredentials;
 
-    public Map<String, Class<? extends Credentials<?>>> getCredentialsClasses() {
+    public Map<String, Class<? extends Credentials>> getCredentialsClasses() {
         if (credentialsClasses == null) {
             credentialsClasses = new HashMap<>();
         }
@@ -19,11 +19,11 @@ public class CredentialsSettings extends Settings {
         return credentialsClasses;
     }
 
-    public void setCredentialsClasses(Map<String, Class<? extends Credentials<?>>> credentialsClasses) {
+    public void setCredentialsClasses(Map<String, Class<? extends Credentials>> credentialsClasses) {
         this.credentialsClasses = credentialsClasses;
     }
 
-    public Map<String, Credentials<?>> getCredentialsByName() {
+    public Map<String, Credentials> getCredentialsByName() {
         if (credentialsByName == null) {
             credentialsByName = new HashMap<>();
         }
@@ -31,7 +31,7 @@ public class CredentialsSettings extends Settings {
         return credentialsByName;
     }
 
-    public void setCredentialsByName(Map<String, Credentials<?>> credentialsByName) {
+    public void setCredentialsByName(Map<String, Credentials> credentialsByName) {
         this.credentialsByName = credentialsByName;
     }
 

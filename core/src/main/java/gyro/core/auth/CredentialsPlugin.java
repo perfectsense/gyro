@@ -12,7 +12,7 @@ public class CredentialsPlugin extends Plugin {
     public void onEachClass(RootScope root, Class<?> aClass) {
         if (Credentials.class.isAssignableFrom(aClass)) {
             @SuppressWarnings("unchecked")
-            Class<? extends Credentials<?>> credentialsClass = (Class<? extends Credentials<?>>) aClass;
+            Class<? extends Credentials> credentialsClass = (Class<? extends Credentials>) aClass;
             String namespacePrefix = NamespaceUtils.getNamespacePrefix(credentialsClass);
 
             String type = Optional.ofNullable(credentialsClass.getAnnotation(CredentialsType.class))
