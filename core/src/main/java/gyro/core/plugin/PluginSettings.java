@@ -78,10 +78,7 @@ public class PluginSettings extends Settings {
                 } catch (ExecutionException error) {
                     Throwable cause = error.getCause();
 
-                    if (cause instanceof Error) {
-                        throw (Error) cause;
-
-                    } else if (cause instanceof Exception) {
+                    if (cause instanceof Exception) {
                         throw (Exception) cause;
                     }
                 }
