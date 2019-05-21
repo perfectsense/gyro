@@ -55,6 +55,10 @@ public class PluginDirectiveProcessor implements DirectiveProcessor {
             throw new GyroException("@plugin directive can only be used within the init.gyro file!");
         }
 
+        if (arguments.size() != 1) {
+            throw new GyroException("@plugin directive only takes 1 argument!");
+        }
+
         Thread.currentThread().setContextClassLoader(PLUGIN_CLASS_LOADER);
 
         PluginSettings settings = scope.getSettings(PluginSettings.class);

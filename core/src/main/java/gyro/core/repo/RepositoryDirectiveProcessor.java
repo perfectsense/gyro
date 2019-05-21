@@ -21,6 +21,10 @@ public class RepositoryDirectiveProcessor implements DirectiveProcessor {
             throw new GyroException("@repository directive can only be used within the init.gyro file!");
         }
 
+        if (arguments.size() != 1) {
+            throw new GyroException("@repository directive only takes 1 argument!");
+        }
+
         String url = (String) arguments.get(0);
 
         scope.getSettings(RepositorySettings.class)
