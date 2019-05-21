@@ -14,9 +14,11 @@ import gyro.core.resource.Scope;
 public abstract class Credentials<T> {
 
     public static Credentials<?> getInstance(Class<?> aClass, Scope scope) {
-        String name = scope.getClosest(DiffableScope.class)
-            .getSettings(CredentialsSettings.class)
-            .getUseCredentials();
+        DiffableScope diffableScope = scope.getClosest(DiffableScope.class);
+
+        String name = diffableScope != null
+            ? diffableScope.getSettings(CredentialsSettings.class).getUseCredentials()
+            : null;
 
         name = NamespaceUtils.getNamespacePrefix(aClass) + (name != null ? name : "default");
 
