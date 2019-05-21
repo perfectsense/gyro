@@ -2,7 +2,7 @@ package gyro.core.resource;
 
 import gyro.core.plugin.Plugin;
 
-public class ResourcePlugin implements Plugin {
+public class ResourcePlugin extends Plugin {
 
     @Override
     public void onEachClass(RootScope root, Class<?> aClass) {

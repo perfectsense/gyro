@@ -2,7 +2,7 @@ package gyro.core.plugin;
 
 import gyro.core.resource.RootScope;
 
-public class TestExceptionPlugin implements Plugin {
+public class TestExceptionPlugin extends Plugin {
 
     @Override
     public void onEachClass(RootScope root, Class<?> aClass) throws Exception {

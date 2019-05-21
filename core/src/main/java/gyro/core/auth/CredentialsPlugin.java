@@ -6,7 +6,7 @@ import gyro.core.NamespaceUtils;
 import gyro.core.plugin.Plugin;
 import gyro.core.resource.RootScope;
 
-public class CredentialsPlugin implements Plugin {
+public class CredentialsPlugin extends Plugin {
 
     @Override
     public void onEachClass(RootScope root, Class<?> aClass) {

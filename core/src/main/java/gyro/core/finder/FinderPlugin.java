@@ -3,7 +3,7 @@ package gyro.core.finder;
 import gyro.core.plugin.Plugin;
 import gyro.core.resource.RootScope;
 
-public class FinderPlugin implements Plugin {
+public class FinderPlugin extends Plugin {
 
     @Override
     public void onEachClass(RootScope root, Class<?> aClass) {

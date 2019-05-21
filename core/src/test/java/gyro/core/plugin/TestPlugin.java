@@ -5,7 +5,7 @@ import java.util.Map;
 
 import gyro.core.resource.RootScope;
 
-public class TestPlugin implements Plugin {
+public class TestPlugin extends Plugin {
 
     public final Map<Class<?>, Integer> counts = new HashMap<>();
 

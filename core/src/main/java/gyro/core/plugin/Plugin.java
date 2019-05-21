@@ -2,8 +2,8 @@ package gyro.core.plugin;
 
 import gyro.core.resource.RootScope;
 
-public interface Plugin {
+public abstract class Plugin {
 
-    void onEachClass(RootScope root, Class<?> aClass) throws Exception;
+    public abstract void onEachClass(RootScope root, Class<?> aClass) throws Exception;
 
 }

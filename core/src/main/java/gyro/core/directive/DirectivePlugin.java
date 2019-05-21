@@ -3,7 +3,7 @@ package gyro.core.directive;
 import gyro.core.plugin.Plugin;
 import gyro.core.resource.RootScope;
 
-public class DirectivePlugin implements Plugin {
+public class DirectivePlugin extends Plugin {
 
     @Override
     public void onEachClass(RootScope root, Class<?> aClass) throws IllegalAccessException, InstantiationException {
