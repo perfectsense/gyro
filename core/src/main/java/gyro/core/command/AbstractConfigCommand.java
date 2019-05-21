@@ -55,7 +55,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         Set<String> loadFiles;
         Set<String> diffFiles;
 
-        if (ObjectUtils.to(boolean.class, getInit().get("HIGHLANDER"))) {
+        if (getInit().getSettings(HighlanderSettings.class).isHighlander()) {
             if (files != null) {
                 if (files.size() == 1) {
                     loadFiles = Collections.singleton(resolve(rootDir, files.get(0)));

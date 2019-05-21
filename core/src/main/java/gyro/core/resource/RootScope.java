@@ -21,6 +21,7 @@ import gyro.core.GyroException;
 import gyro.core.auth.CredentialsDirectiveProcessor;
 import gyro.core.auth.CredentialsPlugin;
 import gyro.core.auth.UseCredentialsDirectiveProcessor;
+import gyro.core.command.HighlanderDirectiveProcessor;
 import gyro.core.directive.DirectivePlugin;
 import gyro.core.directive.DirectiveSettings;
 import gyro.core.finder.FinderPlugin;
@@ -91,6 +92,7 @@ public class RootScope extends FileScope {
 
         Stream.of(
             new CredentialsDirectiveProcessor(),
+            new HighlanderDirectiveProcessor(),
             new RepositoryDirectiveProcessor(),
             new PluginDirectiveProcessor(),
             new UseCredentialsDirectiveProcessor())
