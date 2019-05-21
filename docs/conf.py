@@ -70,6 +70,11 @@ pdf_documents = [
      u'GyroUserGuide',
      u'Gyro User Guide',
      u'jeremy@brightspot.com'
+ ),
+ ('guides/writing-a-provider',
+     u'GyroWritingAProvider',
+     u'Gyro - Writing a Provider',
+     u'jeremy@brightspot.com'
  )
 ]
 
