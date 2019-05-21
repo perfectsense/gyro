@@ -1,7 +1,6 @@
 package gyro.core.resource;
 
 import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.HashMap;
@@ -136,29 +135,8 @@ public abstract class Diffable {
             return object;
         }
 
-        DiffableScope scope = (DiffableScope) object;
-        Diffable diffable;
+        Diffable diffable = DiffableType.getInstance(diffableClass).newDiffable(this, fieldName, scope);
 
-        try {
-            diffable = diffableClass.getConstructor().newInstance();
-
-        } catch (IllegalAccessException
-                | InstantiationException
-                | NoSuchMethodException error) {
-
-            throw new IllegalStateException(error);
-
-        } catch (InvocationTargetException error) {
-            Throwable cause = error.getCause();
-
-            throw cause instanceof RuntimeException
-                    ? (RuntimeException) cause
-                    : new RuntimeException(cause);
-        }
-
-        diffable.name = fieldName;
-        diffable.scope = scope;
-        diffable.parent = this;
         diffable.initialize(scope);
 
         return diffable;

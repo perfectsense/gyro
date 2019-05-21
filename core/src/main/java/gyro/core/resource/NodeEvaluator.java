@@ -1,6 +1,5 @@
 package gyro.core.resource;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -12,12 +11,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableSet;
-import com.psddev.dari.util.TypeDefinition;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
-import gyro.core.NamespaceUtils;
 import gyro.core.auth.Credentials;
-import gyro.core.auth.CredentialsSettings;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.directive.DirectiveSettings;
 import gyro.core.finder.Finder;
@@ -284,27 +280,8 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
             }
         }
 
-        Resource resource;
+        Resource resource = DiffableType.getInstance(resourceClass).newDiffable(null, name, bodyScope);
 
-        try {
-            resource = resourceClass.getConstructor().newInstance();
-
-        } catch (IllegalAccessException
-                | InstantiationException
-                | NoSuchMethodException error) {
-
-            throw new IllegalStateException(error);
-
-        } catch (InvocationTargetException error) {
-            Throwable cause = error.getCause();
-
-            throw cause instanceof RuntimeException
-                    ? (RuntimeException) cause
-                    : new RuntimeException(cause);
-        }
-
-        resource.name = name;
-        resource.scope = bodyScope;
         resource.initialize(another != null ? new LinkedHashMap<>(bodyScope) : bodyScope);
         scope.getFileScope().put(fullName, resource);
 

@@ -28,6 +28,7 @@ public class DiffableType<R extends Diffable> {
             }
         });
 
+    private final Class<R> diffableClass;
     private final boolean root;
     private final String name;
     private final DiffableField idField;
@@ -49,6 +50,8 @@ public class DiffableType<R extends Diffable> {
     }
 
     private DiffableType(Class<R> diffableClass) throws IntrospectionException {
+        this.diffableClass = diffableClass;
+
         ResourceType typeAnnotation = diffableClass.getAnnotation(ResourceType.class);
 
         if (typeAnnotation != null) {
@@ -108,6 +111,23 @@ public class DiffableType<R extends Diffable> {
 
     public DiffableField getField(String name) {
         return fieldByName.get(name);
+    }
+
+    public R newDiffable(Diffable parent, String name, DiffableScope scope) {
+        R diffable;
+
+        try {
+            diffable = diffableClass.newInstance();
+
+        } catch (IllegalAccessException | InstantiationException error) {
+            throw new RuntimeException(error);
+        }
+
+        diffable.parent = parent;
+        diffable.name = name;
+        diffable.scope = scope;
+
+        return diffable;
     }
 
 }
