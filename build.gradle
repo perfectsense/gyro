@@ -33,6 +33,7 @@ subprojects {
         implementation 'org.slf4j:log4j-over-slf4j:1.7.16'
         implementation 'org.slf4j:slf4j-api:1.7.16'
 
+        testImplementation 'com.psddev:test:4.1-SNAPSHOT'
         testImplementation 'org.assertj:assertj-core:3.11.1'
         testImplementation 'org.junit.jupiter:junit-jupiter-api:5.3.2'
         testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.3.2'
