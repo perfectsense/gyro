@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.common.base.CaseFormat;
+import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.resource.RootScope;
 import gyro.core.resource.Scope;
@@ -20,12 +21,16 @@ public class CredentialsDirectiveProcessor implements DirectiveProcessor {
 
     @Override
     public void process(Scope scope, List<Object> arguments) throws Exception {
+        if (!(scope instanceof RootScope)) {
+            throw new GyroException("@credentials directive can only be used within the init.gyro file!");
+        }
+
         String type = (String) arguments.get(0);
         String name = (String) arguments.get(1);
         @SuppressWarnings("unchecked")
         Map<String, Object> values = (Map<String, Object>) arguments.get(2);
 
-        RootScope root = scope.getRootScope();
+        RootScope root = (RootScope) scope;
         CredentialsSettings settings = root.getSettings(CredentialsSettings.class);
         Class<? extends Credentials<?>> credentialsClass = settings.getCredentialsClasses().get(type);
         Credentials<?> credentials = credentialsClass.newInstance();
