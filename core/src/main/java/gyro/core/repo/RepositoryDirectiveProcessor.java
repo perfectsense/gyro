@@ -25,7 +25,7 @@ public class RepositoryDirectiveProcessor implements DirectiveProcessor {
 
         scope.getSettings(RepositorySettings.class)
             .getRepositories()
-            .add(new RemoteRepository.Builder(url, null, url).build());
+            .add(new RemoteRepository.Builder(url, "default", url).build());
     }
 
 }
