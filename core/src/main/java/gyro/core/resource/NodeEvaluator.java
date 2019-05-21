@@ -22,6 +22,7 @@ import gyro.core.directive.DirectiveProcessor;
 import gyro.core.directive.DirectiveSettings;
 import gyro.core.finder.Finder;
 import gyro.core.finder.FinderSettings;
+import gyro.core.finder.FinderType;
 import gyro.core.finder.QueryContext;
 import gyro.core.finder.QueryEvaluator;
 import gyro.lang.GyroLanguageException;
@@ -502,7 +503,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
             List<Query> queries = new ArrayList<>(node.getQueries());
 
             if (name.startsWith("EXTERNAL/*")) {
-                Class<? extends Finder> finderClass = scope.getRootScope()
+                Class<? extends Finder<Resource>> finderClass = scope.getRootScope()
                     .getSettings(FinderSettings.class)
                     .getFinderClasses()
                     .get(type);
@@ -512,7 +513,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
                 }
 
                 Credentials<?> credentials = Credentials.getInstance(finderClass, scope);
-                Finder<Resource> finder = TypeDefinition.getInstance(finderClass).newInstance();
+                Finder<Resource> finder = FinderType.getInstance(finderClass).newInstance(scope);
                 boolean isHead = true;
 
                 for (Query q : queries) {
@@ -523,7 +524,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
                         resources = evaluator.visit(optimized, new QueryContext(type, scope, resources));
                         if (resources.isEmpty()) {
-                            resources = finder.findAll(credentials);
+                            resources = finder.findAll();
                         }
 
                     } else {

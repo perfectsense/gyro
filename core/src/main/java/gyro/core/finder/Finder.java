@@ -5,11 +5,18 @@ import java.util.Map;
 
 import gyro.core.auth.Credentials;
 import gyro.core.resource.Resource;
+import gyro.core.resource.Scope;
 
 public abstract class Finder<R extends Resource> {
 
-    public abstract List<R> findAll(Credentials credentials);
+    Scope scope;
 
-    public abstract List<R> find(Credentials credentials, Map<String, String> filters);
+    public abstract List<R> findAll();
+
+    public abstract List<R> find(Map<String, String> filters);
+
+    public Credentials<?> credentials() {
+        return Credentials.getInstance(getClass(), scope);
+    }
 
 }

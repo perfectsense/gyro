@@ -16,8 +16,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import gyro.core.NamespaceUtils;
 import gyro.core.resource.ResourceType;
+import gyro.core.resource.Scope;
 
-public class FinderType<R extends Finder> {
+public class FinderType<F extends Finder> {
 
     private static final LoadingCache<Class<? extends Finder>, FinderType<? extends Finder>> INSTANCES = CacheBuilder
             .newBuilder()
@@ -29,15 +30,16 @@ public class FinderType<R extends Finder> {
                 }
             });
 
+    private final Class<F> finderClass;
     private final String name;
     private final List<FinderField> fields;
     private final Map<String, FinderField> fieldByJavaName;
     private final Map<String, FinderField> fieldByGyroName;
 
     @SuppressWarnings("unchecked")
-    public static <R extends Finder> FinderType<R> getInstance(Class<R> finderClass) {
+    public static <F extends Finder> FinderType<F> getInstance(Class<F> finderClass) {
         try {
-            return (FinderType<R>) INSTANCES.get(finderClass);
+            return (FinderType<F>) INSTANCES.get(finderClass);
 
         } catch (ExecutionException error) {
             Throwable cause = error.getCause();
@@ -48,7 +50,8 @@ public class FinderType<R extends Finder> {
         }
     }
 
-    private FinderType(Class<R> finderClass) throws IntrospectionException {
+    private FinderType(Class<F> finderClass) throws IntrospectionException {
+        this.finderClass = finderClass;
         this.name = NamespaceUtils.getNamespacePrefix(finderClass ) + finderClass.getAnnotation(ResourceType.class).value();
 
         ImmutableList.Builder<FinderField> fields = ImmutableList.builder();
@@ -92,6 +95,21 @@ public class FinderType<R extends Finder> {
 
     public FinderField getFieldByGyroName(String gyroName) {
         return fieldByGyroName.get(gyroName);
+    }
+
+    public F newInstance(Scope scope) {
+        F finder;
+
+        try {
+            finder = finderClass.newInstance();
+
+        } catch (IllegalAccessException | InstantiationException error) {
+            throw new RuntimeException(error);
+        }
+
+        finder.scope = scope;
+
+        return finder;
     }
 
 }

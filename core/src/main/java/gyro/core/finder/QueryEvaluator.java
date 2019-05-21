@@ -51,7 +51,7 @@ public class QueryEvaluator implements QueryVisitor<QueryContext, List<Resource>
             }
 
             if (!filters.isEmpty()) {
-                newChildren.add(new FoundQuery(finder.find(credentials, filters)));
+                newChildren.add(new FoundQuery(finder.find(filters)));
             }
 
             newChildren.addAll(unsupported);
@@ -62,7 +62,7 @@ public class QueryEvaluator implements QueryVisitor<QueryContext, List<Resource>
             ComparisonQuery comparisonQuery = (ComparisonQuery) query;
 
             if (isSupported(comparisonQuery, finder)) {
-                return new FoundQuery(finder.find(credentials, getFilter(comparisonQuery, scope)));
+                return new FoundQuery(finder.find(getFilter(comparisonQuery, scope)));
 
             } else {
                 return query;
