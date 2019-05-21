@@ -8,7 +8,7 @@ import gyro.core.resource.RootScope;
 import gyro.core.resource.Scope;
 import org.eclipse.aether.repository.RemoteRepository;
 
-public class RepositoryDirectiveProcessor implements DirectiveProcessor {
+public class RepositoryDirectiveProcessor extends DirectiveProcessor {
 
     @Override
     public String getName() {

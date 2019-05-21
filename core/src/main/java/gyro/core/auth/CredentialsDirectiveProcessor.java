@@ -12,7 +12,7 @@ import gyro.core.directive.DirectiveProcessor;
 import gyro.core.resource.RootScope;
 import gyro.core.resource.Scope;
 
-public class CredentialsDirectiveProcessor implements DirectiveProcessor {
+public class CredentialsDirectiveProcessor extends DirectiveProcessor {
 
     @Override
     public String getName() {

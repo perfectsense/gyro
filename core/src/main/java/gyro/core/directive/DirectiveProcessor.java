@@ -4,10 +4,10 @@ import java.util.List;
 
 import gyro.core.resource.Scope;
 
-public interface DirectiveProcessor {
+public abstract class DirectiveProcessor {
 
-    String getName();
+    public abstract String getName();
 
-    void process(Scope scope, List<Object> arguments) throws Exception;
+    public abstract void process(Scope scope, List<Object> arguments) throws Exception;
 
 }

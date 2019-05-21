@@ -4,7 +4,7 @@ import java.util.List;
 
 import gyro.core.resource.Scope;
 
-public class PrivateDirectiveProcessor implements DirectiveProcessor {
+public class PrivateDirectiveProcessor extends DirectiveProcessor {
 
     private PrivateDirectiveProcessor() {
     }

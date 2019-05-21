@@ -4,7 +4,7 @@ import java.util.List;
 
 import gyro.core.resource.Scope;
 
-public class NoNullaryDirectiveProcessor implements DirectiveProcessor {
+public class NoNullaryDirectiveProcessor extends DirectiveProcessor {
 
     private final Object object;
 

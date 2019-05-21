@@ -39,7 +39,7 @@ import org.eclipse.aether.transport.http.HttpTransporterFactory;
 import org.eclipse.aether.util.artifact.JavaScopes;
 import org.eclipse.aether.util.filter.DependencyFilterUtils;
 
-public class PluginDirectiveProcessor implements DirectiveProcessor {
+public class PluginDirectiveProcessor extends DirectiveProcessor {
 
     private static final ConcurrentMap<String, Set<Class<?>>> CLASSES_BY_ARTIFACT_COORDS = new ConcurrentHashMap<>();
     private static final PluginClassLoader PLUGIN_CLASS_LOADER = new PluginClassLoader();

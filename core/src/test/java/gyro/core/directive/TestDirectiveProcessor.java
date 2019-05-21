@@ -4,7 +4,7 @@ import java.util.List;
 
 import gyro.core.resource.Scope;
 
-public class TestDirectiveProcessor implements DirectiveProcessor {
+public class TestDirectiveProcessor extends DirectiveProcessor {
 
     @Override
     public String getName() {

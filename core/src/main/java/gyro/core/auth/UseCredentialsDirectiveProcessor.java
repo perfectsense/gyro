@@ -7,7 +7,7 @@ import gyro.core.directive.DirectiveProcessor;
 import gyro.core.resource.DiffableScope;
 import gyro.core.resource.Scope;
 
-public class UseCredentialsDirectiveProcessor implements DirectiveProcessor {
+public class UseCredentialsDirectiveProcessor extends DirectiveProcessor {
 
     @Override
     public String getName() {
