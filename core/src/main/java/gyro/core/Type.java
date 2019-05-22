@@ -1,4 +1,4 @@
-package gyro.core.resource;
+package gyro.core;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -7,8 +7,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Documented
-@Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ResourceId {
+@Target(ElementType.TYPE)
+public @interface Type {
+
+    String value();
 
 }

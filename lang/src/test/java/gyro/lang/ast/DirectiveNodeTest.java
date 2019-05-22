@@ -15,11 +15,11 @@ class DirectiveNodeTest extends AbstractNodeTest<DirectiveNode> {
     @Test
     void constructorContext() {
         DirectiveNode node = new DirectiveNode(parse("@foo 'bar'", GyroParser::directive));
-        List<ValueNode> arguments = node.getArguments();
+        List<Node> arguments = node.getArguments();
 
         assertThat(node.getName()).isEqualTo("foo");
         assertThat(arguments).hasSize(1);
-        assertThat(arguments.get(0).getValue()).isEqualTo("bar");
+        assertThat(((ValueNode) arguments.get(0)).getValue()).isEqualTo("bar");
     }
 
     @Test

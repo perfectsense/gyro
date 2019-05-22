@@ -1,4 +1,4 @@
-package gyro.core.resource;
+package gyro.core.finder;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -8,8 +8,8 @@ import java.lang.annotation.Target;
 
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.PACKAGE, ElementType.TYPE })
-public @interface ResourceNamespace {
+@Target(ElementType.METHOD)
+public @interface Filter {
 
     String value();
 

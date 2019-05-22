@@ -1,6 +1,5 @@
 package gyro.core.resource;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -12,11 +11,15 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableSet;
-import com.psddev.dari.util.TypeDefinition;
-import gyro.core.Credentials;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
-import gyro.core.plugin.PluginLoader;
+import gyro.core.directive.DirectiveProcessor;
+import gyro.core.directive.DirectiveSettings;
+import gyro.core.finder.Finder;
+import gyro.core.finder.FinderSettings;
+import gyro.core.finder.FinderType;
+import gyro.core.finder.QueryContext;
+import gyro.core.finder.QueryEvaluator;
 import gyro.lang.GyroLanguageException;
 import gyro.lang.ast.DirectiveNode;
 import gyro.lang.ast.Node;
@@ -24,7 +27,6 @@ import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.PairNode;
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;
-import gyro.lang.ast.block.PluginNode;
 import gyro.lang.ast.block.ResourceNode;
 import gyro.lang.ast.block.VirtualResourceNode;
 import gyro.lang.ast.block.VirtualResourceParameter;
@@ -77,7 +79,36 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
     @Override
     public Object visitDirective(DirectiveNode node, Scope scope) {
-        throw new GyroException(String.format("[%s] directive isn't supported!", node.getName()));
+        String name = node.getName();
+
+        DirectiveProcessor processor = scope.getRootScope()
+            .getSettings(DirectiveSettings.class)
+            .getProcessors()
+            .get(name);
+
+        if (processor == null) {
+            throw new GyroException(String.format(
+                "Can't find a processor for @%s directive!",
+                name));
+        }
+
+        try {
+            processor.process(
+                scope,
+                node.getArguments()
+                    .stream()
+                    .map(a -> visit(a, scope))
+                    .collect(Collectors.toList()));
+
+        } catch (Exception error) {
+            throw new GyroException(String.format(
+                "Can't process @%s directive! %s: %s",
+                name,
+                error.getClass().getName(),
+                error.getMessage()));
+        }
+
+        return null;
     }
 
     @Override
@@ -105,9 +136,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
             rootScope.getFileScopes().add(fileScope);
         }
 
-        // Evaluate imports and plugins first.
         List<PairNode> keyValues = new ArrayList<>();
-        List<PluginNode> plugins = new ArrayList<>();
         Map<String, VirtualResourceNode> virtualResourceNodes = rootScope.getVirtualResourceNodes();
         List<ResourceNode> workflowNodes = new ArrayList<>();
         List<Node> body = new ArrayList<>();
@@ -115,9 +144,6 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
         for (Node item : node.getBody()) {
             if (item instanceof PairNode) {
                 keyValues.add((PairNode) item);
-
-            } else if (item instanceof PluginNode) {
-                plugins.add((PluginNode) item);
 
             } else if (item instanceof VirtualResourceNode) {
                 VirtualResourceNode vrNode = (VirtualResourceNode) item;
@@ -137,30 +163,8 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
             }
         }
 
-        if (!plugins.isEmpty() && !(fileScope instanceof RootScope)) {
-            throw new GyroException(String.format("Plugins are only allowed to be defined in '%s'.%nThe following plugins are found in '%s':%n%s",
-                GyroCore.INIT_FILE,
-                fileScope.getFile(),
-                plugins.stream()
-                    .map(Node::toString)
-                    .collect(Collectors.joining("\n"))));
-        }
-
         for (PairNode kv : keyValues) {
             visit(kv, fileScope);
-        }
-
-        for (PluginNode plugin : plugins) {
-            Scope bodyScope = new Scope(scope);
-
-            for (Node item : plugin.getBody()) {
-                visit(item, bodyScope);
-            }
-
-            PluginLoader loader = new PluginLoader(bodyScope);
-
-            loader.load();
-            scope.getFileScope().getPluginLoaders().add(loader);
         }
 
         List<Workflow> workflows = rootScope.getWorkflows();
@@ -194,11 +198,6 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
         scope.getKeyNodes().put(key, node);
 
         return null;
-    }
-
-    @Override
-    public Object visitPlugin(PluginNode node, Scope scope) {
-        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -280,27 +279,8 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
             }
         }
 
-        Resource resource;
+        Resource resource = DiffableType.getInstance(resourceClass).newDiffable(null, name, bodyScope);
 
-        try {
-            resource = resourceClass.getConstructor().newInstance();
-
-        } catch (IllegalAccessException
-                | InstantiationException
-                | NoSuchMethodException error) {
-
-            throw new IllegalStateException(error);
-
-        } catch (InvocationTargetException error) {
-            Throwable cause = error.getCause();
-
-            throw cause instanceof RuntimeException
-                    ? (RuntimeException) cause
-                    : new RuntimeException(cause);
-        }
-
-        resource.name = name;
-        resource.scope = bodyScope;
         resource.initialize(another != null ? new LinkedHashMap<>(bodyScope) : bodyScope);
         scope.getFileScope().put(fullName, resource);
 
@@ -334,20 +314,13 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
         vrScope.getResourceClasses().putAll(paramRootScope.getResourceClasses());
         vrScope.getFileScopes().add(resourceScope);
 
-        paramRootScope.findResources()
-                .stream()
-                .filter(Credentials.class::isInstance)
-                .forEach(c -> vrScope.put(c.primaryKey(), c));
-
         for (Node item : node.getBody()) {
             visit(item, resourceScope);
         }
 
         for (Resource resource : vrScope.findResources()) {
-            if (!(resource instanceof Credentials)) {
-                resource.name = prefix + "." + resource.name;
-                paramFileScope.put(resource.primaryKey(), resource);
-            }
+            resource.name = prefix + "." + resource.name;
+            paramFileScope.put(resource.primaryKey(), resource);
         }
     }
 
@@ -503,32 +476,34 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
             QueryEvaluator evaluator = new QueryEvaluator(this);
             String name = (String) visit(nameNode, scope);
             List<Resource> resources = new ArrayList<>();
-            List<Query> queries = new ArrayList<>(node.getQueries());
+            List<Query> queries = null;
 
             if (name.startsWith("EXTERNAL/*")) {
-                Class<? extends ResourceFinder> resourceQueryClass = scope.getRootScope().getResourceFinderClasses().get(type);
+                Class<? extends Finder<Resource>> finderClass = scope.getRootScope()
+                    .getSettings(FinderSettings.class)
+                    .getFinderClasses()
+                    .get(type);
 
-                if (resourceQueryClass == null) {
+                if (finderClass == null) {
                     throw new GyroException("Resource type " + type + " does not support external queries.");
                 }
 
-                ResourceFinder<Resource> finder = TypeDefinition.getInstance(resourceQueryClass).newInstance();
-                boolean isHead = true;
+                Finder<Resource> finder = FinderType.getInstance(finderClass).newInstance(scope);
+                List<Query> nodeQueries = node.getQueries();
+                queries = new ArrayList<>();
 
-                for (Query q : queries) {
-                    if (isHead) {
-                        isHead = false;
-                        Query optimized = evaluator.optimize(q, finder, scope);
-                        queries.add(optimized);
+                if (!nodeQueries.isEmpty()) {
+                    Query optimized = evaluator.optimize(nodeQueries.get(0), finder, scope);
+                    resources = evaluator.visit(optimized, new QueryContext(type, scope, resources));
 
-                        resources = evaluator.visit(optimized, new QueryContext(type, scope, resources));
-                        if (resources.isEmpty()) {
-                            resources = finder.findAll(evaluator.findQueryCredentials(scope));
-                        }
+                    queries.add(optimized);
 
-                    } else {
-                        queries.add(q);
+                    if (resources.isEmpty()) {
+                        resources = finder.findAll();
                     }
+
+                } else {
+                    nodeQueries.subList(1, nodeQueries.size()).forEach(queries::add);
                 }
 
             } else if (name.endsWith("*")) {
@@ -570,7 +545,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
                 }
             }
 
-            for (Query q : queries) {
+            for (Query q : (queries != null ? queries : node.getQueries())) {
                 resources = evaluator.visit(q, new QueryContext(type, scope, resources));
             }
 

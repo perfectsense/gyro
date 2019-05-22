@@ -6,7 +6,6 @@ import java.util.Optional;
 
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;
-import gyro.lang.ast.block.PluginNode;
 import gyro.lang.ast.block.ResourceNode;
 import gyro.lang.ast.block.VirtualResourceNode;
 import gyro.lang.ast.condition.AndConditionNode;
@@ -47,7 +46,7 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
         context.append('@');
         context.append(node.getName());
 
-        for (ValueNode arg : node.getArguments()) {
+        for (Node arg : node.getArguments()) {
             context.append(' ');
             visit(arg, context);
         }
@@ -75,17 +74,6 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
     public Void visitKeyBlock(KeyBlockNode node, PrinterContext context) {
         context.appendNewline();
         context.append(node.getKey());
-        visitBody(node.getBody(), context.indented());
-        context.appendNewline();
-        context.append("end");
-
-        return null;
-    }
-
-    @Override
-    public Void visitPlugin(PluginNode node, PrinterContext context) {
-        context.appendNewline();
-        context.append("plugin");
         visitBody(node.getBody(), context.indented());
         context.appendNewline();
         context.append("end");

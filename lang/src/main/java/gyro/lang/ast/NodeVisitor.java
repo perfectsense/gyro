@@ -2,7 +2,6 @@ package gyro.lang.ast;
 
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;
-import gyro.lang.ast.block.PluginNode;
 import gyro.lang.ast.block.ResourceNode;
 import gyro.lang.ast.block.VirtualResourceNode;
 import gyro.lang.ast.condition.AndConditionNode;
@@ -31,8 +30,6 @@ public interface NodeVisitor<C, R> {
     R visitFile(FileNode node, C context);
 
     R visitKeyBlock(KeyBlockNode node, C context);
-
-    R visitPlugin(PluginNode node, C context);
 
     R visitResource(ResourceNode node, C context);
 

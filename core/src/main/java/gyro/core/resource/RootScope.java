@@ -16,9 +16,18 @@ import java.util.stream.Stream;
 
 import com.psddev.dari.util.Converter;
 import com.psddev.dari.util.TypeDefinition;
-import gyro.core.Credentials;
 import gyro.core.FileBackend;
 import gyro.core.GyroException;
+import gyro.core.auth.CredentialsDirectiveProcessor;
+import gyro.core.auth.CredentialsPlugin;
+import gyro.core.auth.UseCredentialsDirectiveProcessor;
+import gyro.core.command.HighlanderDirectiveProcessor;
+import gyro.core.directive.DirectivePlugin;
+import gyro.core.directive.DirectiveSettings;
+import gyro.core.finder.FinderPlugin;
+import gyro.core.plugin.PluginDirectiveProcessor;
+import gyro.core.plugin.PluginSettings;
+import gyro.core.repo.RepositoryDirectiveProcessor;
 import gyro.lang.GyroErrorListener;
 import gyro.lang.GyroErrorStrategy;
 import gyro.lang.GyroLanguageException;
@@ -37,7 +46,6 @@ public class RootScope extends FileScope {
     private final RootScope current;
     private final Set<String> loadFiles;
     private final Map<String, Class<?>> resourceClasses = new HashMap<>();
-    private final Map<String, Class<? extends ResourceFinder>> resourceFinderClasses = new HashMap<>();
     private final Map<String, VirtualResourceNode> virtualResourceNodes = new LinkedHashMap<>();
     private final List<Workflow> workflows = new ArrayList<>();
     private final List<FileScope> fileScopes = new ArrayList<>();
@@ -75,6 +83,21 @@ public class RootScope extends FileScope {
             this.loadFiles = (loadFiles != null ? s.filter(loadFiles::contains) : s).collect(Collectors.toSet());
         }
 
+        Stream.of(
+            new CredentialsPlugin(),
+            new DirectivePlugin(),
+            new FinderPlugin(),
+            new ResourcePlugin())
+            .forEach(p -> getSettings(PluginSettings.class).getPlugins().add(p));
+
+        Stream.of(
+            new CredentialsDirectiveProcessor(),
+            new HighlanderDirectiveProcessor(),
+            new RepositoryDirectiveProcessor(),
+            new PluginDirectiveProcessor(),
+            new UseCredentialsDirectiveProcessor())
+            .forEach(p -> getSettings(DirectiveSettings.class).getProcessors().put(p.getName(), p));
+
         put("ENV", System.getenv());
     }
 
@@ -96,10 +119,6 @@ public class RootScope extends FileScope {
 
     public Map<String, Class<?>> getResourceClasses() {
         return resourceClasses;
-    }
-
-    public Map<String, Class<? extends ResourceFinder>> getResourceFinderClasses() {
-        return resourceFinderClasses;
     }
 
     public Map<String, VirtualResourceNode> getVirtualResourceNodes() {
@@ -212,21 +231,8 @@ public class RootScope extends FileScope {
 
     private void validate() {
         StringBuilder sb = new StringBuilder();
-        for (FileScope fileScope : getFileScopes()) {
-            boolean hasCredentials = fileScope.values()
-                .stream()
-                .anyMatch(Credentials.class::isInstance);
 
-            if (hasCredentials) {
-                sb.append(String.format("Credentials are only allowed in '%s', found in '%s'%n", getFile(), fileScope.getFile()));
-            }
-        }
-
-        boolean hasResources = this.values()
-            .stream()
-            .anyMatch(r -> r instanceof Resource && !(r instanceof Credentials));
-
-        if (hasResources) {
+        if (values().stream().anyMatch(Resource.class::isInstance)) {
             sb.append(String.format("Resources are not allowed in '%s'%n", getFile()));
         }
 

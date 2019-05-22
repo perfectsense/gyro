@@ -4,7 +4,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import gyro.core.Credentials;
+import gyro.core.auth.Credentials;
 
 public abstract class Resource extends Diffable {
 
@@ -31,30 +31,9 @@ public abstract class Resource extends Diffable {
 
     public abstract void delete();
 
-    public Credentials resourceCredentials() {
-        for (Resource r = this; r != null; r = r.parentResource()) {
-            Scope scope = r.scope;
-
-            if (scope != null) {
-                String name = (String) scope.get("resource-credentials");
-
-                if (name == null) {
-                    name = "default";
-                }
-
-                for (Resource resource : scope.getRootScope().findResources()) {
-                    if (resource instanceof Credentials) {
-                        Credentials credentials = (Credentials) resource;
-
-                        if (credentials.name().equals(name)) {
-                            return credentials;
-                        }
-                    }
-                }
-            }
-        }
-
-        throw new IllegalStateException();
+    @SuppressWarnings("unchecked")
+    public <C extends Credentials> C credentials(Class<C> credentialsClass) {
+        return Credentials.getInstance(credentialsClass, getClass(), scope);
     }
 
     public Object get(String key) {

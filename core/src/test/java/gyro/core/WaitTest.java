@@ -12,12 +12,13 @@ class WaitTest {
     void atMost() {
         long startTime = System.currentTimeMillis();
 
-        assertThat(Wait.atMost(10, TimeUnit.SECONDS)
+        assertThat(Wait.atMost(1, TimeUnit.SECONDS)
+            .checkEvery(100, TimeUnit.MILLISECONDS)
             .prompt(false)
             .until(() -> false)).isFalse();
 
         assertThat(System.currentTimeMillis() - startTime)
-            .isGreaterThanOrEqualTo(TimeUnit.SECONDS.toMillis(10));
+            .isGreaterThanOrEqualTo(TimeUnit.SECONDS.toMillis(1));
     }
 
     @Test

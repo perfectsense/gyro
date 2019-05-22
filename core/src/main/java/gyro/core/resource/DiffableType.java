@@ -4,10 +4,8 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 import com.google.common.cache.CacheBuilder;
@@ -15,54 +13,22 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import gyro.core.NamespaceUtils;
+import gyro.core.Type;
 
 public class DiffableType<R extends Diffable> {
 
     private static final LoadingCache<Class<? extends Diffable>, DiffableType<? extends Diffable>> INSTANCES = CacheBuilder
-            .newBuilder()
-            .build(new CacheLoader<Class<? extends Diffable>, DiffableType<? extends Diffable>>() {
-
-                @Override
-                public DiffableType<? extends Diffable> load(Class<? extends Diffable> diffableClass) throws IntrospectionException {
-                    return new DiffableType<>(diffableClass);
-                }
-            });
-
-    private static final LoadingCache<ClassLoader, LoadingCache<String, String>> NAMESPACES_BY_LOADER = CacheBuilder.newBuilder()
-        .weakKeys()
-        .build(new CacheLoader<ClassLoader, LoadingCache<String, String>>() {
+        .newBuilder()
+        .build(new CacheLoader<Class<? extends Diffable>, DiffableType<? extends Diffable>>() {
 
             @Override
-            public LoadingCache<String, String> load(ClassLoader loader) {
-                return CacheBuilder.newBuilder()
-                    .build(new CacheLoader<String, String>() {
-
-                        @Override
-                        public String load(String name) {
-                            Package pkg;
-
-                            try {
-                                pkg = Class.forName(name + ".package-info", true, loader).getPackage();
-
-                            } catch (ClassNotFoundException error) {
-                                pkg = null;
-                            }
-
-                            return Optional.ofNullable(pkg)
-                                .map(p -> p.getAnnotation(ResourceNamespace.class))
-                                .map(ResourceNamespace::value)
-                                .orElseGet(() -> {
-                                    int lastDotAt = name.lastIndexOf('.');
-
-                                    return lastDotAt > -1
-                                        ? NAMESPACES_BY_LOADER.getUnchecked(loader).getUnchecked(name.substring(0, lastDotAt))
-                                        : "";
-                                });
-                        }
-                    });
+            public DiffableType<? extends Diffable> load(Class<? extends Diffable> diffableClass) throws IntrospectionException {
+                return new DiffableType<>(diffableClass);
             }
         });
 
+    private final Class<R> diffableClass;
     private final boolean root;
     private final String name;
     private final DiffableField idField;
@@ -84,25 +50,13 @@ public class DiffableType<R extends Diffable> {
     }
 
     private DiffableType(Class<R> diffableClass) throws IntrospectionException {
-        ResourceType typeAnnotation = diffableClass.getAnnotation(ResourceType.class);
+        this.diffableClass = diffableClass;
+
+        Type typeAnnotation = diffableClass.getAnnotation(Type.class);
 
         if (typeAnnotation != null) {
-            String namespace = Optional.ofNullable(diffableClass.getAnnotation(ResourceNamespace.class))
-                .map(ResourceNamespace::value)
-                .orElseGet(() -> {
-                    Package pkg = diffableClass.getPackage();
-
-                    return pkg != null
-                        ? NAMESPACES_BY_LOADER.getUnchecked(diffableClass.getClassLoader()).getUnchecked(pkg.getName())
-                        : "";
-                });
-
-            if (!namespace.isEmpty()) {
-                namespace += "::";
-            }
-
             this.root = true;
-            this.name = namespace + typeAnnotation.value();
+            this.name = NamespaceUtils.getNamespacePrefix(diffableClass)+ typeAnnotation.value();
 
         } else {
             this.root = false;
@@ -118,13 +72,13 @@ public class DiffableType<R extends Diffable> {
             Method setter = prop.getWriteMethod();
 
             if (getter != null && setter != null) {
-                Type getterType = getter.getGenericReturnType();
-                Type setterType = setter.getGenericParameterTypes()[0];
+                java.lang.reflect.Type getterType = getter.getGenericReturnType();
+                java.lang.reflect.Type setterType = setter.getGenericParameterTypes()[0];
 
                 if (getterType.equals(setterType)) {
                     DiffableField field = new DiffableField(prop.getName(), getter, setter, getterType);
 
-                    if (getter.isAnnotationPresent(ResourceId.class)) {
+                    if (getter.isAnnotationPresent(Id.class)) {
                         idField = field;
                     }
 
@@ -157,6 +111,23 @@ public class DiffableType<R extends Diffable> {
 
     public DiffableField getField(String name) {
         return fieldByName.get(name);
+    }
+
+    public R newDiffable(Diffable parent, String name, DiffableScope scope) {
+        R diffable;
+
+        try {
+            diffable = diffableClass.newInstance();
+
+        } catch (IllegalAccessException | InstantiationException error) {
+            throw new RuntimeException(error);
+        }
+
+        diffable.parent = parent;
+        diffable.name = name;
+        diffable.scope = scope;
+
+        return diffable;
     }
 
 }

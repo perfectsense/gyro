@@ -7,7 +7,6 @@ import com.google.common.collect.ImmutableMap;
 import gyro.lang.GyroLanguageException;
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;
-import gyro.lang.ast.block.PluginNode;
 import gyro.lang.ast.block.ResourceNode;
 import gyro.lang.ast.block.VirtualResourceNode;
 import gyro.lang.ast.condition.AndConditionNode;
@@ -92,14 +91,7 @@ public abstract class Node {
                 node = new ResourceNode(rc);
 
             } else {
-                String key = rc.resourceType().getText();
-
-                if ("plugin".equals(key)) {
-                    node = new PluginNode(rc);
-
-                } else {
-                    node = new KeyBlockNode(rc);
-                }
+                node = new KeyBlockNode(rc);
             }
 
         } else if (TerminalNode.class.isAssignableFrom(contextClass)) {

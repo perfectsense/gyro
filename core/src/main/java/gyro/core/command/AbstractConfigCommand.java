@@ -3,7 +3,6 @@ package gyro.core.command;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -12,12 +11,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.psddev.dari.util.ObjectUtils;
-import gyro.core.Credentials;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.LocalFileBackend;
-import gyro.core.resource.Diffable;
-import gyro.core.resource.DiffableField;
+import gyro.core.auth.Credentials;
+import gyro.core.auth.CredentialsSettings;
 import gyro.core.resource.DiffableType;
 import gyro.core.resource.FileScope;
 import gyro.core.resource.Resource;
@@ -57,7 +55,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         Set<String> loadFiles;
         Set<String> diffFiles;
 
-        if (ObjectUtils.to(boolean.class, getInit().get("HIGHLANDER"))) {
+        if (getInit().getSettings(HighlanderSettings.class).isHighlander()) {
             if (files != null) {
                 if (files.size() == 1) {
                     loadFiles = Collections.singleton(resolve(rootDir, files.get(0)));
@@ -98,7 +96,10 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         }
 
         if (!test) {
-            refreshCredentials(current);
+            current.getSettings(CredentialsSettings.class)
+                .getCredentialsByName()
+                .values()
+                .forEach(Credentials::refresh);
 
             if (!skipRefresh) {
                 refreshResources(current);
@@ -135,20 +136,12 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         }
     }
 
-    private void refreshCredentials(RootScope scope) {
-        scope.values()
-            .stream()
-            .filter(Credentials.class::isInstance)
-            .map(Credentials.class::cast)
-            .forEach(c -> c.findCredentials(true));
-    }
-
     private void refreshResources(RootScope scope) {
         for (FileScope fileScope : scope.getFileScopes()) {
             for (Iterator<Map.Entry<String, Object>> i = fileScope.entrySet().iterator(); i.hasNext(); ) {
                 Object value = i.next().getValue();
 
-                if (value instanceof Resource && !(value instanceof Credentials)) {
+                if (value instanceof Resource) {
                     Resource resource = (Resource) value;
 
                     GyroCore.ui().write(

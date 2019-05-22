@@ -1,4 +1,4 @@
-package gyro.core.resource;
+package gyro.core;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -8,11 +8,9 @@ import java.lang.annotation.Target;
 
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface ResourceOutput {
+@Target({ ElementType.PACKAGE, ElementType.TYPE })
+public @interface Namespace {
 
-    public String value() default "";
-
-    public boolean randomSuffix() default true;
+    String value();
 
 }

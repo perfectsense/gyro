@@ -9,7 +9,10 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface ResourceFilter {
+public @interface Output {
 
-    public String value();
+    public String value() default "";
+
+    public boolean randomSuffix() default true;
+
 }

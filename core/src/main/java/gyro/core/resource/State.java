@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableSet;
 import gyro.core.FileBackend;
-import gyro.core.plugin.PluginLoader;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.NodePrinter;
 import gyro.lang.ast.PairNode;
@@ -161,10 +160,6 @@ public class State {
                 new OutputStreamWriter(
                     backend.openOutput(file),
                     StandardCharsets.UTF_8))) {
-
-                for (PluginLoader pluginLoader : state.getPluginLoaders()) {
-                    out.write(pluginLoader.toString());
-                }
 
                 PrinterContext context = new PrinterContext(out, 0);
 

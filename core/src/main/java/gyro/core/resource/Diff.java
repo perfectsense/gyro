@@ -12,7 +12,6 @@ import java.util.Objects;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
-import gyro.core.Credentials;
 import gyro.core.GyroUI;
 
 public class Diff {
@@ -267,10 +266,6 @@ public class Diff {
         boolean written = false;
 
         for (Change change : getChanges()) {
-            if (change.getDiffable() instanceof Credentials) {
-                continue;
-            }
-
             List<Diff> changeDiffs = change.getDiffs();
 
             if (change instanceof Keep) {
@@ -352,23 +347,18 @@ public class Diff {
         }
 
         if (change.changed.compareAndSet(false, true)) {
-            if (diffable instanceof Credentials) {
+            resolve(diffable);
+
+            if (!diffable.writeExecution(ui, change)) {
+                change.writeExecution(ui);
+            }
+
+            if (change.execute(ui, state)) {
+                ui.write(ui.isVerbose() ? "\n@|bold,green OK|@\n\n" : " @|bold,green OK|@\n");
                 state.update(change);
 
             } else {
-                resolve(diffable);
-
-                if (!diffable.writeExecution(ui, change)) {
-                    change.writeExecution(ui);
-                }
-
-                if (change.execute(ui, state)) {
-                    ui.write(ui.isVerbose() ? "\n@|bold,green OK|@\n\n" : " @|bold,green OK|@\n");
-                    state.update(change);
-
-                } else {
-                    ui.write(ui.isVerbose() ? "\n@|bold,yellow SKIPPED|@\n\n" : " @|bold,yellow SKIPPED|@\n");
-                }
+                ui.write(ui.isVerbose() ? "\n@|bold,yellow SKIPPED|@\n\n" : " @|bold,yellow SKIPPED|@\n");
             }
         }
     }

@@ -1,4 +1,4 @@
-package gyro.core.resource;
+package gyro.core.finder;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -11,7 +11,7 @@ import java.util.Optional;
 import com.google.common.base.CaseFormat;
 import com.psddev.dari.util.Converter;
 
-public class ResourceFinderField {
+public class FinderField {
 
     private static final Converter CONVERTER;
 
@@ -28,13 +28,13 @@ public class ResourceFinderField {
     private final String filterName;
     private final Class<?> itemClass;
 
-    protected ResourceFinderField(String javaName, Method getter, Method setter, Type type) {
+    protected FinderField(String javaName, Method getter, Method setter, Type type) {
         this.javaName = javaName;
         this.gyroName = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, javaName);
         this.getter = getter;
         this.setter = setter;
 
-        ResourceFilter filterable = getter.getAnnotation(ResourceFilter.class);
+        Filter filterable = getter.getAnnotation(Filter.class);
         if (filterable != null) {
             this.filterName = filterable.value();
         } else {
@@ -74,7 +74,7 @@ public class ResourceFinderField {
         return filterName;
     }
 
-    public Object getValue(ResourceFinder query) {
+    public Object getValue(Finder query) {
         try {
             return getter.invoke(query);
 
@@ -90,7 +90,7 @@ public class ResourceFinderField {
         }
     }
 
-    public void setValue(ResourceFinder query, Object value) {
+    public void setValue(Finder query, Object value) {
         try {
             if (value instanceof Collection
                     && !Collection.class.isAssignableFrom(setter.getParameterTypes()[0])) {
