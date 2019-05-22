@@ -126,7 +126,9 @@ public class Workflow {
             currentRootScope = pendingRootScope.getCurrent();
 
             currentRootScope.clear();
+            currentRootScope.getFileScopes().forEach(FileScope::clear);
             pendingRootScope.clear();
+            pendingRootScope.getFileScopes().forEach(FileScope::clear);
 
             currentRootScope.load();
             pendingRootScope.load();
