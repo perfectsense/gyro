@@ -1,7 +1,6 @@
 package gyro.core.resource;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -25,26 +24,21 @@ public class Stage {
         Scope scope = new Scope(parent);
         NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
 
-        for (Iterator<Node> i = node.getBody().iterator(); i.hasNext();) {
-            Node item = i.next();
-
+        for (Node item : node.getBody()) {
             if (item instanceof KeyBlockNode) {
                 KeyBlockNode kb = (KeyBlockNode) item;
                 String kbKey = kb.getKey();
 
                 if (kbKey.equals("create")) {
                     changes.addAll(kb.getBody());
-                    i.remove();
                     continue;
 
                 } else if (kbKey.equals("delete")) {
                     changes.add(kb);
-                    i.remove();
                     continue;
 
                 } else if (kbKey.equals("swap")) {
                     swaps.add(kb);
-                    i.remove();
                     continue;
                 }
 
@@ -53,7 +47,6 @@ public class Stage {
 
                 if (r.getType().equals("transition")) {
                     transitions.add(new Transition(parent, r));
-                    i.remove();
                     continue;
                 }
             }

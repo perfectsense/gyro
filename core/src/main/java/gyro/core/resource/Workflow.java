@@ -1,7 +1,6 @@
 package gyro.core.resource;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -20,9 +19,7 @@ public class Workflow {
         Scope scope = new Scope(parent);
         NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
 
-        for (Iterator<Node> i = node.getBody().iterator(); i.hasNext();) {
-            Node item = i.next();
-
+        for (Node item : node.getBody()) {
             if (item instanceof ResourceNode) {
                 ResourceNode rn = (ResourceNode) item;
 
@@ -30,7 +27,6 @@ public class Workflow {
                     Stage stage = new Stage(scope, rn);
 
                     stages.add(stage);
-                    i.remove();
                     continue;
                 }
             }
