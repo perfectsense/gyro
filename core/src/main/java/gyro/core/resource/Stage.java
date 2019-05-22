@@ -71,7 +71,12 @@ public class Stage {
             RootScope pendingRootScope)
             throws Exception {
 
-        Scope executeScope = new Scope(pendingRootScope);
+        Scope executeScope = new Scope(pendingRootScope.getFileScopes()
+            .stream()
+            .filter(s -> s.getFile().equals(pendingResource.scope.getFileScope().getFile()))
+            .findFirst()
+            .orElse(null));
+
         NodeEvaluator evaluator = executeScope.getRootScope().getEvaluator();
 
         executeScope.put("NAME", pendingResource.name);
