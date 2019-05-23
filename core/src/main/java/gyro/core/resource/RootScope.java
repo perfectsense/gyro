@@ -92,6 +92,7 @@ public class RootScope extends FileScope {
 
         Stream.of(
             new CredentialsDirectiveProcessor(),
+            new ExtendsDirectiveProcessor(),
             new HighlanderDirectiveProcessor(),
             new RepositoryDirectiveProcessor(),
             new PluginDirectiveProcessor(),
