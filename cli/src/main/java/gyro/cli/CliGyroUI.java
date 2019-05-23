@@ -181,7 +181,7 @@ public class CliGyroUI implements GyroUI {
                 Files.createDirectories(errorDir);
 
                 ZonedDateTime time = ZonedDateTime.now();
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm:ss z");
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HHmm");
                 Path log = Paths.get(errorDir.toString(), String.format("%s.log", formatter.format(time)));
                 try (PrintWriter printWriter = new PrintWriter(Files.newBufferedWriter(log, StandardCharsets.UTF_8))) {
                     printWriter.write(String.format("%s: ", error.getClass().getName()));
