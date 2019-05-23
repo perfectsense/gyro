@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.resource.Diff;
 import gyro.core.resource.NodeEvaluator;
@@ -15,7 +16,6 @@ import gyro.core.resource.Scope;
 import gyro.core.resource.State;
 import gyro.lang.ast.DirectiveNode;
 import gyro.lang.ast.Node;
-import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.block.ResourceNode;
 
 public class Stage {
@@ -23,7 +23,8 @@ public class Stage {
     private final String name;
     private final boolean confirmDiff;
     private final String transitionPrompt;
-    private final List<Node> changes = new ArrayList<>();
+    private final List<ResourceNode> creates = new ArrayList<>();
+    private final List<Node> deletes = new ArrayList<>();
     private final List<DirectiveNode> swaps = new ArrayList<>();
     private final List<Transition> transitions = new ArrayList<>();
 
@@ -33,24 +34,39 @@ public class Stage {
 
         for (Node item : node.getBody()) {
             if (item instanceof DirectiveNode) {
-                DirectiveNode d = (DirectiveNode) item;
+                DirectiveNode directive = (DirectiveNode) item;
+                List<Node> arguments = directive.getArguments();
 
-                if (d.getName().equals("swap")) {
-                    swaps.add(d);
-                    continue;
-                }
+                switch (directive.getName()) {
+                    case "create" :
+                        if (arguments.size() != 1) {
+                            throw new GyroException("@create directive only takes 1 argument!");
+                        }
 
-            } else if (item instanceof KeyBlockNode) {
-                KeyBlockNode kb = (KeyBlockNode) item;
-                String kbKey = kb.getKey();
+                        Node arg0 = arguments.get(0);
 
-                if (kbKey.equals("create")) {
-                    changes.addAll(kb.getBody());
-                    continue;
+                        if (!(arg0 instanceof ResourceNode)) {
+                            throw new GyroException("@create directive requires a resource node!");
+                        }
 
-                } else if (kbKey.equals("delete")) {
-                    changes.add(kb);
-                    continue;
+                        creates.add((ResourceNode) arg0);
+                        continue;
+
+                    case "delete" :
+                        if (arguments.size() != 1) {
+                            throw new GyroException("@delete directive only takes 1 argument!");
+                        }
+
+                        deletes.add(arguments.get(0));
+                        continue;
+
+                    case "swap" :
+                        if (arguments.size() != 3) {
+                            throw new GyroException("@delete directive only takes 3 arguments!");
+                        }
+
+                        swaps.add(directive);
+                        continue;
                 }
 
             } else if (item instanceof ResourceNode) {
@@ -93,17 +109,12 @@ public class Stage {
         executeScope.put("NAME", pendingResource.name());
         executeScope.put("PENDING", pendingResource.scope().resolve());
 
-        for (Node change : changes) {
-            evaluator.visit(change, executeScope);
+        for (ResourceNode create : creates) {
+            evaluator.visit(create, executeScope);
         }
 
-        @SuppressWarnings("unchecked")
-        List<Map<String, Object>> deletes = (List<Map<String, Object>>) executeScope.get("delete");
-
-        if (deletes != null) {
-            for (Map<String, Object> delete : deletes) {
-                pendingRootScope.remove(delete.get("type") + "::" + delete.get("name"));
-            }
+        for (Node delete : deletes) {
+            pendingRootScope.remove(evaluator.visit(delete, executeScope));
         }
 
         for (DirectiveNode swap : swaps) {
@@ -133,7 +144,7 @@ public class Stage {
                 ui.write("\n");
 
             } else {
-                throw new RuntimeException("Aborted!");
+                throw new GyroException("Aborted!");
             }
         }
 
