@@ -18,9 +18,9 @@ import gyro.lang.ast.Node;
 public abstract class Diffable {
 
     boolean external;
-    DiffableScope scope;
     Diffable parent;
     String name;
+    DiffableScope scope;
     Change change;
     Set<String> configuredFields;
 
@@ -40,6 +40,10 @@ public abstract class Diffable {
 
     public String name() {
         return name;
+    }
+
+    public DiffableScope scope() {
+        return scope;
     }
 
     public Change change() {

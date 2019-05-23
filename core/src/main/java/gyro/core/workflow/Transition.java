@@ -1,5 +1,7 @@
-package gyro.core.resource;
+package gyro.core.workflow;
 
+import gyro.core.resource.NodeEvaluator;
+import gyro.core.resource.Scope;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.ResourceNode;
 

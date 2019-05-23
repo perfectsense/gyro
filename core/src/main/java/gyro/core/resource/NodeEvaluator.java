@@ -20,6 +20,7 @@ import gyro.core.finder.FinderSettings;
 import gyro.core.finder.FinderType;
 import gyro.core.finder.QueryContext;
 import gyro.core.finder.QueryEvaluator;
+import gyro.core.workflow.Workflow;
 import gyro.lang.GyroLanguageException;
 import gyro.lang.ast.DirectiveNode;
 import gyro.lang.ast.Node;

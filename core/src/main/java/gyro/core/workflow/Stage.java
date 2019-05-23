@@ -1,4 +1,4 @@
-package gyro.core.resource;
+package gyro.core.workflow;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,6 +7,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import gyro.core.GyroUI;
+import gyro.core.resource.Diff;
+import gyro.core.resource.NodeEvaluator;
+import gyro.core.resource.Resource;
+import gyro.core.resource.RootScope;
+import gyro.core.resource.Scope;
+import gyro.core.resource.State;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.block.ResourceNode;
@@ -73,14 +79,14 @@ public class Stage {
 
         Scope executeScope = new Scope(pendingRootScope.getFileScopes()
             .stream()
-            .filter(s -> s.getFile().equals(pendingResource.scope.getFileScope().getFile()))
+            .filter(s -> s.getFile().equals(pendingResource.scope().getFileScope().getFile()))
             .findFirst()
             .orElse(null));
 
         NodeEvaluator evaluator = executeScope.getRootScope().getEvaluator();
 
-        executeScope.put("NAME", pendingResource.name);
-        executeScope.put("PENDING", pendingResource.scope.resolve());
+        executeScope.put("NAME", pendingResource.name());
+        executeScope.put("PENDING", pendingResource.scope().resolve());
 
         for (Node change : changes) {
             evaluator.visit(change, executeScope);

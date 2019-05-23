@@ -1,10 +1,17 @@
-package gyro.core.resource;
+package gyro.core.workflow;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import gyro.core.GyroUI;
+import gyro.core.resource.Diff;
+import gyro.core.resource.FileScope;
+import gyro.core.resource.NodeEvaluator;
+import gyro.core.resource.Resource;
+import gyro.core.resource.RootScope;
+import gyro.core.resource.Scope;
+import gyro.core.resource.State;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.ResourceNode;
 

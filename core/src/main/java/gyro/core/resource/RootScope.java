@@ -28,6 +28,7 @@ import gyro.core.finder.FinderPlugin;
 import gyro.core.plugin.PluginDirectiveProcessor;
 import gyro.core.plugin.PluginSettings;
 import gyro.core.repo.RepositoryDirectiveProcessor;
+import gyro.core.workflow.Workflow;
 import gyro.lang.GyroErrorListener;
 import gyro.lang.GyroErrorStrategy;
 import gyro.lang.GyroLanguageException;
