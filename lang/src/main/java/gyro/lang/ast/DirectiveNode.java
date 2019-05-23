@@ -20,9 +20,9 @@ public class DirectiveNode extends Node {
     public DirectiveNode(GyroParser.DirectiveContext context) {
         this(
             Preconditions.checkNotNull(context).IDENTIFIER().getText(),
-            context.value()
+            context.directiveArgument()
                 .stream()
-                .map(Node::create)
+                .map(n -> Node.create(n.getChild(0)))
                 .collect(ImmutableCollectors.toList()));
     }
 
