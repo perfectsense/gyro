@@ -19,7 +19,7 @@ statement
     ;
 
 // directive
-directive : AT IDENTIFIER value*;
+directive : AT IDENTIFIER (value (COMMA? value)*)?;
 
 // resource
 resource
