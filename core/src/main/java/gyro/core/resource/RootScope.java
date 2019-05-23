@@ -20,7 +20,7 @@ import gyro.core.FileBackend;
 import gyro.core.GyroException;
 import gyro.core.auth.CredentialsDirectiveProcessor;
 import gyro.core.auth.CredentialsPlugin;
-import gyro.core.auth.UseCredentialsDirectiveProcessor;
+import gyro.core.auth.UsesCredentialsDirectiveProcessor;
 import gyro.core.command.HighlanderDirectiveProcessor;
 import gyro.core.directive.DirectivePlugin;
 import gyro.core.directive.DirectiveSettings;
@@ -96,7 +96,7 @@ public class RootScope extends FileScope {
             new HighlanderDirectiveProcessor(),
             new RepositoryDirectiveProcessor(),
             new PluginDirectiveProcessor(),
-            new UseCredentialsDirectiveProcessor())
+            new UsesCredentialsDirectiveProcessor())
             .forEach(p -> getSettings(DirectiveSettings.class).getProcessors().put(p.getName(), p));
 
         put("ENV", System.getenv());
