@@ -13,6 +13,7 @@ import gyro.core.resource.Resource;
 import gyro.core.resource.RootScope;
 import gyro.core.resource.Scope;
 import gyro.core.resource.State;
+import gyro.lang.ast.DirectiveNode;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.block.ResourceNode;
@@ -23,7 +24,7 @@ public class Stage {
     private final boolean confirmDiff;
     private final String transitionPrompt;
     private final List<Node> changes = new ArrayList<>();
-    private final List<KeyBlockNode> swaps = new ArrayList<>();
+    private final List<DirectiveNode> swaps = new ArrayList<>();
     private final List<Transition> transitions = new ArrayList<>();
 
     public Stage(Scope parent, ResourceNode node) {
@@ -31,7 +32,15 @@ public class Stage {
         NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
 
         for (Node item : node.getBody()) {
-            if (item instanceof KeyBlockNode) {
+            if (item instanceof DirectiveNode) {
+                DirectiveNode d = (DirectiveNode) item;
+
+                if (d.getName().equals("swap")) {
+                    swaps.add(d);
+                    continue;
+                }
+
+            } else if (item instanceof KeyBlockNode) {
                 KeyBlockNode kb = (KeyBlockNode) item;
                 String kbKey = kb.getKey();
 
@@ -41,10 +50,6 @@ public class Stage {
 
                 } else if (kbKey.equals("delete")) {
                     changes.add(kb);
-                    continue;
-
-                } else if (kbKey.equals("swap")) {
-                    swaps.add(kb);
                     continue;
                 }
 
@@ -101,22 +106,18 @@ public class Stage {
             }
         }
 
-        for (KeyBlockNode swap : swaps) {
-            evaluator.visit(swap, executeScope);
-        }
+        for (DirectiveNode swap : swaps) {
+            List<Object> arguments = swap.getArguments()
+                .stream()
+                .map(a -> evaluator.visit(a, executeScope))
+                .collect(Collectors.toList());
 
-        @SuppressWarnings("unchecked")
-        List<Map<String, Object>> swaps = (List<Map<String, Object>>) executeScope.get("swap");
+            String type = (String) arguments.get(0);
+            String x = (String) arguments.get(1);
+            String y = (String) arguments.get(2);
 
-        if (swaps != null) {
-            for (Map<String, Object> swap : swaps) {
-                String type = (String) swap.get("type");
-                String x = (String) swap.get("x");
-                String y = (String) swap.get("y");
-
-                ui.write("@|magenta ⤢ Swapping %s with %s|@\n", x, y);
-                state.swap(currentRootScope, pendingRootScope, type, x, y);
-            }
+            ui.write("@|magenta ⤢ Swapping %s with %s|@\n", x, y);
+            state.swap(currentRootScope, pendingRootScope, type, x, y);
         }
 
         Set<String> diffFiles = state.getDiffFiles();
