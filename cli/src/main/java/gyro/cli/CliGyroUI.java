@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.ZonedDateTime;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.Set;
@@ -180,8 +180,8 @@ public class CliGyroUI implements GyroUI {
                 Path errorDir = GyroCore.getHomeDirectory().resolve("error");
                 Files.createDirectories(errorDir);
 
-                ZonedDateTime time = ZonedDateTime.now();
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy HH:mm:ss z");
+                LocalDateTime time = LocalDateTime.now();
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HHmm");
                 Path log = Paths.get(errorDir.toString(), String.format("%s.log", formatter.format(time)));
                 try (PrintWriter printWriter = new PrintWriter(Files.newBufferedWriter(log, StandardCharsets.UTF_8))) {
                     printWriter.write(String.format("%s: ", error.getClass().getName()));
