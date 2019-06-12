@@ -38,7 +38,7 @@ public class QueryEvaluator implements QueryVisitor<QueryContext, List<Resource>
                     ComparisonQuery comparisonQuery = (ComparisonQuery) child;
 
                     if (isSupported(comparisonQuery, finder)) {
-                        filters.putAll(getFilter(comparisonQuery, scope));
+                        filters.putAll(getFilter(comparisonQuery, scope, finder));
 
                     } else {
                         unsupported.add(child);
@@ -61,7 +61,7 @@ public class QueryEvaluator implements QueryVisitor<QueryContext, List<Resource>
             ComparisonQuery comparisonQuery = (ComparisonQuery) query;
 
             if (isSupported(comparisonQuery, finder)) {
-                return new FoundQuery(finder.find(getFilter(comparisonQuery, scope)));
+                return new FoundQuery(finder.find(getFilter(comparisonQuery, scope, finder)));
 
             } else {
                 return query;
@@ -99,7 +99,7 @@ public class QueryEvaluator implements QueryVisitor<QueryContext, List<Resource>
         return false;
     }
 
-    private Map<String, String> getFilter(ComparisonQuery comparisonQuery, Scope scope) {
+    private Map<String, String> getFilter(ComparisonQuery comparisonQuery, Scope scope, Finder finder) {
         Object comparisonValue = nodeEvaluator.visit(comparisonQuery.getValue(), scope);
         String path = comparisonQuery.getPath();
         Map<String, String> filter = new HashMap<>();
@@ -111,7 +111,12 @@ public class QueryEvaluator implements QueryVisitor<QueryContext, List<Resource>
                 filter.put(String.format("%s:%s", mapFieldName, mapKey), comparisonValue.toString());
 
             } else {
-                filter.put(path, comparisonValue.toString());
+                for (FinderField field : FinderType.getInstance(finder.getClass()).getFields()) {
+                    String key = field.getGyroName();
+                    if (path.equals(key)) {
+                        filter.put(field.getFilterName(), comparisonValue.toString());
+                    }
+                }
             }
         }
 
