@@ -124,42 +124,34 @@ public class Workflow {
 
         } while (stageIndex < stagesSize);
 
-        ui.write("\n@|magenta ~ Finalizing %s workflow |@\n", name);
-        ui.indent();
+        RootScope current = copyCurrentRootScope();
 
-        try {
-            RootScope current = copyCurrentRootScope();
+        RootScope pending = new RootScope(
+            rootScope.getFile(),
+            rootScope.getBackend(),
+            current,
+            rootScope.getLoadFiles());
 
-            RootScope pending = new RootScope(
-                rootScope.getFile(),
-                rootScope.getBackend(),
-                current,
-                rootScope.getLoadFiles());
+        pending.load();
 
-            pending.load();
+        Set<String> diffFiles = state.getDiffFiles();
 
-            Set<String> diffFiles = state.getDiffFiles();
+        Diff diff = new Diff(
+            current.findResourcesIn(diffFiles),
+            pending.findResourcesIn(diffFiles));
 
-            Diff diff = new Diff(
-                current.findResourcesIn(diffFiles),
-                pending.findResourcesIn(diffFiles));
+        diff.diff();
 
-            diff.diff();
+        if (diff.write(ui)) {
+            if (ui.readBoolean(Boolean.TRUE, "\nFinalize %s workflow?", name)) {
+                ui.write("\n");
+                diff.executeCreateOrUpdate(ui, state);
+                diff.executeReplace(ui, state);
+                diff.executeDelete(ui, state);
 
-            if (diff.write(ui)) {
-                if (ui.readBoolean(Boolean.TRUE, "\nFinalize %s workflow?", name)) {
-                    ui.write("\n");
-                    diff.executeCreateOrUpdate(ui, state);
-                    diff.executeReplace(ui, state);
-                    diff.executeDelete(ui, state);
-
-                } else {
-                    throw new RuntimeException("Aborted!");
-                }
+            } else {
+                throw new RuntimeException("Aborted!");
             }
-
-        } finally {
-            ui.unindent();
         }
     }
 
