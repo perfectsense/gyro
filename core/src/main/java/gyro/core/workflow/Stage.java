@@ -124,8 +124,8 @@ public class Stage {
                 .collect(Collectors.toList());
 
             String type = (String) arguments.get(0);
-            String x = (String) arguments.get(1);
-            String y = (String) arguments.get(2);
+            String x = getSwapResourceName(arguments.get(1));
+            String y = getSwapResourceName(arguments.get(2));
 
             ui.write("@|magenta ⤢ Swapping %s with %s|@\n", x, y);
             state.swap(currentRootScope, pendingRootScope, type, x, y);
@@ -173,6 +173,33 @@ public class Stage {
             } else {
                 ui.write("[%s] isn't valid! Try again.\n", selected);
             }
+        }
+    }
+
+    private String getSwapResourceName(Object value) {
+        if (value instanceof List) {
+            @SuppressWarnings("unchecked")
+            List<Object> list = (List<Object>) value;
+            int size = list.size();
+
+            if (size != 1) {
+                throw new GyroException(String.format(
+                    "Can't swap a list that has [%s] items!",
+                    size));
+            }
+
+            return getSwapResourceName(list.get(0));
+
+        } else if (value instanceof Resource) {
+            return ((Resource) value).name();
+
+        } else if (value instanceof String) {
+            return (String) value;
+
+        } else {
+            throw new GyroException(String.format(
+                "Can't swap an instance of [%s]!",
+                value.getClass().getName()));
         }
     }
 
