@@ -24,7 +24,7 @@ public class Stage {
     private final boolean confirmDiff;
     private final String transitionPrompt;
     private final List<ResourceNode> creates = new ArrayList<>();
-    private final List<Node> deletes = new ArrayList<>();
+    private final List<DirectiveNode> deletes = new ArrayList<>();
     private final List<DirectiveNode> swaps = new ArrayList<>();
     private final List<Transition> transitions = new ArrayList<>();
 
@@ -53,11 +53,11 @@ public class Stage {
                         continue;
 
                     case "delete" :
-                        if (arguments.size() != 1) {
-                            throw new GyroException("@delete directive only takes 1 argument!");
+                        if (arguments.size() != 2) {
+                            throw new GyroException("@delete directive only takes 2 arguments!");
                         }
 
-                        deletes.add(arguments.get(0));
+                        deletes.add(directive);
                         continue;
 
                     case "swap" :
@@ -115,8 +115,15 @@ public class Stage {
             evaluator.visit(create, executeScope);
         }
 
-        for (Node delete : deletes) {
-            pendingRootScope.remove(evaluator.visit(delete, executeScope));
+        for (DirectiveNode delete : deletes) {
+            List<Object> arguments = delete.getArguments()
+                .stream()
+                .map(a -> evaluator.visit(a, executeScope))
+                .collect(Collectors.toList());
+
+            String fullName = arguments.get(0) + "::" + getResourceName(arguments.get(1));
+
+            pendingRootScope.getFileScopes().forEach(s -> s.remove(fullName));
         }
 
         for (DirectiveNode swap : swaps) {
@@ -126,8 +133,8 @@ public class Stage {
                 .collect(Collectors.toList());
 
             String type = (String) arguments.get(0);
-            String x = getSwapResourceName(arguments.get(1));
-            String y = getSwapResourceName(arguments.get(2));
+            String x = getResourceName(arguments.get(1));
+            String y = getResourceName(arguments.get(2));
 
             ui.write("@|magenta ⤢ Swapping %s with %s|@\n", x, y);
             state.swap(currentRootScope, pendingRootScope, type, x, y);
@@ -178,7 +185,7 @@ public class Stage {
         }
     }
 
-    private String getSwapResourceName(Object value) {
+    private String getResourceName(Object value) {
         if (value instanceof List) {
             @SuppressWarnings("unchecked")
             List<Object> list = (List<Object>) value;
@@ -190,7 +197,7 @@ public class Stage {
                     size));
             }
 
-            return getSwapResourceName(list.get(0));
+            return getResourceName(list.get(0));
 
         } else if (value instanceof Resource) {
             return ((Resource) value).name();
