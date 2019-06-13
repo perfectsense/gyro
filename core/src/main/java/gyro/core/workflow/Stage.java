@@ -93,6 +93,7 @@ public class Stage {
     public String execute(
             GyroUI ui,
             State state,
+            Resource currentResource,
             Resource pendingResource,
             RootScope currentRootScope,
             RootScope pendingRootScope)
@@ -107,6 +108,7 @@ public class Stage {
         NodeEvaluator evaluator = executeScope.getRootScope().getEvaluator();
 
         executeScope.put("NAME", pendingResource.name());
+        executeScope.put("CURRENT", currentResource);
         executeScope.put("PENDING", pendingResource.scope().resolve());
 
         for (ResourceNode create : creates) {
