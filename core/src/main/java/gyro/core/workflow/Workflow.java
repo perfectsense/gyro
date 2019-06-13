@@ -6,7 +6,6 @@ import java.util.Set;
 
 import gyro.core.GyroUI;
 import gyro.core.resource.Diff;
-import gyro.core.resource.FileScope;
 import gyro.core.resource.NodeEvaluator;
 import gyro.core.resource.Resource;
 import gyro.core.resource.RootScope;
@@ -17,14 +16,15 @@ import gyro.lang.ast.block.ResourceNode;
 
 public class Workflow {
 
-    private final RootScope pendingRootScope;
+    private final RootScope rootScope;
     private final String name;
     private final String forType;
     private final List<Stage> stages = new ArrayList<>();
 
     public Workflow(Scope parent, ResourceNode node) {
+        rootScope = parent.getRootScope();
         Scope scope = new Scope(parent);
-        NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
+        NodeEvaluator evaluator = rootScope.getEvaluator();
 
         for (Node item : node.getBody()) {
             if (item instanceof ResourceNode) {
@@ -41,7 +41,6 @@ public class Workflow {
             evaluator.visit(item, scope);
         }
 
-        pendingRootScope = parent.getRootScope();
         name = (String) evaluator.visit(node.getName(), parent);
         forType = (String) scope.get("for-type");
     }
@@ -55,20 +54,22 @@ public class Workflow {
     }
 
     private RootScope copyCurrentRootScope() throws Exception {
-        RootScope s = new RootScope(
-            pendingRootScope.getFile(),
-            pendingRootScope.getBackend(),
+        RootScope current = rootScope.getCurrent();
+        RootScope scope = new RootScope(
+            current.getFile(),
+            current.getBackend(),
             null,
-            pendingRootScope.getLoadFiles());
+            current.getLoadFiles());
 
-        s.load();
+        scope.load();
 
-        return s;
+        return scope;
     }
 
     public void execute(
             GyroUI ui,
             State state,
+            Resource currentResource,
             Resource pendingResource)
             throws Exception {
 
@@ -79,7 +80,6 @@ public class Workflow {
         }
 
         int stageIndex = 0;
-        RootScope currentRootScope = copyCurrentRootScope();
 
         do {
             Stage stage = stages.get(stageIndex);
@@ -94,9 +94,7 @@ public class Workflow {
             ui.indent();
 
             try {
-                RootScope pendingRootScope = copyCurrentRootScope();
-                stageName = stage.execute(ui, state, pendingResource, currentRootScope, pendingRootScope);
-                currentRootScope = pendingRootScope;
+                stageName = stage.execute(ui, state, currentResource, pendingResource, copyCurrentRootScope(), copyCurrentRootScope());
 
             } finally {
                 ui.unindent();
@@ -130,21 +128,21 @@ public class Workflow {
         ui.indent();
 
         try {
-            currentRootScope = pendingRootScope.getCurrent();
+            RootScope current = copyCurrentRootScope();
 
-            currentRootScope.clear();
-            currentRootScope.getFileScopes().forEach(FileScope::clear);
-            pendingRootScope.clear();
-            pendingRootScope.getFileScopes().forEach(FileScope::clear);
+            RootScope pending = new RootScope(
+                rootScope.getFile(),
+                rootScope.getBackend(),
+                current,
+                rootScope.getLoadFiles());
 
-            currentRootScope.load();
-            pendingRootScope.load();
+            pending.load();
 
             Set<String> diffFiles = state.getDiffFiles();
 
             Diff diff = new Diff(
-                currentRootScope.findResourcesIn(diffFiles),
-                pendingRootScope.findResourcesIn(diffFiles));
+                current.findResourcesIn(diffFiles),
+                pending.findResourcesIn(diffFiles));
 
             diff.diff();
 
