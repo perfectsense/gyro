@@ -502,7 +502,6 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
                         resources = finder.findAll();
                     }
 
-                } else {
                     nodeQueries.subList(1, nodeQueries.size()).forEach(queries::add);
                 }
 
