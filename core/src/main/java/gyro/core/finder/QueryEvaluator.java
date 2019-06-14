@@ -12,6 +12,7 @@ import gyro.core.resource.DiffableField;
 import gyro.core.resource.DiffableType;
 import gyro.core.resource.NodeEvaluator;
 import gyro.core.resource.Resource;
+import gyro.core.resource.RootScope;
 import gyro.core.resource.Scope;
 import gyro.lang.query.AndQuery;
 import gyro.lang.query.ComparisonQuery;
@@ -163,14 +164,20 @@ public class QueryEvaluator implements QueryVisitor<QueryContext, List<Resource>
 
         if (ComparisonQuery.EQUALS_OPERATOR.equals(operator)) {
             return resources.stream()
-                .filter(r -> Objects.equals(
-                    DiffableType.getInstance(r.getClass()).getField(path).getValue(r), comparisonValue))
+                .filter(r -> {
+                    DiffableField field = DiffableType.getInstance(r.getClass()).getField(path);
+                    RootScope root = context.getScope().getRootScope();
+                    return Objects.equals(field.getValue(r), root.convertValue(field.getItemClass(), comparisonValue));
+                })
                 .collect(Collectors.toList());
 
         } else if (ComparisonQuery.NOT_EQUALS_OPERATOR.equals(operator)) {
             return resources.stream()
-                .filter(r -> !Objects.equals(
-                    DiffableType.getInstance(r.getClass()).getField(path).getValue(r), comparisonValue))
+                .filter(r -> {
+                    DiffableField field = DiffableType.getInstance(r.getClass()).getField(path);
+                    RootScope root = context.getScope().getRootScope();
+                    return !Objects.equals(field.getValue(r), root.convertValue(field.getItemClass(), comparisonValue));
+                })
                 .collect(Collectors.toList());
 
         } else {

@@ -137,6 +137,10 @@ public class RootScope extends FileScope {
         return converter.convert(returnType, object);
     }
 
+    public Object convertValue(Class<?> returnClass, Object object) {
+        return converter.convert(returnClass, object);
+    }
+
     public List<Resource> findResources() {
         return findResourcesIn(null);
     }
