@@ -4,6 +4,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import gyro.core.GyroUI;
+import gyro.core.workflow.Workflow;
 
 public class Replace extends Change {
 
@@ -93,7 +94,7 @@ public class Replace extends Change {
         }
 
         ui.write("\n@|magenta ~ Executing %s workflow|@", workflow.getName());
-        workflow.execute(ui, state, (Resource) pendingDiffable);
+        workflow.execute(ui, state, (Resource) currentDiffable, (Resource) pendingDiffable);
         return true;
     }
 

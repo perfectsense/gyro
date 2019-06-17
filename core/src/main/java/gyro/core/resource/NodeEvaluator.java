@@ -20,6 +20,7 @@ import gyro.core.finder.FinderSettings;
 import gyro.core.finder.FinderType;
 import gyro.core.finder.QueryContext;
 import gyro.core.finder.QueryEvaluator;
+import gyro.core.workflow.Workflow;
 import gyro.lang.GyroLanguageException;
 import gyro.lang.ast.DirectiveNode;
 import gyro.lang.ast.Node;
@@ -206,11 +207,12 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
         String name = (String) visit(node.getName(), scope);
         String type = node.getType();
         String fullName = type + "::" + name;
+        RootScope rootScope = scope.getRootScope();
         DiffableScope bodyScope = new DiffableScope(scope);
 
         // Initialize the bodyScope with the resource values from the current
         // state scope.
-        Optional.ofNullable(scope.getRootScope().getCurrent())
+        Optional.ofNullable(rootScope.getCurrent())
                 .map(s -> s.findResource(fullName))
                 .ifPresent(r -> {
                     Set<String> configuredFields = r.configuredFields != null
@@ -242,27 +244,6 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
             visit(item, bodyScope);
         }
 
-        // Copy values from another.
-        Object another = bodyScope.remove("_extends");
-        RootScope rootScope = scope.getRootScope();
-
-        if (another instanceof String) {
-            Resource anotherResource = rootScope.findResource(type + "::" + another);
-
-            if (anotherResource == null) {
-                throw new IllegalArgumentException(String.format(
-                        "No resource named [%s]!",
-                        another));
-            }
-
-            for (DiffableField field : DiffableType.getInstance(anotherResource.getClass()).getFields()) {
-                bodyScope.putIfAbsent(field.getName(), field.getValue(anotherResource));
-            }
-
-        } else if (another instanceof Map) {
-            ((Map<String, Object>) another).forEach(bodyScope::putIfAbsent);
-        }
-
         Class<? extends Resource> resourceClass = (Class<? extends Resource>) rootScope.getResourceClasses().get(type);
 
         if (resourceClass == null) {
@@ -281,7 +262,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
         Resource resource = DiffableType.getInstance(resourceClass).newDiffable(null, name, bodyScope);
 
-        resource.initialize(another != null ? new LinkedHashMap<>(bodyScope) : bodyScope);
+        resource.initialize(new LinkedHashMap<>(bodyScope));
         scope.getFileScope().put(fullName, resource);
 
         return null;

@@ -1,28 +1,32 @@
-package gyro.core.resource;
+package gyro.core.workflow;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
 import gyro.core.GyroUI;
+import gyro.core.resource.Diff;
+import gyro.core.resource.NodeEvaluator;
+import gyro.core.resource.Resource;
+import gyro.core.resource.RootScope;
+import gyro.core.resource.Scope;
+import gyro.core.resource.State;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.ResourceNode;
 
 public class Workflow {
 
-    private final RootScope pendingRootScope;
+    private final RootScope rootScope;
     private final String name;
     private final String forType;
     private final List<Stage> stages = new ArrayList<>();
 
     public Workflow(Scope parent, ResourceNode node) {
+        rootScope = parent.getRootScope();
         Scope scope = new Scope(parent);
-        NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
+        NodeEvaluator evaluator = rootScope.getEvaluator();
 
-        for (Iterator<Node> i = node.getBody().iterator(); i.hasNext();) {
-            Node item = i.next();
-
+        for (Node item : node.getBody()) {
             if (item instanceof ResourceNode) {
                 ResourceNode rn = (ResourceNode) item;
 
@@ -30,7 +34,6 @@ public class Workflow {
                     Stage stage = new Stage(scope, rn);
 
                     stages.add(stage);
-                    i.remove();
                     continue;
                 }
             }
@@ -38,7 +41,6 @@ public class Workflow {
             evaluator.visit(item, scope);
         }
 
-        pendingRootScope = parent.getRootScope();
         name = (String) evaluator.visit(node.getName(), parent);
         forType = (String) scope.get("for-type");
     }
@@ -52,20 +54,22 @@ public class Workflow {
     }
 
     private RootScope copyCurrentRootScope() throws Exception {
-        RootScope s = new RootScope(
-            pendingRootScope.getFile(),
-            pendingRootScope.getBackend(),
+        RootScope current = rootScope.getCurrent();
+        RootScope scope = new RootScope(
+            current.getFile(),
+            current.getBackend(),
             null,
-            pendingRootScope.getLoadFiles());
+            current.getLoadFiles());
 
-        s.load();
+        scope.load();
 
-        return s;
+        return scope;
     }
 
     public void execute(
             GyroUI ui,
             State state,
+            Resource currentResource,
             Resource pendingResource)
             throws Exception {
 
@@ -76,7 +80,6 @@ public class Workflow {
         }
 
         int stageIndex = 0;
-        RootScope currentRootScope = copyCurrentRootScope();
 
         do {
             Stage stage = stages.get(stageIndex);
@@ -91,9 +94,7 @@ public class Workflow {
             ui.indent();
 
             try {
-                RootScope pendingRootScope = copyCurrentRootScope();
-                stageName = stage.execute(ui, state, pendingResource, currentRootScope, pendingRootScope);
-                currentRootScope = pendingRootScope;
+                stageName = stage.execute(ui, state, currentResource, pendingResource, copyCurrentRootScope(), copyCurrentRootScope());
 
             } finally {
                 ui.unindent();
@@ -123,40 +124,34 @@ public class Workflow {
 
         } while (stageIndex < stagesSize);
 
-        ui.write("\n@|magenta ~ Finalizing %s workflow |@\n", name);
-        ui.indent();
+        RootScope current = copyCurrentRootScope();
 
-        try {
-            currentRootScope = pendingRootScope.getCurrent();
+        RootScope pending = new RootScope(
+            rootScope.getFile(),
+            rootScope.getBackend(),
+            current,
+            rootScope.getLoadFiles());
 
-            currentRootScope.clear();
-            pendingRootScope.clear();
+        pending.load();
 
-            currentRootScope.load();
-            pendingRootScope.load();
+        Set<String> diffFiles = state.getDiffFiles();
 
-            Set<String> diffFiles = state.getDiffFiles();
+        Diff diff = new Diff(
+            current.findResourcesIn(diffFiles),
+            pending.findResourcesIn(diffFiles));
 
-            Diff diff = new Diff(
-                currentRootScope.findResourcesIn(diffFiles),
-                pendingRootScope.findResourcesIn(diffFiles));
+        diff.diff();
 
-            diff.diff();
+        if (diff.write(ui)) {
+            if (ui.readBoolean(Boolean.TRUE, "\nFinalize %s workflow?", name)) {
+                ui.write("\n");
+                diff.executeCreateOrUpdate(ui, state);
+                diff.executeReplace(ui, state);
+                diff.executeDelete(ui, state);
 
-            if (diff.write(ui)) {
-                if (ui.readBoolean(Boolean.TRUE, "\nFinalize %s workflow?", name)) {
-                    ui.write("\n");
-                    diff.executeCreateOrUpdate(ui, state);
-                    diff.executeReplace(ui, state);
-                    diff.executeDelete(ui, state);
-
-                } else {
-                    throw new RuntimeException("Aborted!");
-                }
+            } else {
+                throw new RuntimeException("Aborted!");
             }
-
-        } finally {
-            ui.unindent();
         }
     }
 

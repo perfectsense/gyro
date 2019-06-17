@@ -7,11 +7,11 @@ import gyro.core.directive.DirectiveProcessor;
 import gyro.core.resource.DiffableScope;
 import gyro.core.resource.Scope;
 
-public class UseCredentialsDirectiveProcessor extends DirectiveProcessor {
+public class UsesCredentialsDirectiveProcessor extends DirectiveProcessor {
 
     @Override
     public String getName() {
-        return "use-credentials";
+        return "uses-credentials";
     }
 
     @Override
@@ -19,11 +19,11 @@ public class UseCredentialsDirectiveProcessor extends DirectiveProcessor {
         DiffableScope diffableScope = scope.getClosest(DiffableScope.class);
 
         if (diffableScope == null) {
-            throw new GyroException("@use-credentials can only be used inside a resource!");
+            throw new GyroException("@uses-credentials can only be used inside a resource!");
         }
 
         if (arguments.size() != 1) {
-            throw new GyroException("@use-credentials directive only takes 1 argument!");
+            throw new GyroException("@uses-credentials directive only takes 1 argument!");
         }
 
         diffableScope.getSettings(CredentialsSettings.class)

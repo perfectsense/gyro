@@ -1,6 +1,7 @@
 package gyro.core.finder;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -163,19 +164,44 @@ public class QueryEvaluator implements QueryVisitor<QueryContext, List<Resource>
 
         if (ComparisonQuery.EQUALS_OPERATOR.equals(operator)) {
             return resources.stream()
-                .filter(r -> Objects.equals(
+                .filter(r -> roughlyEquals(
                     DiffableType.getInstance(r.getClass()).getField(path).getValue(r), comparisonValue))
                 .collect(Collectors.toList());
 
         } else if (ComparisonQuery.NOT_EQUALS_OPERATOR.equals(operator)) {
             return resources.stream()
-                .filter(r -> !Objects.equals(
+                .filter(r -> !roughlyEquals(
                     DiffableType.getInstance(r.getClass()).getField(path).getValue(r), comparisonValue))
                 .collect(Collectors.toList());
 
         } else {
             throw new UnsupportedOperationException(String.format("Operator %s is not supported!", operator));
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private boolean roughlyEquals(Object x, Object y) {
+        if (Objects.equals(x, y)) {
+            return true;
+
+        } else if (x instanceof List) {
+            if (!(y instanceof List)) {
+                List<Object> xList = (List<Object>) x;
+
+                if (xList.size() == 1) {
+                    return roughlyEquals(xList.get(0), y);
+                }
+            }
+
+        } else if (y instanceof List) {
+            List<Object> yList = (List<Object>) y;
+
+            if (yList.size() == 1) {
+                return roughlyEquals(x, yList.get(0));
+            }
+        }
+
+        return false;
     }
 
     @Override
