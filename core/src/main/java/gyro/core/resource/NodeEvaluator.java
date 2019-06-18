@@ -262,7 +262,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
         Resource resource = DiffableType.getInstance(resourceClass).newDiffable(null, name, bodyScope);
 
-        resource.initialize(new LinkedHashMap<>(bodyScope));
+        resource.initialize(bodyScope);
         scope.getFileScope().put(fullName, resource);
 
         return null;
