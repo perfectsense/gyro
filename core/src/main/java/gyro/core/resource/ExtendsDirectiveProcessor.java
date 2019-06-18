@@ -26,6 +26,7 @@ public class ExtendsDirectiveProcessor extends DirectiveProcessor {
         }
 
         processSource(diffableScope, arguments.get(0));
+        diffableScope.setExtended(true);
     }
 
     @SuppressWarnings("unchecked")
