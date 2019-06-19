@@ -488,12 +488,12 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
         List<Query> queries = node.getQueries();
 
         if (value instanceof String) {
-            String name = (String) value;
             RootScope root = scope.getRootScope();
+            String referenceName = (String) value;
 
             ReferenceResolver resolver = root.getSettings(ReferenceSettings.class)
                 .getResolvers()
-                .get(name);
+                .get(referenceName);
 
             if (resolver != null) {
                 try {
@@ -503,23 +503,23 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
                     throw new GyroException(error.getMessage());
                 }
 
-            } else if (name.contains("::")) {
+            } else if (referenceName.contains("::")) {
                 String resourceName = (String) arguments.remove(0);
 
                 if (resourceName.endsWith("*")) {
                     Stream<Resource> s = root.findResources()
                         .stream()
-                        .filter(r -> name.equals(DiffableType.getInstance(r.getClass()).getName()));
+                        .filter(r -> referenceName.equals(DiffableType.getInstance(r.getClass()).getName()));
 
                     if (!resourceName.equals("*")) {
-                        String prefix = name.substring(0, name.length() - 1);
+                        String prefix = resourceName.substring(0, resourceName.length() - 1);
                         s = s.filter(r -> r.name().startsWith(prefix));
                     }
 
                     value = s.collect(Collectors.toList());
 
                 } else {
-                    Resource resource = root.findResource(name + "::" + resourceName);
+                    Resource resource = root.findResource(referenceName + "::" + resourceName);
 
                     if (resource == null) {
                         throw new DeferError(node);
@@ -529,7 +529,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
                 }
 
             } else {
-                value = scope.get(name);
+                value = scope.get(referenceName);
             }
 
             if (value == null) {
