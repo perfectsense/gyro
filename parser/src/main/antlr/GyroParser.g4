@@ -144,8 +144,8 @@ string
     : STRING                       # LiteralString
     | DQUOTE stringContent* DQUOTE # InterpolatedString
     |
-        ( IDENTIFIER
-        | IDENTIFIER GLOB
+        ( IDENTIFIER GLOB
+        | IDENTIFIER
         | GLOB
         | type
     )                              # BareString
