@@ -52,7 +52,17 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
         } else if (object instanceof Diffable) {
             Diffable diffable = (Diffable) object;
-            return DiffableType.getInstance(diffable.getClass()).getField(key).getValue(diffable);
+            DiffableType type = DiffableType.getInstance(diffable.getClass());
+            DiffableField field = type.getField(key);
+
+            if (field == null) {
+                throw new GyroException(String.format(
+                    "Can't find [%s] field in [%s] type!",
+                    key,
+                    type.getName()));
+            }
+
+            return field.getValue(diffable);
 
         } else {
             return null;
