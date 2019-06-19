@@ -12,7 +12,7 @@ class KeyBlockNodeTest extends AbstractNodeTest<KeyBlockNode> {
 
     @Test
     void constructorContext() {
-        KeyBlockNode node = new KeyBlockNode(parse("foo\nend", GyroParser::resource));
+        KeyBlockNode node = new KeyBlockNode((GyroParser.KeyBlockContext) parse("foo\nend", GyroParser::block));
 
         assertThat(node.getKey()).isEqualTo("foo");
         assertThat(node.getBody()).isEmpty();

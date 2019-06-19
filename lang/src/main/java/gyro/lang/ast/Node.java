@@ -35,6 +35,8 @@ public abstract class Node {
         .put(GyroParser.PairContext.class, c -> new PairNode((GyroParser.PairContext) c))
         // ast.block
         .put(GyroParser.FileContext.class, c -> new FileNode((GyroParser.FileContext) c))
+        .put(GyroParser.KeyBlockContext.class, c -> new KeyBlockNode((GyroParser.KeyBlockContext) c))
+        .put(GyroParser.ResourceContext.class, c -> new ResourceNode((GyroParser.ResourceContext) c))
         .put(GyroParser.VirtualResourceContext.class, c -> new VirtualResourceNode((GyroParser.VirtualResourceContext) c))
         // ast.condition
         .put(GyroParser.AndConditionContext.class, c -> new AndConditionNode((GyroParser.AndConditionContext) c))
@@ -45,13 +47,14 @@ public abstract class Node {
         .put(GyroParser.ForStatementContext.class, c -> new ForNode((GyroParser.ForStatementContext) c))
         .put(GyroParser.IfStatementContext.class, c -> new IfNode((GyroParser.IfStatementContext) c))
         // ast.value
+        .put(GyroParser.BareStringContext.class, c -> new ValueNode((GyroParser.BareStringContext) c))
+        .put(GyroParser.BooleanValueContext.class, c -> new ValueNode((GyroParser.BooleanValueContext) c))
         .put(GyroParser.InterpolatedStringContext.class, c -> new InterpolatedStringNode((GyroParser.InterpolatedStringContext) c))
         .put(GyroParser.ListContext.class, c -> new ListNode((GyroParser.ListContext) c))
+        .put(GyroParser.LiteralStringContext.class, c -> new ValueNode((GyroParser.LiteralStringContext) c))
         .put(GyroParser.MapContext.class, c -> new MapNode((GyroParser.MapContext) c))
         .put(GyroParser.ResourceReferenceContext.class, c -> new ResourceReferenceNode((GyroParser.ResourceReferenceContext) c))
-        .put(GyroParser.BooleanValueContext.class, c -> new ValueNode((GyroParser.BooleanValueContext) c))
         .put(GyroParser.NumberContext.class, c -> new ValueNode((GyroParser.NumberContext) c))
-        .put(GyroParser.LiteralStringContext.class, c -> new ValueNode((GyroParser.LiteralStringContext) c))
         .put(GyroParser.ValueReferenceContext.class, c -> new ValueReferenceNode((GyroParser.ValueReferenceContext) c))
         .build();
 
@@ -83,16 +86,6 @@ public abstract class Node {
 
         if (nodeConstructor != null) {
             node = nodeConstructor.apply(context);
-
-        } else if (contextClass.equals(GyroParser.ResourceContext.class)) {
-            GyroParser.ResourceContext rc = (GyroParser.ResourceContext) context;
-
-            if (rc.resourceName() != null) {
-                node = new ResourceNode(rc);
-
-            } else {
-                node = new KeyBlockNode(rc);
-            }
 
         } else if (TerminalNode.class.isAssignableFrom(contextClass)) {
             node = new ValueNode(context.getText());

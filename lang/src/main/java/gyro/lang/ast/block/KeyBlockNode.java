@@ -18,9 +18,9 @@ public class KeyBlockNode extends BlockNode {
         this.key = Preconditions.checkNotNull(key);
     }
 
-    public KeyBlockNode(GyroParser.ResourceContext context) {
+    public KeyBlockNode(GyroParser.KeyBlockContext context) {
         this(
-            Preconditions.checkNotNull(context).resourceType().getText(),
+            Preconditions.checkNotNull(context).IDENTIFIER().getText(),
             context.blockBody()
                 .blockStatement()
                 .stream()

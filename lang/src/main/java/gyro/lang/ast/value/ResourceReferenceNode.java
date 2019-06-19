@@ -19,7 +19,7 @@ public class ResourceReferenceNode extends Node {
     private final String path;
 
     public ResourceReferenceNode(GyroParser.ResourceReferenceContext context) {
-        type = context.resourceType().getText();
+        type = context.type().getText();
 
         GyroParser.ReferenceNameContext rnc = context.referenceName();
 

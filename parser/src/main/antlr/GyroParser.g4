@@ -11,7 +11,7 @@ file
 
 statement
     : directive
-    | resource
+    | block
     | virtualResource
     | forStatement
     | ifStatement
@@ -23,24 +23,21 @@ directive : AT IDENTIFIER (directiveArgument (COMMA? directiveArgument)*)?;
 
 directiveArgument
     : value
-    | resource
+    | block
     ;
 
-// resource
-resource
-    :
-    resourceType resourceName? NEWLINES
-        blockBody
-    END
+// block
+block
+    : IDENTIFIER  NEWLINES blockBody END # KeyBlock
+    | type string NEWLINES blockBody END # Resource
     ;
 
-resourceType : IDENTIFIER (COLON COLON IDENTIFIER)*;
-resourceName : IDENTIFIER | string;
+type : IDENTIFIER (COLON COLON IDENTIFIER)?;
 blockBody : (blockStatement NEWLINES)*;
 
 blockStatement
     : directive
-    | resource
+    | block
     | forStatement
     | ifStatement
     | pair
@@ -49,7 +46,7 @@ blockStatement
 // virtual resource
 virtualResource
     :
-    VIRTUAL_RESOURCE resourceType NEWLINES
+    VIRTUAL_RESOURCE type NEWLINES
         (PARAM virtualResourceParameter NEWLINES)*
     DEFINE NEWLINES
         blockBody
@@ -134,8 +131,8 @@ number
     ;
 
 reference
-    : LREF resourceType referenceName (PIPE query)* (PIPE path)? RREF # ResourceReference
-    | LREF path RREF                                                  # ValueReference
+    : LREF type referenceName (PIPE query)* (PIPE path)? RREF # ResourceReference
+    | LREF path RREF                                          # ValueReference
     ;
 
 referenceName
@@ -157,6 +154,10 @@ path : IDENTIFIER (DOT IDENTIFIER)*;
 string
     : STRING                       # LiteralString
     | DQUOTE stringContent* DQUOTE # InterpolatedString
+    |
+        ( IDENTIFIER
+        | type
+    )                              # BareString
     ;
 
 stringContent
