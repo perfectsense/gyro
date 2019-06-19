@@ -536,7 +536,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
                 }
 
             } else {
-                value = scope.get(referenceName);
+                value = scope.find(referenceName);
             }
 
             if (value == null) {

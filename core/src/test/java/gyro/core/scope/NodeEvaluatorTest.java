@@ -12,6 +12,7 @@ import gyro.core.resource.DeferError;
 import gyro.core.resource.NodeEvaluator;
 import gyro.core.resource.RootScope;
 import gyro.core.resource.Scope;
+import gyro.core.resource.ValueReferenceException;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.PairNode;
 import gyro.lang.ast.condition.ValueConditionNode;
@@ -97,7 +98,8 @@ class NodeEvaluatorTest {
 
         @Test
         void nullFirst() {
-            assertThat(evaluate("$($(foo))")).isNull();
+            assertThatExceptionOfType(ValueReferenceException.class)
+                .isThrownBy(() -> evaluate("$($(foo))"));
         }
 
         @Test
