@@ -22,8 +22,8 @@ statement
 directive : AT IDENTIFIER (directiveArgument (COMMA? directiveArgument)*)?;
 
 directiveArgument
-    : value
-    | block
+    : block
+    | value
     ;
 
 // block
