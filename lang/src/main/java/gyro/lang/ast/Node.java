@@ -1,9 +1,14 @@
 package gyro.lang.ast;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Map;
 import java.util.function.Function;
 
 import com.google.common.collect.ImmutableMap;
+import gyro.lang.GyroErrorListener;
+import gyro.lang.GyroErrorStrategy;
 import gyro.lang.GyroLanguageException;
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;
@@ -18,14 +23,18 @@ import gyro.lang.ast.control.IfNode;
 import gyro.lang.ast.value.InterpolatedStringNode;
 import gyro.lang.ast.value.ListNode;
 import gyro.lang.ast.value.MapNode;
-import gyro.lang.ast.value.ResourceReferenceNode;
+import gyro.lang.ast.value.ReferenceNode;
 import gyro.lang.ast.value.ValueNode;
-import gyro.lang.ast.value.ValueReferenceNode;
+import gyro.parser.antlr4.GyroLexer;
 import gyro.parser.antlr4.GyroParser;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.antlr.v4.runtime.tree.Tree;
 
 public abstract class Node {
 
@@ -53,9 +62,8 @@ public abstract class Node {
         .put(GyroParser.ListContext.class, c -> new ListNode((GyroParser.ListContext) c))
         .put(GyroParser.LiteralStringContext.class, c -> new ValueNode((GyroParser.LiteralStringContext) c))
         .put(GyroParser.MapContext.class, c -> new MapNode((GyroParser.MapContext) c))
-        .put(GyroParser.ResourceReferenceContext.class, c -> new ResourceReferenceNode((GyroParser.ResourceReferenceContext) c))
         .put(GyroParser.NumberContext.class, c -> new ValueNode((GyroParser.NumberContext) c))
-        .put(GyroParser.ValueReferenceContext.class, c -> new ValueReferenceNode((GyroParser.ValueReferenceContext) c))
+        .put(GyroParser.ReferenceContext.class, c -> new ReferenceNode((GyroParser.ReferenceContext) c))
         .build();
 
     private String file;
@@ -105,6 +113,37 @@ public abstract class Node {
         }
 
         return node;
+    }
+
+    public static Node parse(String text, Function<GyroParser, ? extends ParseTree> function) {
+        return parse(CharStreams.fromString(text), function);
+    }
+
+    public static Node parse(InputStream input, String file, Function<GyroParser, ? extends ParseTree> function) throws IOException {
+        return parse(CharStreams.fromReader(new InputStreamReader(input), file), function);
+    }
+
+    private static Node parse(CharStream charStream, Function<GyroParser, ? extends ParseTree> function) {
+        GyroLexer lexer = new GyroLexer(charStream);
+        CommonTokenStream stream = new CommonTokenStream(lexer);
+        GyroParser parser = new GyroParser(stream);
+        GyroErrorListener errorListener = new GyroErrorListener();
+
+        parser.removeErrorListeners();
+        parser.addErrorListener(errorListener);
+        parser.setErrorHandler(new GyroErrorStrategy());
+
+        ParseTree tree = function.apply(parser);
+        int errorCount = errorListener.getSyntaxErrors();
+
+        if (errorCount > 0) {
+            throw new GyroLanguageException(String.format(
+                "%d %s found while parsing.",
+                errorCount,
+                errorCount == 1 ? "error" : "errors"));
+        }
+
+        return Node.create(tree);
     }
 
     public abstract <C, R> R accept(NodeVisitor<C, R> visitor, C context);

@@ -11,7 +11,7 @@ class PairNodeTest extends AbstractNodeTest<PairNode> {
 
     @Test
     void constructorContext() {
-        PairNode node = new PairNode(parse("foo: 'bar'", GyroParser::pair));
+        PairNode node = (PairNode) Node.parse("foo: 'bar'", GyroParser::pair);
         Node valueNode = node.getValue();
 
         assertThat(node.getKey()).isEqualTo("foo");

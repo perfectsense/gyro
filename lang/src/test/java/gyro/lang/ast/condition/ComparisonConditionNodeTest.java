@@ -13,9 +13,7 @@ class ComparisonConditionNodeTest extends AbstractNodeTest<ComparisonConditionNo
 
     @Test
     void constructorContext() {
-        ComparisonConditionNode node = new ComparisonConditionNode(
-            (GyroParser.ComparisonConditionContext) parse("'foo' = 'bar'", GyroParser::condition));
-
+        ComparisonConditionNode node = (ComparisonConditionNode) Node.parse("'foo' = 'bar'", GyroParser::condition);
         Node left = node.getLeft();
         Node right = node.getRight();
 

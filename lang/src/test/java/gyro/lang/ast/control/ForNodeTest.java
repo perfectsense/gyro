@@ -17,7 +17,7 @@ class ForNodeTest extends AbstractNodeTest<ForNode> {
 
     @Test
     void constructorContext() {
-        ForNode node = new ForNode(parse("for foo in ['bar']\nend", GyroParser::forStatement));
+        ForNode node = (ForNode) Node.parse("for foo in ['bar']\nend", GyroParser::forStatement);
         List<Node> items = node.getItems();
 
         assertThat(node.getVariables()).containsExactly("foo");

@@ -1,6 +1,7 @@
 package gyro.lang.ast.condition;
 
 import gyro.lang.ast.AbstractNodeTest;
+import gyro.lang.ast.Node;
 import gyro.lang.ast.value.ValueNode;
 import gyro.parser.antlr4.GyroParser;
 import org.junit.jupiter.api.Test;
@@ -12,8 +13,7 @@ class ValueConditionNodeTest extends AbstractNodeTest<ValueConditionNode> {
 
     @Test
     void constructorContext() {
-        ValueConditionNode node = new ValueConditionNode(
-            (GyroParser.ValueConditionContext) parse("true", GyroParser::condition));
+        ValueConditionNode node = (ValueConditionNode) Node.parse("true", GyroParser::condition);
 
         assertThat(((ValueNode) node.getValue()).getValue()).isEqualTo(Boolean.TRUE);
     }

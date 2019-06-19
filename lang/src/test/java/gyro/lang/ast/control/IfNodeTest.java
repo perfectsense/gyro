@@ -16,7 +16,7 @@ class IfNodeTest extends AbstractNodeTest<IfNode> {
 
     @Test
     void constructorContext() {
-        IfNode node = new IfNode(parse("if 0\nelse if 0\nelse\nend", GyroParser::ifStatement));
+        IfNode node = (IfNode) Node.parse("if 0\nelse if 0\nelse\nend", GyroParser::ifStatement);
         List<Node> conditions = node.getConditions();
         List<List<Node>> bodies = node.getBodies();
 

@@ -16,7 +16,7 @@ class FileNodeTest extends AbstractNodeTest<FileNode> {
 
     @Test
     void constructorContext() {
-        FileNode node = new FileNode(parse("foo::bar qux\nend\nfor foo in ['bar']\nend\nif 'foo'\nend\nfoo: 'bar'", GyroParser::file));
+        FileNode node = (FileNode) Node.parse("foo::bar qux\nend\nfor foo in ['bar']\nend\nif 'foo'\nend\nfoo: 'bar'", GyroParser::file);
         List<Node> body = node.getBody();
 
         assertThat(body).hasSize(4);

@@ -3,6 +3,7 @@ package gyro.lang.ast.block;
 import java.util.Collections;
 
 import gyro.lang.ast.AbstractNodeTest;
+import gyro.lang.ast.Node;
 import gyro.parser.antlr4.GyroParser;
 import org.junit.jupiter.api.Test;
 
@@ -12,7 +13,7 @@ class KeyBlockNodeTest extends AbstractNodeTest<KeyBlockNode> {
 
     @Test
     void constructorContext() {
-        KeyBlockNode node = new KeyBlockNode((GyroParser.KeyBlockContext) parse("foo\nend", GyroParser::block));
+        KeyBlockNode node = (KeyBlockNode) Node.parse("foo\nend", GyroParser::block);
 
         assertThat(node.getKey()).isEqualTo("foo");
         assertThat(node.getBody()).isEmpty();

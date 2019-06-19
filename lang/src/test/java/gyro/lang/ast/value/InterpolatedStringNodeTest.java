@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 
 import gyro.lang.ast.AbstractNodeTest;
+import gyro.lang.ast.Node;
 import gyro.parser.antlr4.GyroParser;
 import org.junit.jupiter.api.Test;
 
@@ -20,9 +21,7 @@ class InterpolatedStringNodeTest extends AbstractNodeTest<InterpolatedStringNode
 
     @Test
     void constructorContext() {
-        InterpolatedStringNode node = new InterpolatedStringNode(
-            (GyroParser.InterpolatedStringContext) parse("\"foo$(bar)qux\"", GyroParser::string));
-
+        InterpolatedStringNode node = (InterpolatedStringNode) Node.parse("\"foo$(bar)qux\"", GyroParser::string);
         List<Object> items = node.getItems();
 
         assertThat(items).hasSize(3);

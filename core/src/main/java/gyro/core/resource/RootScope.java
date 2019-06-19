@@ -1,8 +1,6 @@
 package gyro.core.resource;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,15 +29,9 @@ import gyro.core.reference.FinderReferenceResolver;
 import gyro.core.reference.ReferenceSettings;
 import gyro.core.repo.RepositoryDirectiveProcessor;
 import gyro.core.workflow.Workflow;
-import gyro.lang.GyroErrorListener;
-import gyro.lang.GyroErrorStrategy;
-import gyro.lang.GyroLanguageException;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.VirtualResourceNode;
-import gyro.parser.antlr4.GyroLexer;
 import gyro.parser.antlr4.GyroParser;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
 
 public class RootScope extends FileScope {
 
@@ -196,14 +188,14 @@ public class RootScope extends FileScope {
 
     public void load() throws Exception {
         try (InputStream input = backend.openInput(getFile())) {
-            evaluator.visit(parse(input, getFile()), this);
+            evaluator.visit(Node.parse(input, getFile(), GyroParser::file), this);
         }
 
         List<Node> nodes = new ArrayList<>();
 
         for (String file : loadFiles) {
-            try (InputStream inputStream = backend.openInput(file)) {
-                nodes.add(parse(inputStream, file));
+            try (InputStream input = backend.openInput(file)) {
+                nodes.add(Node.parse(input, file, GyroParser::file));
             }
         }
 
@@ -215,26 +207,6 @@ public class RootScope extends FileScope {
         }
 
         validate();
-    }
-
-    private Node parse(InputStream inputStream, String file) throws IOException {
-        GyroLexer lexer = new GyroLexer(CharStreams.fromReader(new InputStreamReader(inputStream), file));
-        CommonTokenStream stream = new CommonTokenStream(lexer);
-        GyroParser parser = new GyroParser(stream);
-        GyroErrorListener errorListener = new GyroErrorListener();
-
-        parser.removeErrorListeners();
-        parser.addErrorListener(errorListener);
-        parser.setErrorHandler(new GyroErrorStrategy());
-
-        GyroParser.FileContext fileContext = parser.file();
-
-        int errorCount = errorListener.getSyntaxErrors();
-        if (errorCount > 0) {
-            throw new GyroLanguageException(String.format("%d %s found while parsing.", errorCount, errorCount == 1 ? "error" : "errors"));
-        }
-
-        return Node.create(fileContext);
     }
 
     private void validate() {

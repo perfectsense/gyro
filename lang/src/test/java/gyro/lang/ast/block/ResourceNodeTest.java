@@ -15,7 +15,7 @@ class ResourceNodeTest extends AbstractNodeTest<ResourceNode> {
 
     @Test
     void constructorContext() {
-        ResourceNode node = new ResourceNode((GyroParser.ResourceContext) parse("foo::bar qux\nend", GyroParser::block));
+        ResourceNode node = (ResourceNode) Node.parse("foo::bar qux\nend", GyroParser::block);
         Node name = node.getName();
 
         assertThat(node.getType()).isEqualTo("foo::bar");
