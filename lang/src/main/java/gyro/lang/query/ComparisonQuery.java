@@ -14,7 +14,7 @@ public class ComparisonQuery extends Query {
 
     public ComparisonQuery(GyroParser.ComparisonQueryContext context) {
         this.operator = context.comparisonOperator().getText();
-        this.key = context.path().getText();
+        this.key = context.IDENTIFIER().getText();
         this.value = Node.create(context.value().getChild(0));
     }
 

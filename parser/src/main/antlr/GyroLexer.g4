@@ -2,8 +2,6 @@ lexer grammar GyroLexer;
 
 // directive
 AT    : '@';
-DOT   : '.';
-SLASH : '/';
 
 // resource
 END : 'end';

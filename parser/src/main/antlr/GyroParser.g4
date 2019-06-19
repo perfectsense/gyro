@@ -133,12 +133,10 @@ number
 reference : LREF value* (PIPE query)* RREF;
 
 query
-    : path comparisonOperator value # ComparisonQuery
-    | query AND query               # AndQuery
-    | query OR query                # OrQuery
+    : IDENTIFIER comparisonOperator value # ComparisonQuery
+    | query AND query                     # AndQuery
+    | query OR query                      # OrQuery
     ;
-
-path : IDENTIFIER (DOT IDENTIFIER)*;
 
 string
     : STRING                       # LiteralString

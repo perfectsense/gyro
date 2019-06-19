@@ -7,7 +7,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -15,8 +14,6 @@ import com.google.common.cache.LoadingCache;
 import gyro.lang.ast.Node;
 
 public class Scope implements Map<String, Object> {
-
-    private static final Pattern DOT_PATTERN = Pattern.compile(Pattern.quote("."));
 
     private final Scope parent;
     private final Map<String, Object> values;
@@ -87,52 +84,15 @@ public class Scope implements Map<String, Object> {
         put(key, list);
     }
 
-    public Object find(String path) {
-        String[] keys = DOT_PATTERN.split(path);
-        String firstKey = keys[0];
-        Object value = null;
-
-        boolean found = false;
-        Scope startingScope = this instanceof DiffableScope ? this.parent : this;
-        for (Scope s = startingScope; s != null; s = s.parent) {
-            if (s.containsKey(firstKey)) {
-                Node valueNode = s.valueNodes.get(firstKey);
-                value = valueNode == null ? s.get(firstKey) : getRootScope().getEvaluator().visit(valueNode, s);
-                found = true;
-                break;
+    public Object find(String key) {
+        for (Scope s = this instanceof DiffableScope ? this.parent : this; s != null; s = s.parent) {
+            if (s.containsKey(key)) {
+                Node valueNode = s.valueNodes.get(key);
+                return valueNode == null ? s.get(key) : getRootScope().getEvaluator().visit(valueNode, s);
             }
         }
 
-        if (!found) {
-            throw new ValueReferenceException(firstKey);
-        }
-
-        if (value == null) {
-            return null;
-        }
-
-        for (int i = 1, l = keys.length; i < l; i++) {
-            String key = keys[i];
-
-            if (value instanceof List) {
-                value = ((List<?>) value).get(Integer.parseInt(key));
-
-            } else if (value instanceof Map) {
-                value = ((Map<?, ?>) value).get(key);
-
-            } else if (value instanceof Resource) {
-                value = ((Resource) value).get(key);
-
-            } else {
-                return null;
-            }
-
-            if (value == null) {
-                return null;
-            }
-        }
-
-        return value;
+        throw new ValueReferenceException(key);
     }
 
     public void addValueNode(String key, Node value) {
