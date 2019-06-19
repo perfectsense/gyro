@@ -13,9 +13,8 @@ import gyro.lang.ast.control.IfNode;
 import gyro.lang.ast.value.InterpolatedStringNode;
 import gyro.lang.ast.value.ListNode;
 import gyro.lang.ast.value.MapNode;
-import gyro.lang.ast.value.ResourceReferenceNode;
+import gyro.lang.ast.value.ReferenceNode;
 import gyro.lang.ast.value.ValueNode;
-import gyro.lang.ast.value.ValueReferenceNode;
 
 public interface NodeVisitor<C, R> {
 
@@ -53,10 +52,8 @@ public interface NodeVisitor<C, R> {
 
     R visitMap(MapNode node, C context);
 
-    R visitResourceReference(ResourceReferenceNode node, C context);
+    R visitReference(ReferenceNode node, C context);
 
     R visitValue(ValueNode node, C context);
-
-    R visitValueReference(ValueReferenceNode node, C context);
 
 }

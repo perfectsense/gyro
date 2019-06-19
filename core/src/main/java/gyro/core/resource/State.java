@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -25,7 +26,7 @@ import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.block.ResourceNode;
 import gyro.lang.ast.value.ListNode;
 import gyro.lang.ast.value.MapNode;
-import gyro.lang.ast.value.ResourceReferenceNode;
+import gyro.lang.ast.value.ReferenceNode;
 import gyro.lang.ast.value.ValueNode;
 
 public class State {
@@ -278,11 +279,9 @@ public class State {
                 return new ValueNode(type.getIdField().getValue(resource));
 
             } else {
-                return new ResourceReferenceNode(
-                    type.getName(),
-                    new ValueNode(resource.name()),
-                    Collections.emptyList(),
-                    null);
+                return new ReferenceNode(
+                    Arrays.asList(new ValueNode(type.getName()), new ValueNode(resource.name())),
+                    Collections.emptyList());
             }
 
         } else {

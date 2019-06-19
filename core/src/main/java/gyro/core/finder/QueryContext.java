@@ -1,32 +1,23 @@
 package gyro.core.finder;
 
-import java.util.List;
-
-import gyro.core.resource.Resource;
 import gyro.core.resource.Scope;
 
 public class QueryContext {
 
-    private final String type;
     private final Scope scope;
-    private final List<Resource> resources;
+    private final Object value;
 
-    public QueryContext(String type, Scope scope, List<Resource> resources) {
-        this.type = type;
+    public QueryContext(Scope scope, Object value) {
         this.scope = scope;
-        this.resources = resources;
-    }
-
-    public String getType() {
-        return type;
+        this.value = value;
     }
 
     public Scope getScope() {
         return scope;
     }
 
-    public List<Resource> getResources() {
-        return resources;
+    public Object getValue() {
+        return value;
     }
 
 }

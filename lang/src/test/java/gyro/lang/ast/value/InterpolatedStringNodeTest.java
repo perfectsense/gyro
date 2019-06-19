@@ -27,7 +27,7 @@ class InterpolatedStringNodeTest extends AbstractNodeTest<InterpolatedStringNode
 
         assertThat(items).hasSize(3);
         assertThat(items.get(0)).isEqualTo("foo");
-        assertThat(items.get(1)).isInstanceOf(ValueReferenceNode.class);
+        assertThat(items.get(1)).isInstanceOf(ReferenceNode.class);
         assertThat(items.get(2)).isEqualTo("qux");
     }
 

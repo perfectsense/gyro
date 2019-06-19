@@ -6,7 +6,7 @@ import gyro.parser.antlr4.GyroParser;
 public class ComparisonQuery extends Query {
 
     private final String operator;
-    private final String path;
+    private final String key;
     private final Node value;
 
     public static final String EQUALS_OPERATOR = "=";
@@ -14,7 +14,7 @@ public class ComparisonQuery extends Query {
 
     public ComparisonQuery(GyroParser.ComparisonQueryContext context) {
         this.operator = context.comparisonOperator().getText();
-        this.path = context.path().getText();
+        this.key = context.path().getText();
         this.value = Node.create(context.value().getChild(0));
     }
 
@@ -22,8 +22,8 @@ public class ComparisonQuery extends Query {
         return operator;
     }
 
-    public String getPath() {
-        return path;
+    public String getKey() {
+        return key;
     }
 
     public Node getValue() {

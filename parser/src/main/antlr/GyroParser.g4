@@ -130,18 +130,7 @@ number
     | INTEGER
     ;
 
-reference
-    : LREF type referenceName (PIPE query)* (PIPE path)? RREF # ResourceReference
-    | LREF path RREF                                          # ValueReference
-    ;
-
-referenceName
-    : GLOB
-    | IDENTIFIER SLASH GLOB
-    | IDENTIFIER GLOB
-    | path
-    | string
-    ;
+reference : LREF value* (PIPE query)* RREF;
 
 query
     : path comparisonOperator value # ComparisonQuery
@@ -156,6 +145,8 @@ string
     | DQUOTE stringContent* DQUOTE # InterpolatedString
     |
         ( IDENTIFIER
+        | IDENTIFIER GLOB
+        | GLOB
         | type
     )                              # BareString
     ;

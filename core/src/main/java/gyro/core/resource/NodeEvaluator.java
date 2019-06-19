@@ -15,11 +15,10 @@ import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.directive.DirectiveSettings;
-import gyro.core.finder.Finder;
-import gyro.core.finder.FinderSettings;
-import gyro.core.finder.FinderType;
 import gyro.core.finder.QueryContext;
 import gyro.core.finder.QueryEvaluator;
+import gyro.core.reference.ReferenceResolver;
+import gyro.core.reference.ReferenceSettings;
 import gyro.core.workflow.Workflow;
 import gyro.lang.GyroLanguageException;
 import gyro.lang.ast.DirectiveNode;
@@ -40,13 +39,25 @@ import gyro.lang.ast.control.IfNode;
 import gyro.lang.ast.value.InterpolatedStringNode;
 import gyro.lang.ast.value.ListNode;
 import gyro.lang.ast.value.MapNode;
-import gyro.lang.ast.value.ResourceReferenceNode;
+import gyro.lang.ast.value.ReferenceNode;
 import gyro.lang.ast.value.ValueNode;
-import gyro.lang.ast.value.ValueReferenceNode;
 import gyro.lang.query.Query;
 import gyro.util.CascadingMap;
 
 public class NodeEvaluator implements NodeVisitor<Scope, Object> {
+
+    public static Object getValue(Object object, String key) {
+        if (object instanceof Map) {
+            return ((Map<?, ?>) object).get(key);
+
+        } else if (object instanceof Diffable) {
+            Diffable diffable = (Diffable) object;
+            return DiffableType.getInstance(diffable.getClass()).getField(key).getValue(diffable);
+
+        } else {
+            return null;
+        }
+    }
 
     public void visitBody(List<Node> body, Scope scope) {
         int bodySize = body.size();
@@ -448,124 +459,107 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
     }
 
     @Override
-    public Object visitResourceReference(ResourceReferenceNode node, Scope scope) {
-        String type = node.getType();
-        Node nameNode = node.getName();
-        String path = node.getPath();
+    public Object visitReference(ReferenceNode node, Scope scope) {
+        List<Object> arguments = node.getArguments()
+            .stream()
+            .map(v -> visit(v, scope))
+            .collect(Collectors.toList());
 
-        if (nameNode != null) {
-            QueryEvaluator evaluator = new QueryEvaluator(this);
-            String name = (String) visit(nameNode, scope);
-            List<Resource> resources = new ArrayList<>();
-            List<Query> queries = null;
+        if (arguments.isEmpty()) {
+            return null;
+        }
 
-            if (name.startsWith("EXTERNAL/*")) {
-                Class<? extends Finder<Resource>> finderClass = scope.getRootScope()
-                    .getSettings(FinderSettings.class)
-                    .getFinderClasses()
-                    .get(type);
+        Object value = arguments.remove(0);
 
-                if (finderClass == null) {
-                    throw new GyroException("Resource type " + type + " does not support external queries.");
+        if (value == null) {
+            return null;
+        }
+
+        List<Query> queries = node.getQueries();
+
+        if (value instanceof String) {
+            String name = (String) value;
+            RootScope root = scope.getRootScope();
+
+            ReferenceResolver resolver = root.getSettings(ReferenceSettings.class)
+                .getResolvers()
+                .get(name);
+
+            if (resolver != null) {
+                try {
+                    value = resolver.resolve(scope, arguments, queries);
+
+                } catch (Exception error) {
+                    throw new GyroException(error.getMessage());
                 }
 
-                Finder<Resource> finder = FinderType.getInstance(finderClass).newInstance(scope);
-                List<Query> nodeQueries = node.getQueries();
-                queries = new ArrayList<>();
+            } else if (name.contains("::")) {
+                String resourceName = (String) arguments.remove(0);
 
-                if (!nodeQueries.isEmpty()) {
-                    Query optimized = evaluator.optimize(nodeQueries.get(0), finder, scope);
-                    resources = evaluator.visit(optimized, new QueryContext(type, scope, resources));
+                if (resourceName.endsWith("*")) {
+                    Stream<Resource> s = root.findResources()
+                        .stream()
+                        .filter(r -> name.equals(DiffableType.getInstance(r.getClass()).getName()));
 
-                    queries.add(optimized);
-
-                    if (resources.isEmpty()) {
-                        resources = finder.findAll();
+                    if (!resourceName.equals("*")) {
+                        String prefix = name.substring(0, name.length() - 1);
+                        s = s.filter(r -> r.name().startsWith(prefix));
                     }
 
+                    value = s.collect(Collectors.toList());
+
                 } else {
-                    nodeQueries.subList(1, nodeQueries.size()).forEach(queries::add);
-                }
+                    Resource resource = root.findResource(name + "::" + resourceName);
 
-            } else if (name.endsWith("*")) {
-                RootScope rootScope = scope.getRootScope();
-
-                Stream<Resource> s = rootScope.findResources()
-                    .stream()
-                    .filter(r -> type.equals(DiffableType.getInstance(r.getClass()).getName()));
-
-                if (!name.equals("*")) {
-                    String prefix = name.substring(0, name.length() - 1);
-                    s = s.filter(r -> r.name().startsWith(prefix));
-                }
-
-                resources = s.collect(Collectors.toList());
-
-            } else {
-                String fullName = type + "::" + name;
-                Resource resource = scope.getRootScope().findResource(fullName);
-
-                if (resource == null) {
-                    throw new DeferError(node);
-                }
-
-                if (path != null) {
-                    if (DiffableType.getInstance(resource.getClass()).getFields().stream()
-                            .map(DiffableField::getName)
-                            .anyMatch(path::equals)) {
-
-                        return resource.get(path);
-
-                    } else {
-                        throw new GyroException(String.format("Unable to resolve resource reference %s %s%nAttribute '%s' is not allowed in %s.%n",
-                            node, node.getLocation(), path, type));
+                    if (resource == null) {
+                        throw new DeferError(node);
                     }
 
-                } else {
-                    return resource;
+                    value = resource;
                 }
-            }
-
-            for (Query q : (queries != null ? queries : node.getQueries())) {
-                resources = evaluator.visit(q, new QueryContext(type, scope, resources));
-            }
-
-            if (path != null) {
-                return resources.stream().map(r -> r.get(path)).collect(Collectors.toList());
-            } else {
-                return resources;
-            }
-
-        } else {
-            Stream<Resource> s = scope.getRootScope()
-                    .findResources()
-                    .stream()
-                    .filter(r -> type.equals(DiffableType.getInstance(r.getClass()).getName()));
-
-            if (path != null) {
-                return s.map(r -> r.get(path))
-                        .collect(Collectors.toList());
 
             } else {
-                return s.collect(Collectors.toList());
+                value = scope.get(name);
+            }
+
+            if (value == null) {
+                return null;
             }
         }
+
+        for (Object argument : arguments) {
+            value = getValue(value, (String) argument);
+
+            if (value == null) {
+                return null;
+            }
+        }
+
+        if (queries.isEmpty()) {
+            return value;
+        }
+
+        QueryEvaluator evaluator = new QueryEvaluator(this);
+
+        if (value instanceof Collection) {
+            return ((Collection<?>) value).stream()
+                .filter(v -> queries.stream().allMatch(q -> evaluator.visit(q, new QueryContext(scope, v))))
+                .collect(Collectors.toList());
+
+        } else {
+            for (Query q : queries) {
+                if (!evaluator.visit(q, new QueryContext(scope, value))) {
+                    return null;
+                }
+            }
+        }
+
+        return value;
     }
 
     @Override
     public Object visitValue(ValueNode node, Scope scope) {
         return node.getValue();
-    }
-
-    @Override
-    public Object visitValueReference(ValueReferenceNode node, Scope scope) {
-        try {
-            return scope.find(node.getPath());
-
-        } catch (ValueReferenceException vre) {
-            throw new GyroException(String.format("Unable to resolve value reference %s %s%n'%s' is not defined.%n",
-                node, node.getLocation(), vre.getKey()));
-        }
     }
 
 }

@@ -17,9 +17,8 @@ import gyro.lang.ast.control.IfNode;
 import gyro.lang.ast.value.InterpolatedStringNode;
 import gyro.lang.ast.value.ListNode;
 import gyro.lang.ast.value.MapNode;
-import gyro.lang.ast.value.ResourceReferenceNode;
+import gyro.lang.ast.value.ReferenceNode;
 import gyro.lang.ast.value.ValueNode;
-import gyro.lang.ast.value.ValueReferenceNode;
 
 public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
 
@@ -246,21 +245,16 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
     }
 
     @Override
-    public Void visitResourceReference(ResourceReferenceNode node, PrinterContext context) {
+    public Void visitReference(ReferenceNode node, PrinterContext context) {
         context.append("$(");
-        context.append(node.getType());
 
-        Optional.ofNullable(node.getName())
-            .ifPresent(nameNode -> {
+        for (Iterator<Node> i = node.getArguments().iterator(); i.hasNext(); ) {
+            visit(i.next(), context);
+
+            if (i.hasNext()) {
                 context.append(' ');
-                visit(nameNode, context);
-            });
-
-        Optional.ofNullable(node.getPath())
-            .ifPresent(path -> {
-                context.append(" | ");
-                context.append(path);
-            });
+            }
+        }
 
         context.append(")");
 
@@ -279,15 +273,6 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
         } else {
             context.append(value.toString());
         }
-
-        return null;
-    }
-
-    @Override
-    public Void visitValueReference(ValueReferenceNode node, PrinterContext context) {
-        context.append("$(");
-        context.append(node.getPath());
-        context.append(")");
 
         return null;
     }
