@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -47,7 +48,13 @@ import gyro.util.CascadingMap;
 public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
     public static Object getValue(Object object, String key) {
-        if (object instanceof Map) {
+        if (object instanceof Collection) {
+            return ((Collection<?>) object).stream()
+                .map(i -> getValue(i, key))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        } else if (object instanceof Map) {
             return ((Map<?, ?>) object).get(key);
 
         } else if (object instanceof Diffable) {
