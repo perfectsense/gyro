@@ -45,7 +45,7 @@ public class FinderReferenceResolver extends ReferenceResolver {
         if (arguments.isEmpty() && !filters.isEmpty()) {
             Map<String, String> finderFilters = getFilters(scope, filters);
 
-            if (!filters.isEmpty()) {
+            if (!finderFilters.isEmpty()) {
                 resources = finder.find(finderFilters);
             }
         }
@@ -72,7 +72,7 @@ public class FinderReferenceResolver extends ReferenceResolver {
                 List<Filter> childFilters = new ArrayList<>(((AndFilter) filter).getChildren());
                 Map<String, String> childFinderFilters = getFilters(scope, childFilters);
 
-                if (childFilters.isEmpty() && !childFilters.isEmpty()) {
+                if (childFilters.isEmpty() && !childFinderFilters.isEmpty()) {
                     finderFilters.putAll(childFinderFilters);
                     i.remove();
                 }
