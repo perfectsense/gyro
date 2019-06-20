@@ -16,8 +16,6 @@ import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.directive.DirectiveSettings;
-import gyro.core.finder.QueryContext;
-import gyro.core.finder.QueryEvaluator;
 import gyro.core.reference.ReferenceResolver;
 import gyro.core.reference.ReferenceSettings;
 import gyro.core.workflow.Workflow;
@@ -42,7 +40,6 @@ import gyro.lang.ast.value.ListNode;
 import gyro.lang.ast.value.MapNode;
 import gyro.lang.ast.value.ReferenceNode;
 import gyro.lang.ast.value.ValueNode;
-import gyro.lang.query.Query;
 import gyro.util.CascadingMap;
 
 public class NodeEvaluator implements NodeVisitor<Scope, Object> {
@@ -492,8 +489,6 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
             return null;
         }
 
-        List<Query> queries = node.getQueries();
-
         if (value instanceof String) {
             RootScope root = scope.getRootScope();
             String referenceName = (String) value;
@@ -504,7 +499,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
             if (resolver != null) {
                 try {
-                    value = resolver.resolve(scope, arguments, queries);
+                    value = resolver.resolve(scope, arguments, node.getQueries());
 
                 } catch (Exception error) {
                     throw new GyroException(error.getMessage());
@@ -544,34 +539,11 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
             }
         }
 
-        for (Object argument : arguments) {
-            value = getValue(value, (String) argument);
-
-            if (value == null) {
-                return null;
-            }
-        }
-
-        if (queries.isEmpty()) {
-            return value;
-        }
-
-        QueryEvaluator evaluator = new QueryEvaluator(this);
-
-        if (value instanceof Collection) {
-            return ((Collection<?>) value).stream()
-                .filter(v -> queries.stream().allMatch(q -> evaluator.visit(q, new QueryContext(scope, v))))
-                .collect(Collectors.toList());
-
-        } else {
-            for (Query q : queries) {
-                if (!evaluator.visit(q, new QueryContext(scope, value))) {
-                    return null;
-                }
-            }
-        }
-
-        return value;
+        return ReferenceResolver.resolveRemaining(
+            scope,
+            arguments,
+            node.getQueries(),
+            value);
     }
 
     @Override

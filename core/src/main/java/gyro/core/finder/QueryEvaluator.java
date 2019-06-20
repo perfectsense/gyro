@@ -5,18 +5,13 @@ import java.util.Objects;
 
 import gyro.core.GyroException;
 import gyro.core.resource.NodeEvaluator;
+import gyro.core.resource.Scope;
 import gyro.lang.query.AndQuery;
 import gyro.lang.query.ComparisonQuery;
 import gyro.lang.query.OrQuery;
 import gyro.lang.query.QueryVisitor;
 
 public class QueryEvaluator implements QueryVisitor<QueryContext, Boolean> {
-
-    private final NodeEvaluator nodeEvaluator;
-
-    public QueryEvaluator(NodeEvaluator nodeEvaluator) {
-        this.nodeEvaluator = nodeEvaluator;
-    }
 
     @Override
     public Boolean visitAnd(AndQuery query, QueryContext context) {
@@ -27,7 +22,8 @@ public class QueryEvaluator implements QueryVisitor<QueryContext, Boolean> {
     public Boolean visitComparison(ComparisonQuery query, QueryContext context) {
         String operator = query.getOperator();
         Object x = NodeEvaluator.getValue(context.getValue(), query.getKey());
-        Object y = nodeEvaluator.visit(query.getValue(), context.getScope());
+        Scope scope = context.getScope();
+        Object y = scope.getRootScope().getEvaluator().visit(query.getValue(), scope);
 
         switch (operator) {
             case ComparisonQuery.EQUALS_OPERATOR :
