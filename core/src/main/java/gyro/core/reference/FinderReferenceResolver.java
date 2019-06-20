@@ -13,9 +13,9 @@ import gyro.core.finder.FinderType;
 import gyro.core.resource.NodeEvaluator;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Scope;
-import gyro.lang.query.AndQuery;
-import gyro.lang.query.ComparisonQuery;
-import gyro.lang.query.Query;
+import gyro.lang.filter.AndFilter;
+import gyro.lang.filter.ComparisonFilter;
+import gyro.lang.filter.Filter;
 
 public class FinderReferenceResolver extends ReferenceResolver {
 
@@ -25,7 +25,7 @@ public class FinderReferenceResolver extends ReferenceResolver {
     }
 
     @Override
-    public Object resolve(Scope scope, List<Object> arguments, List<Query> queries) {
+    public Object resolve(Scope scope, List<Object> arguments, List<Filter> filters) {
         String type = (String) arguments.remove(0);
 
         Class<? extends Finder<Resource>> finderClass = scope.getRootScope()
@@ -42,11 +42,11 @@ public class FinderReferenceResolver extends ReferenceResolver {
         Finder<Resource> finder = FinderType.getInstance(finderClass).newInstance(scope);
         List<Resource> resources = null;
 
-        if (arguments.isEmpty() && !queries.isEmpty()) {
-            Map<String, String> filters = getFilters(scope, queries);
+        if (arguments.isEmpty() && !filters.isEmpty()) {
+            Map<String, String> finderFilters = getFilters(scope, filters);
 
             if (!filters.isEmpty()) {
-                resources = finder.find(filters);
+                resources = finder.find(finderFilters);
             }
         }
 
@@ -57,37 +57,37 @@ public class FinderReferenceResolver extends ReferenceResolver {
         return ReferenceResolver.resolveRemaining(
             scope,
             arguments,
-            queries,
+            filters,
             resources);
     }
 
-    private Map<String, String> getFilters(Scope scope, List<Query> queries) {
+    private Map<String, String> getFilters(Scope scope, List<Filter> filters) {
         NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
-        Map<String, String> filters = new HashMap<>();
+        Map<String, String> finderFilters = new HashMap<>();
 
-        for (Iterator<Query> i = queries.iterator(); i.hasNext(); ) {
-            Query query = i.next();
+        for (Iterator<Filter> i = filters.iterator(); i.hasNext(); ) {
+            Filter filter = i.next();
 
-            if (query instanceof AndQuery) {
-                List<Query> childQueries = new ArrayList<>(((AndQuery) query).getChildren());
-                Map<String, String> childFilters = getFilters(scope, childQueries);
+            if (filter instanceof AndFilter) {
+                List<Filter> childFilters = new ArrayList<>(((AndFilter) filter).getChildren());
+                Map<String, String> childFinderFilters = getFilters(scope, childFilters);
 
-                if (childQueries.isEmpty() && !childFilters.isEmpty()) {
-                    filters.putAll(childFilters);
+                if (childFilters.isEmpty() && !childFilters.isEmpty()) {
+                    finderFilters.putAll(childFinderFilters);
                     i.remove();
                 }
 
-            } else if (query instanceof ComparisonQuery) {
-                ComparisonQuery comparison = (ComparisonQuery) query;
+            } else if (filter instanceof ComparisonFilter) {
+                ComparisonFilter comparison = (ComparisonFilter) filter;
 
                 if ("=".equals(comparison.getOperator())) {
-                    filters.put(comparison.getKey(), (String) evaluator.visit(comparison.getValue(), scope));
+                    finderFilters.put(comparison.getKey(), (String) evaluator.visit(comparison.getValue(), scope));
                     i.remove();
                 }
             }
         }
 
-        return filters;
+        return finderFilters;
     }
 
 }

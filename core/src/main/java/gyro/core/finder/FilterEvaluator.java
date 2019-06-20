@@ -6,30 +6,30 @@ import java.util.Objects;
 import gyro.core.GyroException;
 import gyro.core.resource.NodeEvaluator;
 import gyro.core.resource.Scope;
-import gyro.lang.query.AndQuery;
-import gyro.lang.query.ComparisonQuery;
-import gyro.lang.query.OrQuery;
-import gyro.lang.query.QueryVisitor;
+import gyro.lang.filter.AndFilter;
+import gyro.lang.filter.ComparisonFilter;
+import gyro.lang.filter.OrFilter;
+import gyro.lang.filter.FilterVisitor;
 
-public class QueryEvaluator implements QueryVisitor<QueryContext, Boolean> {
+public class FilterEvaluator implements FilterVisitor<FilterContext, Boolean> {
 
     @Override
-    public Boolean visitAnd(AndQuery query, QueryContext context) {
-        return query.getChildren().stream().allMatch(c -> visit(c, context));
+    public Boolean visitAnd(AndFilter filter, FilterContext context) {
+        return filter.getChildren().stream().allMatch(c -> visit(c, context));
     }
 
     @Override
-    public Boolean visitComparison(ComparisonQuery query, QueryContext context) {
-        String operator = query.getOperator();
-        Object x = NodeEvaluator.getValue(context.getValue(), query.getKey());
+    public Boolean visitComparison(ComparisonFilter filter, FilterContext context) {
+        String operator = filter.getOperator();
+        Object x = NodeEvaluator.getValue(context.getValue(), filter.getKey());
         Scope scope = context.getScope();
-        Object y = scope.getRootScope().getEvaluator().visit(query.getValue(), scope);
+        Object y = scope.getRootScope().getEvaluator().visit(filter.getValue(), scope);
 
         switch (operator) {
-            case ComparisonQuery.EQUALS_OPERATOR :
+            case ComparisonFilter.EQUALS_OPERATOR :
                 return roughlyEquals(x, y);
 
-            case ComparisonQuery.NOT_EQUALS_OPERATOR :
+            case ComparisonFilter.NOT_EQUALS_OPERATOR :
                 return !roughlyEquals(x, y);
 
             default :
@@ -65,8 +65,8 @@ public class QueryEvaluator implements QueryVisitor<QueryContext, Boolean> {
     }
 
     @Override
-    public Boolean visitOr(OrQuery query, QueryContext context) {
-        return query.getChildren().stream().anyMatch(c -> visit(c, context));
+    public Boolean visitOr(OrFilter filter, FilterContext context) {
+        return filter.getChildren().stream().anyMatch(c -> visit(c, context));
     }
 
 }

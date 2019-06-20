@@ -4,14 +4,14 @@ import java.util.List;
 
 import com.google.common.collect.ImmutableList;
 import gyro.core.resource.Resource;
-import gyro.lang.query.Query;
-import gyro.lang.query.QueryVisitor;
+import gyro.lang.filter.Filter;
+import gyro.lang.filter.FilterVisitor;
 
-public class FoundQuery extends Query {
+public class FoundFilter extends Filter {
 
     private final List<Resource> resources;
 
-    public FoundQuery(List<Resource> resources) {
+    public FoundFilter(List<Resource> resources) {
         this.resources = ImmutableList.copyOf(resources);
     }
 
@@ -21,7 +21,7 @@ public class FoundQuery extends Query {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <C, R> R accept(QueryVisitor<C, R> visitor, C context) {
+    public <C, R> R accept(FilterVisitor<C, R> visitor, C context) {
         return (R) resources;
     }
 

@@ -4,15 +4,15 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import gyro.core.finder.QueryContext;
-import gyro.core.finder.QueryEvaluator;
+import gyro.core.finder.FilterContext;
+import gyro.core.finder.FilterEvaluator;
 import gyro.core.resource.NodeEvaluator;
 import gyro.core.resource.Scope;
-import gyro.lang.query.Query;
+import gyro.lang.filter.Filter;
 
 public abstract class ReferenceResolver {
 
-    public static Object resolveRemaining(Scope scope, List<Object> arguments, List<Query> queries, Object value) {
+    public static Object resolveRemaining(Scope scope, List<Object> arguments, List<Filter> filters, Object value) {
         if (value == null) {
             return null;
         }
@@ -27,20 +27,20 @@ public abstract class ReferenceResolver {
             }
         }
 
-        if (queries == null || queries.isEmpty()) {
+        if (filters == null || filters.isEmpty()) {
             return value;
         }
 
-        QueryEvaluator evaluator = new QueryEvaluator();
+        FilterEvaluator evaluator = new FilterEvaluator();
 
         if (value instanceof Collection) {
             return ((Collection<?>) value).stream()
-                .filter(v -> queries.stream().allMatch(q -> evaluator.visit(q, new QueryContext(scope, v))))
+                .filter(v -> filters.stream().allMatch(f -> evaluator.visit(f, new FilterContext(scope, v))))
                 .collect(Collectors.toList());
 
         } else {
-            for (Query q : queries) {
-                if (!evaluator.visit(q, new QueryContext(scope, value))) {
+            for (Filter f : filters) {
+                if (!evaluator.visit(f, new FilterContext(scope, value))) {
                     return null;
                 }
             }
@@ -51,6 +51,6 @@ public abstract class ReferenceResolver {
 
     public abstract String getName();
 
-    public abstract Object resolve(Scope scope, List<Object> arguments, List<Query> queries) throws Exception;
+    public abstract Object resolve(Scope scope, List<Object> arguments, List<Filter> filters) throws Exception;
 
 }

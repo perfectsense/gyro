@@ -3,7 +3,7 @@ package gyro.lang.ast.value;
 import com.google.common.collect.ImmutableList;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.NodeVisitor;
-import gyro.lang.query.Query;
+import gyro.lang.filter.Filter;
 import gyro.parser.antlr4.GyroParser;
 
 import java.util.Collection;
@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 public class ReferenceNode extends Node {
 
     private final List<Node> arguments;
-    private final List<Query> queries;
+    private final List<Filter> filters;
 
     public ReferenceNode(GyroParser.ReferenceContext context) {
         arguments = context.value()
@@ -21,23 +21,23 @@ public class ReferenceNode extends Node {
             .map(Node::create)
             .collect(Collectors.toList());
 
-        queries = context.query()
+        filters = context.filter()
             .stream()
-            .map(Query::create)
+            .map(Filter::create)
             .collect(Collectors.toList());
     }
 
-    public ReferenceNode(List<Node> arguments, Collection<Query> queries) {
+    public ReferenceNode(List<Node> arguments, Collection<Filter> filters) {
         this.arguments = ImmutableList.copyOf(arguments);
-        this.queries = ImmutableList.copyOf(queries);
+        this.filters = ImmutableList.copyOf(filters);
     }
 
     public List<Node> getArguments() {
         return arguments;
     }
 
-    public List<Query> getQueries() {
-        return queries;
+    public List<Filter> getFilters() {
+        return filters;
     }
 
     @Override

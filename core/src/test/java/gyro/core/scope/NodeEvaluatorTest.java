@@ -151,13 +151,13 @@ class NodeEvaluatorTest {
         }
 
         @Test
-        void query() {
+        void filter() {
             scope.put("foo", ImmutableMap.of("bar", "x"));
             assertThat(evaluate("$(foo | bar = 'x')")).isNotNull();
         }
 
         @Test
-        void queryNull() {
+        void filterNull() {
             scope.put("foo", ImmutableMap.of("bar", "x"));
             assertThat(evaluate("$(foo | bar = 'y')")).isNull();
         }
@@ -203,7 +203,7 @@ class NodeEvaluatorTest {
         }
 
         @Nested
-        class QueryListTest {
+        class FilterListTest {
 
             @BeforeEach
             void beforeEach() {

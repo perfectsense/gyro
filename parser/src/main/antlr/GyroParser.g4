@@ -130,12 +130,12 @@ number
     | INTEGER
     ;
 
-reference : LREF value* (PIPE query)* RREF;
+reference : LREF value* (PIPE filter)* RREF;
 
-query
-    : IDENTIFIER comparisonOperator value # ComparisonQuery
-    | query AND query                     # AndQuery
-    | query OR query                      # OrQuery
+filter
+    : IDENTIFIER comparisonOperator value # ComparisonFilter
+    | filter AND filter                   # AndFilter
+    | filter OR filter                    # OrFilter
     ;
 
 string

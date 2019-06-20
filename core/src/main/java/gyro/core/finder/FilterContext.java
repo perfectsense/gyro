@@ -2,12 +2,12 @@ package gyro.core.finder;
 
 import gyro.core.resource.Scope;
 
-public class QueryContext {
+public class FilterContext {
 
     private final Scope scope;
     private final Object value;
 
-    public QueryContext(Scope scope, Object value) {
+    public FilterContext(Scope scope, Object value) {
         this.scope = scope;
         this.value = value;
     }

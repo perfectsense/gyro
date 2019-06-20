@@ -499,7 +499,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
             if (resolver != null) {
                 try {
-                    value = resolver.resolve(scope, arguments, node.getQueries());
+                    value = resolver.resolve(scope, arguments, node.getFilters());
 
                 } catch (Exception error) {
                     throw new GyroException(error.getMessage());
@@ -542,7 +542,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
         return ReferenceResolver.resolveRemaining(
             scope,
             arguments,
-            node.getQueries(),
+            node.getFilters(),
             value);
     }
 
