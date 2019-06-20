@@ -21,7 +21,7 @@ class ConstantReferenceResolver extends ReferenceResolver {
 
     @Override
     public Object resolve(Scope scope, List<Object> arguments, List<Filter> filters) {
-        return constant;
+        return resolveRemaining(scope, arguments, filters, constant);
     }
 
 }
