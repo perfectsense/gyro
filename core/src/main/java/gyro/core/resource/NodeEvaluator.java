@@ -142,7 +142,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
     @Override
     public Object visitPair(PairNode node, Scope scope) {
-        String key = node.getKey();
+        String key = (String) visit(node.getKey(), scope);
         Node value = node.getValue();
 
         scope.put(key, visit(value, scope));
@@ -504,7 +504,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
         Map<String, Object> map = new LinkedHashMap<>();
 
         for (PairNode entry : node.getEntries()) {
-            map.put(entry.getKey(), visit(entry, bodyScope));
+            map.put((String) visit(entry.getKey(), bodyScope), visit(entry, bodyScope));
         }
 
         return map;

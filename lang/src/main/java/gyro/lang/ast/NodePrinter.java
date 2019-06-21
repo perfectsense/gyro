@@ -55,7 +55,7 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
 
     @Override
     public Void visitPair(PairNode node, PrinterContext context) {
-        context.append(node.getKey());
+        visit(node.getKey(), context);
         context.append(": ");
         visit(node.getValue(), context.indented());
 

@@ -185,10 +185,7 @@ public class State {
         Set<String> configuredFields = diffable.configuredFields;
 
         if (configuredFields != null && !configuredFields.isEmpty()) {
-            body.add(new PairNode("_configured-fields",
-                new ListNode(configuredFields.stream()
-                    .map(ValueNode::new)
-                    .collect(Collectors.toList()))));
+            body.add(toPairNode("_configured-fields", configuredFields));
         }
 
         for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
@@ -201,20 +198,21 @@ public class State {
             String key = field.getName();
 
             if (value instanceof Boolean
+                || value instanceof Map
                 || value instanceof Number
                 || value instanceof String) {
 
-                body.add(new PairNode(key, new ValueNode(value)));
+                body.add(toPairNode(key, value));
 
             } else if (value instanceof Date) {
-                body.add(new PairNode(key, new ValueNode(value.toString())));
+                body.add(toPairNode(key, value.toString()));
 
             } else if (value instanceof Diffable) {
                 if (field.shouldBeDiffed()) {
                     body.add(new KeyBlockNode(key, toBodyNodes((Diffable) value)));
 
                 } else {
-                    body.add(new PairNode(key, toNode(value)));
+                    body.add(toPairNode(key, value));
                 }
 
             } else if (value instanceof Collection) {
@@ -224,11 +222,8 @@ public class State {
                     }
 
                 } else {
-                    body.add(new PairNode(key, toNode(value)));
+                    body.add(toPairNode(key, value));
                 }
-
-            } else if (value instanceof Map) {
-                body.add(new PairNode(key, toNode(value)));
 
             } else {
                 throw new UnsupportedOperationException(String.format(
@@ -238,6 +233,10 @@ public class State {
         }
 
         return body;
+    }
+
+    private PairNode toPairNode(Object key, Object value) {
+        return new PairNode(toNode(key), toNode(value));
     }
 
     private Node toNode(Object value) {
@@ -265,7 +264,7 @@ public class State {
                 Object v = entry.getValue();
 
                 if (v != null) {
-                    entries.add(new PairNode((String) entry.getKey(), toNode(v)));
+                    entries.add(toPairNode(entry.getKey(), v));
                 }
             }
 

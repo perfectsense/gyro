@@ -52,7 +52,7 @@ class NodeEvaluatorTest {
             new InterpolatedStringNode(Collections.singletonList(
                 new ReferenceNode(Collections.singletonList(new ValueNode("foo")), Collections.emptyList()))),
             new ListNode(Collections.singletonList(new ValueNode("bar"))),
-            new MapNode(Collections.singletonList(new PairNode("qux", new ValueNode(14)))),
+            new MapNode(Collections.singletonList(new PairNode(new ValueNode("qux"), new ValueNode(14)))),
             new ValueNode(true),
             new ValueNode(41),
             new ValueNode("foo")

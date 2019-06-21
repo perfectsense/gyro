@@ -5,21 +5,21 @@ import gyro.parser.antlr4.GyroParser;
 
 public class PairNode extends Node {
 
-    private final String key;
+    private final Node key;
     private final Node value;
 
-    public PairNode(String key, Node value) {
+    public PairNode(Node key, Node value) {
         this.key = Preconditions.checkNotNull(key);
         this.value = Preconditions.checkNotNull(value);
     }
 
     public PairNode(GyroParser.PairContext context) {
         this(
-            Preconditions.checkNotNull(context).key().getChild(0).getText(),
+            Node.create(Preconditions.checkNotNull(context).key().getChild(0)),
             Node.create(context.value()));
     }
 
-    public String getKey() {
+    public Node getKey() {
         return key;
     }
 
