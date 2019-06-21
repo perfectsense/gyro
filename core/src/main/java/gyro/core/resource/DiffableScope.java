@@ -23,7 +23,7 @@ public class DiffableScope extends Scope {
     }
 
     public Set<String> getAddedKeys() {
-        return getValueNodes().keySet();
+        return getKeyNodes().keySet();
     }
 
     public Map<String, Object> resolve() {
