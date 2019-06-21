@@ -41,6 +41,7 @@ public class DiffableField {
     private final String testValue;
     private final boolean testValueRandomSuffix;
     private final Class<?> itemClass;
+    private final boolean collection;
 
     protected DiffableField(String javaName, Method getter, Method setter, Type type) {
         this.name = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, javaName);
@@ -60,8 +61,11 @@ public class DiffableField {
 
         if (type instanceof Class) {
             this.itemClass = (Class<?>) type;
+            this.collection = false;
 
         } else if (type instanceof ParameterizedType) {
+            Type rawType = ((ParameterizedType) type).getRawType();
+            this.collection = Collection.class.isAssignableFrom((Class<?>) rawType);
             this.itemClass = Optional.of((ParameterizedType) type)
                     .map(ParameterizedType::getActualTypeArguments)
                     .filter(args -> args.length > 0)
@@ -93,6 +97,10 @@ public class DiffableField {
 
     public boolean isTestValueRandomSuffix() {
         return testValueRandomSuffix;
+    }
+
+    public boolean isCollection() {
+        return collection;
     }
 
     @SuppressWarnings("unchecked")

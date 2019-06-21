@@ -113,7 +113,7 @@ public class Diff {
             Object pendingValue = field.getValue(pendingDiffable);
             Diff diff;
 
-            if (pendingValue instanceof Collection) {
+            if (field.isCollection()) {
                 diff = new Diff((Collection<Diffable>) currentValue, (Collection<Diffable>) pendingValue);
 
             } else if (currentValue != null) {
