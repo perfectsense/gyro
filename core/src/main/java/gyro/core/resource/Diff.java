@@ -103,6 +103,9 @@ public class Diff {
     private Change newUpdate(Diffable currentDiffable, Diffable pendingDiffable) throws Exception {
         List<Diff> diffs = new ArrayList<>();
         DiffableType<? extends Diffable> type = DiffableType.getInstance(currentDiffable.getClass());
+        Set<String> currentConfiguredFields = currentDiffable.configuredFields != null
+            ? currentDiffable.configuredFields
+            : ImmutableSet.of();
 
         for (DiffableField field : type.getFields()) {
             if (!field.shouldBeDiffed()) {
@@ -112,6 +115,10 @@ public class Diff {
             Object currentValue = field.getValue(currentDiffable);
             Object pendingValue = field.getValue(pendingDiffable);
             Diff diff;
+
+            if (pendingValue == null && !currentConfiguredFields.contains(field.getName())) {
+                continue;
+            }
 
             if (field.isCollection()) {
                 diff = new Diff((Collection<Diffable>) currentValue, (Collection<Diffable>) pendingValue);
