@@ -23,7 +23,7 @@ public class ResourceNode extends BlockNode {
     public ResourceNode(GyroParser.ResourceContext context) {
         this(
             Preconditions.checkNotNull(context).type().getText(),
-            Node.create(context.string()),
+            Node.create(context.name()),
             context.blockBody()
                 .blockStatement()
                 .stream()

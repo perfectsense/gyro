@@ -39,6 +39,8 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 
 public abstract class Node {
 
+    private static final Function<ParseTree, Node> PASSTHROUGH = c -> Node.create(c.getChild(0));
+
     private static final Map<Class<? extends ParseTree>, Function<ParseTree, Node>> NODE_CONSTRUCTORS = ImmutableMap.<Class<? extends ParseTree>, Function<ParseTree, Node>>builder()
         // ast
         .put(GyroParser.DirectiveContext.class, c -> new DirectiveNode((GyroParser.DirectiveContext) c))
@@ -46,6 +48,7 @@ public abstract class Node {
         // ast.block
         .put(GyroParser.FileContext.class, c -> new FileNode((GyroParser.FileContext) c))
         .put(GyroParser.KeyBlockContext.class, c -> new KeyBlockNode((GyroParser.KeyBlockContext) c))
+        .put(GyroParser.NameContext.class, PASSTHROUGH)
         .put(GyroParser.ResourceContext.class, c -> new ResourceNode((GyroParser.ResourceContext) c))
         .put(GyroParser.VirtualResourceContext.class, c -> new VirtualResourceNode((GyroParser.VirtualResourceContext) c))
         // ast.condition
@@ -66,8 +69,8 @@ public abstract class Node {
         .put(GyroParser.MapContext.class, c -> new MapNode((GyroParser.MapContext) c))
         .put(GyroParser.NumberContext.class, c -> new ValueNode((GyroParser.NumberContext) c))
         .put(GyroParser.ReferenceContext.class, c -> new ReferenceNode((GyroParser.ReferenceContext) c))
-        .put(GyroParser.UnindexedContext.class, c -> Node.create(c.getChild(0)))
-        .put(GyroParser.ValueContext.class, c -> Node.create(c.getChild(0)))
+        .put(GyroParser.UnindexedContext.class, PASSTHROUGH)
+        .put(GyroParser.ValueContext.class, PASSTHROUGH)
         .build();
 
     private String file;

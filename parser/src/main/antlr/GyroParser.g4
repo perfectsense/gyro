@@ -28,11 +28,16 @@ directiveArgument
 
 // block
 block
-    : IDENTIFIER  NEWLINES blockBody END # KeyBlock
-    | type string NEWLINES blockBody END # Resource
+    : IDENTIFIER NEWLINES blockBody END # KeyBlock
+    | type name  NEWLINES blockBody END # Resource
     ;
 
 type : IDENTIFIER (COLON COLON IDENTIFIER)?;
+
+name
+    : reference
+    | string
+    ;
 
 blockBody : (blockStatement NEWLINES)*;
 
