@@ -107,6 +107,10 @@ public class Diff {
             ? currentDiffable.configuredFields
             : ImmutableSet.of();
 
+        Set<String> pendingConfiguredFields = pendingDiffable.configuredFields != null
+            ? pendingDiffable.configuredFields
+            : ImmutableSet.of();
+
         for (DiffableField field : type.getFields()) {
             if (!field.shouldBeDiffed()) {
                 continue;
@@ -116,7 +120,8 @@ public class Diff {
             Object pendingValue = field.getValue(pendingDiffable);
             Diff diff;
 
-            if (pendingValue == null && !currentConfiguredFields.contains(field.getName())) {
+            String key = field.getName();
+            if (!pendingConfiguredFields.contains(key) && !currentConfiguredFields.contains(key)) {
                 continue;
             }
 
@@ -180,6 +185,10 @@ public class Diff {
             ? currentDiffable.configuredFields
             : ImmutableSet.of();
 
+        Set<String> pendingConfiguredFields = pendingDiffable.configuredFields != null
+            ? pendingDiffable.configuredFields
+            : ImmutableSet.of();
+
         Set<DiffableField> changedFields = new LinkedHashSet<>();
 
         for (DiffableField field : DiffableType.getInstance(currentDiffable.getClass()).getFields()) {
@@ -202,7 +211,7 @@ public class Diff {
             // Skip if there isn't a pending value and the field wasn't
             // previously configured. This means that a field was
             // automatically populated in code so we should keep it as is.
-            if (pendingValue == null && !currentConfiguredFields.contains(key)) {
+            if (!pendingConfiguredFields.contains(key) && !currentConfiguredFields.contains(key)) {
                 continue;
             }
 
