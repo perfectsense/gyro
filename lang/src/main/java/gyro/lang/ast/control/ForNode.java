@@ -13,13 +13,13 @@ import java.util.stream.Collectors;
 public class ForNode extends BlockNode {
 
     private final List<String> variables;
-    private final List<Node> items;
+    private final Node value;
 
-    public ForNode(List<String> variables, List<Node> items, List<Node> body) {
+    public ForNode(List<String> variables, Node value, List<Node> body) {
         super(body);
 
         this.variables = ImmutableList.copyOf(Preconditions.checkNotNull(variables));
-        this.items = ImmutableList.copyOf(Preconditions.checkNotNull(items));
+        this.value = Preconditions.checkNotNull(value);
     }
 
     public ForNode(GyroParser.ForStatementContext context) {
@@ -30,11 +30,7 @@ public class ForNode extends BlockNode {
                 .map(c -> c.IDENTIFIER().getText())
                 .collect(Collectors.toList()),
 
-            context.list()
-                .value()
-                .stream()
-                .map(Node::create)
-                .collect(Collectors.toList()),
+            Node.create(context.forValue().getChild(0)),
 
             context.blockBody()
                 .blockStatement()
@@ -48,8 +44,8 @@ public class ForNode extends BlockNode {
         return variables;
     }
 
-    public List<Node> getItems() {
-        return items;
+    public Node getValue() {
+        return value;
     }
 
     @Override

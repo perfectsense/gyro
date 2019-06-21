@@ -144,19 +144,8 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
         context.appendNewline();
         context.append("for ");
         context.append(String.join(", ", node.getVariables()));
-        context.append(" in [");
-
-        for (Iterator<Node> i = node.getItems().iterator(); i.hasNext(); ) {
-            Node item = i.next();
-
-            visit(item, context);
-
-            if (i.hasNext()) {
-                context.append(", ");
-            }
-        }
-
-        context.append("]");
+        context.append(" in ");
+        visit(node.getValue(), context);
         visitBody(node.getBody(), context.indented());
         context.appendNewline();
         context.append("end");

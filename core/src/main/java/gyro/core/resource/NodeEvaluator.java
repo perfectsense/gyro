@@ -391,29 +391,64 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
     @Override
     public Object visitFor(ForNode node, Scope scope) {
         List<String> variables = node.getVariables();
-        List<Node> items = node.getItems();
-        int variablesSize = variables.size();
-        int itemsSize = items.size();
+        Object value = visit(node.getValue(), scope);
 
-        for (int i = 0; i < itemsSize; i += variablesSize) {
-            Map<String, Object> values = new LinkedHashMap<>();
-            Scope bodyScope = new Scope(scope, new CascadingMap<>(scope, values));
+        if (value instanceof List) {
+            List<?> list = (List<?>) value;
+            int variablesSize = variables.size();
+            int listSize = list.size();
 
-            for (int j = 0; j < variablesSize; j++) {
-                int k = i + j;
+            for (int i = 0; i < listSize; i += variablesSize) {
+                Map<String, Object> values = new LinkedHashMap<>();
 
-                values.put(
-                    variables.get(j),
-                    k < itemsSize
-                        ? visit(items.get(k), scope)
-                        : null);
+                for (int j = 0; j < variablesSize; j++) {
+                    int k = i + j;
+
+                    values.put(
+                        variables.get(j),
+                        k < listSize
+                            ? list.get(k)
+                            : null);
+                }
+
+                visitForBody(node, scope, values);
             }
 
-            visitBody(node.getBody(), bodyScope);
-            scope.getKeyNodes().putAll(bodyScope.getKeyNodes());
+        } else if (value instanceof Map) {
+            String keyVariable = variables.get(0);
+
+            if (variables.size() > 1) {
+                String valueVariable = variables.get(1);
+
+                for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
+                    Map<String, Object> values = new LinkedHashMap<>();
+
+                    values.put(keyVariable, entry.getKey());
+                    values.put(valueVariable, entry.getValue());
+                    visitForBody(node, scope, values);
+                }
+
+            } else {
+                for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
+                    Map<String, Object> values = new LinkedHashMap<>();
+
+                    values.put(keyVariable, entry.getKey());
+                    visitForBody(node, scope, values);
+                }
+            }
+
+        } else {
+            throw new GyroException("Can't iterate over a non-collection!");
         }
 
         return null;
+    }
+
+    private void visitForBody(ForNode node, Scope scope, Map<String, Object> values) {
+        Scope bodyScope = new Scope(scope, new CascadingMap<>(scope, values));
+
+        visitBody(node.getBody(), bodyScope);
+        scope.getKeyNodes().putAll(bodyScope.getKeyNodes());
     }
 
     @Override

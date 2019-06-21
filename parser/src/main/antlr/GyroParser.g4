@@ -56,14 +56,15 @@ virtualResource
 virtualResourceParameter : IDENTIFIER;
 
 // forStatement
-forVariable : IDENTIFIER;
-
 forStatement
     :
-    FOR forVariable (COMMA forVariable)* IN (list | reference) NEWLINES
+    FOR forVariable (COMMA forVariable)* IN forValue NEWLINES
         blockBody
     END
     ;
+
+forVariable : IDENTIFIER;
+forValue: list | map | reference;
 
 // ifStatement
 ifStatement
