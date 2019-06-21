@@ -7,7 +7,9 @@ import gyro.lang.filter.Filter;
 import gyro.parser.antlr4.GyroParser;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class ReferenceNode extends Node {
@@ -16,10 +18,13 @@ public class ReferenceNode extends Node {
     private final List<Filter> filters;
 
     public ReferenceNode(GyroParser.ReferenceContext context) {
-        arguments = context.value()
-            .stream()
+        arguments = Optional.ofNullable(context.IDENTIFIER())
             .map(Node::create)
-            .collect(Collectors.toList());
+            .map(Collections::singletonList)
+            .orElseGet(() -> context.value()
+                .stream()
+                .map(Node::create)
+                .collect(Collectors.toList()));
 
         filters = context.filter()
             .stream()

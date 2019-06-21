@@ -131,7 +131,10 @@ number
     | INTEGER
     ;
 
-reference : LREF value* (PIPE filter)* RREF;
+reference
+    : LREF value* (PIPE filter)* RREF
+    | DOLLAR IDENTIFIER
+    ;
 
 filter
     : IDENTIFIER comparisonOperator value # ComparisonFilter

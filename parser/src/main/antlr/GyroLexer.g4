@@ -44,10 +44,12 @@ FLOAT   : '-'? ([0-9] [_0-9]* '.' [_0-9]* | '.' [_0-9]+);
 INTEGER : '-'? [0-9] [_0-9]*;
 
 // reference
-LREF : '$(' -> pushMode(DEFAULT_MODE);
-RREF : ')' -> popMode;
-GLOB : '*';
-PIPE : '|';
+DOLLAR : '$';
+LREF   : DOLLAR '(' -> pushMode(DEFAULT_MODE);
+RREF   : ')' -> popMode;
+GLOB   : '*';
+PIPE   : '|';
+DOT    : '.';
 
 // string
 STRING : '\'' ~('\'')* '\'';
