@@ -7,7 +7,6 @@ import com.google.common.collect.ImmutableList;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.NodeVisitor;
 import gyro.parser.antlr4.GyroParser;
-import gyro.util.ImmutableCollectors;
 
 public class IndexedNode extends Node {
 
@@ -22,10 +21,7 @@ public class IndexedNode extends Node {
     public IndexedNode(GyroParser.IndexedContext context) {
         this(
             Node.create(Preconditions.checkNotNull(context).unindexed()),
-            context.string()
-                .stream()
-                .map(Node::create)
-                .collect(ImmutableCollectors.toList()));
+            Node.create(context.string()));
     }
 
     public Node getValue() {

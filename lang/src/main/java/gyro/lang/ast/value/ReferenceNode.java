@@ -5,12 +5,12 @@ import gyro.lang.ast.Node;
 import gyro.lang.ast.NodeVisitor;
 import gyro.lang.filter.Filter;
 import gyro.parser.antlr4.GyroParser;
+import gyro.util.ImmutableCollectors;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class ReferenceNode extends Node {
 
@@ -21,15 +21,12 @@ public class ReferenceNode extends Node {
         arguments = Optional.ofNullable(context.IDENTIFIER())
             .map(Node::create)
             .map(Collections::singletonList)
-            .orElseGet(() -> context.value()
-                .stream()
-                .map(Node::create)
-                .collect(Collectors.toList()));
+            .orElseGet(() -> Node.create(context.value()));
 
         filters = context.filter()
             .stream()
             .map(Filter::create)
-            .collect(Collectors.toList());
+            .collect(ImmutableCollectors.toList());
     }
 
     public ReferenceNode(List<Node> arguments, Collection<Filter> filters) {
