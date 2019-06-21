@@ -15,7 +15,7 @@ public class ComparisonFilter extends Filter {
     public ComparisonFilter(GyroParser.ComparisonFilterContext context) {
         this.operator = context.comparisonOperator().getText();
         this.key = context.IDENTIFIER().getText();
-        this.value = Node.create(context.value().getChild(0));
+        this.value = Node.create(context.value());
     }
 
     public String getOperator() {

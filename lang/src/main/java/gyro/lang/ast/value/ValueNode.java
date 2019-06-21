@@ -19,7 +19,7 @@ public class ValueNode extends Node {
         this(context.getText());
     }
 
-    public ValueNode(GyroParser.BooleanValueContext context) {
+    public ValueNode(GyroParser.BoolContext context) {
         this(context.TRUE() != null);
     }
 

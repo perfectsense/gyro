@@ -33,6 +33,7 @@ block
     ;
 
 type : IDENTIFIER (COLON COLON IDENTIFIER)?;
+
 blockBody : (blockStatement NEWLINES)*;
 
 blockStatement
@@ -64,7 +65,12 @@ forStatement
     ;
 
 forVariable : IDENTIFIER;
-forValue: list | map | reference;
+
+forValue
+    : list
+    | map
+    | reference
+    ;
 
 // ifStatement
 ifStatement
@@ -97,7 +103,14 @@ key
     ;
 
 value
-    : booleanValue
+    : indexed
+    | unindexed
+    ;
+
+indexed : unindexed (DOT string)+;
+
+unindexed
+    : bool
     | list
     | map
     | number
@@ -105,7 +118,7 @@ value
     | string
     ;
 
-booleanValue
+bool
     : TRUE
     | FALSE
     ;

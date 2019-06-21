@@ -144,13 +144,6 @@ class NodeEvaluatorTest {
         }
 
         @Test
-        void resolveNested() {
-            scope.put("foo", "bar");
-            scope.put("bar", "qux");
-            assertThat(evaluate("$($(foo))")).isEqualTo("qux");
-        }
-
-        @Test
         void filter() {
             scope.put("foo", ImmutableMap.of("bar", "x"));
             assertThat(evaluate("$(foo | bar = 'x')")).isNotNull();

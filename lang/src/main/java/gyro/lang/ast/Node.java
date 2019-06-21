@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableMap;
 import gyro.lang.GyroErrorListener;
@@ -20,6 +21,7 @@ import gyro.lang.ast.condition.OrConditionNode;
 import gyro.lang.ast.condition.ValueConditionNode;
 import gyro.lang.ast.control.ForNode;
 import gyro.lang.ast.control.IfNode;
+import gyro.lang.ast.value.IndexedNode;
 import gyro.lang.ast.value.InterpolatedStringNode;
 import gyro.lang.ast.value.ListNode;
 import gyro.lang.ast.value.MapNode;
@@ -56,13 +58,16 @@ public abstract class Node {
         .put(GyroParser.IfStatementContext.class, c -> new IfNode((GyroParser.IfStatementContext) c))
         // ast.value
         .put(GyroParser.BareStringContext.class, c -> new ValueNode((GyroParser.BareStringContext) c))
-        .put(GyroParser.BooleanValueContext.class, c -> new ValueNode((GyroParser.BooleanValueContext) c))
+        .put(GyroParser.BoolContext.class, c -> new ValueNode((GyroParser.BoolContext) c))
+        .put(GyroParser.IndexedContext.class, c -> new IndexedNode((GyroParser.IndexedContext) c))
         .put(GyroParser.InterpolatedStringContext.class, c -> new InterpolatedStringNode((GyroParser.InterpolatedStringContext) c))
         .put(GyroParser.ListContext.class, c -> new ListNode((GyroParser.ListContext) c))
         .put(GyroParser.LiteralStringContext.class, c -> new ValueNode((GyroParser.LiteralStringContext) c))
         .put(GyroParser.MapContext.class, c -> new MapNode((GyroParser.MapContext) c))
         .put(GyroParser.NumberContext.class, c -> new ValueNode((GyroParser.NumberContext) c))
         .put(GyroParser.ReferenceContext.class, c -> new ReferenceNode((GyroParser.ReferenceContext) c))
+        .put(GyroParser.UnindexedContext.class, c -> Node.create(c.getChild(0)))
+        .put(GyroParser.ValueContext.class, c -> Node.create(c.getChild(0)))
         .build();
 
     private String file;
@@ -83,11 +88,6 @@ public abstract class Node {
 
     public static Node create(ParseTree context) {
         Class<? extends ParseTree> contextClass = context.getClass();
-
-        if (contextClass.equals(GyroParser.ValueContext.class)) {
-            return create(context.getChild(0));
-        }
-
         Function<ParseTree, Node> nodeConstructor = NODE_CONSTRUCTORS.get(contextClass);
         Node node;
 

@@ -14,6 +14,7 @@ import gyro.lang.ast.condition.OrConditionNode;
 import gyro.lang.ast.condition.ValueConditionNode;
 import gyro.lang.ast.control.ForNode;
 import gyro.lang.ast.control.IfNode;
+import gyro.lang.ast.value.IndexedNode;
 import gyro.lang.ast.value.InterpolatedStringNode;
 import gyro.lang.ast.value.ListNode;
 import gyro.lang.ast.value.MapNode;
@@ -178,15 +179,27 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
     }
 
     @Override
+    public Void visitIndexedNode(IndexedNode node, PrinterContext context) {
+        visit(node.getValue(), context);
+
+        for (Node index : node.getIndexes()) {
+            context.append('.');
+            visit(index, context);
+        }
+
+        return null;
+    }
+
+    @Override
     public Void visitInterpolatedString(InterpolatedStringNode node, PrinterContext context) {
         context.append('"');
 
         for (Object item : node.getItems()) {
-            if (item instanceof Node) {
-                visit((Node) item, context);
+            if (item instanceof ValueNode) {
+                context.append(String.valueOf(((ValueNode) item).getValue()));
 
             } else {
-                context.append(String.valueOf(item));
+                visit((Node) item, context);
             }
         }
 

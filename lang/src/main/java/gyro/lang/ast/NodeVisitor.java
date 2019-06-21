@@ -10,6 +10,7 @@ import gyro.lang.ast.condition.OrConditionNode;
 import gyro.lang.ast.condition.ValueConditionNode;
 import gyro.lang.ast.control.ForNode;
 import gyro.lang.ast.control.IfNode;
+import gyro.lang.ast.value.IndexedNode;
 import gyro.lang.ast.value.InterpolatedStringNode;
 import gyro.lang.ast.value.ListNode;
 import gyro.lang.ast.value.MapNode;
@@ -45,6 +46,8 @@ public interface NodeVisitor<C, R> {
     R visitFor(ForNode node, C context);
 
     R visitIf(IfNode node, C context);
+
+    R visitIndexedNode(IndexedNode node, C context);
 
     R visitInterpolatedString(InterpolatedStringNode node, C context);
 

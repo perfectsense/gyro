@@ -37,6 +37,7 @@ import gyro.lang.ast.condition.OrConditionNode;
 import gyro.lang.ast.condition.ValueConditionNode;
 import gyro.lang.ast.control.ForNode;
 import gyro.lang.ast.control.IfNode;
+import gyro.lang.ast.value.IndexedNode;
 import gyro.lang.ast.value.InterpolatedStringNode;
 import gyro.lang.ast.value.ListNode;
 import gyro.lang.ast.value.MapNode;
@@ -471,20 +472,32 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
     }
 
     @Override
-    public Object visitInterpolatedString(InterpolatedStringNode node, Scope scope) {
-        StringBuilder builder = new StringBuilder();
+    public Object visitIndexedNode(IndexedNode node, Scope context) {
+        Object value = visit(node.getValue(), context);
 
-        for (Object item : node.getItems()) {
-            if (item instanceof Node) {
-                item = visit((Node) item, scope);
-            }
+        if (value == null) {
+            return null;
+        }
 
-            if (item != null) {
-                builder.append(item);
+        for (Node index : node.getIndexes()) {
+            value = getValue(value, (String) visit(index, context));
+
+            if (value == null) {
+                return null;
             }
         }
 
-        return builder.toString();
+        return value;
+    }
+
+    @Override
+    public Object visitInterpolatedString(InterpolatedStringNode node, Scope scope) {
+        return node.getItems()
+            .stream()
+            .map(i -> visit(i, scope))
+            .filter(Objects::nonNull)
+            .map(Object::toString)
+            .collect(Collectors.joining());
     }
 
     @Override
@@ -527,7 +540,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
             return null;
         }
 
-        if (value instanceof String) {
+        if (node.getArguments().get(0) instanceof ValueNode) {
             RootScope root = scope.getRootScope();
             String referenceName = (String) value;
 
