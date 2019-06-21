@@ -3,9 +3,9 @@ package gyro.lang.ast;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableMap;
 import gyro.lang.GyroErrorListener;
@@ -29,6 +29,7 @@ import gyro.lang.ast.value.ReferenceNode;
 import gyro.lang.ast.value.ValueNode;
 import gyro.parser.antlr4.GyroLexer;
 import gyro.parser.antlr4.GyroParser;
+import gyro.util.ImmutableCollectors;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -39,17 +40,21 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 
 public abstract class Node {
 
-    private static final Function<ParseTree, Node> PASSTHROUGH = c -> Node.create(c.getChild(0));
+    private static final Function<ParseTree, Node> GET_FIRST_CHILD = c -> Node.create(c.getChild(0));
 
     private static final Map<Class<? extends ParseTree>, Function<ParseTree, Node>> NODE_CONSTRUCTORS = ImmutableMap.<Class<? extends ParseTree>, Function<ParseTree, Node>>builder()
         // ast
         .put(GyroParser.DirectiveContext.class, c -> new DirectiveNode((GyroParser.DirectiveContext) c))
+        .put(GyroParser.DirectiveArgumentContext.class, GET_FIRST_CHILD)
+        .put(GyroParser.KeyContext.class, GET_FIRST_CHILD)
         .put(GyroParser.PairContext.class, c -> new PairNode((GyroParser.PairContext) c))
         // ast.block
+        .put(GyroParser.BlockStatementContext.class, GET_FIRST_CHILD)
         .put(GyroParser.FileContext.class, c -> new FileNode((GyroParser.FileContext) c))
         .put(GyroParser.KeyBlockContext.class, c -> new KeyBlockNode((GyroParser.KeyBlockContext) c))
-        .put(GyroParser.NameContext.class, PASSTHROUGH)
+        .put(GyroParser.NameContext.class, GET_FIRST_CHILD)
         .put(GyroParser.ResourceContext.class, c -> new ResourceNode((GyroParser.ResourceContext) c))
+        .put(GyroParser.StatementContext.class, GET_FIRST_CHILD)
         .put(GyroParser.VirtualResourceContext.class, c -> new VirtualResourceNode((GyroParser.VirtualResourceContext) c))
         // ast.condition
         .put(GyroParser.AndConditionContext.class, c -> new AndConditionNode((GyroParser.AndConditionContext) c))
@@ -58,6 +63,7 @@ public abstract class Node {
         .put(GyroParser.ValueConditionContext.class, c -> new ValueConditionNode((GyroParser.ValueConditionContext) c))
         // ast.control
         .put(GyroParser.ForStatementContext.class, c -> new ForNode((GyroParser.ForStatementContext) c))
+        .put(GyroParser.ForValueContext.class, GET_FIRST_CHILD)
         .put(GyroParser.IfStatementContext.class, c -> new IfNode((GyroParser.IfStatementContext) c))
         // ast.value
         .put(GyroParser.BareStringContext.class, c -> new ValueNode((GyroParser.BareStringContext) c))
@@ -69,8 +75,9 @@ public abstract class Node {
         .put(GyroParser.MapContext.class, c -> new MapNode((GyroParser.MapContext) c))
         .put(GyroParser.NumberContext.class, c -> new ValueNode((GyroParser.NumberContext) c))
         .put(GyroParser.ReferenceContext.class, c -> new ReferenceNode((GyroParser.ReferenceContext) c))
-        .put(GyroParser.UnindexedContext.class, PASSTHROUGH)
-        .put(GyroParser.ValueContext.class, PASSTHROUGH)
+        .put(GyroParser.StringContentContext.class, GET_FIRST_CHILD)
+        .put(GyroParser.UnindexedContext.class, GET_FIRST_CHILD)
+        .put(GyroParser.ValueContext.class, GET_FIRST_CHILD)
         .build();
 
     private String file;
@@ -115,6 +122,12 @@ public abstract class Node {
         }
 
         return node;
+    }
+
+    public static List<Node> create(List<? extends ParseTree> contexts) {
+        return contexts.stream()
+            .map(Node::create)
+            .collect(ImmutableCollectors.toList());
     }
 
     public static Node parse(String text, Function<GyroParser, ? extends ParseTree> function) {

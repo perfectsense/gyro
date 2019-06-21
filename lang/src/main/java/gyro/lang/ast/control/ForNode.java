@@ -6,9 +6,9 @@ import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.BlockNode;
 import gyro.parser.antlr4.GyroParser;
+import gyro.util.ImmutableCollectors;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class ForNode extends BlockNode {
 
@@ -28,16 +28,10 @@ public class ForNode extends BlockNode {
                 .forVariable()
                 .stream()
                 .map(c -> c.IDENTIFIER().getText())
-                .collect(Collectors.toList()),
+                .collect(ImmutableCollectors.toList()),
 
-            Node.create(context.forValue().getChild(0)),
-
-            context.blockBody()
-                .blockStatement()
-                .stream()
-                .map(c -> Node.create(c.getChild(0)))
-                .collect(Collectors.toList()));
-
+            Node.create(context.forValue()),
+            Node.create(context.blockBody().blockStatement()));
     }
 
     public List<String> getVariables() {

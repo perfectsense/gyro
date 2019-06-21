@@ -13,11 +13,7 @@ public class VirtualResourceNode extends BlockNode {
     private List<VirtualResourceParameter> parameters;
 
     public VirtualResourceNode(GyroParser.VirtualResourceContext context) {
-        super(context.blockBody()
-                .blockStatement()
-                .stream()
-                .map(b -> Node.create(b.getChild(0)))
-                .collect(Collectors.toList()));
+        super(Node.create(context.blockBody().blockStatement()));
 
         name = context.type().getText();
 

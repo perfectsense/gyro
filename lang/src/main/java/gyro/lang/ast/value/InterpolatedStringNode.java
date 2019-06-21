@@ -5,7 +5,6 @@ import com.google.common.collect.ImmutableList;
 import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.Node;
 import gyro.parser.antlr4.GyroParser;
-import gyro.util.ImmutableCollectors;
 
 import java.util.List;
 
@@ -18,10 +17,7 @@ public class InterpolatedStringNode extends Node {
     }
 
     public InterpolatedStringNode(GyroParser.InterpolatedStringContext context) {
-        this(context.stringContent()
-            .stream()
-            .map(c -> Node.create(c.getChild(0)))
-            .collect(ImmutableCollectors.toList()));
+        this(Node.create(context.stringContent()));
     }
 
     public List<Node> getItems() {

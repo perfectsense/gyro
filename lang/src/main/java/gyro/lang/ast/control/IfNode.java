@@ -25,18 +25,12 @@ public class IfNode extends Node {
 
     public IfNode(GyroParser.IfStatementContext context) {
         this(
-            Preconditions.checkNotNull(context)
-                .condition()
-                .stream()
-                .map(Node::create)
-                .collect(ImmutableCollectors.toList()),
+            Node.create(Preconditions.checkNotNull(context).condition()),
 
             context.blockBody()
                 .stream()
-                .map(cbc -> cbc.blockStatement()
-                    .stream()
-                    .map(csc -> Node.create(csc.getChild(0)))
-                    .collect(ImmutableCollectors.toList()))
+                .map(GyroParser.BlockBodyContext::blockStatement)
+                .map(Node::create)
                 .collect(ImmutableCollectors.toList()));
     }
 

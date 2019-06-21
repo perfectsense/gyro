@@ -1,7 +1,6 @@
 package gyro.lang.ast.block;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import com.google.common.base.Preconditions;
 import gyro.lang.ast.NodeVisitor;
@@ -21,11 +20,7 @@ public class KeyBlockNode extends BlockNode {
     public KeyBlockNode(GyroParser.KeyBlockContext context) {
         this(
             Preconditions.checkNotNull(context).IDENTIFIER().getText(),
-            context.blockBody()
-                .blockStatement()
-                .stream()
-                .map(c -> Node.create(c.getChild(0)))
-                .collect(Collectors.toList()));
+            Node.create(context.blockBody().blockStatement()));
     }
 
     public String getKey() {

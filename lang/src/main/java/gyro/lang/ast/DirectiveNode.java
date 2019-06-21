@@ -3,7 +3,6 @@ package gyro.lang.ast;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import gyro.parser.antlr4.GyroParser;
-import gyro.util.ImmutableCollectors;
 
 import java.util.List;
 
@@ -20,10 +19,7 @@ public class DirectiveNode extends Node {
     public DirectiveNode(GyroParser.DirectiveContext context) {
         this(
             Preconditions.checkNotNull(context).IDENTIFIER().getText(),
-            context.directiveArgument()
-                .stream()
-                .map(n -> Node.create(n.getChild(0)))
-                .collect(ImmutableCollectors.toList()));
+            Node.create(context.directiveArgument()));
     }
 
     public String getName() {
