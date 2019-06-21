@@ -16,6 +16,8 @@ import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.directive.DirectiveSettings;
+import gyro.core.finder.FilterContext;
+import gyro.core.finder.FilterEvaluator;
 import gyro.core.reference.ReferenceResolver;
 import gyro.core.reference.ReferenceSettings;
 import gyro.core.workflow.Workflow;
@@ -40,6 +42,7 @@ import gyro.lang.ast.value.ListNode;
 import gyro.lang.ast.value.MapNode;
 import gyro.lang.ast.value.ReferenceNode;
 import gyro.lang.ast.value.ValueNode;
+import gyro.lang.filter.Filter;
 import gyro.util.CascadingMap;
 
 public class NodeEvaluator implements NodeVisitor<Scope, Object> {
@@ -499,7 +502,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
             if (resolver != null) {
                 try {
-                    return resolver.resolve(scope, arguments, node.getFilters());
+                    return resolveFilters(node, scope, resolver.resolve(scope, arguments));
 
                 } catch (Exception error) {
                     throw new GyroException(error.getMessage());
@@ -539,11 +542,36 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
             }
         }
 
-        return ReferenceResolver.resolveRemaining(
-            scope,
-            arguments,
-            node.getFilters(),
-            value);
+        return resolveFilters(node, scope, ReferenceResolver.resolveRemaining(scope, arguments, value));
+    }
+
+    private Object resolveFilters(ReferenceNode node, Scope scope, Object value) {
+        if (value == null) {
+            return null;
+        }
+
+        List<Filter> filters = node.getFilters();
+
+        if (filters == null || filters.isEmpty()) {
+            return value;
+        }
+
+        FilterEvaluator evaluator = new FilterEvaluator();
+
+        if (value instanceof Collection) {
+            return ((Collection<?>) value).stream()
+                .filter(v -> filters.stream().allMatch(f -> evaluator.visit(f, new FilterContext(scope, v))))
+                .collect(Collectors.toList());
+
+        } else {
+            for (Filter f : filters) {
+                if (!evaluator.visit(f, new FilterContext(scope, value))) {
+                    return null;
+                }
+            }
+
+            return value;
+        }
     }
 
     @Override

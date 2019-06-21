@@ -4,7 +4,6 @@ import java.util.List;
 
 import gyro.core.reference.ReferenceResolver;
 import gyro.core.resource.Scope;
-import gyro.lang.filter.Filter;
 
 class ConstantReferenceResolver extends ReferenceResolver {
 
@@ -20,8 +19,8 @@ class ConstantReferenceResolver extends ReferenceResolver {
     }
 
     @Override
-    public Object resolve(Scope scope, List<Object> arguments, List<Filter> filters) {
-        return resolveRemaining(scope, arguments, filters, constant);
+    public Object resolve(Scope scope, List<Object> arguments) {
+        return resolveRemaining(scope, arguments, constant);
     }
 
 }

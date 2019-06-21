@@ -1,8 +1,5 @@
 package gyro.core.reference;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -10,12 +7,8 @@ import gyro.core.GyroException;
 import gyro.core.finder.Finder;
 import gyro.core.finder.FinderSettings;
 import gyro.core.finder.FinderType;
-import gyro.core.resource.NodeEvaluator;
 import gyro.core.resource.Resource;
 import gyro.core.resource.Scope;
-import gyro.lang.filter.AndFilter;
-import gyro.lang.filter.ComparisonFilter;
-import gyro.lang.filter.Filter;
 
 public class FinderReferenceResolver extends ReferenceResolver {
 
@@ -25,7 +18,7 @@ public class FinderReferenceResolver extends ReferenceResolver {
     }
 
     @Override
-    public Object resolve(Scope scope, List<Object> arguments, List<Filter> filters) {
+    public Object resolve(Scope scope, List<Object> arguments) {
         String type = (String) arguments.remove(0);
 
         Class<? extends Finder<Resource>> finderClass = scope.getRootScope()
@@ -42,11 +35,12 @@ public class FinderReferenceResolver extends ReferenceResolver {
         Finder<Resource> finder = FinderType.getInstance(finderClass).newInstance(scope);
         List<Resource> resources = null;
 
-        if (arguments.isEmpty() && !filters.isEmpty()) {
-            Map<String, String> finderFilters = getFilters(scope, filters);
+        if (!arguments.isEmpty()) {
+            @SuppressWarnings("unchecked")
+            Map<String, String> filters = (Map<String, String>) arguments.remove(0);
 
-            if (!finderFilters.isEmpty()) {
-                resources = finder.find(finderFilters);
+            if (!filters.isEmpty()) {
+                resources = finder.find(filters);
             }
         }
 
@@ -57,37 +51,7 @@ public class FinderReferenceResolver extends ReferenceResolver {
         return ReferenceResolver.resolveRemaining(
             scope,
             arguments,
-            filters,
             resources);
-    }
-
-    private Map<String, String> getFilters(Scope scope, List<Filter> filters) {
-        NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
-        Map<String, String> finderFilters = new HashMap<>();
-
-        for (Iterator<Filter> i = filters.iterator(); i.hasNext(); ) {
-            Filter filter = i.next();
-
-            if (filter instanceof AndFilter) {
-                List<Filter> childFilters = new ArrayList<>(((AndFilter) filter).getChildren());
-                Map<String, String> childFinderFilters = getFilters(scope, childFilters);
-
-                if (childFilters.isEmpty() && !childFinderFilters.isEmpty()) {
-                    finderFilters.putAll(childFinderFilters);
-                    i.remove();
-                }
-
-            } else if (filter instanceof ComparisonFilter) {
-                ComparisonFilter comparison = (ComparisonFilter) filter;
-
-                if ("=".equals(comparison.getOperator())) {
-                    finderFilters.put(comparison.getKey(), (String) evaluator.visit(comparison.getValue(), scope));
-                    i.remove();
-                }
-            }
-        }
-
-        return finderFilters;
     }
 
 }
