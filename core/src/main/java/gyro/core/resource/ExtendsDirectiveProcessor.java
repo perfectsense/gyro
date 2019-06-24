@@ -31,19 +31,7 @@ public class ExtendsDirectiveProcessor extends DirectiveProcessor {
 
     @SuppressWarnings("unchecked")
     private void processSource(DiffableScope scope, Object source) {
-        if (source instanceof List) {
-            List<Object> list = (List<Object>) source;
-            int size = list.size();
-
-            if (size != 1) {
-                throw new GyroException(String.format(
-                    "Can't extend from [%s] items!",
-                    size));
-            }
-
-            processSource(scope, list.get(0));
-
-        } else if (source instanceof Map) {
+        if (source instanceof Map) {
             ((Map<String, Object>) source).forEach(scope::putIfAbsent);
 
         } else if (source instanceof Resource) {
