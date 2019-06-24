@@ -26,6 +26,7 @@ import gyro.core.finder.FinderPlugin;
 import gyro.core.plugin.PluginDirectiveProcessor;
 import gyro.core.plugin.PluginSettings;
 import gyro.core.reference.FinderReferenceResolver;
+import gyro.core.reference.ReferencePlugin;
 import gyro.core.reference.ReferenceSettings;
 import gyro.core.repo.RepositoryDirectiveProcessor;
 import gyro.core.workflow.Workflow;
@@ -82,6 +83,7 @@ public class RootScope extends FileScope {
             new CredentialsPlugin(),
             new DirectivePlugin(),
             new FinderPlugin(),
+            new ReferencePlugin(),
             new ResourcePlugin())
             .forEach(p -> getSettings(PluginSettings.class).getPlugins().add(p));
 
