@@ -609,6 +609,10 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
             } else if (referenceName.contains("::")) {
                 String resourceName = (String) arguments.remove(0);
 
+                if (!arguments.isEmpty()) {
+                    throw new GyroException("Too many arguments trying to resolve resource by name!");
+                }
+
                 if (resourceName.endsWith("*")) {
                     Stream<Resource> s = root.findResources()
                         .stream()
@@ -640,7 +644,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
             }
         }
 
-        return resolveFilters(node, scope, ReferenceResolver.resolveRemaining(scope, arguments, value));
+        return resolveFilters(node, scope, value);
     }
 
     private Object resolveFilters(ReferenceNode node, Scope scope, Object value) {

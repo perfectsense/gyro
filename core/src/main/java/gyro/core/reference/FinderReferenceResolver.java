@@ -48,10 +48,7 @@ public class FinderReferenceResolver extends ReferenceResolver {
             resources = finder.findAll();
         }
 
-        return ReferenceResolver.resolveRemaining(
-            scope,
-            arguments,
-            resources);
+        return resources;
     }
 
 }

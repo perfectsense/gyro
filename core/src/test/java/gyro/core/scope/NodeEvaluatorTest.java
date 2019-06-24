@@ -108,18 +108,6 @@ class NodeEvaluatorTest {
             assertThat(evaluate("$(foo)")).isEqualTo("bar");
         }
 
-        @Test
-        void map() {
-            scope.put("foo", ImmutableMap.of("bar", "qux"));
-            assertThat(evaluate("$(foo bar)")).isEqualTo("qux");
-        }
-
-        @Test
-        void mapNull() {
-            scope.put("foo", ImmutableMap.of());
-            assertThat(evaluate("$(foo bar)")).isNull();
-        }
-
         private void addConstantReferenceResolver(Object constant) {
             ConstantReferenceResolver r = new ConstantReferenceResolver(constant);
             root.getSettings(ReferenceSettings.class).getResolvers().put(r.getName(), r);
@@ -135,12 +123,6 @@ class NodeEvaluatorTest {
         void resolveString() {
             addConstantReferenceResolver("foo");
             assertThat(evaluate("$(constant)")).isEqualTo("foo");
-        }
-
-        @Test
-        void resolveMap() {
-            addConstantReferenceResolver(ImmutableMap.of("foo", "bar"));
-            assertThat(evaluate("$(constant foo)")).isEqualTo("bar");
         }
 
         @Test

@@ -20,7 +20,7 @@ class ConstantReferenceResolver extends ReferenceResolver {
 
     @Override
     public Object resolve(Scope scope, List<Object> arguments) {
-        return resolveRemaining(scope, arguments, constant);
+        return constant;
     }
 
 }
