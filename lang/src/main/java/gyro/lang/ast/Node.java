@@ -68,6 +68,7 @@ public abstract class Node {
         // ast.value
         .put(GyroParser.BareStringContext.class, c -> new ValueNode((GyroParser.BareStringContext) c))
         .put(GyroParser.BoolContext.class, c -> new ValueNode((GyroParser.BoolContext) c))
+        .put(GyroParser.IndexContext.class, GET_FIRST_CHILD)
         .put(GyroParser.IndexedContext.class, c -> new IndexedNode((GyroParser.IndexedContext) c))
         .put(GyroParser.InterpolatedStringContext.class, c -> new InterpolatedStringNode((GyroParser.InterpolatedStringContext) c))
         .put(GyroParser.ListContext.class, c -> new ListNode((GyroParser.ListContext) c))

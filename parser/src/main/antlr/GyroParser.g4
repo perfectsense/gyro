@@ -112,7 +112,12 @@ value
     | unindexed
     ;
 
-indexed : unindexed (DOT string)+;
+indexed : unindexed (DOT index)+;
+
+index
+    : string
+    | number
+    ;
 
 unindexed
     : bool

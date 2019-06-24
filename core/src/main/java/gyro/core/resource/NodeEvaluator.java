@@ -529,8 +529,14 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
             return null;
         }
 
-        for (Node index : node.getIndexes()) {
-            value = getValue(value, (String) visit(index, context));
+        for (Node indexNode : node.getIndexes()) {
+            Object index = visit(indexNode, context);
+
+            if (index == null) {
+                return null;
+            }
+
+            value = getValue(value, index.toString());
 
             if (value == null) {
                 return null;

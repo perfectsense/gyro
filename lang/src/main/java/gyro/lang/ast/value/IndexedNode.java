@@ -21,7 +21,7 @@ public class IndexedNode extends Node {
     public IndexedNode(GyroParser.IndexedContext context) {
         this(
             Node.create(Preconditions.checkNotNull(context).unindexed()),
-            Node.create(context.string()));
+            Node.create(context.index()));
     }
 
     public Node getValue() {
