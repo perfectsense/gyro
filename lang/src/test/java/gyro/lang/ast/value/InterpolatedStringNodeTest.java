@@ -16,7 +16,7 @@ class InterpolatedStringNodeTest extends AbstractNodeTest<InterpolatedStringNode
 
     @Test
     void constructorContext() {
-        InterpolatedStringNode node = (InterpolatedStringNode) Node.parse("\"foo$(bar)qux\"", GyroParser::string);
+        InterpolatedStringNode node = (InterpolatedStringNode) Node.parse("\"foo\\(bar)qux\"", GyroParser::string);
         List<Node> items = node.getItems();
 
         assertThat(items).hasSize(3);

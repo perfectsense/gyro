@@ -63,8 +63,8 @@ IDENTIFIER  : [_A-Za-z] [-_0-9A-Za-z]*;
 
 mode STRING_MODE;
 
-TEXT     : ~[$("]+;
-S_LREF   : '$(' -> type(LREF), pushMode(DEFAULT_MODE);
-S_DOLLAR : '$' -> type(TEXT);
+TEXT     : ~[\\("]+;
+S_LREF   : '\\(' -> type(LREF), pushMode(DEFAULT_MODE);
+S_DOLLAR : '\\' -> type(TEXT);
 S_LPAREN : '(' -> type(TEXT);
 S_DQUOTE : '"' -> type(DQUOTE), popMode;
