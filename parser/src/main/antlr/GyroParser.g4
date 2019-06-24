@@ -176,4 +176,4 @@ stringContent
     | text
     ;
 
-text : (DOLLAR | IDENTIFIER | CHARACTER)+;
+text : DOLLAR | (IDENTIFIER | CHARACTER)+;
