@@ -76,6 +76,7 @@ public abstract class Node {
         .put(GyroParser.NumberContext.class, c -> new ValueNode((GyroParser.NumberContext) c))
         .put(GyroParser.ReferenceContext.class, c -> new ReferenceNode((GyroParser.ReferenceContext) c))
         .put(GyroParser.StringContentContext.class, GET_FIRST_CHILD)
+        .put(GyroParser.TextContext.class, c -> new ValueNode(c.getText()))
         .put(GyroParser.UnindexedContext.class, GET_FIRST_CHILD)
         .put(GyroParser.ValueContext.class, GET_FIRST_CHILD)
         .build();

@@ -172,6 +172,8 @@ string
     ;
 
 stringContent
-    : TEXT
-    | reference
+    : reference
+    | text
     ;
+
+text : (DOLLAR | IDENTIFIER | CHARACTER)+;
