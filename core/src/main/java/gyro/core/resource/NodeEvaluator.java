@@ -1,5 +1,11 @@
 package gyro.core.resource;
 
+import java.beans.BeanInfo;
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -11,6 +17,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableSet;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
@@ -45,18 +52,13 @@ import gyro.lang.ast.value.ReferenceNode;
 import gyro.lang.ast.value.ValueNode;
 import gyro.lang.filter.Filter;
 import gyro.util.CascadingMap;
+import org.apache.commons.lang3.math.NumberUtils;
 
 public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
     public static Object getValue(Object object, String key) {
-        if (object instanceof Collection) {
-            return ((Collection<?>) object).stream()
-                .map(i -> getValue(i, key))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-
-        } else if (object instanceof Map) {
-            return ((Map<?, ?>) object).get(key);
+        if ("*".equals(key)) {
+            return new GlobCollection(object);
 
         } else if (object instanceof Diffable) {
             Diffable diffable = (Diffable) object;
@@ -72,8 +74,56 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
             return field.getValue(diffable);
 
+        } else if (object instanceof GlobCollection) {
+            return ((GlobCollection) object).stream()
+                .map(i -> getValue(i, key))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        } else if (object instanceof List) {
+            Number index = NumberUtils.createNumber(key);
+
+            if (index != null) {
+                return ((List<?>) object).get(index.intValue());
+
+            } else {
+                return null;
+            }
+
+        } else if (object instanceof Map) {
+            return ((Map<?, ?>) object).get(key);
+
         } else {
-            return null;
+            Class<?> aClass = object.getClass();
+            BeanInfo info;
+
+            try {
+                info = Introspector.getBeanInfo(aClass);
+
+            } catch (IntrospectionException error) {
+                throw new GyroException(String.format(
+                    "Can't find any properties for [%s] class!",
+                    aClass.getName()));
+            }
+
+            String methodName = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key);
+
+            Method getter = Stream.of(info.getPropertyDescriptors())
+                .filter(p -> p.getName().equals(methodName))
+                .map(PropertyDescriptor::getReadMethod)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElseThrow(() -> new GyroException(String.format(
+                    "Can't find [%s] property in [%s] class!",
+                    key,
+                    aClass.getName())));
+
+            try {
+                return getter.invoke(object);
+
+            } catch (IllegalAccessException | InvocationTargetException error) {
+                throw new GyroException(error.getMessage());
+            }
         }
     }
 
