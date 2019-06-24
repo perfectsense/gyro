@@ -210,6 +210,18 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
         RootScope rootScope = scope.getRootScope();
         DiffableScope bodyScope = new DiffableScope(scope);
 
+        for (Node item : node.getBody()) {
+            visit(item, bodyScope);
+        }
+
+        @SuppressWarnings("unchecked")
+        Collection<String> cf = (Collection<String>) bodyScope.get("_configured-fields");
+
+        if (cf == null) {
+            cf = bodyScope.getAddedKeys();
+        }
+
+        final Collection<String> pendingConfiguredFields = ImmutableSet.copyOf(cf);
         // Initialize the bodyScope with the resource values from the current
         // state scope.
         Optional.ofNullable(rootScope.getCurrent())
@@ -232,7 +244,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
                         // Skip over fields that were previously configured
                         // so that their removals can be detected by the
                         // diff system.
-                        if (configuredFields.contains(key)) {
+                        if (configuredFields.contains(key) || pendingConfiguredFields.contains(key)) {
                             continue;
                         }
 
@@ -240,9 +252,6 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
                     }
                 });
 
-        for (Node item : node.getBody()) {
-            visit(item, bodyScope);
-        }
 
         Class<? extends Resource> resourceClass = (Class<? extends Resource>) rootScope.getResourceClasses().get(type);
 
