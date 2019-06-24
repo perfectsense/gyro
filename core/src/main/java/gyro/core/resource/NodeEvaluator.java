@@ -232,13 +232,6 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
                         : ImmutableSet.of();
 
                     for (DiffableField f : DiffableType.getInstance(r.getClass()).getFields()) {
-
-                        // Don't copy nested diffables since they're handled
-                        // by the diff system.
-                        if (f.shouldBeDiffed()) {
-                            continue;
-                        }
-
                         String key = f.getName();
 
                         // Skip over fields that were previously configured
