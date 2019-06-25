@@ -10,12 +10,12 @@ import gyro.lang.ast.condition.OrConditionNode;
 import gyro.lang.ast.condition.ValueConditionNode;
 import gyro.lang.ast.control.ForNode;
 import gyro.lang.ast.control.IfNode;
+import gyro.lang.ast.value.IndexedNode;
 import gyro.lang.ast.value.InterpolatedStringNode;
 import gyro.lang.ast.value.ListNode;
 import gyro.lang.ast.value.MapNode;
-import gyro.lang.ast.value.ResourceReferenceNode;
+import gyro.lang.ast.value.ReferenceNode;
 import gyro.lang.ast.value.ValueNode;
-import gyro.lang.ast.value.ValueReferenceNode;
 
 public interface NodeVisitor<C, R> {
 
@@ -47,16 +47,16 @@ public interface NodeVisitor<C, R> {
 
     R visitIf(IfNode node, C context);
 
+    R visitIndexedNode(IndexedNode node, C context);
+
     R visitInterpolatedString(InterpolatedStringNode node, C context);
 
     R visitList(ListNode node, C context);
 
     R visitMap(MapNode node, C context);
 
-    R visitResourceReference(ResourceReferenceNode node, C context);
+    R visitReference(ReferenceNode node, C context);
 
     R visitValue(ValueNode node, C context);
-
-    R visitValueReference(ValueReferenceNode node, C context);
 
 }

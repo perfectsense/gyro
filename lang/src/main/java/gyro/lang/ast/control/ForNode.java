@@ -6,20 +6,20 @@ import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.BlockNode;
 import gyro.parser.antlr4.GyroParser;
+import gyro.util.ImmutableCollectors;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class ForNode extends BlockNode {
 
     private final List<String> variables;
-    private final List<Node> items;
+    private final Node value;
 
-    public ForNode(List<String> variables, List<Node> items, List<Node> body) {
+    public ForNode(List<String> variables, Node value, List<Node> body) {
         super(body);
 
         this.variables = ImmutableList.copyOf(Preconditions.checkNotNull(variables));
-        this.items = ImmutableList.copyOf(Preconditions.checkNotNull(items));
+        this.value = Preconditions.checkNotNull(value);
     }
 
     public ForNode(GyroParser.ForStatementContext context) {
@@ -28,28 +28,18 @@ public class ForNode extends BlockNode {
                 .forVariable()
                 .stream()
                 .map(c -> c.IDENTIFIER().getText())
-                .collect(Collectors.toList()),
+                .collect(ImmutableCollectors.toList()),
 
-            context.list()
-                .value()
-                .stream()
-                .map(Node::create)
-                .collect(Collectors.toList()),
-
-            context.blockBody()
-                .blockStatement()
-                .stream()
-                .map(c -> Node.create(c.getChild(0)))
-                .collect(Collectors.toList()));
-
+            Node.create(context.forValue()),
+            Node.create(context.blockBody().blockStatement()));
     }
 
     public List<String> getVariables() {
         return variables;
     }
 
-    public List<Node> getItems() {
-        return items;
+    public Node getValue() {
+        return value;
     }
 
     @Override

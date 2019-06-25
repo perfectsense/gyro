@@ -14,12 +14,12 @@ import gyro.lang.ast.condition.OrConditionNode;
 import gyro.lang.ast.condition.ValueConditionNode;
 import gyro.lang.ast.control.ForNode;
 import gyro.lang.ast.control.IfNode;
+import gyro.lang.ast.value.IndexedNode;
 import gyro.lang.ast.value.InterpolatedStringNode;
 import gyro.lang.ast.value.ListNode;
 import gyro.lang.ast.value.MapNode;
-import gyro.lang.ast.value.ResourceReferenceNode;
+import gyro.lang.ast.value.ReferenceNode;
 import gyro.lang.ast.value.ValueNode;
-import gyro.lang.ast.value.ValueReferenceNode;
 
 public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
 
@@ -56,7 +56,7 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
 
     @Override
     public Void visitPair(PairNode node, PrinterContext context) {
-        context.append(node.getKey());
+        visit(node.getKey(), context);
         context.append(": ");
         visit(node.getValue(), context.indented());
 
@@ -145,19 +145,8 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
         context.appendNewline();
         context.append("for ");
         context.append(String.join(", ", node.getVariables()));
-        context.append(" in [");
-
-        for (Iterator<Node> i = node.getItems().iterator(); i.hasNext(); ) {
-            Node item = i.next();
-
-            visit(item, context);
-
-            if (i.hasNext()) {
-                context.append(", ");
-            }
-        }
-
-        context.append("]");
+        context.append(" in ");
+        visit(node.getValue(), context);
         visitBody(node.getBody(), context.indented());
         context.appendNewline();
         context.append("end");
@@ -190,15 +179,27 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
     }
 
     @Override
+    public Void visitIndexedNode(IndexedNode node, PrinterContext context) {
+        visit(node.getValue(), context);
+
+        for (Node index : node.getIndexes()) {
+            context.append('.');
+            visit(index, context);
+        }
+
+        return null;
+    }
+
+    @Override
     public Void visitInterpolatedString(InterpolatedStringNode node, PrinterContext context) {
         context.append('"');
 
         for (Object item : node.getItems()) {
-            if (item instanceof Node) {
-                visit((Node) item, context);
+            if (item instanceof ValueNode) {
+                context.append(String.valueOf(((ValueNode) item).getValue()));
 
             } else {
-                context.append(String.valueOf(item));
+                visit((Node) item, context);
             }
         }
 
@@ -246,21 +247,16 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
     }
 
     @Override
-    public Void visitResourceReference(ResourceReferenceNode node, PrinterContext context) {
+    public Void visitReference(ReferenceNode node, PrinterContext context) {
         context.append("$(");
-        context.append(node.getType());
 
-        Optional.ofNullable(node.getName())
-            .ifPresent(nameNode -> {
+        for (Iterator<Node> i = node.getArguments().iterator(); i.hasNext(); ) {
+            visit(i.next(), context);
+
+            if (i.hasNext()) {
                 context.append(' ');
-                visit(nameNode, context);
-            });
-
-        Optional.ofNullable(node.getPath())
-            .ifPresent(path -> {
-                context.append(" | ");
-                context.append(path);
-            });
+            }
+        }
 
         context.append(")");
 
@@ -279,15 +275,6 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
         } else {
             context.append(value.toString());
         }
-
-        return null;
-    }
-
-    @Override
-    public Void visitValueReference(ValueReferenceNode node, PrinterContext context) {
-        context.append("$(");
-        context.append(node.getPath());
-        context.append(")");
 
         return null;
     }

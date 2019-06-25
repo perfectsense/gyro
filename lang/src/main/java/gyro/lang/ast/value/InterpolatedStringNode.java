@@ -5,33 +5,22 @@ import com.google.common.collect.ImmutableList;
 import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.Node;
 import gyro.parser.antlr4.GyroParser;
-import gyro.util.ImmutableCollectors;
 
 import java.util.List;
 
 public class InterpolatedStringNode extends Node {
 
-    private final List<Object> items;
+    private final List<Node> items;
 
-    public InterpolatedStringNode(List<Object> items) {
-        Preconditions.checkNotNull(items);
-
-        Preconditions.checkArgument(
-            items.stream().allMatch(i -> i instanceof Node || i instanceof String),
-            "All items must be an instance of Node or String!");
-
-        this.items = ImmutableList.copyOf(items);
+    public InterpolatedStringNode(List<Node> items) {
+        this.items = ImmutableList.copyOf(Preconditions.checkNotNull(items));
     }
 
     public InterpolatedStringNode(GyroParser.InterpolatedStringContext context) {
-        this(context.stringContent()
-            .stream()
-            .map(c -> c.getChild(0))
-            .map(c -> c instanceof GyroParser.ReferenceContext ? Node.create(c) : c.getText())
-            .collect(ImmutableCollectors.toList()));
+        this(Node.create(context.stringContent()));
     }
 
-    public List<Object> getItems() {
+    public List<Node> getItems() {
         return items;
     }
 

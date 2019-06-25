@@ -16,7 +16,7 @@ class ListNodeTest extends AbstractNodeTest<ListNode> {
 
     @Test
     void constructorContext() {
-        ListNode node = new ListNode(parse("['foo', 'bar']", GyroParser::list));
+        ListNode node = (ListNode) Node.parse("['foo', 'bar']", GyroParser::list);
         List<Node> items = node.getItems();
 
         assertThat(items).hasSize(2);

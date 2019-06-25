@@ -74,9 +74,9 @@ public class FinderField {
         return filterName;
     }
 
-    public Object getValue(Finder query) {
+    public Object getValue(Finder finder) {
         try {
-            return getter.invoke(query);
+            return getter.invoke(finder);
 
         } catch (IllegalAccessException error) {
             throw new IllegalStateException(error);
@@ -90,7 +90,7 @@ public class FinderField {
         }
     }
 
-    public void setValue(Finder query, Object value) {
+    public void setValue(Finder finder, Object value) {
         try {
             if (value instanceof Collection
                     && !Collection.class.isAssignableFrom(setter.getParameterTypes()[0])) {
@@ -101,7 +101,7 @@ public class FinderField {
                     .orElse(null);
             }
 
-            setter.invoke(query, CONVERTER.convert(setter.getGenericParameterTypes()[0], value));
+            setter.invoke(finder, CONVERTER.convert(setter.getGenericParameterTypes()[0], value));
 
         } catch (IllegalAccessException error) {
             throw new IllegalStateException(error);

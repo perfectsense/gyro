@@ -11,7 +11,7 @@ file
 
 statement
     : directive
-    | resource
+    | block
     | virtualResource
     | forStatement
     | ifStatement
@@ -22,25 +22,28 @@ statement
 directive : AT IDENTIFIER (directiveArgument (COMMA? directiveArgument)*)?;
 
 directiveArgument
-    : value
-    | resource
+    : block
+    | value
     ;
 
-// resource
-resource
-    :
-    resourceType resourceName? NEWLINES
-        blockBody
-    END
+// block
+block
+    : IDENTIFIER NEWLINES blockBody END # KeyBlock
+    | type name  NEWLINES blockBody END # Resource
     ;
 
-resourceType : IDENTIFIER (COLON COLON IDENTIFIER)*;
-resourceName : IDENTIFIER | string;
+type : IDENTIFIER (COLON COLON IDENTIFIER)?;
+
+name
+    : reference
+    | string
+    ;
+
 blockBody : (blockStatement NEWLINES)*;
 
 blockStatement
     : directive
-    | resource
+    | block
     | forStatement
     | ifStatement
     | pair
@@ -49,7 +52,7 @@ blockStatement
 // virtual resource
 virtualResource
     :
-    VIRTUAL_RESOURCE resourceType NEWLINES
+    VIRTUAL_RESOURCE type NEWLINES
         (PARAM virtualResourceParameter NEWLINES)*
     DEFINE NEWLINES
         blockBody
@@ -59,13 +62,19 @@ virtualResource
 virtualResourceParameter : IDENTIFIER;
 
 // forStatement
-forVariable : IDENTIFIER;
-
 forStatement
     :
-    FOR forVariable (COMMA forVariable)* IN (list | reference) NEWLINES
+    FOR forVariable (COMMA forVariable)* IN forValue NEWLINES
         blockBody
     END
+    ;
+
+forVariable : IDENTIFIER;
+
+forValue
+    : list
+    | map
+    | reference
     ;
 
 // ifStatement
@@ -99,7 +108,19 @@ key
     ;
 
 value
-    : booleanValue
+    : indexed
+    | unindexed
+    ;
+
+indexed : unindexed (DOT index)+;
+
+index
+    : string
+    | number
+    ;
+
+unindexed
+    : bool
     | list
     | map
     | number
@@ -107,7 +128,7 @@ value
     | string
     ;
 
-booleanValue
+bool
     : TRUE
     | FALSE
     ;
@@ -134,32 +155,30 @@ number
     ;
 
 reference
-    : LREF resourceType referenceName (PIPE query)* (PIPE path)? RREF # ResourceReference
-    | LREF path RREF                                                  # ValueReference
+    : LREF value* (PIPE filter)* RREF
+    | DOLLAR IDENTIFIER
     ;
 
-referenceName
-    : GLOB
-    | IDENTIFIER SLASH GLOB
-    | IDENTIFIER GLOB
-    | path
-    | string
+filter
+    : IDENTIFIER comparisonOperator value # ComparisonFilter
+    | filter AND filter                   # AndFilter
+    | filter OR filter                    # OrFilter
     ;
-
-query
-    : path comparisonOperator value # ComparisonQuery
-    | query AND query               # AndQuery
-    | query OR query                # OrQuery
-    ;
-
-path : IDENTIFIER (DOT IDENTIFIER)*;
 
 string
     : STRING                       # LiteralString
     | DQUOTE stringContent* DQUOTE # InterpolatedString
+    |
+        ( IDENTIFIER GLOB
+        | IDENTIFIER
+        | GLOB
+        | type
+    )                              # BareString
     ;
 
 stringContent
-    : TEXT
-    | reference
+    : reference
+    | text
     ;
+
+text : DOLLAR | (IDENTIFIER | CHARACTER)+;

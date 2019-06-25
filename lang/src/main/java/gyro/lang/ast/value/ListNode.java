@@ -5,7 +5,6 @@ import com.google.common.collect.ImmutableList;
 import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.Node;
 import gyro.parser.antlr4.GyroParser;
-import gyro.util.ImmutableCollectors;
 
 import java.util.List;
 
@@ -18,11 +17,7 @@ public class ListNode extends Node {
     }
 
     public ListNode(GyroParser.ListContext context) {
-        items = Preconditions.checkNotNull(context)
-            .value()
-            .stream()
-            .map(Node::create)
-            .collect(ImmutableCollectors.toList());
+        items = Node.create(Preconditions.checkNotNull(context).value());
     }
 
     public List<Node> getItems() {

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -25,7 +26,7 @@ import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.block.ResourceNode;
 import gyro.lang.ast.value.ListNode;
 import gyro.lang.ast.value.MapNode;
-import gyro.lang.ast.value.ResourceReferenceNode;
+import gyro.lang.ast.value.ReferenceNode;
 import gyro.lang.ast.value.ValueNode;
 
 public class State {
@@ -184,10 +185,7 @@ public class State {
         Set<String> configuredFields = diffable.configuredFields;
 
         if (configuredFields != null && !configuredFields.isEmpty()) {
-            body.add(new PairNode("_configured-fields",
-                new ListNode(configuredFields.stream()
-                    .map(ValueNode::new)
-                    .collect(Collectors.toList()))));
+            body.add(toPairNode("_configured-fields", configuredFields));
         }
 
         for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
@@ -200,20 +198,21 @@ public class State {
             String key = field.getName();
 
             if (value instanceof Boolean
+                || value instanceof Map
                 || value instanceof Number
                 || value instanceof String) {
 
-                body.add(new PairNode(key, new ValueNode(value)));
+                body.add(toPairNode(key, value));
 
             } else if (value instanceof Date) {
-                body.add(new PairNode(key, new ValueNode(value.toString())));
+                body.add(toPairNode(key, value.toString()));
 
             } else if (value instanceof Diffable) {
                 if (field.shouldBeDiffed()) {
                     body.add(new KeyBlockNode(key, toBodyNodes((Diffable) value)));
 
                 } else {
-                    body.add(new PairNode(key, toNode(value)));
+                    body.add(toPairNode(key, value));
                 }
 
             } else if (value instanceof Collection) {
@@ -223,11 +222,8 @@ public class State {
                     }
 
                 } else {
-                    body.add(new PairNode(key, toNode(value)));
+                    body.add(toPairNode(key, value));
                 }
-
-            } else if (value instanceof Map) {
-                body.add(new PairNode(key, toNode(value)));
 
             } else {
                 throw new UnsupportedOperationException(String.format(
@@ -237,6 +233,10 @@ public class State {
         }
 
         return body;
+    }
+
+    private PairNode toPairNode(Object key, Object value) {
+        return new PairNode(toNode(key), toNode(value));
     }
 
     private Node toNode(Object value) {
@@ -264,7 +264,7 @@ public class State {
                 Object v = entry.getValue();
 
                 if (v != null) {
-                    entries.add(new PairNode((String) entry.getKey(), toNode(v)));
+                    entries.add(toPairNode(entry.getKey(), v));
                 }
             }
 
@@ -278,11 +278,9 @@ public class State {
                 return new ValueNode(type.getIdField().getValue(resource));
 
             } else {
-                return new ResourceReferenceNode(
-                    type.getName(),
-                    new ValueNode(resource.name()),
-                    Collections.emptyList(),
-                    null);
+                return new ReferenceNode(
+                    Arrays.asList(new ValueNode(type.getName()), new ValueNode(resource.name())),
+                    Collections.emptyList());
             }
 
         } else {

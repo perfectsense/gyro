@@ -12,8 +12,7 @@ class OrConditionNodeTest extends AbstractNodeTest<OrConditionNode> {
 
     @Test
     void constructorContext() {
-        OrConditionNode node = new OrConditionNode(
-            (GyroParser.OrConditionContext) parse("true or true", GyroParser::condition));
+        OrConditionNode node = (OrConditionNode) Node.parse("true or true", GyroParser::condition);
 
         Node left = node.getLeft();
 

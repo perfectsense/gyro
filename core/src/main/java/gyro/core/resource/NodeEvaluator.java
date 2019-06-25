@@ -1,25 +1,32 @@
 package gyro.core.resource;
 
+import java.beans.BeanInfo;
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableSet;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.directive.DirectiveSettings;
-import gyro.core.finder.Finder;
-import gyro.core.finder.FinderSettings;
-import gyro.core.finder.FinderType;
-import gyro.core.finder.QueryContext;
-import gyro.core.finder.QueryEvaluator;
+import gyro.core.finder.FilterContext;
+import gyro.core.finder.FilterEvaluator;
+import gyro.core.reference.ReferenceResolver;
+import gyro.core.reference.ReferenceSettings;
 import gyro.core.workflow.Workflow;
 import gyro.lang.GyroLanguageException;
 import gyro.lang.ast.DirectiveNode;
@@ -37,16 +44,88 @@ import gyro.lang.ast.condition.OrConditionNode;
 import gyro.lang.ast.condition.ValueConditionNode;
 import gyro.lang.ast.control.ForNode;
 import gyro.lang.ast.control.IfNode;
+import gyro.lang.ast.value.IndexedNode;
 import gyro.lang.ast.value.InterpolatedStringNode;
 import gyro.lang.ast.value.ListNode;
 import gyro.lang.ast.value.MapNode;
-import gyro.lang.ast.value.ResourceReferenceNode;
+import gyro.lang.ast.value.ReferenceNode;
 import gyro.lang.ast.value.ValueNode;
-import gyro.lang.ast.value.ValueReferenceNode;
-import gyro.lang.query.Query;
+import gyro.lang.filter.Filter;
 import gyro.util.CascadingMap;
+import org.apache.commons.lang3.math.NumberUtils;
 
 public class NodeEvaluator implements NodeVisitor<Scope, Object> {
+
+    public static Object getValue(Object object, String key) {
+        if ("*".equals(key)) {
+            return new GlobCollection(object);
+
+        } else if (object instanceof Diffable) {
+            Diffable diffable = (Diffable) object;
+            DiffableType type = DiffableType.getInstance(diffable.getClass());
+            DiffableField field = type.getField(key);
+
+            if (field == null) {
+                throw new GyroException(String.format(
+                    "Can't find [%s] field in [%s] type!",
+                    key,
+                    type.getName()));
+            }
+
+            return field.getValue(diffable);
+
+        } else if (object instanceof GlobCollection) {
+            return ((GlobCollection) object).stream()
+                .map(i -> getValue(i, key))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        } else if (object instanceof List) {
+            Number index = NumberUtils.createNumber(key);
+
+            if (index != null) {
+                return ((List<?>) object).get(index.intValue());
+
+            } else {
+                return null;
+            }
+
+        } else if (object instanceof Map) {
+            return ((Map<?, ?>) object).get(key);
+
+        } else {
+            Class<?> aClass = object.getClass();
+            BeanInfo info;
+
+            try {
+                info = Introspector.getBeanInfo(aClass);
+
+            } catch (IntrospectionException error) {
+                throw new GyroException(String.format(
+                    "Can't find any properties for [%s] class!",
+                    aClass.getName()));
+            }
+
+            String methodName = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key);
+
+            Method getter = Stream.of(info.getPropertyDescriptors())
+                .filter(p -> p.getName().equals(methodName))
+                .map(PropertyDescriptor::getReadMethod)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElseThrow(() -> new GyroException(String.format(
+                    "Can't find [%s] property in [%s] class!",
+                    key,
+                    aClass.getName())));
+
+            try {
+                return getter.invoke(object);
+
+            } catch (IllegalAccessException | InvocationTargetException error) {
+                throw new GyroException(error.getMessage());
+            }
+        }
+    }
 
     public void visitBody(List<Node> body, Scope scope) {
         int bodySize = body.size();
@@ -114,7 +193,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
     @Override
     public Object visitPair(PairNode node, Scope scope) {
-        String key = node.getKey();
+        String key = (String) visit(node.getKey(), scope);
         Node value = node.getValue();
 
         scope.put(key, visit(value, scope));
@@ -363,29 +442,64 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
     @Override
     public Object visitFor(ForNode node, Scope scope) {
         List<String> variables = node.getVariables();
-        List<Node> items = node.getItems();
-        int variablesSize = variables.size();
-        int itemsSize = items.size();
+        Object value = visit(node.getValue(), scope);
 
-        for (int i = 0; i < itemsSize; i += variablesSize) {
-            Map<String, Object> values = new LinkedHashMap<>();
-            Scope bodyScope = new Scope(scope, new CascadingMap<>(scope, values));
+        if (value instanceof List) {
+            List<?> list = (List<?>) value;
+            int variablesSize = variables.size();
+            int listSize = list.size();
 
-            for (int j = 0; j < variablesSize; j++) {
-                int k = i + j;
+            for (int i = 0; i < listSize; i += variablesSize) {
+                Map<String, Object> values = new LinkedHashMap<>();
 
-                values.put(
-                    variables.get(j),
-                    k < itemsSize
-                        ? visit(items.get(k), scope)
-                        : null);
+                for (int j = 0; j < variablesSize; j++) {
+                    int k = i + j;
+
+                    values.put(
+                        variables.get(j),
+                        k < listSize
+                            ? list.get(k)
+                            : null);
+                }
+
+                visitForBody(node, scope, values);
             }
 
-            visitBody(node.getBody(), bodyScope);
-            scope.getKeyNodes().putAll(bodyScope.getKeyNodes());
+        } else if (value instanceof Map) {
+            String keyVariable = variables.get(0);
+
+            if (variables.size() > 1) {
+                String valueVariable = variables.get(1);
+
+                for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
+                    Map<String, Object> values = new LinkedHashMap<>();
+
+                    values.put(keyVariable, entry.getKey());
+                    values.put(valueVariable, entry.getValue());
+                    visitForBody(node, scope, values);
+                }
+
+            } else {
+                for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
+                    Map<String, Object> values = new LinkedHashMap<>();
+
+                    values.put(keyVariable, entry.getKey());
+                    visitForBody(node, scope, values);
+                }
+            }
+
+        } else {
+            throw new GyroException("Can't iterate over a non-collection!");
         }
 
         return null;
+    }
+
+    private void visitForBody(ForNode node, Scope scope, Map<String, Object> values) {
+        Scope bodyScope = new Scope(scope, new CascadingMap<>(scope, values));
+
+        visitBody(node.getBody(), bodyScope);
+        scope.getKeyNodes().putAll(bodyScope.getKeyNodes());
     }
 
     @Override
@@ -408,20 +522,38 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
     }
 
     @Override
-    public Object visitInterpolatedString(InterpolatedStringNode node, Scope scope) {
-        StringBuilder builder = new StringBuilder();
+    public Object visitIndexedNode(IndexedNode node, Scope context) {
+        Object value = visit(node.getValue(), context);
 
-        for (Object item : node.getItems()) {
-            if (item instanceof Node) {
-                item = visit((Node) item, scope);
+        if (value == null) {
+            return null;
+        }
+
+        for (Node indexNode : node.getIndexes()) {
+            Object index = visit(indexNode, context);
+
+            if (index == null) {
+                return null;
             }
 
-            if (item != null) {
-                builder.append(item);
+            value = getValue(value, index.toString());
+
+            if (value == null) {
+                return null;
             }
         }
 
-        return builder.toString();
+        return value;
+    }
+
+    @Override
+    public Object visitInterpolatedString(InterpolatedStringNode node, Scope scope) {
+        return node.getItems()
+            .stream()
+            .map(i -> visit(i, scope))
+            .filter(Objects::nonNull)
+            .map(Object::toString)
+            .collect(Collectors.joining());
     }
 
     @Override
@@ -441,131 +573,118 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
         Map<String, Object> map = new LinkedHashMap<>();
 
         for (PairNode entry : node.getEntries()) {
-            map.put(entry.getKey(), visit(entry, bodyScope));
+            map.put((String) visit(entry.getKey(), bodyScope), visit(entry, bodyScope));
         }
 
         return map;
     }
 
     @Override
-    public Object visitResourceReference(ResourceReferenceNode node, Scope scope) {
-        String type = node.getType();
-        Node nameNode = node.getName();
-        String path = node.getPath();
+    public Object visitReference(ReferenceNode node, Scope scope) {
+        List<Object> arguments = node.getArguments()
+            .stream()
+            .map(v -> visit(v, scope))
+            .collect(Collectors.toList());
 
-        if (nameNode != null) {
-            QueryEvaluator evaluator = new QueryEvaluator(this);
-            String name = (String) visit(nameNode, scope);
-            List<Resource> resources = new ArrayList<>();
-            List<Query> queries = null;
+        if (arguments.isEmpty()) {
+            return null;
+        }
 
-            if (name.startsWith("EXTERNAL/*")) {
-                Class<? extends Finder<Resource>> finderClass = scope.getRootScope()
-                    .getSettings(FinderSettings.class)
-                    .getFinderClasses()
-                    .get(type);
+        Object value = arguments.remove(0);
 
-                if (finderClass == null) {
-                    throw new GyroException("Resource type " + type + " does not support external queries.");
+        if (value == null) {
+            return null;
+        }
+
+        if (node.getArguments().get(0) instanceof ValueNode) {
+            RootScope root = scope.getRootScope();
+            String referenceName = (String) value;
+
+            ReferenceResolver resolver = root.getSettings(ReferenceSettings.class)
+                .getResolvers()
+                .get(referenceName);
+
+            if (resolver != null) {
+                try {
+                    return resolveFilters(node, scope, resolver.resolve(scope, arguments));
+
+                } catch (Exception error) {
+                    throw new GyroException(error.getMessage());
                 }
 
-                Finder<Resource> finder = FinderType.getInstance(finderClass).newInstance(scope);
-                List<Query> nodeQueries = node.getQueries();
-                queries = new ArrayList<>();
+            } else if (referenceName.contains("::")) {
+                String resourceName = (String) arguments.remove(0);
 
-                if (!nodeQueries.isEmpty()) {
-                    Query optimized = evaluator.optimize(nodeQueries.get(0), finder, scope);
-                    resources = evaluator.visit(optimized, new QueryContext(type, scope, resources));
+                if (!arguments.isEmpty()) {
+                    throw new GyroException("Too many arguments trying to resolve resource by name!");
+                }
 
-                    queries.add(optimized);
+                if (resourceName.endsWith("*")) {
+                    Stream<Resource> s = root.findResources()
+                        .stream()
+                        .filter(r -> referenceName.equals(DiffableType.getInstance(r.getClass()).getName()));
 
-                    if (resources.isEmpty()) {
-                        resources = finder.findAll();
+                    if (!resourceName.equals("*")) {
+                        String prefix = resourceName.substring(0, resourceName.length() - 1);
+                        s = s.filter(r -> r.name().startsWith(prefix));
                     }
 
+                    value = s.collect(Collectors.toList());
+
                 } else {
-                    nodeQueries.subList(1, nodeQueries.size()).forEach(queries::add);
-                }
+                    Resource resource = root.findResource(referenceName + "::" + resourceName);
 
-            } else if (name.endsWith("*")) {
-                RootScope rootScope = scope.getRootScope();
-
-                Stream<Resource> s = rootScope.findResources()
-                    .stream()
-                    .filter(r -> type.equals(DiffableType.getInstance(r.getClass()).getName()));
-
-                if (!name.equals("*")) {
-                    String prefix = name.substring(0, name.length() - 1);
-                    s = s.filter(r -> r.name().startsWith(prefix));
-                }
-
-                resources = s.collect(Collectors.toList());
-
-            } else {
-                String fullName = type + "::" + name;
-                Resource resource = scope.getRootScope().findResource(fullName);
-
-                if (resource == null) {
-                    throw new DeferError(node);
-                }
-
-                if (path != null) {
-                    if (DiffableType.getInstance(resource.getClass()).getFields().stream()
-                            .map(DiffableField::getName)
-                            .anyMatch(path::equals)) {
-
-                        return resource.get(path);
-
-                    } else {
-                        throw new GyroException(String.format("Unable to resolve resource reference %s %s%nAttribute '%s' is not allowed in %s.%n",
-                            node, node.getLocation(), path, type));
+                    if (resource == null) {
+                        throw new DeferError(node);
                     }
 
-                } else {
-                    return resource;
+                    value = resource;
                 }
-            }
 
-            for (Query q : (queries != null ? queries : node.getQueries())) {
-                resources = evaluator.visit(q, new QueryContext(type, scope, resources));
-            }
-
-            if (path != null) {
-                return resources.stream().map(r -> r.get(path)).collect(Collectors.toList());
             } else {
-                return resources;
+                value = scope.find(referenceName);
             }
+
+            if (value == null) {
+                return null;
+            }
+        }
+
+        return resolveFilters(node, scope, value);
+    }
+
+    private Object resolveFilters(ReferenceNode node, Scope scope, Object value) {
+        if (value == null) {
+            return null;
+        }
+
+        List<Filter> filters = node.getFilters();
+
+        if (filters == null || filters.isEmpty()) {
+            return value;
+        }
+
+        FilterEvaluator evaluator = new FilterEvaluator();
+
+        if (value instanceof Collection) {
+            return ((Collection<?>) value).stream()
+                .filter(v -> filters.stream().allMatch(f -> evaluator.visit(f, new FilterContext(scope, v))))
+                .collect(Collectors.toList());
 
         } else {
-            Stream<Resource> s = scope.getRootScope()
-                    .findResources()
-                    .stream()
-                    .filter(r -> type.equals(DiffableType.getInstance(r.getClass()).getName()));
-
-            if (path != null) {
-                return s.map(r -> r.get(path))
-                        .collect(Collectors.toList());
-
-            } else {
-                return s.collect(Collectors.toList());
+            for (Filter f : filters) {
+                if (!evaluator.visit(f, new FilterContext(scope, value))) {
+                    return null;
+                }
             }
+
+            return value;
         }
     }
 
     @Override
     public Object visitValue(ValueNode node, Scope scope) {
         return node.getValue();
-    }
-
-    @Override
-    public Object visitValueReference(ValueReferenceNode node, Scope scope) {
-        try {
-            return scope.find(node.getPath());
-
-        } catch (ValueReferenceException vre) {
-            throw new GyroException(String.format("Unable to resolve value reference %s %s%n'%s' is not defined.%n",
-                node, node.getLocation(), vre.getKey()));
-        }
     }
 
 }

@@ -2,8 +2,6 @@ lexer grammar GyroLexer;
 
 // directive
 AT    : '@';
-DOT   : '.';
-SLASH : '/';
 
 // resource
 END : 'end';
@@ -42,14 +40,16 @@ LBRACE : '{';
 RBRACE : '}';
 
 // number
-FLOAT   : '-'? ([0-9] [_0-9]* '.' [_0-9]* | '.' [_0-9]+);
+FLOAT   : '-'? [0-9] [_0-9]* '.' [_0-9]*;
 INTEGER : '-'? [0-9] [_0-9]*;
 
 // reference
-LREF : '$(' -> pushMode(DEFAULT_MODE);
-RREF : ')' -> popMode;
-GLOB : '*';
-PIPE : '|';
+DOLLAR : '$';
+LREF   : DOLLAR '(' -> pushMode(DEFAULT_MODE);
+RREF   : ')' -> popMode;
+GLOB   : '*';
+PIPE   : '|';
+DOT    : '.';
 
 // string
 STRING : '\'' ~('\'')* '\'';
@@ -63,8 +63,8 @@ IDENTIFIER  : [_A-Za-z] [-_0-9A-Za-z]*;
 
 mode STRING_MODE;
 
-TEXT     : ~[$("]+;
-S_LREF   : '$(' -> type(LREF), pushMode(DEFAULT_MODE);
-S_DOLLAR : '$' -> type(TEXT);
-S_LPAREN : '(' -> type(TEXT);
-S_DQUOTE : '"' -> type(DQUOTE), popMode;
+S_LREF       : [\\$] '(' -> type(LREF), pushMode(DEFAULT_MODE);
+S_DOLLAR     : '$' -> type(DOLLAR);
+S_IDENTIFIER : [_A-Za-z] [-_0-9A-Za-z]* -> type(IDENTIFIER);
+S_DQUOTE     : '"' -> type(DQUOTE), popMode;
+CHARACTER    : .;

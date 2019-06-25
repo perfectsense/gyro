@@ -62,7 +62,7 @@ public class Stage {
 
                     case "swap" :
                         if (arguments.size() != 3) {
-                            throw new GyroException("@delete directive only takes 3 arguments!");
+                            throw new GyroException("@swap directive only takes 3 arguments!");
                         }
 
                         swaps.add(directive);
@@ -186,20 +186,7 @@ public class Stage {
     }
 
     private String getResourceName(Object value) {
-        if (value instanceof List) {
-            @SuppressWarnings("unchecked")
-            List<Object> list = (List<Object>) value;
-            int size = list.size();
-
-            if (size != 1) {
-                throw new GyroException(String.format(
-                    "Can't swap a list that has [%s] items!",
-                    size));
-            }
-
-            return getResourceName(list.get(0));
-
-        } else if (value instanceof Resource) {
+        if (value instanceof Resource) {
             return ((Resource) value).name();
 
         } else if (value instanceof String) {

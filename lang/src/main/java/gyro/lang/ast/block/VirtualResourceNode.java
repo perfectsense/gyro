@@ -1,11 +1,11 @@
 package gyro.lang.ast.block;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.Node;
 import gyro.parser.antlr4.GyroParser;
+import gyro.util.ImmutableCollectors;
 
 public class VirtualResourceNode extends BlockNode {
 
@@ -13,18 +13,14 @@ public class VirtualResourceNode extends BlockNode {
     private List<VirtualResourceParameter> parameters;
 
     public VirtualResourceNode(GyroParser.VirtualResourceContext context) {
-        super(context.blockBody()
-                .blockStatement()
-                .stream()
-                .map(b -> Node.create(b.getChild(0)))
-                .collect(Collectors.toList()));
+        super(Node.create(context.blockBody().blockStatement()));
 
-        name = context.resourceType().getText();
+        name = context.type().getText();
 
         parameters = context.virtualResourceParameter()
-                .stream()
-                .map(VirtualResourceParameter::new)
-                .collect(Collectors.toList());
+            .stream()
+            .map(VirtualResourceParameter::new)
+            .collect(ImmutableCollectors.toList());
     }
 
     public String getName() {

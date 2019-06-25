@@ -1,29 +1,29 @@
-package gyro.lang.query;
+package gyro.lang.filter;
 
 import gyro.lang.ast.Node;
 import gyro.parser.antlr4.GyroParser;
 
-public class ComparisonQuery extends Query {
+public class ComparisonFilter extends Filter {
 
     private final String operator;
-    private final String path;
+    private final String key;
     private final Node value;
 
     public static final String EQUALS_OPERATOR = "=";
     public static final String NOT_EQUALS_OPERATOR = "!=";
 
-    public ComparisonQuery(GyroParser.ComparisonQueryContext context) {
+    public ComparisonFilter(GyroParser.ComparisonFilterContext context) {
         this.operator = context.comparisonOperator().getText();
-        this.path = context.path().getText();
-        this.value = Node.create(context.value().getChild(0));
+        this.key = context.IDENTIFIER().getText();
+        this.value = Node.create(context.value());
     }
 
     public String getOperator() {
         return operator;
     }
 
-    public String getPath() {
-        return path;
+    public String getKey() {
+        return key;
     }
 
     public Node getValue() {
@@ -31,7 +31,7 @@ public class ComparisonQuery extends Query {
     }
 
     @Override
-    public <C, R> R accept(QueryVisitor<C, R> visitor, C context) {
+    public <C, R> R accept(FilterVisitor<C, R> visitor, C context) {
         return visitor.visitComparison(this, context);
     }
 

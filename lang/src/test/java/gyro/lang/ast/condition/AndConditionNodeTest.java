@@ -12,9 +12,7 @@ class AndConditionNodeTest extends AbstractNodeTest<AndConditionNode> {
 
     @Test
     void constructorContext() {
-        AndConditionNode node = new AndConditionNode(
-            (GyroParser.AndConditionContext) parse("true and true", GyroParser::condition));
-
+        AndConditionNode node = (AndConditionNode) Node.parse("true and true", GyroParser::condition);
         Node left = node.getLeft();
 
         assertThat(left).isInstanceOf(ValueConditionNode.class);
