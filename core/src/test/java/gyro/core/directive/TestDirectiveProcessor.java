@@ -1,8 +1,7 @@
 package gyro.core.directive;
 
-import java.util.List;
-
 import gyro.core.resource.Scope;
+import gyro.lang.ast.block.DirectiveNode;
 
 public class TestDirectiveProcessor extends DirectiveProcessor {
 
@@ -12,7 +11,7 @@ public class TestDirectiveProcessor extends DirectiveProcessor {
     }
 
     @Override
-    public void process(Scope scope, List<Object> arguments) {
+    public void process(Scope scope, DirectiveNode node) {
     }
 
 }

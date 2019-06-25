@@ -19,11 +19,9 @@ statement
     ;
 
 // directive
-directive : AT IDENTIFIER (directiveArgument (COMMA? directiveArgument)*)?;
-
-directiveArgument
-    : block
-    | value
+directive
+    : AT IDENTIFIER COLON value (COMMA? value)*
+    | AT IDENTIFIER (value (COMMA? value)*)? NEWLINES blockBody AT END
     ;
 
 // block

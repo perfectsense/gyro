@@ -11,6 +11,7 @@ import com.google.common.collect.ImmutableMap;
 import gyro.lang.GyroErrorListener;
 import gyro.lang.GyroErrorStrategy;
 import gyro.lang.GyroLanguageException;
+import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.block.ResourceNode;
@@ -44,12 +45,11 @@ public abstract class Node {
 
     private static final Map<Class<? extends ParseTree>, Function<ParseTree, Node>> NODE_CONSTRUCTORS = ImmutableMap.<Class<? extends ParseTree>, Function<ParseTree, Node>>builder()
         // ast
-        .put(GyroParser.DirectiveContext.class, c -> new DirectiveNode((GyroParser.DirectiveContext) c))
-        .put(GyroParser.DirectiveArgumentContext.class, GET_FIRST_CHILD)
         .put(GyroParser.KeyContext.class, GET_FIRST_CHILD)
         .put(GyroParser.PairContext.class, c -> new PairNode((GyroParser.PairContext) c))
         // ast.block
         .put(GyroParser.BlockStatementContext.class, GET_FIRST_CHILD)
+        .put(GyroParser.DirectiveContext.class, c -> new DirectiveNode((GyroParser.DirectiveContext) c))
         .put(GyroParser.FileContext.class, c -> new FileNode((GyroParser.FileContext) c))
         .put(GyroParser.KeyBlockContext.class, c -> new KeyBlockNode((GyroParser.KeyBlockContext) c))
         .put(GyroParser.NameContext.class, GET_FIRST_CHILD)

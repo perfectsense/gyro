@@ -11,6 +11,7 @@ import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.resource.RootScope;
 import gyro.core.resource.Scope;
+import gyro.lang.ast.block.DirectiveNode;
 
 public class CredentialsDirectiveProcessor extends DirectiveProcessor {
 
@@ -21,11 +22,12 @@ public class CredentialsDirectiveProcessor extends DirectiveProcessor {
 
     @Override
     @SuppressWarnings("unchecked")
-    public void process(Scope scope, List<Object> arguments) throws Exception {
+    public void process(Scope scope, DirectiveNode node) throws Exception {
         if (!(scope instanceof RootScope)) {
             throw new GyroException("@credentials directive can only be used within the init.gyro file!");
         }
 
+        List<Object> arguments = resolveArguments(scope, node);
         int argumentsSize = arguments.size();
 
         if (argumentsSize < 2 || argumentsSize > 3) {

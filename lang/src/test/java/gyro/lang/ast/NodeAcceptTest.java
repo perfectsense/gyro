@@ -3,6 +3,7 @@ package gyro.lang.ast;
 import java.util.Arrays;
 import java.util.List;
 
+import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.block.ResourceNode;

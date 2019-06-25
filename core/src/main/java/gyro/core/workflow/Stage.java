@@ -14,7 +14,7 @@ import gyro.core.resource.Resource;
 import gyro.core.resource.RootScope;
 import gyro.core.resource.Scope;
 import gyro.core.resource.State;
-import gyro.lang.ast.DirectiveNode;
+import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.ResourceNode;
 

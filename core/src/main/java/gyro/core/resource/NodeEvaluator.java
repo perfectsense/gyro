@@ -29,7 +29,7 @@ import gyro.core.reference.ReferenceResolver;
 import gyro.core.reference.ReferenceSettings;
 import gyro.core.workflow.Workflow;
 import gyro.lang.GyroLanguageException;
-import gyro.lang.ast.DirectiveNode;
+import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.PairNode;
@@ -173,12 +173,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
         }
 
         try {
-            processor.process(
-                scope,
-                node.getArguments()
-                    .stream()
-                    .map(a -> visit(a, scope))
-                    .collect(Collectors.toList()));
+            processor.process(scope, node);
 
         } catch (Exception error) {
             throw new GyroException(String.format(

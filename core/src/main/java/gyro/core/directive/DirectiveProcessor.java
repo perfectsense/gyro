@@ -1,13 +1,25 @@
 package gyro.core.directive;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
+import gyro.core.resource.NodeEvaluator;
 import gyro.core.resource.Scope;
+import gyro.lang.ast.block.DirectiveNode;
 
 public abstract class DirectiveProcessor {
 
     public abstract String getName();
 
-    public abstract void process(Scope scope, List<Object> arguments) throws Exception;
+    public abstract void process(Scope scope, DirectiveNode node) throws Exception;
+
+    public List<Object> resolveArguments(Scope scope, DirectiveNode node) {
+        NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
+
+        return node.getArguments()
+            .stream()
+            .map(a -> evaluator.visit(a, scope))
+            .collect(Collectors.toList());
+    }
 
 }
