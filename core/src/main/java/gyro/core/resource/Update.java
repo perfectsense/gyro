@@ -57,6 +57,9 @@ public class Update extends Change {
                     .collect(Collectors.toSet()));
 
             state.update(this);
+
+            ((Resource) pendingDiffable).afterUpdate();
+            state.update(this);
         }
 
         return true;

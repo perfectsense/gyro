@@ -30,6 +30,9 @@ public class Delete extends Change {
         if (!state.isTest()) {
             ((Resource) diffable).delete();
             state.update(this);
+
+            ((Resource) diffable).afterDelete();
+            state.update(this);
         }
 
         return true;
