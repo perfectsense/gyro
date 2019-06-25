@@ -42,14 +42,16 @@ public class Create extends Change {
     }
 
     @Override
-    public boolean execute(GyroUI ui, State state) {
+    public boolean execute(GyroUI ui, State state) throws Exception {
         Resource resource = (Resource) diffable;
 
         if (state.isTest()) {
             resource.testCreate();
+            state.update(this);
 
         } else {
             resource.create();
+            state.update(this);
         }
 
         return true;

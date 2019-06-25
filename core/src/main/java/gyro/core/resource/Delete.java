@@ -26,9 +26,10 @@ public class Delete extends Change {
     }
 
     @Override
-    public boolean execute(GyroUI ui, State state) {
+    public boolean execute(GyroUI ui, State state) throws Exception {
         if (!state.isTest()) {
             ((Resource) diffable).delete();
+            state.update(this);
         }
 
         return true;
