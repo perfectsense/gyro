@@ -9,11 +9,7 @@ import gyro.lang.ast.block.DirectiveNode;
 
 public abstract class DirectiveProcessor {
 
-    public abstract String getName();
-
-    public abstract void process(Scope scope, DirectiveNode node) throws Exception;
-
-    public List<Object> resolveArguments(Scope scope, DirectiveNode node) {
+    public static List<Object> resolveArguments(Scope scope, DirectiveNode node) {
         NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
 
         return node.getArguments()
@@ -21,5 +17,9 @@ public abstract class DirectiveProcessor {
             .map(a -> evaluator.visit(a, scope))
             .collect(Collectors.toList());
     }
+
+    public abstract String getName();
+
+    public abstract void process(Scope scope, DirectiveNode node) throws Exception;
 
 }
