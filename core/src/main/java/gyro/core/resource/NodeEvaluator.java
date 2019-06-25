@@ -318,7 +318,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
             visit(item, bodyScope);
         }
 
-        Class<? extends Resource> resourceClass = (Class<? extends Resource>) rootScope.getResourceClasses().get(type);
+        Class<? extends Resource> resourceClass = (Class<? extends Resource>) rootScope.get(type);
 
         if (resourceClass == null) {
             VirtualResourceNode vrNode = scope.getRootScope().getVirtualResourceNodes().get(type);

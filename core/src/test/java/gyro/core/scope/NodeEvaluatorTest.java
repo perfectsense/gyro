@@ -142,7 +142,7 @@ class NodeEvaluatorTest {
 
             @BeforeEach
             void beforeEach() {
-                root.getResourceClasses().put("test::resource", TestResource.class);
+                root.put("test::resource", TestResource.class);
                 root.put("test::resource::foo", new TestResource("foo"));
                 root.put("test::resource::bar", new TestResource("bar"));
                 root.put("test::resource::foobar", new TestResource("foobar"));
