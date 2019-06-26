@@ -1,10 +1,17 @@
-package gyro.core.resource;
+package gyro.core.virtual;
 
 import java.util.List;
 
 import com.google.common.collect.ImmutableList;
 import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
+import gyro.core.resource.DiffableInternals;
+import gyro.core.resource.FileScope;
+import gyro.core.resource.NodeEvaluator;
+import gyro.core.resource.Resource;
+import gyro.core.resource.ResourceVisitor;
+import gyro.core.resource.RootScope;
+import gyro.core.resource.Scope;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.DirectiveNode;
 
@@ -70,7 +77,7 @@ public class VirtualResourceVisitor extends ResourceVisitor {
         String prefix = name + "/";
 
         for (Resource resource : virtualRoot.findResources()) {
-            resource.name = prefix + resource.name;
+            DiffableInternals.setName(resource, prefix + resource.name());
             file.put(resource.primaryKey(), resource);
         }
     }

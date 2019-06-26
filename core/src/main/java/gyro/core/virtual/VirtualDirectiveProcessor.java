@@ -1,9 +1,11 @@
-package gyro.core.resource;
+package gyro.core.virtual;
 
 import java.util.List;
 
 import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
+import gyro.core.resource.FileScope;
+import gyro.core.resource.Scope;
 import gyro.lang.ast.block.DirectiveNode;
 
 public class VirtualDirectiveProcessor extends DirectiveProcessor {

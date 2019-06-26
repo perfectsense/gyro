@@ -28,6 +28,7 @@ import gyro.core.reference.FinderReferenceResolver;
 import gyro.core.reference.ReferencePlugin;
 import gyro.core.reference.ReferenceSettings;
 import gyro.core.repo.RepositoryDirectiveProcessor;
+import gyro.core.virtual.VirtualDirectiveProcessor;
 import gyro.core.workflow.Workflow;
 import gyro.lang.ast.Node;
 import gyro.parser.antlr4.GyroParser;
