@@ -534,7 +534,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
     }
 
     @Override
-    public Object visitIndexedNode(IndexedNode node, Scope context) {
+    public Object visitIndexed(IndexedNode node, Scope context) {
         Object value = visit(node.getValue(), context);
 
         if (value == null) {

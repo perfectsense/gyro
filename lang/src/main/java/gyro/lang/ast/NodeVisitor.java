@@ -36,7 +36,7 @@ public interface NodeVisitor<C, R> {
 
     R visitBinary(BinaryNode node, C context);
 
-    R visitIndexedNode(IndexedNode node, C context);
+    R visitIndexed(IndexedNode node, C context);
 
     R visitInterpolatedString(InterpolatedStringNode node, C context);
 

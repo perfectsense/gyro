@@ -34,7 +34,7 @@ public class IndexedNode extends Node {
 
     @Override
     public <C, R> R accept(NodeVisitor<C, R> visitor, C context) {
-        return visitor.visitIndexedNode(this, context);
+        return visitor.visitIndexed(this, context);
     }
 
 }

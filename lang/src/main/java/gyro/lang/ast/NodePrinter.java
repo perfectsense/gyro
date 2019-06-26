@@ -146,7 +146,7 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
     }
 
     @Override
-    public Void visitIndexedNode(IndexedNode node, PrinterContext context) {
+    public Void visitIndexed(IndexedNode node, PrinterContext context) {
         visit(node.getValue(), context);
 
         for (Node index : node.getIndexes()) {
