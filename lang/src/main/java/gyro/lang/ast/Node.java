@@ -15,12 +15,9 @@ import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.block.ResourceNode;
-import gyro.lang.ast.condition.AndConditionNode;
-import gyro.lang.ast.condition.ComparisonConditionNode;
-import gyro.lang.ast.condition.OrConditionNode;
-import gyro.lang.ast.condition.ValueConditionNode;
 import gyro.lang.ast.control.ForNode;
 import gyro.lang.ast.control.IfNode;
+import gyro.lang.ast.value.BinaryNode;
 import gyro.lang.ast.value.IndexedNode;
 import gyro.lang.ast.value.InterpolatedStringNode;
 import gyro.lang.ast.value.ListNode;
@@ -54,11 +51,6 @@ public abstract class Node {
         .put(GyroParser.NameContext.class, GET_FIRST_CHILD)
         .put(GyroParser.ResourceContext.class, c -> new ResourceNode((GyroParser.ResourceContext) c))
         .put(GyroParser.StatementContext.class, GET_FIRST_CHILD)
-        // ast.condition
-        .put(GyroParser.AndConditionContext.class, c -> new AndConditionNode((GyroParser.AndConditionContext) c))
-        .put(GyroParser.ComparisonConditionContext.class, c -> new ComparisonConditionNode((GyroParser.ComparisonConditionContext) c))
-        .put(GyroParser.OrConditionContext.class, c -> new OrConditionNode((GyroParser.OrConditionContext) c))
-        .put(GyroParser.ValueConditionContext.class, c -> new ValueConditionNode((GyroParser.ValueConditionContext) c))
         // ast.control
         .put(GyroParser.ForStatementContext.class, c -> new ForNode((GyroParser.ForStatementContext) c))
         .put(GyroParser.ForValueContext.class, GET_FIRST_CHILD)
@@ -66,17 +58,29 @@ public abstract class Node {
         // ast.value
         .put(GyroParser.BareStringContext.class, c -> new ValueNode((GyroParser.BareStringContext) c))
         .put(GyroParser.BoolContext.class, c -> new ValueNode((GyroParser.BoolContext) c))
+        .put(GyroParser.GroupedMulItemContext.class, c -> Node.create(((GyroParser.GroupedMulItemContext) c).value()))
         .put(GyroParser.IndexContext.class, GET_FIRST_CHILD)
-        .put(GyroParser.IndexedContext.class, c -> new IndexedNode((GyroParser.IndexedContext) c))
+        .put(GyroParser.IndexedMulItemContext.class, c -> new IndexedNode((GyroParser.IndexedMulItemContext) c))
         .put(GyroParser.InterpolatedStringContext.class, c -> new InterpolatedStringNode((GyroParser.InterpolatedStringContext) c))
+        .put(GyroParser.ItemContext.class, GET_FIRST_CHILD)
         .put(GyroParser.ListContext.class, c -> new ListNode((GyroParser.ListContext) c))
         .put(GyroParser.LiteralStringContext.class, c -> new ValueNode((GyroParser.LiteralStringContext) c))
         .put(GyroParser.MapContext.class, c -> new MapNode((GyroParser.MapContext) c))
         .put(GyroParser.NumberContext.class, c -> new ValueNode((GyroParser.NumberContext) c))
         .put(GyroParser.ReferenceContext.class, c -> new ReferenceNode((GyroParser.ReferenceContext) c))
+        .put(GyroParser.OneAddContext.class, GET_FIRST_CHILD)
+        .put(GyroParser.OneAndContext.class, GET_FIRST_CHILD)
+        .put(GyroParser.OneMulContext.class, GET_FIRST_CHILD)
+        .put(GyroParser.OneMulItemContext.class, GET_FIRST_CHILD)
+        .put(GyroParser.OneRelContext.class, GET_FIRST_CHILD)
+        .put(GyroParser.OneValueContext.class, GET_FIRST_CHILD)
         .put(GyroParser.StringContentContext.class, GET_FIRST_CHILD)
         .put(GyroParser.TextContext.class, c -> new ValueNode(c.getText()))
-        .put(GyroParser.UnindexedContext.class, GET_FIRST_CHILD)
+        .put(GyroParser.TwoAddContext.class, c -> new BinaryNode((GyroParser.TwoAddContext) c))
+        .put(GyroParser.TwoAndContext.class, c -> new BinaryNode((GyroParser.TwoAndContext) c))
+        .put(GyroParser.TwoMulContext.class, c -> new BinaryNode((GyroParser.TwoMulContext) c))
+        .put(GyroParser.TwoRelContext.class, c -> new BinaryNode((GyroParser.TwoRelContext) c))
+        .put(GyroParser.TwoValueContext.class, c -> new BinaryNode((GyroParser.TwoValueContext) c))
         .put(GyroParser.ValueContext.class, GET_FIRST_CHILD)
         .build();
 

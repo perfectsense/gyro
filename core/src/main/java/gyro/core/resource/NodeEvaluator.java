@@ -14,10 +14,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.DoubleBinaryOperator;
+import java.util.function.LongBinaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.google.common.base.CaseFormat;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
@@ -34,12 +38,9 @@ import gyro.lang.ast.PairNode;
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.block.ResourceNode;
-import gyro.lang.ast.condition.AndConditionNode;
-import gyro.lang.ast.condition.ComparisonConditionNode;
-import gyro.lang.ast.condition.OrConditionNode;
-import gyro.lang.ast.condition.ValueConditionNode;
 import gyro.lang.ast.control.ForNode;
 import gyro.lang.ast.control.IfNode;
+import gyro.lang.ast.value.BinaryNode;
 import gyro.lang.ast.value.IndexedNode;
 import gyro.lang.ast.value.InterpolatedStringNode;
 import gyro.lang.ast.value.ListNode;
@@ -51,6 +52,96 @@ import gyro.util.CascadingMap;
 import org.apache.commons.lang3.math.NumberUtils;
 
 public class NodeEvaluator implements NodeVisitor<Scope, Object> {
+
+    private static final Map<String, BiFunction<Object, Object, Object>> BINARY_FUNCTIONS = ImmutableMap.<String, BiFunction<Object, Object, Object>>builder()
+        .put("*", (l, r) -> doArithmetic(l, r, (ld, rd) -> ld * rd, (ll, rl) -> ll * rl))
+        .put("/", (l, r) -> doArithmetic(l, r, (ld, rd) -> ld / rd, (ll, rl) -> ll / rl))
+        .put("%", (l, r) -> doArithmetic(l, r, (ld, rd) -> ld % rd, (ll, rl) -> ll % rl))
+        .put("+", (l, r) -> doArithmetic(l, r, Double::sum, Long::sum))
+        .put("-", (l, r) -> doArithmetic(l, r, (ld, rd) -> ld - rd, (ll, rl) -> ll - rl))
+        .put("=", Objects::equals)
+        .put("!=", (l, r) -> !Objects.equals(l, r))
+        .put("<", (l, r) -> compare(l, r) < 0)
+        .put("<=", (l, r) -> compare(l, r) <= 0)
+        .put(">", (l, r) -> compare(l, r) > 0)
+        .put(">=", (l, r) -> compare(l, r) >= 0)
+        .put("and", (l, r) -> test(l) && test(r))
+        .put("or", (l, r) -> test(l) && test(r))
+        .build();
+
+    private static Object doArithmetic(Object left, Object right, DoubleBinaryOperator doubleOperator, LongBinaryOperator longOperator) {
+        if (left == null || right == null) {
+            throw new GyroException("Can't do arithmetic on a null!");
+        }
+
+        Number leftNumber = NumberUtils.createNumber(left.toString());
+
+        if (leftNumber == null) {
+            throw new GyroException(String.format(
+                "Can't do arithmetic on [%s] because it's not a number!",
+                left));
+        }
+
+        Number rightNumber = NumberUtils.createNumber(right.toString());
+
+        if (rightNumber == null) {
+            throw new GyroException(String.format(
+                "Can't do arithmetic on [%s] because it's not a number!",
+                right));
+        }
+
+        if (leftNumber instanceof Float
+            || leftNumber instanceof Double
+            || rightNumber instanceof Float
+            || rightNumber instanceof Double) {
+
+            return doubleOperator.applyAsDouble(leftNumber.doubleValue(), rightNumber.doubleValue());
+
+        } else {
+            return longOperator.applyAsLong(leftNumber.longValue(), rightNumber.longValue());
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static int compare(Object left, Object right) {
+        if (left == null || right == null) {
+            throw new GyroException("Can't compare against a null!");
+
+        } else if (left instanceof Comparable
+            && left.getClass().isInstance(right)) {
+
+            return ((Comparable<Object>) left).compareTo(right);
+
+        } else {
+            throw new GyroException(String.format(
+                "Can't compare [%s], an instance of [%s], against [%s], an instance of [%s]!",
+                left,
+                left.getClass().getName(),
+                right,
+                right.getClass().getName()));
+        }
+    }
+
+    private static boolean test(Object value) {
+        if (value instanceof Boolean) {
+            return Boolean.TRUE.equals(value);
+
+        } else if (value instanceof Collection) {
+            return !((Collection<?>) value).isEmpty();
+
+        } else if (value instanceof Map) {
+            return !((Map<?, ?>) value).isEmpty();
+
+        } else if (value instanceof Number) {
+            return ((Number) value).intValue() != 0;
+
+        } else if (value instanceof String) {
+            return !((String) value).isEmpty();
+
+        } else {
+            return value != null;
+        }
+    }
 
     public static Object getValue(Object object, String key) {
         if ("*".equals(key)) {
@@ -345,56 +436,6 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
     }
 
     @Override
-    public Object visitAndCondition(AndConditionNode node, Scope scope) {
-        return test(node.getLeft(), scope) && test(node.getRight(), scope);
-    }
-
-    private boolean test(Node node, Scope scope) {
-        Object value = visit(node, scope);
-
-        if (value instanceof Boolean) {
-            return Boolean.TRUE.equals(value);
-
-        } else if (value instanceof Collection) {
-            return !((Collection<?>) value).isEmpty();
-
-        } else if (value instanceof Map) {
-            return !((Map<?, ?>) value).isEmpty();
-
-        } else if (value instanceof Number) {
-            return ((Number) value).intValue() != 0;
-
-        } else if (value instanceof String) {
-            return !((String) value).isEmpty();
-
-        } else {
-            return value != null;
-        }
-    }
-
-    @Override
-    public Object visitComparisonCondition(ComparisonConditionNode node, Scope scope) {
-        Object leftValue = visit(node.getLeft(), scope);
-        Object rightValue = visit(node.getRight(), scope);
-
-        switch (node.getOperator()) {
-            case "==" : return leftValue.equals(rightValue);
-            case "!=" : return !leftValue.equals(rightValue);
-            default   : return false;
-        }
-    }
-
-    @Override
-    public Object visitOrCondition(OrConditionNode node, Scope scope) {
-        return test(node.getLeft(), scope) || test(node.getRight(), scope);
-    }
-
-    @Override
-    public Object visitValueCondition(ValueConditionNode node, Scope scope) {
-        return test(node.getValue(), scope);
-    }
-
-    @Override
     public Object visitFor(ForNode node, Scope scope) {
         List<String> variables = node.getVariables();
         Object value = visit(node.getValue(), scope);
@@ -463,7 +504,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
         List<List<Node>> bodies = node.getBodies();
 
         for (int i = 0; i < conditions.size(); i++) {
-            if (test(conditions.get(i), scope)) {
+            if (test(visit(conditions.get(i), scope))) {
                 visitBody(bodies.get(i), scope);
                 return null;
             }
@@ -474,6 +515,22 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
         }
 
         return null;
+    }
+
+    @Override
+    public Object visitBinary(BinaryNode node, Scope scope) {
+        String operator = node.getOperator();
+        BiFunction<Object, Object, Object> function = BINARY_FUNCTIONS.get(operator);
+
+        if (function == null) {
+            throw new GyroException(String.format(
+                "[%s] is not a valid binary operator!",
+                operator));
+        }
+
+        return function.apply(
+            visit(node.getLeft(), scope),
+            visit(node.getRight(), scope));
     }
 
     @Override

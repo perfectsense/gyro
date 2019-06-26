@@ -25,7 +25,7 @@ public class IfNode extends Node {
 
     public IfNode(GyroParser.IfStatementContext context) {
         this(
-            Node.create(Preconditions.checkNotNull(context).condition()),
+            Node.create(Preconditions.checkNotNull(context).value()),
 
             context.blockBody()
                 .stream()

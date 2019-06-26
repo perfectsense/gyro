@@ -8,12 +8,9 @@ import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.block.ResourceNode;
-import gyro.lang.ast.condition.AndConditionNode;
-import gyro.lang.ast.condition.ComparisonConditionNode;
-import gyro.lang.ast.condition.OrConditionNode;
-import gyro.lang.ast.condition.ValueConditionNode;
 import gyro.lang.ast.control.ForNode;
 import gyro.lang.ast.control.IfNode;
+import gyro.lang.ast.value.BinaryNode;
 import gyro.lang.ast.value.IndexedNode;
 import gyro.lang.ast.value.InterpolatedStringNode;
 import gyro.lang.ast.value.ListNode;
@@ -100,42 +97,6 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
     }
 
     @Override
-    public Void visitAndCondition(AndConditionNode node, PrinterContext context) {
-        visit(node.getLeft(), context);
-        context.append(" and ");
-        visit(node.getRight(), context);
-
-        return null;
-    }
-
-    @Override
-    public Void visitComparisonCondition(ComparisonConditionNode node, PrinterContext context) {
-        visit(node.getLeft(), context);
-        context.append(" ");
-        context.append(node.getOperator());
-        context.append(" ");
-        visit(node.getRight(), context);
-
-        return null;
-    }
-
-    @Override
-    public Void visitOrCondition(OrConditionNode node, PrinterContext context) {
-        visit(node.getLeft(), context);
-        context.append(" or ");
-        visit(node.getRight(), context);
-
-        return null;
-    }
-
-    @Override
-    public Void visitValueCondition(ValueConditionNode node, PrinterContext context) {
-        visit(node.getValue(), context);
-
-        return null;
-    }
-
-    @Override
     public Void visitFor(ForNode node, PrinterContext context) {
         context.appendNewline();
         context.append("for ");
@@ -169,6 +130,17 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
 
         context.appendNewline();
         context.append("end");
+
+        return null;
+    }
+
+    @Override
+    public Void visitBinary(BinaryNode node, PrinterContext context) {
+        visit(node.getLeft(), context);
+        context.append(' ');
+        context.append(node.getOperator());
+        context.append(' ');
+        visit(node.getRight(), context);
 
         return null;
     }

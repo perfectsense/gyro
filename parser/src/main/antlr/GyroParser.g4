@@ -65,22 +65,13 @@ forValue
 // ifStatement
 ifStatement
     :
-    IF condition NEWLINES
+    IF value NEWLINES
         blockBody
-    (ELSE IF condition NEWLINES
+    (ELSE IF value NEWLINES
         blockBody)*
     (ELSE NEWLINES
         blockBody)?
     END
-    ;
-
-comparisonOperator : EQ | NEQ;
-
-condition
-    : value                          # ValueCondition
-    | value comparisonOperator value # ComparisonCondition
-    | condition AND condition        # AndCondition
-    | condition OR condition         # OrCondition
     ;
 
 // pair
@@ -93,18 +84,62 @@ key
     ;
 
 value
-    : indexed
-    | unindexed
+    : and          # OneValue
+    | and OR value # TwoValue
     ;
 
-indexed : unindexed (DOT index)+;
+and
+    : rel         # OneAnd
+    | rel AND and # TwoAnd
+    ;
+
+rel
+    : add           # OneRel
+    | add relOp rel # TwoRel
+    ;
+
+relOp
+    : EQ
+    | NE
+    | LT
+    | LE
+    | GT
+    | GE
+    ;
+
+add
+    : mul           # OneAdd
+    | mul addOp add # TwoAdd
+    ;
+
+addOp
+    : PLUS
+    | MINUS
+    ;
+
+mul
+    : mulItem           # OneMul
+    | mulItem mulOp mul # TwoMul
+    ;
+
+mulOp
+    : ASTERISK
+    | SLASH
+    | PERCENT
+    ;
+
+mulItem
+    : item                # OneMulItem
+    | item (DOT index)+   # IndexedMulItem
+    | LPAREN value RPAREN # GroupedMulItem
+    ;
 
 index
     : string
     | number
     ;
 
-unindexed
+item
     : bool
     | list
     | map
@@ -140,23 +175,23 @@ number
     ;
 
 reference
-    : LREF value* (PIPE filter)* RREF
+    : DOLLAR LPAREN value* (PIPE filter)* RPAREN
     | DOLLAR IDENTIFIER
     ;
 
 filter
-    : IDENTIFIER comparisonOperator value # ComparisonFilter
-    | filter AND filter                   # AndFilter
-    | filter OR filter                    # OrFilter
+    : IDENTIFIER relOp value # ComparisonFilter
+    | filter AND filter      # AndFilter
+    | filter OR filter       # OrFilter
     ;
 
 string
     : STRING                       # LiteralString
     | DQUOTE stringContent* DQUOTE # InterpolatedString
     |
-        ( IDENTIFIER GLOB
+        ( IDENTIFIER ASTERISK
         | IDENTIFIER
-        | GLOB
+        | ASTERISK
         | type
     )                              # BareString
     ;
@@ -166,4 +201,8 @@ stringContent
     | text
     ;
 
-text : DOLLAR | (IDENTIFIER | CHARACTER)+;
+text
+    : DOLLAR
+    | LPAREN
+    | (IDENTIFIER | CHARACTER)+
+    ;

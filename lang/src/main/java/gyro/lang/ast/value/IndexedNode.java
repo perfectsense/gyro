@@ -18,9 +18,9 @@ public class IndexedNode extends Node {
         this.indexes = ImmutableList.copyOf(Preconditions.checkNotNull(indexes));
     }
 
-    public IndexedNode(GyroParser.IndexedContext context) {
+    public IndexedNode(GyroParser.IndexedMulItemContext context) {
         this(
-            Node.create(Preconditions.checkNotNull(context).unindexed()),
+            Node.create(Preconditions.checkNotNull(context).item()),
             Node.create(context.index()));
     }
 
