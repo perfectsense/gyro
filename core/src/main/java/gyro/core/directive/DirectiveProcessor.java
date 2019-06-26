@@ -18,6 +18,14 @@ public abstract class DirectiveProcessor {
             .collect(Collectors.toList());
     }
 
+    public static Scope resolveBody(Scope scope, DirectiveNode node) {
+        NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
+        Scope bodyScope = new Scope(scope);
+
+        evaluator.visitBody(node.getBody(), bodyScope);
+        return bodyScope;
+    }
+
     public abstract String getName();
 
     public abstract void process(Scope scope, DirectiveNode node) throws Exception;

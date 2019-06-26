@@ -4,7 +4,6 @@ import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
 import java.util.List;
-import java.util.Map;
 
 import com.google.common.base.CaseFormat;
 import gyro.core.GyroException;
@@ -30,22 +29,13 @@ public class CredentialsDirectiveProcessor extends DirectiveProcessor {
         List<Object> arguments = resolveArguments(scope, node);
         int argumentsSize = arguments.size();
 
-        if (argumentsSize < 2 || argumentsSize > 3) {
-            throw new GyroException("@credentials directive only takes 2 or 3 arguments!");
+        if (argumentsSize < 1 || argumentsSize > 2) {
+            throw new GyroException("@credentials directive only takes 1 or 2 arguments!");
         }
 
         String type = (String) arguments.get(0);
-        String name;
-        Map<String, Object> values;
-
-        if (argumentsSize == 2) {
-            name = "default";
-            values = (Map<String, Object>) arguments.get(1);
-
-        } else {
-            name = (String) arguments.get(1);
-            values = (Map<String, Object>) arguments.get(2);
-        }
+        String name = argumentsSize == 1 ? "default" : (String) arguments.get(1);
+        Scope bodyScope = resolveBody(scope, node);
 
         RootScope root = (RootScope) scope;
         CredentialsSettings settings = root.getSettings(CredentialsSettings.class);
@@ -59,7 +49,7 @@ public class CredentialsDirectiveProcessor extends DirectiveProcessor {
             if (setter != null) {
                 setter.invoke(credentials, root.convertValue(
                     setter.getGenericParameterTypes()[0],
-                    values.get(CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, property.getName()))));
+                    bodyScope.get(CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, property.getName()))));
             }
         }
 
