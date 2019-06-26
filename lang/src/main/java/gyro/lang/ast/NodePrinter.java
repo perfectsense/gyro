@@ -39,13 +39,26 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
 
     @Override
     public Void visitDirective(DirectiveNode node, PrinterContext context) {
+        List<Node> body = node.getBody();
+        boolean bodyEmpty = body.isEmpty();
+
         context.appendNewline();
         context.append('@');
         context.append(node.getName());
 
+        if (bodyEmpty) {
+            context.append(':');
+        }
+
         for (Node arg : node.getArguments()) {
             context.append(' ');
             visit(arg, context);
+        }
+
+        if (!bodyEmpty) {
+            visitBody(body, context.indented());
+            context.appendNewline();
+            context.append("@end");
         }
 
         return null;
