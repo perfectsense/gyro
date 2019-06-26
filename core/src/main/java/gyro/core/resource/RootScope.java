@@ -5,7 +5,6 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -31,7 +30,6 @@ import gyro.core.reference.ReferenceSettings;
 import gyro.core.repo.RepositoryDirectiveProcessor;
 import gyro.core.workflow.Workflow;
 import gyro.lang.ast.Node;
-import gyro.lang.ast.block.VirtualResourceNode;
 import gyro.parser.antlr4.GyroParser;
 
 public class RootScope extends FileScope {
@@ -41,7 +39,6 @@ public class RootScope extends FileScope {
     private final FileBackend backend;
     private final RootScope current;
     private final Set<String> loadFiles;
-    private final Map<String, VirtualResourceNode> virtualResourceNodes = new LinkedHashMap<>();
     private final List<Workflow> workflows = new ArrayList<>();
     private final List<FileScope> fileScopes = new ArrayList<>();
 
@@ -92,7 +89,8 @@ public class RootScope extends FileScope {
             new HighlanderDirectiveProcessor(),
             new RepositoryDirectiveProcessor(),
             new PluginDirectiveProcessor(),
-            new UsesCredentialsDirectiveProcessor())
+            new UsesCredentialsDirectiveProcessor(),
+            new VirtualDirectiveProcessor())
             .forEach(p -> getSettings(DirectiveSettings.class).getProcessors().put(p.getName(), p));
 
         Stream.of(
@@ -116,10 +114,6 @@ public class RootScope extends FileScope {
 
     public Set<String> getLoadFiles() {
         return loadFiles;
-    }
-
-    public Map<String, VirtualResourceNode> getVirtualResourceNodes() {
-        return virtualResourceNodes;
     }
 
     public List<Workflow> getWorkflows() {

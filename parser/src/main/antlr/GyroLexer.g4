@@ -6,11 +6,6 @@ AT    : '@';
 // resource
 END : 'end';
 
-// virtual resource
-VIRTUAL_RESOURCE : 'virtual-resource';
-PARAM            : 'param';
-DEFINE           : 'define';
-
 // forStatement
 FOR   : 'for';
 COMMA : ',';
@@ -55,16 +50,16 @@ DOT    : '.';
 STRING : '\'' ~('\'')* '\'';
 DQUOTE : '"' -> pushMode(STRING_MODE);
 
-KEYWORD     : PARAM | DEFINE | IN | AND | OR;
+KEYWORD     : IN | AND | OR;
 WHITESPACES : [ \t]+ -> channel(HIDDEN);
 COMMENT     : '#' ~[\n\r]* NEWLINES -> channel(HIDDEN);
 NEWLINES    : [\n\r][ \t\n\r]*;
-IDENTIFIER  : [_A-Za-z] [-_0-9A-Za-z]*;
+IDENTIFIER  : [A-Z_a-z] [-/0-9A-Z_a-z]*;
 
 mode STRING_MODE;
 
 S_LREF       : [\\$] '(' -> type(LREF), pushMode(DEFAULT_MODE);
 S_DOLLAR     : '$' -> type(DOLLAR);
-S_IDENTIFIER : [_A-Za-z] [-_0-9A-Za-z]* -> type(IDENTIFIER);
+S_IDENTIFIER : [A-Z_a-z] [-/0-9A-Z_a-z]* -> type(IDENTIFIER);
 S_DQUOTE     : '"' -> type(DQUOTE), popMode;
 CHARACTER    : .;

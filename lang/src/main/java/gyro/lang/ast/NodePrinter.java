@@ -8,7 +8,6 @@ import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.block.ResourceNode;
-import gyro.lang.ast.block.VirtualResourceNode;
 import gyro.lang.ast.condition.AndConditionNode;
 import gyro.lang.ast.condition.ComparisonConditionNode;
 import gyro.lang.ast.condition.OrConditionNode;
@@ -97,11 +96,6 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
         context.appendNewline();
         context.append("end");
 
-        return null;
-    }
-
-    @Override
-    public Void visitVirtualResource(VirtualResourceNode node, PrinterContext context) {
         return null;
     }
 

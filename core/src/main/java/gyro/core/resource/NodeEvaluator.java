@@ -19,7 +19,6 @@ import java.util.stream.Stream;
 
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableSet;
-import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.directive.DirectiveSettings;
@@ -28,7 +27,6 @@ import gyro.core.finder.FilterEvaluator;
 import gyro.core.reference.ReferenceResolver;
 import gyro.core.reference.ReferenceSettings;
 import gyro.core.workflow.Workflow;
-import gyro.lang.GyroLanguageException;
 import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.NodeVisitor;
@@ -36,8 +34,6 @@ import gyro.lang.ast.PairNode;
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.block.ResourceNode;
-import gyro.lang.ast.block.VirtualResourceNode;
-import gyro.lang.ast.block.VirtualResourceParameter;
 import gyro.lang.ast.condition.AndConditionNode;
 import gyro.lang.ast.condition.ComparisonConditionNode;
 import gyro.lang.ast.condition.OrConditionNode;
@@ -212,17 +208,12 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
         }
 
         List<PairNode> keyValues = new ArrayList<>();
-        Map<String, VirtualResourceNode> virtualResourceNodes = rootScope.getVirtualResourceNodes();
         List<ResourceNode> workflowNodes = new ArrayList<>();
         List<Node> body = new ArrayList<>();
 
         for (Node item : node.getBody()) {
             if (item instanceof PairNode) {
                 keyValues.add((PairNode) item);
-
-            } else if (item instanceof VirtualResourceNode) {
-                VirtualResourceNode vrNode = (VirtualResourceNode) item;
-                virtualResourceNodes.put(vrNode.getName(), vrNode);
 
             } else {
                 if (item instanceof ResourceNode) {
@@ -318,70 +309,39 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
             visit(item, bodyScope);
         }
 
-        Class<? extends Resource> resourceClass = (Class<? extends Resource>) rootScope.get(type);
+        Object value = rootScope.get(type);
 
-        if (resourceClass == null) {
-            VirtualResourceNode vrNode = scope.getRootScope().getVirtualResourceNodes().get(type);
+        if (value == null) {
+            throw new DeferError(node);
 
-            if (vrNode != null) {
-                createResources(vrNode, name, bodyScope);
-                return null;
+        } else if (value instanceof Class) {
+            Class<?> c = (Class<?>) value;
+
+            if (Resource.class.isAssignableFrom(c)) {
+                Resource resource = DiffableType.getInstance((Class<? extends Resource>) c).newDiffable(null, name, bodyScope);
+
+                resource.initialize(bodyScope.isExtended() ? new LinkedHashMap<>(bodyScope) : bodyScope);
+                scope.getFileScope().put(fullName, resource);
 
             } else {
-                throw new IllegalArgumentException(String.format(
-                        "Can't create resource of [%s] type!",
-                        type));
+                throw new GyroException(String.format(
+                    "Can't create a resource of [%s] type using [%s] class!",
+                    type,
+                    c.getName()));
             }
+
+        } else if (value instanceof ResourceVisitor) {
+            ((ResourceVisitor) value).visit(name, bodyScope);
+
+        } else {
+            throw new GyroException(String.format(
+                "Can't create a resource of [%s] type using [%s], an instance of [%s]!",
+                type,
+                value,
+                value.getClass().getName()));
         }
-
-        Resource resource = DiffableType.getInstance(resourceClass).newDiffable(null, name, bodyScope);
-
-        resource.initialize(bodyScope.isExtended() ? new LinkedHashMap<>(bodyScope) : bodyScope);
-        scope.getFileScope().put(fullName, resource);
 
         return null;
-    }
-
-    private void createResources(VirtualResourceNode node, String prefix, Scope paramScope) {
-        FileScope paramFileScope = paramScope.getFileScope();
-
-        RootScope vrScope = new RootScope(
-            GyroCore.INIT_FILE,
-            paramScope.getRootScope().getBackend(),
-            null,
-            paramScope.getRootScope().getLoadFiles());
-
-        FileScope resourceScope = new FileScope(vrScope, paramFileScope.getFile());
-
-        for (VirtualResourceParameter param : node.getParameters()) {
-            String paramName = param.getName();
-
-            if (!paramScope.containsKey(paramName)) {
-                throw new GyroLanguageException(String.format("Required parameter '%s' is missing.", paramName));
-
-            } else {
-                vrScope.put(paramName, paramScope.get(paramName));
-            }
-        }
-
-        RootScope paramRootScope = paramScope.getRootScope();
-
-        vrScope.getResourceClasses().putAll(paramRootScope.getResourceClasses());
-        vrScope.getFileScopes().add(resourceScope);
-
-        for (Node item : node.getBody()) {
-            visit(item, resourceScope);
-        }
-
-        for (Resource resource : vrScope.findResources()) {
-            resource.name = prefix + "." + resource.name;
-            paramFileScope.put(resource.primaryKey(), resource);
-        }
-    }
-
-    @Override
-    public Object visitVirtualResource(VirtualResourceNode node, Scope scope) {
-        throw new UnsupportedOperationException();
     }
 
     @Override

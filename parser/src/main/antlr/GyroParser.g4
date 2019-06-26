@@ -12,7 +12,6 @@ file
 statement
     : directive
     | block
-    | virtualResource
     | forStatement
     | ifStatement
     | pair
@@ -46,18 +45,6 @@ blockStatement
     | ifStatement
     | pair
     ;
-
-// virtual resource
-virtualResource
-    :
-    VIRTUAL_RESOURCE type NEWLINES
-        (PARAM virtualResourceParameter NEWLINES)*
-    DEFINE NEWLINES
-        blockBody
-    END
-    ;
-
-virtualResourceParameter : IDENTIFIER;
 
 // forStatement
 forStatement

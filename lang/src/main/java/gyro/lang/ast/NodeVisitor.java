@@ -4,7 +4,6 @@ import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.block.ResourceNode;
-import gyro.lang.ast.block.VirtualResourceNode;
 import gyro.lang.ast.condition.AndConditionNode;
 import gyro.lang.ast.condition.ComparisonConditionNode;
 import gyro.lang.ast.condition.OrConditionNode;
@@ -33,8 +32,6 @@ public interface NodeVisitor<C, R> {
     R visitKeyBlock(KeyBlockNode node, C context);
 
     R visitResource(ResourceNode node, C context);
-
-    R visitVirtualResource(VirtualResourceNode node, C context);
 
     R visitAndCondition(AndConditionNode node, C context);
 

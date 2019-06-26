@@ -15,7 +15,6 @@ import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.block.ResourceNode;
-import gyro.lang.ast.block.VirtualResourceNode;
 import gyro.lang.ast.condition.AndConditionNode;
 import gyro.lang.ast.condition.ComparisonConditionNode;
 import gyro.lang.ast.condition.OrConditionNode;
@@ -55,7 +54,6 @@ public abstract class Node {
         .put(GyroParser.NameContext.class, GET_FIRST_CHILD)
         .put(GyroParser.ResourceContext.class, c -> new ResourceNode((GyroParser.ResourceContext) c))
         .put(GyroParser.StatementContext.class, GET_FIRST_CHILD)
-        .put(GyroParser.VirtualResourceContext.class, c -> new VirtualResourceNode((GyroParser.VirtualResourceContext) c))
         // ast.condition
         .put(GyroParser.AndConditionContext.class, c -> new AndConditionNode((GyroParser.AndConditionContext) c))
         .put(GyroParser.ComparisonConditionContext.class, c -> new ComparisonConditionNode((GyroParser.ComparisonConditionContext) c))
