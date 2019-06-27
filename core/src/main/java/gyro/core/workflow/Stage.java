@@ -15,7 +15,6 @@ import gyro.core.resource.Resource;
 import gyro.core.resource.RootScope;
 import gyro.core.resource.Scope;
 import gyro.core.resource.State;
-import gyro.lang.ast.block.ResourceNode;
 import gyro.util.ImmutableCollectors;
 
 public class Stage {
@@ -77,15 +76,7 @@ public class Stage {
         executeScope.put("CURRENT", currentResource);
         executeScope.put("PENDING", pendingResource.scope().resolve());
 
-        for (Create create : creates) {
-            evaluator.visit(
-                new ResourceNode(
-                    (String) evaluator.visit(create.getType(), executeScope),
-                    create.getName(),
-                    create.getBody()),
-                executeScope);
-        }
-
+        creates.forEach(c -> c.execute(ui, state, currentRootScope, pendingRootScope, executeScope));
         deletes.forEach(d -> d.execute(ui, currentRootScope, pendingRootScope, executeScope));
         swaps.forEach(s -> s.execute(ui, state, currentRootScope, pendingRootScope, executeScope));
 

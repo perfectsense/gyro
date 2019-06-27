@@ -4,7 +4,13 @@ import java.util.List;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import gyro.core.GyroUI;
+import gyro.core.resource.NodeEvaluator;
+import gyro.core.resource.RootScope;
+import gyro.core.resource.Scope;
+import gyro.core.resource.State;
 import gyro.lang.ast.Node;
+import gyro.lang.ast.block.ResourceNode;
 
 public class Create {
 
@@ -28,6 +34,17 @@ public class Create {
 
     public List<Node> getBody() {
         return body;
+    }
+
+    public void execute(GyroUI ui, State state, RootScope current, RootScope pending, Scope executing) {
+        NodeEvaluator evaluator = executing.getRootScope().getEvaluator();
+
+        evaluator.visit(
+            new ResourceNode(
+                (String) evaluator.visit(type, executing),
+                name,
+                body),
+            executing);
     }
 
 }
