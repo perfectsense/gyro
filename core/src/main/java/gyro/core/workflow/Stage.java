@@ -66,7 +66,7 @@ public class Stage {
         scope.put("CURRENT", currentResource);
         scope.put("PENDING", pendingResource.scope().resolve());
 
-        actions.forEach(a -> a.execute(ui, state, currentRootScope, pendingRootScope, scope));
+        actions.forEach(a -> a.execute(ui, state, pendingRootScope, scope));
 
         Set<String> diffFiles = state.getDiffFiles();
 

@@ -29,7 +29,7 @@ public class SwapAction extends Action {
     }
 
     @Override
-    public void execute(GyroUI ui, State state, RootScope current, RootScope pending, Scope scope) {
+    public void execute(GyroUI ui, State state, RootScope pending, Scope scope) {
         NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
         Object x = evaluator.visit(this.x, scope);
 
@@ -59,7 +59,7 @@ public class SwapAction extends Action {
         Resource yResource = (Resource) y;
 
         ui.write("@|magenta ⤢ Swapping %s with %s|@\n", xResource.name(), yResource.name());
-        state.swap(current, pending, xResource, yResource);
+        state.swap(xResource, yResource);
     }
 
 }

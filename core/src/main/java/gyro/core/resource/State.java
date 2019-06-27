@@ -33,16 +33,18 @@ import gyro.lang.ast.value.ValueNode;
 public class State {
 
     private final FileBackend backend;
-    private final RootScope root;
     private final boolean test;
     private final Map<String, FileScope> states = new HashMap<>();
     private final Set<String> diffFiles;
+    private final Map<String, String> swapNames = new HashMap<>();
+    private final Map<String, String> swapKeys = new HashMap<>();
 
     public State(RootScope current, RootScope pending, boolean test, Set<String> diffFiles) throws Exception {
         this.backend = current.getBackend();
-        this.root = new RootScope(current.getFile(), backend, null, current.getLoadFiles());
         this.test = test;
         this.diffFiles = diffFiles != null ? ImmutableSet.copyOf(diffFiles) : null;
+
+        RootScope root = new RootScope(current.getFile(), backend, null, current.getLoadFiles());
 
         root.load();
 
@@ -85,7 +87,8 @@ public class State {
         if (change instanceof Delete) {
             if (typeRoot) {
                 for (FileScope state : states.values()) {
-                    state.remove(resource.primaryKey());
+                    String key = resource.primaryKey();
+                    state.remove(swapKeys.getOrDefault(key, key));
                 }
 
             } else {
@@ -102,11 +105,12 @@ public class State {
             FileScope state = states.get(resource.scope.getFileScope().getFile());
 
             if (typeRoot) {
-                state.put(resource.primaryKey(), resource);
+                String key = resource.primaryKey();
+                state.put(swapKeys.getOrDefault(key, key), resource);
 
             } else {
-                Resource parent = resource.parentResource();
-                updateSubresource((Resource) state.get(parent.primaryKey()), resource, false);
+                String key = resource.parentResource().primaryKey();
+                updateSubresource((Resource) state.get(swapKeys.getOrDefault(key, key)), resource, false);
             }
         }
 
@@ -172,7 +176,7 @@ public class State {
                         printer.visit(
                             new ResourceNode(
                                 DiffableType.getInstance(resource.getClass()).getName(),
-                                new ValueNode(resource.name()),
+                                new ValueNode(swapNames.getOrDefault(resource.primaryKey(), resource.name())),
                                 toBodyNodes(resource)),
                             context);
                     }
@@ -283,7 +287,9 @@ public class State {
 
             } else {
                 return new ReferenceNode(
-                    Arrays.asList(new ValueNode(type.getName()), new ValueNode(resource.name())),
+                    Arrays.asList(
+                        new ValueNode(type.getName()),
+                        new ValueNode(swapNames.getOrDefault(resource.primaryKey(), resource.name()))),
                     Collections.emptyList());
             }
 
@@ -294,7 +300,7 @@ public class State {
         }
     }
 
-    public void swap(RootScope current, RootScope pending, Resource x, Resource y) {
+    public void swap(Resource x, Resource y) {
         String xType = DiffableType.getInstance(x.getClass()).getName();
         String yType = DiffableType.getInstance(y.getClass()).getName();
 
@@ -305,42 +311,14 @@ public class State {
                 yType));
         }
 
-        String xName = x.name();
-        String yName = y.name();
+        String xKey = x.primaryKey();
+        String yKey = y.primaryKey();
 
-        swapResources(current, xType, xName, yName);
-        swapResources(pending, xType, xName, yName);
-        swapResources(root, xType, xName, yName);
+        swapNames.put(xKey, y.name());
+        swapNames.put(yKey, x.name());
+        swapKeys.put(xKey, yKey);
+        swapKeys.put(yKey, xKey);
         save();
-    }
-
-    private void swapResources(RootScope rootScope, String type, String xName, String yName) {
-        String xFullName = type + "::" + xName;
-        String yFullName = type + "::" + yName;
-        FileScope xScope = findFileScope(rootScope, xFullName);
-        FileScope yScope = findFileScope(rootScope, yFullName);
-
-        if (xScope != null && yScope != null) {
-            Resource x = (Resource) xScope.get(xFullName);
-            Resource y = (Resource) yScope.get(yFullName);
-
-            x.name = yName;
-            y.name = xName;
-            xScope.put(xFullName, y);
-            yScope.put(yFullName, x);
-        }
-    }
-
-    private FileScope findFileScope(RootScope rootScope, String name) {
-        for (FileScope fileScope : rootScope.getFileScopes()) {
-            Object value = fileScope.get(name);
-
-            if (value instanceof Resource) {
-                return fileScope;
-            }
-        }
-
-        return null;
     }
 
 }

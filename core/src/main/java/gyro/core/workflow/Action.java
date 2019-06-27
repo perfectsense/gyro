@@ -7,6 +7,6 @@ import gyro.core.resource.State;
 
 public abstract class Action {
 
-    public abstract void execute(GyroUI ui, State state, RootScope current, RootScope pending, Scope scope);
+    public abstract void execute(GyroUI ui, State state, RootScope pending, Scope scope);
 
 }
