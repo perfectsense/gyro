@@ -10,12 +10,12 @@ import gyro.core.resource.Scope;
 import gyro.core.resource.State;
 import gyro.lang.ast.Node;
 
-public class Swap {
+public class SwapAction extends Action {
 
     private final Node x;
     private final Node y;
 
-    public Swap(Node x, Node y) {
+    public SwapAction(Node x, Node y) {
         this.x = Preconditions.checkNotNull(x);
         this.y = Preconditions.checkNotNull(y);
     }
@@ -28,9 +28,10 @@ public class Swap {
         return y;
     }
 
-    public void execute(GyroUI ui, State state, RootScope currentRootScope, RootScope pendingRootScope, Scope executeScope) {
-        NodeEvaluator evaluator = executeScope.getRootScope().getEvaluator();
-        Object x = evaluator.visit(this.x, executeScope);
+    @Override
+    public void execute(GyroUI ui, State state, RootScope current, RootScope pending, Scope scope) {
+        NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
+        Object x = evaluator.visit(this.x, scope);
 
         if (x == null) {
             throw new GyroException("Can't swap because the first argument is null!");
@@ -42,7 +43,7 @@ public class Swap {
                 x));
         }
 
-        Object y = evaluator.visit(this.y, executeScope);
+        Object y = evaluator.visit(this.y, scope);
 
         if (y == null) {
             throw new GyroException("Can't swap because the second argument is null!");
@@ -58,7 +59,7 @@ public class Swap {
         Resource yResource = (Resource) y;
 
         ui.write("@|magenta ⤢ Swapping %s with %s|@\n", xResource.name(), yResource.name());
-        state.swap(currentRootScope, pendingRootScope, xResource, yResource);
+        state.swap(current, pending, xResource, yResource);
     }
 
 }

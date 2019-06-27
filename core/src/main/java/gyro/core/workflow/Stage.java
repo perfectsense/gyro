@@ -10,7 +10,6 @@ import com.google.common.collect.ImmutableList;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.resource.Diff;
-import gyro.core.resource.NodeEvaluator;
 import gyro.core.resource.Resource;
 import gyro.core.resource.RootScope;
 import gyro.core.resource.Scope;
@@ -22,21 +21,14 @@ public class Stage {
     private final String name;
     private final boolean confirmDiff;
     private final String transitionPrompt;
-    private final List<Create> creates;
-    private final List<Delete> deletes;
-    private final List<Swap> swaps;
+    private final List<Action> actions;
     private final List<Transition> transitions;
 
     public Stage(String name, Scope scope) {
         this.name = Preconditions.checkNotNull(name, "Stage requires a name!");
         this.confirmDiff = Boolean.TRUE.equals(scope.get("confirm-diff"));
         this.transitionPrompt = (String) scope.get("transition-prompt");
-
-        WorkflowSettings settings = scope.getSettings(WorkflowSettings.class);
-
-        this.creates = settings.getCreates();
-        this.deletes = settings.getDeletes();
-        this.swaps = settings.getSwaps();
+        this.actions = ImmutableList.copyOf(scope.getSettings(WorkflowSettings.class).getActions());
 
         @SuppressWarnings("unchecked")
         List<Scope> transitionScopes = (List<Scope>) scope.get("transition");
@@ -64,21 +56,17 @@ public class Stage {
             RootScope pendingRootScope)
             throws Exception {
 
-        Scope executeScope = new Scope(pendingRootScope.getFileScopes()
+        Scope scope = new Scope(pendingRootScope.getFileScopes()
             .stream()
             .filter(s -> s.getFile().equals(pendingResource.scope().getFileScope().getFile()))
             .findFirst()
             .orElse(null));
 
-        NodeEvaluator evaluator = executeScope.getRootScope().getEvaluator();
+        scope.put("NAME", pendingResource.name());
+        scope.put("CURRENT", currentResource);
+        scope.put("PENDING", pendingResource.scope().resolve());
 
-        executeScope.put("NAME", pendingResource.name());
-        executeScope.put("CURRENT", currentResource);
-        executeScope.put("PENDING", pendingResource.scope().resolve());
-
-        creates.forEach(c -> c.execute(ui, state, currentRootScope, pendingRootScope, executeScope));
-        deletes.forEach(d -> d.execute(ui, currentRootScope, pendingRootScope, executeScope));
-        swaps.forEach(s -> s.execute(ui, state, currentRootScope, pendingRootScope, executeScope));
+        actions.forEach(a -> a.execute(ui, state, currentRootScope, pendingRootScope, scope));
 
         Set<String> diffFiles = state.getDiffFiles();
 
@@ -122,20 +110,6 @@ public class Stage {
             } else {
                 ui.write("[%s] isn't valid! Try again.\n", selected);
             }
-        }
-    }
-
-    private String getResourceName(Object value) {
-        if (value instanceof Resource) {
-            return ((Resource) value).name();
-
-        } else if (value instanceof String) {
-            return (String) value;
-
-        } else {
-            throw new GyroException(String.format(
-                "Can't swap an instance of [%s]!",
-                value.getClass().getName()));
         }
     }
 

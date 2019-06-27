@@ -24,8 +24,8 @@ public class CreateDirectiveProcessor extends DirectiveProcessor {
         }
 
         scope.getSettings(WorkflowSettings.class)
-            .getCreates()
-            .add(new Create(arguments.get(0), arguments.get(1), node.getBody()));
+            .getActions()
+            .add(new CreateAction(arguments.get(0), arguments.get(1), node.getBody()));
     }
 
 }

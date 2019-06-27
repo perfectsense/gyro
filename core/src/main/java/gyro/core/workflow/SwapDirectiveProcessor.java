@@ -24,8 +24,8 @@ public class SwapDirectiveProcessor extends DirectiveProcessor {
         }
 
         scope.getSettings(WorkflowSettings.class)
-            .getSwaps()
-            .add(new Swap(arguments.get(0), arguments.get(1)));
+            .getActions()
+            .add(new SwapAction(arguments.get(0), arguments.get(1)));
     }
 
 }

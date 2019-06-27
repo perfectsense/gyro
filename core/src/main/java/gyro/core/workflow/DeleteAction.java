@@ -2,16 +2,18 @@ package gyro.core.workflow;
 
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
+import gyro.core.resource.NodeEvaluator;
 import gyro.core.resource.Resource;
 import gyro.core.resource.RootScope;
 import gyro.core.resource.Scope;
+import gyro.core.resource.State;
 import gyro.lang.ast.Node;
 
-public class Delete {
+public class DeleteAction extends Action {
 
     private final Node resource;
 
-    public Delete(Node resource) {
+    public DeleteAction(Node resource) {
         this.resource = resource;
     }
 
@@ -19,10 +21,10 @@ public class Delete {
         return resource;
     }
 
-    public void execute(GyroUI ui, RootScope currentRootScope, RootScope pendingRootScope, Scope executeScope) {
-        Object resource = executeScope.getRootScope()
-            .getEvaluator()
-            .visit(this.resource, executeScope);
+    @Override
+    public void execute(GyroUI ui, State state, RootScope current, RootScope pending, Scope scope) {
+        NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
+        Object resource = evaluator.visit(this.resource, scope);
 
         if (resource == null) {
             throw new GyroException("Can't delete because the resource is null!");
@@ -36,7 +38,7 @@ public class Delete {
 
         String fullName = ((Resource) resource).primaryKey();
 
-        pendingRootScope.getFileScopes().forEach(s -> s.remove(fullName));
+        pending.getFileScopes().forEach(s -> s.remove(fullName));
     }
 
 }

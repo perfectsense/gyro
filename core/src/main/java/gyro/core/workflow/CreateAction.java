@@ -12,13 +12,13 @@ import gyro.core.resource.State;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.ResourceNode;
 
-public class Create {
+public class CreateAction extends Action {
 
     private final Node type;
     private final Node name;
     private final List<Node> body;
 
-    public Create(Node type, Node name, List<Node> body) {
+    public CreateAction(Node type, Node name, List<Node> body) {
         this.type = Preconditions.checkNotNull(type);
         this.name = Preconditions.checkNotNull(name);
         this.body = ImmutableList.copyOf(Preconditions.checkNotNull(body));
@@ -36,15 +36,16 @@ public class Create {
         return body;
     }
 
-    public void execute(GyroUI ui, State state, RootScope current, RootScope pending, Scope executing) {
-        NodeEvaluator evaluator = executing.getRootScope().getEvaluator();
+    @Override
+    public void execute(GyroUI ui, State state, RootScope current, RootScope pending, Scope scope) {
+        NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
 
         evaluator.visit(
             new ResourceNode(
-                (String) evaluator.visit(type, executing),
+                (String) evaluator.visit(type, scope),
                 name,
                 body),
-            executing);
+            scope);
     }
 
 }

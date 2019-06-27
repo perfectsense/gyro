@@ -8,9 +8,7 @@ import gyro.core.resource.Settings;
 public class WorkflowSettings extends Settings {
 
     private List<Workflow> workflows;
-    private List<Create> creates;
-    private List<Delete> deletes;
-    private List<Swap> swaps;
+    private List<Action> actions;
 
     public List<Workflow> getWorkflows() {
         if (workflows == null) {
@@ -24,40 +22,16 @@ public class WorkflowSettings extends Settings {
         this.workflows = workflows;
     }
 
-    public List<Create> getCreates() {
-        if (creates == null) {
-            creates = new ArrayList<>();
+    public List<Action> getActions() {
+        if (actions == null) {
+            actions = new ArrayList<>();
         }
 
-        return creates;
+        return actions;
     }
 
-    public void setCreates(List<Create> creates) {
-        this.creates = creates;
-    }
-
-    public List<Delete> getDeletes() {
-        if (deletes == null) {
-            deletes = new ArrayList<>();
-        }
-
-        return deletes;
-    }
-
-    public void setDeletes(List<Delete> deletes) {
-        this.deletes = deletes;
-    }
-
-    public List<Swap> getSwaps() {
-        if (swaps == null) {
-            swaps = new ArrayList<>();
-        }
-
-        return swaps;
-    }
-
-    public void setSwaps(List<Swap> swaps) {
-        this.swaps = swaps;
+    public void setActions(List<Action> actions) {
+        this.actions = actions;
     }
 
 }

@@ -24,8 +24,8 @@ public class DeleteDirectiveProcessor extends DirectiveProcessor {
         }
 
         scope.getSettings(WorkflowSettings.class)
-            .getDeletes()
-            .add(new Delete(arguments.get(0)));
+            .getActions()
+            .add(new DeleteAction(arguments.get(0)));
     }
 
 }
