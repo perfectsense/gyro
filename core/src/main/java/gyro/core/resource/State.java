@@ -204,7 +204,9 @@ public class State {
 
                 body.add(toPairNode(key, value));
 
-            } else if (value instanceof Date) {
+            } else if (value instanceof Date
+                || value instanceof Enum<?>) {
+
                 body.add(toPairNode(key, value.toString()));
 
             } else if (value instanceof Diffable) {
