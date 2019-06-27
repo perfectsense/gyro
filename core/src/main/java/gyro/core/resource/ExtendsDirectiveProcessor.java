@@ -2,7 +2,9 @@ package gyro.core.resource;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import com.google.common.collect.ImmutableSet;
 import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.lang.ast.block.DirectiveNode;
@@ -39,9 +41,18 @@ public class ExtendsDirectiveProcessor extends DirectiveProcessor {
 
         } else if (source instanceof Resource) {
             Resource resource = (Resource) source;
+            Set<String> configuredFields = resource.configuredFields;
+
+            if (configuredFields == null) {
+                configuredFields = ImmutableSet.of();
+            }
 
             for (DiffableField field : DiffableType.getInstance(resource.getClass()).getFields()) {
-                scope.putIfAbsent(field.getName(), field.getValue(resource));
+                String name = field.getName();
+
+                if (field.shouldBeDiffed() || configuredFields.contains(name)) {
+                    scope.putIfAbsent(name, field.getValue(resource));
+                }
             }
 
         } else if (source instanceof String) {
