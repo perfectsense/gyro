@@ -19,13 +19,13 @@ public class DeleteDirectiveProcessor extends DirectiveProcessor {
     public void process(Scope scope, DirectiveNode node) {
         List<Node> arguments = node.getArguments();
 
-        if (arguments.size() != 2) {
-            throw new GyroException("@delete directives only takes 2 arguments!");
+        if (arguments.size() != 1) {
+            throw new GyroException("@delete directives only takes 1 argument!");
         }
 
         scope.getSettings(WorkflowSettings.class)
             .getDeletes()
-            .add(new Delete(arguments.get(0), arguments.get(1)));
+            .add(new Delete(arguments.get(0)));
     }
 
 }

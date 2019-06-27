@@ -86,13 +86,7 @@ public class Stage {
                 executeScope);
         }
 
-        for (Delete delete : deletes) {
-            String type = (String) evaluator.visit(delete.getType(), executeScope);
-            Object name = evaluator.visit(delete.getName(), executeScope);
-            String fullName = type + "::" + getResourceName(name);
-
-            pendingRootScope.getFileScopes().forEach(s -> s.remove(fullName));
-        }
+        deletes.forEach(d -> d.execute(ui, currentRootScope, pendingRootScope, executeScope));
 
         for (Swap swap : swaps) {
             String type = (String) evaluator.visit(swap.getType(), executeScope);
