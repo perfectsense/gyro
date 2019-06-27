@@ -87,15 +87,7 @@ public class Stage {
         }
 
         deletes.forEach(d -> d.execute(ui, currentRootScope, pendingRootScope, executeScope));
-
-        for (Swap swap : swaps) {
-            String type = (String) evaluator.visit(swap.getType(), executeScope);
-            String x = getResourceName(evaluator.visit(swap.getX(), executeScope));
-            String y = getResourceName(evaluator.visit(swap.getY(), executeScope));
-
-            ui.write("@|magenta ⤢ Swapping %s with %s|@\n", x, y);
-            state.swap(currentRootScope, pendingRootScope, type, x, y);
-        }
+        swaps.forEach(s -> s.execute(ui, state, currentRootScope, pendingRootScope, executeScope));
 
         Set<String> diffFiles = state.getDiffFiles();
 

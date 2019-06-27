@@ -19,13 +19,13 @@ public class SwapDirectiveProcessor extends DirectiveProcessor {
     public void process(Scope scope, DirectiveNode node) {
         List<Node> arguments = node.getArguments();
 
-        if (arguments.size() != 3) {
-            throw new GyroException("@swap directives only takes 3 arguments!");
+        if (arguments.size() != 2) {
+            throw new GyroException("@swap directives only takes 2 arguments!");
         }
 
         scope.getSettings(WorkflowSettings.class)
             .getSwaps()
-            .add(new Swap(arguments.get(0), arguments.get(1), arguments.get(2)));
+            .add(new Swap(arguments.get(0), arguments.get(1)));
     }
 
 }

@@ -13,10 +13,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
 import gyro.core.FileBackend;
+import gyro.core.GyroException;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.NodePrinter;
 import gyro.lang.ast.PairNode;
@@ -65,7 +67,7 @@ public class State {
         return diffFiles;
     }
 
-    public void update(Change change) throws Exception {
+    public void update(Change change) {
         if (change instanceof Replace) {
             return;
         }
@@ -150,7 +152,7 @@ public class State {
         }
     }
 
-    private void save() throws IOException {
+    private void save() {
         NodePrinter printer = new NodePrinter();
 
         for (FileScope state : states.values()) {
@@ -175,6 +177,9 @@ public class State {
                             context);
                     }
                 }
+
+            } catch (IOException error) {
+                throw new GyroException(error.getMessage());
             }
         }
     }
@@ -289,10 +294,23 @@ public class State {
         }
     }
 
-    public void swap(RootScope current, RootScope pending, String type, String x, String y) throws Exception {
-        swapResources(current, type, x, y);
-        swapResources(pending, type, x, y);
-        swapResources(root, type, x, y);
+    public void swap(RootScope current, RootScope pending, Resource x, Resource y) {
+        String xType = DiffableType.getInstance(x.getClass()).getName();
+        String yType = DiffableType.getInstance(y.getClass()).getName();
+
+        if (!Objects.equals(xType, yType)) {
+            throw new GyroException(String.format(
+                "Can't swap resources that have different types! [%s] [%s]",
+                xType,
+                yType));
+        }
+
+        String xName = x.name();
+        String yName = y.name();
+
+        swapResources(current, xType, xName, yName);
+        swapResources(pending, xType, xName, yName);
+        swapResources(root, xType, xName, yName);
         save();
     }
 

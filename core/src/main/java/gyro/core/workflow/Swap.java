@@ -1,22 +1,23 @@
 package gyro.core.workflow;
 
 import com.google.common.base.Preconditions;
+import gyro.core.GyroException;
+import gyro.core.GyroUI;
+import gyro.core.resource.NodeEvaluator;
+import gyro.core.resource.Resource;
+import gyro.core.resource.RootScope;
+import gyro.core.resource.Scope;
+import gyro.core.resource.State;
 import gyro.lang.ast.Node;
 
 public class Swap {
 
-    private final Node type;
     private final Node x;
     private final Node y;
 
-    public Swap(Node type, Node x, Node y) {
-        this.type = Preconditions.checkNotNull(type);
+    public Swap(Node x, Node y) {
         this.x = Preconditions.checkNotNull(x);
         this.y = Preconditions.checkNotNull(y);
-    }
-
-    public Node getType() {
-        return type;
     }
 
     public Node getX() {
@@ -25,6 +26,39 @@ public class Swap {
 
     public Node getY() {
         return y;
+    }
+
+    public void execute(GyroUI ui, State state, RootScope currentRootScope, RootScope pendingRootScope, Scope executeScope) {
+        NodeEvaluator evaluator = executeScope.getRootScope().getEvaluator();
+        Object x = evaluator.visit(this.x, executeScope);
+
+        if (x == null) {
+            throw new GyroException("Can't swap because the first argument is null!");
+        }
+
+        if (!(x instanceof Resource)) {
+            throw new GyroException(String.format(
+                "Can't swap the first argument [%s] because it's not a resource!",
+                x));
+        }
+
+        Object y = evaluator.visit(this.y, executeScope);
+
+        if (y == null) {
+            throw new GyroException("Can't swap because the second argument is null!");
+        }
+
+        if (!(y instanceof Resource)) {
+            throw new GyroException(String.format(
+                "Can't swap the second argument [%s] because it's not a resource!",
+                y));
+        }
+
+        Resource xResource = (Resource) x;
+        Resource yResource = (Resource) y;
+
+        ui.write("@|magenta ⤢ Swapping %s with %s|@\n", xResource.name(), yResource.name());
+        state.swap(currentRootScope, pendingRootScope, xResource, yResource);
     }
 
 }
