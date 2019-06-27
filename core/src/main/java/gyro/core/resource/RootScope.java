@@ -29,7 +29,10 @@ import gyro.core.reference.ReferencePlugin;
 import gyro.core.reference.ReferenceSettings;
 import gyro.core.repo.RepositoryDirectiveProcessor;
 import gyro.core.virtual.VirtualDirectiveProcessor;
-import gyro.core.workflow.Workflow;
+import gyro.core.workflow.CreateDirectiveProcessor;
+import gyro.core.workflow.DeleteDirectiveProcessor;
+import gyro.core.workflow.SwapDirectiveProcessor;
+import gyro.core.workflow.WorkflowDirectiveProcessor;
 import gyro.lang.ast.Node;
 import gyro.parser.antlr4.GyroParser;
 
@@ -40,7 +43,6 @@ public class RootScope extends FileScope {
     private final FileBackend backend;
     private final RootScope current;
     private final Set<String> loadFiles;
-    private final List<Workflow> workflows = new ArrayList<>();
     private final List<FileScope> fileScopes = new ArrayList<>();
 
     @SuppressWarnings("unchecked")
@@ -85,13 +87,17 @@ public class RootScope extends FileScope {
             .forEach(p -> getSettings(PluginSettings.class).getPlugins().add(p));
 
         Stream.of(
+            new CreateDirectiveProcessor(),
             new CredentialsDirectiveProcessor(),
+            new DeleteDirectiveProcessor(),
             new ExtendsDirectiveProcessor(),
             new HighlanderDirectiveProcessor(),
             new RepositoryDirectiveProcessor(),
             new PluginDirectiveProcessor(),
+            new SwapDirectiveProcessor(),
             new UsesCredentialsDirectiveProcessor(),
-            new VirtualDirectiveProcessor())
+            new VirtualDirectiveProcessor(),
+            new WorkflowDirectiveProcessor())
             .forEach(p -> getSettings(DirectiveSettings.class).getProcessors().put(p.getName(), p));
 
         Stream.of(
@@ -115,10 +121,6 @@ public class RootScope extends FileScope {
 
     public Set<String> getLoadFiles() {
         return loadFiles;
-    }
-
-    public List<Workflow> getWorkflows() {
-        return workflows;
     }
 
     public List<FileScope> getFileScopes() {

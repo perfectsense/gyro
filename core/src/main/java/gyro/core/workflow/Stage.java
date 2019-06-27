@@ -1,89 +1,55 @@
 package gyro.core.workflow;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
-import gyro.core.directive.DirectiveProcessor;
 import gyro.core.resource.Diff;
 import gyro.core.resource.NodeEvaluator;
 import gyro.core.resource.Resource;
 import gyro.core.resource.RootScope;
 import gyro.core.resource.Scope;
 import gyro.core.resource.State;
-import gyro.lang.ast.block.DirectiveNode;
-import gyro.lang.ast.Node;
 import gyro.lang.ast.block.ResourceNode;
-import gyro.lang.ast.value.ValueNode;
+import gyro.util.ImmutableCollectors;
 
 public class Stage {
 
     private final String name;
     private final boolean confirmDiff;
     private final String transitionPrompt;
-    private final List<DirectiveNode> creates = new ArrayList<>();
-    private final List<DirectiveNode> deletes = new ArrayList<>();
-    private final List<DirectiveNode> swaps = new ArrayList<>();
-    private final List<Transition> transitions = new ArrayList<>();
+    private final List<Create> creates;
+    private final List<Delete> deletes;
+    private final List<Swap> swaps;
+    private final List<Transition> transitions;
 
-    public Stage(Scope parent, ResourceNode node) {
-        Scope scope = new Scope(parent);
-        NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
+    public Stage(String name, Scope scope) {
+        this.name = Preconditions.checkNotNull(name, "Stage requires a name!");
+        this.confirmDiff = Boolean.TRUE.equals(scope.get("confirm-diff"));
+        this.transitionPrompt = (String) scope.get("transition-prompt");
 
-        for (Node item : node.getBody()) {
-            if (item instanceof DirectiveNode) {
-                DirectiveNode directive = (DirectiveNode) item;
-                List<Node> arguments = directive.getArguments();
+        WorkflowSettings settings = scope.getSettings(WorkflowSettings.class);
 
-                switch (directive.getName()) {
-                    case "create" :
-                        if (arguments.size() != 2) {
-                            throw new GyroException("@create directive only takes 2 arguments!");
-                        }
+        this.creates = settings.getCreates();
+        this.deletes = settings.getDeletes();
+        this.swaps = settings.getSwaps();
 
-                        if (directive.getBody().isEmpty()) {
-                            throw new GyroException("@create directive requires a body!");
-                        }
+        @SuppressWarnings("unchecked")
+        List<Scope> transitionScopes = (List<Scope>) scope.get("transition");
 
-                        creates.add(directive);
-                        continue;
+        if (transitionScopes != null) {
+            this.transitions = transitionScopes.stream()
+                .map(s -> new Transition(scope.getName(s), s))
+                .collect(ImmutableCollectors.toList());
 
-                    case "delete" :
-                        if (arguments.size() != 2) {
-                            throw new GyroException("@delete directive only takes 2 arguments!");
-                        }
-
-                        deletes.add(directive);
-                        continue;
-
-                    case "swap" :
-                        if (arguments.size() != 3) {
-                            throw new GyroException("@swap directive only takes 3 arguments!");
-                        }
-
-                        swaps.add(directive);
-                        continue;
-                }
-
-            } else if (item instanceof ResourceNode) {
-                ResourceNode r = (ResourceNode) item;
-
-                if (r.getType().equals("transition")) {
-                    transitions.add(new Transition(parent, r));
-                    continue;
-                }
-            }
-
-            evaluator.visit(item, scope);
+        } else {
+            this.transitions = ImmutableList.of();
         }
-
-        name = (String) evaluator.visit(node.getName(), parent);
-        confirmDiff = Boolean.TRUE.equals(scope.get("confirm-diff"));
-        transitionPrompt = (String) scope.get("transition-prompt");
     }
 
     public String getName() {
@@ -111,37 +77,27 @@ public class Stage {
         executeScope.put("CURRENT", currentResource);
         executeScope.put("PENDING", pendingResource.scope().resolve());
 
-        for (DirectiveNode create : creates) {
-            List<Object> arguments = DirectiveProcessor.evaluateArguments(executeScope, create);
-
+        for (Create create : creates) {
             evaluator.visit(
                 new ResourceNode(
-                    (String) arguments.get(0),
-                    new ValueNode(arguments.get(1)),
+                    (String) evaluator.visit(create.getType(), executeScope),
+                    create.getName(),
                     create.getBody()),
                 executeScope);
         }
 
-        for (DirectiveNode delete : deletes) {
-            List<Object> arguments = delete.getArguments()
-                .stream()
-                .map(a -> evaluator.visit(a, executeScope))
-                .collect(Collectors.toList());
-
-            String fullName = arguments.get(0) + "::" + getResourceName(arguments.get(1));
+        for (Delete delete : deletes) {
+            String type = (String) evaluator.visit(delete.getType(), executeScope);
+            Object name = evaluator.visit(delete.getName(), executeScope);
+            String fullName = type + "::" + getResourceName(name);
 
             pendingRootScope.getFileScopes().forEach(s -> s.remove(fullName));
         }
 
-        for (DirectiveNode swap : swaps) {
-            List<Object> arguments = swap.getArguments()
-                .stream()
-                .map(a -> evaluator.visit(a, executeScope))
-                .collect(Collectors.toList());
-
-            String type = (String) arguments.get(0);
-            String x = getResourceName(arguments.get(1));
-            String y = getResourceName(arguments.get(2));
+        for (Swap swap : swaps) {
+            String type = (String) evaluator.visit(swap.getType(), executeScope);
+            String x = getResourceName(evaluator.visit(swap.getX(), executeScope));
+            String y = getResourceName(evaluator.visit(swap.getY(), executeScope));
 
             ui.write("@|magenta ⤢ Swapping %s with %s|@\n", x, y);
             state.swap(currentRootScope, pendingRootScope, type, x, y);

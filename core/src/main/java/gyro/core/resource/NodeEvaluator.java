@@ -30,7 +30,6 @@ import gyro.core.finder.FilterContext;
 import gyro.core.finder.FilterEvaluator;
 import gyro.core.reference.ReferenceResolver;
 import gyro.core.reference.ReferenceSettings;
-import gyro.core.workflow.Workflow;
 import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.NodeVisitor;
@@ -299,7 +298,6 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
         }
 
         List<PairNode> keyValues = new ArrayList<>();
-        List<ResourceNode> workflowNodes = new ArrayList<>();
         List<Node> body = new ArrayList<>();
 
         for (Node item : node.getBody()) {
@@ -307,27 +305,12 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
                 keyValues.add((PairNode) item);
 
             } else {
-                if (item instanceof ResourceNode) {
-                    ResourceNode rnNode = (ResourceNode) item;
-
-                    if (rnNode.getType().equals("workflow")) {
-                        workflowNodes.add(rnNode);
-                        continue;
-                    }
-                }
-
                 body.add(item);
             }
         }
 
         for (PairNode kv : keyValues) {
             visit(kv, fileScope);
-        }
-
-        List<Workflow> workflows = rootScope.getWorkflows();
-
-        for (ResourceNode rn : workflowNodes) {
-            workflows.add(new Workflow(rootScope, rn));
         }
 
         try {
