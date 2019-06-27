@@ -22,7 +22,7 @@ public class RepositoryDirectiveProcessor extends DirectiveProcessor {
             throw new GyroException("@repository directive can only be used within the init.gyro file!");
         }
 
-        List<Object> arguments = resolveArguments(scope, node);
+        List<Object> arguments = evaluateArguments(scope, node);
 
         if (arguments.size() != 1) {
             throw new GyroException("@repository directive only takes 1 argument!");

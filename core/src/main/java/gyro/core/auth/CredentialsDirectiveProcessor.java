@@ -26,7 +26,7 @@ public class CredentialsDirectiveProcessor extends DirectiveProcessor {
             throw new GyroException("@credentials directive can only be used within the init.gyro file!");
         }
 
-        List<Object> arguments = resolveArguments(scope, node);
+        List<Object> arguments = evaluateArguments(scope, node);
         int argumentsSize = arguments.size();
 
         if (argumentsSize < 1 || argumentsSize > 2) {
@@ -35,7 +35,7 @@ public class CredentialsDirectiveProcessor extends DirectiveProcessor {
 
         String type = (String) arguments.get(0);
         String name = argumentsSize == 1 ? "default" : (String) arguments.get(1);
-        Scope bodyScope = resolveBody(scope, node);
+        Scope bodyScope = evaluateBody(scope, node);
 
         RootScope root = (RootScope) scope;
         CredentialsSettings settings = root.getSettings(CredentialsSettings.class);

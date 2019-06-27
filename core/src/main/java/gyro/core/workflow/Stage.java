@@ -112,7 +112,7 @@ public class Stage {
         executeScope.put("PENDING", pendingResource.scope().resolve());
 
         for (DirectiveNode create : creates) {
-            List<Object> arguments = DirectiveProcessor.resolveArguments(executeScope, create);
+            List<Object> arguments = DirectiveProcessor.evaluateArguments(executeScope, create);
 
             evaluator.visit(
                 new ResourceNode(

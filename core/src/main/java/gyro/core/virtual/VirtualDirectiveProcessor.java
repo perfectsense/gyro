@@ -21,7 +21,7 @@ public class VirtualDirectiveProcessor extends DirectiveProcessor {
             throw new GyroException("@virtual directive can only be used at root level of a gyro file!");
         }
 
-        List<Object> arguments = resolveArguments(scope, node);
+        List<Object> arguments = evaluateArguments(scope, node);
 
         if (arguments.size() != 1) {
             throw new GyroException("@virtual directive only takes 1 argument!");

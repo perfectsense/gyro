@@ -22,7 +22,7 @@ public class ExtendsDirectiveProcessor extends DirectiveProcessor {
             throw new GyroException("@extends can only be used inside a resource!");
         }
 
-        List<Object> arguments = resolveArguments(scope, node);
+        List<Object> arguments = evaluateArguments(scope, node);
 
         if (arguments.size() != 1) {
             throw new GyroException("@extends directive only takes 1 argument!");

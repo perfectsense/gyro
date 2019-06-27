@@ -29,7 +29,7 @@ public class VirtualResourceVisitor extends ResourceVisitor {
                 DirectiveNode directive = (DirectiveNode) child;
 
                 if ("param".equals(directive.getName())) {
-                    List<Object> arguments = DirectiveProcessor.resolveArguments(scope, directive);
+                    List<Object> arguments = DirectiveProcessor.evaluateArguments(scope, directive);
 
                     if (arguments.size() != 1) {
                         throw new GyroException("@param directive only takes 1 argument!");

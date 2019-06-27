@@ -21,7 +21,7 @@ public class HighlanderDirectiveProcessor extends DirectiveProcessor {
             throw new GyroException("@highlander directive can only be used within the init.gyro file!");
         }
 
-        List<Object> arguments = resolveArguments(scope, node);
+        List<Object> arguments = evaluateArguments(scope, node);
 
         if (arguments.size() != 1) {
             throw new GyroException("@highlander directive only takes 1 argument!");

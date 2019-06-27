@@ -23,7 +23,7 @@ public class UsesCredentialsDirectiveProcessor extends DirectiveProcessor {
             throw new GyroException("@uses-credentials can only be used inside a resource!");
         }
 
-        List<Object> arguments = resolveArguments(scope, node);
+        List<Object> arguments = evaluateArguments(scope, node);
 
         if (arguments.size() != 1) {
             throw new GyroException("@uses-credentials directive only takes 1 argument!");

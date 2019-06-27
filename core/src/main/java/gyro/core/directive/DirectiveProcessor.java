@@ -9,7 +9,7 @@ import gyro.lang.ast.block.DirectiveNode;
 
 public abstract class DirectiveProcessor {
 
-    public static List<Object> resolveArguments(Scope scope, DirectiveNode node) {
+    public static List<Object> evaluateArguments(Scope scope, DirectiveNode node) {
         NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
 
         return node.getArguments()
@@ -18,7 +18,7 @@ public abstract class DirectiveProcessor {
             .collect(Collectors.toList());
     }
 
-    public static Scope resolveBody(Scope scope, DirectiveNode node) {
+    public static Scope evaluateBody(Scope scope, DirectiveNode node) {
         NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
         Scope bodyScope = new Scope(scope);
 
