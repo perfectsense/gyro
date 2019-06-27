@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
+import gyro.core.directive.DirectiveProcessor;
 import gyro.core.resource.Diff;
 import gyro.core.resource.NodeEvaluator;
 import gyro.core.resource.Resource;
@@ -17,13 +18,14 @@ import gyro.core.resource.State;
 import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.ResourceNode;
+import gyro.lang.ast.value.ValueNode;
 
 public class Stage {
 
     private final String name;
     private final boolean confirmDiff;
     private final String transitionPrompt;
-    private final List<ResourceNode> creates = new ArrayList<>();
+    private final List<DirectiveNode> creates = new ArrayList<>();
     private final List<DirectiveNode> deletes = new ArrayList<>();
     private final List<DirectiveNode> swaps = new ArrayList<>();
     private final List<Transition> transitions = new ArrayList<>();
@@ -39,17 +41,15 @@ public class Stage {
 
                 switch (directive.getName()) {
                     case "create" :
-                        if (arguments.size() != 1) {
-                            throw new GyroException("@create directive only takes 1 argument!");
+                        if (arguments.size() != 2) {
+                            throw new GyroException("@create directive only takes 2 arguments!");
                         }
 
-                        Node arg0 = arguments.get(0);
-
-                        if (!(arg0 instanceof ResourceNode)) {
-                            throw new GyroException("@create directive requires a resource node!");
+                        if (directive.getBody().isEmpty()) {
+                            throw new GyroException("@create directive requires a body!");
                         }
 
-                        creates.add((ResourceNode) arg0);
+                        creates.add(directive);
                         continue;
 
                     case "delete" :
@@ -111,8 +111,15 @@ public class Stage {
         executeScope.put("CURRENT", currentResource);
         executeScope.put("PENDING", pendingResource.scope().resolve());
 
-        for (ResourceNode create : creates) {
-            evaluator.visit(create, executeScope);
+        for (DirectiveNode create : creates) {
+            List<Object> arguments = DirectiveProcessor.resolveArguments(executeScope, create);
+
+            evaluator.visit(
+                new ResourceNode(
+                    (String) arguments.get(0),
+                    new ValueNode(arguments.get(1)),
+                    create.getBody()),
+                executeScope);
         }
 
         for (DirectiveNode delete : deletes) {
