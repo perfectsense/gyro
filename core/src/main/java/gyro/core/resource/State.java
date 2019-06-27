@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableSet;
 import gyro.core.FileBackend;
@@ -209,7 +208,7 @@ public class State {
 
             } else if (value instanceof Diffable) {
                 if (field.shouldBeDiffed()) {
-                    body.add(new KeyBlockNode(key, toBodyNodes((Diffable) value)));
+                    body.add(new KeyBlockNode(key, null, toBodyNodes((Diffable) value)));
 
                 } else {
                     body.add(toPairNode(key, value));
@@ -218,7 +217,7 @@ public class State {
             } else if (value instanceof Collection) {
                 if (field.shouldBeDiffed()) {
                     for (Object item : (Collection<?>) value) {
-                        body.add(new KeyBlockNode(key, toBodyNodes((Diffable) item)));
+                        body.add(new KeyBlockNode(key, null, toBodyNodes((Diffable) item)));
                     }
 
                 } else {

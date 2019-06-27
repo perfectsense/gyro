@@ -3,6 +3,7 @@ package gyro.core.resource;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +18,7 @@ public class Scope implements Map<String, Object> {
 
     private final Scope parent;
     private final Map<String, Object> values;
+    private final Map<Object, String> names = new IdentityHashMap<>();
     private final Map<String, Node> valueNodes = new HashMap<>();
     private final Map<String, Node> keyNodes = new HashMap<>();
 
@@ -65,7 +67,7 @@ public class Scope implements Map<String, Object> {
     }
 
     @SuppressWarnings("unchecked")
-    public void addValue(String key, Object value) {
+    public void addValue(String key, String name, Object value) {
         Object oldValue = get(key);
         List<Object> list;
 
@@ -81,7 +83,12 @@ public class Scope implements Map<String, Object> {
         }
 
         list.add(value);
-        put(key, list);
+        values.put(key, list);
+        names.put(value, name);
+    }
+
+    public String getName(Object value) {
+        return names.get(value);
     }
 
     public Object find(String key) {

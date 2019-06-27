@@ -25,11 +25,11 @@ directive
 
 // block
 block
-    : IDENTIFIER NEWLINES blockBody END # KeyBlock
-    | type name  NEWLINES blockBody END # Resource
+    : IDENTIFIER name? NEWLINES blockBody END # KeyBlock
+    | type name NEWLINES blockBody END        # Resource
     ;
 
-type : IDENTIFIER (COLON COLON IDENTIFIER)?;
+type : IDENTIFIER COLON COLON IDENTIFIER;
 
 name
     : reference

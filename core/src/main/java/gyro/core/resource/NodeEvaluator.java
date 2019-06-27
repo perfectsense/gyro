@@ -351,7 +351,11 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
         String key = node.getKey();
 
-        scope.addValue(key, bodyScope);
+        String name = (String) Optional.ofNullable(node.getName())
+            .map(n -> visit(n, scope))
+            .orElse(null);
+
+        scope.addValue(key, name, bodyScope);
         scope.getKeyNodes().put(key, node);
 
         return null;
