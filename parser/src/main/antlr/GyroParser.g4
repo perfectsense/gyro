@@ -106,8 +106,8 @@ mulItem
 index
     : IDENTIFIER
     | ASTERISK
+    | NUMBERS
     | string
-    | number
     ;
 
 item
@@ -142,10 +142,7 @@ map
     RBRACE
     ;
 
-number
-    : FLOAT
-    | INTEGER
-    ;
+number : MINUS? NUMBERS (DOT NUMBERS)?;
 
 reference
     : DOLLAR LPAREN value* (PIPE filter)* RPAREN

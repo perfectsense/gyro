@@ -38,8 +38,7 @@ RBRACE : '}';
 
 // number
 DOT     : '.';
-FLOAT   : MINUS? [0-9] [_0-9]* DOT [_0-9]*;
-INTEGER : MINUS? [0-9] [_0-9]*;
+NUMBERS : [0-9] [_0-9]*;
 
 // reference
 DOLLAR : '$';
