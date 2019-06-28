@@ -23,7 +23,7 @@ public class ResourceNode extends BlockNode {
         this(
             Preconditions.checkNotNull(context).type().getText(),
             Node.create(context.name()),
-            Node.create(context.blockBody().blockStatement()));
+            Node.create(context.blockBody().statement()));
     }
 
     public String getType() {

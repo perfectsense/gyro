@@ -44,7 +44,6 @@ public abstract class Node {
         .put(GyroParser.KeyContext.class, GET_FIRST_CHILD)
         .put(GyroParser.PairContext.class, c -> new PairNode((GyroParser.PairContext) c))
         // ast.block
-        .put(GyroParser.BlockStatementContext.class, GET_FIRST_CHILD)
         .put(GyroParser.DirectiveContext.class, c -> new DirectiveNode((GyroParser.DirectiveContext) c))
         .put(GyroParser.FileContext.class, c -> new FileNode((GyroParser.FileContext) c))
         .put(GyroParser.KeyBlockContext.class, c -> new KeyBlockNode((GyroParser.KeyBlockContext) c))

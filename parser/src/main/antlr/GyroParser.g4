@@ -18,7 +18,8 @@ statement
 // directive
 directive
     : AT IDENTIFIER COLON arguments
-    | AT IDENTIFIER arguments? option* NEWLINES blockBody section* AT END;
+    | AT IDENTIFIER arguments? option* NEWLINES blockBody section* AT END
+    ;
 
 arguments : value (COMMA? value)*;
 
@@ -39,13 +40,7 @@ name
     | string
     ;
 
-blockBody : (blockStatement NEWLINES)*;
-
-blockStatement
-    : directive
-    | block
-    | pair
-    ;
+blockBody : (statement NEWLINES)*;
 
 // pair
 pair : key COLON value;

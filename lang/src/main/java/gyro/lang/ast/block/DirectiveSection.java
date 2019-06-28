@@ -27,7 +27,7 @@ public class DirectiveSection {
         this.arguments = Node.create(context.option().arguments());
 
         this.body = context.blockBody()
-            .blockStatement()
+            .statement()
             .stream()
             .map(Node::create)
             .collect(ImmutableCollectors.toList());
