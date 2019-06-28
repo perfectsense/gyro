@@ -40,28 +40,21 @@ public abstract class Node {
     private static final Function<ParseTree, Node> GET_FIRST_CHILD = c -> Node.create(c.getChild(0));
 
     private static final Map<Class<? extends ParseTree>, Function<ParseTree, Node>> NODE_CONSTRUCTORS = ImmutableMap.<Class<? extends ParseTree>, Function<ParseTree, Node>>builder()
-        // ast
-        .put(GyroParser.KeyContext.class, GET_FIRST_CHILD)
-        .put(GyroParser.PairContext.class, c -> new PairNode((GyroParser.PairContext) c))
-        // ast.block
-        .put(GyroParser.DirectiveContext.class, c -> new DirectiveNode((GyroParser.DirectiveContext) c))
-        .put(GyroParser.FileContext.class, c -> new FileNode((GyroParser.FileContext) c))
-        .put(GyroParser.KeyBlockContext.class, c -> new KeyBlockNode((GyroParser.KeyBlockContext) c))
-        .put(GyroParser.NameContext.class, GET_FIRST_CHILD)
-        .put(GyroParser.ResourceContext.class, c -> new ResourceNode((GyroParser.ResourceContext) c))
-        .put(GyroParser.StatementContext.class, GET_FIRST_CHILD)
-        .put(GyroParser.TypeContext.class, c -> new ValueNode(c.getText()))
-        // ast.value
         .put(GyroParser.BareStringContext.class, c -> new ValueNode((GyroParser.BareStringContext) c))
         .put(GyroParser.BoolContext.class, c -> new ValueNode((GyroParser.BoolContext) c))
+        .put(GyroParser.DirectiveContext.class, c -> new DirectiveNode((GyroParser.DirectiveContext) c))
+        .put(GyroParser.FileContext.class, c -> new FileNode((GyroParser.FileContext) c))
         .put(GyroParser.GroupedMulItemContext.class, c -> Node.create(((GyroParser.GroupedMulItemContext) c).value()))
         .put(GyroParser.IndexContext.class, GET_FIRST_CHILD)
         .put(GyroParser.IndexedMulItemContext.class, c -> new IndexedNode((GyroParser.IndexedMulItemContext) c))
         .put(GyroParser.InterpolatedStringContext.class, c -> new InterpolatedStringNode((GyroParser.InterpolatedStringContext) c))
         .put(GyroParser.ItemContext.class, GET_FIRST_CHILD)
+        .put(GyroParser.KeyBlockContext.class, c -> new KeyBlockNode((GyroParser.KeyBlockContext) c))
+        .put(GyroParser.KeyContext.class, GET_FIRST_CHILD)
         .put(GyroParser.ListContext.class, c -> new ListNode((GyroParser.ListContext) c))
         .put(GyroParser.LiteralStringContext.class, c -> new ValueNode((GyroParser.LiteralStringContext) c))
         .put(GyroParser.MapContext.class, c -> new MapNode((GyroParser.MapContext) c))
+        .put(GyroParser.NameContext.class, GET_FIRST_CHILD)
         .put(GyroParser.NumberContext.class, c -> new ValueNode((GyroParser.NumberContext) c))
         .put(GyroParser.ReferenceContext.class, c -> new ReferenceNode((GyroParser.ReferenceContext) c))
         .put(GyroParser.OneAddContext.class, GET_FIRST_CHILD)
@@ -70,6 +63,9 @@ public abstract class Node {
         .put(GyroParser.OneMulItemContext.class, GET_FIRST_CHILD)
         .put(GyroParser.OneRelContext.class, GET_FIRST_CHILD)
         .put(GyroParser.OneValueContext.class, GET_FIRST_CHILD)
+        .put(GyroParser.PairContext.class, c -> new PairNode((GyroParser.PairContext) c))
+        .put(GyroParser.ResourceContext.class, c -> new ResourceNode((GyroParser.ResourceContext) c))
+        .put(GyroParser.StatementContext.class, GET_FIRST_CHILD)
         .put(GyroParser.StringContentContext.class, GET_FIRST_CHILD)
         .put(GyroParser.TextContext.class, c -> new ValueNode(c.getText()))
         .put(GyroParser.TwoAddContext.class, c -> new BinaryNode((GyroParser.TwoAddContext) c))
@@ -77,6 +73,7 @@ public abstract class Node {
         .put(GyroParser.TwoMulContext.class, c -> new BinaryNode((GyroParser.TwoMulContext) c))
         .put(GyroParser.TwoRelContext.class, c -> new BinaryNode((GyroParser.TwoRelContext) c))
         .put(GyroParser.TwoValueContext.class, c -> new BinaryNode((GyroParser.TwoValueContext) c))
+        .put(GyroParser.TypeContext.class, c -> new ValueNode(c.getText()))
         .put(GyroParser.ValueContext.class, GET_FIRST_CHILD)
         .build();
 
