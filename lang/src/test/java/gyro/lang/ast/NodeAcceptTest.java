@@ -7,7 +7,6 @@ import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.block.ResourceNode;
-import gyro.lang.ast.control.ForNode;
 import gyro.lang.ast.control.IfNode;
 import gyro.lang.ast.value.InterpolatedStringNode;
 import gyro.lang.ast.value.ListNode;
@@ -29,7 +28,6 @@ class NodeAcceptTest {
             create(FileNode.class, NodeVisitor::visitFile),
             create(KeyBlockNode.class, NodeVisitor::visitKeyBlock),
             create(ResourceNode.class, NodeVisitor::visitResource),
-            create(ForNode.class, NodeVisitor::visitFor),
             create(IfNode.class, NodeVisitor::visitIf),
             create(InterpolatedStringNode.class, NodeVisitor::visitInterpolatedString),
             create(ListNode.class, NodeVisitor::visitList),

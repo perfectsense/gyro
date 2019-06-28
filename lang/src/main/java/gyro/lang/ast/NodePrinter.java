@@ -8,7 +8,6 @@ import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.block.ResourceNode;
-import gyro.lang.ast.control.ForNode;
 import gyro.lang.ast.control.IfNode;
 import gyro.lang.ast.value.BinaryNode;
 import gyro.lang.ast.value.IndexedNode;
@@ -102,20 +101,6 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
                 visit(nameNode, context);
             });
 
-        visitBody(node.getBody(), context.indented());
-        context.appendNewline();
-        context.append("end");
-
-        return null;
-    }
-
-    @Override
-    public Void visitFor(ForNode node, PrinterContext context) {
-        context.appendNewline();
-        context.append("for ");
-        context.append(String.join(", ", node.getVariables()));
-        context.append(" in ");
-        visit(node.getValue(), context);
         visitBody(node.getBody(), context.indented());
         context.appendNewline();
         context.append("end");

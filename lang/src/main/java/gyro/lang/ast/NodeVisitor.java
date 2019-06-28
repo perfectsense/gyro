@@ -4,7 +4,6 @@ import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.block.ResourceNode;
-import gyro.lang.ast.control.ForNode;
 import gyro.lang.ast.control.IfNode;
 import gyro.lang.ast.value.BinaryNode;
 import gyro.lang.ast.value.IndexedNode;
@@ -29,8 +28,6 @@ public interface NodeVisitor<C, R> {
     R visitKeyBlock(KeyBlockNode node, C context);
 
     R visitResource(ResourceNode node, C context);
-
-    R visitFor(ForNode node, C context);
 
     R visitIf(IfNode node, C context);
 

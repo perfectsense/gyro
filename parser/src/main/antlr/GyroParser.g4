@@ -12,7 +12,6 @@ file
 statement
     : directive
     | block
-    | forStatement
     | ifStatement
     | pair
     ;
@@ -46,25 +45,8 @@ blockBody : (blockStatement NEWLINES)*;
 blockStatement
     : directive
     | block
-    | forStatement
     | ifStatement
     | pair
-    ;
-
-// forStatement
-forStatement
-    :
-    FOR forVariable (COMMA forVariable)* IN forValue NEWLINES
-        blockBody
-    END
-    ;
-
-forVariable : IDENTIFIER;
-
-forValue
-    : list
-    | map
-    | reference
     ;
 
 // ifStatement

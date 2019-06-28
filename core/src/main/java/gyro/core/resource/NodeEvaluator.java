@@ -37,7 +37,6 @@ import gyro.lang.ast.PairNode;
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.block.ResourceNode;
-import gyro.lang.ast.control.ForNode;
 import gyro.lang.ast.control.IfNode;
 import gyro.lang.ast.value.BinaryNode;
 import gyro.lang.ast.value.IndexedNode;
@@ -47,7 +46,6 @@ import gyro.lang.ast.value.MapNode;
 import gyro.lang.ast.value.ReferenceNode;
 import gyro.lang.ast.value.ValueNode;
 import gyro.lang.filter.Filter;
-import gyro.util.CascadingMap;
 import org.apache.commons.lang3.math.NumberUtils;
 
 public class NodeEvaluator implements NodeVisitor<Scope, Object> {
@@ -420,69 +418,6 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
         }
 
         return null;
-    }
-
-    @Override
-    public Object visitFor(ForNode node, Scope scope) {
-        List<String> variables = node.getVariables();
-        Object value = visit(node.getValue(), scope);
-
-        if (value instanceof List) {
-            List<?> list = (List<?>) value;
-            int variablesSize = variables.size();
-            int listSize = list.size();
-
-            for (int i = 0; i < listSize; i += variablesSize) {
-                Map<String, Object> values = new LinkedHashMap<>();
-
-                for (int j = 0; j < variablesSize; j++) {
-                    int k = i + j;
-
-                    values.put(
-                        variables.get(j),
-                        k < listSize
-                            ? list.get(k)
-                            : null);
-                }
-
-                visitForBody(node, scope, values);
-            }
-
-        } else if (value instanceof Map) {
-            String keyVariable = variables.get(0);
-
-            if (variables.size() > 1) {
-                String valueVariable = variables.get(1);
-
-                for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
-                    Map<String, Object> values = new LinkedHashMap<>();
-
-                    values.put(keyVariable, entry.getKey());
-                    values.put(valueVariable, entry.getValue());
-                    visitForBody(node, scope, values);
-                }
-
-            } else {
-                for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
-                    Map<String, Object> values = new LinkedHashMap<>();
-
-                    values.put(keyVariable, entry.getKey());
-                    visitForBody(node, scope, values);
-                }
-            }
-
-        } else {
-            throw new GyroException("Can't iterate over a non-collection!");
-        }
-
-        return null;
-    }
-
-    private void visitForBody(ForNode node, Scope scope, Map<String, Object> values) {
-        Scope bodyScope = new Scope(scope, new CascadingMap<>(scope, values));
-
-        visitBody(node.getBody(), bodyScope);
-        scope.getKeyNodes().putAll(bodyScope.getKeyNodes());
     }
 
     @Override

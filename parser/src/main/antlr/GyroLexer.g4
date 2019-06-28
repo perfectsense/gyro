@@ -7,10 +7,6 @@ COMMA : ',';
 TILDE : '~';
 END   : 'end';
 
-// forStatement
-FOR   : 'for';
-IN    : 'in';
-
 // ifStatement
 IF   : 'if';
 ELSE : 'else';
@@ -57,7 +53,7 @@ PIPE   : '|';
 STRING : '\'' ~('\'')* '\'';
 DQUOTE : '"' -> pushMode(STRING_MODE);
 
-KEYWORD     : IN | AND | OR;
+KEYWORD     : AND | OR;
 WHITESPACES : [ \t]+ -> channel(HIDDEN);
 COMMENT     : '#' ~[\n\r]* NEWLINES -> channel(HIDDEN);
 NEWLINES    : [\n\r] [ \t\n\r]*;
