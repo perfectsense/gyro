@@ -4,6 +4,7 @@ lexer grammar GyroLexer;
 AT    : '@';
 COLON : ':';
 COMMA : ',';
+TILDE : '~';
 END   : 'end';
 
 // forStatement

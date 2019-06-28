@@ -5,8 +5,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import gyro.lang.GyroErrorListener;
 import gyro.lang.GyroErrorStrategy;
@@ -132,6 +134,13 @@ public abstract class Node {
         return contexts.stream()
             .map(Node::create)
             .collect(ImmutableCollectors.toList());
+    }
+
+    public static List<Node> create(GyroParser.ArgumentsContext context) {
+        return Optional.ofNullable(context)
+            .map(GyroParser.ArgumentsContext::value)
+            .map(Node::create)
+            .orElseGet(ImmutableList::of);
     }
 
     public static Node parse(String text, Function<GyroParser, ? extends ParseTree> function) {

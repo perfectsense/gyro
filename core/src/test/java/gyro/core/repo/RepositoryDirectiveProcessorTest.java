@@ -54,6 +54,8 @@ class RepositoryDirectiveProcessorTest {
             processor.process(root, new DirectiveNode(
                 "repository",
                 Collections.singletonList(new ValueNode(url)),
+                Collections.emptyList(),
+                Collections.emptyList(),
                 Collections.emptyList()));
 
             List<RemoteRepository> repositories = root.getSettings(RepositorySettings.class).getRepositories();

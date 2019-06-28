@@ -19,9 +19,14 @@ statement
 
 // directive
 directive
-    : AT IDENTIFIER COLON value (COMMA? value)*
-    | AT IDENTIFIER (value (COMMA? value)*)? NEWLINES blockBody AT END
-    ;
+    : AT IDENTIFIER COLON arguments
+    | AT IDENTIFIER arguments? option* NEWLINES blockBody section* AT END;
+
+arguments : value (COMMA? value)*;
+
+option: TILDE IDENTIFIER arguments?;
+
+section: option NEWLINES blockBody;
 
 // block
 block

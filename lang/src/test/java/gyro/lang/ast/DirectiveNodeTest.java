@@ -26,7 +26,12 @@ class DirectiveNodeTest extends AbstractNodeTest<DirectiveNode> {
     @Test
     void getName() {
         String name = "foo";
-        DirectiveNode node = new DirectiveNode(name, Collections.emptyList(), Collections.emptyList());
+        DirectiveNode node = new DirectiveNode(
+            name,
+            Collections.emptyList(),
+            Collections.emptyList(),
+            Collections.emptyList(),
+            Collections.emptyList());
 
         assertThat(node.getName()).isEqualTo(name);
     }
@@ -34,14 +39,25 @@ class DirectiveNodeTest extends AbstractNodeTest<DirectiveNode> {
     @Test
     void getArguments() {
         ValueNode argument0 = mock(ValueNode.class);
-        DirectiveNode node = new DirectiveNode("foo", Collections.singletonList(argument0), Collections.emptyList());
+
+        DirectiveNode node = new DirectiveNode(
+            "foo",
+            Collections.singletonList(argument0),
+            Collections.emptyList(),
+            Collections.emptyList(),
+            Collections.emptyList());
 
         assertThat(node.getArguments()).containsExactly(argument0);
     }
 
     @Test
     void getArgumentsImmutable() {
-        DirectiveNode node = new DirectiveNode("foo", Collections.emptyList(), Collections.emptyList());
+        DirectiveNode node = new DirectiveNode(
+            "foo",
+            Collections.emptyList(),
+            Collections.emptyList(),
+            Collections.emptyList(),
+            Collections.emptyList());
 
         assertThatExceptionOfType(UnsupportedOperationException.class)
             .isThrownBy(() -> node.getArguments().add(mock(ValueNode.class)));
