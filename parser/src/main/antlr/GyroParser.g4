@@ -38,7 +38,8 @@ block
 type : IDENTIFIER COLON COLON IDENTIFIER;
 
 name
-    : reference
+    : IDENTIFIER
+    | reference
     | string
     ;
 
@@ -103,7 +104,9 @@ mulItem
     ;
 
 index
-    : string
+    : IDENTIFIER
+    | ASTERISK
+    | string
     | number
     ;
 
@@ -115,6 +118,7 @@ item
     | reference
     | string
     | type
+    | word
     ;
 
 bool
@@ -157,11 +161,6 @@ filter
 string
     : STRING                       # LiteralString
     | DQUOTE stringContent* DQUOTE # InterpolatedString
-    |
-        ( IDENTIFIER ASTERISK
-        | IDENTIFIER
-        | ASTERISK
-    )                              # BareString
     ;
 
 stringContent
@@ -173,4 +172,9 @@ text
     : DOLLAR
     | LPAREN
     | (IDENTIFIER | CHARACTER)+
+    ;
+
+word
+    : IDENTIFIER ASTERISK?
+    | ASTERISK
     ;

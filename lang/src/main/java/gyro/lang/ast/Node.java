@@ -40,7 +40,6 @@ public abstract class Node {
     private static final Function<ParseTree, Node> GET_FIRST_CHILD = c -> Node.create(c.getChild(0));
 
     private static final Map<Class<? extends ParseTree>, Function<ParseTree, Node>> NODE_CONSTRUCTORS = ImmutableMap.<Class<? extends ParseTree>, Function<ParseTree, Node>>builder()
-        .put(GyroParser.BareStringContext.class, c -> new ValueNode((GyroParser.BareStringContext) c))
         .put(GyroParser.BoolContext.class, c -> new ValueNode((GyroParser.BoolContext) c))
         .put(GyroParser.DirectiveContext.class, c -> new DirectiveNode((GyroParser.DirectiveContext) c))
         .put(GyroParser.FileContext.class, c -> new FileNode((GyroParser.FileContext) c))
@@ -75,6 +74,7 @@ public abstract class Node {
         .put(GyroParser.TwoValueContext.class, c -> new BinaryNode((GyroParser.TwoValueContext) c))
         .put(GyroParser.TypeContext.class, c -> new ValueNode(c.getText()))
         .put(GyroParser.ValueContext.class, GET_FIRST_CHILD)
+        .put(GyroParser.WordContext.class, c -> new ValueNode(c.getText()))
         .build();
 
     private String file;
