@@ -6,7 +6,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import gyro.lang.ast.Node;
 import gyro.parser.antlr4.GyroParser;
-import gyro.util.ImmutableCollectors;
 
 public class DirectiveSection {
 
@@ -24,13 +23,8 @@ public class DirectiveSection {
         GyroParser.OptionContext optionContext = Preconditions.checkNotNull(context).option();
 
         this.name = optionContext.IDENTIFIER().getText();
-        this.arguments = Node.create(context.option().arguments());
-
-        this.body = context.body()
-            .statement()
-            .stream()
-            .map(Node::create)
-            .collect(ImmutableCollectors.toList());
+        this.arguments = Node.create(optionContext.arguments());
+        this.body = Node.create(context.body());
     }
 
     public String getName() {

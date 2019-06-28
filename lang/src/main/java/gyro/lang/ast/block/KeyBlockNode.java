@@ -24,7 +24,7 @@ public class KeyBlockNode extends BlockNode {
         this(
             Preconditions.checkNotNull(context).IDENTIFIER().getText(),
             Optional.ofNullable(context.name()).map(Node::create).orElse(null),
-            Node.create(context.body().statement()));
+            Node.create(context.body()));
     }
 
     public String getKey() {

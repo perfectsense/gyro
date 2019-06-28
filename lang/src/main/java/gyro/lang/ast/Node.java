@@ -129,11 +129,19 @@ public abstract class Node {
             .collect(ImmutableCollectors.toList());
     }
 
-    public static List<Node> create(GyroParser.ArgumentsContext context) {
+    private static <T extends ParseTree, U extends ParseTree> List<Node> create(T context, Function<T, List<U>> toList) {
         return Optional.ofNullable(context)
-            .map(GyroParser.ArgumentsContext::value)
+            .map(toList)
             .map(Node::create)
             .orElseGet(ImmutableList::of);
+    }
+
+    public static List<Node> create(GyroParser.ArgumentsContext context) {
+        return create(context, GyroParser.ArgumentsContext::value);
+    }
+
+    public static List<Node> create(GyroParser.BodyContext context) {
+        return create(context, GyroParser.BodyContext::statement);
     }
 
     public static Node parse(String text, Function<GyroParser, ? extends ParseTree> function) {

@@ -8,7 +8,6 @@ import gyro.parser.antlr4.GyroParser;
 import gyro.util.ImmutableCollectors;
 
 import java.util.List;
-import java.util.Optional;
 
 public class DirectiveNode extends BlockNode {
 
@@ -33,10 +32,7 @@ public class DirectiveNode extends BlockNode {
     }
 
     public DirectiveNode(GyroParser.DirectiveContext context) {
-        super(Optional.ofNullable(Preconditions.checkNotNull(context).body())
-            .map(GyroParser.BodyContext::statement)
-            .map(Node::create)
-            .orElseGet(ImmutableList::of));
+        super(Node.create(context.body()));
 
         this.name = context.IDENTIFIER().getText();
         this.arguments = Node.create(context.arguments());
