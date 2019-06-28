@@ -18,19 +18,21 @@ statement
 // directive
 directive
     : AT IDENTIFIER COLON arguments
-    | AT IDENTIFIER arguments? option* NEWLINES blockBody section* AT END
+    | AT IDENTIFIER arguments? option* NEWLINES body section* AT END
     ;
 
 arguments : value (COMMA? value)*;
 
 option: TILDE IDENTIFIER arguments?;
 
-section: option NEWLINES blockBody;
+body : (statement NEWLINES)*;
+
+section: option NEWLINES body;
 
 // block
 block
-    : IDENTIFIER name? NEWLINES blockBody END # KeyBlock
-    | type name NEWLINES blockBody END        # Resource
+    : IDENTIFIER name? NEWLINES body END # KeyBlock
+    | type name NEWLINES body END        # Resource
     ;
 
 type : IDENTIFIER COLON COLON IDENTIFIER;
@@ -39,8 +41,6 @@ name
     : reference
     | string
     ;
-
-blockBody : (statement NEWLINES)*;
 
 // pair
 pair : key COLON value;

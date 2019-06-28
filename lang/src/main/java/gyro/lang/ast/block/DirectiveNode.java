@@ -33,8 +33,8 @@ public class DirectiveNode extends BlockNode {
     }
 
     public DirectiveNode(GyroParser.DirectiveContext context) {
-        super(Optional.ofNullable(Preconditions.checkNotNull(context).blockBody())
-            .map(GyroParser.BlockBodyContext::statement)
+        super(Optional.ofNullable(Preconditions.checkNotNull(context).body())
+            .map(GyroParser.BodyContext::statement)
             .map(Node::create)
             .orElseGet(ImmutableList::of));
 

@@ -26,7 +26,7 @@ public class DirectiveSection {
         this.name = optionContext.IDENTIFIER().getText();
         this.arguments = Node.create(context.option().arguments());
 
-        this.body = context.blockBody()
+        this.body = context.body()
             .statement()
             .stream()
             .map(Node::create)
