@@ -114,6 +114,7 @@ item
     | number
     | reference
     | string
+    | type
     ;
 
 bool
@@ -160,7 +161,6 @@ string
         ( IDENTIFIER ASTERISK
         | IDENTIFIER
         | ASTERISK
-        | type
     )                              # BareString
     ;
 

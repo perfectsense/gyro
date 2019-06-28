@@ -50,6 +50,7 @@ public abstract class Node {
         .put(GyroParser.NameContext.class, GET_FIRST_CHILD)
         .put(GyroParser.ResourceContext.class, c -> new ResourceNode((GyroParser.ResourceContext) c))
         .put(GyroParser.StatementContext.class, GET_FIRST_CHILD)
+        .put(GyroParser.TypeContext.class, c -> new ValueNode(c.getText()))
         // ast.value
         .put(GyroParser.BareStringContext.class, c -> new ValueNode((GyroParser.BareStringContext) c))
         .put(GyroParser.BoolContext.class, c -> new ValueNode((GyroParser.BoolContext) c))
