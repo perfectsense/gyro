@@ -37,7 +37,6 @@ import gyro.lang.ast.PairNode;
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.block.ResourceNode;
-import gyro.lang.ast.control.IfNode;
 import gyro.lang.ast.value.BinaryNode;
 import gyro.lang.ast.value.IndexedNode;
 import gyro.lang.ast.value.InterpolatedStringNode;
@@ -119,7 +118,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
         }
     }
 
-    private static boolean test(Object value) {
+    public static boolean test(Object value) {
         if (value instanceof Boolean) {
             return Boolean.TRUE.equals(value);
 
@@ -415,25 +414,6 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
                 type,
                 value,
                 value.getClass().getName()));
-        }
-
-        return null;
-    }
-
-    @Override
-    public Object visitIf(IfNode node, Scope scope) {
-        List<Node> conditions = node.getConditions();
-        List<List<Node>> bodies = node.getBodies();
-
-        for (int i = 0; i < conditions.size(); i++) {
-            if (test(visit(conditions.get(i), scope))) {
-                visitBody(bodies.get(i), scope);
-                return null;
-            }
-        }
-
-        if (bodies.size() > conditions.size()) {
-            visitBody(bodies.get(bodies.size() - 1), scope);
         }
 
         return null;

@@ -17,7 +17,6 @@ import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.block.ResourceNode;
-import gyro.lang.ast.control.IfNode;
 import gyro.lang.ast.value.BinaryNode;
 import gyro.lang.ast.value.IndexedNode;
 import gyro.lang.ast.value.InterpolatedStringNode;
@@ -52,8 +51,6 @@ public abstract class Node {
         .put(GyroParser.NameContext.class, GET_FIRST_CHILD)
         .put(GyroParser.ResourceContext.class, c -> new ResourceNode((GyroParser.ResourceContext) c))
         .put(GyroParser.StatementContext.class, GET_FIRST_CHILD)
-        // ast.control
-        .put(GyroParser.IfStatementContext.class, c -> new IfNode((GyroParser.IfStatementContext) c))
         // ast.value
         .put(GyroParser.BareStringContext.class, c -> new ValueNode((GyroParser.BareStringContext) c))
         .put(GyroParser.BoolContext.class, c -> new ValueNode((GyroParser.BoolContext) c))

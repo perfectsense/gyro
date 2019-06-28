@@ -15,7 +15,7 @@ public abstract class DirectiveProcessor {
         return evaluateArguments(scope, node.getArguments());
     }
 
-    private static List<Object> evaluateArguments(Scope scope, List<Node> arguments) {
+    public static List<Object> evaluateArguments(Scope scope, List<Node> arguments) {
         NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
 
         return arguments.stream()

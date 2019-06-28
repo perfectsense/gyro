@@ -7,10 +7,6 @@ COMMA : ',';
 TILDE : '~';
 END   : 'end';
 
-// ifStatement
-IF   : 'if';
-ELSE : 'else';
-
 // value
 ASTERISK : '*';
 SLASH    : '/';

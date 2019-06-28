@@ -12,7 +12,6 @@ file
 statement
     : directive
     | block
-    | ifStatement
     | pair
     ;
 
@@ -45,20 +44,7 @@ blockBody : (blockStatement NEWLINES)*;
 blockStatement
     : directive
     | block
-    | ifStatement
     | pair
-    ;
-
-// ifStatement
-ifStatement
-    :
-    IF value NEWLINES
-        blockBody
-    (ELSE IF value NEWLINES
-        blockBody)*
-    (ELSE NEWLINES
-        blockBody)?
-    END
     ;
 
 // pair

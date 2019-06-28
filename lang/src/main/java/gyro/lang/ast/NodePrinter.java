@@ -8,7 +8,6 @@ import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.block.ResourceNode;
-import gyro.lang.ast.control.IfNode;
 import gyro.lang.ast.value.BinaryNode;
 import gyro.lang.ast.value.IndexedNode;
 import gyro.lang.ast.value.InterpolatedStringNode;
@@ -102,30 +101,6 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
             });
 
         visitBody(node.getBody(), context.indented());
-        context.appendNewline();
-        context.append("end");
-
-        return null;
-    }
-
-    @Override
-    public Void visitIf(IfNode node, PrinterContext context) {
-        List<Node> conditions = node.getConditions();
-        List<List<Node>> bodies = node.getBodies();
-
-        for (int i = 0; i < conditions.size(); i++) {
-            context.append(i == 0 ? "if " : "else if ");
-            visit(conditions.get(i), context);
-            visitBody(bodies.get(i), context.indented());
-            context.appendNewline();
-        }
-
-        if (bodies.size() > conditions.size()) {
-            context.appendNewline();
-            context.append("else");
-            visitBody(bodies.get(bodies.size() - 1), context.indented());
-        }
-
         context.appendNewline();
         context.append("end");
 
