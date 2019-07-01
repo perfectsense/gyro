@@ -42,7 +42,7 @@ public class IfDirectiveProcessor extends DirectiveProcessor {
 
                 default :
                     throw new GyroException(String.format(
-                        "~%s is not a valid section name within an @if directive!",
+                        "-%s is not a valid section name within an @if directive!",
                         name));
             }
         }

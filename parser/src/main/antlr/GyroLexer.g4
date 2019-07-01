@@ -4,7 +4,7 @@ lexer grammar GyroLexer;
 AT    : '@';
 COLON : ':';
 COMMA : ',';
-TILDE : '~';
+MINUS : '-';
 END   : 'end';
 
 // value
@@ -12,7 +12,6 @@ ASTERISK : '*';
 SLASH    : '/';
 PERCENT  : '%';
 PLUS     : '+';
-MINUS    : '-';
 EQ       : '=';
 NE       : '!=';
 LT       : '<';
@@ -21,10 +20,11 @@ GT       : '>';
 GE       : '>=';
 AND      : 'and';
 OR       : 'or';
+DOT      : '.';
 LPAREN   : '(' -> pushMode(DEFAULT_MODE);
 RPAREN   : ')' -> popMode;
 
-// booleanValue
+// bool
 TRUE  : 'true';
 FALSE : 'false';
 
@@ -37,12 +37,11 @@ LBRACE : '{';
 RBRACE : '}';
 
 // number
-DOT     : '.';
 NUMBERS : [0-9] [_0-9]*;
 
 // reference
 DOLLAR : '$';
-PIPE   : '|';
+BAR    : '|';
 
 // string
 STRING : '\'' ~('\'')* '\'';

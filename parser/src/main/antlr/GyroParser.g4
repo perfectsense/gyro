@@ -23,7 +23,7 @@ directive
 
 arguments : value (COMMA? value)*;
 
-option: TILDE IDENTIFIER arguments?;
+option: MINUS IDENTIFIER arguments?;
 
 body : (statement NEWLINES)*;
 
@@ -145,7 +145,7 @@ map
 number : MINUS? NUMBERS (DOT NUMBERS)?;
 
 reference
-    : DOLLAR LPAREN value* (PIPE filter)* RPAREN
+    : DOLLAR LPAREN value* (BAR filter)* RPAREN
     | DOLLAR IDENTIFIER
     ;
 

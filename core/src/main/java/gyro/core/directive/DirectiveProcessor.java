@@ -30,7 +30,7 @@ public abstract class DirectiveProcessor {
             .findFirst()
             .map(n -> evaluateArguments(scope, n.getArguments()))
             .orElseThrow(() -> new GyroException(String.format(
-                "@%s directive requires ~%s option!",
+                "@%s directive requires -%s option!",
                 node.getName(),
                 name)));
     }

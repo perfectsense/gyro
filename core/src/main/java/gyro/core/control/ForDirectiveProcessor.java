@@ -29,7 +29,7 @@ public class ForDirectiveProcessor extends DirectiveProcessor {
         List<Object> inArguments = evaluateOptionArguments(scope, node, "in");
 
         if (inArguments.size() != 1) {
-            throw new GyroException("~in option only takes 1 argument!");
+            throw new GyroException("-in option only takes 1 argument!");
         }
 
         Object value = inArguments.get(0);
