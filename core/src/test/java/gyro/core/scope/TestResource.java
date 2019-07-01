@@ -1,36 +1,18 @@
 package gyro.core.scope;
 
-import java.lang.reflect.Field;
 import java.util.Set;
 
 import gyro.core.Namespace;
 import gyro.core.Type;
-import gyro.core.resource.Diffable;
+import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.Resource;
 
 @Namespace("test")
 @Type("resource")
 public class TestResource extends Resource {
 
-    private static final Field nameField;
-
-    static {
-        try {
-            nameField = Diffable.class.getDeclaredField("name");
-            nameField.setAccessible(true);
-
-        } catch (NoSuchFieldException error) {
-            throw new IllegalStateException(error);
-        }
-    }
-
     public TestResource(String name) {
-        try {
-            nameField.set(this, name);
-
-        } catch (IllegalAccessException error) {
-            throw new IllegalStateException(error);
-        }
+        DiffableInternals.setName(this, name);
     }
 
     @Override
