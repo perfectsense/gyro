@@ -150,7 +150,7 @@ public class RootScope extends FileScope {
             .filter(Resource.class::isInstance)
             .map(Resource.class::cast);
 
-        if (diffFiles != null && diffFiles.isEmpty()) {
+        if (diffFiles != null && !diffFiles.isEmpty()) {
             stream = stream.filter(r -> diffFiles.contains(r.scope.getFileScope().getFile()));
         }
 
