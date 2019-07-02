@@ -396,7 +396,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
                 Resource resource = DiffableType.getInstance((Class<? extends Resource>) c).newDiffable(null, name, bodyScope);
 
                 resource.initialize(bodyScope.isExtended() ? new LinkedHashMap<>(bodyScope) : bodyScope);
-                scope.getFileScope().put(fullName, resource);
+                rootScope.addResource(resource);
 
             } else {
                 throw new GyroException(String.format(

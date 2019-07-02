@@ -3,7 +3,6 @@ package gyro.core.resource;
 import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +45,7 @@ public class RootScope extends FileScope {
     private final RootScope current;
     private final Set<String> loadFiles;
     private final List<FileScope> fileScopes = new ArrayList<>();
+    private final List<Resource> resources = new ArrayList<>();
 
     @SuppressWarnings("unchecked")
     public RootScope(String file, FileBackend backend, RootScope current, Set<String> loadFiles) {
@@ -140,13 +140,7 @@ public class RootScope extends FileScope {
     }
 
     public List<Resource> findResourcesIn(Set<String> diffFiles) {
-        Stream<Resource> stream = Stream.concat(Stream.of(this), getFileScopes().stream())
-            .map(Map::entrySet)
-            .flatMap(Collection::stream)
-            .filter(e -> e.getValue() instanceof Resource)
-            .filter(e -> ((Resource) e.getValue()).primaryKey().equals(e.getKey()))
-            .map(Entry::getValue)
-            .map(Resource.class::cast);
+        Stream<Resource> stream = resources.stream();
 
         if (diffFiles != null && diffFiles.isEmpty()) {
             stream = stream.filter(r -> diffFiles.contains(r.scope.getFileScope().getFile()));
@@ -163,10 +157,8 @@ public class RootScope extends FileScope {
     }
 
     public Resource findResource(String name) {
-        return Stream.concat(Stream.of(this), getFileScopes().stream())
-            .map(s -> s.get(name))
-            .filter(Resource.class::isInstance)
-            .map(Resource.class::cast)
+        return findResources().stream()
+            .filter(r -> r.primaryKey().equals(name))
             .findFirst()
             .orElse(null);
     }
@@ -184,6 +176,29 @@ public class RootScope extends FileScope {
                 idField.setValue(r, id);
                 return r;
             });
+    }
+
+    public void addResource(Resource resource) {
+        resources.add(resource);
+    }
+
+    public void removeResource(String name) {
+        resources.removeIf(r -> r.primaryKey().equals(name));
+    }
+
+    public void addOrUpdateResource(String name, Resource resource) {
+        int index = -1;
+        for (int i = 0; i < resources.size(); i++) {
+            if (resources.get(i).primaryKey().equals(name)) {
+                index = i;
+            }
+        }
+
+        if (index == -1) {
+            resources.add(resource);
+        } else {
+            resources.set(index, resource);
+        }
     }
 
     public void load() throws Exception {

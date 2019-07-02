@@ -97,9 +97,9 @@ class NodeEvaluatorTest {
             @BeforeEach
             void beforeEach() {
                 root.put("test::resource", TestResource.class);
-                root.put("test::resource::foo", new TestResource("foo"));
-                root.put("test::resource::bar", new TestResource("bar"));
-                root.put("test::resource::foobar", new TestResource("foobar"));
+                root.addResource(new TestResource("foo"));
+                root.addResource(new TestResource("bar"));
+                root.addResource(new TestResource("foobar"));
             }
 
             @Test

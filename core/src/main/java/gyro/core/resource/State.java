@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -34,30 +35,27 @@ public class State {
 
     private final FileBackend backend;
     private final boolean test;
-    private final Map<String, FileScope> states = new HashMap<>();
+    private final Set<String> states = new HashSet<>();
     private final Set<String> diffFiles;
     private final Map<String, String> swapNames = new HashMap<>();
     private final Map<String, String> swapKeys = new HashMap<>();
+    private final RootScope root;
 
     public State(RootScope current, RootScope pending, boolean test, Set<String> diffFiles) throws Exception {
         this.backend = current.getBackend();
         this.test = test;
         this.diffFiles = diffFiles != null ? ImmutableSet.copyOf(diffFiles) : null;
 
-        RootScope root = new RootScope(current.getFile(), backend, null, current.getLoadFiles());
+        this.root = new RootScope(current.getFile(), backend, null, current.getLoadFiles());
 
         root.load();
 
         for (FileScope state : root.getFileScopes()) {
-            states.put(state.getFile(), state);
+            states.add(state.getFile());
         }
 
         for (FileScope state : pending.getFileScopes()) {
-            String stateFile = state.getFile();
-
-            if (!states.containsKey(stateFile)) {
-                states.put(stateFile, new FileScope(root, stateFile));
-            }
+            states.add(state.getFile());
         }
     }
 
@@ -86,31 +84,24 @@ public class State {
         // Delete goes through every state to remove the resource.
         if (change instanceof Delete) {
             if (typeRoot) {
-                for (FileScope state : states.values()) {
-                    String key = resource.primaryKey();
-                    state.remove(swapKeys.getOrDefault(key, key));
-                }
+                String key = resource.primaryKey();
+                root.removeResource(swapKeys.getOrDefault(key, key));
 
             } else {
-                states.values()
+                root.findResources()
                     .stream()
-                    .flatMap(s -> s.values().stream())
-                    .filter(Resource.class::isInstance)
-                    .map(Resource.class::cast)
                     .filter(r -> r.equals(resource.parentResource()))
                     .forEach(r -> updateSubresource(r, resource, true));
             }
 
         } else {
-            FileScope state = states.get(resource.scope.getFileScope().getFile());
-
             if (typeRoot) {
                 String key = resource.primaryKey();
-                state.put(swapKeys.getOrDefault(key, key), resource);
+                root.addOrUpdateResource(swapKeys.getOrDefault(key, key), resource);
 
             } else {
                 String key = resource.parentResource().primaryKey();
-                updateSubresource((Resource) state.get(swapKeys.getOrDefault(key, key)), resource, false);
+                updateSubresource(root.findResource(swapKeys.getOrDefault(key, key)), resource, false);
             }
         }
 
@@ -159,8 +150,7 @@ public class State {
     private void save() {
         NodePrinter printer = new NodePrinter();
 
-        for (FileScope state : states.values()) {
-            String file = state.getFile();
+        for (String file : states) {
 
             try (BufferedWriter out = new BufferedWriter(
                 new OutputStreamWriter(
@@ -169,17 +159,13 @@ public class State {
 
                 PrinterContext context = new PrinterContext(out, 0);
 
-                for (Object value : state.values()) {
-                    if (value instanceof Resource) {
-                        Resource resource = (Resource) value;
-
-                        printer.visit(
-                            new ResourceNode(
-                                DiffableType.getInstance(resource.getClass()).getName(),
-                                new ValueNode(swapNames.getOrDefault(resource.primaryKey(), resource.name())),
-                                toBodyNodes(resource)),
-                            context);
-                    }
+                for (Resource resource : root.findResourcesIn(Collections.singleton(file))) {
+                    printer.visit(
+                        new ResourceNode(
+                            DiffableType.getInstance(resource.getClass()).getName(),
+                            new ValueNode(swapNames.getOrDefault(resource.primaryKey(), resource.name())),
+                            toBodyNodes(resource)),
+                        context);
                 }
 
             } catch (IOException error) {
