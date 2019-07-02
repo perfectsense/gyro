@@ -38,7 +38,7 @@ public class DeleteAction extends Action {
 
         String fullName = ((Resource) resource).primaryKey();
 
-        pending.getFileScopes().forEach(s -> s.remove(fullName));
+        pending.removeResource(fullName);
     }
 
 }
