@@ -137,28 +137,22 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
     }
 
     private void refreshResources(RootScope scope) {
-        for (FileScope fileScope : scope.getFileScopes()) {
-            for (Iterator<Map.Entry<String, Object>> i = fileScope.entrySet().iterator(); i.hasNext(); ) {
-                Object value = i.next().getValue();
+        for (Iterator<Resource> i = scope.findResources().iterator(); i.hasNext(); ) {
+            Resource resource = i.next();
 
-                if (value instanceof Resource) {
-                    Resource resource = (Resource) value;
+            GyroCore.ui().write(
+                "@|bold,blue Refreshing|@: @|yellow %s|@ -> %s...",
+                DiffableType.getInstance(resource.getClass()).getName(),
+                resource.name());
 
-                    GyroCore.ui().write(
-                        "@|bold,blue Refreshing|@: @|yellow %s|@ -> %s...",
-                        DiffableType.getInstance(resource.getClass()).getName(),
-                        resource.name());
+            if (resource.refresh()) {
+                resource.updateInternals();
 
-                    if (resource.refresh()) {
-                        resource.updateInternals();
-
-                    } else {
-                        i.remove();
-                    }
-
-                    GyroCore.ui().write("\n");
-                }
+            } else {
+                i.remove();
             }
+
+            GyroCore.ui().write("\n");
         }
     }
 
