@@ -3,16 +3,10 @@ package gyro.lang.ast;
 import java.util.Arrays;
 import java.util.List;
 
+import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.block.ResourceNode;
-import gyro.lang.ast.block.VirtualResourceNode;
-import gyro.lang.ast.condition.AndConditionNode;
-import gyro.lang.ast.condition.ComparisonConditionNode;
-import gyro.lang.ast.condition.OrConditionNode;
-import gyro.lang.ast.condition.ValueConditionNode;
-import gyro.lang.ast.control.ForNode;
-import gyro.lang.ast.control.IfNode;
 import gyro.lang.ast.value.InterpolatedStringNode;
 import gyro.lang.ast.value.ListNode;
 import gyro.lang.ast.value.MapNode;
@@ -33,13 +27,6 @@ class NodeAcceptTest {
             create(FileNode.class, NodeVisitor::visitFile),
             create(KeyBlockNode.class, NodeVisitor::visitKeyBlock),
             create(ResourceNode.class, NodeVisitor::visitResource),
-            create(VirtualResourceNode.class, NodeVisitor::visitVirtualResource),
-            create(AndConditionNode.class, NodeVisitor::visitAndCondition),
-            create(ComparisonConditionNode.class, NodeVisitor::visitComparisonCondition),
-            create(OrConditionNode.class, NodeVisitor::visitOrCondition),
-            create(ValueConditionNode.class, NodeVisitor::visitValueCondition),
-            create(ForNode.class, NodeVisitor::visitFor),
-            create(IfNode.class, NodeVisitor::visitIf),
             create(InterpolatedStringNode.class, NodeVisitor::visitInterpolatedString),
             create(ListNode.class, NodeVisitor::visitList),
             create(MapNode.class, NodeVisitor::visitMap),

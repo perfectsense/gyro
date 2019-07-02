@@ -10,7 +10,7 @@ public class ResourcePlugin extends Plugin {
             @SuppressWarnings("unchecked")
             Class<? extends Resource> resourceClass = (Class<? extends Resource>) aClass;
 
-            root.getResourceClasses().put(
+            root.put(
                 DiffableType.getInstance(resourceClass).getName(),
                 resourceClass);
         }

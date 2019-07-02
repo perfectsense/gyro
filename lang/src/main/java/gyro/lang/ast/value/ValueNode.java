@@ -15,10 +15,6 @@ public class ValueNode extends Node {
         this.value = Preconditions.checkNotNull(value);
     }
 
-    public ValueNode(GyroParser.BareStringContext context) {
-        this(context.getText());
-    }
-
     public ValueNode(GyroParser.BoolContext context) {
         this(context.TRUE() != null);
     }

@@ -13,7 +13,7 @@ public class ComparisonFilter extends Filter {
     public static final String NOT_EQUALS_OPERATOR = "!=";
 
     public ComparisonFilter(GyroParser.ComparisonFilterContext context) {
-        this.operator = context.comparisonOperator().getText();
+        this.operator = context.relOp().getText();
         this.key = context.IDENTIFIER().getText();
         this.value = Node.create(context.value());
     }

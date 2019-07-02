@@ -5,7 +5,6 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,6 +19,8 @@ import gyro.core.auth.CredentialsDirectiveProcessor;
 import gyro.core.auth.CredentialsPlugin;
 import gyro.core.auth.UsesCredentialsDirectiveProcessor;
 import gyro.core.command.HighlanderDirectiveProcessor;
+import gyro.core.control.ForDirectiveProcessor;
+import gyro.core.control.IfDirectiveProcessor;
 import gyro.core.directive.DirectivePlugin;
 import gyro.core.directive.DirectiveSettings;
 import gyro.core.finder.FinderPlugin;
@@ -29,9 +30,12 @@ import gyro.core.reference.FinderReferenceResolver;
 import gyro.core.reference.ReferencePlugin;
 import gyro.core.reference.ReferenceSettings;
 import gyro.core.repo.RepositoryDirectiveProcessor;
-import gyro.core.workflow.Workflow;
+import gyro.core.virtual.VirtualDirectiveProcessor;
+import gyro.core.workflow.CreateDirectiveProcessor;
+import gyro.core.workflow.DeleteDirectiveProcessor;
+import gyro.core.workflow.SwapDirectiveProcessor;
+import gyro.core.workflow.WorkflowDirectiveProcessor;
 import gyro.lang.ast.Node;
-import gyro.lang.ast.block.VirtualResourceNode;
 import gyro.parser.antlr4.GyroParser;
 
 public class RootScope extends FileScope {
@@ -41,9 +45,6 @@ public class RootScope extends FileScope {
     private final FileBackend backend;
     private final RootScope current;
     private final Set<String> loadFiles;
-    private final Map<String, Class<?>> resourceClasses = new HashMap<>();
-    private final Map<String, VirtualResourceNode> virtualResourceNodes = new LinkedHashMap<>();
-    private final List<Workflow> workflows = new ArrayList<>();
     private final List<FileScope> fileScopes = new ArrayList<>();
 
     @SuppressWarnings("unchecked")
@@ -88,12 +89,19 @@ public class RootScope extends FileScope {
             .forEach(p -> getSettings(PluginSettings.class).getPlugins().add(p));
 
         Stream.of(
+            new CreateDirectiveProcessor(),
             new CredentialsDirectiveProcessor(),
+            new DeleteDirectiveProcessor(),
             new ExtendsDirectiveProcessor(),
+            new ForDirectiveProcessor(),
+            new IfDirectiveProcessor(),
             new HighlanderDirectiveProcessor(),
             new RepositoryDirectiveProcessor(),
             new PluginDirectiveProcessor(),
-            new UsesCredentialsDirectiveProcessor())
+            new SwapDirectiveProcessor(),
+            new UsesCredentialsDirectiveProcessor(),
+            new VirtualDirectiveProcessor(),
+            new WorkflowDirectiveProcessor())
             .forEach(p -> getSettings(DirectiveSettings.class).getProcessors().put(p.getName(), p));
 
         Stream.of(
@@ -117,18 +125,6 @@ public class RootScope extends FileScope {
 
     public Set<String> getLoadFiles() {
         return loadFiles;
-    }
-
-    public Map<String, Class<?>> getResourceClasses() {
-        return resourceClasses;
-    }
-
-    public Map<String, VirtualResourceNode> getVirtualResourceNodes() {
-        return virtualResourceNodes;
-    }
-
-    public List<Workflow> getWorkflows() {
-        return workflows;
     }
 
     public List<FileScope> getFileScopes() {
