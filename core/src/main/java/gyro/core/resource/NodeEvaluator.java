@@ -14,12 +14,15 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.DoubleBinaryOperator;
+import java.util.function.LongBinaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.google.common.base.CaseFormat;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.directive.DirectiveSettings;
@@ -27,23 +30,14 @@ import gyro.core.finder.FilterContext;
 import gyro.core.finder.FilterEvaluator;
 import gyro.core.reference.ReferenceResolver;
 import gyro.core.reference.ReferenceSettings;
-import gyro.core.workflow.Workflow;
-import gyro.lang.GyroLanguageException;
-import gyro.lang.ast.DirectiveNode;
+import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.PairNode;
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.block.ResourceNode;
-import gyro.lang.ast.block.VirtualResourceNode;
-import gyro.lang.ast.block.VirtualResourceParameter;
-import gyro.lang.ast.condition.AndConditionNode;
-import gyro.lang.ast.condition.ComparisonConditionNode;
-import gyro.lang.ast.condition.OrConditionNode;
-import gyro.lang.ast.condition.ValueConditionNode;
-import gyro.lang.ast.control.ForNode;
-import gyro.lang.ast.control.IfNode;
+import gyro.lang.ast.value.BinaryNode;
 import gyro.lang.ast.value.IndexedNode;
 import gyro.lang.ast.value.InterpolatedStringNode;
 import gyro.lang.ast.value.ListNode;
@@ -51,10 +45,99 @@ import gyro.lang.ast.value.MapNode;
 import gyro.lang.ast.value.ReferenceNode;
 import gyro.lang.ast.value.ValueNode;
 import gyro.lang.filter.Filter;
-import gyro.util.CascadingMap;
 import org.apache.commons.lang3.math.NumberUtils;
 
 public class NodeEvaluator implements NodeVisitor<Scope, Object> {
+
+    private static final Map<String, BiFunction<Object, Object, Object>> BINARY_FUNCTIONS = ImmutableMap.<String, BiFunction<Object, Object, Object>>builder()
+        .put("*", (l, r) -> doArithmetic(l, r, (ld, rd) -> ld * rd, (ll, rl) -> ll * rl))
+        .put("/", (l, r) -> doArithmetic(l, r, (ld, rd) -> ld / rd, (ll, rl) -> ll / rl))
+        .put("%", (l, r) -> doArithmetic(l, r, (ld, rd) -> ld % rd, (ll, rl) -> ll % rl))
+        .put("+", (l, r) -> doArithmetic(l, r, Double::sum, Long::sum))
+        .put("-", (l, r) -> doArithmetic(l, r, (ld, rd) -> ld - rd, (ll, rl) -> ll - rl))
+        .put("=", Objects::equals)
+        .put("!=", (l, r) -> !Objects.equals(l, r))
+        .put("<", (l, r) -> compare(l, r) < 0)
+        .put("<=", (l, r) -> compare(l, r) <= 0)
+        .put(">", (l, r) -> compare(l, r) > 0)
+        .put(">=", (l, r) -> compare(l, r) >= 0)
+        .put("and", (l, r) -> test(l) && test(r))
+        .put("or", (l, r) -> test(l) && test(r))
+        .build();
+
+    private static Object doArithmetic(Object left, Object right, DoubleBinaryOperator doubleOperator, LongBinaryOperator longOperator) {
+        if (left == null || right == null) {
+            throw new GyroException("Can't do arithmetic on a null!");
+        }
+
+        Number leftNumber = NumberUtils.createNumber(left.toString());
+
+        if (leftNumber == null) {
+            throw new GyroException(String.format(
+                "Can't do arithmetic on [%s] because it's not a number!",
+                left));
+        }
+
+        Number rightNumber = NumberUtils.createNumber(right.toString());
+
+        if (rightNumber == null) {
+            throw new GyroException(String.format(
+                "Can't do arithmetic on [%s] because it's not a number!",
+                right));
+        }
+
+        if (leftNumber instanceof Float
+            || leftNumber instanceof Double
+            || rightNumber instanceof Float
+            || rightNumber instanceof Double) {
+
+            return doubleOperator.applyAsDouble(leftNumber.doubleValue(), rightNumber.doubleValue());
+
+        } else {
+            return longOperator.applyAsLong(leftNumber.longValue(), rightNumber.longValue());
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static int compare(Object left, Object right) {
+        if (left == null || right == null) {
+            throw new GyroException("Can't compare against a null!");
+
+        } else if (left instanceof Comparable
+            && left.getClass().isInstance(right)) {
+
+            return ((Comparable<Object>) left).compareTo(right);
+
+        } else {
+            throw new GyroException(String.format(
+                "Can't compare [%s], an instance of [%s], against [%s], an instance of [%s]!",
+                left,
+                left.getClass().getName(),
+                right,
+                right.getClass().getName()));
+        }
+    }
+
+    public static boolean test(Object value) {
+        if (value instanceof Boolean) {
+            return Boolean.TRUE.equals(value);
+
+        } else if (value instanceof Collection) {
+            return !((Collection<?>) value).isEmpty();
+
+        } else if (value instanceof Map) {
+            return !((Map<?, ?>) value).isEmpty();
+
+        } else if (value instanceof Number) {
+            return ((Number) value).intValue() != 0;
+
+        } else if (value instanceof String) {
+            return !((String) value).isEmpty();
+
+        } else {
+            return value != null;
+        }
+    }
 
     public static Object getValue(Object object, String key) {
         if ("*".equals(key)) {
@@ -173,12 +256,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
         }
 
         try {
-            processor.process(
-                scope,
-                node.getArguments()
-                    .stream()
-                    .map(a -> visit(a, scope))
-                    .collect(Collectors.toList()));
+            processor.process(scope, node);
 
         } catch (Exception error) {
             throw new GyroException(String.format(
@@ -217,40 +295,19 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
         }
 
         List<PairNode> keyValues = new ArrayList<>();
-        Map<String, VirtualResourceNode> virtualResourceNodes = rootScope.getVirtualResourceNodes();
-        List<ResourceNode> workflowNodes = new ArrayList<>();
         List<Node> body = new ArrayList<>();
 
         for (Node item : node.getBody()) {
             if (item instanceof PairNode) {
                 keyValues.add((PairNode) item);
 
-            } else if (item instanceof VirtualResourceNode) {
-                VirtualResourceNode vrNode = (VirtualResourceNode) item;
-                virtualResourceNodes.put(vrNode.getName(), vrNode);
-
             } else {
-                if (item instanceof ResourceNode) {
-                    ResourceNode rnNode = (ResourceNode) item;
-
-                    if (rnNode.getType().equals("workflow")) {
-                        workflowNodes.add(rnNode);
-                        continue;
-                    }
-                }
-
                 body.add(item);
             }
         }
 
         for (PairNode kv : keyValues) {
             visit(kv, fileScope);
-        }
-
-        List<Workflow> workflows = rootScope.getWorkflows();
-
-        for (ResourceNode rn : workflowNodes) {
-            workflows.add(new Workflow(rootScope, rn));
         }
 
         try {
@@ -274,7 +331,11 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
         String key = node.getKey();
 
-        scope.addValue(key, bodyScope);
+        String name = (String) Optional.ofNullable(node.getName())
+            .map(n -> visit(n, scope))
+            .orElse(null);
+
+        scope.addValue(key, name, bodyScope);
         scope.getKeyNodes().put(key, node);
 
         return null;
@@ -323,206 +384,59 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
             visit(item, bodyScope);
         }
 
-        Class<? extends Resource> resourceClass = (Class<? extends Resource>) rootScope.getResourceClasses().get(type);
+        Object value = rootScope.get(type);
 
-        if (resourceClass == null) {
-            VirtualResourceNode vrNode = scope.getRootScope().getVirtualResourceNodes().get(type);
+        if (value == null) {
+            throw new DeferError(node);
 
-            if (vrNode != null) {
-                createResources(vrNode, name, bodyScope);
-                return null;
+        } else if (value instanceof Class) {
+            Class<?> c = (Class<?>) value;
 
-            } else {
-                throw new IllegalArgumentException(String.format(
-                        "Can't create resource of [%s] type!",
-                        type));
-            }
-        }
+            if (Resource.class.isAssignableFrom(c)) {
+                Resource resource = DiffableType.getInstance((Class<? extends Resource>) c).newDiffable(null, name, bodyScope);
 
-        Resource resource = DiffableType.getInstance(resourceClass).newDiffable(null, name, bodyScope);
-
-        resource.initialize(bodyScope.isExtended() ? new LinkedHashMap<>(bodyScope) : bodyScope);
-        scope.getFileScope().put(fullName, resource);
-
-        return null;
-    }
-
-    private void createResources(VirtualResourceNode node, String prefix, Scope paramScope) {
-        FileScope paramFileScope = paramScope.getFileScope();
-
-        RootScope vrScope = new RootScope(
-            GyroCore.INIT_FILE,
-            paramScope.getRootScope().getBackend(),
-            null,
-            paramScope.getRootScope().getLoadFiles());
-
-        FileScope resourceScope = new FileScope(vrScope, paramFileScope.getFile());
-
-        for (VirtualResourceParameter param : node.getParameters()) {
-            String paramName = param.getName();
-
-            if (!paramScope.containsKey(paramName)) {
-                throw new GyroLanguageException(String.format("Required parameter '%s' is missing.", paramName));
+                resource.initialize(bodyScope.isExtended() ? new LinkedHashMap<>(bodyScope) : bodyScope);
+                scope.getFileScope().put(fullName, resource);
 
             } else {
-                vrScope.put(paramName, paramScope.get(paramName));
+                throw new GyroException(String.format(
+                    "Can't create a resource of [%s] type using [%s] class!",
+                    type,
+                    c.getName()));
             }
-        }
 
-        RootScope paramRootScope = paramScope.getRootScope();
-
-        vrScope.getResourceClasses().putAll(paramRootScope.getResourceClasses());
-        vrScope.getFileScopes().add(resourceScope);
-
-        for (Node item : node.getBody()) {
-            visit(item, resourceScope);
-        }
-
-        for (Resource resource : vrScope.findResources()) {
-            resource.name = prefix + "." + resource.name;
-            paramFileScope.put(resource.primaryKey(), resource);
-        }
-    }
-
-    @Override
-    public Object visitVirtualResource(VirtualResourceNode node, Scope scope) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Object visitAndCondition(AndConditionNode node, Scope scope) {
-        return test(node.getLeft(), scope) && test(node.getRight(), scope);
-    }
-
-    private boolean test(Node node, Scope scope) {
-        Object value = visit(node, scope);
-
-        if (value instanceof Boolean) {
-            return Boolean.TRUE.equals(value);
-
-        } else if (value instanceof Collection) {
-            return !((Collection<?>) value).isEmpty();
-
-        } else if (value instanceof Map) {
-            return !((Map<?, ?>) value).isEmpty();
-
-        } else if (value instanceof Number) {
-            return ((Number) value).intValue() != 0;
-
-        } else if (value instanceof String) {
-            return !((String) value).isEmpty();
+        } else if (value instanceof ResourceVisitor) {
+            ((ResourceVisitor) value).visit(name, bodyScope);
 
         } else {
-            return value != null;
-        }
-    }
-
-    @Override
-    public Object visitComparisonCondition(ComparisonConditionNode node, Scope scope) {
-        Object leftValue = visit(node.getLeft(), scope);
-        Object rightValue = visit(node.getRight(), scope);
-
-        switch (node.getOperator()) {
-            case "==" : return leftValue.equals(rightValue);
-            case "!=" : return !leftValue.equals(rightValue);
-            default   : return false;
-        }
-    }
-
-    @Override
-    public Object visitOrCondition(OrConditionNode node, Scope scope) {
-        return test(node.getLeft(), scope) || test(node.getRight(), scope);
-    }
-
-    @Override
-    public Object visitValueCondition(ValueConditionNode node, Scope scope) {
-        return test(node.getValue(), scope);
-    }
-
-    @Override
-    public Object visitFor(ForNode node, Scope scope) {
-        List<String> variables = node.getVariables();
-        Object value = visit(node.getValue(), scope);
-
-        if (value instanceof List) {
-            List<?> list = (List<?>) value;
-            int variablesSize = variables.size();
-            int listSize = list.size();
-
-            for (int i = 0; i < listSize; i += variablesSize) {
-                Map<String, Object> values = new LinkedHashMap<>();
-
-                for (int j = 0; j < variablesSize; j++) {
-                    int k = i + j;
-
-                    values.put(
-                        variables.get(j),
-                        k < listSize
-                            ? list.get(k)
-                            : null);
-                }
-
-                visitForBody(node, scope, values);
-            }
-
-        } else if (value instanceof Map) {
-            String keyVariable = variables.get(0);
-
-            if (variables.size() > 1) {
-                String valueVariable = variables.get(1);
-
-                for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
-                    Map<String, Object> values = new LinkedHashMap<>();
-
-                    values.put(keyVariable, entry.getKey());
-                    values.put(valueVariable, entry.getValue());
-                    visitForBody(node, scope, values);
-                }
-
-            } else {
-                for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
-                    Map<String, Object> values = new LinkedHashMap<>();
-
-                    values.put(keyVariable, entry.getKey());
-                    visitForBody(node, scope, values);
-                }
-            }
-
-        } else {
-            throw new GyroException("Can't iterate over a non-collection!");
-        }
-
-        return null;
-    }
-
-    private void visitForBody(ForNode node, Scope scope, Map<String, Object> values) {
-        Scope bodyScope = new Scope(scope, new CascadingMap<>(scope, values));
-
-        visitBody(node.getBody(), bodyScope);
-        scope.getKeyNodes().putAll(bodyScope.getKeyNodes());
-    }
-
-    @Override
-    public Object visitIf(IfNode node, Scope scope) {
-        List<Node> conditions = node.getConditions();
-        List<List<Node>> bodies = node.getBodies();
-
-        for (int i = 0; i < conditions.size(); i++) {
-            if (test(conditions.get(i), scope)) {
-                visitBody(bodies.get(i), scope);
-                return null;
-            }
-        }
-
-        if (bodies.size() > conditions.size()) {
-            visitBody(bodies.get(bodies.size() - 1), scope);
+            throw new GyroException(String.format(
+                "Can't create a resource of [%s] type using [%s], an instance of [%s]!",
+                type,
+                value,
+                value.getClass().getName()));
         }
 
         return null;
     }
 
     @Override
-    public Object visitIndexedNode(IndexedNode node, Scope context) {
+    public Object visitBinary(BinaryNode node, Scope scope) {
+        String operator = node.getOperator();
+        BiFunction<Object, Object, Object> function = BINARY_FUNCTIONS.get(operator);
+
+        if (function == null) {
+            throw new GyroException(String.format(
+                "[%s] is not a valid binary operator!",
+                operator));
+        }
+
+        return function.apply(
+            visit(node.getLeft(), scope),
+            visit(node.getRight(), scope));
+    }
+
+    @Override
+    public Object visitIndexed(IndexedNode node, Scope context) {
         Object value = visit(node.getValue(), context);
 
         if (value == null) {

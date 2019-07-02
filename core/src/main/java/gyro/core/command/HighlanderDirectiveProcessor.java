@@ -6,6 +6,7 @@ import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.resource.RootScope;
 import gyro.core.resource.Scope;
+import gyro.lang.ast.block.DirectiveNode;
 
 public class HighlanderDirectiveProcessor extends DirectiveProcessor {
 
@@ -15,16 +16,18 @@ public class HighlanderDirectiveProcessor extends DirectiveProcessor {
     }
 
     @Override
-    public void process(Scope scope, List<Object> arguments) throws Exception {
+    public void process(Scope scope, DirectiveNode node) {
         if (!(scope instanceof RootScope)) {
             throw new GyroException("@highlander directive can only be used within the init.gyro file!");
         }
 
-        if (!arguments.isEmpty()) {
-            throw new GyroException("@highlander takes no arguments!");
+        List<Object> arguments = evaluateArguments(scope, node);
+
+        if (arguments.size() != 1) {
+            throw new GyroException("@highlander directive only takes 1 argument!");
         }
 
-        scope.getSettings(HighlanderSettings.class).setHighlander(true);
+        scope.getSettings(HighlanderSettings.class).setHighlander((boolean) arguments.get(0));
     }
 
 }

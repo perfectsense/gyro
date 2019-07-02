@@ -22,7 +22,7 @@ class KeyBlockNodeTest extends AbstractNodeTest<KeyBlockNode> {
     @Test
     void getKey() {
         String key = "foo";
-        KeyBlockNode node = new KeyBlockNode(key, Collections.emptyList());
+        KeyBlockNode node = new KeyBlockNode(key, null, Collections.emptyList());
 
         assertThat(node.getKey()).isEqualTo(key);
     }

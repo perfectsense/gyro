@@ -13,11 +13,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableSet;
 import gyro.core.FileBackend;
+import gyro.core.GyroException;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.NodePrinter;
 import gyro.lang.ast.PairNode;
@@ -32,16 +33,18 @@ import gyro.lang.ast.value.ValueNode;
 public class State {
 
     private final FileBackend backend;
-    private final RootScope root;
     private final boolean test;
     private final Map<String, FileScope> states = new HashMap<>();
     private final Set<String> diffFiles;
+    private final Map<String, String> swapNames = new HashMap<>();
+    private final Map<String, String> swapKeys = new HashMap<>();
 
     public State(RootScope current, RootScope pending, boolean test, Set<String> diffFiles) throws Exception {
         this.backend = current.getBackend();
-        this.root = new RootScope(current.getFile(), backend, null, current.getLoadFiles());
         this.test = test;
         this.diffFiles = diffFiles != null ? ImmutableSet.copyOf(diffFiles) : null;
+
+        RootScope root = new RootScope(current.getFile(), backend, null, current.getLoadFiles());
 
         root.load();
 
@@ -66,7 +69,7 @@ public class State {
         return diffFiles;
     }
 
-    public void update(Change change) throws Exception {
+    public void update(Change change) {
         if (change instanceof Replace) {
             return;
         }
@@ -84,7 +87,8 @@ public class State {
         if (change instanceof Delete) {
             if (typeRoot) {
                 for (FileScope state : states.values()) {
-                    state.remove(resource.primaryKey());
+                    String key = resource.primaryKey();
+                    state.remove(swapKeys.getOrDefault(key, key));
                 }
 
             } else {
@@ -101,11 +105,12 @@ public class State {
             FileScope state = states.get(resource.scope.getFileScope().getFile());
 
             if (typeRoot) {
-                state.put(resource.primaryKey(), resource);
+                String key = resource.primaryKey();
+                state.put(swapKeys.getOrDefault(key, key), resource);
 
             } else {
-                Resource parent = resource.parentResource();
-                updateSubresource((Resource) state.get(parent.primaryKey()), resource, false);
+                String key = resource.parentResource().primaryKey();
+                updateSubresource((Resource) state.get(swapKeys.getOrDefault(key, key)), resource, false);
             }
         }
 
@@ -151,7 +156,7 @@ public class State {
         }
     }
 
-    private void save() throws IOException {
+    private void save() {
         NodePrinter printer = new NodePrinter();
 
         for (FileScope state : states.values()) {
@@ -171,11 +176,14 @@ public class State {
                         printer.visit(
                             new ResourceNode(
                                 DiffableType.getInstance(resource.getClass()).getName(),
-                                new ValueNode(resource.name()),
+                                new ValueNode(swapNames.getOrDefault(resource.primaryKey(), resource.name())),
                                 toBodyNodes(resource)),
                             context);
                     }
                 }
+
+            } catch (IOException error) {
+                throw new GyroException(error.getMessage());
             }
         }
     }
@@ -209,7 +217,7 @@ public class State {
 
             } else if (value instanceof Diffable) {
                 if (field.shouldBeDiffed()) {
-                    body.add(new KeyBlockNode(key, toBodyNodes((Diffable) value)));
+                    body.add(new KeyBlockNode(key, null, toBodyNodes((Diffable) value)));
 
                 } else {
                     body.add(toPairNode(key, value));
@@ -218,7 +226,7 @@ public class State {
             } else if (value instanceof Collection) {
                 if (field.shouldBeDiffed()) {
                     for (Object item : (Collection<?>) value) {
-                        body.add(new KeyBlockNode(key, toBodyNodes((Diffable) item)));
+                        body.add(new KeyBlockNode(key, null, toBodyNodes((Diffable) item)));
                     }
 
                 } else {
@@ -279,7 +287,9 @@ public class State {
 
             } else {
                 return new ReferenceNode(
-                    Arrays.asList(new ValueNode(type.getName()), new ValueNode(resource.name())),
+                    Arrays.asList(
+                        new ValueNode(type.getName()),
+                        new ValueNode(swapNames.getOrDefault(resource.primaryKey(), resource.name()))),
                     Collections.emptyList());
             }
 
@@ -290,40 +300,25 @@ public class State {
         }
     }
 
-    public void swap(RootScope current, RootScope pending, String type, String x, String y) throws Exception {
-        swapResources(current, type, x, y);
-        swapResources(pending, type, x, y);
-        swapResources(root, type, x, y);
+    public void swap(Resource x, Resource y) {
+        String xType = DiffableType.getInstance(x.getClass()).getName();
+        String yType = DiffableType.getInstance(y.getClass()).getName();
+
+        if (!Objects.equals(xType, yType)) {
+            throw new GyroException(String.format(
+                "Can't swap resources that have different types! [%s] [%s]",
+                xType,
+                yType));
+        }
+
+        String xKey = x.primaryKey();
+        String yKey = y.primaryKey();
+
+        swapNames.put(xKey, y.name());
+        swapNames.put(yKey, x.name());
+        swapKeys.put(xKey, yKey);
+        swapKeys.put(yKey, xKey);
         save();
-    }
-
-    private void swapResources(RootScope rootScope, String type, String xName, String yName) {
-        String xFullName = type + "::" + xName;
-        String yFullName = type + "::" + yName;
-        FileScope xScope = findFileScope(rootScope, xFullName);
-        FileScope yScope = findFileScope(rootScope, yFullName);
-
-        if (xScope != null && yScope != null) {
-            Resource x = (Resource) xScope.get(xFullName);
-            Resource y = (Resource) yScope.get(yFullName);
-
-            x.name = yName;
-            y.name = xName;
-            xScope.put(xFullName, y);
-            yScope.put(yFullName, x);
-        }
-    }
-
-    private FileScope findFileScope(RootScope rootScope, String name) {
-        for (FileScope fileScope : rootScope.getFileScopes()) {
-            Object value = fileScope.get(name);
-
-            if (value instanceof Resource) {
-                return fileScope;
-            }
-        }
-
-        return null;
     }
 
 }

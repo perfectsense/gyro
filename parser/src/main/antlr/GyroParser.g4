@@ -12,90 +12,35 @@ file
 statement
     : directive
     | block
-    | virtualResource
-    | forStatement
-    | ifStatement
     | pair
     ;
 
 // directive
-directive : AT IDENTIFIER (directiveArgument (COMMA? directiveArgument)*)?;
-
-directiveArgument
-    : block
-    | value
+directive
+    : AT IDENTIFIER COLON arguments
+    | AT IDENTIFIER arguments? option* NEWLINES body section* AT END
     ;
+
+arguments : value (COMMA? value)*;
+
+option: MINUS IDENTIFIER arguments?;
+
+body : (statement NEWLINES)*;
+
+section: option NEWLINES body;
 
 // block
 block
-    : IDENTIFIER NEWLINES blockBody END # KeyBlock
-    | type name  NEWLINES blockBody END # Resource
+    : IDENTIFIER name? NEWLINES body END # KeyBlock
+    | type name NEWLINES body END        # Resource
     ;
 
-type : IDENTIFIER (COLON COLON IDENTIFIER)?;
+type : IDENTIFIER COLON COLON IDENTIFIER;
 
 name
-    : reference
-    | string
-    ;
-
-blockBody : (blockStatement NEWLINES)*;
-
-blockStatement
-    : directive
-    | block
-    | forStatement
-    | ifStatement
-    | pair
-    ;
-
-// virtual resource
-virtualResource
-    :
-    VIRTUAL_RESOURCE type NEWLINES
-        (PARAM virtualResourceParameter NEWLINES)*
-    DEFINE NEWLINES
-        blockBody
-    END
-    ;
-
-virtualResourceParameter : IDENTIFIER;
-
-// forStatement
-forStatement
-    :
-    FOR forVariable (COMMA forVariable)* IN forValue NEWLINES
-        blockBody
-    END
-    ;
-
-forVariable : IDENTIFIER;
-
-forValue
-    : list
-    | map
+    : IDENTIFIER
     | reference
-    ;
-
-// ifStatement
-ifStatement
-    :
-    IF condition NEWLINES
-        blockBody
-    (ELSE IF condition NEWLINES
-        blockBody)*
-    (ELSE NEWLINES
-        blockBody)?
-    END
-    ;
-
-comparisonOperator : EQ | NEQ;
-
-condition
-    : value                          # ValueCondition
-    | value comparisonOperator value # ComparisonCondition
-    | condition AND condition        # AndCondition
-    | condition OR condition         # OrCondition
+    | string
     ;
 
 // pair
@@ -108,24 +53,72 @@ key
     ;
 
 value
-    : indexed
-    | unindexed
+    : and          # OneValue
+    | and OR value # TwoValue
     ;
 
-indexed : unindexed (DOT index)+;
+and
+    : rel         # OneAnd
+    | rel AND and # TwoAnd
+    ;
+
+rel
+    : add           # OneRel
+    | add relOp rel # TwoRel
+    ;
+
+relOp
+    : EQ
+    | NE
+    | LT
+    | LE
+    | GT
+    | GE
+    ;
+
+add
+    : mul           # OneAdd
+    | mul addOp add # TwoAdd
+    ;
+
+addOp
+    : PLUS
+    | MINUS
+    ;
+
+mul
+    : mulItem           # OneMul
+    | mulItem mulOp mul # TwoMul
+    ;
+
+mulOp
+    : ASTERISK
+    | SLASH
+    | PERCENT
+    ;
+
+mulItem
+    : item                # OneMulItem
+    | item (DOT index)+   # IndexedMulItem
+    | LPAREN value RPAREN # GroupedMulItem
+    ;
 
 index
-    : string
-    | number
+    : IDENTIFIER
+    | ASTERISK
+    | NUMBERS
+    | string
     ;
 
-unindexed
+item
     : bool
     | list
     | map
     | number
     | reference
     | string
+    | type
+    | word
     ;
 
 bool
@@ -149,31 +142,22 @@ map
     RBRACE
     ;
 
-number
-    : FLOAT
-    | INTEGER
-    ;
+number : MINUS? NUMBERS (DOT NUMBERS)?;
 
 reference
-    : LREF value* (PIPE filter)* RREF
+    : DOLLAR LPAREN value* (BAR filter)* RPAREN
     | DOLLAR IDENTIFIER
     ;
 
 filter
-    : IDENTIFIER comparisonOperator value # ComparisonFilter
-    | filter AND filter                   # AndFilter
-    | filter OR filter                    # OrFilter
+    : IDENTIFIER relOp value # ComparisonFilter
+    | filter AND filter      # AndFilter
+    | filter OR filter       # OrFilter
     ;
 
 string
     : STRING                       # LiteralString
     | DQUOTE stringContent* DQUOTE # InterpolatedString
-    |
-        ( IDENTIFIER GLOB
-        | IDENTIFIER
-        | GLOB
-        | type
-    )                              # BareString
     ;
 
 stringContent
@@ -181,4 +165,13 @@ stringContent
     | text
     ;
 
-text : DOLLAR | (IDENTIFIER | CHARACTER)+;
+text
+    : DOLLAR
+    | LPAREN
+    | (IDENTIFIER | CHARACTER)+
+    ;
+
+word
+    : IDENTIFIER ASTERISK?
+    | ASTERISK
+    ;

@@ -355,7 +355,6 @@ public class Diff {
 
             if (change.execute(ui, state)) {
                 ui.write(ui.isVerbose() ? "\n@|bold,green OK|@\n\n" : " @|bold,green OK|@\n");
-                state.update(change);
 
             } else {
                 ui.write(ui.isVerbose() ? "\n@|bold,yellow SKIPPED|@\n\n" : " @|bold,yellow SKIPPED|@\n");

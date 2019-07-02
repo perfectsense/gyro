@@ -17,6 +17,7 @@ import gyro.core.directive.DirectiveProcessor;
 import gyro.core.repo.RepositorySettings;
 import gyro.core.resource.RootScope;
 import gyro.core.resource.Scope;
+import gyro.lang.ast.block.DirectiveNode;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
@@ -50,10 +51,12 @@ public class PluginDirectiveProcessor extends DirectiveProcessor {
     }
 
     @Override
-    public void process(Scope scope, List<Object> arguments) throws Exception {
+    public void process(Scope scope, DirectiveNode node) throws Exception {
         if (!(scope instanceof RootScope)) {
             throw new GyroException("@plugin directive can only be used within the init.gyro file!");
         }
+
+        List<Object> arguments = evaluateArguments(scope, node);
 
         if (arguments.size() != 1) {
             throw new GyroException("@plugin directive only takes 1 argument!");

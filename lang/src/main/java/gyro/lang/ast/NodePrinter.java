@@ -4,16 +4,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
+import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.block.ResourceNode;
-import gyro.lang.ast.block.VirtualResourceNode;
-import gyro.lang.ast.condition.AndConditionNode;
-import gyro.lang.ast.condition.ComparisonConditionNode;
-import gyro.lang.ast.condition.OrConditionNode;
-import gyro.lang.ast.condition.ValueConditionNode;
-import gyro.lang.ast.control.ForNode;
-import gyro.lang.ast.control.IfNode;
+import gyro.lang.ast.value.BinaryNode;
 import gyro.lang.ast.value.IndexedNode;
 import gyro.lang.ast.value.InterpolatedStringNode;
 import gyro.lang.ast.value.ListNode;
@@ -42,13 +37,26 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
 
     @Override
     public Void visitDirective(DirectiveNode node, PrinterContext context) {
+        List<Node> body = node.getBody();
+        boolean bodyEmpty = body.isEmpty();
+
         context.appendNewline();
         context.append('@');
         context.append(node.getName());
 
+        if (bodyEmpty) {
+            context.append(':');
+        }
+
         for (Node arg : node.getArguments()) {
             context.append(' ');
             visit(arg, context);
+        }
+
+        if (!bodyEmpty) {
+            visitBody(body, context.indented());
+            context.appendNewline();
+            context.append("@end");
         }
 
         return null;
@@ -100,86 +108,18 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
     }
 
     @Override
-    public Void visitVirtualResource(VirtualResourceNode node, PrinterContext context) {
-        return null;
-    }
-
-    @Override
-    public Void visitAndCondition(AndConditionNode node, PrinterContext context) {
+    public Void visitBinary(BinaryNode node, PrinterContext context) {
         visit(node.getLeft(), context);
-        context.append(" and ");
-        visit(node.getRight(), context);
-
-        return null;
-    }
-
-    @Override
-    public Void visitComparisonCondition(ComparisonConditionNode node, PrinterContext context) {
-        visit(node.getLeft(), context);
-        context.append(" ");
+        context.append(' ');
         context.append(node.getOperator());
-        context.append(" ");
+        context.append(' ');
         visit(node.getRight(), context);
 
         return null;
     }
 
     @Override
-    public Void visitOrCondition(OrConditionNode node, PrinterContext context) {
-        visit(node.getLeft(), context);
-        context.append(" or ");
-        visit(node.getRight(), context);
-
-        return null;
-    }
-
-    @Override
-    public Void visitValueCondition(ValueConditionNode node, PrinterContext context) {
-        visit(node.getValue(), context);
-
-        return null;
-    }
-
-    @Override
-    public Void visitFor(ForNode node, PrinterContext context) {
-        context.appendNewline();
-        context.append("for ");
-        context.append(String.join(", ", node.getVariables()));
-        context.append(" in ");
-        visit(node.getValue(), context);
-        visitBody(node.getBody(), context.indented());
-        context.appendNewline();
-        context.append("end");
-
-        return null;
-    }
-
-    @Override
-    public Void visitIf(IfNode node, PrinterContext context) {
-        List<Node> conditions = node.getConditions();
-        List<List<Node>> bodies = node.getBodies();
-
-        for (int i = 0; i < conditions.size(); i++) {
-            context.append(i == 0 ? "if " : "else if ");
-            visit(conditions.get(i), context);
-            visitBody(bodies.get(i), context.indented());
-            context.appendNewline();
-        }
-
-        if (bodies.size() > conditions.size()) {
-            context.appendNewline();
-            context.append("else");
-            visitBody(bodies.get(bodies.size() - 1), context.indented());
-        }
-
-        context.appendNewline();
-        context.append("end");
-
-        return null;
-    }
-
-    @Override
-    public Void visitIndexedNode(IndexedNode node, PrinterContext context) {
+    public Void visitIndexed(IndexedNode node, PrinterContext context) {
         visit(node.getValue(), context);
 
         for (Node index : node.getIndexes()) {

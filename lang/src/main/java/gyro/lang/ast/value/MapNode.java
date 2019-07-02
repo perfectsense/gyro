@@ -6,7 +6,6 @@ import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.PairNode;
 import gyro.lang.ast.Node;
 import gyro.parser.antlr4.GyroParser;
-import gyro.util.ImmutableCollectors;
 
 import java.util.List;
 
@@ -18,13 +17,9 @@ public class MapNode extends Node {
         this.entries = ImmutableList.copyOf(Preconditions.checkNotNull(entries));
     }
 
+    @SuppressWarnings("unchecked")
     public MapNode(GyroParser.MapContext context) {
-        this(Preconditions.checkNotNull(context)
-            .pair()
-            .stream()
-            .map(Node::create)
-            .map(PairNode.class::cast)
-            .collect(ImmutableCollectors.toList()));
+        this((List) Node.create(Preconditions.checkNotNull(context).pair()));
     }
 
     public List<PairNode> getEntries() {
