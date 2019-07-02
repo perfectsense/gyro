@@ -98,6 +98,7 @@ public class Replace extends Change {
 
         ui.write("\n@|magenta ~ Executing %s workflow|@", workflow.getName());
         workflow.execute(ui, state, (Resource) currentDiffable, (Resource) pendingDiffable);
+        state.update(this);
         return true;
     }
 
