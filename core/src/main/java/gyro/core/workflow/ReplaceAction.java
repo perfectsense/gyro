@@ -58,7 +58,7 @@ public class ReplaceAction extends Action {
         Resource resourceResource = (Resource) resource;
         Resource withResource = (Resource) with;
 
-        ui.write("@|magenta ⤢ Replacing %s with %s|@\n", resourceResource.name(), withResource.name());
+        ui.write("@|magenta ⤢ Replacing %s with %s|@\n", resourceResource.primaryKey(), withResource.primaryKey());
         state.replace(resourceResource, withResource);
     }
 
