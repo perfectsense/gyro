@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -45,7 +46,7 @@ public class RootScope extends FileScope {
     private final RootScope current;
     private final Set<String> loadFiles;
     private final List<FileScope> fileScopes = new ArrayList<>();
-    private final List<Resource> resources = new ArrayList<>();
+    private final Map<String, Resource> resources = new LinkedHashMap<>();
 
     @SuppressWarnings("unchecked")
     public RootScope(String file, FileBackend backend, RootScope current, Set<String> loadFiles) {
@@ -140,7 +141,7 @@ public class RootScope extends FileScope {
     }
 
     public List<Resource> findResourcesIn(Set<String> diffFiles) {
-        Stream<Resource> stream = resources.stream();
+        Stream<Resource> stream = resources.values().stream();
 
         if (diffFiles != null && diffFiles.isEmpty()) {
             stream = stream.filter(r -> diffFiles.contains(r.scope.getFileScope().getFile()));
@@ -179,26 +180,15 @@ public class RootScope extends FileScope {
     }
 
     public void addResource(Resource resource) {
-        resources.add(resource);
+        addResource(resource.primaryKey(), resource);
+    }
+
+    public void addResource(String name, Resource resource) {
+        resources.put(name, resource);
     }
 
     public void removeResource(String name) {
-        resources.removeIf(r -> r.primaryKey().equals(name));
-    }
-
-    public void addOrUpdateResource(String name, Resource resource) {
-        int index = -1;
-        for (int i = 0; i < resources.size(); i++) {
-            if (resources.get(i).primaryKey().equals(name)) {
-                index = i;
-            }
-        }
-
-        if (index == -1) {
-            resources.add(resource);
-        } else {
-            resources.set(index, resource);
-        }
+        resources.remove(name);
     }
 
     public void load() throws Exception {

@@ -97,7 +97,7 @@ public class State {
         } else {
             if (typeRoot) {
                 String key = resource.primaryKey();
-                root.addOrUpdateResource(swapKeys.getOrDefault(key, key), resource);
+                root.addResource(swapKeys.getOrDefault(key, key), resource);
 
             } else {
                 String key = resource.parentResource().primaryKey();
