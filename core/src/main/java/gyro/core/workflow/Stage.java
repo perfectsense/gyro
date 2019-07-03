@@ -9,7 +9,9 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
+import gyro.core.resource.DeferError;
 import gyro.core.resource.Diff;
+import gyro.core.resource.FileScope;
 import gyro.core.resource.Resource;
 import gyro.core.resource.RootScope;
 import gyro.core.resource.Scope;
@@ -56,17 +58,26 @@ public class Stage {
             RootScope pendingRootScope)
             throws Exception {
 
+        FileScope pendingFileScope = pendingResource.scope().getFileScope();
         Scope scope = new Scope(pendingRootScope.getFileScopes()
             .stream()
-            .filter(s -> s.getFile().equals(pendingResource.scope().getFileScope().getFile()))
+            .filter(s -> s.getFile().equals(pendingFileScope.getFile()))
             .findFirst()
             .orElse(null));
+
+        for (Map.Entry<String, Object> entry : pendingFileScope.entrySet()) {
+            Object value = entry.getValue();
+
+            if (!(value instanceof Resource)) {
+                scope.put(entry.getKey(), value);
+            }
+        }
 
         scope.put("NAME", pendingResource.name());
         scope.put("CURRENT", currentResource);
         scope.put("PENDING", pendingResource.scope().resolve());
 
-        actions.forEach(a -> a.execute(ui, state, pendingRootScope, scope));
+        DeferError.execute(actions, a -> a.execute(ui, state, pendingRootScope, scope));
 
         Set<String> diffFiles = state.getDiffFiles();
 
