@@ -180,6 +180,13 @@ public class RootScope extends FileScope {
     }
 
     public void addResource(Resource resource) {
+        String key = resource.primaryKey();
+        if (resources.containsKey(key)) {
+            Resource old = resources.get(key);
+            String files = String.format("%s%n%s", old.scope.getFileScope().getFile(), resource.scope.getFileScope().getFile());
+            throw new GyroException(String.format("%nDuplicate resource %s defined in the following files:%n%s", key, files));
+        }
+
         addResource(resource.primaryKey(), resource);
     }
 
