@@ -158,10 +158,7 @@ public class RootScope extends FileScope {
     }
 
     public Resource findResource(String name) {
-        return findResources().stream()
-            .filter(r -> r.primaryKey().equals(name))
-            .findFirst()
-            .orElse(null);
+        return resources.get(name);
     }
 
     public <T extends Resource> T findResourceById(Class<T> resourceClass, Object id) {
