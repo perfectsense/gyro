@@ -37,9 +37,9 @@ public class State {
     private final boolean test;
     private final Set<String> states = new HashSet<>();
     private final Set<String> diffFiles;
-    private final Map<String, String> swapNames = new HashMap<>();
-    private final Map<String, String> swapKeys = new HashMap<>();
     private final RootScope root;
+    private final Map<String, String> newNames = new HashMap<>();
+    private final Map<String, String> newKeys = new HashMap<>();
 
     public State(RootScope current, RootScope pending, boolean test, Set<String> diffFiles) throws Exception {
         this.backend = current.getBackend();
@@ -85,7 +85,7 @@ public class State {
         if (change instanceof Delete) {
             if (typeRoot) {
                 String key = resource.primaryKey();
-                root.removeResource(swapKeys.getOrDefault(key, key));
+                root.removeResource(newKeys.getOrDefault(key, key));
 
             } else {
                 root.findResources()
@@ -97,11 +97,11 @@ public class State {
         } else {
             if (typeRoot) {
                 String key = resource.primaryKey();
-                root.addResource(swapKeys.getOrDefault(key, key), resource);
+                root.addResource(newKeys.getOrDefault(key, key), resource);
 
             } else {
                 String key = resource.parentResource().primaryKey();
-                updateSubresource(root.findResource(swapKeys.getOrDefault(key, key)), resource, false);
+                updateSubresource(root.findResource(newKeys.getOrDefault(key, key)), resource, false);
             }
         }
 
@@ -163,7 +163,7 @@ public class State {
                     printer.visit(
                         new ResourceNode(
                             DiffableType.getInstance(resource.getClass()).getName(),
-                            new ValueNode(swapNames.getOrDefault(resource.primaryKey(), resource.name())),
+                            new ValueNode(newNames.getOrDefault(resource.primaryKey(), resource.name())),
                             toBodyNodes(resource)),
                         context);
                 }
@@ -275,7 +275,7 @@ public class State {
                 return new ReferenceNode(
                     Arrays.asList(
                         new ValueNode(type.getName()),
-                        new ValueNode(swapNames.getOrDefault(resource.primaryKey(), resource.name()))),
+                        new ValueNode(newNames.getOrDefault(resource.primaryKey(), resource.name()))),
                     Collections.emptyList());
             }
 
@@ -286,24 +286,23 @@ public class State {
         }
     }
 
-    public void swap(Resource x, Resource y) {
-        String xType = DiffableType.getInstance(x.getClass()).getName();
-        String yType = DiffableType.getInstance(y.getClass()).getName();
+    public void replace(Resource resource, Resource with) {
+        String resourceType = DiffableType.getInstance(resource.getClass()).getName();
+        String withType = DiffableType.getInstance(with.getClass()).getName();
 
-        if (!Objects.equals(xType, yType)) {
+        if (!Objects.equals(resourceType, withType)) {
             throw new GyroException(String.format(
-                "Can't swap resources that have different types! [%s] [%s]",
-                xType,
-                yType));
+                "Can't replace a [%s] resource with a [%s] resource!",
+                resourceType,
+                withType));
         }
 
-        String xKey = x.primaryKey();
-        String yKey = y.primaryKey();
+        String resourceKey = resource.primaryKey();
+        String withKey = with.primaryKey();
 
-        swapNames.put(xKey, y.name());
-        swapNames.put(yKey, x.name());
-        swapKeys.put(xKey, yKey);
-        swapKeys.put(yKey, xKey);
+        root.removeResource(resourceKey);
+        newNames.put(withKey, resource.name());
+        newKeys.put(withKey, resourceKey);
         save();
     }
 

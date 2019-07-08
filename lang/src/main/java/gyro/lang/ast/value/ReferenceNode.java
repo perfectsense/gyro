@@ -50,7 +50,8 @@ public class ReferenceNode extends Node {
     @Override
     public String deferFailure() {
         return String.format(
-            "Can't resolve reference! [%s]",
+            "Can't resolve reference! %s %s",
+            this,
             getLocation());
     }
 
