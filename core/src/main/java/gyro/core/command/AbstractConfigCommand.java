@@ -137,8 +137,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
     }
 
     private void refreshResources(RootScope scope) {
-        for (Iterator<Resource> i = scope.findResources().iterator(); i.hasNext(); ) {
-            Resource resource = i.next();
+        for (Resource resource : scope.findResources()) {
 
             GyroCore.ui().write(
                 "@|bold,blue Refreshing|@: @|yellow %s|@ -> %s...",
@@ -149,7 +148,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
                 resource.updateInternals();
 
             } else {
-                i.remove();
+                scope.removeResource(resource.primaryKey());
             }
 
             GyroCore.ui().write("\n");
