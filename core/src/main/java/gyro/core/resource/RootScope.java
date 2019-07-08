@@ -33,7 +33,7 @@ import gyro.core.repo.RepositoryDirectiveProcessor;
 import gyro.core.virtual.VirtualDirectiveProcessor;
 import gyro.core.workflow.CreateDirectiveProcessor;
 import gyro.core.workflow.DeleteDirectiveProcessor;
-import gyro.core.workflow.SwapDirectiveProcessor;
+import gyro.core.workflow.ReplaceDirectiveProcessor;
 import gyro.core.workflow.UpdateDirectiveProcessor;
 import gyro.core.workflow.WorkflowDirectiveProcessor;
 import gyro.lang.ast.Node;
@@ -97,9 +97,9 @@ public class RootScope extends FileScope {
             new ForDirectiveProcessor(),
             new IfDirectiveProcessor(),
             new HighlanderDirectiveProcessor(),
+            new ReplaceDirectiveProcessor(),
             new RepositoryDirectiveProcessor(),
             new PluginDirectiveProcessor(),
-            new SwapDirectiveProcessor(),
             new UpdateDirectiveProcessor(),
             new UsesCredentialsDirectiveProcessor(),
             new VirtualDirectiveProcessor(),
