@@ -3,20 +3,12 @@ package gyro.cli;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import gyro.core.GyroCore;
 import gyro.core.GyroUI;
 import com.google.common.collect.ImmutableSet;
 import org.fusesource.jansi.AnsiRenderer;
@@ -172,32 +164,4 @@ public class CliGyroUI implements GyroUI {
         System.out.flush();
     }
 
-    @Override
-    public void writeError(Throwable error, String message, Object... arguments) {
-        write(message, arguments);
-        if (error != null) {
-            try {
-                Path errorDir = GyroCore.getHomeDirectory().resolve("error");
-                Files.createDirectories(errorDir);
-
-                LocalDateTime time = LocalDateTime.now();
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-HHmm");
-                Path log = Paths.get(errorDir.toString(), String.format("%s.log", formatter.format(time)));
-                try (PrintWriter printWriter = new PrintWriter(Files.newBufferedWriter(log, StandardCharsets.UTF_8))) {
-                    printWriter.write(String.format("%s: ", error.getClass().getName()));
-                    error.printStackTrace(printWriter);
-                    write("@|red See '%s' for more details.\n |@", log.toString());
-                }
-            } catch (IOException ioe) {
-                System.out.write('\n');
-                write("%s: ", error.getClass().getName());
-                StringWriter sw = new StringWriter();
-                error.printStackTrace(new PrintWriter(sw));
-                write(sw.toString());
-            }
-        }
-
-        System.out.write('\n');
-        System.out.flush();
-    }
 }
