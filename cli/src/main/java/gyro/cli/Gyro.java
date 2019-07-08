@@ -9,6 +9,7 @@ import gyro.core.resource.RootScope;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import gyro.core.resource.Scope;
+import gyro.lang.ast.Node;
 import io.airlift.airline.Cli;
 import io.airlift.airline.Command;
 import io.airlift.airline.Help;
@@ -17,6 +18,8 @@ import org.reflections.util.ClasspathHelper;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
@@ -39,7 +42,7 @@ public class Gyro {
             .setUrls(ClasspathHelper.forPackage("gyro")));
     }
 
-    public static void main(String[] arguments) throws Exception {
+    public static void main(String[] arguments) {
         ((Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).setLevel(Level.OFF);
 
         Gyro gyro = new Gyro();
@@ -65,13 +68,40 @@ public class Gyro {
             gyro.init(Arrays.asList(arguments), init);
             gyro.run();
 
-        } catch (Throwable error) {
-            if (error instanceof GyroException) {
-                GyroCore.ui().writeError(error.getCause(), "\n@|red Error: %s|@\n", error.getMessage());
+        } catch (GyroException error) {
+            Node node = error.getNode();
 
-            } else {
-                GyroCore.ui().writeError(error, "\n@|red Unexpected error: %s|@\n", error.getMessage());
+            if (node != null) {
+                GyroCore.ui().write(
+                    "\n@|red In %s on line %s at column %s:|@",
+                    node.getFile(),
+                    node.getLine(),
+                    node.getColumn());
             }
+
+            GyroCore.ui().write("\n@|red Error:|@ %s\n", error.getMessage());
+
+            for (Throwable cause = error.getCause(); cause != null; cause = cause.getCause()) {
+                if (cause instanceof GyroException) {
+                    GyroCore.ui().write(
+                        "@|red · Caused by:|@ %s\n",
+                        cause.getMessage());
+
+                } else {
+                    GyroCore.ui().write(
+                        "@|red · Caused by:|@ %s: %s\n",
+                        cause.getClass().getName(),
+                        cause.getMessage());
+                }
+            }
+
+        } catch (Throwable error) {
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+
+            error.printStackTrace(pw);
+            GyroCore.ui().write("\n@|red Unexpected error:|@ %s\n", sw.toString());
+
         } finally {
             GyroCore.popUi();
         }
