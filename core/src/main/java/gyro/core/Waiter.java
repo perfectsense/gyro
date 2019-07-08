@@ -60,7 +60,7 @@ public class Waiter {
                     break;
                 }
             }
-        } while (prompt && GyroCore.ui().readBoolean(Boolean.FALSE, "\nWait for completion?"));
+        } while (prompt && GyroCore.ui().readBoolean(Boolean.TRUE, "\nWait for completion?"));
 
         return false;
     }
