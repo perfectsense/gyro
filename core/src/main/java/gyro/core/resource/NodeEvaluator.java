@@ -224,20 +224,19 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
             .get(name);
 
         if (processor == null) {
-            throw new GyroException(String.format(
-                "Can't find a processor for @%s directive!",
-                name));
+            throw new GyroException(
+                node,
+                String.format("Can't find a processor for @|bold @%s|@ directive!", name));
         }
 
         try {
             processor.process(scope, node);
 
         } catch (Exception error) {
-            throw new GyroException(String.format(
-                "Can't process @%s directive! %s: %s",
-                name,
-                error.getClass().getName(),
-                error.getMessage()));
+            throw new GyroException(
+                node,
+                String.format("Can't process @|bold @%s|@ directive!", name),
+                error);
         }
 
         return null;
