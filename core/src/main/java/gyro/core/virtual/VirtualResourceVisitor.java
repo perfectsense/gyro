@@ -5,6 +5,7 @@ import java.util.List;
 import com.google.common.collect.ImmutableList;
 import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
+import gyro.core.resource.DeferError;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.FileScope;
 import gyro.core.resource.NodeEvaluator;
@@ -67,12 +68,7 @@ public class VirtualResourceVisitor extends ResourceVisitor {
 
         virtualRoot.getFileScopes().add(virtualFile);
         parameters.forEach(p -> p.copy(scope, virtualFile));
-
-        NodeEvaluator evaluator = virtualRoot.getEvaluator();
-
-        for (Node child : body) {
-            evaluator.visit(child, virtualFile);
-        }
+        virtualRoot.getEvaluator().visitBody(body, virtualFile);
 
         String prefix = name + "/";
 
