@@ -10,6 +10,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import gyro.core.resource.Scope;
 import gyro.lang.ast.Node;
+import gyro.util.Bug;
 import io.airlift.airline.Cli;
 import io.airlift.airline.Command;
 import io.airlift.airline.Help;
@@ -100,7 +101,13 @@ public class Gyro {
             PrintWriter pw = new PrintWriter(sw);
 
             error.printStackTrace(pw);
-            GyroCore.ui().write("\n@|red Unexpected error:|@ %s\n", sw.toString());
+
+            if (error instanceof Bug) {
+                GyroCore.ui().write("\n@|red This should've never happened. Please report this as a bug with the following stack trace:|@ %s\n", sw.toString());
+
+            } else {
+                GyroCore.ui().write("\n@|red Unexpected error:|@ %s\n", sw.toString());
+            }
 
         } finally {
             GyroCore.popUi();
