@@ -124,9 +124,8 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
     }
 
     private String resolve(Path rootDir, String file) {
-        file = file.endsWith(".gyro")
-            ? rootDir.relativize(Paths.get("").toAbsolutePath().resolve(file)).normalize().toString()
-            : file + ".gyro";
+        file = file.endsWith(".gyro") ? file : file + ".gyro";
+        file = rootDir.relativize(Paths.get("").toAbsolutePath().resolve(file)).normalize().toString();
 
         if (Files.exists(rootDir.resolve(file))) {
             return file;

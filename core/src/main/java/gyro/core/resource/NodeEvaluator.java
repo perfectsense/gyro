@@ -211,33 +211,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
     }
 
     public void visitBody(List<Node> body, Scope scope) {
-        int bodySize = body.size();
-
-        while (true) {
-            List<DeferError> errors = new ArrayList<>();
-            List<Node> deferred = new ArrayList<>();
-
-            for (Node node : body) {
-                try {
-                    visit(node, scope);
-
-                } catch (DeferError error) {
-                    errors.add(error);
-                    deferred.add(node);
-                }
-            }
-
-            if (deferred.isEmpty()) {
-                break;
-
-            } else if (bodySize == deferred.size()) {
-                throw errors.get(0);
-
-            } else {
-                body = deferred;
-                bodySize = body.size();
-            }
-        }
+        DeferError.execute(body, i -> visit(i, scope));
     }
 
     @Override
