@@ -211,7 +211,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
     }
 
     public void visitBody(List<Node> body, Scope scope) {
-        DeferError.execute(body, i -> visit(i, scope));
+        Defer.execute(body, i -> visit(i, scope));
     }
 
     @Override
@@ -286,7 +286,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
         try {
             visitBody(body, fileScope);
 
-        } catch (DeferError e) {
+        } catch (Defer e) {
             rootScope.getFileScopes().remove(fileScope);
             throw e;
         }
@@ -360,7 +360,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
         Object value = rootScope.get(type);
 
         if (value == null) {
-            throw new DeferError(node);
+            throw new Defer(node);
 
         } else if (value instanceof Class) {
             Class<?> c = (Class<?>) value;
@@ -522,7 +522,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
                     Resource resource = root.findResource(referenceName + "::" + resourceName);
 
                     if (resource == null) {
-                        throw new DeferError(node);
+                        throw new Defer(node);
                     }
 
                     value = resource;

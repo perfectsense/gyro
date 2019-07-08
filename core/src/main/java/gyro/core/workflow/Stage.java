@@ -9,7 +9,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
-import gyro.core.resource.DeferError;
+import gyro.core.resource.Defer;
 import gyro.core.resource.Diff;
 import gyro.core.resource.FileScope;
 import gyro.core.resource.Resource;
@@ -77,7 +77,7 @@ public class Stage {
         scope.put("CURRENT", currentResource);
         scope.put("PENDING", pendingResource.scope().resolve());
 
-        DeferError.execute(actions, a -> a.execute(ui, state, pendingRootScope, scope));
+        Defer.execute(actions, a -> a.execute(ui, state, pendingRootScope, scope));
 
         Set<String> diffFiles = state.getDiffFiles();
 

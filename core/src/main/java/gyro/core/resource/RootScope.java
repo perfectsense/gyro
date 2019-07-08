@@ -202,7 +202,7 @@ public class RootScope extends FileScope {
         try {
             evaluator.visitBody(nodes, this);
 
-        } catch (DeferError e) {
+        } catch (Defer e) {
             throw new GyroException(e.getMessage());
         }
 
