@@ -3,6 +3,7 @@ package gyro.core.virtual;
 import java.util.List;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.resource.DiffableInternals;
@@ -58,7 +59,13 @@ public class VirtualResourceVisitor extends ResourceVisitor {
     @Override
     public void visit(String name, Scope scope) {
         RootScope root = scope.getRootScope();
-        RootScope virtualRoot = new RootScope(root.getFile(), root.getBackend(), null, root.getLoadFiles());
+        RootScope virtualRoot = new RootScope(root.getFile(), root.getBackend(), null, ImmutableSet.of());
+
+        try {
+            virtualRoot.load();
+        } catch (Exception e) {
+            throw new GyroException(e.getMessage());
+        }
 
         virtualRoot.putAll(root);
 
