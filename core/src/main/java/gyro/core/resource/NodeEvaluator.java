@@ -496,7 +496,10 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
                     return resolveFilters(node, scope, resolver.resolve(scope, arguments));
 
                 } catch (Exception error) {
-                    throw new GyroException(error.getMessage());
+                    throw new GyroException(
+                        node,
+                        String.format("Can't resolve @|bold %s|@ reference!", referenceName),
+                        error);
                 }
 
             } else if (referenceName.contains("::")) {

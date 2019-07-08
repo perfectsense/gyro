@@ -28,7 +28,7 @@ public class FinderReferenceResolver extends ReferenceResolver {
 
         if (finderClass == null) {
             throw new GyroException(String.format(
-                "[%s] resource doesn't support external queries!",
+                "@|bold %s|@ type doesn't support external queries!",
                 type));
         }
 
