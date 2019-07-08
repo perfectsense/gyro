@@ -13,7 +13,6 @@ import java.util.stream.Stream;
 import com.google.common.collect.ImmutableSet;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
-import gyro.lang.ast.Node;
 
 public abstract class Diffable {
 
@@ -92,8 +91,10 @@ public abstract class Diffable {
             configuredFields = ImmutableSet.copyOf(cf);
         }
 
+        DiffableType<? extends Diffable> type = DiffableType.getInstance(getClass());
         Map<String, Object> undefinedValues = new HashMap<>(values);
-        for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
+
+        for (DiffableField field : type.getFields()) {
             String fieldName = field.getName();
 
             if (!values.containsKey(fieldName)) {
@@ -121,15 +122,12 @@ public abstract class Diffable {
         }
 
         for (Map.Entry<String, Object> entry : undefinedValues.entrySet()) {
-            if (!entry.getKey().startsWith("_")) {
-                if (values instanceof Scope) {
-                    Node node = ((Scope) values).getKeyNodes().get(entry.getKey());
-                    if (node != null) {
-                        throw new GyroException(String.format("Field '%s' is not allowed %s%n%s", entry.getKey(), node.getLocation(), node));
-                    }
-                }
+            String key = entry.getKey();
 
-                throw new GyroException(String.format("Field '%s' is not allowed", entry.getKey()));
+            if (!key.startsWith("_")) {
+                throw new GyroException(
+                    values instanceof Scope ? ((Scope) values).getKeyNodes().get(key) : null,
+                    String.format("@|bold %s|@ isn't a valid field in @|bold %s|@ type!", key, type.getName()));
             }
         }
     }
