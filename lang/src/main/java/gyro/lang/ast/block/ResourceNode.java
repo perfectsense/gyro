@@ -39,12 +39,4 @@ public class ResourceNode extends BlockNode {
         return visitor.visitResource(this, context);
     }
 
-    @Override
-    public String deferFailure() {
-        return String.format(
-            "Resource type '%s' does not exist. Verify the resource name is correct and that you have included the correct provider plugin in %s",
-            getType(),
-            ".gyro/init.gyro");
-    }
-
 }

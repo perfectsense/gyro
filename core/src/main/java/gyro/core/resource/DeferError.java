@@ -46,7 +46,8 @@ public class DeferError extends Error {
 
     @Override
     public String getMessage() {
-        return node.deferFailure();
+        NodeDeferFailure deferFailure = new NodeDeferFailure();
+        return deferFailure.visit(node, this);
     }
 
     @Override
