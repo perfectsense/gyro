@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import gyro.core.GyroException;
+import gyro.core.Abort;
 import gyro.core.GyroUI;
 import gyro.core.resource.Defer;
 import gyro.core.resource.Diff;
@@ -91,7 +91,7 @@ public class Stage {
                 ui.write("\n");
 
             } else {
-                throw new GyroException("Aborted!");
+                throw new Abort();
             }
         }
 
