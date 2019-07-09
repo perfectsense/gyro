@@ -42,7 +42,7 @@ public class IfDirectiveProcessor extends DirectiveProcessor<Scope> {
 
                 default :
                     throw new GyroException(String.format(
-                        "-%s is not a valid section name within an @if directive!",
+                        "@|bold -%s|@ is not a valid section within an @|bold @if|@ directive!",
                         name));
             }
         }
@@ -53,7 +53,7 @@ public class IfDirectiveProcessor extends DirectiveProcessor<Scope> {
         List<Object> conditions = evaluator.visit(arguments, scope);
 
         if (conditions.size() != 1) {
-            throw new GyroException("@if directive only takes 1 condition!");
+            throw new GyroException("@|bold @if|@ directive requires exactly 1 condition!");
         }
 
         if (NodeEvaluator.test(conditions.get(0))) {
