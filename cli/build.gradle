@@ -47,6 +47,8 @@ publishToMavenLocal.dependsOn bundleDistribution
 publishing {
     publications {
         maven(MavenPublication) {
+            artifactId = "gyro-cli-${OS_NAME}"
+
             artifact 'dist/gyro'
 
             artifact("dist/gyro-cli-${OS_NAME}-${version}.zip") {
