@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.google.common.base.Preconditions;
+import gyro.core.Abort;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.resource.Diff;
@@ -29,7 +30,7 @@ public class Workflow {
         List<Scope> stageScopes = (List<Scope>) scope.get("stage");
 
         if (stageScopes.isEmpty()) {
-            throw new GyroException("Workflow requires stages!");
+            throw new GyroException("Workflow requires 1 or more stages!");
         }
 
         this.stages = stageScopes.stream()
@@ -68,13 +69,8 @@ public class Workflow {
             Resource currentResource,
             Resource pendingResource) {
 
-        int stagesSize = stages.size();
-
-        if (stagesSize == 0) {
-            throw new IllegalArgumentException("No stages!");
-        }
-
         int stageIndex = 0;
+        int stagesSize = stages.size();
 
         do {
             Stage stage = stages.get(stageIndex);
@@ -111,9 +107,9 @@ public class Workflow {
                 }
 
                 if (stageIndex < 0) {
-                    throw new IllegalArgumentException(String.format(
-                            "No stage named [%s]!",
-                            stageName));
+                    throw new GyroException(String.format(
+                        "Can't transition to @|bold %s|@ stage because it doesn't exist!",
+                        stageName));
                 }
             }
 
@@ -145,7 +141,7 @@ public class Workflow {
                 diff.executeDelete(ui, state);
 
             } else {
-                throw new RuntimeException("Aborted!");
+                throw new Abort();
             }
         }
     }

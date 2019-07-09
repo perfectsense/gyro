@@ -1,5 +1,6 @@
 package gyro.cli;
 
+import gyro.core.Abort;
 import gyro.core.LocalFileBackend;
 import gyro.core.command.AbstractCommand;
 import gyro.core.command.GyroCommand;
@@ -95,6 +96,9 @@ public class Gyro {
                         cause.getMessage());
                 }
             }
+
+        } catch (Abort error) {
+            GyroCore.ui().write("\n@|red Aborted!|@\n");
 
         } catch (Throwable error) {
             StringWriter sw = new StringWriter();
