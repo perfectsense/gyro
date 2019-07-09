@@ -18,7 +18,7 @@ public class VirtualParameter {
     public void copy(Scope source, Scope destination) {
         if (!source.containsKey(name)) {
             throw new GyroException(String.format(
-                "[%s] parameter is required!",
+                "@|bold %s|@ parameter is required!",
                 name));
 
         } else {
