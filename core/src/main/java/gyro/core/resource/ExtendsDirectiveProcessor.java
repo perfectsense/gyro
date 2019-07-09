@@ -51,7 +51,7 @@ public class ExtendsDirectiveProcessor extends DirectiveProcessor<DiffableScope>
 
             if (resource == null) {
                 throw new GyroException(String.format(
-                    "No resource named [%s]!",
+                    "Can't extend from @|bold %s|@ resource because it doesn't exist!",
                     name));
             }
 
