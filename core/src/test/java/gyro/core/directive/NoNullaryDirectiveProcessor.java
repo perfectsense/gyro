@@ -3,7 +3,7 @@ package gyro.core.directive;
 import gyro.core.resource.Scope;
 import gyro.lang.ast.block.DirectiveNode;
 
-public class NoNullaryDirectiveProcessor extends DirectiveProcessor {
+public class NoNullaryDirectiveProcessor extends DirectiveProcessor<Scope> {
 
     private final Object object;
 

@@ -21,8 +21,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.google.common.base.CaseFormat;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.psddev.dari.util.TypeDefinition;
 import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.directive.DirectiveSettings;
@@ -48,6 +52,16 @@ import gyro.lang.filter.Filter;
 import org.apache.commons.lang3.math.NumberUtils;
 
 public class NodeEvaluator implements NodeVisitor<Scope, Object> {
+
+    private static final LoadingCache<Class<? extends DirectiveProcessor>, Class<? extends Scope>> DIRECTIVE_PROCESSOR_SCOPE_CLASSES = CacheBuilder.newBuilder()
+        .build(new CacheLoader<Class<? extends DirectiveProcessor>, Class<? extends Scope>>() {
+
+           @Override
+           @SuppressWarnings("unchecked")
+           public Class<? extends Scope> load(Class<? extends DirectiveProcessor> directiveProcessorClass) {
+               return (Class<? extends Scope>) TypeDefinition.getInstance(directiveProcessorClass).getInferredGenericTypeArgumentClass(DirectiveProcessor.class, 0);
+           }
+       });
 
     private static final Map<String, BiFunction<Object, Object, Object>> BINARY_FUNCTIONS = ImmutableMap.<String, BiFunction<Object, Object, Object>>builder()
         .put("*", (l, r) -> doArithmetic(l, r, (ld, rd) -> ld * rd, (ll, rl) -> ll * rl))
@@ -215,6 +229,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Object visitDirective(DirectiveNode node, Scope scope) {
         String name = node.getName();
 
@@ -230,6 +245,15 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
         }
 
         try {
+            Class<? extends Scope> scopeClass = DIRECTIVE_PROCESSOR_SCOPE_CLASSES.getUnchecked(processor.getClass());
+
+            if (!scopeClass.isInstance(scope)) {
+                throw new GyroException(String.format(
+                    "Can't use @|bold @%s|@ directive in @|bold %s|@!",
+                    name,
+                    scopeClass.getName()));
+            }
+
             processor.process(scope, node);
 
         } catch (Exception error) {

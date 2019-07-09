@@ -11,7 +11,7 @@ import gyro.core.resource.Scope;
 import gyro.lang.ast.block.DirectiveNode;
 import gyro.util.CascadingMap;
 
-public class ForDirectiveProcessor extends DirectiveProcessor {
+public class ForDirectiveProcessor extends DirectiveProcessor<Scope> {
 
     @Override
     public String getName() {

@@ -16,7 +16,6 @@ import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.repo.RepositorySettings;
 import gyro.core.resource.RootScope;
-import gyro.core.resource.Scope;
 import gyro.lang.ast.block.DirectiveNode;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;
@@ -40,7 +39,7 @@ import org.eclipse.aether.transport.http.HttpTransporterFactory;
 import org.eclipse.aether.util.artifact.JavaScopes;
 import org.eclipse.aether.util.filter.DependencyFilterUtils;
 
-public class PluginDirectiveProcessor extends DirectiveProcessor {
+public class PluginDirectiveProcessor extends DirectiveProcessor<RootScope> {
 
     private static final ConcurrentMap<String, Set<Class<?>>> CLASSES_BY_ARTIFACT_COORDS = new ConcurrentHashMap<>();
     private static final PluginClassLoader PLUGIN_CLASS_LOADER = new PluginClassLoader();
@@ -51,11 +50,7 @@ public class PluginDirectiveProcessor extends DirectiveProcessor {
     }
 
     @Override
-    public void process(Scope scope, DirectiveNode node) throws Exception {
-        if (!(scope instanceof RootScope)) {
-            throw new GyroException("@plugin directive can only be used within the init.gyro file!");
-        }
-
+    public void process(RootScope scope, DirectiveNode node) throws Exception {
         List<Object> arguments = evaluateArguments(scope, node);
 
         if (arguments.size() != 1) {

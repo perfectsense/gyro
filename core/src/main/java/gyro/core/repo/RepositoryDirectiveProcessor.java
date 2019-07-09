@@ -5,11 +5,10 @@ import java.util.List;
 import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.resource.RootScope;
-import gyro.core.resource.Scope;
 import gyro.lang.ast.block.DirectiveNode;
 import org.eclipse.aether.repository.RemoteRepository;
 
-public class RepositoryDirectiveProcessor extends DirectiveProcessor {
+public class RepositoryDirectiveProcessor extends DirectiveProcessor<RootScope> {
 
     @Override
     public String getName() {
@@ -17,11 +16,7 @@ public class RepositoryDirectiveProcessor extends DirectiveProcessor {
     }
 
     @Override
-    public void process(Scope scope, DirectiveNode node) {
-        if (!(scope instanceof RootScope)) {
-            throw new GyroException("@repository directive can only be used within the init.gyro file!");
-        }
-
+    public void process(RootScope scope, DirectiveNode node) {
         List<Object> arguments = evaluateArguments(scope, node);
 
         if (arguments.size() != 1) {

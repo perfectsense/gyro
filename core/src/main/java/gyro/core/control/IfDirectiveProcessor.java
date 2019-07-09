@@ -10,7 +10,7 @@ import gyro.lang.ast.Node;
 import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.block.DirectiveSection;
 
-public class IfDirectiveProcessor extends DirectiveProcessor {
+public class IfDirectiveProcessor extends DirectiveProcessor<Scope> {
 
     @Override
     public String getName() {

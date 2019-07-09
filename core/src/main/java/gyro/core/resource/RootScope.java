@@ -1,7 +1,6 @@
 package gyro.core.resource;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
 import java.util.ArrayList;

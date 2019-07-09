@@ -12,7 +12,7 @@ import gyro.core.resource.RootScope;
 import gyro.core.resource.Scope;
 import gyro.lang.ast.block.DirectiveNode;
 
-public class CredentialsDirectiveProcessor extends DirectiveProcessor {
+public class CredentialsDirectiveProcessor extends DirectiveProcessor<RootScope> {
 
     @Override
     public String getName() {
@@ -20,12 +20,7 @@ public class CredentialsDirectiveProcessor extends DirectiveProcessor {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public void process(Scope scope, DirectiveNode node) throws Exception {
-        if (!(scope instanceof RootScope)) {
-            throw new GyroException("@credentials directive can only be used within the init.gyro file!");
-        }
-
+    public void process(RootScope scope, DirectiveNode node) throws Exception {
         List<Object> arguments = evaluateArguments(scope, node);
         int argumentsSize = arguments.size();
 
@@ -37,8 +32,7 @@ public class CredentialsDirectiveProcessor extends DirectiveProcessor {
         String name = argumentsSize == 1 ? "default" : (String) arguments.get(1);
         Scope bodyScope = evaluateBody(scope, node);
 
-        RootScope root = (RootScope) scope;
-        CredentialsSettings settings = root.getSettings(CredentialsSettings.class);
+        CredentialsSettings settings = scope.getSettings(CredentialsSettings.class);
         Class<? extends Credentials> credentialsClass = settings.getCredentialsClasses().get(type);
         Credentials credentials = credentialsClass.newInstance();
         credentials.scope = scope;
@@ -47,7 +41,7 @@ public class CredentialsDirectiveProcessor extends DirectiveProcessor {
             Method setter = property.getWriteMethod();
 
             if (setter != null) {
-                setter.invoke(credentials, root.convertValue(
+                setter.invoke(credentials, scope.convertValue(
                     setter.getGenericParameterTypes()[0],
                     bodyScope.get(CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, property.getName()))));
             }

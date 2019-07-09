@@ -8,7 +8,7 @@ import gyro.core.resource.Scope;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.DirectiveNode;
 
-public class DeleteDirectiveProcessor extends DirectiveProcessor {
+public class DeleteDirectiveProcessor extends DirectiveProcessor<Scope> {
 
     @Override
     public String getName() {

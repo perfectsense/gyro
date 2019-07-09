@@ -5,10 +5,9 @@ import java.util.List;
 import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.resource.FileScope;
-import gyro.core.resource.Scope;
 import gyro.lang.ast.block.DirectiveNode;
 
-public class VirtualDirectiveProcessor extends DirectiveProcessor {
+public class VirtualDirectiveProcessor extends DirectiveProcessor<FileScope> {
 
     @Override
     public String getName() {
@@ -16,11 +15,7 @@ public class VirtualDirectiveProcessor extends DirectiveProcessor {
     }
 
     @Override
-    public void process(Scope scope, DirectiveNode node) {
-        if (!(scope instanceof FileScope)) {
-            throw new GyroException("@virtual directive can only be used at root level of a gyro file!");
-        }
-
+    public void process(FileScope scope, DirectiveNode node) {
         List<Object> arguments = evaluateArguments(scope, node);
 
         if (arguments.size() != 1) {

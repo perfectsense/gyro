@@ -4,10 +4,10 @@ import java.util.List;
 
 import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
-import gyro.core.resource.Scope;
+import gyro.core.resource.FileScope;
 import gyro.lang.ast.block.DirectiveNode;
 
-public class WorkflowDirectiveProcessor extends DirectiveProcessor {
+public class WorkflowDirectiveProcessor extends DirectiveProcessor<FileScope> {
 
     @Override
     public String getName() {
@@ -15,7 +15,7 @@ public class WorkflowDirectiveProcessor extends DirectiveProcessor {
     }
 
     @Override
-    public void process(Scope scope, DirectiveNode node) {
+    public void process(FileScope scope, DirectiveNode node) {
         if (node.getBody().isEmpty()) {
             throw new GyroException("@workflow directive requires a block!");
         }
