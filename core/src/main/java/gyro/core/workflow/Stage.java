@@ -55,8 +55,7 @@ public class Stage {
             Resource currentResource,
             Resource pendingResource,
             RootScope currentRootScope,
-            RootScope pendingRootScope)
-            throws Exception {
+            RootScope pendingRootScope) {
 
         FileScope pendingFileScope = pendingResource.scope().getFileScope();
         Scope scope = new Scope(pendingRootScope.getFileScopes()

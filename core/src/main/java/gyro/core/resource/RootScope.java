@@ -1,5 +1,6 @@
 package gyro.core.resource;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
@@ -41,6 +42,7 @@ import gyro.core.workflow.UpdateDirectiveProcessor;
 import gyro.core.workflow.WorkflowDirectiveProcessor;
 import gyro.lang.ast.Node;
 import gyro.parser.antlr4.GyroParser;
+import gyro.util.Bug;
 
 public class RootScope extends FileScope {
 
@@ -208,16 +210,22 @@ public class RootScope extends FileScope {
             });
     }
 
-    public void load() throws Exception {
-        try (InputStream input = openInput(getFile())) {
+    public void load() {
+        try (GyroInputStream input = openInput(getFile())) {
             evaluator.visit(Node.parse(input, getFile(), GyroParser::file), this);
+
+        } catch (IOException error) {
+            throw new Bug(error);
         }
 
         List<Node> nodes = new ArrayList<>();
 
         for (String file : loadFiles) {
-            try (InputStream input = openInput(file)) {
+            try (GyroInputStream input = openInput(file)) {
                 nodes.add(Node.parse(input, file, GyroParser::file));
+
+            } catch (IOException error) {
+                throw new Bug(error);
             }
         }
 

@@ -49,7 +49,7 @@ public class Workflow {
         return stages;
     }
 
-    private RootScope copyCurrentRootScope() throws Exception {
+    private RootScope copyCurrentRootScope() {
         RootScope current = root.getCurrent();
         RootScope scope = new RootScope(
             current.getFile(),
@@ -66,8 +66,7 @@ public class Workflow {
             GyroUI ui,
             State state,
             Resource currentResource,
-            Resource pendingResource)
-            throws Exception {
+            Resource pendingResource) {
 
         int stagesSize = stages.size();
 

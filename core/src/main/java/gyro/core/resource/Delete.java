@@ -26,7 +26,7 @@ public class Delete extends Change {
     }
 
     @Override
-    public boolean execute(GyroUI ui, State state) throws Exception {
+    public boolean execute(GyroUI ui, State state) {
         if (state.isTest()) {
             state.update(this);
 
