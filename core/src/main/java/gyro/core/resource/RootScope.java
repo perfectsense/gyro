@@ -18,6 +18,7 @@ import gyro.core.FileBackend;
 import gyro.core.GyroException;
 import gyro.core.GyroInputStream;
 import gyro.core.GyroOutputStream;
+import gyro.core.Reflections;
 import gyro.core.auth.CredentialsDirectiveProcessor;
 import gyro.core.auth.CredentialsPlugin;
 import gyro.core.auth.UsesCredentialsDirectiveProcessor;
@@ -201,7 +202,7 @@ public class RootScope extends FileScope {
             .filter(r -> id.equals(idField.getValue(r)))
             .findFirst()
             .orElseGet(() -> {
-                T r = TypeDefinition.getInstance(resourceClass).newInstance();
+                T r = Reflections.newInstance(resourceClass);
                 r.external = true;
                 r.scope = new DiffableScope(this);
                 idField.setValue(r, id);

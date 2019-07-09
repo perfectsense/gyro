@@ -8,6 +8,7 @@ import java.util.concurrent.ExecutionException;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import gyro.core.Reflections;
 import gyro.core.resource.RootScope;
 import gyro.core.resource.Settings;
 
@@ -63,7 +64,7 @@ public class PluginSettings extends Settings {
 
         for (Class<?> c : classes) {
             if (Plugin.class.isAssignableFrom(c)) {
-                plugins.add((Plugin) c.newInstance());
+                plugins.add((Plugin) Reflections.newInstance(c));
 
             } else {
                 otherClasses.add(c);
