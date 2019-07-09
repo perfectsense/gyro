@@ -21,6 +21,15 @@ public class Reflections {
         }
     }
 
+    public static <T> T newInstance(Class<T> aClass) {
+        try {
+            return aClass.newInstance();
+
+        } catch (IllegalAccessException | InstantiationException error) {
+            throw new Bug(error);
+        }
+    }
+
     public static Object invoke(Method method, Object object, Object... arguments) {
         try {
             return method.invoke(object, arguments);
