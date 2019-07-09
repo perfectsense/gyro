@@ -2,7 +2,6 @@ package gyro.core.workflow;
 
 import java.util.List;
 
-import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.resource.Scope;
 import gyro.lang.ast.Node;
@@ -17,11 +16,7 @@ public class CreateDirectiveProcessor extends DirectiveProcessor<Scope> {
 
     @Override
     public void process(Scope scope, DirectiveNode node) {
-        List<Node> arguments = node.getArguments();
-
-        if (arguments.size() != 2) {
-            throw new GyroException("@create directives only takes 2 arguments!");
-        }
+        List<Node> arguments = validateDirectiveArguments(node, 2, 2);
 
         scope.getSettings(WorkflowSettings.class)
             .getActions()
