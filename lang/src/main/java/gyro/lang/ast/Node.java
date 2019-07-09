@@ -175,34 +175,6 @@ public abstract class Node {
 
     public abstract <C, R> R accept(NodeVisitor<C, R> visitor, C context);
 
-    public String getLocation() {
-        StringBuilder sb = new StringBuilder();
-        if (file != null) {
-            sb.append("in ");
-            sb.append(file);
-            sb.append(" ");
-        }
-
-        if (line != null) {
-            sb.append("on line ");
-            sb.append(line);
-            sb.append(" ");
-        }
-
-        if (column != null) {
-            sb.append("at column ");
-            sb.append(column);
-            sb.append(" ");
-        }
-
-        if (sb.length() > 0) {
-            sb.setLength(sb.length() - 1);
-            sb.append(": ");
-        }
-
-        return sb.toString();
-    }
-
     @Override
     public String toString() {
         return NodePrinter.toString(this);
