@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import com.google.common.collect.ImmutableSet;
 import org.fusesource.jansi.AnsiRenderer;
@@ -45,7 +46,7 @@ public class CliGyroUI implements GyroUI {
             return new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8)).readLine().trim();
 
         } catch (IOException error) {
-            throw new RuntimeException(error);
+            throw new GyroException(error);
         }
     }
 
