@@ -1,6 +1,5 @@
 package gyro.core.resource;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -13,7 +12,7 @@ import com.psddev.dari.util.ConversionException;
 import com.psddev.dari.util.Converter;
 import com.psddev.dari.util.ObjectUtils;
 import gyro.core.GyroException;
-import gyro.util.Bug;
+import gyro.core.Reflections;
 
 public class DiffableField {
 
@@ -104,20 +103,7 @@ public class DiffableField {
     }
 
     public Object getValue(Diffable diffable) {
-        try {
-            return getter.invoke(diffable);
-
-        } catch (IllegalAccessException error) {
-            throw new Bug(error);
-
-        } catch (InvocationTargetException error) {
-            Throwable cause = error.getCause();
-
-            throw new GyroException(
-                diffable.scope.getKeyNodes().get(name),
-                String.format("Can't get @|bold %s|@!", name),
-                cause);
-        }
+        return Reflections.invoke(getter, diffable);
     }
 
     public void setValue(Diffable diffable, Object value) {
@@ -134,18 +120,7 @@ public class DiffableField {
                     .orElse(null);
             }
 
-            setter.invoke(diffable, scope.getRootScope().convertValue(type, value));
-
-        } catch (IllegalAccessException error) {
-            throw new Bug(error);
-
-        } catch (InvocationTargetException error) {
-            Throwable cause = error.getCause();
-
-            throw new GyroException(
-                scope.getKeyNodes().get(name),
-                String.format("Can't set @|bold %s|@ to @|bold %s|@!", name, value),
-                cause);
+            Reflections.invoke(setter, diffable, scope.getRootScope().convertValue(type, value));
 
         } catch (ConversionException error) {
             throw new GyroException(
