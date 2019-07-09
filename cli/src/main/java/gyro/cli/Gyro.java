@@ -71,57 +71,54 @@ public class Gyro {
             gyro.init(Arrays.asList(arguments), init);
             gyro.run();
 
-        } catch (GyroException error) {
-            writeError(error.getNode(), error);
-
-            for (Throwable cause = error.getCause(); cause != null; cause = cause.getCause()) {
-                if (cause instanceof GyroException) {
-                    GyroCore.ui().write(
-                        "@|red · Caused by:|@ %s\n",
-                        cause.getMessage());
-
-                } else {
-                    GyroCore.ui().write(
-                        "@|red · Caused by:|@ %s: %s\n",
-                        cause.getClass().getName(),
-                        cause.getMessage());
-                }
-            }
-
-        } catch (Defer error) {
-            writeError(error.getNode(), error);
-
         } catch (Abort error) {
             GyroCore.ui().write("\n@|red Aborted!|@\n");
 
         } catch (Throwable error) {
-            StringWriter sw = new StringWriter();
-            PrintWriter pw = new PrintWriter(sw);
-
-            error.printStackTrace(pw);
-
-            if (error instanceof Bug) {
-                GyroCore.ui().write("\n@|red This should've never happened. Please report this as a bug with the following stack trace:|@ %s\n", sw.toString());
-
-            } else {
-                GyroCore.ui().write("\n@|red Unexpected error:|@ %s\n", sw.toString());
-            }
+            GyroCore.ui().write("\n");
+            writeError(error);
 
         } finally {
             GyroCore.popUi();
         }
     }
 
-    private static void writeError(Node node, Throwable error) {
-        if (node != null) {
-            GyroCore.ui().write(
-                "\n@|red In %s on line %s at column %s:|@",
-                node.getFile(),
-                node.getLine(),
-                node.getColumn());
-        }
+    private static void writeError(Throwable error) {
+        if (error instanceof Defer || error instanceof GyroException) {
+            GyroCore.ui().write("@|red Error:|@ %s\n", error.getMessage());
 
-        GyroCore.ui().write("\n@|red Error:|@ %s\n", error.getMessage());
+            Node node = error instanceof Defer
+                ? ((Defer) error).getNode()
+                : ((GyroException) error).getNode();
+
+            if (node != null) {
+                GyroCore.ui().write(
+                    "@|red In %s on line %s at column %s|@\n",
+                    node.getFile(),
+                    node.getLine(),
+                    node.getColumn());
+            }
+
+            Throwable cause = error.getCause();
+
+            if (cause != null) {
+                GyroCore.ui().write("\n@|red Caused by:|@ ");
+                writeError(cause);
+            }
+
+        } else {
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+
+            error.printStackTrace(pw);
+
+            if (error instanceof Bug) {
+                GyroCore.ui().write("@|red This should've never happened. Please report this as a bug with the following stack trace:|@ %s\n", sw.toString());
+
+            } else {
+                GyroCore.ui().write("@|red Unexpected error:|@ %s\n", sw.toString());
+            }
+        }
     }
 
     public void init(List<String> arguments, Scope init) {
