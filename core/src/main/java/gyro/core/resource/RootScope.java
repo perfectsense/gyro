@@ -228,13 +228,7 @@ public class RootScope extends FileScope {
             }
         }
 
-        try {
-            evaluator.visitBody(nodes, this);
-
-        } catch (Defer e) {
-            throw new GyroException(e.getMessage());
-        }
-
+        evaluator.visitBody(nodes, this);
         validate();
     }
 

@@ -353,7 +353,9 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
         Object value = rootScope.get(type);
 
         if (value == null) {
-            throw new Defer(node);
+            throw new Defer(node, String.format(
+                "Can't create a resource of @|bold %s|@ type!",
+                type));
 
         } else if (value instanceof Class) {
             Class<?> c = (Class<?>) value;
@@ -518,7 +520,10 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
                     Resource resource = root.findResource(referenceName + "::" + resourceName);
 
                     if (resource == null) {
-                        throw new Defer(node);
+                        throw new Defer(node, String.format(
+                            "Can't find @|bold %s|@ resource of @|bold %s|@ type!",
+                            referenceName,
+                            resourceName));
                     }
 
                     value = resource;
@@ -537,7 +542,9 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
                 }
 
                 if (!found) {
-                    throw new Defer(node);
+                    throw new Defer(node, String.format(
+                        "Can't resolve @|bold %s|@!",
+                        node));
                 }
             }
 

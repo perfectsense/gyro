@@ -203,10 +203,6 @@ public abstract class Node {
         return sb.toString();
     }
 
-    public String deferFailure() {
-        return toString();
-    }
-
     @Override
     public String toString() {
         return NodePrinter.toString(this);

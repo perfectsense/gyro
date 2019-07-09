@@ -47,12 +47,4 @@ public class ReferenceNode extends Node {
         return visitor.visitReference(this, context);
     }
 
-    @Override
-    public String deferFailure() {
-        return String.format(
-            "Can't resolve reference! %s %s",
-            this,
-            getLocation());
-    }
-
 }

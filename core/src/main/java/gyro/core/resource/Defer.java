@@ -10,7 +10,8 @@ public class Defer extends Error {
 
     private final Node node;
 
-    public Defer(Node node) {
+    public Defer(Node node, String message) {
+        super(message);
         this.node = node;
     }
 
@@ -44,13 +45,8 @@ public class Defer extends Error {
         }
     }
 
-    @Override
-    public String getMessage() {
-        return node.deferFailure();
+    public Node getNode() {
+        return node;
     }
 
-    @Override
-    public Throwable fillInStackTrace() {
-        return this;
-    }
 }

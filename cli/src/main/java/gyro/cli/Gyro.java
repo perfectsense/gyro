@@ -6,6 +6,7 @@ import gyro.core.command.AbstractCommand;
 import gyro.core.command.GyroCommand;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
+import gyro.core.resource.Defer;
 import gyro.core.resource.RootScope;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
@@ -71,17 +72,7 @@ public class Gyro {
             gyro.run();
 
         } catch (GyroException error) {
-            Node node = error.getNode();
-
-            if (node != null) {
-                GyroCore.ui().write(
-                    "\n@|red In %s on line %s at column %s:|@",
-                    node.getFile(),
-                    node.getLine(),
-                    node.getColumn());
-            }
-
-            GyroCore.ui().write("\n@|red Error:|@ %s\n", error.getMessage());
+            writeError(error.getNode(), error);
 
             for (Throwable cause = error.getCause(); cause != null; cause = cause.getCause()) {
                 if (cause instanceof GyroException) {
@@ -96,6 +87,9 @@ public class Gyro {
                         cause.getMessage());
                 }
             }
+
+        } catch (Defer error) {
+            writeError(error.getNode(), error);
 
         } catch (Abort error) {
             GyroCore.ui().write("\n@|red Aborted!|@\n");
@@ -116,6 +110,18 @@ public class Gyro {
         } finally {
             GyroCore.popUi();
         }
+    }
+
+    private static void writeError(Node node, Throwable error) {
+        if (node != null) {
+            GyroCore.ui().write(
+                "\n@|red In %s on line %s at column %s:|@",
+                node.getFile(),
+                node.getLine(),
+                node.getColumn());
+        }
+
+        GyroCore.ui().write("\n@|red Error:|@ %s\n", error.getMessage());
     }
 
     public void init(List<String> arguments, Scope init) {
