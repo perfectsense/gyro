@@ -215,6 +215,9 @@ public class State {
             } else if (value instanceof Date) {
                 body.add(toPairNode(key, value.toString()));
 
+            } else if (value instanceof Enum<?>) {
+                body.add(toPairNode(key, ((Enum) value).name()));
+
             } else if (value instanceof Diffable) {
                 if (field.shouldBeDiffed()) {
                     body.add(new KeyBlockNode(key, null, toBodyNodes((Diffable) value)));
