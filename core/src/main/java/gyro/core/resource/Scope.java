@@ -92,17 +92,6 @@ public class Scope implements Map<String, Object> {
         return names.get(value);
     }
 
-    public Object find(String key) {
-        for (Scope s = this instanceof DiffableScope ? this.parent : this; s != null; s = s.parent) {
-            if (s.containsKey(key)) {
-                Node valueNode = s.valueNodes.get(key);
-                return valueNode == null ? s.get(key) : getRootScope().getEvaluator().visit(valueNode, s);
-            }
-        }
-
-        throw new ValueReferenceException(key);
-    }
-
     public void addValueNode(String key, Node value) {
         valueNodes.put(key, value);
     }

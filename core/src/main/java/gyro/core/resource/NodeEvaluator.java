@@ -276,24 +276,8 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
             rootScope.getFileScopes().add(fileScope);
         }
 
-        List<PairNode> keyValues = new ArrayList<>();
-        List<Node> body = new ArrayList<>();
-
-        for (Node item : node.getBody()) {
-            if (item instanceof PairNode) {
-                keyValues.add((PairNode) item);
-
-            } else {
-                body.add(item);
-            }
-        }
-
-        for (PairNode kv : keyValues) {
-            visit(kv, fileScope);
-        }
-
         try {
-            visitBody(body, fileScope);
+            visitBody(node.getBody(), fileScope);
 
         } catch (Defer e) {
             rootScope.getFileScopes().remove(fileScope);
@@ -541,7 +525,20 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
                 }
 
             } else {
-                value = scope.find(referenceName);
+                boolean found = false;
+
+                for (Scope s = scope instanceof DiffableScope ? scope.getParent() : scope; s != null; s = s.getParent()) {
+                    if (s.containsKey(referenceName)) {
+                        Node valueNode = s.getValueNodes().get(referenceName);
+                        value = valueNode == null ? s.get(referenceName) : visit(valueNode, s);
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found) {
+                    throw new Defer(node);
+                }
             }
 
             if (value == null) {
