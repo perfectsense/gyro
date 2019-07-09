@@ -1,12 +1,9 @@
 package gyro.core.resource;
 
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -14,6 +11,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import gyro.core.NamespaceUtils;
+import gyro.core.Reflections;
 import gyro.core.Type;
 
 public class DiffableType<R extends Diffable> {
@@ -23,7 +21,7 @@ public class DiffableType<R extends Diffable> {
         .build(new CacheLoader<Class<? extends Diffable>, DiffableType<? extends Diffable>>() {
 
             @Override
-            public DiffableType<? extends Diffable> load(Class<? extends Diffable> diffableClass) throws IntrospectionException {
+            public DiffableType<? extends Diffable> load(Class<? extends Diffable> diffableClass) {
                 return new DiffableType<>(diffableClass);
             }
         });
@@ -37,19 +35,10 @@ public class DiffableType<R extends Diffable> {
 
     @SuppressWarnings("unchecked")
     public static <R extends Diffable> DiffableType<R> getInstance(Class<R> diffableClass) {
-        try {
-            return (DiffableType<R>) INSTANCES.get(diffableClass);
-
-        } catch (ExecutionException error) {
-            Throwable cause = error.getCause();
-
-            throw cause instanceof RuntimeException
-                    ? (RuntimeException) cause
-                    : new RuntimeException(cause);
-        }
+        return (DiffableType<R>) INSTANCES.getUnchecked(diffableClass);
     }
 
-    private DiffableType(Class<R> diffableClass) throws IntrospectionException {
+    private DiffableType(Class<R> diffableClass) {
         this.diffableClass = diffableClass;
 
         Type typeAnnotation = diffableClass.getAnnotation(Type.class);
@@ -67,7 +56,7 @@ public class DiffableType<R extends Diffable> {
         ImmutableList.Builder<DiffableField> fields = ImmutableList.builder();
         ImmutableMap.Builder<String, DiffableField> fieldByName = ImmutableMap.builder();
 
-        for (PropertyDescriptor prop : Introspector.getBeanInfo(diffableClass).getPropertyDescriptors()) {
+        for (PropertyDescriptor prop : Reflections.getBeanInfo(diffableClass).getPropertyDescriptors()) {
             Method getter = prop.getReadMethod();
             Method setter = prop.getWriteMethod();
 
@@ -114,15 +103,7 @@ public class DiffableType<R extends Diffable> {
     }
 
     public R newDiffable(Diffable parent, String name, DiffableScope scope) {
-        R diffable;
-
-        try {
-            diffable = diffableClass.newInstance();
-
-        } catch (IllegalAccessException | InstantiationException error) {
-            throw new RuntimeException(error);
-        }
-
+        R diffable = Reflections.newInstance(diffableClass);
         diffable.parent = parent;
         diffable.name = name;
         diffable.scope = scope;
