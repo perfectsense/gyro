@@ -9,29 +9,11 @@ import java.util.Optional;
 
 import com.google.common.base.CaseFormat;
 import com.psddev.dari.util.ConversionException;
-import com.psddev.dari.util.Converter;
 import com.psddev.dari.util.ObjectUtils;
 import gyro.core.GyroException;
 import gyro.core.Reflections;
 
 public class DiffableField {
-
-    private static final Converter CONVERTER;
-
-    static {
-        CONVERTER = new Converter();
-        CONVERTER.setThrowError(true);
-        CONVERTER.putAllStandardFunctions();
-
-        CONVERTER.putDirectFunction(
-            Resource.class,
-            String.class,
-            (converter, returnType, resource) -> ObjectUtils.to(
-                String.class,
-                DiffableType.getInstance(resource.getClass())
-                    .getIdField()
-                    .getValue(resource)));
-    }
 
     private final String name;
     private final Method getter;
