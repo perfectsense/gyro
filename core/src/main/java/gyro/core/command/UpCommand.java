@@ -13,7 +13,7 @@ import io.airlift.airline.Command;
 public class UpCommand extends AbstractConfigCommand {
 
     @Override
-    public void doExecute(RootScope current, RootScope pending, State state) throws Exception {
+    public void doExecute(RootScope current, RootScope pending, State state) {
         GyroUI ui = GyroCore.ui();
 
         ui.write("\n@|bold,white Looking for changes...\n\n|@");
