@@ -6,7 +6,6 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 import com.google.common.base.CaseFormat;
-import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.resource.RootScope;
 import gyro.core.resource.Scope;
@@ -21,15 +20,9 @@ public class CredentialsDirectiveProcessor extends DirectiveProcessor<RootScope>
 
     @Override
     public void process(RootScope scope, DirectiveNode node) throws Exception {
-        List<Object> arguments = evaluateArguments(scope, node);
-        int argumentsSize = arguments.size();
-
-        if (argumentsSize < 1 || argumentsSize > 2) {
-            throw new GyroException("@credentials directive only takes 1 or 2 arguments!");
-        }
-
+        List<Object> arguments = evaluateDirectiveArguments(scope, node, 1, 2);
         String type = (String) arguments.get(0);
-        String name = argumentsSize == 1 ? "default" : (String) arguments.get(1);
+        String name = arguments.size() == 1 ? "default" : (String) arguments.get(1);
         Scope bodyScope = evaluateBody(scope, node);
 
         CredentialsSettings settings = scope.getSettings(CredentialsSettings.class);

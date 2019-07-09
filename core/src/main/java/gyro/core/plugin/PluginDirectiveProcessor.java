@@ -51,11 +51,7 @@ public class PluginDirectiveProcessor extends DirectiveProcessor<RootScope> {
 
     @Override
     public void process(RootScope scope, DirectiveNode node) throws Exception {
-        List<Object> arguments = evaluateArguments(scope, node);
-
-        if (arguments.size() != 1) {
-            throw new GyroException("@plugin directive only takes 1 argument!");
-        }
+        List<Object> arguments = evaluateDirectiveArguments(scope, node, 1, 1);
 
         Thread.currentThread().setContextClassLoader(PLUGIN_CLASS_LOADER);
 

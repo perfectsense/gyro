@@ -20,18 +20,8 @@ public class ForDirectiveProcessor extends DirectiveProcessor<Scope> {
 
     @Override
     public void process(Scope scope, DirectiveNode node) {
-        List<Object> variables = evaluateArguments(scope, node);
-
-        if (variables.isEmpty()) {
-            throw new GyroException("@for directive requires at least 1 variable declaration!");
-        }
-
-        List<Object> inArguments = evaluateOptionArguments(scope, node, "in");
-
-        if (inArguments.size() != 1) {
-            throw new GyroException("-in option only takes 1 argument!");
-        }
-
+        List<Object> variables = evaluateDirectiveArguments(scope, node, 1, 0);
+        List<Object> inArguments = evaluateOptionArguments(scope, node, "in", 1, 1);
         Object value = inArguments.get(0);
 
         if (value == null) {

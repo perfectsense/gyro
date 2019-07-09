@@ -2,7 +2,6 @@ package gyro.core.repo;
 
 import java.util.List;
 
-import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.resource.RootScope;
 import gyro.lang.ast.block.DirectiveNode;
@@ -17,12 +16,7 @@ public class RepositoryDirectiveProcessor extends DirectiveProcessor<RootScope> 
 
     @Override
     public void process(RootScope scope, DirectiveNode node) {
-        List<Object> arguments = evaluateArguments(scope, node);
-
-        if (arguments.size() != 1) {
-            throw new GyroException("@repository directive only takes 1 argument!");
-        }
-
+        List<Object> arguments = evaluateDirectiveArguments(scope, node, 1, 1);
         String url = (String) arguments.get(0);
 
         scope.getSettings(RepositorySettings.class)

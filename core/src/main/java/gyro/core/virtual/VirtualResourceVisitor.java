@@ -4,7 +4,6 @@ import java.util.List;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.FileScope;
@@ -29,11 +28,7 @@ public class VirtualResourceVisitor extends ResourceVisitor {
                 DirectiveNode directive = (DirectiveNode) child;
 
                 if ("param".equals(directive.getName())) {
-                    List<Object> arguments = DirectiveProcessor.evaluateArguments(scope, directive);
-
-                    if (arguments.size() != 1) {
-                        throw new GyroException("@param directive only takes 1 argument!");
-                    }
+                    List<Object> arguments = DirectiveProcessor.evaluateDirectiveArguments(scope, directive, 1, 1);
 
                     parametersBuilder.add(new VirtualParameter((String) arguments.get(0)));
                     continue;
