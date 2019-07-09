@@ -1,8 +1,7 @@
 package gyro.core.resource;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,7 +16,6 @@ import java.util.Objects;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
-import gyro.core.FileBackend;
 import gyro.core.GyroException;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.NodePrinter;
@@ -32,7 +30,7 @@ import gyro.lang.ast.value.ValueNode;
 
 public class State {
 
-    private final FileBackend backend;
+    private final RootScope root;
     private final boolean test;
     private final Map<String, FileScope> states = new HashMap<>();
     private final Set<String> diffFiles;
@@ -40,13 +38,12 @@ public class State {
     private final Map<String, String> newKeys = new HashMap<>();
 
     public State(RootScope current, RootScope pending, boolean test, Set<String> diffFiles) throws Exception {
-        this.backend = current.getBackend();
-        this.test = test;
-        this.diffFiles = diffFiles != null ? ImmutableSet.copyOf(diffFiles) : null;
-
-        RootScope root = new RootScope(current.getFile(), backend, null, current.getLoadFiles());
+        this.root = new RootScope(current.getFile(), current.getBackend(), null, current.getLoadFiles());
 
         root.load();
+
+        this.test = test;
+        this.diffFiles = diffFiles != null ? ImmutableSet.copyOf(diffFiles) : null;
 
         for (FileScope state : root.getFileScopes()) {
             states.put(state.getFile(), state);
@@ -162,9 +159,9 @@ public class State {
         for (FileScope state : states.values()) {
             String file = state.getFile();
 
-            try (BufferedWriter out = new BufferedWriter(
+            try (PrintWriter out = new PrintWriter(
                 new OutputStreamWriter(
-                    backend.openOutput(file),
+                    root.openOutput(file),
                     StandardCharsets.UTF_8))) {
 
                 PrinterContext context = new PrinterContext(out, 0);
@@ -182,8 +179,6 @@ public class State {
                     }
                 }
 
-            } catch (IOException error) {
-                throw new GyroException(error.getMessage());
             }
         }
     }

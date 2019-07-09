@@ -1,6 +1,7 @@
 package gyro.core.resource;
 
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -15,6 +16,8 @@ import com.psddev.dari.util.Converter;
 import com.psddev.dari.util.TypeDefinition;
 import gyro.core.FileBackend;
 import gyro.core.GyroException;
+import gyro.core.GyroInputStream;
+import gyro.core.GyroOutputStream;
 import gyro.core.auth.CredentialsDirectiveProcessor;
 import gyro.core.auth.CredentialsPlugin;
 import gyro.core.auth.UsesCredentialsDirectiveProcessor;
@@ -77,7 +80,7 @@ public class RootScope extends FileScope {
         this.backend = backend;
         this.current = current;
 
-        try (Stream<String> s = backend.list()) {
+        try (Stream<String> s = list()) {
             this.loadFiles = (loadFiles != null ? s.filter(loadFiles::contains) : s).collect(Collectors.toSet());
         }
 
@@ -131,6 +134,25 @@ public class RootScope extends FileScope {
 
     public List<FileScope> getFileScopes() {
         return fileScopes;
+    }
+
+    public Stream<String> list() {
+        try {
+            return backend.list();
+
+        } catch (Exception error) {
+            throw new GyroException(
+                String.format("Can't list files in @|bold %s|@!", backend),
+                error);
+        }
+    }
+
+    public GyroInputStream openInput(String file) {
+        return new GyroInputStream(backend, file);
+    }
+
+    public OutputStream openOutput(String file) {
+        return new GyroOutputStream(backend, file);
     }
 
     public Object convertValue(Type returnType, Object object) {
@@ -187,14 +209,14 @@ public class RootScope extends FileScope {
     }
 
     public void load() throws Exception {
-        try (InputStream input = backend.openInput(getFile())) {
+        try (InputStream input = openInput(getFile())) {
             evaluator.visit(Node.parse(input, getFile(), GyroParser::file), this);
         }
 
         List<Node> nodes = new ArrayList<>();
 
         for (String file : loadFiles) {
-            try (InputStream input = backend.openInput(file)) {
+            try (InputStream input = openInput(file)) {
                 nodes.add(Node.parse(input, file, GyroParser::file));
             }
         }

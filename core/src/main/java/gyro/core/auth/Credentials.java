@@ -1,11 +1,11 @@
 package gyro.core.auth;
 
-import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
 import gyro.core.GyroException;
+import gyro.core.GyroInputStream;
 import gyro.core.NamespaceUtils;
 import gyro.core.resource.DiffableScope;
 import gyro.core.resource.FileScope;
@@ -53,11 +53,10 @@ public abstract class Credentials {
     public void refresh() {
     }
 
-    public InputStream openInput(String file) {
+    public GyroInputStream openInput(String file) {
         FileScope fileScope = scope.getFileScope();
 
         return fileScope.getRootScope()
-            .getBackend()
             .openInput(Paths.get(fileScope.getFile())
                 .getParent()
                 .resolve(file)

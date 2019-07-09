@@ -1,6 +1,5 @@
 package gyro.core.resource;
 
-import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.HashMap;
@@ -12,6 +11,7 @@ import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableSet;
 import gyro.core.GyroException;
+import gyro.core.GyroInputStream;
 import gyro.core.GyroUI;
 
 public abstract class Diffable {
@@ -57,11 +57,10 @@ public abstract class Diffable {
         return scope.getRootScope().findResourceById(resourceClass, id);
     }
 
-    public InputStream openInput(String file) {
+    public GyroInputStream openInput(String file) {
         FileScope fileScope = scope.getFileScope();
 
         return fileScope.getRootScope()
-            .getBackend()
             .openInput(Paths.get(fileScope.getFile())
                 .getParent()
                 .resolve(file)
