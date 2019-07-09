@@ -173,7 +173,7 @@ public abstract class Node {
         return Node.create(tree);
     }
 
-    public abstract <C, R> R accept(NodeVisitor<C, R> visitor, C context);
+    public abstract <C, R, X extends Throwable> R accept(NodeVisitor<C, R, X> visitor, C context) throws X;
 
     @Override
     public String toString() {

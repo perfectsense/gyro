@@ -27,7 +27,7 @@ public class MapNode extends Node {
     }
 
     @Override
-    public <C, R> R accept(NodeVisitor<C, R> visitor, C context) {
+    public <C, R, X extends Throwable> R accept(NodeVisitor<C, R, X> visitor, C context) throws X {
         return visitor.visitMap(this, context);
     }
 

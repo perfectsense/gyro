@@ -49,7 +49,7 @@ import gyro.lang.ast.value.ValueNode;
 import gyro.lang.filter.Filter;
 import org.apache.commons.lang3.math.NumberUtils;
 
-public class NodeEvaluator implements NodeVisitor<Scope, Object> {
+public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeException> {
 
     private static final LoadingCache<Class<? extends DirectiveProcessor>, Class<? extends Scope>> DIRECTIVE_PROCESSOR_SCOPE_CLASSES = CacheBuilder.newBuilder()
         .build(new CacheLoader<Class<? extends DirectiveProcessor>, Class<? extends Scope>>() {

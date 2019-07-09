@@ -1,5 +1,6 @@
 package gyro.core.resource;
 
+import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
@@ -27,6 +28,7 @@ import gyro.lang.ast.value.ListNode;
 import gyro.lang.ast.value.MapNode;
 import gyro.lang.ast.value.ReferenceNode;
 import gyro.lang.ast.value.ValueNode;
+import gyro.util.Bug;
 
 public class State {
 
@@ -179,6 +181,8 @@ public class State {
                     }
                 }
 
+            } catch (IOException error) {
+                throw new Bug(error);
             }
         }
     }

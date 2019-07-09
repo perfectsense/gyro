@@ -38,7 +38,7 @@ class NodeAcceptTest {
     <N extends Node> DynamicTest create(Class<N> nodeClass, Verifier<N> verifier) {
         return DynamicTest.dynamicTest(nodeClass.getName(), () -> {
             @SuppressWarnings("unchecked")
-            NodeVisitor<Object, Object> visitor = mock(NodeVisitor.class, CALLS_REAL_METHODS);
+            NodeVisitor<Object, Object, RuntimeException> visitor = mock(NodeVisitor.class, CALLS_REAL_METHODS);
             N node = mock(nodeClass, CALLS_REAL_METHODS);
 
             visitor.visit(node, null);
@@ -52,7 +52,7 @@ class NodeAcceptTest {
     @FunctionalInterface
     interface Verifier<N extends Node> {
 
-        void verify(NodeVisitor<Object, Object> visitor, N node, Object context);
+        void verify(NodeVisitor<Object, Object, RuntimeException> visitor, N node, Object context);
 
     }
 
