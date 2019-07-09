@@ -37,7 +37,7 @@ public class State {
     private final Map<String, String> newNames = new HashMap<>();
     private final Map<String, String> newKeys = new HashMap<>();
 
-    public State(RootScope current, RootScope pending, boolean test, Set<String> diffFiles) throws Exception {
+    public State(RootScope current, RootScope pending, boolean test, Set<String> diffFiles) {
         this.root = new RootScope(current.getFile(), current.getBackend(), null, current.getLoadFiles());
 
         root.load();
@@ -229,9 +229,10 @@ public class State {
                 }
 
             } else {
-                throw new UnsupportedOperationException(String.format(
-                        "Can't convert an instance of [%s] into a node!",
-                        value.getClass().getName()));
+                throw new GyroException(String.format(
+                    "Can't convert @|bold %s|@, an instance of @|bold %s|@, into a node!",
+                    value,
+                    value.getClass().getName()));
             }
         }
 
@@ -289,9 +290,10 @@ public class State {
             }
 
         } else {
-            throw new UnsupportedOperationException(String.format(
-                    "Can't convert an instance of [%s] into a node!",
-                    value.getClass().getName()));
+            throw new GyroException(String.format(
+                "Can't convert @|bold %s|@, an instance of @|bold %s|@, into a node!",
+                value,
+                value.getClass().getName()));
         }
     }
 
