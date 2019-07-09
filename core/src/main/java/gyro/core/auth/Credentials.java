@@ -32,15 +32,16 @@ public abstract class Credentials {
 
         if (credentials == null) {
             throw new GyroException(String.format(
-                "Can't find [%s] credentials!",
+                "Can't find @|bold %s|@ credentials!",
                 name));
         }
 
         if (!credentialsClass.isInstance(credentials)) {
             throw new GyroException(String.format(
-                "Need [%s] credentials but have [%s] instead!",
-                credentialsClass.getName(),
-                credentials.getClass().getName()));
+                "Can't use @|bold %s|@ credentials because it's an instance of @|bold %s|@, not @|bold %s|@!",
+                name,
+                credentials.getClass().getName(),
+                credentialsClass.getName()));
         }
 
         return (C) credentials;
