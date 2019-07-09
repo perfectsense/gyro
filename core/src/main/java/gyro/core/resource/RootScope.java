@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.psddev.dari.util.Converter;
-import com.psddev.dari.util.TypeDefinition;
 import gyro.core.FileBackend;
 import gyro.core.GyroException;
 import gyro.core.GyroInputStream;
