@@ -8,6 +8,7 @@ import java.util.concurrent.ExecutionException;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import gyro.core.GyroException;
 import gyro.core.Reflections;
 import gyro.core.resource.RootScope;
 import gyro.core.resource.Settings;
@@ -58,7 +59,7 @@ public class PluginSettings extends Settings {
         this.otherClasses = otherClasses;
     }
 
-    public void addClasses(Set<Class<?>> classes) throws Exception {
+    public void addClasses(Set<Class<?>> classes) {
         List<Plugin> plugins = getPlugins();
         List<Class<?>> otherClasses = getOtherClasses();
 
@@ -77,11 +78,12 @@ public class PluginSettings extends Settings {
                     call.get(plugin).get(otherClass);
 
                 } catch (ExecutionException error) {
-                    Throwable cause = error.getCause();
-
-                    if (cause instanceof Exception) {
-                        throw (Exception) cause;
-                    }
+                    throw new GyroException(
+                        String.format(
+                            "Can't load @|bold %s|@ using the @|bold %s|@ plugin!",
+                            otherClass.getName(),
+                            plugin.getClass().getName()),
+                        error.getCause());
                 }
             }
         }

@@ -50,7 +50,7 @@ public class PluginDirectiveProcessor extends DirectiveProcessor<RootScope> {
     }
 
     @Override
-    public void process(RootScope scope, DirectiveNode node) throws Exception {
+    public void process(RootScope scope, DirectiveNode node) {
         List<Object> arguments = evaluateDirectiveArguments(scope, node, 1, 1);
 
         Thread.currentThread().setContextClassLoader(PLUGIN_CLASS_LOADER);
@@ -118,7 +118,7 @@ public class PluginDirectiveProcessor extends DirectiveProcessor<RootScope> {
 
             } catch (Exception error) {
                 throw new GyroException(
-                    String.format("Can't load @|bold %s|@ plugin!", ac),
+                    String.format("Can't load the @|bold %s|@ plugin!", ac),
                     error);
             }
         }));
