@@ -126,11 +126,9 @@ public class PluginDirectiveProcessor extends DirectiveProcessor {
                 return classes;
 
             } catch (Exception error) {
-                throw new GyroException(String.format(
-                    "Can't load [%s] plugin! %s: %s",
-                    ac,
-                    error.getClass().getName(),
-                    error.getMessage()));
+                throw new GyroException(
+                    String.format("Can't load @|bold %s|@ plugin!", ac),
+                    error);
             }
         }));
     }
