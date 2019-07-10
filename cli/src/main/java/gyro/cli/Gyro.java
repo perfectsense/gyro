@@ -11,6 +11,8 @@ import gyro.core.resource.RootScope;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import gyro.core.resource.Scope;
+import gyro.lang.SyntaxError;
+import gyro.lang.SyntaxErrorException;
 import gyro.lang.ast.Node;
 import gyro.util.Bug;
 import io.airlift.airline.Cli;
@@ -104,6 +106,17 @@ public class Gyro {
             if (cause != null) {
                 GyroCore.ui().write("\n@|red Caused by:|@ ");
                 writeError(cause);
+            }
+
+        } else if (error instanceof SyntaxErrorException) {
+            SyntaxErrorException s = (SyntaxErrorException) error;
+            List<SyntaxError> syntaxErrors = s.getSyntaxErrors();
+
+            GyroCore.ui().write("@|red %d syntax errors in %s!|@\n\n", syntaxErrors.size(), s.getFile());
+
+            for (SyntaxError syntaxError : syntaxErrors) {
+                GyroCore.ui().write("%s on line @|bold %s|@ at column @|bold %s|@:\n", syntaxError.getMessage(), syntaxError.getLine(), syntaxError.getColumn());
+                GyroCore.ui().write("%s\n", syntaxError.toCode());
             }
 
         } else {

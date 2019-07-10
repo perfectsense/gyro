@@ -2,7 +2,6 @@ package gyro.lang.ast;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -10,9 +9,12 @@ import java.util.function.Function;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import gyro.lang.GyroCharStream;
 import gyro.lang.GyroErrorListener;
 import gyro.lang.GyroErrorStrategy;
 import gyro.lang.GyroLanguageException;
+import gyro.lang.SyntaxError;
+import gyro.lang.SyntaxErrorException;
 import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;
@@ -27,8 +29,6 @@ import gyro.lang.ast.value.ValueNode;
 import gyro.parser.antlr4.GyroLexer;
 import gyro.parser.antlr4.GyroParser;
 import gyro.util.ImmutableCollectors;
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
@@ -143,31 +143,32 @@ public abstract class Node {
     }
 
     public static Node parse(String text, Function<GyroParser, ? extends ParseTree> function) {
-        return parse(CharStreams.fromString(text), function);
+        return parse(new GyroCharStream(text), function);
     }
 
     public static Node parse(InputStream input, String file, Function<GyroParser, ? extends ParseTree> function) throws IOException {
-        return parse(CharStreams.fromReader(new InputStreamReader(input), file), function);
+        return parse(new GyroCharStream(input, file), function);
     }
 
-    private static Node parse(CharStream charStream, Function<GyroParser, ? extends ParseTree> function) {
+    private static Node parse(GyroCharStream charStream, Function<GyroParser, ? extends ParseTree> function) {
+        GyroErrorListener errorListener = new GyroErrorListener(charStream);
         GyroLexer lexer = new GyroLexer(charStream);
+
+        lexer.removeErrorListeners();
+        lexer.addErrorListener(errorListener);
+
         CommonTokenStream stream = new CommonTokenStream(lexer);
         GyroParser parser = new GyroParser(stream);
-        GyroErrorListener errorListener = new GyroErrorListener();
 
         parser.removeErrorListeners();
         parser.addErrorListener(errorListener);
         parser.setErrorHandler(new GyroErrorStrategy());
 
         ParseTree tree = function.apply(parser);
-        int errorCount = errorListener.getSyntaxErrors();
+        List<SyntaxError> errors = errorListener.getSyntaxErrors();
 
-        if (errorCount > 0) {
-            throw new GyroLanguageException(String.format(
-                "%d %s found while parsing.",
-                errorCount,
-                errorCount == 1 ? "error" : "errors"));
+        if (!errors.isEmpty()) {
+            throw new SyntaxErrorException(charStream.getSourceName(), errors);
         }
 
         return Node.create(tree);
