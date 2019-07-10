@@ -3,11 +3,14 @@ package gyro.core.command;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import gyro.core.GyroCore;
@@ -88,6 +91,14 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
         current.load();
 
+        RootScope pending = new RootScope(
+            GyroCore.INIT_FILE,
+            new LocalFileBackend(rootDir),
+            current,
+            loadFiles);
+
+        pending.load();
+
         if (!test) {
             current.getSettings(CredentialsSettings.class)
                 .getCredentialsByName()
@@ -100,13 +111,6 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             }
         }
 
-        RootScope pending = new RootScope(
-            GyroCore.INIT_FILE,
-            new LocalFileBackend(rootDir),
-            current,
-            loadFiles);
-
-        pending.load();
         doExecute(current, pending, new State(current, pending, test, diffFiles));
     }
 
@@ -123,29 +127,65 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
     }
 
     private void refreshResources(RootScope scope) {
+        ExecutorService service = Executors.newCachedThreadPool();
+        List<Refresh> refreshes = new ArrayList<>();
+
         for (FileScope fileScope : scope.getFileScopes()) {
-            for (Iterator<Map.Entry<String, Object>> i = fileScope.entrySet().iterator(); i.hasNext(); ) {
-                Object value = i.next().getValue();
+            for (Object value : fileScope.values()) {
+                if (!(value instanceof Resource)) {
+                    continue;
+                }
 
-                if (value instanceof Resource) {
-                    Resource resource = (Resource) value;
+                Resource resource = (Resource) value;
 
-                    GyroCore.ui().write(
-                        "@|bold,blue Refreshing|@: @|yellow %s|@ -> %s...",
-                        DiffableType.getInstance(resource.getClass()).getName(),
-                        resource.name());
-
+                refreshes.add(new Refresh(resource, service.submit(() -> {
                     if (resource.refresh()) {
                         resource.updateInternals();
+                        return false;
 
                     } else {
-                        i.remove();
+                        return true;
                     }
-
-                    GyroCore.ui().write("\n");
-                }
+                })));
             }
         }
+
+        GyroCore.ui().write("@|magenta ⟳ Refreshing resources:|@ %s\n", refreshes.size());
+        service.shutdown();
+
+        for (Refresh refresh : refreshes) {
+            Resource resource = refresh.resource;
+            String typeName = DiffableType.getInstance(resource.getClass()).getName();
+            String name = resource.name();
+
+            try {
+                if (refresh.future.get()) {
+                    GyroCore.ui().write("@|magenta - Removing from state:|@ %s %s\n", typeName, name);
+                    scope.getFileScopes().forEach(s -> s.remove(resource.primaryKey()));
+                }
+
+            } catch (ExecutionException error) {
+                throw new GyroException(
+                    String.format("Can't refresh @|bold %s %s|@ resource!", typeName, name),
+                    error.getCause());
+
+            } catch (InterruptedException error) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+        }
+    }
+
+    private static class Refresh {
+
+        public final Resource resource;
+        public final Future<Boolean> future;
+
+        public Refresh(Resource resource, Future<Boolean> future) {
+            this.resource = resource;
+            this.future = future;
+        }
+
     }
 
 }
