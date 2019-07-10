@@ -1,22 +1,22 @@
 package gyro.core;
 
-import gyro.lang.ast.Node;
+import gyro.lang.Locatable;
 
 public class GyroException extends RuntimeException {
 
-    private final Node node;
+    private final Locatable locatable;
 
-    public GyroException(Node node, String message, Throwable cause) {
+    public GyroException(Locatable locatable, String message, Throwable cause) {
         super(message, cause);
-        this.node = node;
+        this.locatable = locatable;
     }
 
-    public GyroException(Node node, String message) {
-        this(node, message, null);
+    public GyroException(Locatable locatable, String message) {
+        this(locatable, message, null);
     }
 
-    public GyroException(Node node, Throwable cause) {
-        this(node, null, cause);
+    public GyroException(Locatable locatable, Throwable cause) {
+        this(locatable, null, cause);
     }
 
     public GyroException(String message, Throwable cause) {
@@ -31,8 +31,8 @@ public class GyroException extends RuntimeException {
         this(null, null, cause);
     }
 
-    public Node getNode() {
-        return node;
+    public Locatable getLocatable() {
+        return locatable;
     }
 
 }

@@ -11,6 +11,7 @@ import gyro.core.resource.RootScope;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import gyro.core.resource.Scope;
+import gyro.lang.Locatable;
 import gyro.lang.SyntaxError;
 import gyro.lang.SyntaxErrorException;
 import gyro.lang.ast.Node;
@@ -90,21 +91,13 @@ public class Gyro {
         if (error instanceof Defer || error instanceof GyroException) {
             GyroCore.ui().write("@|red Error:|@ %s\n", error.getMessage());
 
-            Node node = error instanceof Defer
+            Locatable locatable = error instanceof Defer
                 ? ((Defer) error).getNode()
-                : ((GyroException) error).getNode();
+                : ((GyroException) error).getLocatable();
 
-            if (node != null) {
-                GyroCore.ui().write(
-                    "\nIn @|bold %s|@ %s:\n",
-                    node.getFile(),
-                    SyntaxError.toLineMessage(
-                        node.getStartLine(),
-                        node.getStartColumn(),
-                        node.getStopLine(),
-                        node.getStopColumn()));
-
-                GyroCore.ui().write("%s", node.toCodeSnippet());
+            if (locatable != null) {
+                GyroCore.ui().write("\nIn @|bold %s|@ %s:\n", locatable.getFile(), locatable.toLocation());
+                GyroCore.ui().write("%s", locatable.toCodeSnippet());
             }
 
             Throwable cause = error.getCause();
@@ -121,7 +114,7 @@ public class Gyro {
             GyroCore.ui().write("@|red %d syntax errors in %s!|@\n", syntaxErrors.size(), s.getFile());
 
             for (SyntaxError syntaxError : syntaxErrors) {
-                GyroCore.ui().write("\n%s %s:\n", syntaxError.getMessage(), syntaxError.toLineMessage());
+                GyroCore.ui().write("\n%s %s:\n", syntaxError.getMessage(), syntaxError.toLocation());
                 GyroCore.ui().write("%s", syntaxError.toCodeSnippet());
             }
 

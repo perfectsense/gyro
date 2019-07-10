@@ -12,6 +12,7 @@ import com.google.common.collect.ImmutableMap;
 import gyro.lang.GyroCharStream;
 import gyro.lang.GyroErrorListener;
 import gyro.lang.GyroErrorStrategy;
+import gyro.lang.Locatable;
 import gyro.lang.SyntaxError;
 import gyro.lang.SyntaxErrorException;
 import gyro.lang.ast.block.DirectiveNode;
@@ -35,7 +36,7 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-public abstract class Node {
+public abstract class Node implements Locatable {
 
     private static final Function<ParseTree, Node> GET_FIRST_CHILD = c -> Node.create(c.getChild(0));
 
@@ -80,22 +81,27 @@ public abstract class Node {
     private Token start;
     private Token stop;
 
+    @Override
     public String getFile() {
         return start.getTokenSource().getSourceName();
     }
 
+    @Override
     public int getStartLine() {
         return start.getLine() - 1;
     }
 
+    @Override
     public int getStartColumn() {
         return start.getCharPositionInLine();
     }
 
+    @Override
     public int getStopLine() {
         return stop.getLine() - 1;
     }
 
+    @Override
     public int getStopColumn() {
         int column = stop.getCharPositionInLine();
         int startIndex = stop.getStartIndex();
@@ -189,6 +195,7 @@ public abstract class Node {
 
     public abstract <C, R, X extends Throwable> R accept(NodeVisitor<C, R, X> visitor, C context) throws X;
 
+    @Override
     public String toCodeSnippet() {
         return SyntaxError.toCodeSnippet(
             (GyroCharStream) start.getInputStream(),

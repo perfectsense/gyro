@@ -3,7 +3,7 @@ package gyro.lang;
 import org.antlr.v4.runtime.Token;
 import org.apache.commons.lang3.StringUtils;
 
-public class SyntaxError {
+public class SyntaxError implements Locatable {
 
     private final GyroCharStream stream;
     private final String message;
@@ -33,32 +33,6 @@ public class SyntaxError {
 
         } else {
             this.stopColumn = this.startColumn;
-        }
-    }
-
-    public static String toLineMessage(int startLine, int startColumn, int stopLine, int stopColumn) {
-        if (startLine == stopLine) {
-            if (startColumn == stopColumn) {
-                return String.format(
-                    "on line @|bold %s|@ at column @|bold %s|@",
-                    startLine + 1,
-                    startColumn + 1);
-
-            } else {
-                return String.format(
-                    "on line @|bold %s|@ from column @|bold %s|@ to @|bold %s|@",
-                    startLine + 1,
-                    startColumn + 1,
-                    stopColumn + 1);
-            }
-
-        } else {
-            return String.format(
-                "from line @|bold %s|@ at column @|bold %s|@ to line @|bold %s|@ at column @|bold %s|@",
-                startLine + 1,
-                startColumn + 1,
-                stopLine + 1,
-                stopColumn + 1);
         }
     }
 
@@ -113,10 +87,32 @@ public class SyntaxError {
         return message;
     }
 
-    public String toLineMessage() {
-        return toLineMessage(line, startColumn, line, stopColumn);
+    @Override
+    public String getFile() {
+        return stream.getSourceName();
     }
 
+    @Override
+    public int getStartLine() {
+        return line;
+    }
+
+    @Override
+    public int getStartColumn() {
+        return startColumn;
+    }
+
+    @Override
+    public int getStopLine() {
+        return line;
+    }
+
+    @Override
+    public int getStopColumn() {
+        return stopColumn;
+    }
+
+    @Override
     public String toCodeSnippet() {
         return toCodeSnippet(stream, line, startColumn, line, stopColumn);
     }
