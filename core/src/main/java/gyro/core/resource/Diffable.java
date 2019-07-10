@@ -185,6 +185,26 @@ public abstract class Diffable {
         }
     }
 
+    public void updateName() {
+        for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
+            if (field.shouldBeDiffed()) {
+                String fieldName = field.getName();
+                Object value = field.getValue(this);
+
+                (value instanceof Collection ? ((Collection<?>) value).stream() : Stream.of(value))
+                    .filter(Diffable.class::isInstance)
+                    .map(Diffable.class::cast)
+                    .forEach(d -> {
+                        if (d.name == null) {
+                            d.name = fieldName;
+                        }
+
+                        d.updateName();
+                    });
+            }
+        }
+    }
+
     @Override
     public final int hashCode() {
         return Objects.hash(parent(), name(), primaryKey());

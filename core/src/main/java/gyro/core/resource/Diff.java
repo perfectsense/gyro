@@ -28,6 +28,9 @@ public class Diff {
         this.pendingDiffables = pendingDiffables != null
             ? new ArrayList<>(pendingDiffables)
             : Collections.emptyList();
+
+        this.currentDiffables.forEach(Diffable::updateName);
+        this.pendingDiffables.forEach(Diffable::updateName);
     }
 
     public Diff(Diffable currentDiffable, Diffable pendingDiffable) {
@@ -38,6 +41,9 @@ public class Diff {
         this.pendingDiffables = pendingDiffable != null
             ? Collections.singletonList(pendingDiffable)
             : Collections.emptyList();
+
+        this.currentDiffables.forEach(Diffable::updateName);
+        this.pendingDiffables.forEach(Diffable::updateName);
     }
 
     public List<Change> getChanges() {
