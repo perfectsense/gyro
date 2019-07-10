@@ -75,9 +75,10 @@ public class ForDirectiveProcessor extends DirectiveProcessor<Scope> {
             }
 
         } else {
-            throw new GyroException(
+            throw new GyroException(inNode, String.format(
+                "Can't iterate over @|bold %s|@ which resolved to @|bold %s|@ because it's not a collection!",
                 inNode,
-                String.format("Can't iterate over @|bold %s|@ because it's not a collection!", in));
+                in));
         }
     }
 
