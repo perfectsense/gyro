@@ -544,7 +544,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                 if (!found) {
                     throw new Defer(node, String.format(
                         "Can't resolve @|bold %s|@!",
-                        node));
+                        referenceName));
                 }
             }
 
