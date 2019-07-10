@@ -166,9 +166,11 @@ public class RootScope extends FileScope {
 
     public List<Resource> findResourcesIn(Set<String> diffFiles) {
         Stream<Resource> stream = Stream.concat(Stream.of(this), getFileScopes().stream())
-            .map(Map::values)
+            .map(Map::entrySet)
             .flatMap(Collection::stream)
-            .filter(Resource.class::isInstance)
+            .filter(e -> e.getValue() instanceof Resource)
+            .filter(e -> ((Resource) e.getValue()).primaryKey().equals(e.getKey()))
+            .map(Entry::getValue)
             .map(Resource.class::cast);
 
         if (diffFiles != null && !diffFiles.isEmpty()) {
