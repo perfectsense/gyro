@@ -522,8 +522,8 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                     if (resource == null) {
                         throw new Defer(node, String.format(
                             "Can't find @|bold %s|@ resource of @|bold %s|@ type!",
-                            referenceName,
-                            resourceName));
+                            resourceName,
+                            referenceName));
                     }
 
                     value = resource;
