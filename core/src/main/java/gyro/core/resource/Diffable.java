@@ -166,6 +166,11 @@ public abstract class Diffable {
     }
 
     public void updateInternals() {
+        scope = new DiffableScope(scope.getParent());
+        updateChildrenInternals();
+    }
+
+    private void updateChildrenInternals() {
         for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
             if (field.shouldBeDiffed()) {
                 String fieldName = field.getName();
@@ -179,7 +184,7 @@ public abstract class Diffable {
                         d.parent = this;
                         d.name = fieldName;
 
-                        d.updateInternals();
+                        d.updateChildrenInternals();
                     });
             }
         }
