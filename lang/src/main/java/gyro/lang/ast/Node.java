@@ -12,7 +12,6 @@ import com.google.common.collect.ImmutableMap;
 import gyro.lang.GyroCharStream;
 import gyro.lang.GyroErrorListener;
 import gyro.lang.GyroErrorStrategy;
-import gyro.lang.GyroLanguageException;
 import gyro.lang.SyntaxError;
 import gyro.lang.SyntaxErrorException;
 import gyro.lang.ast.block.DirectiveNode;
@@ -28,6 +27,7 @@ import gyro.lang.ast.value.ReferenceNode;
 import gyro.lang.ast.value.ValueNode;
 import gyro.parser.antlr4.GyroLexer;
 import gyro.parser.antlr4.GyroParser;
+import gyro.util.Bug;
 import gyro.util.ImmutableCollectors;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
@@ -120,8 +120,8 @@ public abstract class Node {
             node = new ValueNode(context.getText());
 
         } else {
-            throw new GyroLanguageException(String.format(
-                "Unrecognized node! [%s]",
+            throw new Bug(String.format(
+                "@|bold %s|@ isn't a known node type!",
                 contextClass.getName()));
         }
 
