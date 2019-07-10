@@ -30,7 +30,9 @@ public class GyroErrorListener extends BaseErrorListener {
         String message,
         RecognitionException error) {
 
-        syntaxErrors.add(new SyntaxError(stream, message, line, column, (Token) symbol));
+        syntaxErrors.add(symbol instanceof Token
+            ? new SyntaxError(stream, message, (Token) symbol)
+            : new SyntaxError(stream, message, line - 1, column));
     }
 
 }

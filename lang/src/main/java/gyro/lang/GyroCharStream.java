@@ -55,9 +55,8 @@ public class GyroCharStream implements CharStream {
         stream = createStream(lines, null);
     }
 
-    public String getLine(int line) {
-        int index = line - 1;
-        return index >= 0 && index < lines.size() ? lines.get(index) : null;
+    public String getLineText(int line) {
+        return line >= 0 && line < lines.size() ? lines.get(line) : null;
     }
 
     @Override

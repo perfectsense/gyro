@@ -77,19 +77,34 @@ public abstract class Node {
         .put(GyroParser.WordContext.class, c -> new ValueNode(c.getText()))
         .build();
 
-    private String file;
-    private Integer line;
-    private Integer column;
+    private Token start;
+    private Token stop;
 
     public String getFile() {
-        return file;
+        return start.getTokenSource().getSourceName();
     }
 
-    public Integer getLine() {
-        return line;
+    public int getStartLine() {
+        return start.getLine() - 1;
     }
 
-    public Integer getColumn() {
+    public int getStartColumn() {
+        return start.getCharPositionInLine();
+    }
+
+    public int getStopLine() {
+        return stop.getLine() - 1;
+    }
+
+    public int getStopColumn() {
+        int column = stop.getCharPositionInLine();
+        int startIndex = stop.getStartIndex();
+        int stopIndex = stop.getStopIndex();
+
+        if (startIndex >= 0 && stopIndex >= 0 && stopIndex > startIndex) {
+            column += stopIndex - startIndex;
+        }
+
         return column;
     }
 
@@ -111,11 +126,9 @@ public abstract class Node {
         }
 
         if (context instanceof ParserRuleContext) {
-            Token token = ((ParserRuleContext) context).getStart();
-
-            node.file = token.getTokenSource().getSourceName();
-            node.line = token.getLine();
-            node.column = token.getCharPositionInLine();
+            ParserRuleContext prc = (ParserRuleContext) context;
+            node.start = prc.getStart();
+            node.stop = prc.getStop();
         }
 
         return node;
@@ -175,6 +188,15 @@ public abstract class Node {
     }
 
     public abstract <C, R, X extends Throwable> R accept(NodeVisitor<C, R, X> visitor, C context) throws X;
+
+    public String toCodeSnippet() {
+        return SyntaxError.toCodeSnippet(
+            (GyroCharStream) start.getInputStream(),
+            getStartLine(),
+            getStartColumn(),
+            getStopLine(),
+            getStopColumn());
+    }
 
     @Override
     public String toString() {

@@ -74,11 +74,12 @@ public class Gyro {
             gyro.run();
 
         } catch (Abort error) {
-            GyroCore.ui().write("\n@|red Aborted!|@\n");
+            GyroCore.ui().write("\n@|red Aborted!|@\n\n");
 
         } catch (Throwable error) {
             GyroCore.ui().write("\n");
             writeError(error);
+            GyroCore.ui().write("\n");
 
         } finally {
             GyroCore.popUi();
@@ -95,10 +96,15 @@ public class Gyro {
 
             if (node != null) {
                 GyroCore.ui().write(
-                    "@|red In %s on line %s at column %s|@\n",
+                    "\nIn @|bold %s|@ %s:\n",
                     node.getFile(),
-                    node.getLine(),
-                    node.getColumn());
+                    SyntaxError.toLineMessage(
+                        node.getStartLine(),
+                        node.getStartColumn(),
+                        node.getStopLine(),
+                        node.getStopColumn()));
+
+                GyroCore.ui().write("%s", node.toCodeSnippet());
             }
 
             Throwable cause = error.getCause();
@@ -112,11 +118,11 @@ public class Gyro {
             SyntaxErrorException s = (SyntaxErrorException) error;
             List<SyntaxError> syntaxErrors = s.getSyntaxErrors();
 
-            GyroCore.ui().write("@|red %d syntax errors in %s!|@\n\n", syntaxErrors.size(), s.getFile());
+            GyroCore.ui().write("@|red %d syntax errors in %s!|@\n", syntaxErrors.size(), s.getFile());
 
             for (SyntaxError syntaxError : syntaxErrors) {
-                GyroCore.ui().write("%s on line @|bold %s|@ at column @|bold %s|@:\n", syntaxError.getMessage(), syntaxError.getLine(), syntaxError.getColumn());
-                GyroCore.ui().write("%s\n", syntaxError.toCode());
+                GyroCore.ui().write("\n%s %s:\n", syntaxError.getMessage(), syntaxError.toLineMessage());
+                GyroCore.ui().write("%s", syntaxError.toCodeSnippet());
             }
 
         } else {
