@@ -4,9 +4,9 @@ options { tokenVocab = GyroLexer; }
 
 file
     :
-    NEWLINES? statement?
-    (NEWLINES statement)*
-    NEWLINES? EOF
+    NEWLINE*  statement?
+    (NEWLINE+ statement)*
+    NEWLINE*  EOF
     ;
 
 statement
@@ -18,21 +18,21 @@ statement
 // directive
 directive
     : AT IDENTIFIER COLON arguments
-    | AT IDENTIFIER arguments? option* NEWLINES body section* AT END
+    | AT IDENTIFIER arguments? option* NEWLINE+ body section* AT END
     ;
 
 arguments : value (COMMA? value)*;
 
 option: MINUS IDENTIFIER arguments?;
 
-body : (statement NEWLINES)*;
+body : (statement NEWLINE+)*;
 
-section: option NEWLINES body;
+section: option NEWLINE+ body;
 
 // block
 block
-    : IDENTIFIER name? NEWLINES body END # KeyBlock
-    | type name NEWLINES body END        # Resource
+    : IDENTIFIER name? NEWLINE+ body END # KeyBlock
+    | type name NEWLINE+ body END        # Resource
     ;
 
 type : IDENTIFIER COLON COLON IDENTIFIER;
@@ -128,17 +128,17 @@ bool
 
 list
     :
-    LBRACKET NEWLINES?
-        (value (COMMA NEWLINES?
-        value)*       NEWLINES?)?
+    LBRACKET NEWLINE*
+        (value (COMMA NEWLINE*
+        value)*       NEWLINE*)?
     RBRACKET
     ;
 
 map
     :
-    LBRACE NEWLINES?
-        (pair (COMMA NEWLINES?
-        pair)*       NEWLINES?)?
+    LBRACE NEWLINE*
+        (pair (COMMA NEWLINE*
+        pair)*       NEWLINE*)?
     RBRACE
     ;
 

@@ -49,8 +49,8 @@ DQUOTE : '"' -> pushMode(STRING_MODE);
 
 KEYWORD     : AND | OR;
 WHITESPACES : [ \t]+ -> channel(HIDDEN);
-COMMENT     : '#' ~[\n\r]* NEWLINES -> channel(HIDDEN);
-NEWLINES    : [\n\r] [ \t\n\r]*;
+NEWLINE     : [\n\r];
+COMMENT     : '#' ~[\n\r]* -> channel(HIDDEN);
 IDENTIFIER  : [A-Z_a-z] [-/0-9A-Z_a-z]*;
 
 mode STRING_MODE;
