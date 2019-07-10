@@ -8,6 +8,7 @@ import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.resource.NodeEvaluator;
 import gyro.core.resource.Scope;
+import gyro.lang.ast.Node;
 import gyro.lang.ast.block.DirectiveNode;
 import gyro.util.CascadingMap;
 
@@ -21,15 +22,16 @@ public class ForDirectiveProcessor extends DirectiveProcessor<Scope> {
     @Override
     public void process(Scope scope, DirectiveNode node) {
         List<Object> variables = evaluateDirectiveArguments(scope, node, 1, 0);
-        List<Object> inArguments = evaluateOptionArguments(scope, node, "in", 1, 1);
-        Object value = inArguments.get(0);
+        List<Node> inArguments = validateOptionArguments(node, "in", 1, 1);
+        Node inNode = inArguments.get(0);
+        Object in = scope.getRootScope().getEvaluator().visit(inNode, scope);
 
-        if (value == null) {
+        if (in == null) {
             return;
         }
 
-        if (value instanceof List) {
-            List<?> list = (List<?>) value;
+        if (in instanceof List) {
+            List<?> list = (List<?>) in;
             int variablesSize = variables.size();
             int listSize = list.size();
 
@@ -49,13 +51,13 @@ public class ForDirectiveProcessor extends DirectiveProcessor<Scope> {
                 processBody(node, scope, values);
             }
 
-        } else if (value instanceof Map) {
+        } else if (in instanceof Map) {
             String keyVariable = (String) variables.get(0);
 
             if (variables.size() > 1) {
                 String valueVariable = (String) variables.get(1);
 
-                for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
+                for (Map.Entry<?, ?> entry : ((Map<?, ?>) in).entrySet()) {
                     Map<String, Object> values = new LinkedHashMap<>();
 
                     values.put(keyVariable, entry.getKey());
@@ -64,7 +66,7 @@ public class ForDirectiveProcessor extends DirectiveProcessor<Scope> {
                 }
 
             } else {
-                for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
+                for (Map.Entry<?, ?> entry : ((Map<?, ?>) in).entrySet()) {
                     Map<String, Object> values = new LinkedHashMap<>();
 
                     values.put(keyVariable, entry.getKey());
@@ -73,7 +75,9 @@ public class ForDirectiveProcessor extends DirectiveProcessor<Scope> {
             }
 
         } else {
-            throw new GyroException("Can't iterate over a non-collection!");
+            throw new GyroException(
+                inNode,
+                String.format("Can't iterate over @|bold %s|@ because it's not a collection!", in));
         }
     }
 
