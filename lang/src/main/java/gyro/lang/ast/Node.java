@@ -175,7 +175,7 @@ public abstract class Node {
 
         parser.removeErrorListeners();
         parser.addErrorListener(errorListener);
-        parser.setErrorHandler(new GyroErrorStrategy());
+        parser.setErrorHandler(GyroErrorStrategy.INSTANCE);
 
         ParseTree tree = function.apply(parser);
         List<SyntaxError> errors = errorListener.getSyntaxErrors();
