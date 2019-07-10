@@ -236,7 +236,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                 throw new GyroException(String.format(
                     "Can't use the @|bold @%s|@ directive inside @|bold %s|@!",
                     name,
-                    scopeClass.getName()));
+                    scope.getClass().getName()));
             }
 
             processor.process(scope, node);
