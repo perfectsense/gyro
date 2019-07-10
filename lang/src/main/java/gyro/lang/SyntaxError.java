@@ -61,7 +61,7 @@ public class SyntaxError implements Locatable {
             }
 
             text.append("@|red,underline ");
-            text.append(current, start, stop);
+            text.append(current, start, stop > end ? end : stop);
             text.append("|@");
 
             if (end > stop) {
