@@ -60,7 +60,7 @@ public class PluginDirectiveProcessor extends DirectiveProcessor<RootScope> {
 
         settings.addClasses(CLASSES_BY_ARTIFACT_COORDS.computeIfAbsent(artifactCoords, ac -> {
             try {
-                GyroCore.ui().write("@|magenta ↓ Loading %s plugin|@\n", ac);
+                GyroCore.ui().write("@|magenta ↓ Loading plugin:|@ %s\n", ac);
 
                 DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
 
