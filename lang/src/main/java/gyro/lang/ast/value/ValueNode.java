@@ -12,19 +12,27 @@ public class ValueNode extends Node {
     private final Object value;
 
     public ValueNode(Object value) {
+        super(null);
+
         this.value = Preconditions.checkNotNull(value);
     }
 
     public ValueNode(GyroParser.BoolContext context) {
-        this(context.TRUE() != null);
+        super(Preconditions.checkNotNull(context));
+
+        this.value = context.TRUE() != null;
     }
 
     public ValueNode(GyroParser.LiteralStringContext context) {
-        this(StringUtils.strip(context.getText(), "'"));
+        super(Preconditions.checkNotNull(context));
+
+        this.value = StringUtils.strip(context.getText(), "'");
     }
 
     public ValueNode(GyroParser.NumberContext context) {
-        this(NumberUtils.createNumber(context.getText()));
+        super(Preconditions.checkNotNull(context));
+
+        this.value = NumberUtils.createNumber(context.getText());
     }
 
     public Object getValue() {

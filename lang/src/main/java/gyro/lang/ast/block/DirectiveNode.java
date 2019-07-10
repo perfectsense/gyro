@@ -23,7 +23,7 @@ public class DirectiveNode extends BlockNode {
         List<Node> body,
         List<DirectiveSection> sections) {
 
-        super(body);
+        super(null, body);
 
         this.name = Preconditions.checkNotNull(name);
         this.arguments = ImmutableList.copyOf(Preconditions.checkNotNull(arguments));
@@ -32,7 +32,7 @@ public class DirectiveNode extends BlockNode {
     }
 
     public DirectiveNode(GyroParser.DirectiveContext context) {
-        super(Node.create(context.body()));
+        super(Preconditions.checkNotNull(context), Node.create(context.body()));
 
         this.name = context.IDENTIFIER().getText();
         this.arguments = Node.create(context.arguments());

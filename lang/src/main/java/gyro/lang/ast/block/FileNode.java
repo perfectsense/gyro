@@ -8,7 +8,7 @@ import gyro.parser.antlr4.GyroParser;
 public class FileNode extends BlockNode {
 
     public FileNode(GyroParser.FileContext context) {
-        super(Node.create(Preconditions.checkNotNull(context).statement()));
+        super(Preconditions.checkNotNull(context), Node.create(context.statement()));
     }
 
     @Override

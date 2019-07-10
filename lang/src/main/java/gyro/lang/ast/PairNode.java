@@ -9,14 +9,17 @@ public class PairNode extends Node {
     private final Node value;
 
     public PairNode(Node key, Node value) {
+        super(null);
+
         this.key = Preconditions.checkNotNull(key);
         this.value = Preconditions.checkNotNull(value);
     }
 
     public PairNode(GyroParser.PairContext context) {
-        this(
-            Node.create(Preconditions.checkNotNull(context).key()),
-            Node.create(context.value()));
+        super(Preconditions.checkNotNull(context));
+
+        this.key = Node.create(context.key());
+        this.value = Node.create(context.value());
     }
 
     public Node getKey() {

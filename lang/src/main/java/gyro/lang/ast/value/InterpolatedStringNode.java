@@ -13,11 +13,15 @@ public class InterpolatedStringNode extends Node {
     private final List<Node> items;
 
     public InterpolatedStringNode(List<Node> items) {
+        super(null);
+
         this.items = ImmutableList.copyOf(Preconditions.checkNotNull(items));
     }
 
     public InterpolatedStringNode(GyroParser.InterpolatedStringContext context) {
-        this(Node.create(context.stringContent()));
+        super(Preconditions.checkNotNull(context));
+
+        this.items = Node.create(context.stringContent());
     }
 
     public List<Node> getItems() {

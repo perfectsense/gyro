@@ -8,11 +8,11 @@ import gyro.lang.ast.NodeVisitor;
 public class TestBlockNode extends BlockNode {
 
     public TestBlockNode(List<Node> body) {
-        super(body);
+        super(null, body);
     }
 
     @Override
-    public <C, R, X extends Throwable> R accept(NodeVisitor<C, R, X> visitor, C context) throws X {
+    public <C, R, X extends Throwable> R accept(NodeVisitor<C, R, X> visitor, C context) {
         throw new UnsupportedOperationException();
     }
 

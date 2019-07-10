@@ -12,7 +12,6 @@ import com.google.common.collect.ImmutableMap;
 import gyro.lang.GyroCharStream;
 import gyro.lang.GyroErrorListener;
 import gyro.lang.GyroErrorStrategy;
-import gyro.lang.Locatable;
 import gyro.lang.SyntaxError;
 import gyro.lang.SyntaxErrorException;
 import gyro.lang.ast.block.DirectiveNode;
@@ -32,11 +31,10 @@ import gyro.util.Bug;
 import gyro.util.ImmutableCollectors;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-public abstract class Node implements Locatable {
+public abstract class Node extends Rule {
 
     private static final Function<ParseTree, Node> GET_FIRST_CHILD = c -> Node.create(c.getChild(0));
 
@@ -78,42 +76,6 @@ public abstract class Node implements Locatable {
         .put(GyroParser.WordContext.class, c -> new ValueNode(c.getText()))
         .build();
 
-    private Token start;
-    private Token stop;
-
-    @Override
-    public String getFile() {
-        return start.getTokenSource().getSourceName();
-    }
-
-    @Override
-    public int getStartLine() {
-        return start.getLine() - 1;
-    }
-
-    @Override
-    public int getStartColumn() {
-        return start.getCharPositionInLine();
-    }
-
-    @Override
-    public int getStopLine() {
-        return stop.getLine() - 1;
-    }
-
-    @Override
-    public int getStopColumn() {
-        int column = stop.getCharPositionInLine();
-        int startIndex = stop.getStartIndex();
-        int stopIndex = stop.getStopIndex();
-
-        if (startIndex >= 0 && stopIndex >= 0 && stopIndex > startIndex) {
-            column += stopIndex - startIndex;
-        }
-
-        return column;
-    }
-
     public static Node create(ParseTree context) {
         Class<? extends ParseTree> contextClass = context.getClass();
         Function<ParseTree, Node> nodeConstructor = NODE_CONSTRUCTORS.get(contextClass);
@@ -129,12 +91,6 @@ public abstract class Node implements Locatable {
             throw new Bug(String.format(
                 "@|bold %s|@ isn't a known node type!",
                 contextClass.getName()));
-        }
-
-        if (context instanceof ParserRuleContext) {
-            ParserRuleContext prc = (ParserRuleContext) context;
-            node.start = prc.getStart();
-            node.stop = prc.getStop();
         }
 
         return node;
@@ -193,17 +149,11 @@ public abstract class Node implements Locatable {
         return Node.create(tree);
     }
 
-    public abstract <C, R, X extends Throwable> R accept(NodeVisitor<C, R, X> visitor, C context) throws X;
-
-    @Override
-    public String toCodeSnippet() {
-        return SyntaxError.toCodeSnippet(
-            (GyroCharStream) start.getInputStream(),
-            getStartLine(),
-            getStartColumn(),
-            getStopLine(),
-            getStopColumn());
+    public Node(ParserRuleContext context) {
+        super(context);
     }
+
+    public abstract <C, R, X extends Throwable> R accept(NodeVisitor<C, R, X> visitor, C context) throws X;
 
     @Override
     public String toString() {

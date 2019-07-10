@@ -14,12 +14,16 @@ public class MapNode extends Node {
     private List<PairNode> entries;
 
     public MapNode(List<PairNode> entries) {
+        super(null);
+
         this.entries = ImmutableList.copyOf(Preconditions.checkNotNull(entries));
     }
 
     @SuppressWarnings("unchecked")
     public MapNode(GyroParser.MapContext context) {
-        this((List) Node.create(Preconditions.checkNotNull(context).pair()));
+        super(Preconditions.checkNotNull(context));
+
+        this.entries = (List) Node.create(context.pair());
     }
 
     public List<PairNode> getEntries() {
