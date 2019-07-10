@@ -59,4 +59,5 @@ S_DOLLAR     : [$\\] -> type(DOLLAR);
 S_LPAREN     : '(' -> type(LPAREN), pushMode(DEFAULT_MODE);
 S_IDENTIFIER : [A-Z_a-z] [-/0-9A-Z_a-z]* -> type(IDENTIFIER);
 S_DQUOTE     : '"' -> type(DQUOTE), popMode;
+S_NEWLINE    : [\n\r] -> type(NEWLINE);
 CHARACTER    : .;
