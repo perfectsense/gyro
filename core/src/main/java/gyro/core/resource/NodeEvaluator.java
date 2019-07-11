@@ -328,7 +328,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             cf = bodyScope.getAddedKeys();
         }
 
-        final Collection<String> pendingConfiguredFields = ImmutableSet.copyOf(cf);
+        Collection<String> pendingConfiguredFields = ImmutableSet.copyOf(cf);
         // Initialize the bodyScope with the resource values from the current
         // state scope.
         Optional.ofNullable(rootScope.getCurrent())
