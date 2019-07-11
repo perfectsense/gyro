@@ -150,7 +150,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
                         resource.name());
 
                     if (resource.refresh()) {
-                        DiffableInternals.update(resource);
+                        DiffableInternals.update(resource, true);
 
                     } else {
                         i.remove();
