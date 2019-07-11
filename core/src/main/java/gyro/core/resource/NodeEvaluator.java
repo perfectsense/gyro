@@ -1,10 +1,7 @@
 package gyro.core.resource;
 
 import java.beans.BeanInfo;
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,9 +18,14 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.google.common.base.CaseFormat;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.psddev.dari.util.TypeDefinition;
 import gyro.core.GyroException;
+import gyro.core.Reflections;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.directive.DirectiveSettings;
 import gyro.core.finder.FilterContext;
@@ -47,7 +49,17 @@ import gyro.lang.ast.value.ValueNode;
 import gyro.lang.filter.Filter;
 import org.apache.commons.lang3.math.NumberUtils;
 
-public class NodeEvaluator implements NodeVisitor<Scope, Object> {
+public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeException> {
+
+    private static final LoadingCache<Class<? extends DirectiveProcessor>, Class<? extends Scope>> DIRECTIVE_PROCESSOR_SCOPE_CLASSES = CacheBuilder.newBuilder()
+        .build(new CacheLoader<Class<? extends DirectiveProcessor>, Class<? extends Scope>>() {
+
+           @Override
+           @SuppressWarnings("unchecked")
+           public Class<? extends Scope> load(Class<? extends DirectiveProcessor> directiveProcessorClass) {
+               return (Class<? extends Scope>) TypeDefinition.getInstance(directiveProcessorClass).getInferredGenericTypeArgumentClass(DirectiveProcessor.class, 0);
+           }
+       });
 
     private static final Map<String, BiFunction<Object, Object, Object>> BINARY_FUNCTIONS = ImmutableMap.<String, BiFunction<Object, Object, Object>>builder()
         .put("*", (l, r) -> doArithmetic(l, r, (ld, rd) -> ld * rd, (ll, rl) -> ll * rl))
@@ -67,23 +79,25 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
     private static Object doArithmetic(Object left, Object right, DoubleBinaryOperator doubleOperator, LongBinaryOperator longOperator) {
         if (left == null || right == null) {
-            throw new GyroException("Can't do arithmetic on a null!");
+            throw new GyroException("Can't do arithmetic with a null!");
         }
 
         Number leftNumber = NumberUtils.createNumber(left.toString());
 
         if (leftNumber == null) {
             throw new GyroException(String.format(
-                "Can't do arithmetic on [%s] because it's not a number!",
-                left));
+                "Can't do arithmetic on @|bold %s|@, an instance of @|bold %s|@, because it's not a number!",
+                left,
+                left.getClass().getName()));
         }
 
         Number rightNumber = NumberUtils.createNumber(right.toString());
 
         if (rightNumber == null) {
             throw new GyroException(String.format(
-                "Can't do arithmetic on [%s] because it's not a number!",
-                right));
+                "Can't do arithmetic on @|bold %s|@, an instance of @|bold %s|@, because it's not a number!",
+                right,
+                right.getClass().getName()));
         }
 
         if (leftNumber instanceof Float
@@ -110,7 +124,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
         } else {
             throw new GyroException(String.format(
-                "Can't compare [%s], an instance of [%s], against [%s], an instance of [%s]!",
+                "Can't compare @|bold %s|@, an instance of @|bold %s|@, against @|bold %s|@, an instance of @|bold %s|@!",
                 left,
                 left.getClass().getName(),
                 right,
@@ -150,7 +164,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
             if (field == null) {
                 throw new GyroException(String.format(
-                    "Can't find [%s] field in [%s] type!",
+                    "Can't find the @|bold %s|@ field in the @|bold %s|@ type!",
                     key,
                     type.getName()));
             }
@@ -178,17 +192,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
         } else {
             Class<?> aClass = object.getClass();
-            BeanInfo info;
-
-            try {
-                info = Introspector.getBeanInfo(aClass);
-
-            } catch (IntrospectionException error) {
-                throw new GyroException(String.format(
-                    "Can't find any properties for [%s] class!",
-                    aClass.getName()));
-            }
-
+            BeanInfo info = Reflections.getBeanInfo(aClass);
             String methodName = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key);
 
             Method getter = Stream.of(info.getPropertyDescriptors())
@@ -197,24 +201,20 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
                 .filter(Objects::nonNull)
                 .findFirst()
                 .orElseThrow(() -> new GyroException(String.format(
-                    "Can't find [%s] property in [%s] class!",
+                    "Can't find the @|bold %s|@ property in the @|bold %s|@ class!",
                     key,
                     aClass.getName())));
 
-            try {
-                return getter.invoke(object);
-
-            } catch (IllegalAccessException | InvocationTargetException error) {
-                throw new GyroException(error.getMessage());
-            }
+            return Reflections.invoke(getter, object);
         }
     }
 
     public void visitBody(List<Node> body, Scope scope) {
-        DeferError.execute(body, i -> visit(i, scope));
+        Defer.execute(body, i -> visit(i, scope));
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Object visitDirective(DirectiveNode node, Scope scope) {
         String name = node.getName();
 
@@ -224,20 +224,28 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
             .get(name);
 
         if (processor == null) {
-            throw new GyroException(String.format(
-                "Can't find a processor for @%s directive!",
-                name));
+            throw new GyroException(
+                node,
+                String.format("Can't find a processor for the @|bold @%s|@ directive!", name));
         }
 
         try {
+            Class<? extends Scope> scopeClass = DIRECTIVE_PROCESSOR_SCOPE_CLASSES.getUnchecked(processor.getClass());
+
+            if (!scopeClass.isInstance(scope)) {
+                throw new GyroException(String.format(
+                    "Can't use the @|bold @%s|@ directive inside @|bold %s|@!",
+                    name,
+                    scope.getClass().getName()));
+            }
+
             processor.process(scope, node);
 
         } catch (Exception error) {
-            throw new GyroException(String.format(
-                "Can't process @%s directive! %s: %s",
-                name,
-                error.getClass().getName(),
-                error.getMessage()));
+            throw new GyroException(
+                node,
+                String.format("Can't process the @|bold @%s|@ directive!", name),
+                error);
         }
 
         return null;
@@ -268,26 +276,10 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
             rootScope.getFileScopes().add(fileScope);
         }
 
-        List<PairNode> keyValues = new ArrayList<>();
-        List<Node> body = new ArrayList<>();
-
-        for (Node item : node.getBody()) {
-            if (item instanceof PairNode) {
-                keyValues.add((PairNode) item);
-
-            } else {
-                body.add(item);
-            }
-        }
-
-        for (PairNode kv : keyValues) {
-            visit(kv, fileScope);
-        }
-
         try {
-            visitBody(body, fileScope);
+            visitBody(node.getBody(), fileScope);
 
-        } catch (DeferError e) {
+        } catch (Defer e) {
             rootScope.getFileScopes().remove(fileScope);
             throw e;
         }
@@ -361,7 +353,9 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
         Object value = rootScope.get(type);
 
         if (value == null) {
-            throw new DeferError(node);
+            throw new Defer(node, String.format(
+                "Can't create a resource of @|bold %s|@ type!",
+                type));
 
         } else if (value instanceof Class) {
             Class<?> c = (Class<?>) value;
@@ -374,7 +368,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
             } else {
                 throw new GyroException(String.format(
-                    "Can't create a resource of [%s] type using [%s] class!",
+                    "Can't create a resource of @|bold %s|@ type using the @|bold %s|@ class!",
                     type,
                     c.getName()));
             }
@@ -384,7 +378,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
         } else {
             throw new GyroException(String.format(
-                "Can't create a resource of [%s] type using [%s], an instance of [%s]!",
+                "Can't create a resource of @|bold %s|@ type using @|bold %s|@, an instance of @|bold %s|@!",
                 type,
                 value,
                 value.getClass().getName()));
@@ -400,7 +394,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
         if (function == null) {
             throw new GyroException(String.format(
-                "[%s] is not a valid binary operator!",
+                "@|bold %s|@ is not a valid binary operator!",
                 operator));
         }
 
@@ -497,14 +491,17 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
                     return resolveFilters(node, scope, resolver.resolve(scope, arguments));
 
                 } catch (Exception error) {
-                    throw new GyroException(error.getMessage());
+                    throw new GyroException(
+                        node,
+                        String.format("Can't resolve @|bold %s|@ reference!", referenceName),
+                        error);
                 }
 
             } else if (referenceName.contains("::")) {
                 String resourceName = (String) arguments.remove(0);
 
                 if (!arguments.isEmpty()) {
-                    throw new GyroException("Too many arguments trying to resolve resource by name!");
+                    throw new GyroException("Too many arguments trying to resolve a resource by name!");
                 }
 
                 if (resourceName.endsWith("*")) {
@@ -523,14 +520,32 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
                     Resource resource = root.findResource(referenceName + "::" + resourceName);
 
                     if (resource == null) {
-                        throw new DeferError(node);
+                        throw new Defer(node, String.format(
+                            "Can't find @|bold %s|@ resource of @|bold %s|@ type!",
+                            resourceName,
+                            referenceName));
                     }
 
                     value = resource;
                 }
 
             } else {
-                value = scope.find(referenceName);
+                boolean found = false;
+
+                for (Scope s = scope instanceof DiffableScope ? scope.getParent() : scope; s != null; s = s.getParent()) {
+                    if (s.containsKey(referenceName)) {
+                        Node valueNode = s.getValueNodes().get(referenceName);
+                        value = valueNode == null ? s.get(referenceName) : visit(valueNode, s);
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found) {
+                    throw new Defer(node, String.format(
+                        "Can't resolve @|bold %s|@!",
+                        referenceName));
+                }
             }
 
             if (value == null) {

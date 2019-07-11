@@ -8,11 +8,11 @@ import gyro.parser.antlr4.GyroParser;
 public class FileNode extends BlockNode {
 
     public FileNode(GyroParser.FileContext context) {
-        super(Node.create(Preconditions.checkNotNull(context).statement()));
+        super(Preconditions.checkNotNull(context), Node.create(context.statement()));
     }
 
     @Override
-    public <C, R> R accept(NodeVisitor<C, R> visitor, C context) {
+    public <C, R, X extends Throwable> R accept(NodeVisitor<C, R, X> visitor, C context) throws X {
         return visitor.visitFile(this, context);
     }
 

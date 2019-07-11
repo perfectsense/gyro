@@ -2,7 +2,6 @@ package gyro.lang.ast;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -10,9 +9,11 @@ import java.util.function.Function;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import gyro.lang.GyroCharStream;
 import gyro.lang.GyroErrorListener;
 import gyro.lang.GyroErrorStrategy;
-import gyro.lang.GyroLanguageException;
+import gyro.lang.SyntaxError;
+import gyro.lang.SyntaxErrorException;
 import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;
@@ -26,16 +27,14 @@ import gyro.lang.ast.value.ReferenceNode;
 import gyro.lang.ast.value.ValueNode;
 import gyro.parser.antlr4.GyroLexer;
 import gyro.parser.antlr4.GyroParser;
+import gyro.util.Bug;
 import gyro.util.ImmutableCollectors;
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-public abstract class Node {
+public abstract class Node extends Rule {
 
     private static final Function<ParseTree, Node> GET_FIRST_CHILD = c -> Node.create(c.getChild(0));
 
@@ -77,22 +76,6 @@ public abstract class Node {
         .put(GyroParser.WordContext.class, c -> new ValueNode(c.getText()))
         .build();
 
-    private String file;
-    private Integer line;
-    private Integer column;
-
-    public String getFile() {
-        return file;
-    }
-
-    public Integer getLine() {
-        return line;
-    }
-
-    public Integer getColumn() {
-        return column;
-    }
-
     public static Node create(ParseTree context) {
         Class<? extends ParseTree> contextClass = context.getClass();
         Function<ParseTree, Node> nodeConstructor = NODE_CONSTRUCTORS.get(contextClass);
@@ -105,17 +88,9 @@ public abstract class Node {
             node = new ValueNode(context.getText());
 
         } else {
-            throw new GyroLanguageException(String.format(
-                "Unrecognized node! [%s]",
+            throw new Bug(String.format(
+                "@|bold %s|@ isn't a known node type!",
                 contextClass.getName()));
-        }
-
-        if (context instanceof ParserRuleContext) {
-            Token token = ((ParserRuleContext) context).getStart();
-
-            node.file = token.getTokenSource().getSourceName();
-            node.line = token.getLine();
-            node.column = token.getCharPositionInLine();
         }
 
         return node;
@@ -143,69 +118,42 @@ public abstract class Node {
     }
 
     public static Node parse(String text, Function<GyroParser, ? extends ParseTree> function) {
-        return parse(CharStreams.fromString(text), function);
+        return parse(new GyroCharStream(text), function);
     }
 
     public static Node parse(InputStream input, String file, Function<GyroParser, ? extends ParseTree> function) throws IOException {
-        return parse(CharStreams.fromReader(new InputStreamReader(input), file), function);
+        return parse(new GyroCharStream(input, file), function);
     }
 
-    private static Node parse(CharStream charStream, Function<GyroParser, ? extends ParseTree> function) {
+    private static Node parse(GyroCharStream charStream, Function<GyroParser, ? extends ParseTree> function) {
+        GyroErrorListener errorListener = new GyroErrorListener(charStream);
         GyroLexer lexer = new GyroLexer(charStream);
+
+        lexer.removeErrorListeners();
+        lexer.addErrorListener(errorListener);
+
         CommonTokenStream stream = new CommonTokenStream(lexer);
         GyroParser parser = new GyroParser(stream);
-        GyroErrorListener errorListener = new GyroErrorListener();
 
         parser.removeErrorListeners();
         parser.addErrorListener(errorListener);
-        parser.setErrorHandler(new GyroErrorStrategy());
+        parser.setErrorHandler(GyroErrorStrategy.INSTANCE);
 
         ParseTree tree = function.apply(parser);
-        int errorCount = errorListener.getSyntaxErrors();
+        List<SyntaxError> errors = errorListener.getSyntaxErrors();
 
-        if (errorCount > 0) {
-            throw new GyroLanguageException(String.format(
-                "%d %s found while parsing.",
-                errorCount,
-                errorCount == 1 ? "error" : "errors"));
+        if (!errors.isEmpty()) {
+            throw new SyntaxErrorException(charStream.getSourceName(), errors);
         }
 
         return Node.create(tree);
     }
 
-    public abstract <C, R> R accept(NodeVisitor<C, R> visitor, C context);
-
-    public String getLocation() {
-        StringBuilder sb = new StringBuilder();
-        if (file != null) {
-            sb.append("in ");
-            sb.append(file);
-            sb.append(" ");
-        }
-
-        if (line != null) {
-            sb.append("on line ");
-            sb.append(line);
-            sb.append(" ");
-        }
-
-        if (column != null) {
-            sb.append("at column ");
-            sb.append(column);
-            sb.append(" ");
-        }
-
-        if (sb.length() > 0) {
-            sb.setLength(sb.length() - 1);
-            sb.append(": ");
-        }
-
-        return sb.toString();
+    public Node(ParserRuleContext context) {
+        super(context);
     }
 
-    public String deferFailure() {
-        return toString();
-    }
+    public abstract <C, R, X extends Throwable> R accept(NodeVisitor<C, R, X> visitor, C context) throws X;
 
     @Override
     public String toString() {

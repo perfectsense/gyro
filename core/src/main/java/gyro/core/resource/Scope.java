@@ -12,6 +12,7 @@ import java.util.Set;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import gyro.core.Reflections;
 import gyro.lang.ast.Node;
 
 public class Scope implements Map<String, Object> {
@@ -26,8 +27,8 @@ public class Scope implements Map<String, Object> {
         .build(new CacheLoader<Class<? extends Settings>, Settings>() {
 
             @Override
-            public Settings load(Class<? extends Settings> settingsClass) throws IllegalAccessException, InstantiationException {
-                Settings settings = settingsClass.newInstance();
+            public Settings load(Class<? extends Settings> settingsClass) {
+                Settings settings = Reflections.newInstance(settingsClass);
                 settings.scope = Scope.this;
 
                 return settings;
@@ -89,17 +90,6 @@ public class Scope implements Map<String, Object> {
 
     public String getName(Object value) {
         return names.get(value);
-    }
-
-    public Object find(String key) {
-        for (Scope s = this instanceof DiffableScope ? this.parent : this; s != null; s = s.parent) {
-            if (s.containsKey(key)) {
-                Node valueNode = s.valueNodes.get(key);
-                return valueNode == null ? s.get(key) : getRootScope().getEvaluator().visit(valueNode, s);
-            }
-        }
-
-        throw new ValueReferenceException(key);
     }
 
     public void addValueNode(String key, Node value) {

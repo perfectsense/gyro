@@ -44,7 +44,7 @@ public class Waiter {
                         return true;
                     }
 
-                } catch (Throwable error) {
+                } catch (Exception error) {
                     LOGGER.debug("Failed to check!", error);
                 }
 

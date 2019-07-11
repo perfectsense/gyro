@@ -1,12 +1,9 @@
 package gyro.core.finder;
 
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -14,6 +11,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import gyro.core.NamespaceUtils;
+import gyro.core.Reflections;
 import gyro.core.Type;
 import gyro.core.resource.Scope;
 
@@ -24,7 +22,7 @@ public class FinderType<F extends Finder> {
             .build(new CacheLoader<Class<? extends Finder>, FinderType<? extends Finder>>() {
 
                 @Override
-                public FinderType<? extends Finder> load(Class<? extends Finder> finderClass) throws IntrospectionException {
+                public FinderType<? extends Finder> load(Class<? extends Finder> finderClass) {
                     return new FinderType<>(finderClass);
                 }
             });
@@ -37,19 +35,10 @@ public class FinderType<F extends Finder> {
 
     @SuppressWarnings("unchecked")
     public static <F extends Finder> FinderType<F> getInstance(Class<F> finderClass) {
-        try {
-            return (FinderType<F>) INSTANCES.get(finderClass);
-
-        } catch (ExecutionException error) {
-            Throwable cause = error.getCause();
-
-            throw cause instanceof RuntimeException
-                    ? (RuntimeException) cause
-                    : new RuntimeException(cause);
-        }
+        return (FinderType<F>) INSTANCES.getUnchecked(finderClass);
     }
 
-    private FinderType(Class<F> finderClass) throws IntrospectionException {
+    private FinderType(Class<F> finderClass) {
         this.finderClass = finderClass;
         this.name = NamespaceUtils.getNamespacePrefix(finderClass ) + finderClass.getAnnotation(Type.class).value();
 
@@ -57,7 +46,7 @@ public class FinderType<F extends Finder> {
         ImmutableMap.Builder<String, FinderField> fieldByJavaName = ImmutableMap.builder();
         ImmutableMap.Builder<String, FinderField> fieldByGyroName = ImmutableMap.builder();
 
-        for (PropertyDescriptor prop : Introspector.getBeanInfo(finderClass).getPropertyDescriptors()) {
+        for (PropertyDescriptor prop : Reflections.getBeanInfo(finderClass).getPropertyDescriptors()) {
             Method getter = prop.getReadMethod();
             Method setter = prop.getWriteMethod();
 
@@ -97,15 +86,7 @@ public class FinderType<F extends Finder> {
     }
 
     public F newInstance(Scope scope) {
-        F finder;
-
-        try {
-            finder = finderClass.newInstance();
-
-        } catch (IllegalAccessException | InstantiationException error) {
-            throw new RuntimeException(error);
-        }
-
+        F finder = Reflections.newInstance(finderClass);
         finder.scope = scope;
 
         return finder;

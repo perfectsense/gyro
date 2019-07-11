@@ -14,14 +14,17 @@ public class IndexedNode extends Node {
     private final List<Node> indexes;
 
     public IndexedNode(Node value, List<Node> indexes) {
+        super(null);
+
         this.value = Preconditions.checkNotNull(value);
         this.indexes = ImmutableList.copyOf(Preconditions.checkNotNull(indexes));
     }
 
     public IndexedNode(GyroParser.IndexedMulItemContext context) {
-        this(
-            Node.create(Preconditions.checkNotNull(context).item()),
-            Node.create(context.index()));
+        super(Preconditions.checkNotNull(context));
+
+        this.value = Node.create(context.item());
+        this.indexes = Node.create(context.index());
     }
 
     public Node getValue() {
@@ -33,7 +36,7 @@ public class IndexedNode extends Node {
     }
 
     @Override
-    public <C, R> R accept(NodeVisitor<C, R> visitor, C context) {
+    public <C, R, X extends Throwable> R accept(NodeVisitor<C, R, X> visitor, C context) throws X {
         return visitor.visitIndexed(this, context);
     }
 

@@ -4,12 +4,9 @@ import java.util.List;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
-import gyro.core.resource.DeferError;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.FileScope;
-import gyro.core.resource.NodeEvaluator;
 import gyro.core.resource.Resource;
 import gyro.core.resource.ResourceVisitor;
 import gyro.core.resource.RootScope;
@@ -31,11 +28,7 @@ public class VirtualResourceVisitor extends ResourceVisitor {
                 DirectiveNode directive = (DirectiveNode) child;
 
                 if ("param".equals(directive.getName())) {
-                    List<Object> arguments = DirectiveProcessor.evaluateArguments(scope, directive);
-
-                    if (arguments.size() != 1) {
-                        throw new GyroException("@param directive only takes 1 argument!");
-                    }
+                    List<Object> arguments = DirectiveProcessor.evaluateDirectiveArguments(scope, directive, 1, 1);
 
                     parametersBuilder.add(new VirtualParameter((String) arguments.get(0)));
                     continue;
@@ -62,12 +55,7 @@ public class VirtualResourceVisitor extends ResourceVisitor {
         RootScope root = scope.getRootScope();
         RootScope virtualRoot = new RootScope(root.getFile(), root.getBackend(), null, ImmutableSet.of());
 
-        try {
-            virtualRoot.load();
-        } catch (Exception e) {
-            throw new GyroException(e.getMessage());
-        }
-
+        virtualRoot.load();
         virtualRoot.putAll(root);
 
         FileScope file = scope.getFileScope();

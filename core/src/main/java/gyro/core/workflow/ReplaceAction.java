@@ -34,25 +34,30 @@ public class ReplaceAction extends Action {
         Object resource = evaluator.visit(this.resource, scope);
 
         if (resource == null) {
-            throw new GyroException("Can't replace because the first argument is null!");
+            throw new GyroException("Can't replace a null resource!");
         }
 
         if (!(resource instanceof Resource)) {
             throw new GyroException(String.format(
-                "Can't replace the first argument [%s] because it's not a resource!",
-                resource));
+                "Can't replace @|bold %s|@, an instance of @|bold %s|@, because it's not a resource!",
+                resource,
+                resource.getClass().getName()));
         }
 
         Object with = evaluator.visit(this.with, scope);
 
         if (with == null) {
-            throw new GyroException("Can't replace because the second argument is null!");
+            throw new GyroException(String.format(
+                "Can't @|bold %s|@ resource with a null!",
+                resource));
         }
 
         if (!(with instanceof Resource)) {
             throw new GyroException(String.format(
-                "Can't replace the second argument [%s] because it's not a resource!",
-                with));
+                "Can't @|bold %s|@ resource with @|bold %s|@, an instance of @|bold %s|@, because it's not a resource!",
+                resource,
+                with,
+                with.getClass().getName()));
         }
 
         Resource resourceResource = (Resource) resource;

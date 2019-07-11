@@ -33,6 +33,4 @@ public interface GyroUI {
 
     void write(String message, Object... arguments);
 
-    void writeError(Throwable error, String message, Object... arguments);
-
 }

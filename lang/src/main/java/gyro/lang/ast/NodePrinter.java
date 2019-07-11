@@ -1,8 +1,8 @@
 package gyro.lang.ast;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 
 import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.block.FileNode;
@@ -15,20 +15,26 @@ import gyro.lang.ast.value.ListNode;
 import gyro.lang.ast.value.MapNode;
 import gyro.lang.ast.value.ReferenceNode;
 import gyro.lang.ast.value.ValueNode;
+import gyro.util.Bug;
 
-public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
+public class NodePrinter implements NodeVisitor<PrinterContext, Void, IOException> {
 
     public static String toString(Node node) {
         StringBuilder builder = new StringBuilder();
         NodePrinter printer = new NodePrinter();
         PrinterContext context = new PrinterContext(builder, 0);
 
-        printer.visit(node, context);
+        try {
+            printer.visit(node, context);
+
+        } catch (IOException error) {
+            throw new Bug(error);
+        }
 
         return builder.toString();
     }
 
-    private void visitBody(List<Node> body, PrinterContext context) {
+    private void visitBody(List<Node> body, PrinterContext context) throws IOException {
         for (Node item : body) {
             context.appendNewline();
             visit(item, context);
@@ -36,7 +42,7 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
     }
 
     @Override
-    public Void visitDirective(DirectiveNode node, PrinterContext context) {
+    public Void visitDirective(DirectiveNode node, PrinterContext context) throws IOException {
         List<Node> body = node.getBody();
         boolean bodyEmpty = body.isEmpty();
 
@@ -63,7 +69,7 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
     }
 
     @Override
-    public Void visitPair(PairNode node, PrinterContext context) {
+    public Void visitPair(PairNode node, PrinterContext context) throws IOException {
         visit(node.getKey(), context);
         context.append(": ");
         visit(node.getValue(), context.indented());
@@ -72,14 +78,14 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
     }
 
     @Override
-    public Void visitFile(FileNode node, PrinterContext context) {
+    public Void visitFile(FileNode node, PrinterContext context) throws IOException {
         visitBody(node.getBody(), context);
 
         return null;
     }
 
     @Override
-    public Void visitKeyBlock(KeyBlockNode node, PrinterContext context) {
+    public Void visitKeyBlock(KeyBlockNode node, PrinterContext context) throws IOException {
         context.appendNewline();
         context.append(node.getKey());
         visitBody(node.getBody(), context.indented());
@@ -90,15 +96,16 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
     }
 
     @Override
-    public Void visitResource(ResourceNode node, PrinterContext context) {
+    public Void visitResource(ResourceNode node, PrinterContext context) throws IOException {
         context.appendNewline();
         context.append(node.getType());
 
-        Optional.ofNullable(node.getName())
-            .ifPresent(nameNode -> {
-                context.append(' ');
-                visit(nameNode, context);
-            });
+        Node nameNode = node.getName();
+
+        if (nameNode != null) {
+            context.append(' ');
+            visit(nameNode, context);
+        }
 
         visitBody(node.getBody(), context.indented());
         context.appendNewline();
@@ -108,7 +115,7 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
     }
 
     @Override
-    public Void visitBinary(BinaryNode node, PrinterContext context) {
+    public Void visitBinary(BinaryNode node, PrinterContext context) throws IOException {
         visit(node.getLeft(), context);
         context.append(' ');
         context.append(node.getOperator());
@@ -119,7 +126,7 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
     }
 
     @Override
-    public Void visitIndexed(IndexedNode node, PrinterContext context) {
+    public Void visitIndexed(IndexedNode node, PrinterContext context) throws IOException {
         visit(node.getValue(), context);
 
         for (Node index : node.getIndexes()) {
@@ -131,7 +138,7 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
     }
 
     @Override
-    public Void visitInterpolatedString(InterpolatedStringNode node, PrinterContext context) {
+    public Void visitInterpolatedString(InterpolatedStringNode node, PrinterContext context) throws IOException {
         context.append('"');
 
         for (Object item : node.getItems()) {
@@ -149,7 +156,7 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
     }
 
     @Override
-    public Void visitList(ListNode node, PrinterContext context) {
+    public Void visitList(ListNode node, PrinterContext context) throws IOException {
         context.append('[');
 
         for (Iterator<Node> i = node.getItems().iterator(); i.hasNext(); ) {
@@ -168,7 +175,7 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
     }
 
     @Override
-    public Void visitMap(MapNode node, PrinterContext context) {
+    public Void visitMap(MapNode node, PrinterContext context) throws IOException {
         context.append('{');
 
         for (Iterator<PairNode> i = node.getEntries().iterator(); i.hasNext(); ) {
@@ -187,7 +194,7 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
     }
 
     @Override
-    public Void visitReference(ReferenceNode node, PrinterContext context) {
+    public Void visitReference(ReferenceNode node, PrinterContext context) throws IOException {
         context.append("$(");
 
         for (Iterator<Node> i = node.getArguments().iterator(); i.hasNext(); ) {
@@ -204,7 +211,7 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void> {
     }
 
     @Override
-    public Void visitValue(ValueNode node, PrinterContext context) {
+    public Void visitValue(ValueNode node, PrinterContext context) throws IOException {
         Object value = node.getValue();
 
         if (value instanceof String) {

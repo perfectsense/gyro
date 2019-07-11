@@ -34,7 +34,7 @@ public class FilterEvaluator implements FilterVisitor<FilterContext, Boolean> {
 
             default :
                 throw new GyroException(String.format(
-                    "[%s] operator isn't supported!",
+                    "@|bold %s|@ operator isn't supported!",
                     operator));
         }
     }

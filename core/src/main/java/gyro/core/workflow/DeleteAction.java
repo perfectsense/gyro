@@ -27,13 +27,14 @@ public class DeleteAction extends Action {
         Object resource = evaluator.visit(this.resource, scope);
 
         if (resource == null) {
-            throw new GyroException("Can't delete because the resource is null!");
+            throw new GyroException("Can't delete a null resource!");
         }
 
         if (!(resource instanceof Resource)) {
             throw new GyroException(String.format(
-                "Can't delete [%s] because it's not a resource!",
-                resource));
+                "Can't delete @|bold %s|@, an instance of @|bold %s|@, because it's not a resource!",
+                resource,
+                resource.getClass().getName()));
         }
 
         String fullName = ((Resource) resource).primaryKey();

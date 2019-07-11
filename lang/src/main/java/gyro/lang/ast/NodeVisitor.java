@@ -1,7 +1,7 @@
 package gyro.lang.ast;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.block.FileNode;
@@ -15,40 +15,44 @@ import gyro.lang.ast.value.MapNode;
 import gyro.lang.ast.value.ReferenceNode;
 import gyro.lang.ast.value.ValueNode;
 
-public interface NodeVisitor<C, R> {
+public interface NodeVisitor<C, R, X extends Throwable> {
 
-    default R visit(Node node, C context) {
+    default R visit(Node node, C context) throws X {
         return node.accept(this, context);
     }
 
-    default List<R> visit(List<Node> nodes, C context) {
-        return nodes.stream()
-            .map(n -> visit(n, context))
-            .collect(Collectors.toList());
+    default List<R> visit(List<Node> nodes, C context) throws X {
+        List<R> list = new ArrayList<>();
+
+        for (Node item : nodes) {
+            visit(item, context);
+        }
+
+        return list;
     }
 
-    R visitDirective(DirectiveNode node, C context);
+    R visitDirective(DirectiveNode node, C context) throws X;
 
-    R visitPair(PairNode node, C context);
+    R visitPair(PairNode node, C context) throws X;
 
-    R visitFile(FileNode node, C context);
+    R visitFile(FileNode node, C context) throws X;
 
-    R visitKeyBlock(KeyBlockNode node, C context);
+    R visitKeyBlock(KeyBlockNode node, C context) throws X;
 
-    R visitResource(ResourceNode node, C context);
+    R visitResource(ResourceNode node, C context) throws X;
 
-    R visitBinary(BinaryNode node, C context);
+    R visitBinary(BinaryNode node, C context) throws X;
 
-    R visitIndexed(IndexedNode node, C context);
+    R visitIndexed(IndexedNode node, C context) throws X;
 
-    R visitInterpolatedString(InterpolatedStringNode node, C context);
+    R visitInterpolatedString(InterpolatedStringNode node, C context) throws X;
 
-    R visitList(ListNode node, C context);
+    R visitList(ListNode node, C context) throws X;
 
-    R visitMap(MapNode node, C context);
+    R visitMap(MapNode node, C context) throws X;
 
-    R visitReference(ReferenceNode node, C context);
+    R visitReference(ReferenceNode node, C context) throws X;
 
-    R visitValue(ValueNode node, C context);
+    R visitValue(ValueNode node, C context) throws X;
 
 }

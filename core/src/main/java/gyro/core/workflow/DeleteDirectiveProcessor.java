@@ -2,13 +2,12 @@ package gyro.core.workflow;
 
 import java.util.List;
 
-import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.resource.Scope;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.DirectiveNode;
 
-public class DeleteDirectiveProcessor extends DirectiveProcessor {
+public class DeleteDirectiveProcessor extends DirectiveProcessor<Scope> {
 
     @Override
     public String getName() {
@@ -17,11 +16,7 @@ public class DeleteDirectiveProcessor extends DirectiveProcessor {
 
     @Override
     public void process(Scope scope, DirectiveNode node) {
-        List<Node> arguments = node.getArguments();
-
-        if (arguments.size() != 1) {
-            throw new GyroException("@delete directives only takes 1 argument!");
-        }
+        List<Node> arguments = validateDirectiveArguments(node, 1, 1);
 
         scope.getSettings(WorkflowSettings.class)
             .getActions()

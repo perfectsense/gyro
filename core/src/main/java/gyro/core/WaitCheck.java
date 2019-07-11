@@ -2,5 +2,5 @@ package gyro.core;
 
 public interface WaitCheck {
 
-    boolean check() throws Throwable;
+    boolean check() throws Exception;
 }

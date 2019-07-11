@@ -44,7 +44,7 @@ public class Diff {
         return changes;
     }
 
-    public void diff() throws Exception {
+    public void diff() {
         Map<String, Diffable> currentDiffables = this.currentDiffables.stream().collect(
             LinkedHashMap::new,
             (map, r) -> map.put(r.primaryKey(), r),
@@ -67,7 +67,7 @@ public class Diff {
     }
 
     @SuppressWarnings("unchecked")
-    private Change newCreate(Diffable diffable) throws Exception {
+    private Change newCreate(Diffable diffable) {
         Create create = new Create(diffable);
 
         diffable.change = create;
@@ -100,7 +100,7 @@ public class Diff {
     }
 
     @SuppressWarnings("unchecked")
-    private Change newUpdate(Diffable currentDiffable, Diffable pendingDiffable) throws Exception {
+    private Change newUpdate(Diffable currentDiffable, Diffable pendingDiffable) {
         List<Diff> diffs = new ArrayList<>();
         DiffableType<? extends Diffable> type = DiffableType.getInstance(currentDiffable.getClass());
 
@@ -206,7 +206,7 @@ public class Diff {
     }
 
     @SuppressWarnings("unchecked")
-    private Change newDelete(Diffable diffable) throws Exception {
+    private Change newDelete(Diffable diffable) {
         Delete delete = new Delete(diffable);
 
         diffable.change = delete;
@@ -301,7 +301,7 @@ public class Diff {
         return written;
     }
 
-    public void executeCreateOrUpdate(GyroUI ui, State state) throws Exception {
+    public void executeCreateOrUpdate(GyroUI ui, State state) {
         for (Change change : getChanges()) {
             if (change instanceof Create || change instanceof Update) {
                 execute(ui, state, change);
@@ -313,7 +313,7 @@ public class Diff {
         }
     }
 
-    public void executeReplace(GyroUI ui, State state) throws Exception {
+    public void executeReplace(GyroUI ui, State state) {
         for (Change change : getChanges()) {
             if (change instanceof Replace) {
                 execute(ui, state, change);
@@ -325,7 +325,7 @@ public class Diff {
         }
     }
 
-    public void executeDelete(GyroUI ui, State state) throws Exception {
+    public void executeDelete(GyroUI ui, State state) {
         for (ListIterator<Change> j = getChanges().listIterator(getChanges().size()); j.hasPrevious(); ) {
             Change change = j.previous();
 
@@ -339,7 +339,7 @@ public class Diff {
         }
     }
 
-    private void execute(GyroUI ui, State state, Change change) throws Exception {
+    private void execute(GyroUI ui, State state, Change change) {
         Diffable diffable = change.getDiffable();
 
         if (!(diffable instanceof Resource)) {
@@ -362,7 +362,7 @@ public class Diff {
         }
     }
 
-    private void resolve(Object object) throws Exception {
+    private void resolve(Object object) {
         if (object instanceof Diffable) {
             Diffable diffable = (Diffable) object;
             DiffableScope scope = diffable.scope;

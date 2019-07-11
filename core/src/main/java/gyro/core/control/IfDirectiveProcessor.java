@@ -6,11 +6,12 @@ import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.resource.NodeEvaluator;
 import gyro.core.resource.Scope;
+import gyro.lang.Locatable;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.block.DirectiveSection;
 
-public class IfDirectiveProcessor extends DirectiveProcessor {
+public class IfDirectiveProcessor extends DirectiveProcessor<Scope> {
 
     @Override
     public String getName() {
@@ -19,7 +20,7 @@ public class IfDirectiveProcessor extends DirectiveProcessor {
 
     @Override
     public void process(Scope scope, DirectiveNode node) {
-        if (processSection(scope, node.getArguments(), node.getBody())) {
+        if (processSection(scope, node, node.getArguments(), node.getBody())) {
             return;
         }
 
@@ -30,7 +31,7 @@ public class IfDirectiveProcessor extends DirectiveProcessor {
                 case "elseif" :
                 case "elsif" :
                 case "elif" :
-                    if (processSection(scope, section.getArguments(), section.getBody())) {
+                    if (processSection(scope, section, section.getArguments(), section.getBody())) {
                         return;
                     }
 
@@ -41,22 +42,25 @@ public class IfDirectiveProcessor extends DirectiveProcessor {
                     return;
 
                 default :
-                    throw new GyroException(String.format(
-                        "-%s is not a valid section name within an @if directive!",
+                    throw new GyroException(section, String.format(
+                        "@|bold -%s|@ isn't a valid section within an @|bold @if|@ directive!",
                         name));
             }
         }
     }
 
-    private boolean processSection(Scope scope, List<Node> arguments, List<Node> body) {
-        NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
-        List<Object> conditions = evaluator.visit(arguments, scope);
+    private boolean processSection(Scope scope, Locatable parent, List<Node> arguments, List<Node> body) {
+        int argumentsSize = arguments.size();
 
-        if (conditions.size() != 1) {
-            throw new GyroException("@if directive only takes 1 condition!");
+        if (argumentsSize != 1) {
+            throw new GyroException(
+                argumentsSize == 0 ? parent : arguments.get(1),
+                "@|bold @if|@ directive requires exactly 1 condition!");
         }
 
-        if (NodeEvaluator.test(conditions.get(0))) {
+        NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
+
+        if (NodeEvaluator.test(evaluator.visit(arguments.get(0), scope))) {
             evaluator.visitBody(body, scope);
             return true;
 

@@ -87,7 +87,7 @@ public class Replace extends Change {
     }
 
     @Override
-    public boolean execute(GyroUI ui, State state) throws Exception {
+    public boolean execute(GyroUI ui, State state) {
         if (workflow == null) {
             return false;
         }

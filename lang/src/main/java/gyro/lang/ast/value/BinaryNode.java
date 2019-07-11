@@ -12,44 +12,51 @@ public class BinaryNode extends Node {
     private final Node right;
 
     public BinaryNode(String operator, Node left, Node right) {
+        super(null);
+
         this.operator = Preconditions.checkNotNull(operator);
         this.left = Preconditions.checkNotNull(left);
         this.right = Preconditions.checkNotNull(right);
     }
 
     public BinaryNode(GyroParser.TwoAddContext context) {
-        this(
-            Preconditions.checkNotNull(context).addOp().getText(),
-            Node.create(context.mul()),
-            Node.create(context.add()));
+        super(Preconditions.checkNotNull(context));
+
+        this.operator = context.addOp().getText();
+        this.left = Node.create(context.mul());
+        this.right = Node.create(context.add());
     }
 
     public BinaryNode(GyroParser.TwoAndContext context) {
-        this(
-            Preconditions.checkNotNull(context).AND().getText(),
-            Node.create(context.rel()),
-            Node.create(context.and()));
+        super(Preconditions.checkNotNull(context));
+
+        this.operator = context.AND().getText();
+        this.left = Node.create(context.rel());
+        this.right = Node.create(context.and());
     }
 
     public BinaryNode(GyroParser.TwoMulContext context) {
-        this(
-            Preconditions.checkNotNull(context).mulOp().getText(),
-            Node.create(context.mulItem()),
-            Node.create(context.mul()));
+        super(Preconditions.checkNotNull(context));
+
+        this.operator = context.mulOp().getText();
+        this.left = Node.create(context.mulItem());
+        this.right = Node.create(context.mul());
     }
 
     public BinaryNode(GyroParser.TwoRelContext context) {
-        this(
-            Preconditions.checkNotNull(context).relOp().getText(),
-            Node.create(context.add()),
-            Node.create(context.rel()));
+        super(Preconditions.checkNotNull(context));
+
+        this.operator = context.relOp().getText();
+        this.left = Node.create(context.add());
+        this.right = Node.create(context.rel());
     }
 
     public BinaryNode(GyroParser.TwoValueContext context) {
-        this(
-            Preconditions.checkNotNull(context).OR().getText(),
-            Node.create(context.and()),
-            Node.create(context.value()));
+        super(Preconditions.checkNotNull(context));
+
+        this.operator = context.OR().getText();
+        this.left = Node.create(context.and());
+        this.right = Node.create(context.value());
     }
 
     public String getOperator() {
@@ -65,7 +72,7 @@ public class BinaryNode extends Node {
     }
 
     @Override
-    public <C, R> R accept(NodeVisitor<C, R> visitor, C context) {
+    public <C, R, X extends Throwable> R accept(NodeVisitor<C, R, X> visitor, C context) throws X {
         return visitor.visitBinary(this, context);
     }
 

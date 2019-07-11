@@ -6,11 +6,10 @@ import com.google.common.collect.ImmutableMap;
 import gyro.core.FileBackend;
 import gyro.core.GyroException;
 import gyro.core.reference.ReferenceSettings;
-import gyro.core.resource.DeferError;
+import gyro.core.resource.Defer;
 import gyro.core.resource.NodeEvaluator;
 import gyro.core.resource.RootScope;
 import gyro.core.resource.Scope;
-import gyro.core.resource.ValueReferenceException;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.value.ReferenceNode;
 import gyro.parser.antlr4.GyroParser;
@@ -52,7 +51,7 @@ class NodeEvaluatorTest {
 
         @Test
         void nullFirst() {
-            assertThatExceptionOfType(ValueReferenceException.class)
+            assertThatExceptionOfType(Defer.class)
                 .isThrownBy(() -> evaluate("$($(foo))"));
         }
 
@@ -119,7 +118,7 @@ class NodeEvaluatorTest {
 
             @Test
             void noResource() {
-                assertThatExceptionOfType(DeferError.class)
+                assertThatExceptionOfType(Defer.class)
                     .isThrownBy(() -> evaluate("$(test::resource qux)"));
             }
 

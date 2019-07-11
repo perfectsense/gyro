@@ -8,10 +8,11 @@ import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.resource.NodeEvaluator;
 import gyro.core.resource.Scope;
+import gyro.lang.ast.Node;
 import gyro.lang.ast.block.DirectiveNode;
 import gyro.util.CascadingMap;
 
-public class ForDirectiveProcessor extends DirectiveProcessor {
+public class ForDirectiveProcessor extends DirectiveProcessor<Scope> {
 
     @Override
     public String getName() {
@@ -20,26 +21,17 @@ public class ForDirectiveProcessor extends DirectiveProcessor {
 
     @Override
     public void process(Scope scope, DirectiveNode node) {
-        List<Object> variables = evaluateArguments(scope, node);
+        List<Object> variables = evaluateDirectiveArguments(scope, node, 1, 0);
+        List<Node> inArguments = validateOptionArguments(node, "in", 1, 1);
+        Node inNode = inArguments.get(0);
+        Object in = scope.getRootScope().getEvaluator().visit(inNode, scope);
 
-        if (variables.isEmpty()) {
-            throw new GyroException("@for directive requires at least 1 variable declaration!");
-        }
-
-        List<Object> inArguments = evaluateOptionArguments(scope, node, "in");
-
-        if (inArguments.size() != 1) {
-            throw new GyroException("-in option only takes 1 argument!");
-        }
-
-        Object value = inArguments.get(0);
-
-        if (value == null) {
+        if (in == null) {
             return;
         }
 
-        if (value instanceof List) {
-            List<?> list = (List<?>) value;
+        if (in instanceof List) {
+            List<?> list = (List<?>) in;
             int variablesSize = variables.size();
             int listSize = list.size();
 
@@ -59,13 +51,13 @@ public class ForDirectiveProcessor extends DirectiveProcessor {
                 processBody(node, scope, values);
             }
 
-        } else if (value instanceof Map) {
+        } else if (in instanceof Map) {
             String keyVariable = (String) variables.get(0);
 
             if (variables.size() > 1) {
                 String valueVariable = (String) variables.get(1);
 
-                for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
+                for (Map.Entry<?, ?> entry : ((Map<?, ?>) in).entrySet()) {
                     Map<String, Object> values = new LinkedHashMap<>();
 
                     values.put(keyVariable, entry.getKey());
@@ -74,7 +66,7 @@ public class ForDirectiveProcessor extends DirectiveProcessor {
                 }
 
             } else {
-                for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
+                for (Map.Entry<?, ?> entry : ((Map<?, ?>) in).entrySet()) {
                     Map<String, Object> values = new LinkedHashMap<>();
 
                     values.put(keyVariable, entry.getKey());
@@ -83,7 +75,10 @@ public class ForDirectiveProcessor extends DirectiveProcessor {
             }
 
         } else {
-            throw new GyroException("Can't iterate over a non-collection!");
+            throw new GyroException(inNode, String.format(
+                "Can't iterate over @|bold %s|@ which resolved to @|bold %s|@ because it's not a collection!",
+                inNode,
+                in));
         }
     }
 

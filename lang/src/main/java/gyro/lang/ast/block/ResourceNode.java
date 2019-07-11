@@ -13,17 +13,17 @@ public class ResourceNode extends BlockNode {
     private final Node name;
 
     public ResourceNode(String type, Node name, List<Node> body) {
-        super(body);
+        super(null, body);
 
         this.type = Preconditions.checkNotNull(type);
         this.name = Preconditions.checkNotNull(name);
     }
 
     public ResourceNode(GyroParser.ResourceContext context) {
-        this(
-            Preconditions.checkNotNull(context).type().getText(),
-            Node.create(context.name()),
-            Node.create(context.body()));
+        super(Preconditions.checkNotNull(context), Node.create(context.body()));
+
+        this.type = context.type().getText();
+        this.name = Node.create(context.name());
     }
 
     public String getType() {
@@ -35,7 +35,7 @@ public class ResourceNode extends BlockNode {
     }
 
     @Override
-    public <C, R> R accept(NodeVisitor<C, R> visitor, C context) {
+    public <C, R, X extends Throwable> R accept(NodeVisitor<C, R, X> visitor, C context) throws X {
         return visitor.visitResource(this, context);
     }
 

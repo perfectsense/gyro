@@ -6,11 +6,12 @@ import java.util.function.Consumer;
 
 import gyro.lang.ast.Node;
 
-public class DeferError extends Error {
+public class Defer extends Error {
 
     private final Node node;
 
-    public DeferError(Node node) {
+    public Defer(Node node, String message) {
+        super(message);
         this.node = node;
     }
 
@@ -18,14 +19,14 @@ public class DeferError extends Error {
         int size = items.size();
 
         while (true) {
-            List<DeferError> errors = new ArrayList<>();
+            List<Defer> errors = new ArrayList<>();
             List<T> deferred = new ArrayList<>();
 
             for (T item : items) {
                 try {
                     consumer.accept(item);
 
-                } catch (DeferError error) {
+                } catch (Defer error) {
                     errors.add(error);
                     deferred.add(item);
                 }
@@ -44,13 +45,8 @@ public class DeferError extends Error {
         }
     }
 
-    @Override
-    public String getMessage() {
-        return node.deferFailure();
+    public Node getNode() {
+        return node;
     }
 
-    @Override
-    public Throwable fillInStackTrace() {
-        return this;
-    }
 }

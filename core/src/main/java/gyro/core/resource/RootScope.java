@@ -1,6 +1,7 @@
 package gyro.core.resource;
 
-import java.io.InputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -12,9 +13,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.psddev.dari.util.Converter;
-import com.psddev.dari.util.TypeDefinition;
 import gyro.core.FileBackend;
 import gyro.core.GyroException;
+import gyro.core.GyroInputStream;
+import gyro.core.GyroOutputStream;
+import gyro.core.Reflections;
 import gyro.core.auth.CredentialsDirectiveProcessor;
 import gyro.core.auth.CredentialsPlugin;
 import gyro.core.auth.UsesCredentialsDirectiveProcessor;
@@ -38,6 +41,7 @@ import gyro.core.workflow.UpdateDirectiveProcessor;
 import gyro.core.workflow.WorkflowDirectiveProcessor;
 import gyro.lang.ast.Node;
 import gyro.parser.antlr4.GyroParser;
+import gyro.util.Bug;
 
 public class RootScope extends FileScope {
 
@@ -77,7 +81,7 @@ public class RootScope extends FileScope {
         this.backend = backend;
         this.current = current;
 
-        try (Stream<String> s = backend.list()) {
+        try (Stream<String> s = list()) {
             this.loadFiles = (loadFiles != null ? s.filter(loadFiles::contains) : s).collect(Collectors.toSet());
         }
 
@@ -133,6 +137,25 @@ public class RootScope extends FileScope {
         return fileScopes;
     }
 
+    public Stream<String> list() {
+        try {
+            return backend.list();
+
+        } catch (Exception error) {
+            throw new GyroException(
+                String.format("Can't list files in @|bold %s|@!", backend),
+                error);
+        }
+    }
+
+    public GyroInputStream openInput(String file) {
+        return new GyroInputStream(backend, file);
+    }
+
+    public OutputStream openOutput(String file) {
+        return new GyroOutputStream(backend, file);
+    }
+
     public Object convertValue(Type returnType, Object object) {
         return converter.convert(returnType, object);
     }
@@ -180,7 +203,7 @@ public class RootScope extends FileScope {
             .filter(r -> id.equals(idField.getValue(r)))
             .findFirst()
             .orElseGet(() -> {
-                T r = TypeDefinition.getInstance(resourceClass).newInstance();
+                T r = Reflections.newInstance(resourceClass);
                 r.external = true;
                 r.scope = new DiffableScope(this);
                 idField.setValue(r, id);
@@ -188,26 +211,26 @@ public class RootScope extends FileScope {
             });
     }
 
-    public void load() throws Exception {
-        try (InputStream input = backend.openInput(getFile())) {
+    public void load() {
+        try (GyroInputStream input = openInput(getFile())) {
             evaluator.visit(Node.parse(input, getFile(), GyroParser::file), this);
+
+        } catch (IOException error) {
+            throw new Bug(error);
         }
 
         List<Node> nodes = new ArrayList<>();
 
         for (String file : loadFiles) {
-            try (InputStream input = backend.openInput(file)) {
+            try (GyroInputStream input = openInput(file)) {
                 nodes.add(Node.parse(input, file, GyroParser::file));
+
+            } catch (IOException error) {
+                throw new Bug(error);
             }
         }
 
-        try {
-            evaluator.visitBody(nodes, this);
-
-        } catch (DeferError e) {
-            throw new GyroException(e.getMessage());
-        }
-
+        evaluator.visitBody(nodes, this);
         validate();
     }
 

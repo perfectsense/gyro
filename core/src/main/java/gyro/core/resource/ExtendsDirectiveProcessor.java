@@ -9,7 +9,7 @@ import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.lang.ast.block.DirectiveNode;
 
-public class ExtendsDirectiveProcessor extends DirectiveProcessor {
+public class ExtendsDirectiveProcessor extends DirectiveProcessor<DiffableScope> {
 
     @Override
     public String getName() {
@@ -17,21 +17,11 @@ public class ExtendsDirectiveProcessor extends DirectiveProcessor {
     }
 
     @Override
-    public void process(Scope scope, DirectiveNode node) {
-        DiffableScope diffableScope = scope.getClosest(DiffableScope.class);
+    public void process(DiffableScope scope, DirectiveNode node) {
+        List<Object> arguments = evaluateDirectiveArguments(scope, node, 1, 1);
 
-        if (diffableScope == null) {
-            throw new GyroException("@extends can only be used inside a resource!");
-        }
-
-        List<Object> arguments = evaluateArguments(scope, node);
-
-        if (arguments.size() != 1) {
-            throw new GyroException("@extends directive only takes 1 argument!");
-        }
-
-        processSource(diffableScope, arguments.get(0));
-        diffableScope.setExtended(true);
+        processSource(scope, arguments.get(0));
+        scope.setExtended(true);
     }
 
     @SuppressWarnings("unchecked")
@@ -61,7 +51,7 @@ public class ExtendsDirectiveProcessor extends DirectiveProcessor {
 
             if (resource == null) {
                 throw new GyroException(String.format(
-                    "No resource named [%s]!",
+                    "Can't extend from @|bold %s|@ resource because it doesn't exist!",
                     name));
             }
 

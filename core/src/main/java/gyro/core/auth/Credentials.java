@@ -1,11 +1,11 @@
 package gyro.core.auth;
 
-import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
 import gyro.core.GyroException;
+import gyro.core.GyroInputStream;
 import gyro.core.NamespaceUtils;
 import gyro.core.resource.DiffableScope;
 import gyro.core.resource.FileScope;
@@ -32,15 +32,16 @@ public abstract class Credentials {
 
         if (credentials == null) {
             throw new GyroException(String.format(
-                "Can't find [%s] credentials!",
+                "Can't find @|bold %s|@ credentials!",
                 name));
         }
 
         if (!credentialsClass.isInstance(credentials)) {
             throw new GyroException(String.format(
-                "Need [%s] credentials but have [%s] instead!",
-                credentialsClass.getName(),
-                credentials.getClass().getName()));
+                "Can't use @|bold %s|@ credentials because it's an instance of @|bold %s|@, not @|bold %s|@!",
+                name,
+                credentials.getClass().getName(),
+                credentialsClass.getName()));
         }
 
         return (C) credentials;
@@ -53,11 +54,10 @@ public abstract class Credentials {
     public void refresh() {
     }
 
-    public InputStream openInput(String file) {
+    public GyroInputStream openInput(String file) {
         FileScope fileScope = scope.getFileScope();
 
         return fileScope.getRootScope()
-            .getBackend()
             .openInput(Paths.get(fileScope.getFile())
                 .getParent()
                 .resolve(file)
