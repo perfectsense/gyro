@@ -334,7 +334,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         Optional.ofNullable(rootScope.getCurrent())
                 .map(s -> s.findResource(fullName))
                 .ifPresent(r -> {
-                    Set<String> configuredFields = r.configuredFields != null
+                    Set<String> currentConfiguredFields = r.configuredFields != null
                         ? r.configuredFields
                         : ImmutableSet.of();
 
@@ -344,7 +344,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                         // Skip over fields that were previously configured
                         // so that their removals can be detected by the
                         // diff system.
-                        if (configuredFields.contains(key) || pendingConfiguredFields.contains(key)) {
+                        if (currentConfiguredFields.contains(key) || pendingConfiguredFields.contains(key)) {
                             continue;
                         }
 
