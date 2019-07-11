@@ -195,7 +195,7 @@ public class State {
             body.add(toPairNode("_configured-fields", configuredFields));
         }
 
-        body.addAll(diffable.scope().getNodes());
+        body.addAll(diffable.scope().getStateNodes());
 
         for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
             Object value = field.getValue(diffable);
