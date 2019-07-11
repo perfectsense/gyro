@@ -120,8 +120,8 @@ public class Diff {
             Object pendingValue = field.getValue(pendingDiffable);
             Diff diff;
 
-            String key = field.getName();
-            if (!pendingConfiguredFields.contains(key) && !currentConfiguredFields.contains(key)) {
+            String name = field.getName();
+            if (!pendingConfiguredFields.contains(name) && !currentConfiguredFields.contains(name)) {
                 continue;
             }
 
@@ -206,12 +206,12 @@ public class Diff {
                 continue;
             }
 
-            String key = field.getName();
+            String name = field.getName();
 
             // Skip if there isn't a pending value and the field wasn't
             // previously configured. This means that a field was
             // automatically populated in code so we should keep it as is.
-            if (!pendingConfiguredFields.contains(key) && !currentConfiguredFields.contains(key)) {
+            if (!pendingConfiguredFields.contains(name) && !currentConfiguredFields.contains(name)) {
                 continue;
             }
 
