@@ -16,6 +16,7 @@ import gyro.core.GyroException;
 import gyro.core.LocalFileBackend;
 import gyro.core.auth.Credentials;
 import gyro.core.auth.CredentialsSettings;
+import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
 import gyro.core.resource.FileScope;
 import gyro.core.resource.Resource;
@@ -149,7 +150,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
                         resource.name());
 
                     if (resource.refresh()) {
-                        resource.updateInternals();
+                        DiffableInternals.update(resource);
 
                     } else {
                         i.remove();

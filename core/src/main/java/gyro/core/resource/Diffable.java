@@ -165,31 +165,6 @@ public abstract class Diffable {
         return false;
     }
 
-    public void updateInternals() {
-        scope = new DiffableScope(scope.getParent());
-        updateChildrenInternals();
-    }
-
-    private void updateChildrenInternals() {
-        for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
-            if (field.shouldBeDiffed()) {
-                String fieldName = field.getName();
-                Object value = field.getValue(this);
-
-                (value instanceof Collection ? ((Collection<?>) value).stream() : Stream.of(value))
-                    .filter(Diffable.class::isInstance)
-                    .map(Diffable.class::cast)
-                    .forEach(d -> {
-                        d.scope = new DiffableScope(scope);
-                        d.parent = this;
-                        d.name = fieldName;
-
-                        d.updateChildrenInternals();
-                    });
-            }
-        }
-    }
-
     @Override
     public final int hashCode() {
         return Objects.hash(parent(), name(), primaryKey());
