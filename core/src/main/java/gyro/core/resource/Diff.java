@@ -116,14 +116,14 @@ public class Diff {
                 continue;
             }
 
-            Object currentValue = field.getValue(currentDiffable);
-            Object pendingValue = field.getValue(pendingDiffable);
-            Diff diff;
-
             String name = field.getName();
             if (!currentConfiguredFields.contains(name) && !pendingConfiguredFields.contains(name)) {
                 continue;
             }
+
+            Object currentValue = field.getValue(currentDiffable);
+            Object pendingValue = field.getValue(pendingDiffable);
+            Diff diff;
 
             if (field.isCollection()) {
                 diff = new Diff((Collection<Diffable>) currentValue, (Collection<Diffable>) pendingValue);
@@ -198,20 +198,20 @@ public class Diff {
                 continue;
             }
 
-            Object currentValue = field.getValue(currentDiffable);
-            Object pendingValue = field.getValue(pendingDiffable);
-
-            // Skip if the value didn't change.
-            if (Objects.equals(currentValue, pendingValue)) {
-                continue;
-            }
-
             String name = field.getName();
 
             // Skip if there isn't a pending value and the field wasn't
             // previously configured. This means that a field was
             // automatically populated in code so we should keep it as is.
             if (!currentConfiguredFields.contains(name) && !pendingConfiguredFields.contains(name)) {
+                continue;
+            }
+
+            Object currentValue = field.getValue(currentDiffable);
+            Object pendingValue = field.getValue(pendingDiffable);
+
+            // Skip if the value didn't change.
+            if (Objects.equals(currentValue, pendingValue)) {
                 continue;
             }
 
