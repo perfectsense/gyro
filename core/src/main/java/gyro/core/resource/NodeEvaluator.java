@@ -321,14 +321,9 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         String fullName = type + "::" + name;
         RootScope rootScope = scope.getRootScope();
 
-        @SuppressWarnings("unchecked")
-        Collection<String> cf = (Collection<String>) bodyScope.get("_configured-fields");
-
-        if (cf == null) {
-            cf = bodyScope.getAddedKeys();
-        }
-
+        Collection<String> cf = (Collection<String>) Optional.ofNullable(bodyScope.get("_configured-fields")).orElseGet(bodyScope::getAddedKeys);
         Collection<String> pendingConfiguredFields = ImmutableSet.copyOf(cf);
+
         // Initialize the bodyScope with the resource values from the current
         // state scope.
         Optional.ofNullable(rootScope.getCurrent())
