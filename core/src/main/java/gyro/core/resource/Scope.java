@@ -3,23 +3,23 @@ package gyro.core.resource;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import gyro.core.Reflections;
 import gyro.lang.ast.Node;
 
 public class Scope implements Map<String, Object> {
 
-    private static final Pattern DOT_PATTERN = Pattern.compile(Pattern.quote("."));
-
     private final Scope parent;
     private final Map<String, Object> values;
+    private final Map<Object, String> names = new IdentityHashMap<>();
     private final Map<String, Node> valueNodes = new HashMap<>();
     private final Map<String, Node> keyNodes = new HashMap<>();
 
@@ -27,8 +27,8 @@ public class Scope implements Map<String, Object> {
         .build(new CacheLoader<Class<? extends Settings>, Settings>() {
 
             @Override
-            public Settings load(Class<? extends Settings> settingsClass) throws IllegalAccessException, InstantiationException {
-                Settings settings = settingsClass.newInstance();
+            public Settings load(Class<? extends Settings> settingsClass) {
+                Settings settings = Reflections.newInstance(settingsClass);
                 settings.scope = Scope.this;
 
                 return settings;
@@ -68,7 +68,7 @@ public class Scope implements Map<String, Object> {
     }
 
     @SuppressWarnings("unchecked")
-    public void addValue(String key, Object value) {
+    public void addValue(String key, String name, Object value) {
         Object oldValue = get(key);
         List<Object> list;
 
@@ -84,55 +84,12 @@ public class Scope implements Map<String, Object> {
         }
 
         list.add(value);
-        put(key, list);
+        values.put(key, list);
+        names.put(value, name);
     }
 
-    public Object find(String path) {
-        String[] keys = DOT_PATTERN.split(path);
-        String firstKey = keys[0];
-        Object value = null;
-
-        boolean found = false;
-        Scope startingScope = this instanceof DiffableScope ? this.parent : this;
-        for (Scope s = startingScope; s != null; s = s.parent) {
-            if (s.containsKey(firstKey)) {
-                Node valueNode = s.valueNodes.get(firstKey);
-                value = valueNode == null ? s.get(firstKey) : getRootScope().getEvaluator().visit(valueNode, s);
-                found = true;
-                break;
-            }
-        }
-
-        if (!found) {
-            throw new ValueReferenceException(firstKey);
-        }
-
-        if (value == null) {
-            return null;
-        }
-
-        for (int i = 1, l = keys.length; i < l; i++) {
-            String key = keys[i];
-
-            if (value instanceof List) {
-                value = ((List<?>) value).get(Integer.parseInt(key));
-
-            } else if (value instanceof Map) {
-                value = ((Map<?, ?>) value).get(key);
-
-            } else if (value instanceof Resource) {
-                value = ((Resource) value).get(key);
-
-            } else {
-                return null;
-            }
-
-            if (value == null) {
-                return null;
-            }
-        }
-
-        return value;
+    public String getName(Object value) {
+        return names.get(value);
     }
 
     public void addValueNode(String key, Node value) {

@@ -1,14 +1,15 @@
 package gyro.core.directive;
 
+import gyro.core.Reflections;
 import gyro.core.plugin.Plugin;
 import gyro.core.resource.RootScope;
 
 public class DirectivePlugin extends Plugin {
 
     @Override
-    public void onEachClass(RootScope root, Class<?> aClass) throws IllegalAccessException, InstantiationException {
+    public void onEachClass(RootScope root, Class<?> aClass) {
         if (DirectiveProcessor.class.isAssignableFrom(aClass)) {
-            DirectiveProcessor processor = (DirectiveProcessor) aClass.newInstance();
+            DirectiveProcessor processor = (DirectiveProcessor) Reflections.newInstance(aClass);
 
             root.getSettings(DirectiveSettings.class)
                 .getProcessors()

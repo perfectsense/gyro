@@ -44,7 +44,7 @@ public class Waiter {
                         return true;
                     }
 
-                } catch (Throwable error) {
+                } catch (Exception error) {
                     LOGGER.debug("Failed to check!", error);
                 }
 
@@ -60,7 +60,7 @@ public class Waiter {
                     break;
                 }
             }
-        } while (prompt && GyroCore.ui().readBoolean(Boolean.FALSE, "\nWait for completion?"));
+        } while (prompt && GyroCore.ui().readBoolean(Boolean.TRUE, "\nWait for completion?"));
 
         return false;
     }

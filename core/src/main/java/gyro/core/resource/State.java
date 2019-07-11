@@ -1,10 +1,11 @@
 package gyro.core.resource;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -12,11 +13,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableSet;
-import gyro.core.FileBackend;
+import gyro.core.GyroException;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.NodePrinter;
 import gyro.lang.ast.PairNode;
@@ -25,24 +26,26 @@ import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.block.ResourceNode;
 import gyro.lang.ast.value.ListNode;
 import gyro.lang.ast.value.MapNode;
-import gyro.lang.ast.value.ResourceReferenceNode;
+import gyro.lang.ast.value.ReferenceNode;
 import gyro.lang.ast.value.ValueNode;
+import gyro.util.Bug;
 
 public class State {
 
-    private final FileBackend backend;
     private final RootScope root;
     private final boolean test;
     private final Map<String, FileScope> states = new HashMap<>();
     private final Set<String> diffFiles;
+    private final Map<String, String> newNames = new HashMap<>();
+    private final Map<String, String> newKeys = new HashMap<>();
 
-    public State(RootScope current, RootScope pending, boolean test, Set<String> diffFiles) throws Exception {
-        this.backend = current.getBackend();
-        this.root = new RootScope(current.getFile(), backend, null, current.getLoadFiles());
-        this.test = test;
-        this.diffFiles = diffFiles != null ? ImmutableSet.copyOf(diffFiles) : null;
+    public State(RootScope current, RootScope pending, boolean test, Set<String> diffFiles) {
+        this.root = new RootScope(current.getFile(), current.getBackend(), null, current.getLoadFiles());
 
         root.load();
+
+        this.test = test;
+        this.diffFiles = diffFiles != null ? ImmutableSet.copyOf(diffFiles) : null;
 
         for (FileScope state : root.getFileScopes()) {
             states.put(state.getFile(), state);
@@ -65,7 +68,7 @@ public class State {
         return diffFiles;
     }
 
-    public void update(Change change) throws Exception {
+    public void update(Change change) {
         if (change instanceof Replace) {
             return;
         }
@@ -83,7 +86,8 @@ public class State {
         if (change instanceof Delete) {
             if (typeRoot) {
                 for (FileScope state : states.values()) {
-                    state.remove(resource.primaryKey());
+                    String key = resource.primaryKey();
+                    state.remove(newKeys.getOrDefault(key, key));
                 }
 
             } else {
@@ -100,11 +104,12 @@ public class State {
             FileScope state = states.get(resource.scope.getFileScope().getFile());
 
             if (typeRoot) {
-                state.put(resource.primaryKey(), resource);
+                String key = resource.primaryKey();
+                state.put(newKeys.getOrDefault(key, key), resource);
 
             } else {
-                Resource parent = resource.parentResource();
-                updateSubresource((Resource) state.get(parent.primaryKey()), resource, false);
+                String key = resource.parentResource().primaryKey();
+                updateSubresource((Resource) state.get(newKeys.getOrDefault(key, key)), resource, false);
             }
         }
 
@@ -150,15 +155,15 @@ public class State {
         }
     }
 
-    private void save() throws IOException {
+    private void save() {
         NodePrinter printer = new NodePrinter();
 
         for (FileScope state : states.values()) {
             String file = state.getFile();
 
-            try (BufferedWriter out = new BufferedWriter(
+            try (PrintWriter out = new PrintWriter(
                 new OutputStreamWriter(
-                    backend.openOutput(file),
+                    root.openOutput(file),
                     StandardCharsets.UTF_8))) {
 
                 PrinterContext context = new PrinterContext(out, 0);
@@ -170,11 +175,14 @@ public class State {
                         printer.visit(
                             new ResourceNode(
                                 DiffableType.getInstance(resource.getClass()).getName(),
-                                new ValueNode(resource.name()),
+                                new ValueNode(newNames.getOrDefault(resource.primaryKey(), resource.name())),
                                 toBodyNodes(resource)),
                             context);
                     }
                 }
+
+            } catch (IOException error) {
+                throw new Bug(error);
             }
         }
     }
@@ -184,10 +192,7 @@ public class State {
         Set<String> configuredFields = diffable.configuredFields;
 
         if (configuredFields != null && !configuredFields.isEmpty()) {
-            body.add(new PairNode("_configured-fields",
-                new ListNode(configuredFields.stream()
-                    .map(ValueNode::new)
-                    .collect(Collectors.toList()))));
+            body.add(toPairNode("_configured-fields", configuredFields));
         }
 
         for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
@@ -200,43 +205,49 @@ public class State {
             String key = field.getName();
 
             if (value instanceof Boolean
+                || value instanceof Map
                 || value instanceof Number
                 || value instanceof String) {
 
-                body.add(new PairNode(key, new ValueNode(value)));
+                body.add(toPairNode(key, value));
 
             } else if (value instanceof Date) {
-                body.add(new PairNode(key, new ValueNode(value.toString())));
+                body.add(toPairNode(key, value.toString()));
+
+            } else if (value instanceof Enum<?>) {
+                body.add(toPairNode(key, ((Enum) value).name()));
 
             } else if (value instanceof Diffable) {
                 if (field.shouldBeDiffed()) {
-                    body.add(new KeyBlockNode(key, toBodyNodes((Diffable) value)));
+                    body.add(new KeyBlockNode(key, null, toBodyNodes((Diffable) value)));
 
                 } else {
-                    body.add(new PairNode(key, toNode(value)));
+                    body.add(toPairNode(key, value));
                 }
 
             } else if (value instanceof Collection) {
                 if (field.shouldBeDiffed()) {
                     for (Object item : (Collection<?>) value) {
-                        body.add(new KeyBlockNode(key, toBodyNodes((Diffable) item)));
+                        body.add(new KeyBlockNode(key, null, toBodyNodes((Diffable) item)));
                     }
 
                 } else {
-                    body.add(new PairNode(key, toNode(value)));
+                    body.add(toPairNode(key, value));
                 }
 
-            } else if (value instanceof Map) {
-                body.add(new PairNode(key, toNode(value)));
-
             } else {
-                throw new UnsupportedOperationException(String.format(
-                        "Can't convert an instance of [%s] into a node!",
-                        value.getClass().getName()));
+                throw new GyroException(String.format(
+                    "Can't convert @|bold %s|@, an instance of @|bold %s|@, into a node!",
+                    value,
+                    value.getClass().getName()));
             }
         }
 
         return body;
+    }
+
+    private PairNode toPairNode(Object key, Object value) {
+        return new PairNode(toNode(key), toNode(value));
     }
 
     private Node toNode(Object value) {
@@ -264,7 +275,7 @@ public class State {
                 Object v = entry.getValue();
 
                 if (v != null) {
-                    entries.add(new PairNode((String) entry.getKey(), toNode(v)));
+                    entries.add(toPairNode(entry.getKey(), v));
                 }
             }
 
@@ -278,54 +289,39 @@ public class State {
                 return new ValueNode(type.getIdField().getValue(resource));
 
             } else {
-                return new ResourceReferenceNode(
-                    type.getName(),
-                    new ValueNode(resource.name()),
-                    Collections.emptyList(),
-                    null);
+                return new ReferenceNode(
+                    Arrays.asList(
+                        new ValueNode(type.getName()),
+                        new ValueNode(newNames.getOrDefault(resource.primaryKey(), resource.name()))),
+                    Collections.emptyList());
             }
 
         } else {
-            throw new UnsupportedOperationException(String.format(
-                    "Can't convert an instance of [%s] into a node!",
-                    value.getClass().getName()));
+            throw new GyroException(String.format(
+                "Can't convert @|bold %s|@, an instance of @|bold %s|@, into a node!",
+                value,
+                value.getClass().getName()));
         }
     }
 
-    public void swap(RootScope current, RootScope pending, String type, String x, String y) throws Exception {
-        swapResources(current, type, x, y);
-        swapResources(pending, type, x, y);
-        swapResources(root, type, x, y);
+    public void replace(Resource resource, Resource with) {
+        String resourceType = DiffableType.getInstance(resource.getClass()).getName();
+        String withType = DiffableType.getInstance(with.getClass()).getName();
+
+        if (!Objects.equals(resourceType, withType)) {
+            throw new GyroException(String.format(
+                "Can't replace a [%s] resource with a [%s] resource!",
+                resourceType,
+                withType));
+        }
+
+        String resourceKey = resource.primaryKey();
+        String withKey = with.primaryKey();
+
+        states.values().forEach(s -> s.remove(resourceKey));
+        newNames.put(withKey, resource.name());
+        newKeys.put(withKey, resourceKey);
         save();
-    }
-
-    private void swapResources(RootScope rootScope, String type, String xName, String yName) {
-        String xFullName = type + "::" + xName;
-        String yFullName = type + "::" + yName;
-        FileScope xScope = findFileScope(rootScope, xFullName);
-        FileScope yScope = findFileScope(rootScope, yFullName);
-
-        if (xScope != null && yScope != null) {
-            Resource x = (Resource) xScope.get(xFullName);
-            Resource y = (Resource) yScope.get(yFullName);
-
-            x.name = yName;
-            y.name = xName;
-            xScope.put(xFullName, y);
-            yScope.put(yFullName, x);
-        }
-    }
-
-    private FileScope findFileScope(RootScope rootScope, String name) {
-        for (FileScope fileScope : rootScope.getFileScopes()) {
-            Object value = fileScope.get(name);
-
-            if (value instanceof Resource) {
-                return fileScope;
-            }
-        }
-
-        return null;
     }
 
 }

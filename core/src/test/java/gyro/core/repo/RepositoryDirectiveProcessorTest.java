@@ -4,9 +4,9 @@ import java.util.Collections;
 import java.util.List;
 
 import gyro.core.FileBackend;
-import gyro.core.GyroException;
 import gyro.core.resource.RootScope;
-import gyro.core.resource.Scope;
+import gyro.lang.ast.block.DirectiveNode;
+import gyro.lang.ast.value.ValueNode;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -29,12 +29,6 @@ class RepositoryDirectiveProcessorTest {
         assertThat(processor.getName()).isEqualTo("repository");
     }
 
-    @Test
-    void processNotRootScope() {
-        assertThatExceptionOfType(GyroException.class)
-            .isThrownBy(() -> processor.process(new Scope(null), null));
-    }
-
     @Nested
     class WithRootScope {
 
@@ -49,7 +43,12 @@ class RepositoryDirectiveProcessorTest {
         void process() {
             String url = "https://example.com/foo";
 
-            processor.process(root, Collections.singletonList(url));
+            processor.process(root, new DirectiveNode(
+                "repository",
+                Collections.singletonList(new ValueNode(url)),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList()));
 
             List<RemoteRepository> repositories = root.getSettings(RepositorySettings.class).getRepositories();
 

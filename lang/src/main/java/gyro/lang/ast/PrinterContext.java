@@ -16,47 +16,27 @@ public class PrinterContext implements Appendable {
         return new PrinterContext(appendable, indentDepth + 1);
     }
 
-    public void appendNewline() {
-        try {
-            appendable.append('\n');
+    public void appendNewline() throws IOException {
+        appendable.append('\n');
 
-            for (int i = 0; i < indentDepth; i++) {
-                appendable.append("    ");
-            }
-
-        } catch (IOException error) {
-            throw new RuntimeException(error);
+        for (int i = 0; i < indentDepth; i++) {
+            appendable.append("    ");
         }
     }
 
     @Override
-    public Appendable append(CharSequence csq) {
-        try {
-            return appendable.append(csq);
-
-        } catch (IOException error) {
-            throw new RuntimeException(error);
-        }
+    public Appendable append(CharSequence csq) throws IOException {
+        return appendable.append(csq);
     }
 
     @Override
-    public Appendable append(CharSequence csq, int start, int end) {
-        try {
-            return appendable.append(csq, start, end);
-
-        } catch (IOException error) {
-            throw new RuntimeException(error);
-        }
+    public Appendable append(CharSequence csq, int start, int end) throws IOException {
+        return appendable.append(csq, start, end);
     }
 
     @Override
-    public Appendable append(char c) {
-        try {
-            return appendable.append(c);
-
-        } catch (IOException error) {
-            throw new RuntimeException(error);
-        }
+    public Appendable append(char c) throws IOException {
+        return appendable.append(c);
     }
 
 }

@@ -1,84 +1,220 @@
 package gyro.core.resource;
 
+import java.beans.BeanInfo;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.DoubleBinaryOperator;
+import java.util.function.LongBinaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.google.common.base.CaseFormat;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import gyro.core.GyroCore;
+import com.psddev.dari.util.TypeDefinition;
 import gyro.core.GyroException;
+import gyro.core.Reflections;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.directive.DirectiveSettings;
-import gyro.core.finder.Finder;
-import gyro.core.finder.FinderSettings;
-import gyro.core.finder.FinderType;
-import gyro.core.finder.QueryContext;
-import gyro.core.finder.QueryEvaluator;
-import gyro.core.workflow.Workflow;
-import gyro.lang.GyroLanguageException;
-import gyro.lang.ast.DirectiveNode;
+import gyro.core.finder.FilterContext;
+import gyro.core.finder.FilterEvaluator;
+import gyro.core.reference.ReferenceResolver;
+import gyro.core.reference.ReferenceSettings;
+import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.PairNode;
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.block.ResourceNode;
-import gyro.lang.ast.block.VirtualResourceNode;
-import gyro.lang.ast.block.VirtualResourceParameter;
-import gyro.lang.ast.condition.AndConditionNode;
-import gyro.lang.ast.condition.ComparisonConditionNode;
-import gyro.lang.ast.condition.OrConditionNode;
-import gyro.lang.ast.condition.ValueConditionNode;
-import gyro.lang.ast.control.ForNode;
-import gyro.lang.ast.control.IfNode;
+import gyro.lang.ast.value.BinaryNode;
+import gyro.lang.ast.value.IndexedNode;
 import gyro.lang.ast.value.InterpolatedStringNode;
 import gyro.lang.ast.value.ListNode;
 import gyro.lang.ast.value.MapNode;
-import gyro.lang.ast.value.ResourceReferenceNode;
+import gyro.lang.ast.value.ReferenceNode;
 import gyro.lang.ast.value.ValueNode;
-import gyro.lang.ast.value.ValueReferenceNode;
-import gyro.lang.query.Query;
-import gyro.util.CascadingMap;
+import gyro.lang.filter.Filter;
+import org.apache.commons.lang3.math.NumberUtils;
 
-public class NodeEvaluator implements NodeVisitor<Scope, Object> {
+public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeException> {
 
-    public void visitBody(List<Node> body, Scope scope) {
-        int bodySize = body.size();
+    private static final LoadingCache<Class<? extends DirectiveProcessor>, Class<? extends Scope>> DIRECTIVE_PROCESSOR_SCOPE_CLASSES = CacheBuilder.newBuilder()
+        .build(new CacheLoader<Class<? extends DirectiveProcessor>, Class<? extends Scope>>() {
 
-        while (true) {
-            List<DeferError> errors = new ArrayList<>();
-            List<Node> deferred = new ArrayList<>();
+           @Override
+           @SuppressWarnings("unchecked")
+           public Class<? extends Scope> load(Class<? extends DirectiveProcessor> directiveProcessorClass) {
+               return (Class<? extends Scope>) TypeDefinition.getInstance(directiveProcessorClass).getInferredGenericTypeArgumentClass(DirectiveProcessor.class, 0);
+           }
+       });
 
-            for (Node node : body) {
-                try {
-                    visit(node, scope);
+    private static final Map<String, BiFunction<Object, Object, Object>> BINARY_FUNCTIONS = ImmutableMap.<String, BiFunction<Object, Object, Object>>builder()
+        .put("*", (l, r) -> doArithmetic(l, r, (ld, rd) -> ld * rd, (ll, rl) -> ll * rl))
+        .put("/", (l, r) -> doArithmetic(l, r, (ld, rd) -> ld / rd, (ll, rl) -> ll / rl))
+        .put("%", (l, r) -> doArithmetic(l, r, (ld, rd) -> ld % rd, (ll, rl) -> ll % rl))
+        .put("+", (l, r) -> doArithmetic(l, r, Double::sum, Long::sum))
+        .put("-", (l, r) -> doArithmetic(l, r, (ld, rd) -> ld - rd, (ll, rl) -> ll - rl))
+        .put("=", Objects::equals)
+        .put("!=", (l, r) -> !Objects.equals(l, r))
+        .put("<", (l, r) -> compare(l, r) < 0)
+        .put("<=", (l, r) -> compare(l, r) <= 0)
+        .put(">", (l, r) -> compare(l, r) > 0)
+        .put(">=", (l, r) -> compare(l, r) >= 0)
+        .put("and", (l, r) -> test(l) && test(r))
+        .put("or", (l, r) -> test(l) && test(r))
+        .build();
 
-                } catch (DeferError error) {
-                    errors.add(error);
-                    deferred.add(node);
-                }
-            }
+    private static Object doArithmetic(Object left, Object right, DoubleBinaryOperator doubleOperator, LongBinaryOperator longOperator) {
+        if (left == null || right == null) {
+            throw new GyroException("Can't do arithmetic with a null!");
+        }
 
-            if (deferred.isEmpty()) {
-                break;
+        Number leftNumber = NumberUtils.createNumber(left.toString());
 
-            } else if (bodySize == deferred.size()) {
-                throw errors.get(0);
+        if (leftNumber == null) {
+            throw new GyroException(String.format(
+                "Can't do arithmetic on @|bold %s|@, an instance of @|bold %s|@, because it's not a number!",
+                left,
+                left.getClass().getName()));
+        }
 
-            } else {
-                body = deferred;
-                bodySize = body.size();
-            }
+        Number rightNumber = NumberUtils.createNumber(right.toString());
+
+        if (rightNumber == null) {
+            throw new GyroException(String.format(
+                "Can't do arithmetic on @|bold %s|@, an instance of @|bold %s|@, because it's not a number!",
+                right,
+                right.getClass().getName()));
+        }
+
+        if (leftNumber instanceof Float
+            || leftNumber instanceof Double
+            || rightNumber instanceof Float
+            || rightNumber instanceof Double) {
+
+            return doubleOperator.applyAsDouble(leftNumber.doubleValue(), rightNumber.doubleValue());
+
+        } else {
+            return longOperator.applyAsLong(leftNumber.longValue(), rightNumber.longValue());
         }
     }
 
+    @SuppressWarnings("unchecked")
+    private static int compare(Object left, Object right) {
+        if (left == null || right == null) {
+            throw new GyroException("Can't compare against a null!");
+
+        } else if (left instanceof Comparable
+            && left.getClass().isInstance(right)) {
+
+            return ((Comparable<Object>) left).compareTo(right);
+
+        } else {
+            throw new GyroException(String.format(
+                "Can't compare @|bold %s|@, an instance of @|bold %s|@, against @|bold %s|@, an instance of @|bold %s|@!",
+                left,
+                left.getClass().getName(),
+                right,
+                right.getClass().getName()));
+        }
+    }
+
+    public static boolean test(Object value) {
+        if (value instanceof Boolean) {
+            return Boolean.TRUE.equals(value);
+
+        } else if (value instanceof Collection) {
+            return !((Collection<?>) value).isEmpty();
+
+        } else if (value instanceof Map) {
+            return !((Map<?, ?>) value).isEmpty();
+
+        } else if (value instanceof Number) {
+            return ((Number) value).intValue() != 0;
+
+        } else if (value instanceof String) {
+            return !((String) value).isEmpty();
+
+        } else {
+            return value != null;
+        }
+    }
+
+    public static Object getValue(Object object, String key) {
+        if ("*".equals(key)) {
+            return new GlobCollection(object);
+
+        } else if (object instanceof Diffable) {
+            Diffable diffable = (Diffable) object;
+            DiffableType type = DiffableType.getInstance(diffable.getClass());
+            DiffableField field = type.getField(key);
+
+            if (field == null) {
+                throw new GyroException(String.format(
+                    "Can't find the @|bold %s|@ field in the @|bold %s|@ type!",
+                    key,
+                    type.getName()));
+            }
+
+            return field.getValue(diffable);
+
+        } else if (object instanceof GlobCollection) {
+            return ((GlobCollection) object).stream()
+                .map(i -> getValue(i, key))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        } else if (object instanceof List) {
+            Number index = NumberUtils.createNumber(key);
+
+            if (index != null) {
+                return ((List<?>) object).get(index.intValue());
+
+            } else {
+                return null;
+            }
+
+        } else if (object instanceof Map) {
+            return ((Map<?, ?>) object).get(key);
+
+        } else {
+            Class<?> aClass = object.getClass();
+            BeanInfo info = Reflections.getBeanInfo(aClass);
+            String methodName = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key);
+
+            Method getter = Stream.of(info.getPropertyDescriptors())
+                .filter(p -> p.getName().equals(methodName))
+                .map(PropertyDescriptor::getReadMethod)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElseThrow(() -> new GyroException(String.format(
+                    "Can't find the @|bold %s|@ property in the @|bold %s|@ class!",
+                    key,
+                    aClass.getName())));
+
+            return Reflections.invoke(getter, object);
+        }
+    }
+
+    public void visitBody(List<Node> body, Scope scope) {
+        Defer.execute(body, i -> visit(i, scope));
+    }
+
     @Override
+    @SuppressWarnings("unchecked")
     public Object visitDirective(DirectiveNode node, Scope scope) {
         String name = node.getName();
 
@@ -88,25 +224,28 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
             .get(name);
 
         if (processor == null) {
-            throw new GyroException(String.format(
-                "Can't find a processor for @%s directive!",
-                name));
+            throw new GyroException(
+                node,
+                String.format("Can't find a processor for the @|bold @%s|@ directive!", name));
         }
 
         try {
-            processor.process(
-                scope,
-                node.getArguments()
-                    .stream()
-                    .map(a -> visit(a, scope))
-                    .collect(Collectors.toList()));
+            Class<? extends Scope> scopeClass = DIRECTIVE_PROCESSOR_SCOPE_CLASSES.getUnchecked(processor.getClass());
+
+            if (!scopeClass.isInstance(scope)) {
+                throw new GyroException(String.format(
+                    "Can't use the @|bold @%s|@ directive inside @|bold %s|@!",
+                    name,
+                    scope.getClass().getName()));
+            }
+
+            processor.process(scope, node);
 
         } catch (Exception error) {
-            throw new GyroException(String.format(
-                "Can't process @%s directive! %s: %s",
-                name,
-                error.getClass().getName(),
-                error.getMessage()));
+            throw new GyroException(
+                node,
+                String.format("Can't process the @|bold @%s|@ directive!", name),
+                error);
         }
 
         return null;
@@ -114,7 +253,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
     @Override
     public Object visitPair(PairNode node, Scope scope) {
-        String key = node.getKey();
+        String key = (String) visit(node.getKey(), scope);
         Node value = node.getValue();
 
         scope.put(key, visit(value, scope));
@@ -137,47 +276,10 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
             rootScope.getFileScopes().add(fileScope);
         }
 
-        List<PairNode> keyValues = new ArrayList<>();
-        Map<String, VirtualResourceNode> virtualResourceNodes = rootScope.getVirtualResourceNodes();
-        List<ResourceNode> workflowNodes = new ArrayList<>();
-        List<Node> body = new ArrayList<>();
-
-        for (Node item : node.getBody()) {
-            if (item instanceof PairNode) {
-                keyValues.add((PairNode) item);
-
-            } else if (item instanceof VirtualResourceNode) {
-                VirtualResourceNode vrNode = (VirtualResourceNode) item;
-                virtualResourceNodes.put(vrNode.getName(), vrNode);
-
-            } else {
-                if (item instanceof ResourceNode) {
-                    ResourceNode rnNode = (ResourceNode) item;
-
-                    if (rnNode.getType().equals("workflow")) {
-                        workflowNodes.add(rnNode);
-                        continue;
-                    }
-                }
-
-                body.add(item);
-            }
-        }
-
-        for (PairNode kv : keyValues) {
-            visit(kv, fileScope);
-        }
-
-        List<Workflow> workflows = rootScope.getWorkflows();
-
-        for (ResourceNode rn : workflowNodes) {
-            workflows.add(new Workflow(rootScope, rn));
-        }
-
         try {
-            visitBody(body, fileScope);
+            visitBody(node.getBody(), fileScope);
 
-        } catch (DeferError e) {
+        } catch (Defer e) {
             rootScope.getFileScopes().remove(fileScope);
             throw e;
         }
@@ -195,7 +297,11 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
 
         String key = node.getKey();
 
-        scope.addValue(key, bodyScope);
+        String name = (String) Optional.ofNullable(node.getName())
+            .map(n -> visit(n, scope))
+            .orElse(null);
+
+        scope.addValue(key, name, bodyScope);
         scope.getKeyNodes().put(key, node);
 
         return null;
@@ -246,184 +352,92 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
                 });
 
 
-        Class<? extends Resource> resourceClass = (Class<? extends Resource>) rootScope.getResourceClasses().get(type);
+        Object value = rootScope.get(type);
 
-        if (resourceClass == null) {
-            VirtualResourceNode vrNode = scope.getRootScope().getVirtualResourceNodes().get(type);
+        if (value == null) {
+            throw new Defer(node, String.format(
+                "Can't create a resource of @|bold %s|@ type!",
+                type));
 
-            if (vrNode != null) {
-                createResources(vrNode, name, bodyScope);
-                return null;
+        } else if (value instanceof Class) {
+            Class<?> c = (Class<?>) value;
 
-            } else {
-                throw new IllegalArgumentException(String.format(
-                        "Can't create resource of [%s] type!",
-                        type));
-            }
-        }
+            if (Resource.class.isAssignableFrom(c)) {
+                Resource resource = DiffableType.getInstance((Class<? extends Resource>) c).newDiffable(null, name, bodyScope);
 
-        Resource resource = DiffableType.getInstance(resourceClass).newDiffable(null, name, bodyScope);
-
-        resource.initialize(bodyScope.isExtended() ? new LinkedHashMap<>(bodyScope) : bodyScope);
-        scope.getFileScope().put(fullName, resource);
-
-        return null;
-    }
-
-    private void createResources(VirtualResourceNode node, String prefix, Scope paramScope) {
-        FileScope paramFileScope = paramScope.getFileScope();
-
-        RootScope vrScope = new RootScope(
-            GyroCore.INIT_FILE,
-            paramScope.getRootScope().getBackend(),
-            null,
-            paramScope.getRootScope().getLoadFiles());
-
-        FileScope resourceScope = new FileScope(vrScope, paramFileScope.getFile());
-
-        for (VirtualResourceParameter param : node.getParameters()) {
-            String paramName = param.getName();
-
-            if (!paramScope.containsKey(paramName)) {
-                throw new GyroLanguageException(String.format("Required parameter '%s' is missing.", paramName));
+                resource.initialize(bodyScope.isExtended() ? new LinkedHashMap<>(bodyScope) : bodyScope);
+                scope.getFileScope().put(fullName, resource);
 
             } else {
-                vrScope.put(paramName, paramScope.get(paramName));
+                throw new GyroException(String.format(
+                    "Can't create a resource of @|bold %s|@ type using the @|bold %s|@ class!",
+                    type,
+                    c.getName()));
             }
-        }
 
-        RootScope paramRootScope = paramScope.getRootScope();
-
-        vrScope.getResourceClasses().putAll(paramRootScope.getResourceClasses());
-        vrScope.getFileScopes().add(resourceScope);
-
-        for (Node item : node.getBody()) {
-            visit(item, resourceScope);
-        }
-
-        for (Resource resource : vrScope.findResources()) {
-            resource.name = prefix + "." + resource.name;
-            paramFileScope.put(resource.primaryKey(), resource);
-        }
-    }
-
-    @Override
-    public Object visitVirtualResource(VirtualResourceNode node, Scope scope) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Object visitAndCondition(AndConditionNode node, Scope scope) {
-        return test(node.getLeft(), scope) && test(node.getRight(), scope);
-    }
-
-    private boolean test(Node node, Scope scope) {
-        Object value = visit(node, scope);
-
-        if (value instanceof Boolean) {
-            return Boolean.TRUE.equals(value);
-
-        } else if (value instanceof Collection) {
-            return !((Collection<?>) value).isEmpty();
-
-        } else if (value instanceof Map) {
-            return !((Map<?, ?>) value).isEmpty();
-
-        } else if (value instanceof Number) {
-            return ((Number) value).intValue() != 0;
-
-        } else if (value instanceof String) {
-            return !((String) value).isEmpty();
+        } else if (value instanceof ResourceVisitor) {
+            ((ResourceVisitor) value).visit(name, bodyScope);
 
         } else {
-            return value != null;
-        }
-    }
-
-    @Override
-    public Object visitComparisonCondition(ComparisonConditionNode node, Scope scope) {
-        Object leftValue = visit(node.getLeft(), scope);
-        Object rightValue = visit(node.getRight(), scope);
-
-        switch (node.getOperator()) {
-            case "==" : return leftValue.equals(rightValue);
-            case "!=" : return !leftValue.equals(rightValue);
-            default   : return false;
-        }
-    }
-
-    @Override
-    public Object visitOrCondition(OrConditionNode node, Scope scope) {
-        return test(node.getLeft(), scope) || test(node.getRight(), scope);
-    }
-
-    @Override
-    public Object visitValueCondition(ValueConditionNode node, Scope scope) {
-        return test(node.getValue(), scope);
-    }
-
-    @Override
-    public Object visitFor(ForNode node, Scope scope) {
-        List<String> variables = node.getVariables();
-        List<Node> items = node.getItems();
-        int variablesSize = variables.size();
-        int itemsSize = items.size();
-
-        for (int i = 0; i < itemsSize; i += variablesSize) {
-            Map<String, Object> values = new LinkedHashMap<>();
-            Scope bodyScope = new Scope(scope, new CascadingMap<>(scope, values));
-
-            for (int j = 0; j < variablesSize; j++) {
-                int k = i + j;
-
-                values.put(
-                    variables.get(j),
-                    k < itemsSize
-                        ? visit(items.get(k), scope)
-                        : null);
-            }
-
-            visitBody(node.getBody(), bodyScope);
-            scope.getKeyNodes().putAll(bodyScope.getKeyNodes());
+            throw new GyroException(String.format(
+                "Can't create a resource of @|bold %s|@ type using @|bold %s|@, an instance of @|bold %s|@!",
+                type,
+                value,
+                value.getClass().getName()));
         }
 
         return null;
     }
 
     @Override
-    public Object visitIf(IfNode node, Scope scope) {
-        List<Node> conditions = node.getConditions();
-        List<List<Node>> bodies = node.getBodies();
+    public Object visitBinary(BinaryNode node, Scope scope) {
+        String operator = node.getOperator();
+        BiFunction<Object, Object, Object> function = BINARY_FUNCTIONS.get(operator);
 
-        for (int i = 0; i < conditions.size(); i++) {
-            if (test(conditions.get(i), scope)) {
-                visitBody(bodies.get(i), scope);
+        if (function == null) {
+            throw new GyroException(String.format(
+                "@|bold %s|@ is not a valid binary operator!",
+                operator));
+        }
+
+        return function.apply(
+            visit(node.getLeft(), scope),
+            visit(node.getRight(), scope));
+    }
+
+    @Override
+    public Object visitIndexed(IndexedNode node, Scope context) {
+        Object value = visit(node.getValue(), context);
+
+        if (value == null) {
+            return null;
+        }
+
+        for (Node indexNode : node.getIndexes()) {
+            Object index = visit(indexNode, context);
+
+            if (index == null) {
+                return null;
+            }
+
+            value = getValue(value, index.toString());
+
+            if (value == null) {
                 return null;
             }
         }
 
-        if (bodies.size() > conditions.size()) {
-            visitBody(bodies.get(bodies.size() - 1), scope);
-        }
-
-        return null;
+        return value;
     }
 
     @Override
     public Object visitInterpolatedString(InterpolatedStringNode node, Scope scope) {
-        StringBuilder builder = new StringBuilder();
-
-        for (Object item : node.getItems()) {
-            if (item instanceof Node) {
-                item = visit((Node) item, scope);
-            }
-
-            if (item != null) {
-                builder.append(item);
-            }
-        }
-
-        return builder.toString();
+        return node.getItems()
+            .stream()
+            .map(i -> visit(i, scope))
+            .filter(Objects::nonNull)
+            .map(Object::toString)
+            .collect(Collectors.joining());
     }
 
     @Override
@@ -443,131 +457,139 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object> {
         Map<String, Object> map = new LinkedHashMap<>();
 
         for (PairNode entry : node.getEntries()) {
-            map.put(entry.getKey(), visit(entry, bodyScope));
+            map.put((String) visit(entry.getKey(), bodyScope), visit(entry, bodyScope));
         }
 
         return map;
     }
 
     @Override
-    public Object visitResourceReference(ResourceReferenceNode node, Scope scope) {
-        String type = node.getType();
-        Node nameNode = node.getName();
-        String path = node.getPath();
+    public Object visitReference(ReferenceNode node, Scope scope) {
+        List<Object> arguments = node.getArguments()
+            .stream()
+            .map(v -> visit(v, scope))
+            .collect(Collectors.toList());
 
-        if (nameNode != null) {
-            QueryEvaluator evaluator = new QueryEvaluator(this);
-            String name = (String) visit(nameNode, scope);
-            List<Resource> resources = new ArrayList<>();
-            List<Query> queries = null;
+        if (arguments.isEmpty()) {
+            return null;
+        }
 
-            if (name.startsWith("EXTERNAL/*")) {
-                Class<? extends Finder<Resource>> finderClass = scope.getRootScope()
-                    .getSettings(FinderSettings.class)
-                    .getFinderClasses()
-                    .get(type);
+        Object value = arguments.remove(0);
 
-                if (finderClass == null) {
-                    throw new GyroException("Resource type " + type + " does not support external queries.");
+        if (value == null) {
+            return null;
+        }
+
+        if (node.getArguments().get(0) instanceof ValueNode) {
+            RootScope root = scope.getRootScope();
+            String referenceName = (String) value;
+
+            ReferenceResolver resolver = root.getSettings(ReferenceSettings.class)
+                .getResolvers()
+                .get(referenceName);
+
+            if (resolver != null) {
+                try {
+                    return resolveFilters(node, scope, resolver.resolve(scope, arguments));
+
+                } catch (Exception error) {
+                    throw new GyroException(
+                        node,
+                        String.format("Can't resolve @|bold %s|@ reference!", referenceName),
+                        error);
                 }
 
-                Finder<Resource> finder = FinderType.getInstance(finderClass).newInstance(scope);
-                List<Query> nodeQueries = node.getQueries();
-                queries = new ArrayList<>();
+            } else if (referenceName.contains("::")) {
+                String resourceName = (String) arguments.remove(0);
 
-                if (!nodeQueries.isEmpty()) {
-                    Query optimized = evaluator.optimize(nodeQueries.get(0), finder, scope);
-                    resources = evaluator.visit(optimized, new QueryContext(type, scope, resources));
+                if (!arguments.isEmpty()) {
+                    throw new GyroException("Too many arguments trying to resolve a resource by name!");
+                }
 
-                    queries.add(optimized);
+                if (resourceName.endsWith("*")) {
+                    Stream<Resource> s = root.findResources()
+                        .stream()
+                        .filter(r -> referenceName.equals(DiffableType.getInstance(r.getClass()).getName()));
 
-                    if (resources.isEmpty()) {
-                        resources = finder.findAll();
+                    if (!resourceName.equals("*")) {
+                        String prefix = resourceName.substring(0, resourceName.length() - 1);
+                        s = s.filter(r -> r.name().startsWith(prefix));
                     }
 
+                    value = s.collect(Collectors.toList());
+
                 } else {
-                    nodeQueries.subList(1, nodeQueries.size()).forEach(queries::add);
-                }
+                    Resource resource = root.findResource(referenceName + "::" + resourceName);
 
-            } else if (name.endsWith("*")) {
-                RootScope rootScope = scope.getRootScope();
-
-                Stream<Resource> s = rootScope.findResources()
-                    .stream()
-                    .filter(r -> type.equals(DiffableType.getInstance(r.getClass()).getName()));
-
-                if (!name.equals("*")) {
-                    String prefix = name.substring(0, name.length() - 1);
-                    s = s.filter(r -> r.name().startsWith(prefix));
-                }
-
-                resources = s.collect(Collectors.toList());
-
-            } else {
-                String fullName = type + "::" + name;
-                Resource resource = scope.getRootScope().findResource(fullName);
-
-                if (resource == null) {
-                    throw new DeferError(node);
-                }
-
-                if (path != null) {
-                    if (DiffableType.getInstance(resource.getClass()).getFields().stream()
-                            .map(DiffableField::getName)
-                            .anyMatch(path::equals)) {
-
-                        return resource.get(path);
-
-                    } else {
-                        throw new GyroException(String.format("Unable to resolve resource reference %s %s%nAttribute '%s' is not allowed in %s.%n",
-                            node, node.getLocation(), path, type));
+                    if (resource == null) {
+                        throw new Defer(node, String.format(
+                            "Can't find @|bold %s|@ resource of @|bold %s|@ type!",
+                            resourceName,
+                            referenceName));
                     }
 
-                } else {
-                    return resource;
+                    value = resource;
+                }
+
+            } else {
+                boolean found = false;
+
+                for (Scope s = scope instanceof DiffableScope ? scope.getParent() : scope; s != null; s = s.getParent()) {
+                    if (s.containsKey(referenceName)) {
+                        Node valueNode = s.getValueNodes().get(referenceName);
+                        value = valueNode == null ? s.get(referenceName) : visit(valueNode, s);
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found) {
+                    throw new Defer(node, String.format(
+                        "Can't resolve @|bold %s|@!",
+                        referenceName));
                 }
             }
 
-            for (Query q : (queries != null ? queries : node.getQueries())) {
-                resources = evaluator.visit(q, new QueryContext(type, scope, resources));
+            if (value == null) {
+                return null;
             }
+        }
 
-            if (path != null) {
-                return resources.stream().map(r -> r.get(path)).collect(Collectors.toList());
-            } else {
-                return resources;
-            }
+        return resolveFilters(node, scope, value);
+    }
+
+    private Object resolveFilters(ReferenceNode node, Scope scope, Object value) {
+        if (value == null) {
+            return null;
+        }
+
+        List<Filter> filters = node.getFilters();
+
+        if (filters == null || filters.isEmpty()) {
+            return value;
+        }
+
+        FilterEvaluator evaluator = new FilterEvaluator();
+
+        if (value instanceof Collection) {
+            return ((Collection<?>) value).stream()
+                .filter(v -> filters.stream().allMatch(f -> evaluator.visit(f, new FilterContext(scope, v))))
+                .collect(Collectors.toList());
 
         } else {
-            Stream<Resource> s = scope.getRootScope()
-                    .findResources()
-                    .stream()
-                    .filter(r -> type.equals(DiffableType.getInstance(r.getClass()).getName()));
-
-            if (path != null) {
-                return s.map(r -> r.get(path))
-                        .collect(Collectors.toList());
-
-            } else {
-                return s.collect(Collectors.toList());
+            for (Filter f : filters) {
+                if (!evaluator.visit(f, new FilterContext(scope, value))) {
+                    return null;
+                }
             }
+
+            return value;
         }
     }
 
     @Override
     public Object visitValue(ValueNode node, Scope scope) {
         return node.getValue();
-    }
-
-    @Override
-    public Object visitValueReference(ValueReferenceNode node, Scope scope) {
-        try {
-            return scope.find(node.getPath());
-
-        } catch (ValueReferenceException vre) {
-            throw new GyroException(String.format("Unable to resolve value reference %s %s%n'%s' is not defined.%n",
-                node, node.getLocation(), vre.getKey()));
-        }
     }
 
 }

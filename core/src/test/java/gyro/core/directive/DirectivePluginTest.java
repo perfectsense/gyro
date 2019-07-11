@@ -2,6 +2,7 @@ package gyro.core.directive;
 
 import gyro.core.FileBackend;
 import gyro.core.resource.RootScope;
+import gyro.util.Bug;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.*;
@@ -10,7 +11,7 @@ import static org.mockito.Mockito.*;
 class DirectivePluginTest {
 
     @Test
-    void onEachClassNotDirectiveProcessor() throws IllegalAccessException, InstantiationException {
+    void onEachClassNotDirectiveProcessor() {
         RootScope root = mock(RootScope.class);
 
         new DirectivePlugin().onEachClass(root, getClass());
@@ -20,7 +21,7 @@ class DirectivePluginTest {
 
     @Test
     void onEachClassPrivateDirectiveProcessor() {
-        assertThatExceptionOfType(IllegalAccessException.class)
+        assertThatExceptionOfType(Bug.class)
             .isThrownBy(() -> new DirectivePlugin().onEachClass(
                 mock(RootScope.class),
                 PrivateDirectiveProcessor.class));
@@ -28,14 +29,14 @@ class DirectivePluginTest {
 
     @Test
     void onEachClassNoNullaryDirectiveProcessor() {
-        assertThatExceptionOfType(InstantiationException.class)
+        assertThatExceptionOfType(Bug.class)
             .isThrownBy(() -> new DirectivePlugin().onEachClass(
                 mock(RootScope.class),
                 NoNullaryDirectiveProcessor.class));
     }
 
     @Test
-    void onEachClass() throws IllegalAccessException, InstantiationException {
+    void onEachClass() {
         RootScope root = new RootScope("", mock(FileBackend.class), null, null);
 
         new DirectivePlugin().onEachClass(root, TestDirectiveProcessor.class);

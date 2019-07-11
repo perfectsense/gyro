@@ -1,6 +1,5 @@
 package gyro.core.resource;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -10,29 +9,11 @@ import java.util.Optional;
 
 import com.google.common.base.CaseFormat;
 import com.psddev.dari.util.ConversionException;
-import com.psddev.dari.util.Converter;
 import com.psddev.dari.util.ObjectUtils;
 import gyro.core.GyroException;
-import gyro.lang.ast.Node;
+import gyro.core.Reflections;
 
 public class DiffableField {
-
-    private static final Converter CONVERTER;
-
-    static {
-        CONVERTER = new Converter();
-        CONVERTER.setThrowError(true);
-        CONVERTER.putAllStandardFunctions();
-
-        CONVERTER.putDirectFunction(
-            Resource.class,
-            String.class,
-            (converter, returnType, resource) -> ObjectUtils.to(
-                String.class,
-                DiffableType.getInstance(resource.getClass())
-                    .getIdField()
-                    .getValue(resource)));
-    }
 
     private final String name;
     private final Method getter;
@@ -75,7 +56,9 @@ public class DiffableField {
                     .orElseThrow(UnsupportedOperationException::new);
 
         } else {
-            throw new UnsupportedOperationException();
+            throw new GyroException(String.format(
+                "@|bold %s|@ isn't supported as a field type!",
+                type.getTypeName()));
         }
     }
 
@@ -110,23 +93,12 @@ public class DiffableField {
     }
 
     public Object getValue(Diffable diffable) {
-        try {
-            return getter.invoke(diffable);
-
-        } catch (IllegalAccessException error) {
-            throw new IllegalStateException(error);
-
-        } catch (InvocationTargetException error) {
-            Throwable cause = error.getCause();
-
-            throw cause instanceof RuntimeException
-                    ? (RuntimeException) cause
-                    : new RuntimeException(cause);
-        }
+        return Reflections.invoke(getter, diffable);
     }
 
     public void setValue(Diffable diffable, Object value) {
         Scope scope = diffable.scope;
+        Type type = setter.getGenericParameterTypes()[0];
 
         try {
             if (value instanceof Collection
@@ -138,28 +110,15 @@ public class DiffableField {
                     .orElse(null);
             }
 
-            setter.invoke(diffable, scope.getRootScope().convertValue(setter.getGenericParameterTypes()[0], value));
-
-        } catch (IllegalAccessException error) {
-            throw new IllegalStateException(error);
-
-        } catch (InvocationTargetException error) {
-            Throwable cause = error.getCause();
-
-            throw cause instanceof RuntimeException
-                    ? (RuntimeException) cause
-                    : new RuntimeException(cause);
+            Reflections.invoke(setter, diffable, scope.getRootScope().convertValue(type, value));
 
         } catch (ConversionException error) {
-            Node node = scope.getKeyNodes().get(getName());
-
-            if (node != null) {
-                throw new GyroException(String.format("Type mismatch when setting field '%s' %s%n%s.%n",
-                    getName(), node.getLocation(), node));
-            }
-
-            throw new GyroException(String.format("Type mismatch when setting field '%s' with '%s'.",
-                getName(), value));
+            throw new GyroException(
+                scope.getKeyNodes().get(name),
+                String.format("Can't set @|bold %s|@ to @|bold %s|@ because it can't be converted to an instance of @|bold %s|@!",
+                    name,
+                    value,
+                    type.getTypeName()));
         }
     }
 

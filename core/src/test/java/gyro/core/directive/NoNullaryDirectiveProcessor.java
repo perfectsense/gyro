@@ -1,10 +1,9 @@
 package gyro.core.directive;
 
-import java.util.List;
-
 import gyro.core.resource.Scope;
+import gyro.lang.ast.block.DirectiveNode;
 
-public class NoNullaryDirectiveProcessor extends DirectiveProcessor {
+public class NoNullaryDirectiveProcessor extends DirectiveProcessor<Scope> {
 
     private final Object object;
 
@@ -18,7 +17,7 @@ public class NoNullaryDirectiveProcessor extends DirectiveProcessor {
     }
 
     @Override
-    public void process(Scope scope, List<Object> arguments) {
+    public void process(Scope scope, DirectiveNode node) {
     }
 
 }

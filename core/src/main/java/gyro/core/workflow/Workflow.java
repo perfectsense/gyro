@@ -1,60 +1,57 @@
 package gyro.core.workflow;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.base.Preconditions;
+import gyro.core.Abort;
+import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.resource.Diff;
-import gyro.core.resource.NodeEvaluator;
 import gyro.core.resource.Resource;
 import gyro.core.resource.RootScope;
 import gyro.core.resource.Scope;
 import gyro.core.resource.State;
-import gyro.lang.ast.Node;
-import gyro.lang.ast.block.ResourceNode;
+import gyro.util.ImmutableCollectors;
 
 public class Workflow {
 
-    private final RootScope rootScope;
+    private final String type;
     private final String name;
-    private final String forType;
-    private final List<Stage> stages = new ArrayList<>();
+    private final RootScope root;
+    private final List<Stage> stages;
 
-    public Workflow(Scope parent, ResourceNode node) {
-        rootScope = parent.getRootScope();
-        Scope scope = new Scope(parent);
-        NodeEvaluator evaluator = rootScope.getEvaluator();
+    public Workflow(String type, String name, Scope scope) {
+        this.type = Preconditions.checkNotNull(type);
+        this.name = Preconditions.checkNotNull(name);
+        this.root = Preconditions.checkNotNull(scope).getRootScope();
 
-        for (Node item : node.getBody()) {
-            if (item instanceof ResourceNode) {
-                ResourceNode rn = (ResourceNode) item;
+        @SuppressWarnings("unchecked")
+        List<Scope> stageScopes = (List<Scope>) scope.get("stage");
 
-                if (rn.getType().equals("stage")) {
-                    Stage stage = new Stage(scope, rn);
-
-                    stages.add(stage);
-                    continue;
-                }
-            }
-
-            evaluator.visit(item, scope);
+        if (stageScopes.isEmpty()) {
+            throw new GyroException("Workflow requires 1 or more stages!");
         }
 
-        name = (String) evaluator.visit(node.getName(), parent);
-        forType = (String) scope.get("for-type");
+        this.stages = stageScopes.stream()
+            .map(s -> new Stage(scope.getName(s), s))
+            .collect(ImmutableCollectors.toList());
+    }
+
+    public String getType() {
+        return type;
     }
 
     public String getName() {
         return name;
     }
 
-    public String getForType() {
-        return forType;
+    public List<Stage> getStages() {
+        return stages;
     }
 
-    private RootScope copyCurrentRootScope() throws Exception {
-        RootScope current = rootScope.getCurrent();
+    private RootScope copyCurrentRootScope() {
+        RootScope current = root.getCurrent();
         RootScope scope = new RootScope(
             current.getFile(),
             current.getBackend(),
@@ -70,16 +67,10 @@ public class Workflow {
             GyroUI ui,
             State state,
             Resource currentResource,
-            Resource pendingResource)
-            throws Exception {
-
-        int stagesSize = stages.size();
-
-        if (stagesSize == 0) {
-            throw new IllegalArgumentException("No stages!");
-        }
+            Resource pendingResource) {
 
         int stageIndex = 0;
+        int stagesSize = stages.size();
 
         do {
             Stage stage = stages.get(stageIndex);
@@ -116,9 +107,9 @@ public class Workflow {
                 }
 
                 if (stageIndex < 0) {
-                    throw new IllegalArgumentException(String.format(
-                            "No stage named [%s]!",
-                            stageName));
+                    throw new GyroException(String.format(
+                        "Can't transition to @|bold %s|@ stage because it doesn't exist!",
+                        stageName));
                 }
             }
 
@@ -127,10 +118,10 @@ public class Workflow {
         RootScope current = copyCurrentRootScope();
 
         RootScope pending = new RootScope(
-            rootScope.getFile(),
-            rootScope.getBackend(),
+            root.getFile(),
+            root.getBackend(),
             current,
-            rootScope.getLoadFiles());
+            root.getLoadFiles());
 
         pending.load();
 
@@ -150,7 +141,7 @@ public class Workflow {
                 diff.executeDelete(ui, state);
 
             } else {
-                throw new RuntimeException("Aborted!");
+                throw new Abort();
             }
         }
     }

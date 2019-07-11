@@ -2,12 +2,11 @@ package gyro.core.command;
 
 import java.util.List;
 
-import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.resource.RootScope;
-import gyro.core.resource.Scope;
+import gyro.lang.ast.block.DirectiveNode;
 
-public class HighlanderDirectiveProcessor extends DirectiveProcessor {
+public class HighlanderDirectiveProcessor extends DirectiveProcessor<RootScope> {
 
     @Override
     public String getName() {
@@ -15,16 +14,10 @@ public class HighlanderDirectiveProcessor extends DirectiveProcessor {
     }
 
     @Override
-    public void process(Scope scope, List<Object> arguments) throws Exception {
-        if (!(scope instanceof RootScope)) {
-            throw new GyroException("@highlander directive can only be used within the init.gyro file!");
-        }
+    public void process(RootScope scope, DirectiveNode node) {
+        List<Object> arguments = evaluateDirectiveArguments(scope, node, 1, 1);
 
-        if (!arguments.isEmpty()) {
-            throw new GyroException("@highlander takes no arguments!");
-        }
-
-        scope.getSettings(HighlanderSettings.class).setHighlander(true);
+        scope.getSettings(HighlanderSettings.class).setHighlander((boolean) arguments.get(0));
     }
 
 }

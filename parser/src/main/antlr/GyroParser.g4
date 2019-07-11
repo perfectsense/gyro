@@ -4,89 +4,43 @@ options { tokenVocab = GyroLexer; }
 
 file
     :
-    NEWLINES? statement?
-    (NEWLINES statement)*
-    NEWLINES? EOF
+    NEWLINE*  statement?
+    (NEWLINE+ statement)*
+    NEWLINE*  EOF
     ;
 
 statement
     : directive
-    | resource
-    | virtualResource
-    | forStatement
-    | ifStatement
+    | block
     | pair
     ;
 
 // directive
-directive : AT IDENTIFIER (directiveArgument (COMMA? directiveArgument)*)?;
-
-directiveArgument
-    : value
-    | resource
+directive
+    : AT IDENTIFIER COLON arguments
+    | AT IDENTIFIER arguments? option* NEWLINE+ body section* AT END
     ;
 
-// resource
-resource
-    :
-    resourceType resourceName? NEWLINES
-        blockBody
-    END
+arguments : value (COMMA? value)*;
+
+option: MINUS IDENTIFIER arguments?;
+
+body : (statement NEWLINE+)*;
+
+section: option NEWLINE+ body;
+
+// block
+block
+    : IDENTIFIER name? NEWLINE+ body END # KeyBlock
+    | type name NEWLINE+ body END        # Resource
     ;
 
-resourceType : IDENTIFIER (COLON COLON IDENTIFIER)*;
-resourceName : IDENTIFIER | string;
-blockBody : (blockStatement NEWLINES)*;
+type : IDENTIFIER COLON COLON IDENTIFIER;
 
-blockStatement
-    : directive
-    | resource
-    | forStatement
-    | ifStatement
-    | pair
-    ;
-
-// virtual resource
-virtualResource
-    :
-    VIRTUAL_RESOURCE resourceType NEWLINES
-        (PARAM virtualResourceParameter NEWLINES)*
-    DEFINE NEWLINES
-        blockBody
-    END
-    ;
-
-virtualResourceParameter : IDENTIFIER;
-
-// forStatement
-forVariable : IDENTIFIER;
-
-forStatement
-    :
-    FOR forVariable (COMMA forVariable)* IN (list | reference) NEWLINES
-        blockBody
-    END
-    ;
-
-// ifStatement
-ifStatement
-    :
-    IF condition NEWLINES
-        blockBody
-    (ELSE IF condition NEWLINES
-        blockBody)*
-    (ELSE NEWLINES
-        blockBody)?
-    END
-    ;
-
-comparisonOperator : EQ | NEQ;
-
-condition
-    : value                          # ValueCondition
-    | value comparisonOperator value # ComparisonCondition
-    | condition AND condition        # AndCondition
-    | condition OR condition         # OrCondition
+name
+    : IDENTIFIER
+    | reference
+    | string
     ;
 
 // pair
@@ -99,60 +53,107 @@ key
     ;
 
 value
-    : booleanValue
+    : and          # OneValue
+    | and OR value # TwoValue
+    ;
+
+and
+    : rel         # OneAnd
+    | rel AND and # TwoAnd
+    ;
+
+rel
+    : add           # OneRel
+    | add relOp rel # TwoRel
+    ;
+
+relOp
+    : EQ
+    | NE
+    | LT
+    | LE
+    | GT
+    | GE
+    ;
+
+add
+    : mul           # OneAdd
+    | mul addOp add # TwoAdd
+    ;
+
+addOp
+    : PLUS
+    | MINUS
+    ;
+
+mul
+    : mulItem           # OneMul
+    | mulItem mulOp mul # TwoMul
+    ;
+
+mulOp
+    : ASTERISK
+    | SLASH
+    | PERCENT
+    ;
+
+mulItem
+    : item                # OneMulItem
+    | item (DOT index)+   # IndexedMulItem
+    | LPAREN value RPAREN # GroupedMulItem
+    ;
+
+index
+    : IDENTIFIER
+    | ASTERISK
+    | NUMBERS
+    | string
+    ;
+
+item
+    : bool
     | list
     | map
     | number
     | reference
     | string
+    | type
+    | word
     ;
 
-booleanValue
+bool
     : TRUE
     | FALSE
     ;
 
 list
     :
-    LBRACKET NEWLINES?
-        (value (COMMA NEWLINES?
-        value)*       NEWLINES?)?
+    LBRACKET NEWLINE*
+        (value (COMMA NEWLINE*
+        value)*       NEWLINE*)?
     RBRACKET
     ;
 
 map
     :
-    LBRACE NEWLINES?
-        (pair (COMMA NEWLINES?
-        pair)*       NEWLINES?)?
+    LBRACE NEWLINE*
+        (pair (COMMA NEWLINE*
+        pair)*       NEWLINE*)?
     RBRACE
     ;
 
-number
-    : FLOAT
-    | INTEGER
-    ;
+number : MINUS? NUMBERS (DOT NUMBERS)?;
 
 reference
-    : LREF resourceType referenceName (PIPE query)* (PIPE path)? RREF # ResourceReference
-    | LREF path RREF                                                  # ValueReference
+    : DOLLAR LPAREN value* (BAR filter)* RPAREN
+    | DOLLAR IDENTIFIER
     ;
 
-referenceName
-    : GLOB
-    | IDENTIFIER SLASH GLOB
-    | IDENTIFIER GLOB
-    | path
-    | string
+filter
+    : IDENTIFIER relOp value # ComparisonFilter
+    | filter AND filter      # AndFilter
+    | filter OR filter       # OrFilter
     ;
-
-query
-    : path comparisonOperator value # ComparisonQuery
-    | query AND query               # AndQuery
-    | query OR query                # OrQuery
-    ;
-
-path : IDENTIFIER (DOT IDENTIFIER)*;
 
 string
     : STRING                       # LiteralString
@@ -160,6 +161,17 @@ string
     ;
 
 stringContent
-    : TEXT
-    | reference
+    : reference
+    | text
+    ;
+
+text
+    : DOLLAR
+    | LPAREN
+    | (IDENTIFIER | CHARACTER)+
+    ;
+
+word
+    : IDENTIFIER ASTERISK?
+    | ASTERISK
     ;

@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 
 import gyro.core.GyroUI;
 import gyro.core.workflow.Workflow;
+import gyro.core.workflow.WorkflowSettings;
 
 public class Replace extends Change {
 
@@ -23,13 +24,15 @@ public class Replace extends Change {
 
             this.workflow = pendingResource.scope
                 .getRootScope()
+                .getSettings(WorkflowSettings.class)
                 .getWorkflows()
                 .stream()
-                .filter(w -> w.getForType().equals(DiffableType.getInstance(pendingResource.getClass()).getName()))
+                .filter(w -> w.getType().equals(DiffableType.getInstance(pendingResource.getClass()).getName()))
                 .findFirst()
                 .orElse(null);
+
         } else {
-            workflow = null;
+            this.workflow = null;
         }
     }
 
@@ -84,7 +87,7 @@ public class Replace extends Change {
     }
 
     @Override
-    public boolean execute(GyroUI ui, State state) throws Exception {
+    public boolean execute(GyroUI ui, State state) {
         if (workflow == null) {
             return false;
         }
@@ -95,6 +98,7 @@ public class Replace extends Change {
 
         ui.write("\n@|magenta ~ Executing %s workflow|@", workflow.getName());
         workflow.execute(ui, state, (Resource) currentDiffable, (Resource) pendingDiffable);
+        state.update(this);
         return true;
     }
 

@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.psddev.dari.util.ObjectUtils;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.LocalFileBackend;
@@ -21,7 +20,6 @@ import gyro.core.resource.FileScope;
 import gyro.core.resource.Resource;
 import gyro.core.resource.RootScope;
 import gyro.core.resource.State;
-import gyro.lang.GyroLanguageException;
 import io.airlift.airline.Arguments;
 import io.airlift.airline.Option;
 
@@ -88,12 +86,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             null,
             loadFiles);
 
-        try {
-            current.load();
-
-        } catch (GyroLanguageException ex) {
-            throw new GyroException(ex.getMessage());
-        }
+        current.load();
 
         if (!test) {
             current.getSettings(CredentialsSettings.class)
@@ -113,20 +106,13 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             current,
             loadFiles);
 
-        try {
-            pending.load();
-
-        } catch (GyroLanguageException ex) {
-            throw new GyroException(ex.getMessage());
-        }
-
+        pending.load();
         doExecute(current, pending, new State(current, pending, test, diffFiles));
     }
 
     private String resolve(Path rootDir, String file) {
-        file = file.endsWith(".gyro")
-            ? rootDir.relativize(Paths.get("").toAbsolutePath().resolve(file)).normalize().toString()
-            : file + ".gyro";
+        file = file.endsWith(".gyro") ? file : file + ".gyro";
+        file = rootDir.relativize(Paths.get("").toAbsolutePath().resolve(file)).normalize().toString();
 
         if (Files.exists(rootDir.resolve(file))) {
             return file;

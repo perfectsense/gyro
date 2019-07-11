@@ -5,7 +5,6 @@ import com.google.common.collect.ImmutableList;
 import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.Node;
 import gyro.parser.antlr4.GyroParser;
-import gyro.util.ImmutableCollectors;
 
 import java.util.List;
 
@@ -14,15 +13,15 @@ public class ListNode extends Node {
     private final List<Node> items;
 
     public ListNode(List<Node> items) {
+        super(null);
+
         this.items = ImmutableList.copyOf(Preconditions.checkNotNull(items));
     }
 
     public ListNode(GyroParser.ListContext context) {
-        items = Preconditions.checkNotNull(context)
-            .value()
-            .stream()
-            .map(Node::create)
-            .collect(ImmutableCollectors.toList());
+        super(Preconditions.checkNotNull(context));
+
+        this.items = Node.create(context.value());
     }
 
     public List<Node> getItems() {
@@ -30,7 +29,7 @@ public class ListNode extends Node {
     }
 
     @Override
-    public <C, R> R accept(NodeVisitor<C, R> visitor, C context) {
+    public <C, R, X extends Throwable> R accept(NodeVisitor<C, R, X> visitor, C context) throws X {
         return visitor.visitList(this, context);
     }
 

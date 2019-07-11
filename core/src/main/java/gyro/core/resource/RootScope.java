@@ -1,13 +1,11 @@
 package gyro.core.resource;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -15,29 +13,35 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.psddev.dari.util.Converter;
-import com.psddev.dari.util.TypeDefinition;
 import gyro.core.FileBackend;
 import gyro.core.GyroException;
+import gyro.core.GyroInputStream;
+import gyro.core.GyroOutputStream;
+import gyro.core.Reflections;
 import gyro.core.auth.CredentialsDirectiveProcessor;
 import gyro.core.auth.CredentialsPlugin;
 import gyro.core.auth.UsesCredentialsDirectiveProcessor;
 import gyro.core.command.HighlanderDirectiveProcessor;
+import gyro.core.control.ForDirectiveProcessor;
+import gyro.core.control.IfDirectiveProcessor;
 import gyro.core.directive.DirectivePlugin;
 import gyro.core.directive.DirectiveSettings;
 import gyro.core.finder.FinderPlugin;
 import gyro.core.plugin.PluginDirectiveProcessor;
 import gyro.core.plugin.PluginSettings;
+import gyro.core.reference.FinderReferenceResolver;
+import gyro.core.reference.ReferencePlugin;
+import gyro.core.reference.ReferenceSettings;
 import gyro.core.repo.RepositoryDirectiveProcessor;
-import gyro.core.workflow.Workflow;
-import gyro.lang.GyroErrorListener;
-import gyro.lang.GyroErrorStrategy;
-import gyro.lang.GyroLanguageException;
+import gyro.core.virtual.VirtualDirectiveProcessor;
+import gyro.core.workflow.CreateDirectiveProcessor;
+import gyro.core.workflow.DeleteDirectiveProcessor;
+import gyro.core.workflow.ReplaceDirectiveProcessor;
+import gyro.core.workflow.UpdateDirectiveProcessor;
+import gyro.core.workflow.WorkflowDirectiveProcessor;
 import gyro.lang.ast.Node;
-import gyro.lang.ast.block.VirtualResourceNode;
-import gyro.parser.antlr4.GyroLexer;
 import gyro.parser.antlr4.GyroParser;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
+import gyro.util.Bug;
 
 public class RootScope extends FileScope {
 
@@ -46,9 +50,6 @@ public class RootScope extends FileScope {
     private final FileBackend backend;
     private final RootScope current;
     private final Set<String> loadFiles;
-    private final Map<String, Class<?>> resourceClasses = new HashMap<>();
-    private final Map<String, VirtualResourceNode> virtualResourceNodes = new LinkedHashMap<>();
-    private final List<Workflow> workflows = new ArrayList<>();
     private final List<FileScope> fileScopes = new ArrayList<>();
 
     @SuppressWarnings("unchecked")
@@ -80,7 +81,7 @@ public class RootScope extends FileScope {
         this.backend = backend;
         this.current = current;
 
-        try (Stream<String> s = backend.list()) {
+        try (Stream<String> s = list()) {
             this.loadFiles = (loadFiles != null ? s.filter(loadFiles::contains) : s).collect(Collectors.toSet());
         }
 
@@ -88,17 +89,30 @@ public class RootScope extends FileScope {
             new CredentialsPlugin(),
             new DirectivePlugin(),
             new FinderPlugin(),
+            new ReferencePlugin(),
             new ResourcePlugin())
             .forEach(p -> getSettings(PluginSettings.class).getPlugins().add(p));
 
         Stream.of(
+            new CreateDirectiveProcessor(),
             new CredentialsDirectiveProcessor(),
+            new DeleteDirectiveProcessor(),
             new ExtendsDirectiveProcessor(),
+            new ForDirectiveProcessor(),
+            new IfDirectiveProcessor(),
             new HighlanderDirectiveProcessor(),
+            new ReplaceDirectiveProcessor(),
             new RepositoryDirectiveProcessor(),
             new PluginDirectiveProcessor(),
-            new UsesCredentialsDirectiveProcessor())
+            new UpdateDirectiveProcessor(),
+            new UsesCredentialsDirectiveProcessor(),
+            new VirtualDirectiveProcessor(),
+            new WorkflowDirectiveProcessor())
             .forEach(p -> getSettings(DirectiveSettings.class).getProcessors().put(p.getName(), p));
+
+        Stream.of(
+            new FinderReferenceResolver())
+            .forEach(r -> getSettings(ReferenceSettings.class).getResolvers().put(r.getName(), r));
 
         put("ENV", System.getenv());
     }
@@ -119,20 +133,27 @@ public class RootScope extends FileScope {
         return loadFiles;
     }
 
-    public Map<String, Class<?>> getResourceClasses() {
-        return resourceClasses;
-    }
-
-    public Map<String, VirtualResourceNode> getVirtualResourceNodes() {
-        return virtualResourceNodes;
-    }
-
-    public List<Workflow> getWorkflows() {
-        return workflows;
-    }
-
     public List<FileScope> getFileScopes() {
         return fileScopes;
+    }
+
+    public Stream<String> list() {
+        try {
+            return backend.list();
+
+        } catch (Exception error) {
+            throw new GyroException(
+                String.format("Can't list files in @|bold %s|@!", backend),
+                error);
+        }
+    }
+
+    public GyroInputStream openInput(String file) {
+        return new GyroInputStream(backend, file);
+    }
+
+    public OutputStream openOutput(String file) {
+        return new GyroOutputStream(backend, file);
     }
 
     public Object convertValue(Type returnType, Object object) {
@@ -145,12 +166,14 @@ public class RootScope extends FileScope {
 
     public List<Resource> findResourcesIn(Set<String> diffFiles) {
         Stream<Resource> stream = Stream.concat(Stream.of(this), getFileScopes().stream())
-            .map(Map::values)
+            .map(Map::entrySet)
             .flatMap(Collection::stream)
-            .filter(Resource.class::isInstance)
+            .filter(e -> e.getValue() instanceof Resource)
+            .filter(e -> ((Resource) e.getValue()).primaryKey().equals(e.getKey()))
+            .map(Entry::getValue)
             .map(Resource.class::cast);
 
-        if (diffFiles != null && diffFiles.isEmpty()) {
+        if (diffFiles != null && !diffFiles.isEmpty()) {
             stream = stream.filter(r -> diffFiles.contains(r.scope.getFileScope().getFile()));
         }
 
@@ -180,7 +203,7 @@ public class RootScope extends FileScope {
             .filter(r -> id.equals(idField.getValue(r)))
             .findFirst()
             .orElseGet(() -> {
-                T r = TypeDefinition.getInstance(resourceClass).newInstance();
+                T r = Reflections.newInstance(resourceClass);
                 r.external = true;
                 r.scope = new DiffableScope(this);
                 idField.setValue(r, id);
@@ -188,47 +211,27 @@ public class RootScope extends FileScope {
             });
     }
 
-    public void load() throws Exception {
-        try (InputStream input = backend.openInput(getFile())) {
-            evaluator.visit(parse(input, getFile()), this);
+    public void load() {
+        try (GyroInputStream input = openInput(getFile())) {
+            evaluator.visit(Node.parse(input, getFile(), GyroParser::file), this);
+
+        } catch (IOException error) {
+            throw new Bug(error);
         }
 
         List<Node> nodes = new ArrayList<>();
 
         for (String file : loadFiles) {
-            try (InputStream inputStream = backend.openInput(file)) {
-                nodes.add(parse(inputStream, file));
+            try (GyroInputStream input = openInput(file)) {
+                nodes.add(Node.parse(input, file, GyroParser::file));
+
+            } catch (IOException error) {
+                throw new Bug(error);
             }
         }
 
-        try {
-            evaluator.visitBody(nodes, this);
-
-        } catch (DeferError e) {
-            throw new GyroException(e.getMessage());
-        }
-
+        evaluator.visitBody(nodes, this);
         validate();
-    }
-
-    private Node parse(InputStream inputStream, String file) throws IOException {
-        GyroLexer lexer = new GyroLexer(CharStreams.fromReader(new InputStreamReader(inputStream), file));
-        CommonTokenStream stream = new CommonTokenStream(lexer);
-        GyroParser parser = new GyroParser(stream);
-        GyroErrorListener errorListener = new GyroErrorListener();
-
-        parser.removeErrorListeners();
-        parser.addErrorListener(errorListener);
-        parser.setErrorHandler(new GyroErrorStrategy());
-
-        GyroParser.FileContext fileContext = parser.file();
-
-        int errorCount = errorListener.getSyntaxErrors();
-        if (errorCount > 0) {
-            throw new GyroLanguageException(String.format("%d %s found while parsing.", errorCount, errorCount == 1 ? "error" : "errors"));
-        }
-
-        return Node.create(fileContext);
     }
 
     private void validate() {

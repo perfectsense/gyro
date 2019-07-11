@@ -1,6 +1,5 @@
 package gyro.core.finder;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -10,6 +9,8 @@ import java.util.Optional;
 
 import com.google.common.base.CaseFormat;
 import com.psddev.dari.util.Converter;
+import gyro.core.GyroException;
+import gyro.core.Reflections;
 
 public class FinderField {
 
@@ -54,7 +55,9 @@ public class FinderField {
                     .orElseThrow(UnsupportedOperationException::new);
 
         } else {
-            throw new UnsupportedOperationException();
+            throw new GyroException(String.format(
+                "@|bold %s|@ isn't supported as a field type!",
+                type.getTypeName()));
         }
     }
 
@@ -74,45 +77,21 @@ public class FinderField {
         return filterName;
     }
 
-    public Object getValue(Finder query) {
-        try {
-            return getter.invoke(query);
-
-        } catch (IllegalAccessException error) {
-            throw new IllegalStateException(error);
-
-        } catch (InvocationTargetException error) {
-            Throwable cause = error.getCause();
-
-            throw cause instanceof RuntimeException
-                    ? (RuntimeException) cause
-                    : new RuntimeException(cause);
-        }
+    public Object getValue(Finder finder) {
+        return Reflections.invoke(getter, finder);
     }
 
-    public void setValue(Finder query, Object value) {
-        try {
-            if (value instanceof Collection
-                    && !Collection.class.isAssignableFrom(setter.getParameterTypes()[0])) {
+    public void setValue(Finder finder, Object value) {
+        if (value instanceof Collection
+                && !Collection.class.isAssignableFrom(setter.getParameterTypes()[0])) {
 
-                value = ((Collection<?>) value).stream()
-                    .filter(Objects::nonNull)
-                    .findFirst()
-                    .orElse(null);
-            }
-
-            setter.invoke(query, CONVERTER.convert(setter.getGenericParameterTypes()[0], value));
-
-        } catch (IllegalAccessException error) {
-            throw new IllegalStateException(error);
-
-        } catch (InvocationTargetException error) {
-            Throwable cause = error.getCause();
-
-            throw cause instanceof RuntimeException
-                    ? (RuntimeException) cause
-                    : new RuntimeException(cause);
+            value = ((Collection<?>) value).stream()
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
         }
+
+        Reflections.invoke(setter, finder, CONVERTER.convert(setter.getGenericParameterTypes()[0], value));
     }
 
 }

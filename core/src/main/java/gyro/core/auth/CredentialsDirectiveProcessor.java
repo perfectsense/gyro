@@ -1,18 +1,17 @@
 package gyro.core.auth;
 
-import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
 import java.util.List;
-import java.util.Map;
 
 import com.google.common.base.CaseFormat;
-import gyro.core.GyroException;
+import gyro.core.Reflections;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.resource.RootScope;
 import gyro.core.resource.Scope;
+import gyro.lang.ast.block.DirectiveNode;
 
-public class CredentialsDirectiveProcessor extends DirectiveProcessor {
+public class CredentialsDirectiveProcessor extends DirectiveProcessor<RootScope> {
 
     @Override
     public String getName() {
@@ -20,44 +19,24 @@ public class CredentialsDirectiveProcessor extends DirectiveProcessor {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public void process(Scope scope, List<Object> arguments) throws Exception {
-        if (!(scope instanceof RootScope)) {
-            throw new GyroException("@credentials directive can only be used within the init.gyro file!");
-        }
-
-        int argumentsSize = arguments.size();
-
-        if (argumentsSize < 2 || argumentsSize > 3) {
-            throw new GyroException("@credentials directive only takes 2 or 3 arguments!");
-        }
-
+    public void process(RootScope scope, DirectiveNode node) {
+        List<Object> arguments = evaluateDirectiveArguments(scope, node, 1, 2);
         String type = (String) arguments.get(0);
-        String name;
-        Map<String, Object> values;
+        String name = arguments.size() == 1 ? "default" : (String) arguments.get(1);
+        Scope bodyScope = evaluateBody(scope, node);
 
-        if (argumentsSize == 2) {
-            name = "default";
-            values = (Map<String, Object>) arguments.get(1);
-
-        } else {
-            name = (String) arguments.get(1);
-            values = (Map<String, Object>) arguments.get(2);
-        }
-
-        RootScope root = (RootScope) scope;
-        CredentialsSettings settings = root.getSettings(CredentialsSettings.class);
+        CredentialsSettings settings = scope.getSettings(CredentialsSettings.class);
         Class<? extends Credentials> credentialsClass = settings.getCredentialsClasses().get(type);
-        Credentials credentials = credentialsClass.newInstance();
+        Credentials credentials = Reflections.newInstance(credentialsClass);
         credentials.scope = scope;
 
-        for (PropertyDescriptor property : Introspector.getBeanInfo(credentialsClass).getPropertyDescriptors()) {
+        for (PropertyDescriptor property : Reflections.getBeanInfo(credentialsClass).getPropertyDescriptors()) {
             Method setter = property.getWriteMethod();
 
             if (setter != null) {
-                setter.invoke(credentials, root.convertValue(
+                Reflections.invoke(setter, credentials, scope.convertValue(
                     setter.getGenericParameterTypes()[0],
-                    values.get(CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, property.getName()))));
+                    bodyScope.get(CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, property.getName()))));
             }
         }
 

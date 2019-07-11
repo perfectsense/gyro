@@ -2,34 +2,29 @@ lexer grammar GyroLexer;
 
 // directive
 AT    : '@';
-DOT   : '.';
-SLASH : '/';
-
-// resource
-END : 'end';
-
-// virtual resource
-VIRTUAL_RESOURCE : 'virtual-resource';
-PARAM            : 'param';
-DEFINE           : 'define';
-
-// forStatement
-FOR   : 'for';
-COMMA : ',';
-IN    : 'in';
-
-// ifStatement
-IF   : 'if';
-ELSE : 'else';
-EQ   : '=';
-NEQ  : '!=';
-AND  : 'and';
-OR   : 'or';
-
-// pair
 COLON : ':';
+COMMA : ',';
+MINUS : '-';
+END   : 'end';
 
-// booleanValue
+// value
+ASTERISK : '*';
+SLASH    : '/';
+PERCENT  : '%';
+PLUS     : '+';
+EQ       : '=';
+NE       : '!=';
+LT       : '<';
+LE       : '<=';
+GT       : '>';
+GE       : '>=';
+AND      : 'and';
+OR       : 'or';
+DOT      : '.';
+LPAREN   : '(' -> pushMode(DEFAULT_MODE);
+RPAREN   : ')' -> popMode;
+
+// bool
 TRUE  : 'true';
 FALSE : 'false';
 
@@ -42,29 +37,27 @@ LBRACE : '{';
 RBRACE : '}';
 
 // number
-FLOAT   : '-'? ([0-9] [_0-9]* '.' [_0-9]* | '.' [_0-9]+);
-INTEGER : '-'? [0-9] [_0-9]*;
+NUMBERS : [0-9] [_0-9]*;
 
 // reference
-LREF : '$(' -> pushMode(DEFAULT_MODE);
-RREF : ')' -> popMode;
-GLOB : '*';
-PIPE : '|';
+DOLLAR : '$';
+BAR    : '|';
 
 // string
 STRING : '\'' ~('\'')* '\'';
 DQUOTE : '"' -> pushMode(STRING_MODE);
 
-KEYWORD     : PARAM | DEFINE | IN | AND | OR;
+KEYWORD     : AND | OR;
 WHITESPACES : [ \t]+ -> channel(HIDDEN);
-COMMENT     : '#' ~[\n\r]* NEWLINES -> channel(HIDDEN);
-NEWLINES    : [\n\r][ \t\n\r]*;
-IDENTIFIER  : [_A-Za-z] [-_0-9A-Za-z]*;
+NEWLINE     : [\n\r];
+COMMENT     : '#' ~[\n\r]* -> channel(HIDDEN);
+IDENTIFIER  : [A-Z_a-z] [-/0-9A-Z_a-z]*;
 
 mode STRING_MODE;
 
-TEXT     : ~[$("]+;
-S_LREF   : '$(' -> type(LREF), pushMode(DEFAULT_MODE);
-S_DOLLAR : '$' -> type(TEXT);
-S_LPAREN : '(' -> type(TEXT);
-S_DQUOTE : '"' -> type(DQUOTE), popMode;
+S_DOLLAR     : [$\\] -> type(DOLLAR);
+S_LPAREN     : '(' -> type(LPAREN), pushMode(DEFAULT_MODE);
+S_IDENTIFIER : [A-Z_a-z] [-/0-9A-Z_a-z]* -> type(IDENTIFIER);
+S_DQUOTE     : '"' -> type(DQUOTE), popMode;
+S_NEWLINE    : [\n\r] -> type(NEWLINE);
+CHARACTER    : .;

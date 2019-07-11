@@ -1,7 +1,7 @@
 package gyro.lang.ast.block;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 import com.google.common.base.Preconditions;
 import gyro.lang.ast.NodeVisitor;
@@ -11,29 +11,32 @@ import gyro.parser.antlr4.GyroParser;
 public class KeyBlockNode extends BlockNode {
 
     private final String key;
+    private final Node name;
 
-    public KeyBlockNode(String key, List<Node> body) {
-        super(body);
+    public KeyBlockNode(String key, Node name, List<Node> body) {
+        super(null, body);
 
         this.key = Preconditions.checkNotNull(key);
+        this.name = name;
     }
 
-    public KeyBlockNode(GyroParser.ResourceContext context) {
-        this(
-            Preconditions.checkNotNull(context).resourceType().getText(),
-            context.blockBody()
-                .blockStatement()
-                .stream()
-                .map(c -> Node.create(c.getChild(0)))
-                .collect(Collectors.toList()));
+    public KeyBlockNode(GyroParser.KeyBlockContext context) {
+        super(Preconditions.checkNotNull(context), Node.create(context.body()));
+
+        this.key = context.IDENTIFIER().getText();
+        this.name = Optional.ofNullable(context.name()).map(Node::create).orElse(null);
     }
 
     public String getKey() {
         return key;
     }
 
+    public Node getName() {
+        return name;
+    }
+
     @Override
-    public <C, R> R accept(NodeVisitor<C, R> visitor, C context) {
+    public <C, R, X extends Throwable> R accept(NodeVisitor<C, R, X> visitor, C context) throws X {
         return visitor.visitKeyBlock(this, context);
     }
 

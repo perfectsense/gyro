@@ -47,9 +47,13 @@ public class Create extends Change {
 
         if (state.isTest()) {
             resource.testCreate();
+            state.update(this);
 
         } else {
             resource.create();
+            state.update(this);
+            resource.afterCreate();
+            state.update(this);
         }
 
         return true;
