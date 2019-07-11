@@ -308,7 +308,6 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Object visitResource(ResourceNode node, Scope scope) {
         DiffableScope bodyScope = new DiffableScope(scope);
 
@@ -321,8 +320,10 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         String fullName = type + "::" + name;
         RootScope rootScope = scope.getRootScope();
 
-        Collection<String> cf = (Collection<String>) Optional.ofNullable(bodyScope.get("_configured-fields")).orElseGet(bodyScope::getAddedKeys);
-        Collection<String> pendingConfiguredFields = ImmutableSet.copyOf(cf);
+        @SuppressWarnings("unchecked")
+        Collection<String> pendingConfiguredFields = ImmutableSet.copyOf(
+            Optional.ofNullable((Collection<String>) bodyScope.get("_configured-fields"))
+                .orElseGet(bodyScope::getAddedKeys));
 
         // Initialize the bodyScope with the resource values from the current
         // state scope.
