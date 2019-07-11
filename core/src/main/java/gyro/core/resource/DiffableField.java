@@ -45,9 +45,9 @@ public class DiffableField {
             this.itemClass = (Class<?>) type;
 
         } else if (type instanceof ParameterizedType) {
-            Type rawType = ((ParameterizedType) type).getRawType();
-            this.collection = Collection.class.isAssignableFrom((Class<?>) rawType);
-            this.itemClass = Optional.of((ParameterizedType) type)
+            ParameterizedType parameterizedType = (ParameterizedType) type;
+            this.collection = Collection.class.isAssignableFrom((Class<?>) parameterizedType.getRawType());
+            this.itemClass = Optional.of(parameterizedType)
                     .map(ParameterizedType::getActualTypeArguments)
                     .filter(args -> args.length > 0)
                     .map(args -> args[0])
