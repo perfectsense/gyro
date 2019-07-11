@@ -35,6 +35,7 @@ public class DiffableField {
         if (output != null) {
             this.testValue = !ObjectUtils.isBlank(output.value()) ? output.value() : name;
             this.testValueRandomSuffix = output.randomSuffix();
+
         } else {
             this.testValue = null;
             this.testValueRandomSuffix = false;
@@ -48,12 +49,12 @@ public class DiffableField {
             ParameterizedType parameterizedType = (ParameterizedType) type;
             this.collection = Collection.class.isAssignableFrom((Class<?>) parameterizedType.getRawType());
             this.itemClass = Optional.of(parameterizedType)
-                    .map(ParameterizedType::getActualTypeArguments)
-                    .filter(args -> args.length > 0)
-                    .map(args -> args[0])
-                    .filter(a0 -> a0 instanceof Class)
-                    .map(Class.class::cast)
-                    .orElseThrow(UnsupportedOperationException::new);
+                .map(ParameterizedType::getActualTypeArguments)
+                .filter(args -> args.length > 0)
+                .map(args -> args[0])
+                .filter(a0 -> a0 instanceof Class)
+                .map(Class.class::cast)
+                .orElseThrow(UnsupportedOperationException::new);
 
         } else {
             throw new GyroException(String.format(

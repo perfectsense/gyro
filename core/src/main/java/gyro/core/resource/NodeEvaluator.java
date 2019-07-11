@@ -327,25 +327,25 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         // Initialize the bodyScope with the resource values from the current
         // state scope.
         Optional.ofNullable(rootScope.getCurrent())
-                .map(s -> s.findResource(fullName))
-                .ifPresent(r -> {
-                    Set<String> currentConfiguredFields = r.configuredFields != null
-                        ? r.configuredFields
-                        : ImmutableSet.of();
+            .map(s -> s.findResource(fullName))
+            .ifPresent(r -> {
+                Set<String> currentConfiguredFields = r.configuredFields != null
+                    ? r.configuredFields
+                    : ImmutableSet.of();
 
-                    for (DiffableField f : DiffableType.getInstance(r.getClass()).getFields()) {
-                        String key = f.getName();
+                for (DiffableField f : DiffableType.getInstance(r.getClass()).getFields()) {
+                    String key = f.getName();
 
-                        // Skip over fields that were previously configured
-                        // so that their removals can be detected by the
-                        // diff system.
-                        if (currentConfiguredFields.contains(key) || pendingConfiguredFields.contains(key)) {
-                            continue;
-                        }
-
-                        bodyScope.put(key, f.getValue(r));
+                    // Skip over fields that were previously configured
+                    // so that their removals can be detected by the
+                    // diff system.
+                    if (currentConfiguredFields.contains(key) || pendingConfiguredFields.contains(key)) {
+                        continue;
                     }
-                });
+
+                    bodyScope.put(key, f.getValue(r));
+                }
+            });
 
 
         Object value = rootScope.get(type);

@@ -103,6 +103,7 @@ public class Diff {
     private Change newUpdate(Diffable currentDiffable, Diffable pendingDiffable) {
         List<Diff> diffs = new ArrayList<>();
         DiffableType<? extends Diffable> type = DiffableType.getInstance(currentDiffable.getClass());
+
         Set<String> currentConfiguredFields = currentDiffable.configuredFields != null
             ? currentDiffable.configuredFields
             : ImmutableSet.of();
@@ -117,6 +118,7 @@ public class Diff {
             }
 
             String name = field.getName();
+
             if (!currentConfiguredFields.contains(name) && !pendingConfiguredFields.contains(name)) {
                 continue;
             }
