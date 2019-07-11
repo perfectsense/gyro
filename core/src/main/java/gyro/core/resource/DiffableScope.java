@@ -1,6 +1,8 @@
 package gyro.core.resource;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -8,10 +10,20 @@ import gyro.lang.ast.Node;
 
 public class DiffableScope extends Scope {
 
+    private List<Node> stateNodes = new ArrayList<>();
+
     private boolean extended;
 
     public DiffableScope(Scope parent) {
         super(parent);
+    }
+
+    public List<Node> getStateNodes() {
+        return stateNodes;
+    }
+
+    public void setStateNodes(List<Node> stateNodes) {
+        this.stateNodes = stateNodes;
     }
 
     public boolean isExtended() {
