@@ -16,7 +16,8 @@ public class UsesCredentialsDirectiveProcessor extends DirectiveProcessor<Diffab
     @Override
     public void process(DiffableScope scope, DirectiveNode node) {
         List<Object> arguments = evaluateDirectiveArguments(scope, node, 1, 1);
-
+        
+        scope.getStateNodes().add(node);
         scope.getSettings(CredentialsSettings.class).setUseCredentials((String) arguments.get(0));
     }
 
