@@ -21,8 +21,8 @@ public class DiffableField {
     private final boolean updatable;
     private final String testValue;
     private final boolean testValueRandomSuffix;
-    private final Class<?> itemClass;
     private final boolean collection;
+    private final Class<?> itemClass;
 
     protected DiffableField(String javaName, Method getter, Method setter, Type type) {
         this.name = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, javaName);
@@ -41,8 +41,8 @@ public class DiffableField {
         }
 
         if (type instanceof Class) {
-            this.itemClass = (Class<?>) type;
             this.collection = false;
+            this.itemClass = (Class<?>) type;
 
         } else if (type instanceof ParameterizedType) {
             Type rawType = ((ParameterizedType) type).getRawType();
@@ -70,10 +70,6 @@ public class DiffableField {
         return updatable;
     }
 
-    public Class<?> getItemClass() {
-        return itemClass;
-    }
-
     public String getTestValue() {
         return testValue;
     }
@@ -84,6 +80,10 @@ public class DiffableField {
 
     public boolean isCollection() {
         return collection;
+    }
+
+    public Class<?> getItemClass() {
+        return itemClass;
     }
 
     @SuppressWarnings("unchecked")
