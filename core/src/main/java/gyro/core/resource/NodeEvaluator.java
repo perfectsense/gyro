@@ -310,15 +310,16 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
     @Override
     @SuppressWarnings("unchecked")
     public Object visitResource(ResourceNode node, Scope scope) {
-        String name = (String) visit(node.getName(), scope);
-        String type = node.getType();
-        String fullName = type + "::" + name;
-        RootScope rootScope = scope.getRootScope();
         DiffableScope bodyScope = new DiffableScope(scope);
 
         for (Node item : node.getBody()) {
             visit(item, bodyScope);
         }
+
+        String name = (String) visit(node.getName(), scope);
+        String type = node.getType();
+        String fullName = type + "::" + name;
+        RootScope rootScope = scope.getRootScope();
 
         @SuppressWarnings("unchecked")
         Collection<String> cf = (Collection<String>) bodyScope.get("_configured-fields");
