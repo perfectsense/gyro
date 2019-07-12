@@ -44,8 +44,6 @@ public class Gyro {
 
     static {
         Reflections.log = null;
-        reflections = new Reflections(new org.reflections.util.ConfigurationBuilder()
-            .setUrls(ClasspathHelper.forPackage("gyro")));
     }
 
     public static void main(String[] arguments) {
@@ -186,6 +184,11 @@ public class Gyro {
     }
 
     public static Reflections getReflections() {
+        if (reflections == null) {
+            reflections = new Reflections(new org.reflections.util.ConfigurationBuilder()
+                .setUrls(ClasspathHelper.forPackage("gyro")));
+        }
+
         return reflections;
     }
 
