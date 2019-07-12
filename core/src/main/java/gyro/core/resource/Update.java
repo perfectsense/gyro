@@ -48,7 +48,7 @@ public class Update extends Change {
     }
 
     @Override
-    public boolean execute(GyroUI ui, State state) {
+    public ExecutionResult execute(GyroUI ui, State state) {
         if (state.isTest()) {
             state.update(this);
 
@@ -66,7 +66,7 @@ public class Update extends Change {
             state.update(this);
         }
 
-        return true;
+        return ExecutionResult.OK;
     }
 
 }

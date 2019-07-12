@@ -26,8 +26,8 @@ public class Keep extends Change {
     }
 
     @Override
-    public boolean execute(GyroUI ui, State state) {
-        return true;
+    public ExecutionResult execute(GyroUI ui, State state) {
+        return null;
     }
 
 }

@@ -377,11 +377,10 @@ public class Diff {
                 change.writeExecution(ui);
             }
 
-            if (change.execute(ui, state)) {
-                ui.write(ui.isVerbose() ? "\n@|bold,green OK|@\n\n" : " @|bold,green OK|@\n");
+            ExecutionResult result = change.execute(ui, state);
 
-            } else {
-                ui.write(ui.isVerbose() ? "\n@|bold,yellow SKIPPED|@\n\n" : " @|bold,yellow SKIPPED|@\n");
+            if (result != null) {
+                result.write(ui);
             }
         }
     }

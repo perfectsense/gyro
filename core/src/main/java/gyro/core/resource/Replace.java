@@ -87,9 +87,9 @@ public class Replace extends Change {
     }
 
     @Override
-    public boolean execute(GyroUI ui, State state) {
+    public ExecutionResult execute(GyroUI ui, State state) {
         if (workflow == null) {
-            return false;
+            return ExecutionResult.SKIPPED;
         }
 
         if (ui.isVerbose()) {
@@ -99,7 +99,7 @@ public class Replace extends Change {
         ui.write("\n@|magenta ~ Executing %s workflow|@", workflow.getName());
         workflow.execute(ui, state, (Resource) currentDiffable, (Resource) pendingDiffable);
         state.update(this);
-        return true;
+        return ExecutionResult.OK;
     }
 
 }
