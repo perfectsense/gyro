@@ -22,11 +22,11 @@ public class Keep extends Change {
 
     @Override
     public void writeExecution(GyroUI ui) {
-        ui.write("= Keeping %s", diffable.toDisplayString());
     }
 
     @Override
     public ExecutionResult execute(GyroUI ui, State state) {
+        state.update(this);
         return null;
     }
 

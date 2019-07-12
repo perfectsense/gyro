@@ -320,19 +320,19 @@ public class Diff {
     }
 
     public void execute(GyroUI ui, State state) {
-        executeCreateOrUpdate(ui, state);
+        executeCreateKeepUpdate(ui, state);
         executeReplace(ui, state);
         executeDelete(ui, state);
     }
 
-    private void executeCreateOrUpdate(GyroUI ui, State state) {
+    private void executeCreateKeepUpdate(GyroUI ui, State state) {
         for (Change change : getChanges()) {
-            if (change instanceof Create || change instanceof Update) {
+            if (change instanceof Create || change instanceof Keep || change instanceof Update) {
                 executeChange(ui, state, change);
             }
 
             for (Diff d : change.getDiffs()) {
-                d.executeCreateOrUpdate(ui, state);
+                d.executeCreateKeepUpdate(ui, state);
             }
         }
     }
