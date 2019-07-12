@@ -29,9 +29,7 @@ public class UpCommand extends AbstractConfigCommand {
         if (diff.write(ui)) {
             if (ui.readBoolean(Boolean.FALSE, "\nAre you sure you want to change resources?")) {
                 ui.write("\n");
-                diff.executeCreateOrUpdate(ui, state);
-                diff.executeReplace(ui, state);
-                diff.executeDelete(ui, state);
+                diff.execute(ui, state);
             }
 
         } else {

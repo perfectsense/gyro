@@ -136,9 +136,7 @@ public class Workflow {
         if (diff.write(ui)) {
             if (ui.readBoolean(Boolean.TRUE, "\nFinalize %s workflow?", name)) {
                 ui.write("\n");
-                diff.executeCreateOrUpdate(ui, state);
-                diff.executeReplace(ui, state);
-                diff.executeDelete(ui, state);
+                diff.execute(ui, state);
 
             } else {
                 throw new Abort();

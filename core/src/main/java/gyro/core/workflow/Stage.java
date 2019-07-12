@@ -95,9 +95,7 @@ public class Stage {
             }
         }
 
-        diff.executeCreateOrUpdate(ui, state);
-        diff.executeReplace(ui, state);
-        diff.executeDelete(ui, state);
+        diff.execute(ui, state);
 
         if (transitions.isEmpty()) {
             return null;

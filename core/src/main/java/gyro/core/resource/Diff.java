@@ -319,10 +319,16 @@ public class Diff {
         return written;
     }
 
-    public void executeCreateOrUpdate(GyroUI ui, State state) {
+    public void execute(GyroUI ui, State state) {
+        executeCreateOrUpdate(ui, state);
+        executeReplace(ui, state);
+        executeDelete(ui, state);
+    }
+
+    private void executeCreateOrUpdate(GyroUI ui, State state) {
         for (Change change : getChanges()) {
             if (change instanceof Create || change instanceof Update) {
-                execute(ui, state, change);
+                executeChange(ui, state, change);
             }
 
             for (Diff d : change.getDiffs()) {
@@ -331,10 +337,10 @@ public class Diff {
         }
     }
 
-    public void executeReplace(GyroUI ui, State state) {
+    private void executeReplace(GyroUI ui, State state) {
         for (Change change : getChanges()) {
             if (change instanceof Replace) {
-                execute(ui, state, change);
+                executeChange(ui, state, change);
             }
 
             for (Diff d : change.getDiffs()) {
@@ -343,7 +349,7 @@ public class Diff {
         }
     }
 
-    public void executeDelete(GyroUI ui, State state) {
+    private void executeDelete(GyroUI ui, State state) {
         for (ListIterator<Change> j = getChanges().listIterator(getChanges().size()); j.hasPrevious(); ) {
             Change change = j.previous();
 
@@ -352,12 +358,12 @@ public class Diff {
             }
 
             if (change instanceof Delete) {
-                execute(ui, state, change);
+                executeChange(ui, state, change);
             }
         }
     }
 
-    private void execute(GyroUI ui, State state, Change change) {
+    private void executeChange(GyroUI ui, State state, Change change) {
         Diffable diffable = change.getDiffable();
 
         if (!(diffable instanceof Resource)) {
