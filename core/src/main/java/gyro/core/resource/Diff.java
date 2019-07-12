@@ -110,8 +110,22 @@ public class Diff {
         List<Diff> diffs = new ArrayList<>();
         DiffableType<? extends Diffable> type = DiffableType.getInstance(currentDiffable.getClass());
 
+        Set<String> currentConfiguredFields = currentDiffable.configuredFields != null
+            ? currentDiffable.configuredFields
+            : ImmutableSet.of();
+
+        Set<String> pendingConfiguredFields = pendingDiffable.configuredFields != null
+            ? pendingDiffable.configuredFields
+            : ImmutableSet.of();
+
         for (DiffableField field : type.getFields()) {
             if (!field.shouldBeDiffed()) {
+                continue;
+            }
+
+            String name = field.getName();
+
+            if (!currentConfiguredFields.contains(name) && !pendingConfiguredFields.contains(name)) {
                 continue;
             }
 
@@ -119,7 +133,7 @@ public class Diff {
             Object pendingValue = field.getValue(pendingDiffable);
             Diff diff;
 
-            if (pendingValue instanceof Collection) {
+            if (field.isCollection()) {
                 diff = new Diff((Collection<Diffable>) currentValue, (Collection<Diffable>) pendingValue);
 
             } else if (currentValue != null) {
@@ -179,6 +193,10 @@ public class Diff {
             ? currentDiffable.configuredFields
             : ImmutableSet.of();
 
+        Set<String> pendingConfiguredFields = pendingDiffable.configuredFields != null
+            ? pendingDiffable.configuredFields
+            : ImmutableSet.of();
+
         Set<DiffableField> changedFields = new LinkedHashSet<>();
 
         for (DiffableField field : DiffableType.getInstance(currentDiffable.getClass()).getFields()) {
@@ -188,20 +206,20 @@ public class Diff {
                 continue;
             }
 
+            String name = field.getName();
+
+            // Skip if there isn't a pending value and the field wasn't
+            // previously configured. This means that a field was
+            // automatically populated in code so we should keep it as is.
+            if (!currentConfiguredFields.contains(name) && !pendingConfiguredFields.contains(name)) {
+                continue;
+            }
+
             Object currentValue = field.getValue(currentDiffable);
             Object pendingValue = field.getValue(pendingDiffable);
 
             // Skip if the value didn't change.
             if (Objects.equals(currentValue, pendingValue)) {
-                continue;
-            }
-
-            String key = field.getName();
-
-            // Skip if there isn't a pending value and the field wasn't
-            // previously configured. This means that a field was
-            // automatically populated in code so we should keep it as is.
-            if (pendingValue == null && !currentConfiguredFields.contains(key)) {
                 continue;
             }
 
@@ -307,22 +325,28 @@ public class Diff {
         return written;
     }
 
-    public void executeCreateOrUpdate(GyroUI ui, State state) {
+    public void execute(GyroUI ui, State state) {
+        executeCreateKeepUpdate(ui, state);
+        executeReplace(ui, state);
+        executeDelete(ui, state);
+    }
+
+    private void executeCreateKeepUpdate(GyroUI ui, State state) {
         for (Change change : getChanges()) {
-            if (change instanceof Create || change instanceof Update) {
-                execute(ui, state, change);
+            if (change instanceof Create || change instanceof Keep || change instanceof Update) {
+                executeChange(ui, state, change);
             }
 
             for (Diff d : change.getDiffs()) {
-                d.executeCreateOrUpdate(ui, state);
+                d.executeCreateKeepUpdate(ui, state);
             }
         }
     }
 
-    public void executeReplace(GyroUI ui, State state) {
+    private void executeReplace(GyroUI ui, State state) {
         for (Change change : getChanges()) {
             if (change instanceof Replace) {
-                execute(ui, state, change);
+                executeChange(ui, state, change);
             }
 
             for (Diff d : change.getDiffs()) {
@@ -331,7 +355,7 @@ public class Diff {
         }
     }
 
-    public void executeDelete(GyroUI ui, State state) {
+    private void executeDelete(GyroUI ui, State state) {
         for (ListIterator<Change> j = getChanges().listIterator(getChanges().size()); j.hasPrevious(); ) {
             Change change = j.previous();
 
@@ -340,12 +364,12 @@ public class Diff {
             }
 
             if (change instanceof Delete) {
-                execute(ui, state, change);
+                executeChange(ui, state, change);
             }
         }
     }
 
-    private void execute(GyroUI ui, State state, Change change) {
+    private void executeChange(GyroUI ui, State state, Change change) {
         Diffable diffable = change.getDiffable();
 
         if (!(diffable instanceof Resource)) {
@@ -359,11 +383,10 @@ public class Diff {
                 change.writeExecution(ui);
             }
 
-            if (change.execute(ui, state)) {
-                ui.write(ui.isVerbose() ? "\n@|bold,green OK|@\n\n" : " @|bold,green OK|@\n");
+            ExecutionResult result = change.execute(ui, state);
 
-            } else {
-                ui.write(ui.isVerbose() ? "\n@|bold,yellow SKIPPED|@\n\n" : " @|bold,yellow SKIPPED|@\n");
+            if (result != null) {
+                result.write(ui);
             }
         }
     }

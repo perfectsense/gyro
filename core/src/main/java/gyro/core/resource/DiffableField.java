@@ -21,6 +21,7 @@ public class DiffableField {
     private final boolean updatable;
     private final String testValue;
     private final boolean testValueRandomSuffix;
+    private final boolean collection;
     private final Class<?> itemClass;
 
     protected DiffableField(String javaName, Method getter, Method setter, Type type) {
@@ -34,22 +35,26 @@ public class DiffableField {
         if (output != null) {
             this.testValue = !ObjectUtils.isBlank(output.value()) ? output.value() : name;
             this.testValueRandomSuffix = output.randomSuffix();
+
         } else {
             this.testValue = null;
             this.testValueRandomSuffix = false;
         }
 
         if (type instanceof Class) {
+            this.collection = false;
             this.itemClass = (Class<?>) type;
 
         } else if (type instanceof ParameterizedType) {
-            this.itemClass = Optional.of((ParameterizedType) type)
-                    .map(ParameterizedType::getActualTypeArguments)
-                    .filter(args -> args.length > 0)
-                    .map(args -> args[0])
-                    .filter(a0 -> a0 instanceof Class)
-                    .map(Class.class::cast)
-                    .orElseThrow(UnsupportedOperationException::new);
+            ParameterizedType parameterizedType = (ParameterizedType) type;
+            this.collection = Collection.class.isAssignableFrom((Class<?>) parameterizedType.getRawType());
+            this.itemClass = Optional.of(parameterizedType)
+                .map(ParameterizedType::getActualTypeArguments)
+                .filter(args -> args.length > 0)
+                .map(args -> args[0])
+                .filter(a0 -> a0 instanceof Class)
+                .map(Class.class::cast)
+                .orElseThrow(UnsupportedOperationException::new);
 
         } else {
             throw new GyroException(String.format(
@@ -66,16 +71,20 @@ public class DiffableField {
         return updatable;
     }
 
-    public Class<?> getItemClass() {
-        return itemClass;
-    }
-
     public String getTestValue() {
         return testValue;
     }
 
     public boolean isTestValueRandomSuffix() {
         return testValueRandomSuffix;
+    }
+
+    public boolean isCollection() {
+        return collection;
+    }
+
+    public Class<?> getItemClass() {
+        return itemClass;
     }
 
     @SuppressWarnings("unchecked")

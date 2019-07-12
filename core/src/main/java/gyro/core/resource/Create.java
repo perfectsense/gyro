@@ -42,7 +42,7 @@ public class Create extends Change {
     }
 
     @Override
-    public boolean execute(GyroUI ui, State state) {
+    public ExecutionResult execute(GyroUI ui, State state) {
         Resource resource = (Resource) diffable;
 
         if (state.isTest()) {
@@ -56,7 +56,7 @@ public class Create extends Change {
             state.update(this);
         }
 
-        return true;
+        return ExecutionResult.OK;
     }
 
 }

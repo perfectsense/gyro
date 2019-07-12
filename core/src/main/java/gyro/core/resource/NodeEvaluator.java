@@ -308,47 +308,46 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Object visitResource(ResourceNode node, Scope scope) {
-        String name = (String) visit(node.getName(), scope);
-        String type = node.getType();
-        String fullName = type + "::" + name;
-        RootScope rootScope = scope.getRootScope();
         DiffableScope bodyScope = new DiffableScope(scope);
-
-        // Initialize the bodyScope with the resource values from the current
-        // state scope.
-        Optional.ofNullable(rootScope.getCurrent())
-                .map(s -> s.findResource(fullName))
-                .ifPresent(r -> {
-                    Set<String> configuredFields = r.configuredFields != null
-                        ? r.configuredFields
-                        : ImmutableSet.of();
-
-                    for (DiffableField f : DiffableType.getInstance(r.getClass()).getFields()) {
-
-                        // Don't copy nested diffables since they're handled
-                        // by the diff system.
-                        if (f.shouldBeDiffed()) {
-                            continue;
-                        }
-
-                        String key = f.getName();
-
-                        // Skip over fields that were previously configured
-                        // so that their removals can be detected by the
-                        // diff system.
-                        if (configuredFields.contains(key)) {
-                            continue;
-                        }
-
-                        bodyScope.put(key, f.getValue(r));
-                    }
-                });
 
         for (Node item : node.getBody()) {
             visit(item, bodyScope);
         }
+
+        String name = (String) visit(node.getName(), scope);
+        String type = node.getType();
+        String fullName = type + "::" + name;
+        RootScope rootScope = scope.getRootScope();
+
+        @SuppressWarnings("unchecked")
+        Collection<String> pendingConfiguredFields = ImmutableSet.copyOf(
+            Optional.ofNullable((Collection<String>) bodyScope.get("_configured-fields"))
+                .orElseGet(bodyScope::getAddedKeys));
+
+        // Initialize the bodyScope with the resource values from the current
+        // state scope.
+        Optional.ofNullable(rootScope.getCurrent())
+            .map(s -> s.findResource(fullName))
+            .ifPresent(r -> {
+                Set<String> currentConfiguredFields = r.configuredFields != null
+                    ? r.configuredFields
+                    : ImmutableSet.of();
+
+                for (DiffableField f : DiffableType.getInstance(r.getClass()).getFields()) {
+                    String key = f.getName();
+
+                    // Skip over fields that were previously configured
+                    // so that their removals can be detected by the
+                    // diff system.
+                    if (currentConfiguredFields.contains(key) || pendingConfiguredFields.contains(key)) {
+                        continue;
+                    }
+
+                    bodyScope.put(key, f.getValue(r));
+                }
+            });
+
 
         Object value = rootScope.get(type);
 
