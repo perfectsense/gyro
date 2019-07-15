@@ -20,6 +20,14 @@ public final class DiffableInternals {
         diffable.scope = scope;
     }
 
+    public static Change getChange(Diffable diffable) {
+        return diffable.change;
+    }
+
+    public static void setChange(Diffable diffable, Change change) {
+        diffable.change = change;
+    }
+
     public static void update(Diffable diffable, boolean newScope) {
         if (newScope) {
             diffable.scope = new DiffableScope(diffable.scope.getParent());

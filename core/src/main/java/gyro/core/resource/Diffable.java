@@ -41,10 +41,6 @@ public abstract class Diffable {
         return name;
     }
 
-    public Change change() {
-        return change;
-    }
-
     public <T extends Resource> Stream<T> findByClass(Class<T> resourceClass) {
         return scope.getRootScope().findResourcesByClass(resourceClass);
     }
