@@ -60,6 +60,7 @@ public class Update extends Change {
             Resource pendingResource = (Resource) pendingDiffable;
 
             pendingResource.update(
+                state,
                 (Resource) currentDiffable,
                 changedFields.stream()
                     .map(DiffableField::getName)

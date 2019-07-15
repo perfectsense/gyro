@@ -5,12 +5,13 @@ import java.util.Set;
 import java.util.UUID;
 
 import gyro.core.auth.Credentials;
+import gyro.core.scope.State;
 
 public abstract class Resource extends Diffable {
 
     public abstract boolean refresh();
 
-    public abstract void create();
+    public abstract void create(State state);
 
     public void afterCreate() {
     }
@@ -30,12 +31,12 @@ public abstract class Resource extends Diffable {
         }
     }
 
-    public abstract void update(Resource current, Set<String> changedFieldNames);
+    public abstract void update(State state, Resource current, Set<String> changedFieldNames);
 
     public void afterUpdate() {
     }
 
-    public abstract void delete();
+    public abstract void delete(State state);
 
     public void afterDelete() {
     }

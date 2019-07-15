@@ -36,7 +36,7 @@ public class Delete extends Change {
         } else {
             Resource resource = (Resource) diffable;
 
-            resource.delete();
+            resource.delete(state);
             state.update(this);
             resource.afterDelete();
             state.update(this);

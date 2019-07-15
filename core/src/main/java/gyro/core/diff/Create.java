@@ -55,7 +55,7 @@ public class Create extends Change {
             state.update(this);
 
         } else {
-            resource.create();
+            resource.create(state);
             state.update(this);
             resource.afterCreate();
             state.update(this);
