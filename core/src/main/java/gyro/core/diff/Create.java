@@ -53,7 +53,7 @@ public class Create extends Change {
         state.update(this);
 
         if (state.isTest()) {
-            resource.testCreate();
+            resource.testCreate(ui, state);
 
         } else {
             resource.create(ui, state);

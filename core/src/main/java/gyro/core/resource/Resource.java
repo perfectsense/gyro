@@ -14,7 +14,7 @@ public abstract class Resource extends Diffable {
 
     public abstract void create(GyroUI ui, State state);
 
-    public void testCreate() {
+    public void testCreate(GyroUI ui, State state) {
         for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
             if (field.getTestValue() != null) {
                 String value = "test-" + field.getTestValue();
