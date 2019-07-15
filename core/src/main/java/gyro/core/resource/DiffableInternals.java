@@ -1,7 +1,10 @@
 package gyro.core.resource;
 
 import java.util.Collection;
+import java.util.Set;
 import java.util.stream.Stream;
+
+import com.google.common.collect.ImmutableSet;
 
 public final class DiffableInternals {
 
@@ -18,6 +21,10 @@ public final class DiffableInternals {
 
     public static void setScope(Diffable diffable, DiffableScope scope) {
         diffable.scope = scope;
+    }
+
+    public static Set<String> getConfiguredFields(Diffable diffable) {
+        return diffable != null ? diffable.configuredFields : ImmutableSet.of();
     }
 
     public static Change getChange(Diffable diffable) {

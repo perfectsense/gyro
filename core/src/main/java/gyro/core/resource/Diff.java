@@ -109,14 +109,8 @@ public class Diff {
     private Change newUpdate(Diffable currentDiffable, Diffable pendingDiffable) {
         List<Diff> diffs = new ArrayList<>();
         DiffableType<? extends Diffable> type = DiffableType.getInstance(currentDiffable.getClass());
-
-        Set<String> currentConfiguredFields = currentDiffable.configuredFields != null
-            ? currentDiffable.configuredFields
-            : ImmutableSet.of();
-
-        Set<String> pendingConfiguredFields = pendingDiffable.configuredFields != null
-            ? pendingDiffable.configuredFields
-            : ImmutableSet.of();
+        Set<String> currentConfiguredFields = DiffableInternals.getConfiguredFields(currentDiffable);
+        Set<String> pendingConfiguredFields = DiffableInternals.getConfiguredFields(pendingDiffable);
 
         for (DiffableField field : type.getFields()) {
             if (!field.shouldBeDiffed()) {
@@ -189,14 +183,8 @@ public class Diff {
     }
 
     private Set<DiffableField> diffFields(Diffable currentDiffable, Diffable pendingDiffable) {
-        Set<String> currentConfiguredFields = currentDiffable.configuredFields != null
-            ? currentDiffable.configuredFields
-            : ImmutableSet.of();
-
-        Set<String> pendingConfiguredFields = pendingDiffable.configuredFields != null
-            ? pendingDiffable.configuredFields
-            : ImmutableSet.of();
-
+        Set<String> currentConfiguredFields = DiffableInternals.getConfiguredFields(currentDiffable);
+        Set<String> pendingConfiguredFields = DiffableInternals.getConfiguredFields(pendingDiffable);
         Set<DiffableField> changedFields = new LinkedHashSet<>();
 
         for (DiffableField field : DiffableType.getInstance(currentDiffable.getClass()).getFields()) {

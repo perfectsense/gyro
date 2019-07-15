@@ -330,9 +330,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         Optional.ofNullable(rootScope.getCurrent())
             .map(s -> s.findResource(fullName))
             .ifPresent(r -> {
-                Set<String> currentConfiguredFields = r.configuredFields != null
-                    ? r.configuredFields
-                    : ImmutableSet.of();
+                Set<String> currentConfiguredFields = DiffableInternals.getConfiguredFields(r);
 
                 for (DiffableField f : DiffableType.getInstance(r.getClass()).getFields()) {
                     String key = f.getName();

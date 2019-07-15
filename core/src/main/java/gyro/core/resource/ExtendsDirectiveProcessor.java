@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.ImmutableSet;
 import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.lang.ast.block.DirectiveNode;
@@ -31,11 +30,7 @@ public class ExtendsDirectiveProcessor extends DirectiveProcessor<DiffableScope>
 
         } else if (source instanceof Resource) {
             Resource resource = (Resource) source;
-            Set<String> configuredFields = resource.configuredFields;
-
-            if (configuredFields == null) {
-                configuredFields = ImmutableSet.of();
-            }
+            Set<String> configuredFields = DiffableInternals.getConfiguredFields(resource);
 
             for (DiffableField field : DiffableType.getInstance(resource.getClass()).getFields()) {
                 String name = field.getName();
