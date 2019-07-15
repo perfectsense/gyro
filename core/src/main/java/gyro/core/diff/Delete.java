@@ -30,16 +30,10 @@ public class Delete extends Change {
 
     @Override
     public ExecutionResult execute(GyroUI ui, State state) {
-        if (state.isTest()) {
-            state.update(this);
+        state.update(this);
 
-        } else {
-            Resource resource = (Resource) diffable;
-
-            resource.delete(state);
-            state.update(this);
-            resource.afterDelete();
-            state.update(this);
+        if (!state.isTest()) {
+            ((Resource) diffable).delete(state);
         }
 
         return ExecutionResult.OK;

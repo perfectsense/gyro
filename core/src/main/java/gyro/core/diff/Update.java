@@ -53,22 +53,15 @@ public class Update extends Change {
 
     @Override
     public ExecutionResult execute(GyroUI ui, State state) {
-        if (state.isTest()) {
-            state.update(this);
+        state.update(this);
 
-        } else {
-            Resource pendingResource = (Resource) pendingDiffable;
-
-            pendingResource.update(
+        if (!state.isTest()) {
+            ((Resource) pendingDiffable).update(
                 state,
                 (Resource) currentDiffable,
                 changedFields.stream()
                     .map(DiffableField::getName)
                     .collect(Collectors.toSet()));
-
-            state.update(this);
-            pendingResource.afterUpdate();
-            state.update(this);
         }
 
         return ExecutionResult.OK;

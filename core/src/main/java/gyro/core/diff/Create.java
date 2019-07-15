@@ -50,15 +50,13 @@ public class Create extends Change {
     public ExecutionResult execute(GyroUI ui, State state) {
         Resource resource = (Resource) diffable;
 
+        state.update(this);
+
         if (state.isTest()) {
             resource.testCreate();
-            state.update(this);
 
         } else {
             resource.create(state);
-            state.update(this);
-            resource.afterCreate();
-            state.update(this);
         }
 
         return ExecutionResult.OK;

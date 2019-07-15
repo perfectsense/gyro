@@ -380,6 +380,7 @@ public class Diff {
             ExecutionResult result = change.execute(ui, state);
 
             if (result != null) {
+                state.save();
                 result.write(ui);
             }
         }

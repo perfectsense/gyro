@@ -13,9 +13,6 @@ public abstract class Resource extends Diffable {
 
     public abstract void create(State state);
 
-    public void afterCreate() {
-    }
-
     public void testCreate() {
         for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
             if (field.getTestValue() != null) {
@@ -33,13 +30,7 @@ public abstract class Resource extends Diffable {
 
     public abstract void update(State state, Resource current, Set<String> changedFieldNames);
 
-    public void afterUpdate() {
-    }
-
     public abstract void delete(State state);
-
-    public void afterDelete() {
-    }
 
     @SuppressWarnings("unchecked")
     public <C extends Credentials> C credentials(Class<C> credentialsClass) {

@@ -120,8 +120,6 @@ public class State {
                 updateSubresource((Resource) state.get(newKeys.getOrDefault(key, key)), resource, false);
             }
         }
-
-        save();
     }
 
     private void updateSubresource(Resource parent, Resource subresource, boolean delete) {
@@ -163,7 +161,7 @@ public class State {
         }
     }
 
-    private void save() {
+    public void save() {
         NodePrinter printer = new NodePrinter();
 
         for (FileScope state : states.values()) {
