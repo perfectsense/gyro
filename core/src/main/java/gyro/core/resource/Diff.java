@@ -394,7 +394,7 @@ public class Diff {
     private void resolve(Object object) {
         if (object instanceof Diffable) {
             Diffable diffable = (Diffable) object;
-            DiffableScope scope = diffable.scope;
+            DiffableScope scope = DiffableInternals.getScope(diffable);
 
             if (scope != null) {
                 diffable.initialize(scope.resolve());

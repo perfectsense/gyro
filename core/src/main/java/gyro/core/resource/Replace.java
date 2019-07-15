@@ -22,7 +22,7 @@ public class Replace extends Change {
         if (pendingDiffable instanceof Resource) {
             Resource pendingResource = (Resource) pendingDiffable;
 
-            this.workflow = pendingResource.scope
+            this.workflow = DiffableInternals.getScope(pendingResource)
                 .getRootScope()
                 .getSettings(WorkflowSettings.class)
                 .getWorkflows()

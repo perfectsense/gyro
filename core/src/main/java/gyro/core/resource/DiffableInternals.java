@@ -12,9 +12,17 @@ public final class DiffableInternals {
         diffable.name = name;
     }
 
+    public static DiffableScope getScope(Diffable diffable) {
+        return diffable.scope;
+    }
+
+    public static void setScope(Diffable diffable, DiffableScope scope) {
+        diffable.scope = scope;
+    }
+
     public static void update(Diffable diffable, boolean newScope) {
         if (newScope) {
-            diffable.scope = new DiffableScope(diffable.scope().getParent());
+            diffable.scope = new DiffableScope(diffable.scope.getParent());
         }
 
         updateChildren(diffable, newScope);
@@ -31,7 +39,7 @@ public final class DiffableInternals {
                     .map(Diffable.class::cast)
                     .forEach(d -> {
                         if (newScope) {
-                            d.scope = new DiffableScope(diffable.scope());
+                            d.scope = new DiffableScope(diffable.scope);
                         }
 
                         d.parent = diffable;

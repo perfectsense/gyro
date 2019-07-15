@@ -174,7 +174,7 @@ public class RootScope extends FileScope {
             .map(Resource.class::cast);
 
         if (diffFiles != null && !diffFiles.isEmpty()) {
-            stream = stream.filter(r -> diffFiles.contains(r.scope.getFileScope().getFile()));
+            stream = stream.filter(r -> diffFiles.contains(DiffableInternals.getScope(r).getFileScope().getFile()));
         }
 
         return stream.collect(Collectors.toList());
@@ -205,7 +205,7 @@ public class RootScope extends FileScope {
             .orElseGet(() -> {
                 T r = Reflections.newInstance(resourceClass);
                 r.external = true;
-                r.scope = new DiffableScope(this);
+                DiffableInternals.setScope(r, new DiffableScope(this));
                 idField.setValue(r, id);
                 return r;
             });
@@ -245,7 +245,7 @@ public class RootScope extends FileScope {
         for (Resource resource : findResources()) {
             String fullName = resource.primaryKey();
             duplicateResources.putIfAbsent(fullName, new ArrayList<>());
-            duplicateResources.get(fullName).add(resource.scope.getFileScope().getFile());
+            duplicateResources.get(fullName).add(DiffableInternals.getScope(resource).getFileScope().getFile());
         }
 
         for (Map.Entry<String, List<String>> entry : duplicateResources.entrySet()) {

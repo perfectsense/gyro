@@ -41,10 +41,6 @@ public abstract class Diffable {
         return name;
     }
 
-    public DiffableScope scope() {
-        return scope;
-    }
-
     public Change change() {
         return change;
     }

@@ -101,7 +101,7 @@ public class State {
             }
 
         } else {
-            FileScope state = states.get(resource.scope.getFileScope().getFile());
+            FileScope state = states.get(DiffableInternals.getScope(resource).getFileScope().getFile());
 
             if (typeRoot) {
                 String key = resource.primaryKey();
@@ -195,7 +195,7 @@ public class State {
             body.add(toPairNode("_configured-fields", configuredFields));
         }
 
-        body.addAll(diffable.scope().getStateNodes());
+        body.addAll(DiffableInternals.getScope(diffable).getStateNodes());
 
         for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
             Object value = field.getValue(diffable);
