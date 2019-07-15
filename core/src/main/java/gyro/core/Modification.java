@@ -20,17 +20,17 @@ public abstract class Modification extends Resource {
     }
 
     @Override
-    public void create(State state) {
+    public void create(GyroUI ui, State state) {
 
     }
 
     @Override
-    public void update(State state, Resource current, Set<String> changedFieldNames) {
+    public void update(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) {
 
     }
 
     @Override
-    public void delete(State state) {
+    public void delete(GyroUI ui, State state) {
 
     }
 

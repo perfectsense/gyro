@@ -4,6 +4,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import gyro.core.GyroUI;
 import gyro.core.auth.Credentials;
 import gyro.core.scope.State;
 
@@ -11,7 +12,7 @@ public abstract class Resource extends Diffable {
 
     public abstract boolean refresh();
 
-    public abstract void create(State state);
+    public abstract void create(GyroUI ui, State state);
 
     public void testCreate() {
         for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
@@ -28,9 +29,9 @@ public abstract class Resource extends Diffable {
         }
     }
 
-    public abstract void update(State state, Resource current, Set<String> changedFieldNames);
+    public abstract void update(GyroUI ui, State state, Resource current, Set<String> changedFieldNames);
 
-    public abstract void delete(State state);
+    public abstract void delete(GyroUI ui, State state);
 
     @SuppressWarnings("unchecked")
     public <C extends Credentials> C credentials(Class<C> credentialsClass) {

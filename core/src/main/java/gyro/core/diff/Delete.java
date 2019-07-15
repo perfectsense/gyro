@@ -33,7 +33,7 @@ public class Delete extends Change {
         state.update(this);
 
         if (!state.isTest()) {
-            ((Resource) diffable).delete(state);
+            ((Resource) diffable).delete(ui, state);
         }
 
         return ExecutionResult.OK;

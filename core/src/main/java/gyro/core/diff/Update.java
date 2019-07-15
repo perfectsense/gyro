@@ -57,6 +57,7 @@ public class Update extends Change {
 
         if (!state.isTest()) {
             ((Resource) pendingDiffable).update(
+                ui,
                 state,
                 (Resource) currentDiffable,
                 changedFields.stream()
