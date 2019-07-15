@@ -18,6 +18,9 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
 import gyro.core.GyroException;
+import gyro.core.diff.Change;
+import gyro.core.diff.Delete;
+import gyro.core.diff.Replace;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.NodePrinter;
 import gyro.lang.ast.PairNode;

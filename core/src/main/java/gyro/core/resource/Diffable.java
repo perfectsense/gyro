@@ -13,6 +13,7 @@ import com.google.common.collect.ImmutableSet;
 import gyro.core.GyroException;
 import gyro.core.GyroInputStream;
 import gyro.core.GyroUI;
+import gyro.core.diff.Change;
 
 public abstract class Diffable {
 

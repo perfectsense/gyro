@@ -4,7 +4,7 @@ import java.util.Set;
 
 import gyro.core.GyroCore;
 import gyro.core.GyroUI;
-import gyro.core.resource.Diff;
+import gyro.core.diff.Diff;
 import gyro.core.resource.RootScope;
 import gyro.core.resource.State;
 import io.airlift.airline.Command;

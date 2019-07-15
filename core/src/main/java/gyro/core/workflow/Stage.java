@@ -10,7 +10,7 @@ import com.google.common.collect.ImmutableList;
 import gyro.core.Abort;
 import gyro.core.GyroUI;
 import gyro.core.resource.Defer;
-import gyro.core.resource.Diff;
+import gyro.core.diff.Diff;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableScope;
 import gyro.core.resource.FileScope;

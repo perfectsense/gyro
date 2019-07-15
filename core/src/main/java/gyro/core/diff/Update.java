@@ -1,9 +1,13 @@
-package gyro.core.resource;
+package gyro.core.diff;
 
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import gyro.core.GyroUI;
+import gyro.core.resource.Diffable;
+import gyro.core.resource.DiffableField;
+import gyro.core.resource.Resource;
+import gyro.core.resource.State;
 
 public class Update extends Change {
 

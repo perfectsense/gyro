@@ -1,4 +1,4 @@
-package gyro.core.resource;
+package gyro.core.diff;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -12,6 +12,9 @@ import java.util.stream.Collectors;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 import gyro.core.GyroUI;
+import gyro.core.resource.Diffable;
+import gyro.core.resource.DiffableField;
+import gyro.core.resource.State;
 
 public abstract class Change {
 

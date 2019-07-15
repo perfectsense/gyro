@@ -5,6 +5,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableSet;
+import gyro.core.diff.Change;
 
 public final class DiffableInternals {
 

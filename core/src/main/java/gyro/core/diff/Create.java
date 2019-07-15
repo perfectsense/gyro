@@ -1,6 +1,11 @@
-package gyro.core.resource;
+package gyro.core.diff;
 
 import gyro.core.GyroUI;
+import gyro.core.resource.Diffable;
+import gyro.core.resource.DiffableField;
+import gyro.core.resource.DiffableType;
+import gyro.core.resource.Resource;
+import gyro.core.resource.State;
 
 public class Create extends Change {
 

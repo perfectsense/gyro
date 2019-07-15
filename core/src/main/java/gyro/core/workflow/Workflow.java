@@ -7,7 +7,7 @@ import com.google.common.base.Preconditions;
 import gyro.core.Abort;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
-import gyro.core.resource.Diff;
+import gyro.core.diff.Diff;
 import gyro.core.resource.Resource;
 import gyro.core.resource.RootScope;
 import gyro.core.resource.Scope;
