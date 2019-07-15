@@ -1,5 +1,6 @@
 package gyro.core.diff;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -93,7 +94,7 @@ public class Replace extends Change {
     }
 
     @Override
-    public ExecutionResult execute(GyroUI ui, State state) {
+    public ExecutionResult execute(GyroUI ui, State state, List<ChangeProcessor> processors) {
         if (workflow == null) {
             return ExecutionResult.SKIPPED;
         }

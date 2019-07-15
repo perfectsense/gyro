@@ -24,6 +24,7 @@ import gyro.core.auth.UsesCredentialsDirectiveProcessor;
 import gyro.core.command.HighlanderDirectiveProcessor;
 import gyro.core.control.ForDirectiveProcessor;
 import gyro.core.control.IfDirectiveProcessor;
+import gyro.core.diff.ChangePlugin;
 import gyro.core.directive.DirectivePlugin;
 import gyro.core.directive.DirectiveSettings;
 import gyro.core.finder.FinderPlugin;
@@ -92,6 +93,7 @@ public class RootScope extends FileScope {
         }
 
         Stream.of(
+            new ChangePlugin(),
             new CredentialsPlugin(),
             new DirectivePlugin(),
             new FinderPlugin(),

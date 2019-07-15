@@ -1,5 +1,7 @@
 package gyro.core.diff;
 
+import java.util.List;
+
 import gyro.core.GyroUI;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.DiffableField;
@@ -47,16 +49,24 @@ public class Create extends Change {
     }
 
     @Override
-    public ExecutionResult execute(GyroUI ui, State state) throws Exception {
+    public ExecutionResult execute(GyroUI ui, State state, List<ChangeProcessor> processors) throws Exception {
         Resource resource = (Resource) diffable;
 
         state.update(this);
+
+        for (ChangeProcessor processor : processors) {
+            processor.beforeCreate(ui, state, resource);
+        }
 
         if (state.isTest()) {
             resource.testCreate(ui, state);
 
         } else {
             resource.create(ui, state);
+        }
+
+        for (ChangeProcessor processor : processors) {
+            processor.afterCreate(ui, state, resource);
         }
 
         return ExecutionResult.OK;

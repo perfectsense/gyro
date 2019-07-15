@@ -1,5 +1,7 @@
 package gyro.core.diff;
 
+import java.util.List;
+
 import gyro.core.GyroUI;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Resource;
@@ -29,11 +31,21 @@ public class Delete extends Change {
     }
 
     @Override
-    public ExecutionResult execute(GyroUI ui, State state) throws Exception {
+    public ExecutionResult execute(GyroUI ui, State state, List<ChangeProcessor> processors) throws Exception {
+        Resource resource = (Resource) diffable;
+
         state.update(this);
 
+        for (ChangeProcessor processor : processors) {
+            processor.beforeDelete(ui, state, resource);
+        }
+
         if (!state.isTest()) {
-            ((Resource) diffable).delete(ui, state);
+            resource.delete(ui, state);
+        }
+
+        for (ChangeProcessor processor : processors) {
+            processor.afterDelete(ui, state, resource);
         }
 
         return ExecutionResult.OK;

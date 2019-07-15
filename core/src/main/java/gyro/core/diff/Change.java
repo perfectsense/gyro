@@ -31,7 +31,10 @@ public abstract class Change {
 
     public abstract void writeExecution(GyroUI ui);
 
-    public abstract ExecutionResult execute(GyroUI ui, State state) throws Exception;
+    public abstract ExecutionResult execute(
+        GyroUI ui,
+        State state,
+        List<ChangeProcessor> processors) throws Exception;
 
     protected String stringify(Object value) {
         if (value instanceof Collection) {

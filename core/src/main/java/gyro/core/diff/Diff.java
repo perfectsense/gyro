@@ -382,7 +382,13 @@ public class Diff {
             ExecutionResult result;
 
             try {
-                result = change.execute(ui, state);
+                result = change.execute(
+                    ui,
+                    state,
+                    DiffableInternals.getScope(diffable)
+                        .getRootScope()
+                        .getSettings(ChangeSettings.class)
+                        .getProcessors());
 
             } catch (Exception error) {
                 throw new GyroException(
