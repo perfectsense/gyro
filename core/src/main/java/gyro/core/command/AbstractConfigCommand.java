@@ -89,6 +89,14 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
         current.load();
 
+        RootScope pending = new RootScope(
+            GyroCore.INIT_FILE,
+            new LocalFileBackend(rootDir),
+            current,
+            loadFiles);
+
+        pending.load();
+
         if (!test) {
             current.getSettings(CredentialsSettings.class)
                 .getCredentialsByName()
@@ -101,7 +109,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             }
         }
 
-        RootScope pending = new RootScope(
+        pending = new RootScope(
             GyroCore.INIT_FILE,
             new LocalFileBackend(rootDir),
             current,
