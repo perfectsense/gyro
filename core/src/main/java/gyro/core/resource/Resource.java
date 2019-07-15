@@ -12,9 +12,9 @@ public abstract class Resource extends Diffable {
 
     public abstract boolean refresh();
 
-    public abstract void create(GyroUI ui, State state);
+    public abstract void create(GyroUI ui, State state) throws Exception;
 
-    public void testCreate(GyroUI ui, State state) {
+    public void testCreate(GyroUI ui, State state) throws Exception {
         for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
             if (field.getTestValue() != null) {
                 String value = "test-" + field.getTestValue();
@@ -29,9 +29,9 @@ public abstract class Resource extends Diffable {
         }
     }
 
-    public abstract void update(GyroUI ui, State state, Resource current, Set<String> changedFieldNames);
+    public abstract void update(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception;
 
-    public abstract void delete(GyroUI ui, State state);
+    public abstract void delete(GyroUI ui, State state) throws Exception;
 
     @SuppressWarnings("unchecked")
     public <C extends Credentials> C credentials(Class<C> credentialsClass) {

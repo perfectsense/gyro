@@ -52,7 +52,7 @@ public class Update extends Change {
     }
 
     @Override
-    public ExecutionResult execute(GyroUI ui, State state) {
+    public ExecutionResult execute(GyroUI ui, State state) throws Exception {
         state.update(this);
 
         if (!state.isTest()) {

@@ -7,10 +7,12 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.DiffableField;
@@ -377,7 +379,19 @@ public class Diff {
                 change.writeExecution(ui);
             }
 
-            ExecutionResult result = change.execute(ui, state);
+            ExecutionResult result;
+
+            try {
+                result = change.execute(ui, state);
+
+            } catch (Exception error) {
+                throw new GyroException(
+                    String.format(
+                        "Can't @|bold %s| @|bold %s| resource!",
+                        change.getClass().getSimpleName().toLowerCase(Locale.ENGLISH),
+                        diffable),
+                    error);
+            }
 
             if (result != null) {
                 state.save();

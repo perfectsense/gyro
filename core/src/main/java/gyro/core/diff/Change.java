@@ -31,7 +31,7 @@ public abstract class Change {
 
     public abstract void writeExecution(GyroUI ui);
 
-    public abstract ExecutionResult execute(GyroUI ui, State state);
+    public abstract ExecutionResult execute(GyroUI ui, State state) throws Exception;
 
     protected String stringify(Object value) {
         if (value instanceof Collection) {

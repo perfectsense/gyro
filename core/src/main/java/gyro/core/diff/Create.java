@@ -47,7 +47,7 @@ public class Create extends Change {
     }
 
     @Override
-    public ExecutionResult execute(GyroUI ui, State state) {
+    public ExecutionResult execute(GyroUI ui, State state) throws Exception {
         Resource resource = (Resource) diffable;
 
         state.update(this);
