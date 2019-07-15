@@ -6,6 +6,7 @@ import java.util.Set;
 
 import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
+import gyro.core.scope.DiffableScope;
 import gyro.lang.ast.block.DirectiveNode;
 
 public class ExtendsDirectiveProcessor extends DirectiveProcessor<DiffableScope> {

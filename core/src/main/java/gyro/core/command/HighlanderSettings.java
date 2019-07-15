@@ -1,6 +1,6 @@
 package gyro.core.command;
 
-import gyro.core.resource.Settings;
+import gyro.core.scope.Settings;
 
 public class HighlanderSettings extends Settings {
 

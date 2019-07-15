@@ -9,7 +9,7 @@ import gyro.core.resource.DiffableField;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
 import gyro.core.resource.Resource;
-import gyro.core.resource.State;
+import gyro.core.scope.State;
 import gyro.core.workflow.Workflow;
 import gyro.core.workflow.WorkflowSettings;
 

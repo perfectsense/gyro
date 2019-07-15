@@ -3,7 +3,6 @@ package gyro.core.scope;
 import java.util.List;
 
 import gyro.core.reference.ReferenceResolver;
-import gyro.core.resource.Scope;
 
 class ConstantReferenceResolver extends ReferenceResolver {
 

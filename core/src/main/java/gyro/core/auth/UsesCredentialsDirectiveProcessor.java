@@ -3,7 +3,7 @@ package gyro.core.auth;
 import java.util.List;
 
 import gyro.core.directive.DirectiveProcessor;
-import gyro.core.resource.DiffableScope;
+import gyro.core.scope.DiffableScope;
 import gyro.lang.ast.block.DirectiveNode;
 
 public class UsesCredentialsDirectiveProcessor extends DirectiveProcessor<DiffableScope> {

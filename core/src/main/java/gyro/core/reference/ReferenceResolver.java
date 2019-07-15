@@ -2,7 +2,7 @@ package gyro.core.reference;
 
 import java.util.List;
 
-import gyro.core.resource.Scope;
+import gyro.core.scope.Scope;
 
 public abstract class ReferenceResolver {
 

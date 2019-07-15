@@ -13,7 +13,7 @@ import com.google.common.collect.ImmutableMap;
 import gyro.core.NamespaceUtils;
 import gyro.core.Reflections;
 import gyro.core.Type;
-import gyro.core.resource.Scope;
+import gyro.core.scope.Scope;
 
 public class FinderType<F extends Finder> {
 

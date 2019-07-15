@@ -7,8 +7,8 @@ import java.util.List;
 import com.google.common.base.CaseFormat;
 import gyro.core.Reflections;
 import gyro.core.directive.DirectiveProcessor;
-import gyro.core.resource.RootScope;
-import gyro.core.resource.Scope;
+import gyro.core.scope.RootScope;
+import gyro.core.scope.Scope;
 import gyro.lang.ast.block.DirectiveNode;
 
 public class CredentialsDirectiveProcessor extends DirectiveProcessor<RootScope> {

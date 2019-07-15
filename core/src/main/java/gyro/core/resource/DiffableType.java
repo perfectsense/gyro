@@ -13,6 +13,7 @@ import com.google.common.collect.ImmutableMap;
 import gyro.core.NamespaceUtils;
 import gyro.core.Reflections;
 import gyro.core.Type;
+import gyro.core.scope.DiffableScope;
 
 public class DiffableType<R extends Diffable> {
 

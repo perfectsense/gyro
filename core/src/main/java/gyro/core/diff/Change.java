@@ -14,7 +14,7 @@ import com.google.common.collect.Maps;
 import gyro.core.GyroUI;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.DiffableField;
-import gyro.core.resource.State;
+import gyro.core.scope.State;
 
 public abstract class Change {
 

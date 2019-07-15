@@ -1,6 +1,6 @@
 package gyro.core.finder;
 
-import gyro.core.resource.Scope;
+import gyro.core.scope.Scope;
 
 public class FilterContext {
 

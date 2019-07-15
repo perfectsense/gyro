@@ -14,6 +14,9 @@ import gyro.core.GyroException;
 import gyro.core.GyroInputStream;
 import gyro.core.GyroUI;
 import gyro.core.diff.Change;
+import gyro.core.scope.DiffableScope;
+import gyro.core.scope.FileScope;
+import gyro.core.scope.Scope;
 
 public abstract class Diffable {
 

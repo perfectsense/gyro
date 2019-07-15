@@ -15,10 +15,10 @@ import gyro.core.GyroUI;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.DiffableField;
 import gyro.core.resource.DiffableInternals;
-import gyro.core.resource.DiffableScope;
+import gyro.core.scope.DiffableScope;
 import gyro.core.resource.DiffableType;
 import gyro.core.resource.Resource;
-import gyro.core.resource.State;
+import gyro.core.scope.State;
 
 public class Diff {
 

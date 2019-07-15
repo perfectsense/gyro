@@ -1,4 +1,4 @@
-package gyro.core.resource;
+package gyro.core.scope;
 
 import java.util.ArrayList;
 import java.util.List;

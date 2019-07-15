@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import gyro.core.resource.Resource;
-import gyro.core.resource.Settings;
+import gyro.core.scope.Settings;
 
 public class FinderSettings extends Settings {
 

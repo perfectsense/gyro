@@ -9,15 +9,15 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import gyro.core.Abort;
 import gyro.core.GyroUI;
-import gyro.core.resource.Defer;
+import gyro.core.scope.Defer;
 import gyro.core.diff.Diff;
 import gyro.core.resource.DiffableInternals;
-import gyro.core.resource.DiffableScope;
-import gyro.core.resource.FileScope;
+import gyro.core.scope.DiffableScope;
+import gyro.core.scope.FileScope;
 import gyro.core.resource.Resource;
-import gyro.core.resource.RootScope;
-import gyro.core.resource.Scope;
-import gyro.core.resource.State;
+import gyro.core.scope.RootScope;
+import gyro.core.scope.Scope;
+import gyro.core.scope.State;
 import gyro.util.ImmutableCollectors;
 
 public class Stage {

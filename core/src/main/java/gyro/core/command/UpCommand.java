@@ -5,8 +5,8 @@ import java.util.Set;
 import gyro.core.GyroCore;
 import gyro.core.GyroUI;
 import gyro.core.diff.Diff;
-import gyro.core.resource.RootScope;
-import gyro.core.resource.State;
+import gyro.core.scope.RootScope;
+import gyro.core.scope.State;
 import io.airlift.airline.Command;
 
 @Command(name = "up", description = "Updates all resources to match the configuration.")

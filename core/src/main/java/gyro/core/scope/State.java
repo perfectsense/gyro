@@ -1,4 +1,4 @@
-package gyro.core.resource;
+package gyro.core.scope;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -21,6 +21,11 @@ import gyro.core.GyroException;
 import gyro.core.diff.Change;
 import gyro.core.diff.Delete;
 import gyro.core.diff.Replace;
+import gyro.core.resource.Diffable;
+import gyro.core.resource.DiffableField;
+import gyro.core.resource.DiffableInternals;
+import gyro.core.resource.DiffableType;
+import gyro.core.resource.Resource;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.NodePrinter;
 import gyro.lang.ast.PairNode;
@@ -290,7 +295,7 @@ public class State {
             Resource resource = (Resource) value;
             DiffableType type = DiffableType.getInstance(resource.getClass());
 
-            if (resource.external) {
+            if (DiffableInternals.isExternal(resource)) {
                 return new ValueNode(type.getIdField().getValue(resource));
 
             } else {

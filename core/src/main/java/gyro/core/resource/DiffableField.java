@@ -12,6 +12,7 @@ import com.psddev.dari.util.ConversionException;
 import com.psddev.dari.util.ObjectUtils;
 import gyro.core.GyroException;
 import gyro.core.Reflections;
+import gyro.core.scope.Scope;
 
 public class DiffableField {
 

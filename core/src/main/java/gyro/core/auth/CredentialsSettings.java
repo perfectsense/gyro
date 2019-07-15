@@ -3,7 +3,7 @@ package gyro.core.auth;
 import java.util.HashMap;
 import java.util.Map;
 
-import gyro.core.resource.Settings;
+import gyro.core.scope.Settings;
 
 public class CredentialsSettings extends Settings {
 

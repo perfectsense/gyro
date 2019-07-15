@@ -6,11 +6,11 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.resource.DiffableInternals;
-import gyro.core.resource.FileScope;
+import gyro.core.scope.FileScope;
 import gyro.core.resource.Resource;
 import gyro.core.resource.ResourceVisitor;
-import gyro.core.resource.RootScope;
-import gyro.core.resource.Scope;
+import gyro.core.scope.RootScope;
+import gyro.core.scope.Scope;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.DirectiveNode;
 

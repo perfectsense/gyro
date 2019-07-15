@@ -2,7 +2,7 @@ package gyro.core.directive;
 
 import gyro.core.Reflections;
 import gyro.core.plugin.Plugin;
-import gyro.core.resource.RootScope;
+import gyro.core.scope.RootScope;
 
 public class DirectivePlugin extends Plugin {
 

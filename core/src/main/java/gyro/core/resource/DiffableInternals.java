@@ -6,10 +6,19 @@ import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableSet;
 import gyro.core.diff.Change;
+import gyro.core.scope.DiffableScope;
 
 public final class DiffableInternals {
 
     private DiffableInternals() {
+    }
+
+    public static boolean isExternal(Diffable diffable) {
+        return diffable.external;
+    }
+
+    public static void setExternal(Diffable diffable, boolean external) {
+        diffable.external = external;
     }
 
     public static void setName(Diffable diffable, String name) {

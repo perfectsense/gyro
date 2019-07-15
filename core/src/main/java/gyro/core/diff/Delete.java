@@ -3,7 +3,7 @@ package gyro.core.diff;
 import gyro.core.GyroUI;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.Resource;
-import gyro.core.resource.State;
+import gyro.core.scope.State;
 
 public class Delete extends Change {
 
