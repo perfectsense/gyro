@@ -58,6 +58,8 @@ public class RootScope extends FileScope {
     private final RootScope current;
     private final Set<String> loadFiles;
     private final List<FileScope> fileScopes = new ArrayList<>();
+    private final Node initNode;
+    private final List<Node> bodyNodes = new ArrayList<>();
 
     @SuppressWarnings("unchecked")
     public RootScope(String file, FileBackend backend, RootScope current, Set<String> loadFiles) {
@@ -123,6 +125,22 @@ public class RootScope extends FileScope {
             .forEach(r -> getSettings(ReferenceSettings.class).getResolvers().put(r.getName(), r));
 
         put("ENV", System.getenv());
+
+        try (GyroInputStream input = openInput(getFile())) {
+            initNode = Node.parse(input, getFile(), GyroParser::file);
+
+        } catch (IOException error) {
+            throw new Bug(error);
+        }
+
+        for (String loadFile : this.loadFiles) {
+            try (GyroInputStream input = openInput(loadFile)) {
+                bodyNodes.add(Node.parse(input, loadFile, GyroParser::file));
+
+            } catch (IOException error) {
+                throw new Bug(error);
+            }
+        }
     }
 
     public NodeEvaluator getEvaluator() {
@@ -219,26 +237,9 @@ public class RootScope extends FileScope {
             });
     }
 
-    public void load() {
-        try (GyroInputStream input = openInput(getFile())) {
-            evaluator.visit(Node.parse(input, getFile(), GyroParser::file), this);
-
-        } catch (IOException error) {
-            throw new Bug(error);
-        }
-
-        List<Node> nodes = new ArrayList<>();
-
-        for (String file : loadFiles) {
-            try (GyroInputStream input = openInput(file)) {
-                nodes.add(Node.parse(input, file, GyroParser::file));
-
-            } catch (IOException error) {
-                throw new Bug(error);
-            }
-        }
-
-        evaluator.visitBody(nodes, this);
+    public void evaluate() {
+        evaluator.visit(initNode, this);
+        evaluator.visitBody(bodyNodes, this);
         validate();
     }
 

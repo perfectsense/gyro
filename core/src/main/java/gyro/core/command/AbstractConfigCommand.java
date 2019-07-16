@@ -87,15 +87,13 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             null,
             loadFiles);
 
-        current.load();
+        current.evaluate();
 
         RootScope pending = new RootScope(
             GyroCore.INIT_FILE,
             new LocalFileBackend(rootDir),
             current,
             loadFiles);
-
-        pending.load();
 
         if (!test) {
             current.getSettings(CredentialsSettings.class)
@@ -109,13 +107,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             }
         }
 
-        pending = new RootScope(
-            GyroCore.INIT_FILE,
-            new LocalFileBackend(rootDir),
-            current,
-            loadFiles);
-
-        pending.load();
+        pending.evaluate();
         doExecute(current, pending, new State(current, pending, test, diffFiles));
     }
 

@@ -62,7 +62,7 @@ public class Gyro {
                     null,
                     Collections.emptySet());
 
-                init.load();
+                init.evaluate();
 
             } else {
                 init = null;
