@@ -34,7 +34,8 @@ public final class DiffableInternals {
     }
 
     public static Set<String> getConfiguredFields(Diffable diffable) {
-        return diffable != null ? diffable.configuredFields : ImmutableSet.of();
+        Set<String> configuredFields = diffable.configuredFields;
+        return configuredFields != null ? configuredFields : ImmutableSet.of();
     }
 
     public static Change getChange(Diffable diffable) {
