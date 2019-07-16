@@ -3,7 +3,7 @@ package gyro.core.virtual;
 import java.util.List;
 
 import gyro.core.directive.DirectiveProcessor;
-import gyro.core.resource.FileScope;
+import gyro.core.scope.FileScope;
 import gyro.lang.ast.block.DirectiveNode;
 
 public class VirtualDirectiveProcessor extends DirectiveProcessor<FileScope> {

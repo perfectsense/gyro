@@ -9,13 +9,15 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import gyro.core.Abort;
 import gyro.core.GyroUI;
-import gyro.core.resource.Defer;
-import gyro.core.resource.Diff;
-import gyro.core.resource.FileScope;
+import gyro.core.scope.Defer;
+import gyro.core.diff.Diff;
+import gyro.core.resource.DiffableInternals;
+import gyro.core.scope.DiffableScope;
+import gyro.core.scope.FileScope;
 import gyro.core.resource.Resource;
-import gyro.core.resource.RootScope;
-import gyro.core.resource.Scope;
-import gyro.core.resource.State;
+import gyro.core.scope.RootScope;
+import gyro.core.scope.Scope;
+import gyro.core.scope.State;
 import gyro.util.ImmutableCollectors;
 
 public class Stage {
@@ -57,7 +59,9 @@ public class Stage {
             RootScope currentRootScope,
             RootScope pendingRootScope) {
 
-        FileScope pendingFileScope = pendingResource.scope().getFileScope();
+        DiffableScope pendingScope = DiffableInternals.getScope(pendingResource);
+        FileScope pendingFileScope = pendingScope.getFileScope();
+
         Scope scope = new Scope(pendingRootScope.getFileScopes()
             .stream()
             .filter(s -> s.getFile().equals(pendingFileScope.getFile()))
@@ -74,7 +78,7 @@ public class Stage {
 
         scope.put("NAME", pendingResource.name());
         scope.put("CURRENT", currentResource);
-        scope.put("PENDING", pendingResource.scope().resolve());
+        scope.put("PENDING", pendingScope.resolve());
 
         Defer.execute(actions, a -> a.execute(ui, state, pendingRootScope, scope));
 

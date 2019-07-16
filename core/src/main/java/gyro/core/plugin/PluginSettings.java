@@ -10,8 +10,8 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import gyro.core.GyroException;
 import gyro.core.Reflections;
-import gyro.core.resource.RootScope;
-import gyro.core.resource.Settings;
+import gyro.core.scope.RootScope;
+import gyro.core.scope.Settings;
 
 public class PluginSettings extends Settings {
 

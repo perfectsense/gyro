@@ -3,7 +3,7 @@ package gyro.core.command;
 import java.util.List;
 
 import gyro.core.directive.DirectiveProcessor;
-import gyro.core.resource.RootScope;
+import gyro.core.scope.RootScope;
 import gyro.lang.ast.block.DirectiveNode;
 
 public class HighlanderDirectiveProcessor extends DirectiveProcessor<RootScope> {

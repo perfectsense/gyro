@@ -3,7 +3,7 @@ package gyro.core.repo;
 import java.util.List;
 
 import gyro.core.directive.DirectiveProcessor;
-import gyro.core.resource.RootScope;
+import gyro.core.scope.RootScope;
 import gyro.lang.ast.block.DirectiveNode;
 import org.eclipse.aether.repository.RemoteRepository;
 

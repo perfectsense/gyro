@@ -3,7 +3,7 @@ package gyro.core.plugin;
 import java.util.HashMap;
 import java.util.Map;
 
-import gyro.core.resource.RootScope;
+import gyro.core.scope.RootScope;
 
 public class TestPlugin extends Plugin {
 

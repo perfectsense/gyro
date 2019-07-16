@@ -3,11 +3,11 @@ package gyro.core.workflow;
 import com.google.common.base.Preconditions;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
-import gyro.core.resource.NodeEvaluator;
+import gyro.core.scope.NodeEvaluator;
 import gyro.core.resource.Resource;
-import gyro.core.resource.RootScope;
-import gyro.core.resource.Scope;
-import gyro.core.resource.State;
+import gyro.core.scope.RootScope;
+import gyro.core.scope.Scope;
+import gyro.core.scope.State;
 import gyro.lang.ast.Node;
 
 public class ReplaceAction extends Action {

@@ -1,20 +1,53 @@
 package gyro.core.resource;
 
 import java.util.Collection;
+import java.util.Set;
 import java.util.stream.Stream;
+
+import com.google.common.collect.ImmutableSet;
+import gyro.core.diff.Change;
+import gyro.core.scope.DiffableScope;
 
 public final class DiffableInternals {
 
     private DiffableInternals() {
     }
 
+    public static boolean isExternal(Diffable diffable) {
+        return diffable.external;
+    }
+
+    public static void setExternal(Diffable diffable, boolean external) {
+        diffable.external = external;
+    }
+
     public static void setName(Diffable diffable, String name) {
         diffable.name = name;
     }
 
+    public static DiffableScope getScope(Diffable diffable) {
+        return diffable.scope;
+    }
+
+    public static void setScope(Diffable diffable, DiffableScope scope) {
+        diffable.scope = scope;
+    }
+
+    public static Set<String> getConfiguredFields(Diffable diffable) {
+        return diffable != null ? diffable.configuredFields : ImmutableSet.of();
+    }
+
+    public static Change getChange(Diffable diffable) {
+        return diffable.change;
+    }
+
+    public static void setChange(Diffable diffable, Change change) {
+        diffable.change = change;
+    }
+
     public static void update(Diffable diffable, boolean newScope) {
         if (newScope) {
-            diffable.scope = new DiffableScope(diffable.scope().getParent());
+            diffable.scope = new DiffableScope(diffable.scope.getParent());
         }
 
         updateChildren(diffable, newScope);
@@ -31,7 +64,7 @@ public final class DiffableInternals {
                     .map(Diffable.class::cast)
                     .forEach(d -> {
                         if (newScope) {
-                            d.scope = new DiffableScope(diffable.scope());
+                            d.scope = new DiffableScope(diffable.scope);
                         }
 
                         d.parent = diffable;

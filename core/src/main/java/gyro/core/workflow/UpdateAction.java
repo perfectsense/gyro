@@ -6,12 +6,13 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
-import gyro.core.resource.DiffableScope;
-import gyro.core.resource.NodeEvaluator;
+import gyro.core.resource.DiffableInternals;
+import gyro.core.scope.DiffableScope;
+import gyro.core.scope.NodeEvaluator;
 import gyro.core.resource.Resource;
-import gyro.core.resource.RootScope;
-import gyro.core.resource.Scope;
-import gyro.core.resource.State;
+import gyro.core.scope.RootScope;
+import gyro.core.scope.Scope;
+import gyro.core.scope.State;
 import gyro.lang.ast.Node;
 
 public class UpdateAction extends Action {
@@ -50,7 +51,7 @@ public class UpdateAction extends Action {
 
         String fullName = ((Resource) resource).primaryKey();
         Resource pendingResource = pending.findResource(fullName);
-        DiffableScope resourceScope = pendingResource.scope();
+        DiffableScope resourceScope = DiffableInternals.getScope(pendingResource);
 
         for (Node item : body) {
             evaluator.visit(item, resourceScope);

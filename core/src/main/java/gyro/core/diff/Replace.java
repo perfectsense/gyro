@@ -1,9 +1,16 @@
-package gyro.core.resource;
+package gyro.core.diff;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import gyro.core.GyroUI;
+import gyro.core.resource.Diffable;
+import gyro.core.resource.DiffableField;
+import gyro.core.resource.DiffableInternals;
+import gyro.core.resource.DiffableType;
+import gyro.core.resource.Resource;
+import gyro.core.scope.State;
 import gyro.core.workflow.Workflow;
 import gyro.core.workflow.WorkflowSettings;
 
@@ -22,7 +29,7 @@ public class Replace extends Change {
         if (pendingDiffable instanceof Resource) {
             Resource pendingResource = (Resource) pendingDiffable;
 
-            this.workflow = pendingResource.scope
+            this.workflow = DiffableInternals.getScope(pendingResource)
                 .getRootScope()
                 .getSettings(WorkflowSettings.class)
                 .getWorkflows()
@@ -87,7 +94,7 @@ public class Replace extends Change {
     }
 
     @Override
-    public ExecutionResult execute(GyroUI ui, State state) {
+    public ExecutionResult execute(GyroUI ui, State state, List<ChangeProcessor> processors) {
         if (workflow == null) {
             return ExecutionResult.SKIPPED;
         }

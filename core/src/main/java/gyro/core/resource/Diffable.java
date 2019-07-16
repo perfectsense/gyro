@@ -13,6 +13,10 @@ import com.google.common.collect.ImmutableSet;
 import gyro.core.GyroException;
 import gyro.core.GyroInputStream;
 import gyro.core.GyroUI;
+import gyro.core.diff.Change;
+import gyro.core.scope.DiffableScope;
+import gyro.core.scope.FileScope;
+import gyro.core.scope.Scope;
 
 public abstract class Diffable {
 
@@ -39,14 +43,6 @@ public abstract class Diffable {
 
     public String name() {
         return name;
-    }
-
-    public DiffableScope scope() {
-        return scope;
-    }
-
-    public Change change() {
-        return change;
     }
 
     public <T extends Resource> Stream<T> findByClass(Class<T> resourceClass) {

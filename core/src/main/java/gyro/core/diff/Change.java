@@ -1,4 +1,4 @@
-package gyro.core.resource;
+package gyro.core.diff;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -12,6 +12,9 @@ import java.util.stream.Collectors;
 import com.google.common.collect.MapDifference;
 import com.google.common.collect.Maps;
 import gyro.core.GyroUI;
+import gyro.core.resource.Diffable;
+import gyro.core.resource.DiffableField;
+import gyro.core.scope.State;
 
 public abstract class Change {
 
@@ -28,7 +31,10 @@ public abstract class Change {
 
     public abstract void writeExecution(GyroUI ui);
 
-    public abstract ExecutionResult execute(GyroUI ui, State state);
+    public abstract ExecutionResult execute(
+        GyroUI ui,
+        State state,
+        List<ChangeProcessor> processors) throws Exception;
 
     protected String stringify(Object value) {
         if (value instanceof Collection) {

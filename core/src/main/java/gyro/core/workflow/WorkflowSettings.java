@@ -3,7 +3,7 @@ package gyro.core.workflow;
 import java.util.ArrayList;
 import java.util.List;
 
-import gyro.core.resource.Settings;
+import gyro.core.scope.Settings;
 
 public class WorkflowSettings extends Settings {
 

@@ -15,7 +15,7 @@ import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.repo.RepositorySettings;
-import gyro.core.resource.RootScope;
+import gyro.core.scope.RootScope;
 import gyro.lang.ast.block.DirectiveNode;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;
