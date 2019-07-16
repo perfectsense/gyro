@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.Objects;
 
 import gyro.core.GyroException;
-import gyro.core.resource.NodeEvaluator;
-import gyro.core.resource.Scope;
+import gyro.core.scope.NodeEvaluator;
+import gyro.core.scope.Scope;
 import gyro.lang.filter.AndFilter;
 import gyro.lang.filter.ComparisonFilter;
 import gyro.lang.filter.OrFilter;

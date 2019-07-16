@@ -4,8 +4,8 @@ import java.util.List;
 
 import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
-import gyro.core.resource.NodeEvaluator;
-import gyro.core.resource.Scope;
+import gyro.core.scope.NodeEvaluator;
+import gyro.core.scope.Scope;
 import gyro.lang.Locatable;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.DirectiveNode;

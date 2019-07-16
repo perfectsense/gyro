@@ -5,7 +5,7 @@ import java.util.Optional;
 import gyro.core.NamespaceUtils;
 import gyro.core.Type;
 import gyro.core.plugin.Plugin;
-import gyro.core.resource.RootScope;
+import gyro.core.scope.RootScope;
 
 public class CredentialsPlugin extends Plugin {
 

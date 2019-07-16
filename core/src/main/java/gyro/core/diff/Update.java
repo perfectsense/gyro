@@ -1,9 +1,14 @@
-package gyro.core.resource;
+package gyro.core.diff;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import gyro.core.GyroUI;
+import gyro.core.resource.Diffable;
+import gyro.core.resource.DiffableField;
+import gyro.core.resource.Resource;
+import gyro.core.scope.State;
 
 public class Update extends Change {
 
@@ -48,22 +53,28 @@ public class Update extends Change {
     }
 
     @Override
-    public ExecutionResult execute(GyroUI ui, State state) {
-        if (state.isTest()) {
-            state.update(this);
+    public ExecutionResult execute(GyroUI ui, State state, List<ChangeProcessor> processors) throws Exception {
+        Resource current = (Resource) currentDiffable;
+        Resource pending = (Resource) pendingDiffable;
 
-        } else {
-            Resource pendingResource = (Resource) pendingDiffable;
+        state.update(this);
 
-            pendingResource.update(
-                (Resource) currentDiffable,
+        for (ChangeProcessor processor : processors) {
+            processor.beforeUpdate(ui, state, current, pending, changedFields);
+        }
+
+        if (!state.isTest()) {
+            pending.update(
+                ui,
+                state,
+                current,
                 changedFields.stream()
                     .map(DiffableField::getName)
                     .collect(Collectors.toSet()));
+        }
 
-            state.update(this);
-            pendingResource.afterUpdate();
-            state.update(this);
+        for (ChangeProcessor processor : processors) {
+            processor.afterUpdate(ui, state, current, pending, changedFields);
         }
 
         return ExecutionResult.OK;

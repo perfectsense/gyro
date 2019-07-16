@@ -2,7 +2,7 @@ package gyro.core.finder;
 
 import gyro.core.plugin.Plugin;
 import gyro.core.resource.Resource;
-import gyro.core.resource.RootScope;
+import gyro.core.scope.RootScope;
 
 public class FinderPlugin extends Plugin {
 

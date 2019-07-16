@@ -1,4 +1,4 @@
-package gyro.core.resource;
+package gyro.core.diff;
 
 import gyro.core.GyroUI;
 

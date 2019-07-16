@@ -1,6 +1,7 @@
 package gyro.core.resource;
 
 import gyro.core.plugin.Plugin;
+import gyro.core.scope.RootScope;
 
 public class ResourcePlugin extends Plugin {
 

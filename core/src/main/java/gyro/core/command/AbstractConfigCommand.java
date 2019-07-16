@@ -17,10 +17,10 @@ import gyro.core.auth.Credentials;
 import gyro.core.auth.CredentialsSettings;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
-import gyro.core.resource.FileScope;
+import gyro.core.scope.FileScope;
 import gyro.core.resource.Resource;
-import gyro.core.resource.RootScope;
-import gyro.core.resource.State;
+import gyro.core.scope.RootScope;
+import gyro.core.scope.State;
 import io.airlift.airline.Arguments;
 import io.airlift.airline.Option;
 

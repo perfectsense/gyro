@@ -1,7 +1,7 @@
 package gyro.core.virtual;
 
 import gyro.core.GyroException;
-import gyro.core.resource.Scope;
+import gyro.core.scope.Scope;
 
 public class VirtualParameter {
 

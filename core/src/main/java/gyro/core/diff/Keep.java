@@ -1,6 +1,10 @@
-package gyro.core.resource;
+package gyro.core.diff;
+
+import java.util.List;
 
 import gyro.core.GyroUI;
+import gyro.core.resource.Diffable;
+import gyro.core.scope.State;
 
 public class Keep extends Change {
 
@@ -25,7 +29,7 @@ public class Keep extends Change {
     }
 
     @Override
-    public ExecutionResult execute(GyroUI ui, State state) {
+    public ExecutionResult execute(GyroUI ui, State state, List<ChangeProcessor> processors) {
         state.update(this);
         return null;
     }

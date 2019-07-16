@@ -1,4 +1,4 @@
-package gyro.core.resource;
+package gyro.core.scope;
 
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -18,6 +18,14 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
 import gyro.core.GyroException;
+import gyro.core.diff.Change;
+import gyro.core.diff.Delete;
+import gyro.core.diff.Replace;
+import gyro.core.resource.Diffable;
+import gyro.core.resource.DiffableField;
+import gyro.core.resource.DiffableInternals;
+import gyro.core.resource.DiffableType;
+import gyro.core.resource.Resource;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.NodePrinter;
 import gyro.lang.ast.PairNode;
@@ -101,7 +109,7 @@ public class State {
             }
 
         } else {
-            FileScope state = states.get(resource.scope.getFileScope().getFile());
+            FileScope state = states.get(DiffableInternals.getScope(resource).getFileScope().getFile());
 
             if (typeRoot) {
                 String key = resource.primaryKey();
@@ -112,8 +120,6 @@ public class State {
                 updateSubresource((Resource) state.get(newKeys.getOrDefault(key, key)), resource, false);
             }
         }
-
-        save();
     }
 
     private void updateSubresource(Resource parent, Resource subresource, boolean delete) {
@@ -155,7 +161,7 @@ public class State {
         }
     }
 
-    private void save() {
+    public void save() {
         NodePrinter printer = new NodePrinter();
 
         for (FileScope state : states.values()) {
@@ -189,13 +195,13 @@ public class State {
 
     private List<Node> toBodyNodes(Diffable diffable) {
         List<Node> body = new ArrayList<>();
-        Set<String> configuredFields = diffable.configuredFields;
+        Set<String> configuredFields = DiffableInternals.getConfiguredFields(diffable);
 
-        if (configuredFields != null && !configuredFields.isEmpty()) {
+        if (!configuredFields.isEmpty()) {
             body.add(toPairNode("_configured-fields", configuredFields));
         }
 
-        body.addAll(diffable.scope().getStateNodes());
+        body.addAll(DiffableInternals.getScope(diffable).getStateNodes());
 
         for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
             Object value = field.getValue(diffable);
@@ -287,7 +293,7 @@ public class State {
             Resource resource = (Resource) value;
             DiffableType type = DiffableType.getInstance(resource.getClass());
 
-            if (resource.external) {
+            if (DiffableInternals.isExternal(resource)) {
                 return new ValueNode(type.getIdField().getValue(resource));
 
             } else {

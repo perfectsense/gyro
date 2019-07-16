@@ -3,7 +3,7 @@ package gyro.core.command;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import gyro.core.GyroCore;
-import gyro.core.resource.Scope;
+import gyro.core.scope.Scope;
 import io.airlift.airline.Option;
 import io.airlift.airline.OptionType;
 import org.slf4j.LoggerFactory;

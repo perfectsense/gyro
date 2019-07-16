@@ -5,10 +5,10 @@ import java.util.Map;
 
 import com.psddev.dari.util.TypeDefinition;
 import gyro.core.auth.Credentials;
-import gyro.core.resource.DiffableScope;
+import gyro.core.scope.DiffableScope;
 import gyro.core.resource.DiffableType;
 import gyro.core.resource.Resource;
-import gyro.core.resource.Scope;
+import gyro.core.scope.Scope;
 
 public abstract class Finder<R extends Resource> {
 

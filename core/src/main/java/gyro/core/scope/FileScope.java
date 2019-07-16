@@ -1,4 +1,4 @@
-package gyro.core.resource;
+package gyro.core.scope;
 
 public class FileScope extends Scope {
 

@@ -8,7 +8,7 @@ import gyro.core.finder.Finder;
 import gyro.core.finder.FinderSettings;
 import gyro.core.finder.FinderType;
 import gyro.core.resource.Resource;
-import gyro.core.resource.Scope;
+import gyro.core.scope.Scope;
 
 public class FinderReferenceResolver extends ReferenceResolver {
 

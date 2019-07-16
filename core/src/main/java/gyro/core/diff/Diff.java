@@ -1,4 +1,4 @@
-package gyro.core.resource;
+package gyro.core.diff;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -7,12 +7,20 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import com.google.common.collect.ImmutableSet;
+import gyro.core.GyroException;
 import gyro.core.GyroUI;
+import gyro.core.resource.Diffable;
+import gyro.core.resource.DiffableField;
+import gyro.core.resource.DiffableInternals;
+import gyro.core.scope.DiffableScope;
+import gyro.core.resource.DiffableType;
+import gyro.core.resource.Resource;
+import gyro.core.scope.State;
 
 public class Diff {
 
@@ -76,7 +84,7 @@ public class Diff {
     private Change newCreate(Diffable diffable) {
         Create create = new Create(diffable);
 
-        diffable.change = create;
+        DiffableInternals.setChange(diffable, create);
 
         for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
             if (!field.shouldBeDiffed()) {
@@ -109,14 +117,8 @@ public class Diff {
     private Change newUpdate(Diffable currentDiffable, Diffable pendingDiffable) {
         List<Diff> diffs = new ArrayList<>();
         DiffableType<? extends Diffable> type = DiffableType.getInstance(currentDiffable.getClass());
-
-        Set<String> currentConfiguredFields = currentDiffable.configuredFields != null
-            ? currentDiffable.configuredFields
-            : ImmutableSet.of();
-
-        Set<String> pendingConfiguredFields = pendingDiffable.configuredFields != null
-            ? pendingDiffable.configuredFields
-            : ImmutableSet.of();
+        Set<String> currentConfiguredFields = DiffableInternals.getConfiguredFields(currentDiffable);
+        Set<String> pendingConfiguredFields = DiffableInternals.getConfiguredFields(pendingDiffable);
 
         for (DiffableField field : type.getFields()) {
             if (!field.shouldBeDiffed()) {
@@ -181,22 +183,16 @@ public class Diff {
             change = new Replace(currentDiffable, pendingDiffable, changedFields);
         }
 
-        currentDiffable.change = change;
-        pendingDiffable.change = change;
+        DiffableInternals.setChange(currentDiffable, change);
+        DiffableInternals.setChange(pendingDiffable, change);
         change.getDiffs().addAll(diffs);
 
         return change;
     }
 
     private Set<DiffableField> diffFields(Diffable currentDiffable, Diffable pendingDiffable) {
-        Set<String> currentConfiguredFields = currentDiffable.configuredFields != null
-            ? currentDiffable.configuredFields
-            : ImmutableSet.of();
-
-        Set<String> pendingConfiguredFields = pendingDiffable.configuredFields != null
-            ? pendingDiffable.configuredFields
-            : ImmutableSet.of();
-
+        Set<String> currentConfiguredFields = DiffableInternals.getConfiguredFields(currentDiffable);
+        Set<String> pendingConfiguredFields = DiffableInternals.getConfiguredFields(pendingDiffable);
         Set<DiffableField> changedFields = new LinkedHashSet<>();
 
         for (DiffableField field : DiffableType.getInstance(currentDiffable.getClass()).getFields()) {
@@ -233,7 +229,7 @@ public class Diff {
     private Change newDelete(Diffable diffable) {
         Delete delete = new Delete(diffable);
 
-        diffable.change = delete;
+        DiffableInternals.setChange(diffable, delete);
 
         for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
             if (!field.shouldBeDiffed()) {
@@ -383,9 +379,28 @@ public class Diff {
                 change.writeExecution(ui);
             }
 
-            ExecutionResult result = change.execute(ui, state);
+            ExecutionResult result;
+
+            try {
+                result = change.execute(
+                    ui,
+                    state,
+                    DiffableInternals.getScope(diffable)
+                        .getRootScope()
+                        .getSettings(ChangeSettings.class)
+                        .getProcessors());
+
+            } catch (Exception error) {
+                throw new GyroException(
+                    String.format(
+                        "Can't @|bold %s| @|bold %s| resource!",
+                        change.getClass().getSimpleName().toLowerCase(Locale.ENGLISH),
+                        diffable),
+                    error);
+            }
 
             if (result != null) {
+                state.save();
                 result.write(ui);
             }
         }
@@ -394,7 +409,7 @@ public class Diff {
     private void resolve(Object object) {
         if (object instanceof Diffable) {
             Diffable diffable = (Diffable) object;
-            DiffableScope scope = diffable.scope;
+            DiffableScope scope = DiffableInternals.getScope(diffable);
 
             if (scope != null) {
                 diffable.initialize(scope.resolve());

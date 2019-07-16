@@ -1,4 +1,4 @@
-package gyro.core.resource;
+package gyro.core.scope;
 
 import java.beans.BeanInfo;
 import java.beans.PropertyDescriptor;
@@ -32,6 +32,12 @@ import gyro.core.finder.FilterContext;
 import gyro.core.finder.FilterEvaluator;
 import gyro.core.reference.ReferenceResolver;
 import gyro.core.reference.ReferenceSettings;
+import gyro.core.resource.Diffable;
+import gyro.core.resource.DiffableField;
+import gyro.core.resource.DiffableInternals;
+import gyro.core.resource.DiffableType;
+import gyro.core.resource.Resource;
+import gyro.core.resource.ResourceVisitor;
 import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.NodeVisitor;
@@ -330,9 +336,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         Optional.ofNullable(rootScope.getCurrent())
             .map(s -> s.findResource(fullName))
             .ifPresent(r -> {
-                Set<String> currentConfiguredFields = r.configuredFields != null
-                    ? r.configuredFields
-                    : ImmutableSet.of();
+                Set<String> currentConfiguredFields = DiffableInternals.getConfiguredFields(r);
 
                 for (DiffableField f : DiffableType.getInstance(r.getClass()).getFields()) {
                     String key = f.getName();

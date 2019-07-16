@@ -1,4 +1,4 @@
-package gyro.core.resource;
+package gyro.core.scope;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -24,6 +24,7 @@ import gyro.core.auth.UsesCredentialsDirectiveProcessor;
 import gyro.core.command.HighlanderDirectiveProcessor;
 import gyro.core.control.ForDirectiveProcessor;
 import gyro.core.control.IfDirectiveProcessor;
+import gyro.core.diff.ChangePlugin;
 import gyro.core.directive.DirectivePlugin;
 import gyro.core.directive.DirectiveSettings;
 import gyro.core.finder.FinderPlugin;
@@ -33,6 +34,12 @@ import gyro.core.reference.FinderReferenceResolver;
 import gyro.core.reference.ReferencePlugin;
 import gyro.core.reference.ReferenceSettings;
 import gyro.core.repo.RepositoryDirectiveProcessor;
+import gyro.core.resource.DiffableField;
+import gyro.core.resource.DiffableInternals;
+import gyro.core.resource.DiffableType;
+import gyro.core.resource.ExtendsDirectiveProcessor;
+import gyro.core.resource.Resource;
+import gyro.core.resource.ResourcePlugin;
 import gyro.core.virtual.VirtualDirectiveProcessor;
 import gyro.core.workflow.CreateDirectiveProcessor;
 import gyro.core.workflow.DeleteDirectiveProcessor;
@@ -86,6 +93,7 @@ public class RootScope extends FileScope {
         }
 
         Stream.of(
+            new ChangePlugin(),
             new CredentialsPlugin(),
             new DirectivePlugin(),
             new FinderPlugin(),
@@ -174,7 +182,7 @@ public class RootScope extends FileScope {
             .map(Resource.class::cast);
 
         if (diffFiles != null && !diffFiles.isEmpty()) {
-            stream = stream.filter(r -> diffFiles.contains(r.scope.getFileScope().getFile()));
+            stream = stream.filter(r -> diffFiles.contains(DiffableInternals.getScope(r).getFileScope().getFile()));
         }
 
         return stream.collect(Collectors.toList());
@@ -204,8 +212,8 @@ public class RootScope extends FileScope {
             .findFirst()
             .orElseGet(() -> {
                 T r = Reflections.newInstance(resourceClass);
-                r.external = true;
-                r.scope = new DiffableScope(this);
+                DiffableInternals.setExternal(r, true);
+                DiffableInternals.setScope(r, new DiffableScope(this));
                 idField.setValue(r, id);
                 return r;
             });
@@ -245,7 +253,7 @@ public class RootScope extends FileScope {
         for (Resource resource : findResources()) {
             String fullName = resource.primaryKey();
             duplicateResources.putIfAbsent(fullName, new ArrayList<>());
-            duplicateResources.get(fullName).add(resource.scope.getFileScope().getFile());
+            duplicateResources.get(fullName).add(DiffableInternals.getScope(resource).getFileScope().getFile());
         }
 
         for (Map.Entry<String, List<String>> entry : duplicateResources.entrySet()) {
