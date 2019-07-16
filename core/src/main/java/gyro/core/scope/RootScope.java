@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.psddev.dari.util.Converter;
+import com.psddev.dari.util.StringUtils;
 import gyro.core.FileBackend;
 import gyro.core.GyroException;
 import gyro.core.GyroInputStream;
@@ -126,11 +127,15 @@ public class RootScope extends FileScope {
 
         put("ENV", System.getenv());
 
-        try (GyroInputStream input = openInput(getFile())) {
-            initNode = Node.parse(input, getFile(), GyroParser::file);
+        if (!StringUtils.isBlank(getFile())) {
+            try (GyroInputStream input = openInput(getFile())) {
+                initNode = Node.parse(input, getFile(), GyroParser::file);
 
-        } catch (IOException error) {
-            throw new Bug(error);
+            } catch (IOException error) {
+                throw new Bug(error);
+            }
+        } else {
+            initNode = null;
         }
 
         for (String loadFile : this.loadFiles) {
