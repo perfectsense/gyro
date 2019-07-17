@@ -17,12 +17,17 @@ public class LogDirectiveProcessor extends PrintDirectiveProcessor {
 
     @Override
     protected void print(String content) {
-        Path log = GyroCore.getHomeDirectory().resolve("debug.log");
-        try (PrintWriter printWriter = new PrintWriter(Files.newBufferedWriter(log, StandardCharsets.UTF_8))) {
-            printWriter.write(content);
-            printWriter.write("\n");
+        try {
+            Path home = GyroCore.getHomeDirectory();
+            Files.createDirectories(home);
 
-        } catch (IOException error) {
+            Path log = home.resolve("debug.log");
+            try (PrintWriter printWriter = new PrintWriter(Files.newBufferedWriter(log, StandardCharsets.UTF_8))) {
+                printWriter.write(content);
+                printWriter.write("\n");
+
+            }
+        }catch (IOException error) {
             throw new Bug(error);
         }
     }
