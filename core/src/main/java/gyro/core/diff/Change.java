@@ -14,7 +14,9 @@ import com.google.common.collect.Maps;
 import gyro.core.GyroUI;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.DiffableField;
+import gyro.core.resource.DiffableType;
 import gyro.core.scope.State;
+import org.apache.commons.lang3.StringUtils;
 
 public abstract class Change {
 
@@ -30,6 +32,54 @@ public abstract class Change {
     public abstract void writePlan(GyroUI ui);
 
     public abstract void writeExecution(GyroUI ui);
+
+    protected String getLabel(Diffable diffable, boolean includeParent) {
+        Diffable parent = diffable.parent();
+        DiffableType type = DiffableType.getInstance(diffable.getClass());
+        String name = diffable.name();
+        String label;
+
+        if (parent == null) {
+            label = String.format("%s %s", type.getName(), name);
+
+            DiffableField idField = type.getIdField();
+
+            if (idField != null) {
+                Object id = idField.getValue(diffable);
+
+                if (id != null) {
+                    label += " (";
+                    label += id;
+                    label += ")";
+                }
+            }
+
+        } else {
+            label = name;
+            String primaryKey = diffable.primaryKey();
+
+            if (!StringUtils.isBlank(primaryKey)) {
+                label += " ";
+                label += primaryKey;
+            }
+
+            if (includeParent) {
+                label += String.format(
+                    " for %s %s",
+                    DiffableType.getInstance(parent.getClass()).getName(),
+                    parent.name());
+            }
+        }
+
+        String description = type.getDescription(diffable);
+
+        if (!StringUtils.isBlank(description)) {
+            return label + ":|@ @|reset " + description;
+
+        } else {
+            return label;
+        }
+    }
 
     public abstract ExecutionResult execute(
         GyroUI ui,

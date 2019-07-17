@@ -22,12 +22,12 @@ public class Delete extends Change {
 
     @Override
     public void writePlan(GyroUI ui) {
-        ui.write("@|red - Delete %s|@", diffable.toDisplayString());
+        ui.write("@|red - Delete %s|@", getLabel(diffable, false));
     }
 
     @Override
     public void writeExecution(GyroUI ui) {
-        ui.write("@|magenta - Deleting %s|@", diffable.toDisplayString());
+        ui.write("@|magenta - Deleting %s|@", getLabel(diffable, true));
     }
 
     @Override
