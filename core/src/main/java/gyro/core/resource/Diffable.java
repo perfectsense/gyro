@@ -148,8 +148,6 @@ public abstract class Diffable {
         return String.format("%s::%s", DiffableType.getInstance(getClass()).getName(), name());
     }
 
-    public abstract String toDisplayString();
-
     public boolean writePlan(GyroUI ui, Change change) {
         return false;
     }
