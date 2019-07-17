@@ -147,7 +147,7 @@ public class RootScope extends FileScope {
 
             } catch (Exception error) {
                 throw new GyroException(
-                    String.format("Can't parse files in @|bold %s|@!", this.backend),
+                    String.format("Can't parse @|bold %s|@ in @|bold %s|@!", loadFile, this.backend),
                     error);
             }
         }
