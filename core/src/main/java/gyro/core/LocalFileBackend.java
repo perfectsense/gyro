@@ -51,12 +51,13 @@ public class LocalFileBackend extends FileBackend {
 
                 Files.createDirectories(f.getParent());
                 Files.move(tempFile, f, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
-
-                if (Files.size(f) == 0) {
-                    Files.delete(f);
-                }
             }
         };
+    }
+
+    @Override
+    public void delete(String file) throws IOException {
+        Files.delete(rootDirectory.resolve(file));
     }
 
     @Override

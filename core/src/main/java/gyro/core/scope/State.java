@@ -166,6 +166,7 @@ public class State {
 
         for (FileScope state : states.values()) {
             String file = state.getFile();
+            boolean isEmpty = true;
 
             try (PrintWriter out = new PrintWriter(
                 new OutputStreamWriter(
@@ -176,6 +177,7 @@ public class State {
 
                 for (Object value : state.values()) {
                     if (value instanceof Resource) {
+                        isEmpty = false;
                         Resource resource = (Resource) value;
 
                         printer.visit(
@@ -189,6 +191,10 @@ public class State {
 
             } catch (IOException error) {
                 throw new Bug(error);
+            }
+
+            if (isEmpty) {
+                root.delete(file);
             }
         }
     }
