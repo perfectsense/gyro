@@ -2,8 +2,10 @@ package gyro.core.resource;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -14,6 +16,10 @@ import gyro.core.NamespaceUtils;
 import gyro.core.Reflections;
 import gyro.core.Type;
 import gyro.core.scope.DiffableScope;
+import gyro.core.scope.RootScope;
+import gyro.core.scope.Scope;
+import gyro.lang.ast.Node;
+import gyro.parser.antlr4.GyroParser;
 
 public class DiffableType<R extends Diffable> {
 
@@ -30,6 +36,7 @@ public class DiffableType<R extends Diffable> {
     private final Class<R> diffableClass;
     private final boolean root;
     private final String name;
+    private final Node description;
     private final DiffableField idField;
     private final List<DiffableField> fields;
     private final Map<String, DiffableField> fieldByName;
@@ -52,6 +59,11 @@ public class DiffableType<R extends Diffable> {
             this.root = false;
             this.name = null;
         }
+
+        this.description = Optional.ofNullable(diffableClass.getAnnotation(Description.class))
+            .map(Description::value)
+            .map(v -> Node.parse('"' + v + '"', GyroParser::string))
+            .orElse(null);
 
         DiffableField idField = null;
         ImmutableList.Builder<DiffableField> fields = ImmutableList.builder();
@@ -101,6 +113,20 @@ public class DiffableType<R extends Diffable> {
 
     public DiffableField getField(String name) {
         return fieldByName.get(name);
+    }
+
+    public String getDescription(Diffable diffable) {
+        Map<String, Object> values = new HashMap<>();
+
+        for (DiffableField field : fields) {
+            values.put(field.getName(), field.getValue(diffable));
+        }
+
+        RootScope root = diffable.scope.getRootScope();
+
+        return description != null
+            ? (String) root.getEvaluator().visit(description, new Scope(root, values))
+            : null;
     }
 
     public R newDiffable(Diffable parent, String name, DiffableScope scope) {
