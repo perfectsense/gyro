@@ -41,10 +41,6 @@ public abstract class Diffable {
         return null;
     }
 
-    public String name() {
-        return name;
-    }
-
     public <T extends Resource> Stream<T> findByClass(Class<T> resourceClass) {
         return scope.getRootScope().findResourcesByClass(resourceClass);
     }
@@ -145,7 +141,7 @@ public abstract class Diffable {
     }
 
     public String primaryKey() {
-        return String.format("%s::%s", DiffableType.getInstance(getClass()).getName(), name());
+        return String.format("%s::%s", DiffableType.getInstance(getClass()).getName(), name);
     }
 
     public boolean writePlan(GyroUI ui, Change change) {
@@ -158,7 +154,7 @@ public abstract class Diffable {
 
     @Override
     public final int hashCode() {
-        return Objects.hash(parent(), name(), primaryKey());
+        return Objects.hash(parent(), name, primaryKey());
     }
 
     @Override
@@ -179,7 +175,7 @@ public abstract class Diffable {
 
         } else {
             return Objects.equals(parent(), otherDiffable.parent())
-                && Objects.equals(name(), otherDiffable.name())
+                && Objects.equals(name, otherDiffable.name)
                 && Objects.equals(primaryKey(), otherDiffable.primaryKey());
         }
     }

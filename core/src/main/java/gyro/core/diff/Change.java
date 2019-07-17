@@ -14,6 +14,7 @@ import com.google.common.collect.Maps;
 import gyro.core.GyroUI;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.DiffableField;
+import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
 import gyro.core.scope.State;
 import org.apache.commons.lang3.StringUtils;
@@ -36,7 +37,7 @@ public abstract class Change {
     protected String getLabel(Diffable diffable, boolean includeParent) {
         Diffable parent = diffable.parent();
         DiffableType type = DiffableType.getInstance(diffable.getClass());
-        String name = diffable.name();
+        String name = DiffableInternals.getName(diffable);
         String label;
 
         if (parent == null) {
@@ -67,7 +68,7 @@ public abstract class Change {
                 label += String.format(
                     " for %s %s",
                     DiffableType.getInstance(parent.getClass()).getName(),
-                    parent.name());
+                    DiffableInternals.getName(parent));
             }
         }
 

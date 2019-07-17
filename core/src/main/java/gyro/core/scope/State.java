@@ -123,7 +123,7 @@ public class State {
     }
 
     private void updateSubresource(Resource parent, Resource subresource, boolean delete) {
-        DiffableField field = DiffableType.getInstance(parent.getClass()).getField(subresource.name());
+        DiffableField field = DiffableType.getInstance(parent.getClass()).getField(DiffableInternals.getName(subresource));
         Object value = field.getValue(parent);
 
         if (value instanceof Collection) {
@@ -181,7 +181,7 @@ public class State {
                         printer.visit(
                             new ResourceNode(
                                 DiffableType.getInstance(resource.getClass()).getName(),
-                                new ValueNode(newNames.getOrDefault(resource.primaryKey(), resource.name())),
+                                new ValueNode(newNames.getOrDefault(resource.primaryKey(), DiffableInternals.getName(resource))),
                                 toBodyNodes(resource)),
                             context);
                     }
@@ -300,7 +300,7 @@ public class State {
                 return new ReferenceNode(
                     Arrays.asList(
                         new ValueNode(type.getName()),
-                        new ValueNode(newNames.getOrDefault(resource.primaryKey(), resource.name()))),
+                        new ValueNode(newNames.getOrDefault(resource.primaryKey(), DiffableInternals.getName(resource)))),
                     Collections.emptyList());
             }
 
@@ -327,7 +327,7 @@ public class State {
         String withKey = with.primaryKey();
 
         states.values().forEach(s -> s.remove(resourceKey));
-        newNames.put(withKey, resource.name());
+        newNames.put(withKey, DiffableInternals.getName(resource));
         newKeys.put(withKey, resourceKey);
         save();
     }
