@@ -34,12 +34,14 @@ import gyro.core.reference.FinderReferenceResolver;
 import gyro.core.reference.ReferencePlugin;
 import gyro.core.reference.ReferenceSettings;
 import gyro.core.repo.RepositoryDirectiveProcessor;
+import gyro.core.resource.DescriptionDirectiveProcessor;
 import gyro.core.resource.DiffableField;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
 import gyro.core.resource.ExtendsDirectiveProcessor;
 import gyro.core.resource.Resource;
 import gyro.core.resource.ResourcePlugin;
+import gyro.core.resource.TypeDescriptionDirectiveProcessor;
 import gyro.core.virtual.VirtualDirectiveProcessor;
 import gyro.core.workflow.CreateDirectiveProcessor;
 import gyro.core.workflow.DeleteDirectiveProcessor;
@@ -105,6 +107,7 @@ public class RootScope extends FileScope {
             new CreateDirectiveProcessor(),
             new CredentialsDirectiveProcessor(),
             new DeleteDirectiveProcessor(),
+            new DescriptionDirectiveProcessor(),
             new ExtendsDirectiveProcessor(),
             new ForDirectiveProcessor(),
             new IfDirectiveProcessor(),
@@ -112,6 +115,7 @@ public class RootScope extends FileScope {
             new ReplaceDirectiveProcessor(),
             new RepositoryDirectiveProcessor(),
             new PluginDirectiveProcessor(),
+            new TypeDescriptionDirectiveProcessor(),
             new UpdateDirectiveProcessor(),
             new UsesCredentialsDirectiveProcessor(),
             new VirtualDirectiveProcessor(),

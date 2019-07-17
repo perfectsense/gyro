@@ -122,10 +122,21 @@ public class DiffableType<R extends Diffable> {
             values.put(field.getName(), field.getValue(diffable));
         }
 
-        RootScope root = diffable.scope.getRootScope();
+        DiffableScope scope = diffable.scope;
+        RootScope root = scope.getRootScope();
+
+        Node node = scope.getSettings(DescriptionSettings.class).getDescription();
+
+        if (node == null) {
+            node = root.getSettings(DescriptionSettings.class).getTypeDescriptions().get(name);
+
+            if (node == null) {
+                node = description;
+            }
+        }
 
         return description != null
-            ? (String) root.getEvaluator().visit(description, new Scope(root, values))
+            ? (String) root.getEvaluator().visit(node, new Scope(root, values))
             : null;
     }
 
