@@ -134,7 +134,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
                     GyroCore.ui().write(
                         "@|bold,blue Refreshing|@: @|yellow %s|@ -> %s...",
                         DiffableType.getInstance(resource.getClass()).getName(),
-                        resource.name());
+                        DiffableInternals.getName(resource));
 
                     if (resource.refresh()) {
                         DiffableInternals.update(resource, true);

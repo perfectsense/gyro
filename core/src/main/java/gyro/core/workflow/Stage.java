@@ -76,7 +76,7 @@ public class Stage {
             }
         }
 
-        scope.put("NAME", pendingResource.name());
+        scope.put("NAME", DiffableInternals.getName(pendingResource));
         scope.put("CURRENT", currentResource);
         scope.put("PENDING", pendingScope.resolve());
 

@@ -514,7 +514,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
 
                     if (!resourceName.equals("*")) {
                         String prefix = resourceName.substring(0, resourceName.length() - 1);
-                        s = s.filter(r -> r.name().startsWith(prefix));
+                        s = s.filter(r -> DiffableInternals.getName(r).startsWith(prefix));
                     }
 
                     value = s.collect(Collectors.toList());
