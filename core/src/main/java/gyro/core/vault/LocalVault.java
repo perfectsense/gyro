@@ -1,6 +1,5 @@
 package gyro.core.vault;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
@@ -23,7 +22,6 @@ import gyro.lang.ast.value.MapNode;
 import gyro.lang.ast.value.ReferenceNode;
 import gyro.lang.ast.value.ValueNode;
 import gyro.util.Bug;
-import org.apache.commons.codec.binary.Base64;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
@@ -40,8 +38,6 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.PosixFileAttributes;
-import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.security.SecureRandom;
 import java.security.spec.KeySpec;
@@ -195,7 +191,6 @@ public class LocalVault extends Vault {
             throw new Bug(error);
         }
     }
-
 
     private List<Node> toBodyNodes(Diffable diffable) {
         List<Node> body = new ArrayList<>();

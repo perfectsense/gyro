@@ -3,7 +3,6 @@ package gyro.core.vault;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.command.AbstractCommand;
-import gyro.core.command.GyroCommand;
 import gyro.core.scope.RootScope;
 import io.airlift.airline.Arguments;
 import io.airlift.airline.Command;
