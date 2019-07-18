@@ -266,10 +266,6 @@ public class RootScope extends FileScope {
     private void validate() {
         StringBuilder sb = new StringBuilder();
 
-        if (values().stream().anyMatch(Resource.class::isInstance)) {
-            sb.append(String.format("Resources are not allowed in '%s'%n", getFile()));
-        }
-
         Map<String, List<String>> duplicateResources = new HashMap<>();
         for (Resource resource : findResources()) {
             String fullName = resource.primaryKey();

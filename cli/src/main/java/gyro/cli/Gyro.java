@@ -6,6 +6,7 @@ import gyro.core.command.AbstractCommand;
 import gyro.core.command.GyroCommand;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
+import gyro.core.resource.Resource;
 import gyro.core.scope.Defer;
 import gyro.core.scope.RootScope;
 import ch.qos.logback.classic.Level;
@@ -63,6 +64,10 @@ public class Gyro {
                     Collections.emptySet());
 
                 init.evaluate();
+
+                if (init.values().stream().anyMatch(Resource.class::isInstance)) {
+                    throw new GyroException(String.format("Resources are not allowed in '%s'%n", GyroCore.INIT_FILE));
+                }
 
             } else {
                 init = null;
