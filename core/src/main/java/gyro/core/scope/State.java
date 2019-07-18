@@ -114,7 +114,17 @@ public class State {
 
             if (typeRoot) {
                 String key = resource.primaryKey();
-                state.put(newKeys.getOrDefault(key, key), resource);
+                String newKey = newKeys.getOrDefault(key, key);
+
+                Resource oldResource = state.getRootScope().findResource(newKey);
+                state.put(newKey, resource);
+
+                if (oldResource != null) {
+                    FileScope oldState = states.get(DiffableInternals.getScope(oldResource).getFileScope().getFile());
+                    if (state != oldState) {
+                        oldState.remove(newKey);
+                    }
+                }
 
             } else {
                 String key = resource.parentResource().primaryKey();
