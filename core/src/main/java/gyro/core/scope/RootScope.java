@@ -43,6 +43,9 @@ import gyro.core.resource.ExtendsDirectiveProcessor;
 import gyro.core.resource.Resource;
 import gyro.core.resource.ResourcePlugin;
 import gyro.core.resource.TypeDescriptionDirectiveProcessor;
+import gyro.core.vault.VaultDirectiveProcessor;
+import gyro.core.vault.VaultPlugin;
+import gyro.core.vault.VaultReferenceResolver;
 import gyro.core.virtual.VirtualDirectiveProcessor;
 import gyro.core.workflow.CreateDirectiveProcessor;
 import gyro.core.workflow.DeleteDirectiveProcessor;
@@ -103,7 +106,8 @@ public class RootScope extends FileScope {
             new DirectivePlugin(),
             new FinderPlugin(),
             new ReferencePlugin(),
-            new ResourcePlugin())
+            new ResourcePlugin(),
+            new VaultPlugin())
             .forEach(p -> getSettings(PluginSettings.class).getPlugins().add(p));
 
         Stream.of(
@@ -122,11 +126,13 @@ public class RootScope extends FileScope {
             new UpdateDirectiveProcessor(),
             new UsesCredentialsDirectiveProcessor(),
             new VirtualDirectiveProcessor(),
-            new WorkflowDirectiveProcessor())
+            new WorkflowDirectiveProcessor(),
+            new VaultDirectiveProcessor())
             .forEach(p -> getSettings(DirectiveSettings.class).getProcessors().put(p.getName(), p));
 
         Stream.of(
-            new FinderReferenceResolver())
+            new FinderReferenceResolver(),
+            new VaultReferenceResolver())
             .forEach(r -> getSettings(ReferenceSettings.class).getResolvers().put(r.getName(), r));
 
         put("ENV", System.getenv());
