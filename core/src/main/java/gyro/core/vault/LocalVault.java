@@ -168,7 +168,7 @@ public class LocalVault extends Vault {
         return vault;
     }
 
-    public void save(RootScope vaultScope) {
+    private void save(RootScope vaultScope) {
         NodePrinter printer = new NodePrinter();
 
         try (PrintWriter out = new PrintWriter(
