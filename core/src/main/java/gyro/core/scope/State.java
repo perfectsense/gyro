@@ -50,7 +50,7 @@ public class State {
     public State(RootScope current, RootScope pending, boolean test, Set<String> diffFiles) {
         this.root = new RootScope(current.getFile(), current.getBackend(), null, current.getLoadFiles());
 
-        root.load();
+        root.evaluate();
 
         this.test = test;
         this.diffFiles = diffFiles != null ? ImmutableSet.copyOf(diffFiles) : null;
