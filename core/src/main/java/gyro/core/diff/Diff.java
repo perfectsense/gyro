@@ -399,8 +399,9 @@ public class Diff {
                     error);
             }
 
+            state.save();
+
             if (result != null) {
-                state.save();
                 result.write(ui);
             }
         }
