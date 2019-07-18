@@ -191,6 +191,17 @@ public class RootScope extends FileScope {
         return new GyroOutputStream(backend, file);
     }
 
+    public void delete(String file) {
+        try {
+            backend.delete(file);
+
+        } catch (Exception error) {
+            throw new GyroException(
+                String.format("Can't delete @|bold %s|@ in @|bold %s|@!", file, backend),
+                error);
+        }
+    }
+
     public Object convertValue(Type returnType, Object object) {
         return converter.convert(returnType, object);
     }

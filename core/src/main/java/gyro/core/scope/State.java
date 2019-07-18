@@ -15,6 +15,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableSet;
 import gyro.core.GyroException;
@@ -167,17 +168,21 @@ public class State {
         for (FileScope state : states.values()) {
             String file = state.getFile();
 
-            try (PrintWriter out = new PrintWriter(
-                new OutputStreamWriter(
-                    root.openOutput(file),
-                    StandardCharsets.UTF_8))) {
+            List<Resource> resources = state.values()
+                .stream()
+                .filter(Resource.class::isInstance)
+                .map(Resource.class::cast)
+                .collect(Collectors.toList());
 
-                PrinterContext context = new PrinterContext(out, 0);
+            if (!resources.isEmpty()) {
+                try (PrintWriter out = new PrintWriter(
+                    new OutputStreamWriter(
+                        root.openOutput(file),
+                        StandardCharsets.UTF_8))) {
 
-                for (Object value : state.values()) {
-                    if (value instanceof Resource) {
-                        Resource resource = (Resource) value;
+                    PrinterContext context = new PrinterContext(out, 0);
 
+                    for (Resource resource : resources) {
                         printer.visit(
                             new ResourceNode(
                                 DiffableType.getInstance(resource.getClass()).getName(),
@@ -185,10 +190,13 @@ public class State {
                                 toBodyNodes(resource)),
                             context);
                     }
+
+                } catch (IOException error) {
+                    throw new Bug(error);
                 }
 
-            } catch (IOException error) {
-                throw new Bug(error);
+            } else {
+                root.delete(file);
             }
         }
     }
