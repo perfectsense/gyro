@@ -62,8 +62,6 @@ public class LocalVault extends Vault {
     private String keyPath;
     private String cipher;
 
-    private static final String ALGORITHM = "AES";
-
     public String getKeyPath() {
         return keyPath;
     }
