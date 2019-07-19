@@ -10,6 +10,8 @@ public abstract class Vault {
 
     public abstract boolean put(String key, String value);
 
+    public abstract void remove(String key);
+
     public abstract Map<String, String> list(String filter);
 
     public String getName() {

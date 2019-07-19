@@ -154,6 +154,16 @@ public class LocalVault extends Vault {
     }
 
     @Override
+    public void remove(String key) {
+        RootScope vaultScope = loadVault();
+        DiffableType type = DiffableType.getInstance(LocalVaultSecretResource.class);
+
+        vaultScope.remove(type.getName() + "::" + key);
+
+        save(vaultScope);
+    }
+
+    @Override
     public Map<String, String> list(String prefix) {
         Map<String, String> secrets = new HashMap<>();
 

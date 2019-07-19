@@ -66,6 +66,16 @@ public class VaultCommand extends AbstractCommand {
             } else {
                 GyroCore.ui().write(vault.get(key) + "\n");
             }
+        } else if ("remove".equalsIgnoreCase(command) || "rm".equalsIgnoreCase(command)) {
+                String key = getArguments().size() >= 2 ? getArguments().get(1) : null;
+
+                if (key == null) {
+                    throw new GyroException("Key argument missing. Expected 'gyro vault get <key>'");
+                }
+
+                vault.remove(key);
+
+                GyroCore.ui().write("\nKey '%s' was removed in the '%s' vault.\n", key, getVaultName());
         } else if ("put".equalsIgnoreCase(command)) {
             String key = getArguments().size() >= 2 ? getArguments().get(1) : null;
             String value = getArguments().size() >= 3 ? getArguments().get(2) : null;
