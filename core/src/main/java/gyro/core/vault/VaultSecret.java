@@ -46,11 +46,12 @@ public class VaultSecret implements CustomValue {
 
     @Override
     public Node toStateNode() {
+        ValueNode vaultResolver = new ValueNode("vault-lookup");
         ValueNode vaultKey = new ValueNode(getKey());
         ValueNode vaultNameNode = new ValueNode(getVault());
         ValueNode vaultHash = new ValueNode(getHash());
 
-        return new ReferenceNode(Arrays.asList(vaultKey, vaultNameNode, vaultHash), ImmutableList.of()) ;
+        return new ReferenceNode(Arrays.asList(vaultResolver, vaultKey, vaultNameNode, vaultHash), ImmutableList.of()) ;
     }
 
     @Override
