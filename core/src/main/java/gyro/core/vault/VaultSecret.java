@@ -15,11 +15,13 @@ public class VaultSecret implements CustomValue {
     private String key;
     private String vault;
     private String value;
+    private String hash;
 
-    public VaultSecret(String key, String vault, String value) {
+    public VaultSecret(String key, String vault, String value, String hash) {
         this.key = key;
         this.vault = vault;
         this.value = value;
+        this.hash = hash;
     }
 
     public String getKey() {
@@ -35,13 +37,16 @@ public class VaultSecret implements CustomValue {
     }
 
     public String getHash() {
+        if (hash != null) {
+            return hash;
+        }
+
         return StringUtils.hex(StringUtils.sha512(getValue()));
     }
 
     @Override
     public String toString() {
-
-        return getValue();
+        return String.format("hash/%s", getHash());
     }
 
     @Override

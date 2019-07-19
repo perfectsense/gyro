@@ -29,12 +29,17 @@ public class VaultReferenceResolver extends ReferenceResolver {
 
         String key = null;
         String vaultName = "default";
+        String hash = null;
 
         if (arguments.size() == 1) {
             key = (String) arguments.get(0);
         } else if (arguments.size() == 2) {
             key = (String) arguments.get(0);
             vaultName = (String) arguments.get(1);
+        } else if (arguments.size() == 3) {
+            key = (String) arguments.get(0);
+            vaultName = (String) arguments.get(1);
+            hash = (String) arguments.get(2);
         }
 
         RootScope rootScope = scope.getRootScope();
@@ -45,7 +50,7 @@ public class VaultReferenceResolver extends ReferenceResolver {
             throw new GyroException("Unable to load the vault named '" + vaultName + "'. Ensure the vault is configured in .gyro/init.gyro.");
         }
 
-        return new VaultSecret(key, vaultName, vault.get(key));
+        return new VaultSecret(key, vaultName, vault.get(key), hash);
     }
 
 }
