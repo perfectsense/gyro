@@ -40,9 +40,13 @@ public class VaultDirectiveProcessor extends DirectiveProcessor<RootScope> {
             Method setter = property.getWriteMethod();
 
             if (setter != null && !"setName".equals(setter.getName())) {
-                Reflections.invoke(setter, vault, scope.convertValue(
-                    setter.getGenericParameterTypes()[0],
-                    bodyScope.get(CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, property.getName()))));
+                Object value = scope.convertValue(
+                        setter.getGenericParameterTypes()[0],
+                        bodyScope.get(CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, property.getName())));
+
+                if (value != null) {
+                    Reflections.invoke(setter, vault, value);
+                }
             }
         }
 

@@ -51,6 +51,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static java.nio.file.attribute.PosixFilePermission.OWNER_READ;
@@ -61,6 +62,8 @@ public class LocalVault extends Vault {
 
     private String keyPath;
     private String cipher;
+    private Integer keyLength;
+    private Integer keyIterations;
 
     public String getKeyPath() {
         return keyPath;
@@ -76,6 +79,34 @@ public class LocalVault extends Vault {
 
     public void setCipher(String cipher) {
         this.cipher = cipher;
+    }
+
+    public Integer getKeyLength() {
+        if (keyLength == null) {
+            return 256;
+        }
+
+        return keyLength;
+    }
+
+    public void setKeyLength(Integer keyLength) {
+        this.keyLength = keyLength;
+    }
+
+    public Integer getKeyIterations() {
+        if (keyIterations == null) {
+            return 65536;
+        }
+
+        return keyIterations;
+    }
+
+    public void setKeyIterations(Integer keyIterations) {
+        if (keyIterations != null && keyIterations < 10000) {
+            throw new GyroException(String.format(Locale.getDefault(), "Key iterations must be greater than %,d per NIST recommended guidelines.", 10000));
+        }
+
+        this.keyIterations = keyIterations;
     }
 
     public Path vaultPath() {
@@ -306,7 +337,7 @@ public class LocalVault extends Vault {
     private String decrypt(LocalVaultSecretResource secret) {
         try {
             SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-            KeySpec spec = new PBEKeySpec(key(), secret.getSaltAsBytes(), 10000, 128);
+            KeySpec spec = new PBEKeySpec(key(), secret.getSaltAsBytes(), getKeyIterations(), getKeyLength());
 
             SecretKey tmp = factory.generateSecret(spec);
             SecretKeySpec skey = new SecretKeySpec(tmp.getEncoded(), "AES");
@@ -330,7 +361,7 @@ public class LocalVault extends Vault {
             SecureRandom.getInstanceStrong().nextBytes(salt);
 
             SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-            KeySpec spec = new PBEKeySpec(key(), salt, 10000, 128);
+            KeySpec spec = new PBEKeySpec(key(), salt, getKeyIterations(), getKeyLength());
 
             SecretKey tmp = factory.generateSecret(spec);
             SecretKeySpec skey = new SecretKeySpec(tmp.getEncoded(), "AES");
