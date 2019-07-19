@@ -22,6 +22,7 @@ import gyro.core.GyroException;
 import gyro.core.diff.Change;
 import gyro.core.diff.Delete;
 import gyro.core.diff.Replace;
+import gyro.core.resource.CustomValue;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.DiffableField;
 import gyro.core.resource.DiffableInternals;
@@ -220,7 +221,9 @@ public class State {
 
             String key = field.getName();
 
-            if (value instanceof Boolean
+            if (value instanceof CustomValue) {
+                body.add(toPairNode(key, ((CustomValue) value).toStateNode()));
+            } else if (value instanceof Boolean
                 || value instanceof Map
                 || value instanceof Number
                 || value instanceof String) {

@@ -45,7 +45,7 @@ public class VaultReferenceResolver extends ReferenceResolver {
             throw new GyroException("Unable to load the vault named '" + vaultName + "'. Ensure the vault is configured in .gyro/init.gyro.");
         }
 
-        return vault.get(key);
+        return new VaultSecret(key, vaultName, vault.get(key));
     }
 
 }

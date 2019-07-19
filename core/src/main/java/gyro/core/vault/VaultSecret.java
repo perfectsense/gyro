@@ -1,0 +1,76 @@
+package gyro.core.vault;
+
+import com.google.common.collect.ImmutableList;
+import com.psddev.dari.util.StringUtils;
+import gyro.core.resource.CustomValue;
+import gyro.lang.ast.Node;
+import gyro.lang.ast.value.ReferenceNode;
+import gyro.lang.ast.value.ValueNode;
+
+import java.util.Arrays;
+import java.util.Objects;
+
+public class VaultSecret implements CustomValue {
+
+    private String key;
+    private String vault;
+    private String value;
+
+    public VaultSecret(String key, String vault, String value) {
+        this.key = key;
+        this.vault = vault;
+        this.value = value;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public String getVault() {
+        return vault;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public String getHash() {
+        return StringUtils.hex(StringUtils.sha512(getValue()));
+    }
+
+    @Override
+    public String toString() {
+
+        return getValue();
+    }
+
+    @Override
+    public Node toStateNode() {
+        ValueNode vaultKey = new ValueNode(getKey());
+        ValueNode vaultNameNode = new ValueNode(getVault());
+        ValueNode vaultHash = new ValueNode(getHash());
+
+        return new ReferenceNode(Arrays.asList(vaultKey, vaultNameNode, vaultHash), ImmutableList.of()) ;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (!(o instanceof VaultSecret)) {
+            return false;
+        }
+
+        VaultSecret that = (VaultSecret) o;
+
+        return Objects.equals(getValue(), that.getValue());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getValue());
+    }
+
+}

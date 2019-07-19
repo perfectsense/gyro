@@ -4,6 +4,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -12,6 +13,7 @@ import com.psddev.dari.util.ConversionException;
 import com.psddev.dari.util.ObjectUtils;
 import gyro.core.GyroException;
 import gyro.core.Reflections;
+import gyro.core.scope.DiffableScope;
 import gyro.core.scope.Scope;
 
 public class DiffableField {
@@ -95,6 +97,11 @@ public class DiffableField {
     }
 
     public Object getValue(Diffable diffable) {
+        DiffableScope scope = DiffableInternals.getScope(diffable);
+        if (scope != null && scope.get(getName()) instanceof CustomValue) {
+            return scope.get(getName());
+        }
+
         return Reflections.invoke(getter, diffable);
     }
 
