@@ -1,6 +1,7 @@
 package gyro.core.vault;
 
 import com.google.common.collect.ImmutableSet;
+import com.psddev.dari.util.IoUtils;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.LocalFileBackend;
@@ -22,6 +23,7 @@ import gyro.lang.ast.value.MapNode;
 import gyro.lang.ast.value.ReferenceNode;
 import gyro.lang.ast.value.ValueNode;
 import gyro.util.Bug;
+import org.apache.commons.codec.binary.Base64;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
@@ -30,6 +32,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -90,8 +93,15 @@ public class LocalVault extends Vault {
         this.cipher = cipher;
     }
 
-    public String key() {
-        return "foobar";
+    public char[] key() {
+        try {
+            byte[] key = Base64.decodeBase64(IoUtils.toByteArray(new File(getKeyPath())));
+            return new String(key, StandardCharsets.UTF_8).toCharArray();
+        } catch (FileNotFoundException ex) {
+            throw new GyroException("Encryption key for '" + getName() + "' vault not found at path '" + getKeyPath() + "'");
+        } catch (IOException ex) {
+            throw new GyroException("Unable to load encryption key for '" + getName() + "' vault.", ex);
+        }
     }
 
     @Override
@@ -307,7 +317,7 @@ public class LocalVault extends Vault {
     private String decrypt(LocalVaultSecretResource secret) {
         try {
             SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-            KeySpec spec = new PBEKeySpec(key().toCharArray(), secret.getSaltAsBytes(), 10000, 128);
+            KeySpec spec = new PBEKeySpec(key(), secret.getSaltAsBytes(), 10000, 128);
 
             SecretKey tmp = factory.generateSecret(spec);
             SecretKeySpec skey = new SecretKeySpec(tmp.getEncoded(), "AES");
@@ -331,7 +341,7 @@ public class LocalVault extends Vault {
             SecureRandom.getInstanceStrong().nextBytes(salt);
 
             SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-            KeySpec spec = new PBEKeySpec(key().toCharArray(), salt, 10000, 128);
+            KeySpec spec = new PBEKeySpec(key(), salt, 10000, 128);
 
             SecretKey tmp = factory.generateSecret(spec);
             SecretKeySpec skey = new SecretKeySpec(tmp.getEncoded(), "AES");
