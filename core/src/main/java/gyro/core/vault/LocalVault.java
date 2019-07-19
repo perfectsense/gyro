@@ -59,23 +59,10 @@ import static java.nio.file.attribute.PosixFilePermission.OWNER_WRITE;
 @Type("local")
 public class LocalVault extends Vault {
 
-    private String vaultFile = ".gyro/vault.gyro";
     private String keyPath;
     private String cipher;
 
     private static final String ALGORITHM = "AES";
-
-    public String getVaultFile() {
-        if (!vaultFile.startsWith(".gyro")) {
-            return ".gyro" + File.separator + vaultFile;
-        }
-
-        return vaultFile;
-    }
-
-    public void setVaultFile(String vaultFile) {
-        this.vaultFile = vaultFile;
-    }
 
     public String getKeyPath() {
         return keyPath;
@@ -91,6 +78,10 @@ public class LocalVault extends Vault {
 
     public void setCipher(String cipher) {
         this.cipher = cipher;
+    }
+
+    public Path vaultPath() {
+        return GyroCore.getRootDirectory().resolve(Paths.get(".gyro", "vault", getName()));
     }
 
     public char[] key() {
@@ -146,17 +137,17 @@ public class LocalVault extends Vault {
     }
 
     private RootScope loadVault() {
-        Path vaultPath = Paths.get(getVaultFile());
-        if (!Files.exists(vaultPath)) {
+        if (!Files.exists(vaultPath())) {
             try {
-                Files.createFile(vaultPath, PosixFilePermissions.asFileAttribute(ImmutableSet.of(OWNER_READ, OWNER_WRITE)));
+                Files.createDirectories(vaultPath().getParent());
+                Files.createFile(vaultPath(), PosixFilePermissions.asFileAttribute(ImmutableSet.of(OWNER_READ, OWNER_WRITE)));
             } catch (Exception ex) {
                 throw new GyroException(ex);
             }
         }
 
         RootScope vault = new RootScope(
-            getVaultFile(),
+            vaultPath().toString(),
             new LocalFileBackend(GyroCore.getRootDirectory()),
             null,
             ImmutableSet.of());
@@ -179,7 +170,7 @@ public class LocalVault extends Vault {
 
         try (PrintWriter out = new PrintWriter(
             new OutputStreamWriter(
-                vaultScope.openOutput(getVaultFile()),
+                vaultScope.openOutput(vaultPath().toString()),
                 StandardCharsets.UTF_8))) {
 
             PrinterContext context = new PrinterContext(out, 0);
