@@ -221,9 +221,7 @@ public class State {
 
             String key = field.getName();
 
-            if (value instanceof CustomValue) {
-                body.add(toPairNode(key, ((CustomValue) value).toStateNode()));
-            } else if (value instanceof Boolean
+            if (value instanceof Boolean
                 || value instanceof Map
                 || value instanceof Number
                 || value instanceof String) {
@@ -286,6 +284,9 @@ public class State {
             }
 
             return new ListNode(items);
+
+        } else if (value instanceof CustomValue) {
+            return ((CustomValue) value).toStateNode();
 
         } else if (value instanceof Map) {
             List<PairNode> entries = new ArrayList<>();
