@@ -9,7 +9,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 
 import com.google.common.base.CaseFormat;
 import com.google.common.cache.CacheBuilder;
@@ -24,6 +23,17 @@ import gyro.core.validation.ValidatorClass;
 import gyro.core.validation.Validator;
 
 public class DiffableField {
+
+    private static final LoadingCache<Class<? extends Validator<? extends Annotation>>, Validator<Annotation>> VALIDATORS = CacheBuilder.newBuilder()
+        .weakKeys()
+        .build(new CacheLoader<Class<? extends Validator<? extends Annotation>>, Validator<Annotation>>() {
+
+            @Override
+            @SuppressWarnings("unchecked")
+            public Validator<Annotation> load(Class<? extends Validator<? extends Annotation>> c) {
+                return (Validator) Reflections.newInstance(c);
+            }
+        });
 
     private final String name;
     private final Method getter;
@@ -134,66 +144,22 @@ public class DiffableField {
     }
 
     public List<String> validate(Diffable diffable) {
-        List<String> validationMessages = new ArrayList<>();
+        Object value = getValue(diffable);
+        List<String> messages = new ArrayList<>();
 
-        Object object = this.getValue(diffable);
-
-        // New Way
-        /*try {
-            Stream.of(getter.getAnnotations())
-                .map(Annotation::annotationType)
-                .map(a -> a.getAnnotation(AnnotationProcessorClass.class))
-                .filter(Objects::nonNull)
-                .map(AnnotationProcessorClass::value)
-                .map(this::getValidator)
-                .filter(Objects::nonNull)
-                .forEach(
-                    v -> {
-                        if (!v.isValid(o -> o, object)) {
-
-                        }
-                    }
-                );
-        } catch (ExecutionException ex) {
-            ex.printStackTrace();
-        }*/
-
-        // Old way
         for (Annotation annotation : getter.getAnnotations()) {
             ValidatorClass validatorClass = annotation.annotationType().getAnnotation(ValidatorClass.class);
+
             if (validatorClass != null) {
-                try {
-                    Validator validator = (Validator) SINGLETONS.get(validatorClass.value());
-                    if (!validator.isValid(annotation, object)) {
-                        validationMessages.add(validator.getMessage(annotation));
-                    }
-                } catch (ExecutionException ex) {
-                    ex.printStackTrace();
+                Validator<Annotation> validator = VALIDATORS.getUnchecked(validatorClass.value());
+
+                if (!validator.isValid(annotation, value)) {
+                    messages.add(validator.getMessage(annotation));
                 }
             }
         }
 
-        return validationMessages;
+        return messages;
     }
-
-
-    // Helper new way
-    private Validator getValidator(Class itemClass) {
-        try {
-            return (Validator) SINGLETONS.get(itemClass);
-        } catch (ExecutionException ex) {
-            ex.printStackTrace();
-        }
-
-        return null;
-    }
-
-    private static final LoadingCache<Class<?>, Object> SINGLETONS = CacheBuilder.newBuilder()
-        .weakKeys()
-        .build(new CacheLoader<Class<?>, Object>() {
-            public Object load(Class<?> c) throws IllegalAccessException, InstantiationException {
-                return c.newInstance();
-            }
-        });
 
 }
