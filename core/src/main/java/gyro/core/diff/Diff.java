@@ -322,7 +322,7 @@ public class Diff {
         return written;
     }
 
-    public void validate() throws Exception {
+    public void validate() {
         List<String> errorMessages = new ArrayList<>();
         for (Change change : getChanges()) {
             if (change instanceof Create || change instanceof Update) {
