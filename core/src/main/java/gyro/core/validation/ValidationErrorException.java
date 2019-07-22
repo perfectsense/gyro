@@ -13,10 +13,6 @@ public class ValidationErrorException extends RuntimeException {
         this.errors = ImmutableList.copyOf(errors);
     }
 
-    public List<ValidationError> getErrors() {
-        return errors;
-    }
-
     public void write(GyroUI ui) {
         ui.write("@|red %d validation errors!|@\n", errors.size());
 

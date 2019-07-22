@@ -28,37 +28,27 @@ public class ValidationError implements Locatable {
     }
 
     public void write(GyroUI ui) {
+        ui.write("\n");
+
         Diffable parent = diffable.parent();
-        DiffableType type = DiffableType.getInstance(diffable.getClass());
-        String name = DiffableInternals.getName(diffable);
-        String label;
 
         if (parent == null) {
-            label = String.format("%s %s", type.getName(), name);
+            ui.write(
+                "@|bold %s|@ %s",
+                DiffableType.getInstance(diffable.getClass()).getName(),
+                DiffableInternals.getName(diffable));
 
         } else {
-            label = name;
-            String primaryKey = diffable.primaryKey();
-
-            if (!StringUtils.isBlank(primaryKey)) {
-                label += " ";
-                label += primaryKey;
-            }
-
-            label += String.format(
-                " for %s %s",
+            ui.write(
+                "@|bold %s|@ %s @|bold %s|@",
                 DiffableType.getInstance(parent.getClass()).getName(),
-                DiffableInternals.getName(parent));
+                DiffableInternals.getName(parent),
+                diffable.primaryKey());
         }
 
-        ui.write("\n@|bold %s|@ field in @|bold %s|@", fieldName, label);
-        Optional.ofNullable(toLocation()).ifPresent(s -> ui.write(" in @|bold %s|@ %s", getFile(), s));
-        ui.write(":\n");
-        Optional.ofNullable(toCodeSnippet()).ifPresent(s -> ui.write("%s\n", s));
-
-        for (String message : messages) {
-            ui.write("· %s\n", message);
-        }
+        ui.write(" @|bold %s|@: %s\n", fieldName, messages);
+        Optional.ofNullable(toLocation()).ifPresent(s -> ui.write("\nIn @|bold %s|@ %s\n", getFile(), s));
+        Optional.ofNullable(toCodeSnippet()).ifPresent(s -> ui.write("%s", s));
     }
 
     @Override
