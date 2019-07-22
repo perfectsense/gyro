@@ -56,6 +56,7 @@ public class VirtualResourceVisitor extends ResourceVisitor {
         RootScope virtualRoot = new RootScope(root.getFile(), root.getBackend(), null, ImmutableSet.of());
 
         virtualRoot.evaluate();
+        virtualRoot.validate();
         virtualRoot.putAll(root);
 
         FileScope file = scope.getFileScope();

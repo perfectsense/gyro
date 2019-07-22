@@ -265,10 +265,9 @@ public class RootScope extends FileScope {
     public void evaluate() {
         evaluator.visit(initNode, this);
         evaluator.visitBody(bodyNodes, this);
-        validate();
     }
 
-    private void validate() {
+    public void validate() {
         StringBuilder sb = new StringBuilder();
 
         if (values().stream().anyMatch(Resource.class::isInstance)) {
