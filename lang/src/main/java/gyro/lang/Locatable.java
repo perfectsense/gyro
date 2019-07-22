@@ -24,6 +24,10 @@ public interface Locatable {
     }
 
     default String toLocation() {
+        if (getStream() == null) {
+            return null;
+        }
+
         int startLine = getStartLine();
         int startColumn = getStartColumn();
         int stopLine = getStopLine();
