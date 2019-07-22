@@ -181,7 +181,7 @@ public class DiffableType<R extends Diffable> {
                 }
             }
 
-            Optional.ofNullable(diffable.validations()).ifPresent(errors::addAll);
+            Optional.ofNullable(diffable.validate()).ifPresent(errors::addAll);
 
         } else {
             errors.add(new ValidationError(

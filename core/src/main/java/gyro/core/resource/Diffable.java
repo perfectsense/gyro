@@ -147,7 +147,7 @@ public abstract class Diffable {
         return String.format("%s::%s", DiffableType.getInstance(getClass()).getName(), name);
     }
 
-    public List<ValidationError> validations() {
+    public List<ValidationError> validate() {
         return null;
     }
 
