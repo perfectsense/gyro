@@ -144,9 +144,9 @@ public class DiffableField {
         }
     }
 
-    public ValidationError validate(Diffable diffable) {
+    public List<ValidationError> validate(Diffable diffable) {
         Object value = getValue(diffable);
-        List<String> messages = new ArrayList<>();
+        List<ValidationError> errors = new ArrayList<>();
 
         for (Annotation annotation : getter.getAnnotations()) {
             ValidatorClass validatorClass = annotation.annotationType().getAnnotation(ValidatorClass.class);
@@ -155,17 +155,12 @@ public class DiffableField {
                 Validator<Annotation> validator = VALIDATORS.getUnchecked(validatorClass.value());
 
                 if (!validator.isValid(annotation, value)) {
-                    messages.add(validator.getMessage(annotation));
+                    errors.add(new ValidationError(diffable, name, validator.getMessage(annotation)));
                 }
             }
         }
 
-        if (!messages.isEmpty()) {
-            return new ValidationError(diffable, name, messages);
-
-        } else {
-            return null;
-        }
+        return errors;
     }
 
 }

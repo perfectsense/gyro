@@ -4,7 +4,6 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -164,7 +163,7 @@ public class DiffableType<R extends Diffable> {
             errors.add(new ValidationError(
                 parent,
                 name,
-                Collections.singletonList("Can't validate a null!")));
+                "Can't validate a null!"));
 
         } else if (value instanceof Collection) {
             for (Object item : (Collection<?>) value) {
@@ -175,7 +174,7 @@ public class DiffableType<R extends Diffable> {
             Diffable diffable = (Diffable) value;
 
             for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
-                Optional.ofNullable(field.validate(diffable)).ifPresent(errors::add);
+                errors.addAll(field.validate(diffable));
 
                 if (field.shouldBeDiffed()) {
                     validateValue(errors, diffable, field.getName(), field.getValue(diffable));
@@ -188,10 +187,10 @@ public class DiffableType<R extends Diffable> {
             errors.add(new ValidationError(
                 parent,
                 name,
-                Collections.singletonList(String.format(
+                String.format(
                     "Can't validate @|bold %s|@, an instance of @|bold %s|@!",
                     value,
-                    value.getClass().getName()))));
+                    value.getClass().getName())));
         }
     }
 

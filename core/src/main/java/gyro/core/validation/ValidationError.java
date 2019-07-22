@@ -1,9 +1,7 @@
 package gyro.core.validation;
 
-import java.util.List;
 import java.util.Optional;
 
-import com.google.common.collect.ImmutableList;
 import gyro.core.GyroUI;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.DiffableInternals;
@@ -11,19 +9,18 @@ import gyro.core.resource.DiffableType;
 import gyro.lang.GyroCharStream;
 import gyro.lang.Locatable;
 import gyro.lang.ast.Node;
-import org.apache.commons.lang3.StringUtils;
 
 public class ValidationError implements Locatable {
 
     private final Diffable diffable;
     private final String fieldName;
-    private final List<String> messages;
+    private final String message;
     private final Node node;
 
-    public ValidationError(Diffable diffable, String fieldName, List<String> messages) {
+    public ValidationError(Diffable diffable, String fieldName, String message) {
         this.diffable = diffable;
         this.fieldName = fieldName;
-        this.messages = ImmutableList.copyOf(messages);
+        this.message = message;
         this.node = DiffableInternals.getScope(diffable).getValueNodes().get(fieldName);
     }
 
@@ -46,7 +43,7 @@ public class ValidationError implements Locatable {
                 diffable.primaryKey());
         }
 
-        ui.write(" @|bold %s|@: %s\n", fieldName, messages);
+        ui.write(" @|bold %s|@: %s\n", fieldName, message);
         Optional.ofNullable(toLocation()).ifPresent(s -> ui.write("\nIn @|bold %s|@ %s\n", getFile(), s));
         Optional.ofNullable(toCodeSnippet()).ifPresent(s -> ui.write("%s", s));
     }
