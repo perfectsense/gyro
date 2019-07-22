@@ -274,8 +274,10 @@ public class RootScope extends FileScope {
             sb.append(String.format("Resources are not allowed in '%s'%n", getFile()));
         }
 
+        List<Resource> resources = findResources();
         Map<String, List<String>> duplicateResources = new HashMap<>();
-        for (Resource resource : findResources()) {
+
+        for (Resource resource : resources) {
             String fullName = resource.primaryKey();
             duplicateResources.putIfAbsent(fullName, new ArrayList<>());
             duplicateResources.get(fullName).add(DiffableInternals.getScope(resource).getFileScope().getFile());
@@ -293,6 +295,16 @@ public class RootScope extends FileScope {
         if (sb.length() != 0) {
             sb.insert(0, "Invalid configs\n");
             throw new GyroException(sb.toString());
+        }
+
+        List<String> messages = new ArrayList<>();
+
+        for (Resource resource : resources) {
+            messages.addAll(DiffableType.getInstance(resource.getClass()).validate(resource));
+        }
+
+        if (!messages.isEmpty()) {
+            throw new GyroException("\n" + String.join("\n", messages));
         }
     }
 

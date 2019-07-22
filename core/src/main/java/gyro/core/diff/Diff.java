@@ -321,20 +321,6 @@ public class Diff {
         return written;
     }
 
-    public void validate() {
-        List<String> errorMessages = new ArrayList<>();
-        for (Change change : getChanges()) {
-            if (change instanceof Create || change instanceof Update) {
-                Diffable diffable = change.getDiffable();
-                errorMessages.addAll(DiffableType.getInstance(diffable.getClass()).validate(diffable));
-            }
-        }
-
-        if (!errorMessages.isEmpty()) {
-            throw new GyroException("\n" + String.join("\n", errorMessages));
-        }
-    }
-
     public void execute(GyroUI ui, State state) {
         executeCreateKeepUpdate(ui, state);
         executeReplace(ui, state);

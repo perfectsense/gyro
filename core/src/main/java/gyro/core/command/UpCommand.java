@@ -25,7 +25,6 @@ public class UpCommand extends AbstractConfigCommand {
             pending.findResourcesIn(diffFiles));
 
         diff.diff();
-        diff.validate();
 
         if (diff.write(ui)) {
             if (ui.readBoolean(Boolean.FALSE, "\nAre you sure you want to change resources?")) {
