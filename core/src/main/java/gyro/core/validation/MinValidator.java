@@ -4,17 +4,12 @@ public class MinValidator extends AbstractValidator<Min> {
 
     @Override
     protected boolean validate(Min annotation, Object value) {
-        if (value instanceof Number) {
-            double valueCheck = ((Number) value).doubleValue();
-            return valueCheck >= annotation.value();
-        }
-
-        return true;
+        return value instanceof Number && annotation.value() <= ((Number) value).doubleValue();
     }
 
     @Override
     public String getMessage(Min annotation) {
-        return String.format("Minimum allowed number is %s.", annotation.value());
+        return String.format("Must be greater than or equal to @|bold %s|@", annotation.value());
     }
 
 }
