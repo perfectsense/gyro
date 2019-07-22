@@ -116,11 +116,13 @@ public class State {
                 String key = resource.primaryKey();
                 String newKey = newKeys.getOrDefault(key, key);
 
-                Resource oldResource = state.getRootScope().findResource(newKey);
                 state.put(newKey, resource);
+
+                Resource oldResource = state.getRootScope().findResource(newKey);
 
                 if (oldResource != null) {
                     FileScope oldState = states.get(DiffableInternals.getScope(oldResource).getFileScope().getFile());
+
                     if (state != oldState) {
                         oldState.remove(newKey);
                     }
