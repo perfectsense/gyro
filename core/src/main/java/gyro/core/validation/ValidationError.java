@@ -2,6 +2,7 @@ package gyro.core.validation;
 
 import java.util.Optional;
 
+import com.cronutils.utils.Preconditions;
 import gyro.core.GyroUI;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.DiffableInternals;
@@ -18,7 +19,7 @@ public class ValidationError implements Locatable {
     private final Node node;
 
     public ValidationError(Diffable diffable, String fieldName, String message) {
-        this.diffable = diffable;
+        this.diffable = Preconditions.checkNotNull(diffable);
         this.fieldName = fieldName;
         this.message = message;
         this.node = DiffableInternals.getScope(diffable).getValueNodes().get(fieldName);
@@ -43,7 +44,8 @@ public class ValidationError implements Locatable {
                 diffable.primaryKey());
         }
 
-        ui.write(" @|bold %s|@: %s\n", fieldName, message);
+        Optional.ofNullable(fieldName).ifPresent(s -> ui.write(" @|bold %s|@", s));
+        ui.write(": %s\n", message);
         Optional.ofNullable(toLocation()).ifPresent(s -> ui.write("\nIn @|bold %s|@ %s\n", getFile(), s));
         Optional.ofNullable(toCodeSnippet()).ifPresent(s -> ui.write("%s", s));
     }
