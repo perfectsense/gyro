@@ -9,8 +9,8 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-@ValidatorClass(AllowedNumbersValidator.class)
-public @interface AllowedNumbers {
+@ValidatorClass(ValidNumbersValidator.class)
+public @interface ValidNumbers {
 
     double[] value();
 

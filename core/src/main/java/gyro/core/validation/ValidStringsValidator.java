@@ -2,10 +2,10 @@ package gyro.core.validation;
 
 import java.util.Arrays;
 
-public class AllowedStringsValidator extends AbstractValidator<AllowedStrings> {
+public class ValidStringsValidator extends AbstractValidator<ValidStrings> {
 
     @Override
-    protected boolean validate(AllowedStrings annotation, Object value) {
+    protected boolean validate(ValidStrings annotation, Object value) {
         if (value instanceof String) {
             return Arrays.asList(annotation.value()).contains(value);
         }
@@ -14,7 +14,7 @@ public class AllowedStringsValidator extends AbstractValidator<AllowedStrings> {
     }
 
     @Override
-    public String getMessage(AllowedStrings annotation) {
+    public String getMessage(ValidStrings annotation) {
         return String.format("Valid value should be one of %s.", Arrays.toString(annotation.value()));
     }
 

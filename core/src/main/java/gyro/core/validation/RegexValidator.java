@@ -2,10 +2,10 @@ package gyro.core.validation;
 
 import java.util.Arrays;
 
-public class AllowedRegexValidator extends AbstractValidator<AllowedRegex> {
+public class RegexValidator extends AbstractValidator<Regex> {
 
     @Override
-    protected boolean validate(AllowedRegex annotation, Object value) {
+    protected boolean validate(Regex annotation, Object value) {
         if (value instanceof String) {
             return Arrays.stream(annotation.value()).anyMatch(((String) value)::matches);
         }
@@ -14,7 +14,7 @@ public class AllowedRegexValidator extends AbstractValidator<AllowedRegex> {
     }
 
     @Override
-    public String getMessage(AllowedRegex annotation) {
+    public String getMessage(Regex annotation) {
         return String.format(
             "Valid value should be one of these formats %s.",
             annotation.display().length == 0

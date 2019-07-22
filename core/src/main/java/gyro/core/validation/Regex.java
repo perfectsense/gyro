@@ -9,9 +9,11 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-@ValidatorClass(AllowedStringsValidator.class)
-public @interface AllowedStrings {
+@ValidatorClass(RegexValidator.class)
+public @interface Regex {
 
     String[] value();
+
+    String[] display() default {};
 
 }
