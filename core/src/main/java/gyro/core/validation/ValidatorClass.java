@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.ANNOTATION_TYPE)
-public @interface AnnotationProcessorClass {
+public @interface ValidatorClass {
 
     Class<? extends Validator<? extends Annotation>> value();
 

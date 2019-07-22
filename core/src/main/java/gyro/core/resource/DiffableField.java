@@ -20,7 +20,7 @@ import com.psddev.dari.util.ObjectUtils;
 import gyro.core.GyroException;
 import gyro.core.Reflections;
 import gyro.core.scope.Scope;
-import gyro.core.validation.AnnotationProcessorClass;
+import gyro.core.validation.ValidatorClass;
 import gyro.core.validation.Validator;
 
 public class DiffableField {
@@ -160,10 +160,10 @@ public class DiffableField {
 
         // Old way
         for (Annotation annotation : getter.getAnnotations()) {
-            AnnotationProcessorClass annotationProcessorClass = annotation.annotationType().getAnnotation(AnnotationProcessorClass.class);
-            if (annotationProcessorClass != null) {
+            ValidatorClass validatorClass = annotation.annotationType().getAnnotation(ValidatorClass.class);
+            if (validatorClass != null) {
                 try {
-                    Validator validator = (Validator) SINGLETONS.get(annotationProcessorClass.value());
+                    Validator validator = (Validator) SINGLETONS.get(validatorClass.value());
                     if (!validator.isValid(annotation, object)) {
                         validationMessages.add(validator.getMessage(annotation));
                     }

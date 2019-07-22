@@ -6,10 +6,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@AnnotationProcessorClass(RequiredValidator.class)
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
+@ValidatorClass(RequiredValidator.class)
 public @interface Required {
 
 }

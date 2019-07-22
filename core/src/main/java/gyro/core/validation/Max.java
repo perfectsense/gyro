@@ -6,10 +6,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@AnnotationProcessorClass(MaxValidator.class)
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
+@ValidatorClass(MaxValidator.class)
 public @interface Max {
 
     double value();

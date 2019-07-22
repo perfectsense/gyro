@@ -6,10 +6,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@AnnotationProcessorClass(MinValidator.class)
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
+@ValidatorClass(MinValidator.class)
 public @interface Min {
 
     double value();

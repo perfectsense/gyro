@@ -6,10 +6,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@AnnotationProcessorClass(AllowedRegexValidator.class)
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
+@ValidatorClass(AllowedRegexValidator.class)
 public @interface AllowedRegex {
 
     String[] value();

@@ -7,11 +7,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@AnnotationProcessorClass(RangeValidator.class)
 @Documented
 @Repeatable(Ranges.class)
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
+@ValidatorClass(RangeValidator.class)
 public @interface Range {
 
     double low();
