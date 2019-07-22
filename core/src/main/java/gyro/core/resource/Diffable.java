@@ -146,6 +146,10 @@ public abstract class Diffable {
         return String.format("%s::%s", DiffableType.getInstance(getClass()).getName(), name);
     }
 
+    public List<String> validations() {
+        return null;
+    }
+
     public boolean writePlan(GyroUI ui, Change change) {
         return false;
     }
@@ -209,7 +213,4 @@ public abstract class Diffable {
         return builder.toString();
     }
 
-    public List<String> validations() {
-        return new ArrayList<>();
-    }
 }

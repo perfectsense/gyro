@@ -2,6 +2,8 @@ package gyro.core.resource;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -147,6 +149,42 @@ public class DiffableType<R extends Diffable> {
         diffable.scope = scope;
 
         return diffable;
+    }
+
+    public List<String> validate(Diffable diffable) {
+        List<String> messages = new ArrayList<>();
+        validateValue(messages, diffable);
+        return messages;
+    }
+
+    private void validateValue(List<String> messages, Object value) {
+        if (value == null) {
+            messages.add("Can't validate a null!");
+
+        } else if (value instanceof Collection) {
+            for (Object item : (Collection<?>) value) {
+                validateValue(messages, item);
+            }
+
+        } else if (value instanceof Diffable) {
+            Diffable diffable = (Diffable) value;
+
+            for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
+                messages.addAll(field.validate(diffable));
+
+                if (field.shouldBeDiffed()) {
+                    validateValue(messages, field.getValue(diffable));
+                }
+            }
+
+            Optional.ofNullable(diffable.validations()).ifPresent(messages::addAll);
+
+        } else {
+            messages.add(String.format(
+                "Can't validate @|bold %s|@, an instance of @|bold %s|@!",
+                value,
+                value.getClass().getName()));
+        }
     }
 
 }

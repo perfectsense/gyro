@@ -21,7 +21,6 @@ import gyro.core.resource.DiffableType;
 import gyro.core.resource.Resource;
 import gyro.core.scope.DiffableScope;
 import gyro.core.scope.State;
-import gyro.core.validation.ValidationProcessor;
 
 public class Diff {
 
@@ -326,7 +325,8 @@ public class Diff {
         List<String> errorMessages = new ArrayList<>();
         for (Change change : getChanges()) {
             if (change instanceof Create || change instanceof Update) {
-                errorMessages.addAll(ValidationProcessor.validationMessages(change.getDiffable()));
+                Diffable diffable = change.getDiffable();
+                errorMessages.addAll(DiffableType.getInstance(diffable.getClass()).validate(diffable));
             }
         }
 
