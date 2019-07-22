@@ -1,130 +1,86 @@
 package gyro.core.resource;
 
-import java.beans.IntrospectionException;
-import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import gyro.core.NamespaceUtils;
+import gyro.core.Reflections;
+import gyro.core.Type;
+import gyro.core.scope.DiffableScope;
+import gyro.core.scope.RootScope;
+import gyro.core.scope.Scope;
+import gyro.lang.ast.Node;
+import gyro.parser.antlr4.GyroParser;
 
 public class DiffableType<R extends Diffable> {
 
     private static final LoadingCache<Class<? extends Diffable>, DiffableType<? extends Diffable>> INSTANCES = CacheBuilder
-            .newBuilder()
-            .build(new CacheLoader<Class<? extends Diffable>, DiffableType<? extends Diffable>>() {
-
-                @Override
-                public DiffableType<? extends Diffable> load(Class<? extends Diffable> diffableClass) throws IntrospectionException {
-                    return new DiffableType<>(diffableClass);
-                }
-            });
-
-    private static final LoadingCache<ClassLoader, LoadingCache<String, String>> NAMESPACES_BY_LOADER = CacheBuilder.newBuilder()
-        .weakKeys()
-        .build(new CacheLoader<ClassLoader, LoadingCache<String, String>>() {
+        .newBuilder()
+        .build(new CacheLoader<Class<? extends Diffable>, DiffableType<? extends Diffable>>() {
 
             @Override
-            public LoadingCache<String, String> load(ClassLoader loader) {
-                return CacheBuilder.newBuilder()
-                    .build(new CacheLoader<String, String>() {
-
-                        @Override
-                        public String load(String name) {
-                            Package pkg;
-
-                            try {
-                                pkg = Class.forName(name + ".package-info", true, loader).getPackage();
-
-                            } catch (ClassNotFoundException error) {
-                                pkg = null;
-                            }
-
-                            return Optional.ofNullable(pkg)
-                                .map(p -> p.getAnnotation(ResourceNamespace.class))
-                                .map(ResourceNamespace::value)
-                                .orElseGet(() -> {
-                                    int lastDotAt = name.lastIndexOf('.');
-
-                                    return lastDotAt > -1
-                                        ? NAMESPACES_BY_LOADER.getUnchecked(loader).getUnchecked(name.substring(0, lastDotAt))
-                                        : "";
-                                });
-                        }
-                    });
+            public DiffableType<? extends Diffable> load(Class<? extends Diffable> diffableClass) {
+                return new DiffableType<>(diffableClass);
             }
         });
 
+    private final Class<R> diffableClass;
     private final boolean root;
     private final String name;
+    private final Node description;
     private final DiffableField idField;
     private final List<DiffableField> fields;
     private final Map<String, DiffableField> fieldByName;
 
     @SuppressWarnings("unchecked")
     public static <R extends Diffable> DiffableType<R> getInstance(Class<R> diffableClass) {
-        try {
-            return (DiffableType<R>) INSTANCES.get(diffableClass);
-
-        } catch (ExecutionException error) {
-            Throwable cause = error.getCause();
-
-            throw cause instanceof RuntimeException
-                    ? (RuntimeException) cause
-                    : new RuntimeException(cause);
-        }
+        return (DiffableType<R>) INSTANCES.getUnchecked(diffableClass);
     }
 
-    private DiffableType(Class<R> diffableClass) throws IntrospectionException {
-        ResourceType typeAnnotation = diffableClass.getAnnotation(ResourceType.class);
+    private DiffableType(Class<R> diffableClass) {
+        this.diffableClass = diffableClass;
+
+        Type typeAnnotation = diffableClass.getAnnotation(Type.class);
 
         if (typeAnnotation != null) {
-            String namespace = Optional.ofNullable(diffableClass.getAnnotation(ResourceNamespace.class))
-                .map(ResourceNamespace::value)
-                .orElseGet(() -> {
-                    Package pkg = diffableClass.getPackage();
-
-                    return pkg != null
-                        ? NAMESPACES_BY_LOADER.getUnchecked(diffableClass.getClassLoader()).getUnchecked(pkg.getName())
-                        : "";
-                });
-
-            if (!namespace.isEmpty()) {
-                namespace += "::";
-            }
-
             this.root = true;
-            this.name = namespace + typeAnnotation.value();
+            this.name = NamespaceUtils.getNamespacePrefix(diffableClass)+ typeAnnotation.value();
 
         } else {
             this.root = false;
             this.name = null;
         }
 
+        this.description = Optional.ofNullable(diffableClass.getAnnotation(Description.class))
+            .map(Description::value)
+            .map(v -> Node.parse('"' + v + '"', GyroParser::string))
+            .orElse(null);
+
         DiffableField idField = null;
         ImmutableList.Builder<DiffableField> fields = ImmutableList.builder();
         ImmutableMap.Builder<String, DiffableField> fieldByName = ImmutableMap.builder();
 
-        for (PropertyDescriptor prop : Introspector.getBeanInfo(diffableClass).getPropertyDescriptors()) {
+        for (PropertyDescriptor prop : Reflections.getBeanInfo(diffableClass).getPropertyDescriptors()) {
             Method getter = prop.getReadMethod();
             Method setter = prop.getWriteMethod();
 
             if (getter != null && setter != null) {
-                Type getterType = getter.getGenericReturnType();
-                Type setterType = setter.getGenericParameterTypes()[0];
+                java.lang.reflect.Type getterType = getter.getGenericReturnType();
+                java.lang.reflect.Type setterType = setter.getGenericParameterTypes()[0];
 
                 if (getterType.equals(setterType)) {
                     DiffableField field = new DiffableField(prop.getName(), getter, setter, getterType);
 
-                    if (getter.isAnnotationPresent(ResourceId.class)) {
+                    if (getter.isAnnotationPresent(Id.class)) {
                         idField = field;
                     }
 
@@ -157,6 +113,40 @@ public class DiffableType<R extends Diffable> {
 
     public DiffableField getField(String name) {
         return fieldByName.get(name);
+    }
+
+    public String getDescription(Diffable diffable) {
+        Map<String, Object> values = new HashMap<>();
+
+        for (DiffableField field : fields) {
+            values.put(field.getName(), field.getValue(diffable));
+        }
+
+        DiffableScope scope = diffable.scope;
+        RootScope root = scope.getRootScope();
+
+        Node node = scope.getSettings(DescriptionSettings.class).getDescription();
+
+        if (node == null) {
+            node = root.getSettings(DescriptionSettings.class).getTypeDescriptions().get(name);
+
+            if (node == null) {
+                node = description;
+            }
+        }
+
+        return description != null
+            ? (String) root.getEvaluator().visit(node, new Scope(root, values))
+            : null;
+    }
+
+    public R newDiffable(Diffable parent, String name, DiffableScope scope) {
+        R diffable = Reflections.newInstance(diffableClass);
+        diffable.parent = parent;
+        diffable.name = name;
+        diffable.scope = scope;
+
+        return diffable;
     }
 
 }

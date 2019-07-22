@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 
 import gyro.lang.ast.AbstractNodeTest;
+import gyro.lang.ast.Node;
 import gyro.lang.ast.PairNode;
 import gyro.parser.antlr4.GyroParser;
 import org.junit.jupiter.api.Test;
@@ -16,7 +17,7 @@ class MapNodeTest extends AbstractNodeTest<MapNode> {
 
     @Test
     void constructorContext() {
-        MapNode node = new MapNode(parse("{foo:1,bar:2}", GyroParser::map));
+        MapNode node = (MapNode) Node.parse("{foo:1,bar:2}", GyroParser::map);
         List<PairNode> entries = node.getEntries();
 
         assertThat(entries).hasSize(2);

@@ -1,7 +1,5 @@
 package gyro.core.resource;
 
-import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -14,17 +12,20 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableSet;
-import com.psddev.dari.util.TypeDefinition;
 import gyro.core.GyroException;
+import gyro.core.GyroInputStream;
 import gyro.core.GyroUI;
-import gyro.lang.ast.Node;
-import org.apache.commons.lang3.builder.ToStringBuilder;
+import gyro.core.diff.Change;
+import gyro.core.scope.DiffableScope;
+import gyro.core.scope.FileScope;
+import gyro.core.scope.Scope;
 
 public abstract class Diffable {
 
-    DiffableScope scope;
+    boolean external;
     Diffable parent;
     String name;
+    DiffableScope scope;
     Change change;
     Set<String> configuredFields;
 
@@ -42,40 +43,18 @@ public abstract class Diffable {
         return null;
     }
 
-    public String name() {
-        return name;
+    public <T extends Resource> Stream<T> findByClass(Class<T> resourceClass) {
+        return scope.getRootScope().findResourcesByClass(resourceClass);
     }
 
-    public Change change() {
-        return change;
+    public <T extends Resource> T findById(Class<T> resourceClass, Object id) {
+        return scope.getRootScope().findResourceById(resourceClass, id);
     }
 
-    public <T extends Resource> Stream<T> findByType(Class<T> resourceClass) {
-        return scope.getRootScope()
-            .findResources()
-            .stream()
-            .filter(resourceClass::isInstance)
-            .map(resourceClass::cast);
-    }
-
-    public <T extends Resource> T findById(Class<T> resourceClass, String id) {
-        DiffableField idField = DiffableType.getInstance(resourceClass).getIdField();
-
-        return findByType(resourceClass)
-            .filter(r -> id.equals(idField.getValue(r)))
-            .findFirst()
-            .orElseGet(() -> {
-                T r = TypeDefinition.getInstance(resourceClass).newInstance();
-                idField.setValue(r, id);
-                return r;
-            });
-    }
-
-    public InputStream openInput(String file) {
+    public GyroInputStream openInput(String file) {
         FileScope fileScope = scope.getFileScope();
 
         return fileScope.getRootScope()
-            .getBackend()
             .openInput(Paths.get(fileScope.getFile())
                 .getParent()
                 .resolve(file)
@@ -105,8 +84,10 @@ public abstract class Diffable {
             configuredFields = ImmutableSet.copyOf(cf);
         }
 
+        DiffableType<? extends Diffable> type = DiffableType.getInstance(getClass());
         Map<String, Object> undefinedValues = new HashMap<>(values);
-        for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
+
+        for (DiffableField field : type.getFields()) {
             String fieldName = field.getName();
 
             if (!values.containsKey(fieldName)) {
@@ -134,15 +115,12 @@ public abstract class Diffable {
         }
 
         for (Map.Entry<String, Object> entry : undefinedValues.entrySet()) {
-            if (!entry.getKey().startsWith("_")) {
-                if (values instanceof Scope) {
-                    Node node = ((Scope) values).getKeyNodes().get(entry.getKey());
-                    if (node != null) {
-                        throw new GyroException(String.format("Field '%s' is not allowed %s%n%s", entry.getKey(), node.getLocation(), node));
-                    }
-                }
+            String key = entry.getKey();
 
-                throw new GyroException(String.format("Field '%s' is not allowed", entry.getKey()));
+            if (!key.startsWith("_")) {
+                throw new GyroException(
+                    values instanceof Scope ? ((Scope) values).getKeyNodes().get(key) : null,
+                    String.format("@|bold %s|@ isn't a valid field in @|bold %s|@ type!", key, type.getName()));
             }
         }
     }
@@ -153,38 +131,20 @@ public abstract class Diffable {
         }
 
         DiffableScope scope = (DiffableScope) object;
-        Diffable diffable;
+        Diffable diffable = DiffableType.getInstance(diffableClass).newDiffable(this, fieldName, scope);
 
-        try {
-            diffable = diffableClass.getConstructor().newInstance();
-
-        } catch (IllegalAccessException
-                | InstantiationException
-                | NoSuchMethodException error) {
-
-            throw new IllegalStateException(error);
-
-        } catch (InvocationTargetException error) {
-            Throwable cause = error.getCause();
-
-            throw cause instanceof RuntimeException
-                    ? (RuntimeException) cause
-                    : new RuntimeException(cause);
-        }
-
-        diffable.name = fieldName;
-        diffable.scope = scope;
-        diffable.parent = this;
         diffable.initialize(scope);
 
         return diffable;
     }
 
-    public String primaryKey() {
-        return String.format("%s::%s", DiffableType.getInstance(getClass()).getName(), name());
+    protected <T extends Diffable> T newSubresource(Class<T> diffableClass) {
+        return DiffableType.getInstance(diffableClass).newDiffable(this, null, new DiffableScope(scope));
     }
 
-    public abstract String toDisplayString();
+    public String primaryKey() {
+        return String.format("%s::%s", DiffableType.getInstance(getClass()).getName(), name);
+    }
 
     public boolean writePlan(GyroUI ui, Change change) {
         return false;
@@ -194,28 +154,9 @@ public abstract class Diffable {
         return false;
     }
 
-    public void updateInternals() {
-        for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
-            if (field.shouldBeDiffed()) {
-                String fieldName = field.getName();
-                Object value = field.getValue(this);
-
-                (value instanceof Collection ? ((Collection<?>) value).stream() : Stream.of(value))
-                    .filter(Diffable.class::isInstance)
-                    .map(Diffable.class::cast)
-                    .forEach(d -> {
-                        d.parent = this;
-                        d.name = fieldName;
-
-                        d.updateInternals();
-                    });
-            }
-        }
-    }
-
     @Override
     public final int hashCode() {
-        return Objects.hash(parent(), name(), primaryKey());
+        return Objects.hash(parent(), name, primaryKey());
     }
 
     @Override
@@ -230,18 +171,42 @@ public abstract class Diffable {
 
         Diffable otherDiffable = (Diffable) other;
 
-        return Objects.equals(parent(), otherDiffable.parent())
-            && Objects.equals(name(), otherDiffable.name())
-            && Objects.equals(primaryKey(), otherDiffable.primaryKey());
+        if (external) {
+            DiffableField idField = DiffableType.getInstance(getClass()).getIdField();
+            return Objects.equals(idField.getValue(this), idField.getValue(otherDiffable));
+
+        } else {
+            return Objects.equals(parent(), otherDiffable.parent())
+                && Objects.equals(name, otherDiffable.name)
+                && Objects.equals(primaryKey(), otherDiffable.primaryKey());
+        }
     }
 
     @Override
     public String toString() {
-        return new ToStringBuilder(this)
-            .append("parent", parent())
-            .append("name", name())
-            .append("primaryKey", primaryKey())
-            .build();
+        StringBuilder builder = new StringBuilder();
+        DiffableType type = DiffableType.getInstance(getClass());
+        String typeName = type.getName();
+
+        if (typeName != null) {
+            builder.append(typeName);
+            builder.append(' ');
+
+            if (external) {
+                builder.append("id=");
+                builder.append(type.getIdField().getValue(this));
+
+            } else {
+                builder.append(name);
+            }
+
+        } else {
+            builder.append(name);
+            builder.append(' ');
+            builder.append(primaryKey());
+        }
+
+        return builder.toString();
     }
 
     public List<String> validations() {

@@ -1,15 +1,20 @@
 package gyro.cli;
 
+import gyro.core.Abort;
 import gyro.core.LocalFileBackend;
 import gyro.core.command.AbstractCommand;
 import gyro.core.command.GyroCommand;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
-import gyro.core.resource.RootScope;
-import gyro.core.plugin.PluginLoader;
+import gyro.core.scope.Defer;
+import gyro.core.scope.RootScope;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
-import gyro.core.resource.Scope;
+import gyro.core.scope.Scope;
+import gyro.lang.Locatable;
+import gyro.lang.SyntaxError;
+import gyro.lang.SyntaxErrorException;
+import gyro.util.Bug;
 import io.airlift.airline.Cli;
 import io.airlift.airline.Command;
 import io.airlift.airline.Help;
@@ -18,7 +23,8 @@ import org.reflections.util.ClasspathHelper;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.lang.reflect.Modifier;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
@@ -37,11 +43,9 @@ public class Gyro {
 
     static {
         Reflections.log = null;
-        reflections = new Reflections(new org.reflections.util.ConfigurationBuilder()
-            .setUrls(ClasspathHelper.forPackage("gyro")));
     }
 
-    public static void main(String[] arguments) throws Exception {
+    public static void main(String[] arguments) {
         ((Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).setLevel(Level.OFF);
 
         Gyro gyro = new Gyro();
@@ -58,15 +62,7 @@ public class Gyro {
                     null,
                     Collections.emptySet());
 
-                init.load();
-
-                for (PluginLoader loader : init.getPluginLoaders()) {
-                    for (Class<?> c : loader.classes()) {
-                        if (GyroCommand.class.isAssignableFrom(c) && !Modifier.isAbstract(c.getModifiers())) {
-                            gyro.commands().add(c);
-                        }
-                    }
-                }
+                init.evaluate();
 
             } else {
                 init = null;
@@ -75,15 +71,62 @@ public class Gyro {
             gyro.init(Arrays.asList(arguments), init);
             gyro.run();
 
-        } catch (Throwable error) {
-            if (error instanceof GyroException) {
-                GyroCore.ui().writeError(error.getCause(), "\n@|red Error: %s|@\n", error.getMessage());
+        } catch (Abort error) {
+            GyroCore.ui().write("\n@|red Aborted!|@\n\n");
 
-            } else {
-                GyroCore.ui().writeError(error, "\n@|red Unexpected error: %s|@\n", error.getMessage());
-            }
+        } catch (Throwable error) {
+            GyroCore.ui().write("\n");
+            writeError(error);
+            GyroCore.ui().write("\n");
+
         } finally {
             GyroCore.popUi();
+        }
+    }
+
+    private static void writeError(Throwable error) {
+        if (error instanceof Defer || error instanceof GyroException) {
+            GyroCore.ui().write("@|red Error:|@ %s\n", error.getMessage());
+
+            Locatable locatable = error instanceof Defer
+                ? ((Defer) error).getNode()
+                : ((GyroException) error).getLocatable();
+
+            if (locatable != null) {
+                GyroCore.ui().write("\nIn @|bold %s|@ %s:\n", locatable.getFile(), locatable.toLocation());
+                GyroCore.ui().write("%s", locatable.toCodeSnippet());
+            }
+
+            Throwable cause = error.getCause();
+
+            if (cause != null) {
+                GyroCore.ui().write("\n@|red Caused by:|@ ");
+                writeError(cause);
+            }
+
+        } else if (error instanceof SyntaxErrorException) {
+            SyntaxErrorException s = (SyntaxErrorException) error;
+            List<SyntaxError> syntaxErrors = s.getSyntaxErrors();
+
+            GyroCore.ui().write("@|red %d syntax errors in %s!|@\n", syntaxErrors.size(), s.getFile());
+
+            for (SyntaxError syntaxError : syntaxErrors) {
+                GyroCore.ui().write("\n%s %s:\n", syntaxError.getMessage(), syntaxError.toLocation());
+                GyroCore.ui().write("%s", syntaxError.toCodeSnippet());
+            }
+
+        } else {
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+
+            error.printStackTrace(pw);
+
+            if (error instanceof Bug) {
+                GyroCore.ui().write("@|red This should've never happened. Please report this as a bug with the following stack trace:|@ %s\n", sw.toString());
+
+            } else {
+                GyroCore.ui().write("@|red Unexpected error:|@ %s\n", sw.toString());
+            }
         }
     }
 
@@ -140,6 +183,11 @@ public class Gyro {
     }
 
     public static Reflections getReflections() {
+        if (reflections == null) {
+            reflections = new Reflections(new org.reflections.util.ConfigurationBuilder()
+                .setUrls(ClasspathHelper.forPackage("gyro")));
+        }
+
         return reflections;
     }
 

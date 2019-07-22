@@ -4,16 +4,16 @@ import java.util.Set;
 
 import gyro.core.GyroCore;
 import gyro.core.GyroUI;
-import gyro.core.resource.Diff;
-import gyro.core.resource.RootScope;
-import gyro.core.resource.State;
+import gyro.core.diff.Diff;
+import gyro.core.scope.RootScope;
+import gyro.core.scope.State;
 import io.airlift.airline.Command;
 
 @Command(name = "up", description = "Updates all resources to match the configuration.")
 public class UpCommand extends AbstractConfigCommand {
 
     @Override
-    public void doExecute(RootScope current, RootScope pending, State state) throws Exception {
+    public void doExecute(RootScope current, RootScope pending, State state) {
         GyroUI ui = GyroCore.ui();
 
         ui.write("\n@|bold,white Looking for changes...\n\n|@");
@@ -30,9 +30,7 @@ public class UpCommand extends AbstractConfigCommand {
         if (diff.write(ui)) {
             if (ui.readBoolean(Boolean.FALSE, "\nAre you sure you want to change resources?")) {
                 ui.write("\n");
-                diff.executeCreateOrUpdate(ui, state);
-                diff.executeReplace(ui, state);
-                diff.executeDelete(ui, state);
+                diff.execute(ui, state);
             }
 
         } else {

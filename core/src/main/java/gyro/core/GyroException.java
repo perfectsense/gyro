@@ -1,27 +1,38 @@
 package gyro.core;
 
+import gyro.lang.Locatable;
+
 public class GyroException extends RuntimeException {
 
-    private static final long serialVersionUID = 1L;
+    private final Locatable locatable;
 
-    private String code;
+    public GyroException(Locatable locatable, String message, Throwable cause) {
+        super(message, cause);
+        this.locatable = locatable;
+    }
 
-    public GyroException(String message) {
-        super(message);
+    public GyroException(Locatable locatable, String message) {
+        this(locatable, message, null);
+    }
+
+    public GyroException(Locatable locatable, Throwable cause) {
+        this(locatable, null, cause);
     }
 
     public GyroException(String message, Throwable cause) {
-        super(message, cause);
+        this(null, message, cause);
     }
 
-    public GyroException(String message, Throwable cause, String code) {
-        super(message, cause);
-
-        this.code = code;
+    public GyroException(String message) {
+        this(null, message, null);
     }
 
-    public String getCode() {
-        return code;
+    public GyroException(Throwable cause) {
+        this(null, null, cause);
+    }
+
+    public Locatable getLocatable() {
+        return locatable;
     }
 
 }

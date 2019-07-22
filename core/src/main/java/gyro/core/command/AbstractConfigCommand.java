@@ -3,7 +3,6 @@ package gyro.core.command;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -11,19 +10,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.psddev.dari.util.ObjectUtils;
-import gyro.core.Credentials;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.LocalFileBackend;
-import gyro.core.resource.Diffable;
-import gyro.core.resource.DiffableField;
+import gyro.core.auth.Credentials;
+import gyro.core.auth.CredentialsSettings;
+import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
-import gyro.core.resource.FileScope;
+import gyro.core.scope.FileScope;
 import gyro.core.resource.Resource;
-import gyro.core.resource.RootScope;
-import gyro.core.resource.State;
-import gyro.lang.GyroLanguageException;
+import gyro.core.scope.RootScope;
+import gyro.core.scope.State;
 import io.airlift.airline.Arguments;
 import io.airlift.airline.Option;
 
@@ -57,7 +54,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         Set<String> loadFiles;
         Set<String> diffFiles;
 
-        if (ObjectUtils.to(boolean.class, getInit().get("HIGHLANDER"))) {
+        if (getInit().getSettings(HighlanderSettings.class).isHighlander()) {
             if (files != null) {
                 if (files.size() == 1) {
                     loadFiles = Collections.singleton(resolve(rootDir, files.get(0)));
@@ -90,21 +87,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             null,
             loadFiles);
 
-        try {
-            current.load();
-
-        } catch (GyroLanguageException ex) {
-            throw new GyroException(ex.getMessage());
-        }
-
-        if (!test) {
-            refreshCredentials(current);
-
-            if (!skipRefresh) {
-                refreshResources(current);
-                GyroCore.ui().write("\n");
-            }
-        }
+        current.evaluate();
 
         RootScope pending = new RootScope(
             GyroCore.INIT_FILE,
@@ -112,20 +95,25 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             current,
             loadFiles);
 
-        try {
-            pending.load();
+        if (!test) {
+            current.getSettings(CredentialsSettings.class)
+                .getCredentialsByName()
+                .values()
+                .forEach(Credentials::refresh);
 
-        } catch (GyroLanguageException ex) {
-            throw new GyroException(ex.getMessage());
+            if (!skipRefresh) {
+                refreshResources(current);
+                GyroCore.ui().write("\n");
+            }
         }
 
+        pending.evaluate();
         doExecute(current, pending, new State(current, pending, test, diffFiles));
     }
 
     private String resolve(Path rootDir, String file) {
-        file = file.endsWith(".gyro")
-            ? rootDir.relativize(Paths.get("").toAbsolutePath().resolve(file)).normalize().toString()
-            : file + ".gyro";
+        file = file.endsWith(".gyro") ? file : file + ".gyro";
+        file = rootDir.relativize(Paths.get("").toAbsolutePath().resolve(file)).normalize().toString();
 
         if (Files.exists(rootDir.resolve(file))) {
             return file;
@@ -135,29 +123,21 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         }
     }
 
-    private void refreshCredentials(RootScope scope) {
-        scope.values()
-            .stream()
-            .filter(Credentials.class::isInstance)
-            .map(Credentials.class::cast)
-            .forEach(c -> c.findCredentials(true));
-    }
-
     private void refreshResources(RootScope scope) {
         for (FileScope fileScope : scope.getFileScopes()) {
             for (Iterator<Map.Entry<String, Object>> i = fileScope.entrySet().iterator(); i.hasNext(); ) {
                 Object value = i.next().getValue();
 
-                if (value instanceof Resource && !(value instanceof Credentials)) {
+                if (value instanceof Resource) {
                     Resource resource = (Resource) value;
 
                     GyroCore.ui().write(
                         "@|bold,blue Refreshing|@: @|yellow %s|@ -> %s...",
                         DiffableType.getInstance(resource.getClass()).getName(),
-                        resource.name());
+                        DiffableInternals.getName(resource));
 
                     if (resource.refresh()) {
-                        resource.updateInternals();
+                        DiffableInternals.update(resource, true);
 
                     } else {
                         i.remove();

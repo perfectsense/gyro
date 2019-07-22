@@ -4,9 +4,8 @@
    :caption: Guides
    :maxdepth: 3
 
-   getting-started/index
-   writing-a-provider/index
-   writing-a-command-plugin/index
+   guides/gyro-user-guide
+   guides/writing-a-provider
 
 .. toctree::
     :caption: Providers

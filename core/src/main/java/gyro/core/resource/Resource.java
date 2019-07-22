@@ -4,15 +4,17 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-import gyro.core.Credentials;
+import gyro.core.GyroUI;
+import gyro.core.auth.Credentials;
+import gyro.core.scope.State;
 
 public abstract class Resource extends Diffable {
 
     public abstract boolean refresh();
 
-    public abstract void create();
+    public abstract void create(GyroUI ui, State state) throws Exception;
 
-    public void testCreate() {
+    public void testCreate(GyroUI ui, State state) throws Exception {
         for (DiffableField field : DiffableType.getInstance(getClass()).getFields()) {
             if (field.getTestValue() != null) {
                 String value = "test-" + field.getTestValue();
@@ -27,34 +29,13 @@ public abstract class Resource extends Diffable {
         }
     }
 
-    public abstract void update(Resource current, Set<String> changedFieldNames);
+    public abstract void update(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception;
 
-    public abstract void delete();
+    public abstract void delete(GyroUI ui, State state) throws Exception;
 
-    public Credentials resourceCredentials() {
-        for (Resource r = this; r != null; r = r.parentResource()) {
-            Scope scope = r.scope;
-
-            if (scope != null) {
-                String name = (String) scope.get("resource-credentials");
-
-                if (name == null) {
-                    name = "default";
-                }
-
-                for (Resource resource : scope.getRootScope().findResources()) {
-                    if (resource instanceof Credentials) {
-                        Credentials credentials = (Credentials) resource;
-
-                        if (credentials.name().equals(name)) {
-                            return credentials;
-                        }
-                    }
-                }
-            }
-        }
-
-        throw new IllegalStateException();
+    @SuppressWarnings("unchecked")
+    public <C extends Credentials> C credentials(Class<C> credentialsClass) {
+        return Credentials.getInstance(credentialsClass, getClass(), scope);
     }
 
     public Object get(String key) {

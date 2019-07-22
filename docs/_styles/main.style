@@ -20,16 +20,18 @@ styles:
         commands: []
                [VALIGN, [ 0, 0 ], [ -1, -1 ], TOP ]
                [RIGHTPADDING, [ 0, 0 ], [ 1, -1 ], 0 ]
-        colWidths: ["20", null]
+        colWidths: ["8", null]
 
     bullet-list-item:
         parent: bodytext
+        spaceAfter: 0
 
     bodytext:
-        fontSize: 10
+        fontSize: 12
         alignment: TA_LEFT
-        leading: 14
         fontName: stdSans
+        spaceBefore: 12
+        spaceAfter: 12
 
     admonition:
         backColor: #EEFFCC
@@ -69,7 +71,7 @@ styles:
         alignment: TA_CENTER
         fontName: stdSansBold
         fontSize: 350%
-        textColor: #20435C
+        textColor: #008AD4
         parent: bodytext
 
     centered:
@@ -91,12 +93,11 @@ styles:
     literal:
         allowOrphans: false
         allowWidows: false
-        backColor: #FAFAFA
         borderColor: #EFEFEF
         borderPadding: [5, 10, 10, 5]
         borderWidth: 0.25
         spaceBefore: 0
-        fontSize: 8
+        fontSize: 10
 
     confval: parent: bodytext
     data: parent: bodytext
@@ -133,41 +134,47 @@ styles:
         fontSize: 10
         leading: 10
         leftIndent: 0
-        spaceBefore: 16
-        textColor: #20435C
+        spaceBefore: 12
+        textColor: #008AD4
 
     heading1: 
         parent: heading
-        fontSize: 150%
+        fontSize: 250%
         fontName: stdBold
 
     heading2: 
         parent: heading
-        fontSize: 130%
+        fontSize: 200%
+        spaceAfter: 12
         fontName: stdBold
 
     heading3: 
         parent: heading
-        fontSize: 110%
+        fontSize: 150%
         fontName: stdBold
-        textColor: #EA3C45
+        spaceAfter: 12
+        textColor: #555555
         
     heading4: 
         parent: heading
         fontSize: 100%
         fontName: stdBold
+        spaceAfter: 12
+        textColor: #555555
 
     heading5: 
         parent: heading
         fontSize: 100%
         fontName: stdFont
-        textColor: #5FC5FA
+        spaceAfter: 12
+        textColor: #555555
 
     heading6: 
         parent: heading
         fontSize: 100%
         fontName: stdFont
-        textColor: #5FC5FA
+        spaceAfter: 12
+        textColor: #555555
 
     hlist:
         alignment: TA_CENTER

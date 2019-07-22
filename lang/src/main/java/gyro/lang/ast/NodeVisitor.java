@@ -1,65 +1,58 @@
 package gyro.lang.ast;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;
-import gyro.lang.ast.block.PluginNode;
 import gyro.lang.ast.block.ResourceNode;
-import gyro.lang.ast.block.VirtualResourceNode;
-import gyro.lang.ast.condition.AndConditionNode;
-import gyro.lang.ast.condition.ComparisonConditionNode;
-import gyro.lang.ast.condition.OrConditionNode;
-import gyro.lang.ast.condition.ValueConditionNode;
-import gyro.lang.ast.control.ForNode;
-import gyro.lang.ast.control.IfNode;
+import gyro.lang.ast.value.BinaryNode;
+import gyro.lang.ast.value.IndexedNode;
 import gyro.lang.ast.value.InterpolatedStringNode;
 import gyro.lang.ast.value.ListNode;
 import gyro.lang.ast.value.MapNode;
-import gyro.lang.ast.value.ResourceReferenceNode;
+import gyro.lang.ast.value.ReferenceNode;
 import gyro.lang.ast.value.ValueNode;
-import gyro.lang.ast.value.ValueReferenceNode;
 
-public interface NodeVisitor<C, R> {
+public interface NodeVisitor<C, R, X extends Throwable> {
 
-    default R visit(Node node, C context) {
+    default R visit(Node node, C context) throws X {
         return node.accept(this, context);
     }
 
-    R visitDirective(DirectiveNode node, C context);
+    default List<R> visit(List<Node> nodes, C context) throws X {
+        List<R> list = new ArrayList<>();
 
-    R visitPair(PairNode node, C context);
+        for (Node item : nodes) {
+            visit(item, context);
+        }
 
-    R visitFile(FileNode node, C context);
+        return list;
+    }
 
-    R visitKeyBlock(KeyBlockNode node, C context);
+    R visitDirective(DirectiveNode node, C context) throws X;
 
-    R visitPlugin(PluginNode node, C context);
+    R visitPair(PairNode node, C context) throws X;
 
-    R visitResource(ResourceNode node, C context);
+    R visitFile(FileNode node, C context) throws X;
 
-    R visitVirtualResource(VirtualResourceNode node, C context);
+    R visitKeyBlock(KeyBlockNode node, C context) throws X;
 
-    R visitAndCondition(AndConditionNode node, C context);
+    R visitResource(ResourceNode node, C context) throws X;
 
-    R visitComparisonCondition(ComparisonConditionNode node, C context);
+    R visitBinary(BinaryNode node, C context) throws X;
 
-    R visitOrCondition(OrConditionNode node, C context);
+    R visitIndexed(IndexedNode node, C context) throws X;
 
-    R visitValueCondition(ValueConditionNode node, C context);
+    R visitInterpolatedString(InterpolatedStringNode node, C context) throws X;
 
-    R visitFor(ForNode node, C context);
+    R visitList(ListNode node, C context) throws X;
 
-    R visitIf(IfNode node, C context);
+    R visitMap(MapNode node, C context) throws X;
 
-    R visitInterpolatedString(InterpolatedStringNode node, C context);
+    R visitReference(ReferenceNode node, C context) throws X;
 
-    R visitList(ListNode node, C context);
-
-    R visitMap(MapNode node, C context);
-
-    R visitResourceReference(ResourceReferenceNode node, C context);
-
-    R visitValue(ValueNode node, C context);
-
-    R visitValueReference(ValueReferenceNode node, C context);
+    R visitValue(ValueNode node, C context) throws X;
 
 }

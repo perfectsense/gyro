@@ -21,7 +21,7 @@ extensions = [
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
-source_suffix = ['.rst', '.txt']
+source_suffix = ['.rst']
 master_doc = 'index'
 
 project = u'Gyro'
@@ -46,6 +46,7 @@ exclude_patterns = [
 pygments_style = 'sphinx'
 
 html_theme = 'sphinx_rtd_theme'
+#html_theme = 'gyro-sphinx-theme'
 html_theme_options = {
     'collapse_navigation': False,
     'display_version': False,
@@ -65,10 +66,15 @@ html_show_sphinx = False
 todo_include_todos = False
 
 pdf_documents = [
- ('gyro/index',
-     u'Gyro',
-     u'Gyro',
-     u'',
+ ('guides/gyro-user-guide',
+     u'GyroUserGuide',
+     u'Gyro User Guide',
+     u'jeremy@brightspot.com'
+ ),
+ ('guides/writing-a-provider',
+     u'GyroWritingAProvider',
+     u'Gyro - Writing a Provider',
+     u'jeremy@brightspot.com'
  )
 ]
 

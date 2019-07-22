@@ -11,26 +11,28 @@ class PairNodeTest extends AbstractNodeTest<PairNode> {
 
     @Test
     void constructorContext() {
-        PairNode node = new PairNode(parse("foo: 'bar'", GyroParser::pair));
+        PairNode node = (PairNode) Node.parse("foo: 'bar'", GyroParser::pair);
+        Node keyNode = node.getKey();
         Node valueNode = node.getValue();
 
-        assertThat(node.getKey()).isEqualTo("foo");
+        assertThat(keyNode).isInstanceOf(ValueNode.class);
+        assertThat(((ValueNode) keyNode).getValue()).isEqualTo("foo");
         assertThat(valueNode).isInstanceOf(ValueNode.class);
         assertThat(((ValueNode) valueNode).getValue()).isEqualTo("bar");
     }
 
     @Test
     void getKey() {
-        String key = "foo";
-        PairNode node = new PairNode(key, mock(Node.class));
+        Node keyNode = mock(Node.class);
+        PairNode node = new PairNode(keyNode, mock(Node.class));
 
-        assertThat(node.getKey()).isEqualTo(key);
+        assertThat(node.getKey()).isEqualTo(keyNode);
     }
 
     @Test
     void getValueNode() {
         Node valueNode = mock(Node.class);
-        PairNode node = new PairNode("foo", valueNode);
+        PairNode node = new PairNode(mock(Node.class), valueNode);
 
         assertThat(node.getValue()).isEqualTo(valueNode);
     }
