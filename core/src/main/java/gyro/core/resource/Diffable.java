@@ -19,6 +19,7 @@ import gyro.core.diff.Change;
 import gyro.core.scope.DiffableScope;
 import gyro.core.scope.FileScope;
 import gyro.core.scope.Scope;
+import gyro.core.validation.ValidationError;
 
 public abstract class Diffable {
 
@@ -146,7 +147,7 @@ public abstract class Diffable {
         return String.format("%s::%s", DiffableType.getInstance(getClass()).getName(), name);
     }
 
-    public List<String> validations() {
+    public List<ValidationError> validations() {
         return null;
     }
 

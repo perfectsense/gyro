@@ -19,6 +19,7 @@ import com.psddev.dari.util.ObjectUtils;
 import gyro.core.GyroException;
 import gyro.core.Reflections;
 import gyro.core.scope.Scope;
+import gyro.core.validation.ValidationError;
 import gyro.core.validation.ValidatorClass;
 import gyro.core.validation.Validator;
 
@@ -143,7 +144,7 @@ public class DiffableField {
         }
     }
 
-    public List<String> validate(Diffable diffable) {
+    public ValidationError validate(Diffable diffable) {
         Object value = getValue(diffable);
         List<String> messages = new ArrayList<>();
 
@@ -159,7 +160,12 @@ public class DiffableField {
             }
         }
 
-        return messages;
+        if (!messages.isEmpty()) {
+            return new ValidationError(diffable, name, messages);
+
+        } else {
+            return null;
+        }
     }
 
 }

@@ -43,6 +43,8 @@ import gyro.core.resource.ExtendsDirectiveProcessor;
 import gyro.core.resource.Resource;
 import gyro.core.resource.ResourcePlugin;
 import gyro.core.resource.TypeDescriptionDirectiveProcessor;
+import gyro.core.validation.ValidationError;
+import gyro.core.validation.ValidationErrorException;
 import gyro.core.virtual.VirtualDirectiveProcessor;
 import gyro.core.workflow.CreateDirectiveProcessor;
 import gyro.core.workflow.DeleteDirectiveProcessor;
@@ -297,14 +299,13 @@ public class RootScope extends FileScope {
             throw new GyroException(sb.toString());
         }
 
-        List<String> messages = new ArrayList<>();
+        List<ValidationError> errors = resources.stream()
+            .map(r -> DiffableType.getInstance(r.getClass()).validate(r))
+            .flatMap(List::stream)
+            .collect(Collectors.toList());
 
-        for (Resource resource : resources) {
-            messages.addAll(DiffableType.getInstance(resource.getClass()).validate(resource));
-        }
-
-        if (!messages.isEmpty()) {
-            throw new GyroException("\n" + String.join("\n", messages));
+        if (!errors.isEmpty()) {
+            throw new ValidationErrorException(errors);
         }
     }
 

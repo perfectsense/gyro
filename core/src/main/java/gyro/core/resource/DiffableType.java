@@ -4,6 +4,7 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +21,7 @@ import gyro.core.Type;
 import gyro.core.scope.DiffableScope;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
+import gyro.core.validation.ValidationError;
 import gyro.lang.ast.Node;
 import gyro.parser.antlr4.GyroParser;
 
@@ -151,39 +153,45 @@ public class DiffableType<R extends Diffable> {
         return diffable;
     }
 
-    public List<String> validate(Diffable diffable) {
-        List<String> messages = new ArrayList<>();
-        validateValue(messages, diffable);
-        return messages;
+    public List<ValidationError> validate(Diffable diffable) {
+        List<ValidationError> errors = new ArrayList<>();
+        validateValue(errors, diffable, null, diffable);
+        return errors;
     }
 
-    private void validateValue(List<String> messages, Object value) {
+    private void validateValue(List<ValidationError> errors, Diffable parent, String name, Object value) {
         if (value == null) {
-            messages.add("Can't validate a null!");
+            errors.add(new ValidationError(
+                parent,
+                name,
+                Collections.singletonList("Can't validate a null!")));
 
         } else if (value instanceof Collection) {
             for (Object item : (Collection<?>) value) {
-                validateValue(messages, item);
+                validateValue(errors, parent, name, item);
             }
 
         } else if (value instanceof Diffable) {
             Diffable diffable = (Diffable) value;
 
             for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
-                messages.addAll(field.validate(diffable));
+                Optional.ofNullable(field.validate(diffable)).ifPresent(errors::add);
 
                 if (field.shouldBeDiffed()) {
-                    validateValue(messages, field.getValue(diffable));
+                    validateValue(errors, diffable, field.getName(), field.getValue(diffable));
                 }
             }
 
-            Optional.ofNullable(diffable.validations()).ifPresent(messages::addAll);
+            Optional.ofNullable(diffable.validations()).ifPresent(errors::addAll);
 
         } else {
-            messages.add(String.format(
-                "Can't validate @|bold %s|@, an instance of @|bold %s|@!",
-                value,
-                value.getClass().getName()));
+            errors.add(new ValidationError(
+                parent,
+                name,
+                Collections.singletonList(String.format(
+                    "Can't validate @|bold %s|@, an instance of @|bold %s|@!",
+                    value,
+                    value.getClass().getName()))));
         }
     }
 
