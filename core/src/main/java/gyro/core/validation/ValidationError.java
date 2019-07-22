@@ -52,7 +52,7 @@ public class ValidationError implements Locatable {
         }
 
         ui.write("\n@|bold %s|@ field in @|bold %s|@", fieldName, label);
-        Optional.ofNullable(toLocation()).ifPresent(s -> ui.write(" %s", s));
+        Optional.ofNullable(toLocation()).ifPresent(s -> ui.write(" in @|bold %s|@ %s", getFile(), s));
         ui.write(":\n");
         Optional.ofNullable(toCodeSnippet()).ifPresent(s -> ui.write("%s\n", s));
 
