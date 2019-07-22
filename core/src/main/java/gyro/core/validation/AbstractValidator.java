@@ -10,7 +10,10 @@ public abstract class AbstractValidator<A extends Annotation> implements Validat
 
     @Override
     public final boolean isValid(A annotation, Object value) {
-        if (value instanceof List) {
+        if (value == null) {
+            return true;
+
+        } else if (value instanceof List) {
             return ((List<?>) value).stream().allMatch(o -> isValid(annotation, o));
 
         } else if (value instanceof Map) {
