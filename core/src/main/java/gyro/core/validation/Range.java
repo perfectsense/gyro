@@ -14,8 +14,8 @@ import java.lang.annotation.Target;
 @ValidatorClass(RangeValidator.class)
 public @interface Range {
 
-    double low();
+    double min();
 
-    double high();
+    double max();
 
 }

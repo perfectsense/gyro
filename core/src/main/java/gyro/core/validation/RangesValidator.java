@@ -1,32 +1,26 @@
 package gyro.core.validation;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class RangesValidator extends AbstractValidator<Ranges> {
 
+    private static final RangeValidator VALIDATOR = new RangeValidator();
+
     @Override
     protected boolean validate(Ranges annotation, Object value) {
-        RangeValidator validator = new RangeValidator();
+        return Stream.of(annotation.value()).anyMatch(a -> VALIDATOR.validate(a, value));
+    }
 
-        for (Range range : annotation.value()) {
-            if (!validator.isValid(range, value)) {
-                return false;
-            }
-        }
-
-        return true;
+    String getMessage(Range... annotations) {
+        return "Must be between " + Stream.of(annotations)
+            .map(a -> String.format("@|bold %s|@ and @|bold %s|@", a.min(), a.max()))
+            .collect(Collectors.joining(", or "));
     }
 
     @Override
     public String getMessage(Ranges annotation) {
-        List<String> rangesString = new ArrayList<>();
-
-        for (Range range : annotation.value()) {
-            rangesString.add(String.format("[%s - %s]", range.low(), range.high()));
-        }
-
-        return String.format("Valid number should be in one of these ranges %s.", String.join(", ", rangesString));
+        return getMessage(annotation.value());
     }
 
 }
