@@ -42,13 +42,13 @@ public class Update extends Change {
 
     @Override
     public void writePlan(GyroUI ui) {
-        ui.write("@|yellow ⟳ Update %s|@", currentDiffable.toDisplayString());
+        ui.write("@|yellow ⟳ Update %s|@", getLabel(currentDiffable, false));
         writeFields(ui);
     }
 
     @Override
     public void writeExecution(GyroUI ui) {
-        ui.write("@|magenta ⟳ Updating %s|@", currentDiffable.toDisplayString());
+        ui.write("@|magenta ⟳ Updating %s|@", getLabel(currentDiffable, true));
         writeFields(ui);
     }
 

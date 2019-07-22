@@ -35,12 +35,14 @@ import gyro.core.reference.FinderReferenceResolver;
 import gyro.core.reference.ReferencePlugin;
 import gyro.core.reference.ReferenceSettings;
 import gyro.core.repo.RepositoryDirectiveProcessor;
+import gyro.core.resource.DescriptionDirectiveProcessor;
 import gyro.core.resource.DiffableField;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
 import gyro.core.resource.ExtendsDirectiveProcessor;
 import gyro.core.resource.Resource;
 import gyro.core.resource.ResourcePlugin;
+import gyro.core.resource.TypeDescriptionDirectiveProcessor;
 import gyro.core.virtual.VirtualDirectiveProcessor;
 import gyro.core.workflow.CreateDirectiveProcessor;
 import gyro.core.workflow.DeleteDirectiveProcessor;
@@ -108,6 +110,7 @@ public class RootScope extends FileScope {
             new CreateDirectiveProcessor(),
             new CredentialsDirectiveProcessor(),
             new DeleteDirectiveProcessor(),
+            new DescriptionDirectiveProcessor(),
             new ExtendsDirectiveProcessor(),
             new ForDirectiveProcessor(),
             new IfDirectiveProcessor(),
@@ -115,6 +118,7 @@ public class RootScope extends FileScope {
             new ReplaceDirectiveProcessor(),
             new RepositoryDirectiveProcessor(),
             new PluginDirectiveProcessor(),
+            new TypeDescriptionDirectiveProcessor(),
             new UpdateDirectiveProcessor(),
             new UsesCredentialsDirectiveProcessor(),
             new VirtualDirectiveProcessor(),
@@ -190,6 +194,17 @@ public class RootScope extends FileScope {
 
     public OutputStream openOutput(String file) {
         return new GyroOutputStream(backend, file);
+    }
+
+    public void delete(String file) {
+        try {
+            backend.delete(file);
+
+        } catch (Exception error) {
+            throw new GyroException(
+                String.format("Can't delete @|bold %s|@ in @|bold %s|@!", file, backend),
+                error);
+        }
     }
 
     public Object convertValue(Type returnType, Object object) {

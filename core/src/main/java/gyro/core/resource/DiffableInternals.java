@@ -21,6 +21,10 @@ public final class DiffableInternals {
         diffable.external = external;
     }
 
+    public static String getName(Diffable diffable) {
+        return diffable.name;
+    }
+
     public static void setName(Diffable diffable, String name) {
         diffable.name = name;
     }

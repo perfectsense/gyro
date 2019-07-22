@@ -68,7 +68,7 @@ public class VirtualResourceVisitor extends ResourceVisitor {
         String prefix = name + "/";
 
         for (Resource resource : virtualRoot.findResources()) {
-            DiffableInternals.setName(resource, prefix + resource.name());
+            DiffableInternals.setName(resource, prefix + DiffableInternals.getName(resource));
             file.put(resource.primaryKey(), resource);
         }
     }

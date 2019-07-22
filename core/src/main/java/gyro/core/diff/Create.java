@@ -32,7 +32,7 @@ public class Create extends Change {
 
     @Override
     public void writePlan(GyroUI ui) {
-        ui.write("@|green + Create %s|@", diffable.toDisplayString());
+        ui.write("@|green + Create %s|@", getLabel(diffable, false));
 
         if (ui.isVerbose()) {
             writeFields(ui);
@@ -41,7 +41,7 @@ public class Create extends Change {
 
     @Override
     public void writeExecution(GyroUI ui) {
-        ui.write("@|magenta + Creating %s|@", diffable.toDisplayString());
+        ui.write("@|magenta + Creating %s|@", getLabel(diffable, true));
 
         if (ui.isVerbose()) {
             writeFields(ui);
