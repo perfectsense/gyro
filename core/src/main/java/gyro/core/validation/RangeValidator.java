@@ -1,11 +1,11 @@
 package gyro.core.validation;
 
 public class RangeValidator extends AbstractValidator<Range> {
+
     @Override
     protected boolean validate(Range annotation, Object value) {
         if (value instanceof Number) {
             double valueCheck = ((Number) value).doubleValue();
-
             return valueCheck >= annotation.low() && valueCheck <= annotation.high();
         }
 
@@ -14,6 +14,10 @@ public class RangeValidator extends AbstractValidator<Range> {
 
     @Override
     public String getMessage(Range annotation) {
-        return String.format("Valid number should be in the range of [ %s - %s ].",annotation.low(), annotation.high());
+        return String.format(
+            "Valid number should be in the range of [ %s - %s ].",
+            annotation.low(),
+            annotation.high());
     }
+
 }

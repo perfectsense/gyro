@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RangesValidator extends AbstractValidator<Ranges> {
+
     @Override
     protected boolean validate(Ranges annotation, Object value) {
         RangeValidator validator = new RangeValidator();
@@ -27,4 +28,5 @@ public class RangesValidator extends AbstractValidator<Ranges> {
 
         return String.format("Valid number should be in one of these ranges %s.", String.join(", ", rangesString));
     }
+
 }

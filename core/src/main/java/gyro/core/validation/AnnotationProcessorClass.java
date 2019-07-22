@@ -11,5 +11,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.ANNOTATION_TYPE)
 public @interface AnnotationProcessorClass {
+
     Class<? extends Validator<? extends Annotation>> value();
+
 }

@@ -3,6 +3,7 @@ package gyro.core.validation;
 import java.util.Arrays;
 
 public class AllowedNumbersValidator extends AbstractValidator<AllowedNumbers> {
+
     @Override
     protected boolean validate(AllowedNumbers annotation, Object value) {
         if (value instanceof Number) {
@@ -17,4 +18,5 @@ public class AllowedNumbersValidator extends AbstractValidator<AllowedNumbers> {
     public String getMessage(AllowedNumbers annotation) {
         return String.format("Valid number should be one of %s.", Arrays.toString(annotation.value()));
     }
+
 }
