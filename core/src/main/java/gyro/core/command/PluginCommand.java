@@ -112,9 +112,7 @@ public class PluginCommand extends AbstractCommand {
         }
 
         if (add) {
-            StringBuilder s = new StringBuilder();
-            plugins.forEach(p -> s.append(String.format("%s '%s'%n", "@plugin:", p)));
-            sb.insert(0, s);
+            plugins.forEach(p -> sb.append(String.format("%s '%s'%n", "@plugin:", p)));
         }
 
         try (BufferedWriter writer = Files.newBufferedWriter(file, StandardCharsets.UTF_8)) {
