@@ -2,7 +2,7 @@ package gyro.core.virtual;
 
 import com.google.common.collect.ImmutableSet;
 import gyro.core.resource.Resource;
-import gyro.core.resource.RootScope;
+import gyro.core.scope.RootScope;
 
 public class VirtualRootScope extends RootScope {
 
@@ -23,7 +23,8 @@ public class VirtualRootScope extends RootScope {
     }
 
     @Override
-    public void load() {
+    public void evaluate() {
         throw new UnsupportedOperationException();
     }
+
 }
