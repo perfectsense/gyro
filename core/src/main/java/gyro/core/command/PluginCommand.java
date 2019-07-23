@@ -56,6 +56,10 @@ public class PluginCommand extends AbstractCommand {
             throw new GyroException("Can't add and remove plugin at the same time!");
         }
 
+        if (GyroCore.getRootDirectory() == null) {
+            throw new GyroException("Can't find gyro root directory!");
+        }
+
         FileBackend backend = new LocalFileBackend(GyroCore.getRootDirectory());
         Node node;
         try (GyroInputStream input = new GyroInputStream(backend, GyroCore.INIT_FILE)) {
