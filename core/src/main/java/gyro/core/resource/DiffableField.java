@@ -4,12 +4,13 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 import com.google.common.base.CaseFormat;
 import com.psddev.dari.util.ConversionException;
-import com.psddev.dari.util.ObjectUtils;
 import gyro.core.GyroException;
 import gyro.core.Reflections;
 import gyro.core.scope.Scope;
@@ -20,8 +21,6 @@ public class DiffableField {
     private final Method getter;
     private final Method setter;
     private final boolean updatable;
-    private final String testValue;
-    private final boolean testValueRandomSuffix;
     private final boolean collection;
     private final Class<?> itemClass;
 
@@ -30,17 +29,6 @@ public class DiffableField {
         this.getter = getter;
         this.setter = setter;
         this.updatable = getter.isAnnotationPresent(Updatable.class);
-
-        Output output = getter.getAnnotation(Output.class);
-
-        if (output != null) {
-            this.testValue = !ObjectUtils.isBlank(output.value()) ? output.value() : name;
-            this.testValueRandomSuffix = output.randomSuffix();
-
-        } else {
-            this.testValue = null;
-            this.testValueRandomSuffix = false;
-        }
 
         if (type instanceof Class) {
             this.collection = false;
@@ -70,14 +58,6 @@ public class DiffableField {
 
     public boolean isUpdatable() {
         return updatable;
-    }
-
-    public String getTestValue() {
-        return testValue;
-    }
-
-    public boolean isTestValueRandomSuffix() {
-        return testValueRandomSuffix;
     }
 
     public boolean isCollection() {
@@ -121,6 +101,28 @@ public class DiffableField {
                     name,
                     value,
                     type.getTypeName()));
+        }
+    }
+
+    public void testUpdate(Diffable diffable) {
+        if (!getter.isAnnotationPresent(Output.class)) {
+            return;
+        }
+
+        Optional<Object> testValue = Optional.ofNullable(getter.getAnnotation(TestValue.class)).map(TestValue::value);
+
+        if (Date.class.isAssignableFrom(itemClass)) {
+            setValue(diffable, testValue.orElseGet(Date::new));
+
+        } else if (Number.class.isAssignableFrom(itemClass)) {
+            setValue(diffable, testValue.orElseGet(() -> Math.random() * Integer.MAX_VALUE));
+
+        } else if (String.class.isAssignableFrom(itemClass)) {
+            setValue(diffable, testValue.orElseGet(() -> String.join(
+                "-",
+                "test",
+                name,
+                UUID.randomUUID().toString().replace("-", "").substring(16))));
         }
     }
 
