@@ -1,8 +1,11 @@
 package gyro.core.resource;
 
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import gyro.core.GyroException;
 import gyro.core.directive.DirectiveProcessor;
@@ -37,7 +40,7 @@ public class ExtendsDirectiveProcessor extends DirectiveProcessor<DiffableScope>
                 String name = field.getName();
 
                 if (field.shouldBeDiffed() || configuredFields.contains(name)) {
-                    scope.putIfAbsent(name, field.getValue(resource));
+                    scope.putIfAbsent(name, clone(field.getValue(resource)));
                 }
             }
 
@@ -52,6 +55,42 @@ public class ExtendsDirectiveProcessor extends DirectiveProcessor<DiffableScope>
             }
 
             processSource(scope, resource);
+        }
+    }
+
+    private Object clone(Object value) {
+        if (value instanceof Diffable) {
+            Diffable diffable = (Diffable) value;
+            DiffableScope scope = diffable.scope;
+
+            Diffable clone = DiffableType.getInstance(diffable.getClass()).newDiffable(
+                diffable.parent,
+                diffable.name,
+                new DiffableScope(scope));
+
+            clone.initialize(scope);
+            return clone;
+
+        } if (value instanceof List) {
+            return ((List<?>) value).stream()
+                .map(this::clone)
+                .collect(Collectors.toList());
+
+        } else if (value instanceof Map) {
+            return ((Map<?, ?>) value).entrySet()
+                .stream()
+                .collect(
+                    LinkedHashMap::new,
+                    (m, e) -> m.put(e.getKey(), e.getValue()),
+                    LinkedHashMap::putAll);
+
+        } else if (value instanceof Set) {
+            return ((Set<?>) value).stream()
+                .map(this::clone)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        } else {
+            return value;
         }
     }
 
