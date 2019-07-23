@@ -159,7 +159,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         }
     }
 
-    public static Object getValue(Object object, String key) {
+    public static Object getValue(Node node, Object object, String key) {
         if ("*".equals(key)) {
             return new GlobCollection(object);
 
@@ -169,7 +169,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             DiffableField field = type.getField(key);
 
             if (field == null) {
-                throw new GyroException(String.format(
+                throw new GyroException(node, String.format(
                     "Can't find the @|bold %s|@ field in the @|bold %s|@ type!",
                     key,
                     type.getName()));
@@ -179,7 +179,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
 
         } else if (object instanceof GlobCollection) {
             return ((GlobCollection) object).stream()
-                .map(i -> getValue(i, key))
+                .map(i -> getValue(node, i, key))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
@@ -187,32 +187,43 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             Number index = NumberUtils.createNumber(key);
 
             if (index != null) {
-                return ((List<?>) object).get(index.intValue());
+                List<?> list = (List<?>) object;
+                int size = list.size();
+                int i = index.intValue();
 
-            } else {
-                return null;
+                if (i < 0) {
+                    i += size;
+                }
+
+                if (i < 0 || i >= size) {
+                    throw new GyroException(node, String.format(
+                        "@|bold %s|@ isn't a valid index to a list of @|bold %s|@ items!",
+                        key,
+                        size));
+                }
+
+                return list.get(i);
             }
 
         } else if (object instanceof Map) {
             return ((Map<?, ?>) object).get(key);
-
-        } else {
-            Class<?> aClass = object.getClass();
-            BeanInfo info = Reflections.getBeanInfo(aClass);
-            String methodName = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key);
-
-            Method getter = Stream.of(info.getPropertyDescriptors())
-                .filter(p -> p.getName().equals(methodName))
-                .map(PropertyDescriptor::getReadMethod)
-                .filter(Objects::nonNull)
-                .findFirst()
-                .orElseThrow(() -> new GyroException(String.format(
-                    "Can't find the @|bold %s|@ property in the @|bold %s|@ class!",
-                    key,
-                    aClass.getName())));
-
-            return Reflections.invoke(getter, object);
         }
+
+        Class<?> aClass = object.getClass();
+        BeanInfo info = Reflections.getBeanInfo(aClass);
+        String methodName = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key);
+
+        Method getter = Stream.of(info.getPropertyDescriptors())
+            .filter(p -> p.getName().equals(methodName))
+            .map(PropertyDescriptor::getReadMethod)
+            .filter(Objects::nonNull)
+            .findFirst()
+            .orElseThrow(() -> new GyroException(node, String.format(
+                "Can't find the @|bold %s|@ property in the @|bold %s|@ class!",
+                key,
+                aClass.getName())));
+
+        return Reflections.invoke(getter, object);
     }
 
     public void visitBody(List<Node> body, Scope scope) {
@@ -421,7 +432,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                 return null;
             }
 
-            value = getValue(value, index.toString());
+            value = getValue(node, value, index.toString());
 
             if (value == null) {
                 return null;
