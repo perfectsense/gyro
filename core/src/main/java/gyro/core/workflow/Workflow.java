@@ -58,7 +58,7 @@ public class Workflow {
             null,
             current.getLoadFiles());
 
-        scope.load();
+        scope.evaluate();
 
         return scope;
     }
@@ -123,7 +123,7 @@ public class Workflow {
             current,
             root.getLoadFiles());
 
-        pending.load();
+        pending.evaluate();
 
         Set<String> diffFiles = state.getDiffFiles();
 

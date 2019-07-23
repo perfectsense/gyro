@@ -12,4 +12,6 @@ public abstract class FileBackend {
 
     public abstract OutputStream openOutput(String file) throws Exception;
 
+    public abstract void delete(String file) throws Exception;
+
 }

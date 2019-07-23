@@ -167,7 +167,7 @@ public class Diff {
             .filter(c -> !(c instanceof Keep))
             .map(Change::getDiffable)
             .filter(d -> !(d instanceof Resource))
-            .map(Diffable::name)
+            .map(DiffableInternals::getName)
             .map(type::getField)
             .forEach(changedFields::add);
 
@@ -399,8 +399,9 @@ public class Diff {
                     error);
             }
 
+            state.save();
+
             if (result != null) {
-                state.save();
                 result.write(ui);
             }
         }

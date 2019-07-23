@@ -56,6 +56,11 @@ public class LocalFileBackend extends FileBackend {
     }
 
     @Override
+    public void delete(String file) throws IOException {
+        Files.deleteIfExists(rootDirectory.resolve(file));
+    }
+
+    @Override
     public String toString() {
         return rootDirectory.toString();
     }

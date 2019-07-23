@@ -15,6 +15,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableSet;
 import gyro.core.GyroException;
@@ -50,7 +51,7 @@ public class State {
     public State(RootScope current, RootScope pending, boolean test, Set<String> diffFiles) {
         this.root = new RootScope(current.getFile(), current.getBackend(), null, current.getLoadFiles());
 
-        root.load();
+        root.evaluate();
 
         this.test = test;
         this.diffFiles = diffFiles != null ? ImmutableSet.copyOf(diffFiles) : null;
@@ -113,7 +114,19 @@ public class State {
 
             if (typeRoot) {
                 String key = resource.primaryKey();
-                state.put(newKeys.getOrDefault(key, key), resource);
+                String newKey = newKeys.getOrDefault(key, key);
+
+                state.put(newKey, resource);
+
+                Resource oldResource = state.getRootScope().findResource(newKey);
+
+                if (oldResource != null) {
+                    FileScope oldState = states.get(DiffableInternals.getScope(oldResource).getFileScope().getFile());
+
+                    if (state != oldState) {
+                        oldState.remove(newKey);
+                    }
+                }
 
             } else {
                 String key = resource.parentResource().primaryKey();
@@ -123,7 +136,7 @@ public class State {
     }
 
     private void updateSubresource(Resource parent, Resource subresource, boolean delete) {
-        DiffableField field = DiffableType.getInstance(parent.getClass()).getField(subresource.name());
+        DiffableField field = DiffableType.getInstance(parent.getClass()).getField(DiffableInternals.getName(subresource));
         Object value = field.getValue(parent);
 
         if (value instanceof Collection) {
@@ -167,28 +180,35 @@ public class State {
         for (FileScope state : states.values()) {
             String file = state.getFile();
 
-            try (PrintWriter out = new PrintWriter(
-                new OutputStreamWriter(
-                    root.openOutput(file),
-                    StandardCharsets.UTF_8))) {
+            List<Resource> resources = state.values()
+                .stream()
+                .filter(Resource.class::isInstance)
+                .map(Resource.class::cast)
+                .collect(Collectors.toList());
 
-                PrinterContext context = new PrinterContext(out, 0);
+            if (!resources.isEmpty()) {
+                try (PrintWriter out = new PrintWriter(
+                    new OutputStreamWriter(
+                        root.openOutput(file),
+                        StandardCharsets.UTF_8))) {
 
-                for (Object value : state.values()) {
-                    if (value instanceof Resource) {
-                        Resource resource = (Resource) value;
+                    PrinterContext context = new PrinterContext(out, 0);
 
+                    for (Resource resource : resources) {
                         printer.visit(
                             new ResourceNode(
                                 DiffableType.getInstance(resource.getClass()).getName(),
-                                new ValueNode(newNames.getOrDefault(resource.primaryKey(), resource.name())),
+                                new ValueNode(newNames.getOrDefault(resource.primaryKey(), DiffableInternals.getName(resource))),
                                 toBodyNodes(resource)),
                             context);
                     }
+
+                } catch (IOException error) {
+                    throw new Bug(error);
                 }
 
-            } catch (IOException error) {
-                throw new Bug(error);
+            } else {
+                root.delete(file);
             }
         }
     }
@@ -300,7 +320,7 @@ public class State {
                 return new ReferenceNode(
                     Arrays.asList(
                         new ValueNode(type.getName()),
-                        new ValueNode(newNames.getOrDefault(resource.primaryKey(), resource.name()))),
+                        new ValueNode(newNames.getOrDefault(resource.primaryKey(), DiffableInternals.getName(resource)))),
                     Collections.emptyList());
             }
 
@@ -327,7 +347,7 @@ public class State {
         String withKey = with.primaryKey();
 
         states.values().forEach(s -> s.remove(resourceKey));
-        newNames.put(withKey, resource.name());
+        newNames.put(withKey, DiffableInternals.getName(resource));
         newKeys.put(withKey, resourceKey);
         save();
     }
