@@ -81,7 +81,7 @@ public class ExtendsDirectiveProcessor extends DirectiveProcessor<DiffableScope>
                 .stream()
                 .collect(
                     LinkedHashMap::new,
-                    (m, e) -> m.put(e.getKey(), e.getValue()),
+                    (m, e) -> m.put(clone(e.getKey()), clone(e.getValue())),
                     LinkedHashMap::putAll);
 
         } else if (value instanceof Set) {
