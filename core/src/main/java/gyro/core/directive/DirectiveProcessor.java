@@ -80,6 +80,89 @@ public abstract class DirectiveProcessor<S extends Scope> {
         return evaluateArguments(scope, validateOptionArguments(node, name, minimum, maximum));
     }
 
+    private static Node getArgumentNode(Scope scope, DirectiveNode node, int index) {
+        List<Node> arguments = node.getArguments();
+        return index < arguments.size() ? arguments.get(index) : null;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> T getArgument(Scope scope, DirectiveNode node, Class<T> valueClass, int index) {
+        Node argument = getArgumentNode(scope, node, index);
+
+        if (argument == null) {
+            return null;
+        }
+
+        Object value = scope.getRootScope().getEvaluator().visit(argument, scope);
+
+        if (value == null) {
+            throw new GyroException(argument, String.format(
+                "Expected an instance of @|bold %s|@ at @|bold %s|@ but found a null!",
+                valueClass.getName(),
+                index));
+        }
+
+        if (!valueClass.isInstance(value)) {
+            throw new GyroException(argument, String.format(
+                "Expected an instance of @|bold %s|@ at @|bold %s|@ but found @|bold %s|@, an instance of @|bold %s|@!",
+                valueClass.getName(),
+                index,
+                value,
+                value.getClass().getName()));
+        }
+
+        return (T) value;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> List<T> getListArgument(Scope scope, DirectiveNode node, Class<T> itemClass, int index) {
+        Node argument = getArgumentNode(scope, node, index);
+
+        if (argument == null) {
+            return null;
+        }
+
+        Object value = scope.getRootScope().getEvaluator().visit(argument, scope);
+
+        if (value == null) {
+            throw new GyroException(argument, String.format(
+                "Expected a list at @|bold %s|@ but found a null!",
+                index));
+        }
+
+        if (!(value instanceof List)) {
+            throw new GyroException(argument, String.format(
+                "Expected a list at @|bold %s|@ but found @|bold %s|@, an instance of @|bold %s|@!",
+                index,
+                value,
+                value.getClass().getName()));
+        }
+
+        List<?> list = (List<?>) value;
+
+        for (int i = 0, s = list.size(); i < s; i++) {
+            Object item = list.get(i);
+
+            if (item == null) {
+                throw new GyroException(argument, String.format(
+                    "Expected an instance of @|bold %s|@ in the list at @|bold %s|@ but found a null!",
+                    itemClass.getName(),
+                    i));
+            }
+
+            if (!itemClass.isInstance(item)) {
+                throw new GyroException(argument, String.format(
+                    "Expected an instance of @|bold %s|@ in the list at @|bold %s|@ but found @|bold %s|@, an instance of @|bold %s|@!",
+                    itemClass.getName(),
+                    i,
+                    item,
+                    item.getClass().getName()));
+            }
+        }
+
+        return (List<T>) value;
+    }
+
     public static Scope evaluateBody(Scope scope, DirectiveNode node) {
         NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
         Scope bodyScope = new Scope(scope);
