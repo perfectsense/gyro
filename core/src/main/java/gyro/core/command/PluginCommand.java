@@ -29,15 +29,9 @@ import java.util.stream.Collectors;
 @Command(name = "plugin", description = "Add or remove Gyro plugins.")
 public class PluginCommand extends AbstractCommand {
 
-    @Option(name = { "--add" })
-    public boolean add;
-
-    @Option(name = { "--remove" })
-    public boolean remove;
-
-    @Arguments(description = "A list of plugins specified in the format of <group>:<artifact>:<version>. "
-        + "For example: gyro:gyro-aws-provider:0.1-SNAPSHOT")
-    private List<String> plugins;
+    @Arguments(description = "add|remove plugins. A list of plugins specified in the format of <group>:<artifact>:<version>. "
+        + "For example: add gyro:gyro-aws-provider:0.1-SNAPSHOT")
+    private List<String> arguments;
 
     @Override
     protected void doExecute() throws Exception {
@@ -45,7 +39,17 @@ public class PluginCommand extends AbstractCommand {
             throw new GyroException("Can't find gyro root directory!");
         }
 
-        if (plugins == null || plugins.isEmpty()) {
+        if (arguments == null || arguments.isEmpty()) {
+            throw new GyroException("Expected 'gyro plugin add|remove plugins'!");
+        }
+
+        String command = arguments.get(0);
+        if (!"add".equalsIgnoreCase(command) && !"remove".equalsIgnoreCase(command)) {
+            throw new GyroException("Unknown command. Valid commands are: add and remove");
+        }
+
+        List<String> plugins = new ArrayList<>(arguments.subList(1, arguments.size()));
+        if (plugins.isEmpty()) {
             throw new GyroException("List of plugins is required!");
         }
 
@@ -55,10 +59,6 @@ public class PluginCommand extends AbstractCommand {
                     "@|bold %s|@ isn't properly formatted!",
                     plugin));
             }
-        }
-
-        if (add && remove) {
-            throw new GyroException("Can't add and remove plugin at the same time!");
         }
 
         FileBackend backend = new LocalFileBackend(GyroCore.getRootDirectory());
@@ -99,7 +99,7 @@ public class PluginCommand extends AbstractCommand {
             int lineNumber = 0;
             while (line != null) {
                 boolean skipLine = false;
-                if (remove) {
+                if ("remove".equalsIgnoreCase(command)) {
                     for (DirectiveNode pluginNode : removeNodes) {
                         if (lineNumber >= pluginNode.getStartLine() && lineNumber <= pluginNode.getStopLine()) {
                             skipLine = true;
@@ -117,7 +117,7 @@ public class PluginCommand extends AbstractCommand {
             }
         }
 
-        if (add) {
+        if ("add".equalsIgnoreCase(command)) {
             plugins.forEach(p -> sb.append(String.format("%s '%s'%n", "@plugin:", p)));
         }
 
