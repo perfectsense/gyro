@@ -9,6 +9,7 @@ import gyro.core.scope.NodeEvaluator;
 import gyro.core.scope.Scope;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.DirectiveNode;
+import gyro.lang.ast.block.FileNode;
 import gyro.parser.antlr4.GyroParser;
 import gyro.util.Bug;
 import io.airlift.airline.Arguments;
@@ -24,6 +25,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Command(name = "plugin", description = "Add or remove Gyro plugins.")
 public class PluginCommand extends AbstractCommand {
@@ -61,17 +63,19 @@ public class PluginCommand extends AbstractCommand {
         }
 
         FileBackend backend = new LocalFileBackend(GyroCore.getRootDirectory());
-        Node node;
+        List<DirectiveNode> pluginNodes;
         try (GyroInputStream input = new GyroInputStream(backend, GyroCore.INIT_FILE)) {
-            node = Node.parse(input, GyroCore.INIT_FILE, GyroParser::file);
+            pluginNodes = ((FileNode) Node.parse(input, GyroCore.INIT_FILE, GyroParser::file))
+                .getBody()
+                .stream()
+                .filter(DirectiveNode.class::isInstance)
+                .map(DirectiveNode.class::cast)
+                .filter(n -> "plugin".equals(n.getName()))
+                .collect(Collectors.toList());
 
         } catch (IOException error) {
             throw new Bug(error);
         }
-
-        List<DirectiveNode> pluginNodes = new ArrayList<>();
-        PluginNodeVisitor visitor = new PluginNodeVisitor();
-        visitor.visit(node, pluginNodes);
 
         NodeEvaluator evaluator = new NodeEvaluator();
         Scope scope = new Scope(null);
