@@ -4,18 +4,32 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import gyro.lang.ast.Node;
 
 public class DiffableScope extends Scope {
 
+    private final Node node;
     private List<Node> stateNodes = new ArrayList<>();
-
     private boolean extended;
 
-    public DiffableScope(Scope parent) {
+    public DiffableScope(Scope parent, Node node) {
         super(parent);
+        this.node = node;
+    }
+
+    public Node getNode() {
+        if (node != null) {
+            return node;
+
+        } else {
+            return Optional.ofNullable(getParent())
+                .map(p -> p.getClosest(DiffableScope.class))
+                .map(DiffableScope::getNode)
+                .orElse(null);
+        }
     }
 
     public List<Node> getStateNodes() {

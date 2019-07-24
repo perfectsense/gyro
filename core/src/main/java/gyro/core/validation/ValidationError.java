@@ -7,6 +7,7 @@ import gyro.core.GyroUI;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
+import gyro.core.scope.DiffableScope;
 import gyro.lang.GyroCharStream;
 import gyro.lang.Locatable;
 import gyro.lang.ast.Node;
@@ -22,7 +23,12 @@ public class ValidationError implements Locatable {
         this.diffable = Preconditions.checkNotNull(diffable);
         this.fieldName = fieldName;
         this.message = message;
-        this.node = DiffableInternals.getScope(diffable).getValueNodes().get(fieldName);
+
+        DiffableScope scope = DiffableInternals.getScope(diffable);
+
+        this.node = fieldName != null
+            ? scope.getValueNodes().get(fieldName)
+            : scope.getNode();
     }
 
     public void write(GyroUI ui) {
@@ -32,19 +38,20 @@ public class ValidationError implements Locatable {
 
         if (parent == null) {
             ui.write(
-                "@|bold %s|@ %s",
+                "%s %s",
                 DiffableType.getInstance(diffable.getClass()).getName(),
                 DiffableInternals.getName(diffable));
 
         } else {
             ui.write(
-                "@|bold %s|@ %s @|bold %s|@",
+                "%s %s → %s %s",
                 DiffableType.getInstance(parent.getClass()).getName(),
                 DiffableInternals.getName(parent),
+                DiffableInternals.getName(diffable),
                 diffable.primaryKey());
         }
 
-        Optional.ofNullable(fieldName).ifPresent(s -> ui.write(" @|bold %s|@", s));
+        Optional.ofNullable(fieldName).ifPresent(s -> ui.write(" → %s", s));
         ui.write(": %s\n", message);
         Optional.ofNullable(toLocation()).ifPresent(s -> ui.write("\nIn @|bold %s|@ %s\n", getFile(), s));
         Optional.ofNullable(toCodeSnippet()).ifPresent(s -> ui.write("%s", s));

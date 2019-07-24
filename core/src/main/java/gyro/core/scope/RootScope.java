@@ -258,7 +258,7 @@ public class RootScope extends FileScope {
             .orElseGet(() -> {
                 T r = Reflections.newInstance(resourceClass);
                 DiffableInternals.setExternal(r, true);
-                DiffableInternals.setScope(r, new DiffableScope(this));
+                DiffableInternals.setScope(r, new DiffableScope(this, null));
                 idField.setValue(r, id);
                 return r;
             });
