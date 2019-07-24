@@ -7,6 +7,7 @@ import gyro.core.GyroUI;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
+import gyro.core.scope.DiffableScope;
 import gyro.lang.GyroCharStream;
 import gyro.lang.Locatable;
 import gyro.lang.ast.Node;
@@ -22,7 +23,12 @@ public class ValidationError implements Locatable {
         this.diffable = Preconditions.checkNotNull(diffable);
         this.fieldName = fieldName;
         this.message = message;
-        this.node = DiffableInternals.getScope(diffable).getValueNodes().get(fieldName);
+
+        DiffableScope scope = DiffableInternals.getScope(diffable);
+
+        this.node = fieldName != null
+            ? scope.getValueNodes().get(fieldName)
+            : scope.getNode();
     }
 
     public void write(GyroUI ui) {
