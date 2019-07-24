@@ -28,7 +28,7 @@ public class VirtualResourceVisitor extends ResourceVisitor {
                 DirectiveNode directive = (DirectiveNode) child;
 
                 if ("param".equals(directive.getName())) {
-                    List<Object> arguments = DirectiveProcessor.evaluateDirectiveArguments(scope, directive, 1, 1);
+                    List<Object> arguments = DirectiveProcessor.evaluateArguments(scope, directive, 1, 1);
 
                     parametersBuilder.add(new VirtualParameter((String) arguments.get(0)));
                     continue;

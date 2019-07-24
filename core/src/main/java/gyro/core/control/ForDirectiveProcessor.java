@@ -21,7 +21,7 @@ public class ForDirectiveProcessor extends DirectiveProcessor<Scope> {
 
     @Override
     public void process(Scope scope, DirectiveNode node) {
-        List<Object> variables = evaluateDirectiveArguments(scope, node, 1, 0);
+        List<Object> variables = evaluateArguments(scope, node, 1, 0);
         List<Node> inArguments = validateOptionArguments(node, "in", 1, 1);
         Node inNode = inArguments.get(0);
         Object in = scope.getRootScope().getEvaluator().visit(inNode, scope);

@@ -16,7 +16,7 @@ public class RepositoryDirectiveProcessor extends DirectiveProcessor<RootScope> 
 
     @Override
     public void process(RootScope scope, DirectiveNode node) {
-        List<Object> arguments = evaluateDirectiveArguments(scope, node, 1, 1);
+        List<Object> arguments = evaluateArguments(scope, node, 1, 1);
         String url = (String) arguments.get(0);
 
         scope.getSettings(RepositorySettings.class)

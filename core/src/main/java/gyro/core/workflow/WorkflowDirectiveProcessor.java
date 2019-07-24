@@ -15,7 +15,7 @@ public class WorkflowDirectiveProcessor extends DirectiveProcessor<FileScope> {
 
     @Override
     public void process(FileScope scope, DirectiveNode node) {
-        List<Object> arguments = evaluateDirectiveArguments(scope, node, 2, 2);
+        List<Object> arguments = evaluateArguments(scope, node, 2, 2);
 
         scope.getRootScope()
             .getSettings(WorkflowSettings.class)

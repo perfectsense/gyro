@@ -12,7 +12,7 @@ import gyro.lang.ast.block.DirectiveNode;
 
 public abstract class DirectiveProcessor<S extends Scope> {
 
-    private static List<Node> validateArguments(Locatable locatable, List<Node> arguments, int minimum, int maximum, String errorName) {
+    private static List<Node> validate(Locatable locatable, List<Node> arguments, int minimum, int maximum, String errorName) {
         int argumentsSize = arguments.size();
         boolean hasMinimum = minimum > 0;
         boolean hasMaximum = maximum > 0;
@@ -46,8 +46,8 @@ public abstract class DirectiveProcessor<S extends Scope> {
         return arguments;
     }
 
-    public static List<Node> validateDirectiveArguments(DirectiveNode node, int minimum, int maximum) {
-        return validateArguments(node, node.getArguments(), minimum, maximum, String.format("@|bold @%s|@ directive", node.getName()));
+    public static List<Node> validateArguments(DirectiveNode node, int minimum, int maximum) {
+        return validate(node, node.getArguments(), minimum, maximum, String.format("@|bold @%s|@ directive", node.getName()));
     }
 
     public static List<Node> validateOptionArguments(DirectiveNode node, String name, int minimum, int maximum) {
@@ -57,14 +57,14 @@ public abstract class DirectiveProcessor<S extends Scope> {
             .stream()
             .filter(s -> s.getName().equals(name))
             .findFirst()
-            .map(option -> validateArguments(option, option.getArguments(), minimum, maximum, errorName))
+            .map(option -> validate(option, option.getArguments(), minimum, maximum, errorName))
             .orElseThrow(() -> new GyroException(node, String.format(
                 "@|bold @%s|@ directive requires the @|bold -%s|@ option!",
                 node.getName(),
                 name)));
     }
 
-    private static List<Object> evaluateArguments(Scope scope, List<Node> arguments) {
+    private static List<Object> evaluate(Scope scope, List<Node> arguments) {
         NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
 
         return arguments.stream()
@@ -72,22 +72,22 @@ public abstract class DirectiveProcessor<S extends Scope> {
             .collect(Collectors.toList());
     }
 
-    public static List<Object> evaluateDirectiveArguments(Scope scope, DirectiveNode node, int minimum, int maximum) {
-        return evaluateArguments(scope, validateDirectiveArguments(node, minimum, maximum));
+    public static List<Object> evaluateArguments(Scope scope, DirectiveNode node, int minimum, int maximum) {
+        return evaluate(scope, validateArguments(node, minimum, maximum));
     }
 
     public static List<Object> evaluateOptionArguments(Scope scope, DirectiveNode node, String name, int minimum, int maximum) {
-        return evaluateArguments(scope, validateOptionArguments(node, name, minimum, maximum));
+        return evaluate(scope, validateOptionArguments(node, name, minimum, maximum));
     }
 
-    private static Node getArgumentNode(Scope scope, DirectiveNode node, int index) {
+    private static Node get(DirectiveNode node, int index) {
         List<Node> arguments = node.getArguments();
         return index < arguments.size() ? arguments.get(index) : null;
     }
 
     @SuppressWarnings("unchecked")
     public static <T> T getArgument(Scope scope, DirectiveNode node, Class<T> valueClass, int index) {
-        Node argument = getArgumentNode(scope, node, index);
+        Node argument = get(node, index);
 
         if (argument == null) {
             return null;
@@ -116,7 +116,7 @@ public abstract class DirectiveProcessor<S extends Scope> {
 
     @SuppressWarnings("unchecked")
     public static <T> List<T> getListArgument(Scope scope, DirectiveNode node, Class<T> itemClass, int index) {
-        Node argument = getArgumentNode(scope, node, index);
+        Node argument = get(node, index);
 
         if (argument == null) {
             return null;

@@ -16,7 +16,7 @@ public class ReplaceDirectiveProcessor extends DirectiveProcessor<Scope> {
 
     @Override
     public void process(Scope scope, DirectiveNode node) {
-        List<Node> arguments = validateDirectiveArguments(node, 2, 2);
+        List<Node> arguments = validateArguments(node, 2, 2);
 
         scope.getSettings(WorkflowSettings.class)
             .getActions()

@@ -15,7 +15,7 @@ public class VirtualDirectiveProcessor extends DirectiveProcessor<FileScope> {
 
     @Override
     public void process(FileScope scope, DirectiveNode node) {
-        List<Object> arguments = evaluateDirectiveArguments(scope, node, 1, 1);
+        List<Object> arguments = evaluateArguments(scope, node, 1, 1);
 
         scope.getRootScope().put(
             (String) arguments.get(0),

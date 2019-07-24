@@ -15,7 +15,7 @@ public class HighlanderDirectiveProcessor extends DirectiveProcessor<RootScope> 
 
     @Override
     public void process(RootScope scope, DirectiveNode node) {
-        List<Object> arguments = evaluateDirectiveArguments(scope, node, 1, 1);
+        List<Object> arguments = evaluateArguments(scope, node, 1, 1);
 
         scope.getSettings(HighlanderSettings.class).setHighlander((boolean) arguments.get(0));
     }

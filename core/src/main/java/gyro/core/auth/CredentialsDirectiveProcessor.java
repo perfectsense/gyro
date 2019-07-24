@@ -20,7 +20,7 @@ public class CredentialsDirectiveProcessor extends DirectiveProcessor<RootScope>
 
     @Override
     public void process(RootScope scope, DirectiveNode node) {
-        List<Object> arguments = evaluateDirectiveArguments(scope, node, 1, 2);
+        List<Object> arguments = evaluateArguments(scope, node, 1, 2);
         String type = (String) arguments.get(0);
         String name = arguments.size() == 1 ? "default" : (String) arguments.get(1);
         Scope bodyScope = evaluateBody(scope, node);
