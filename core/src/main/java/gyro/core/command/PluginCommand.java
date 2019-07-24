@@ -47,7 +47,7 @@ public class PluginCommand extends AbstractCommand {
         for (String plugin : plugins) {
             if (plugin.split(":").length != 3) {
                 throw new GyroException(String.format(
-                    "[%s] isn't properly formatted!",
+                    "@|bold %s|@ isn't properly formatted!",
                     plugin));
             }
         }
