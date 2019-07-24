@@ -160,12 +160,10 @@ public class DiffableType<R extends Diffable> {
 
     private void validateValue(List<ValidationError> errors, Diffable parent, String name, Object value) {
         if (value == null) {
-            errors.add(new ValidationError(
-                parent,
-                name,
-                "Can't validate a null!"));
+            return;
+        }
 
-        } else if (value instanceof Collection) {
+        if (value instanceof Collection) {
             for (Object item : (Collection<?>) value) {
                 validateValue(errors, parent, name, item);
             }
