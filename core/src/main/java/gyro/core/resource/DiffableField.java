@@ -1,21 +1,41 @@
 package gyro.core.resource;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
 import com.google.common.base.CaseFormat;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.psddev.dari.util.ConversionException;
 import gyro.core.GyroException;
 import gyro.core.Reflections;
 import gyro.core.scope.Scope;
+import gyro.core.validation.ValidationError;
+import gyro.core.validation.Validator;
+import gyro.core.validation.ValidatorClass;
 
 public class DiffableField {
+
+    private static final LoadingCache<Class<? extends Validator<? extends Annotation>>, Validator<Annotation>> VALIDATORS = CacheBuilder.newBuilder()
+        .weakKeys()
+        .build(new CacheLoader<Class<? extends Validator<? extends Annotation>>, Validator<Annotation>>() {
+
+            @Override
+            @SuppressWarnings("unchecked")
+            public Validator<Annotation> load(Class<? extends Validator<? extends Annotation>> c) {
+                return (Validator) Reflections.newInstance(c);
+            }
+        });
 
     private final String name;
     private final Method getter;
@@ -124,6 +144,25 @@ public class DiffableField {
                 name,
                 UUID.randomUUID().toString().replace("-", "").substring(16))));
         }
+    }
+
+    public List<ValidationError> validate(Diffable diffable) {
+        Object value = getValue(diffable);
+        List<ValidationError> errors = new ArrayList<>();
+
+        for (Annotation annotation : getter.getAnnotations()) {
+            ValidatorClass validatorClass = annotation.annotationType().getAnnotation(ValidatorClass.class);
+
+            if (validatorClass != null) {
+                Validator<Annotation> validator = VALIDATORS.getUnchecked(validatorClass.value());
+
+                if (!validator.isValid(annotation, value)) {
+                    errors.add(new ValidationError(diffable, name, validator.getMessage(annotation)));
+                }
+            }
+        }
+
+        return errors;
     }
 
 }

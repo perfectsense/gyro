@@ -43,6 +43,8 @@ import gyro.core.resource.ExtendsDirectiveProcessor;
 import gyro.core.resource.Resource;
 import gyro.core.resource.ResourcePlugin;
 import gyro.core.resource.TypeDescriptionDirectiveProcessor;
+import gyro.core.validation.ValidationError;
+import gyro.core.validation.ValidationErrorException;
 import gyro.core.virtual.VirtualDirectiveProcessor;
 import gyro.core.workflow.CreateDirectiveProcessor;
 import gyro.core.workflow.DeleteDirectiveProcessor;
@@ -265,18 +267,19 @@ public class RootScope extends FileScope {
     public void evaluate() {
         evaluator.visit(initNode, this);
         evaluator.visitBody(bodyNodes, this);
-        validate();
     }
 
-    private void validate() {
+    public void validate() {
         StringBuilder sb = new StringBuilder();
 
         if (values().stream().anyMatch(Resource.class::isInstance)) {
             sb.append(String.format("Resources are not allowed in '%s'%n", getFile()));
         }
 
+        List<Resource> resources = findResources();
         Map<String, List<String>> duplicateResources = new HashMap<>();
-        for (Resource resource : findResources()) {
+
+        for (Resource resource : resources) {
             String fullName = resource.primaryKey();
             duplicateResources.putIfAbsent(fullName, new ArrayList<>());
             duplicateResources.get(fullName).add(DiffableInternals.getScope(resource).getFileScope().getFile());
@@ -294,6 +297,15 @@ public class RootScope extends FileScope {
         if (sb.length() != 0) {
             sb.insert(0, "Invalid configs\n");
             throw new GyroException(sb.toString());
+        }
+
+        List<ValidationError> errors = resources.stream()
+            .map(r -> DiffableType.getInstance(r.getClass()).validate(r))
+            .flatMap(List::stream)
+            .collect(Collectors.toList());
+
+        if (!errors.isEmpty()) {
+            throw new ValidationErrorException(errors);
         }
     }
 
