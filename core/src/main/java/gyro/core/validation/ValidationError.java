@@ -32,19 +32,20 @@ public class ValidationError implements Locatable {
 
         if (parent == null) {
             ui.write(
-                "@|bold %s|@ %s",
+                "%s %s",
                 DiffableType.getInstance(diffable.getClass()).getName(),
                 DiffableInternals.getName(diffable));
 
         } else {
             ui.write(
-                "@|bold %s|@ %s @|bold %s|@",
+                "%s %s → %s %s",
                 DiffableType.getInstance(parent.getClass()).getName(),
                 DiffableInternals.getName(parent),
+                DiffableInternals.getName(diffable),
                 diffable.primaryKey());
         }
 
-        Optional.ofNullable(fieldName).ifPresent(s -> ui.write(" @|bold %s|@", s));
+        Optional.ofNullable(fieldName).ifPresent(s -> ui.write(" → %s", s));
         ui.write(": %s\n", message);
         Optional.ofNullable(toLocation()).ifPresent(s -> ui.write("\nIn @|bold %s|@ %s\n", getFile(), s));
         Optional.ofNullable(toCodeSnippet()).ifPresent(s -> ui.write("%s", s));
