@@ -53,7 +53,7 @@ public class VirtualResourceVisitor extends ResourceVisitor {
     @Override
     public void visit(String name, Scope scope) {
         RootScope root = scope.getRootScope();
-        RootScope virtualRoot = new RootScope(root.getFile(), root.getBackend(), null, ImmutableSet.of());
+        RootScope virtualRoot = new RootScope(root.getFile(), root.getBackend(), new VirtualRootScope(root.getCurrent(), name), ImmutableSet.of());
 
         virtualRoot.evaluate();
         virtualRoot.putAll(root);

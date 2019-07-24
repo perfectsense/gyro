@@ -393,7 +393,7 @@ public class Diff {
             } catch (Exception error) {
                 throw new GyroException(
                     String.format(
-                        "Can't @|bold %s| @|bold %s| resource!",
+                        "Can't %s @|bold %s|@ resource!",
                         change.getClass().getSimpleName().toLowerCase(Locale.ENGLISH),
                         diffable),
                     error);
