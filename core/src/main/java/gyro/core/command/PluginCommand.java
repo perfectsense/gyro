@@ -19,9 +19,8 @@ import io.airlift.airline.Option;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -95,8 +94,7 @@ public class PluginCommand extends AbstractCommand {
         }
 
         StringBuilder sb = new StringBuilder();
-        Path file = GyroCore.getRootDirectory().resolve(GyroCore.INIT_FILE);
-        try (BufferedReader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(backend.openInput(GyroCore.INIT_FILE)))) {
             String line = reader.readLine();
             int lineNumber = 0;
             while (line != null) {
@@ -123,7 +121,7 @@ public class PluginCommand extends AbstractCommand {
             plugins.forEach(p -> sb.append(String.format("%s '%s'%n", "@plugin:", p)));
         }
 
-        try (BufferedWriter writer = Files.newBufferedWriter(file, StandardCharsets.UTF_8)) {
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(backend.openOutput(GyroCore.INIT_FILE)))) {
             writer.write(sb.toString());
         }
     }
