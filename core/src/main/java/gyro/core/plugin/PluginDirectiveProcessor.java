@@ -51,12 +51,12 @@ public class PluginDirectiveProcessor extends DirectiveProcessor<RootScope> {
 
     @Override
     public void process(RootScope scope, DirectiveNode node) {
-        List<Object> arguments = evaluateArguments(scope, node, 1, 1);
+        validateArguments(node, 1, 1);
 
         Thread.currentThread().setContextClassLoader(PLUGIN_CLASS_LOADER);
 
         PluginSettings settings = scope.getSettings(PluginSettings.class);
-        String artifactCoords = (String) arguments.get(0);
+        String artifactCoords = getArgument(scope, node, String.class, 0);
 
         settings.addClasses(CLASSES_BY_ARTIFACT_COORDS.computeIfAbsent(artifactCoords, ac -> {
             try {

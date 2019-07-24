@@ -2,7 +2,7 @@ package gyro.core.auth;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
-import java.util.List;
+import java.util.Optional;
 
 import com.google.common.base.CaseFormat;
 import gyro.core.Reflections;
@@ -20,9 +20,10 @@ public class CredentialsDirectiveProcessor extends DirectiveProcessor<RootScope>
 
     @Override
     public void process(RootScope scope, DirectiveNode node) {
-        List<Object> arguments = evaluateArguments(scope, node, 1, 2);
-        String type = (String) arguments.get(0);
-        String name = arguments.size() == 1 ? "default" : (String) arguments.get(1);
+        validateArguments(node, 1, 2);
+
+        String type = getArgument(scope, node, String.class, 0);
+        String name = Optional.ofNullable(getArgument(scope, node, String.class, 1)).orElse("default");
         Scope bodyScope = evaluateBody(scope, node);
 
         CredentialsSettings settings = scope.getSettings(CredentialsSettings.class);

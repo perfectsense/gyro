@@ -2,6 +2,7 @@ package gyro.core.directive;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import gyro.core.GyroException;
 import gyro.core.scope.NodeEvaluator;
@@ -64,22 +65,6 @@ public abstract class DirectiveProcessor<S extends Scope> {
                 name)));
     }
 
-    private static List<Object> evaluate(Scope scope, List<Node> arguments) {
-        NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
-
-        return arguments.stream()
-            .map(a -> evaluator.visit(a, scope))
-            .collect(Collectors.toList());
-    }
-
-    public static List<Object> evaluateArguments(Scope scope, DirectiveNode node, int minimum, int maximum) {
-        return evaluate(scope, validateArguments(node, minimum, maximum));
-    }
-
-    public static List<Object> evaluateOptionArguments(Scope scope, DirectiveNode node, String name, int minimum, int maximum) {
-        return evaluate(scope, validateOptionArguments(node, name, minimum, maximum));
-    }
-
     private static Node get(DirectiveNode node, int index) {
         List<Node> arguments = node.getArguments();
         return index < arguments.size() ? arguments.get(index) : null;
@@ -112,6 +97,12 @@ public abstract class DirectiveProcessor<S extends Scope> {
         }
 
         return (T) value;
+    }
+
+    public static <T> List<T> getArguments(Scope scope, DirectiveNode node, Class<T> valueClass) {
+        return IntStream.range(0, node.getArguments().size())
+            .mapToObj(i -> getArgument(scope, node, valueClass, i))
+            .collect(Collectors.toList());
     }
 
     @SuppressWarnings("unchecked")
