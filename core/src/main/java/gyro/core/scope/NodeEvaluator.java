@@ -306,7 +306,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
 
     @Override
     public Object visitKeyBlock(KeyBlockNode node, Scope scope) {
-        DiffableScope bodyScope = new DiffableScope(scope);
+        DiffableScope bodyScope = new DiffableScope(scope, node);
 
         for (Node item : node.getBody()) {
             visit(item, bodyScope);
@@ -326,7 +326,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
 
     @Override
     public Object visitResource(ResourceNode node, Scope scope) {
-        DiffableScope bodyScope = new DiffableScope(scope);
+        DiffableScope bodyScope = new DiffableScope(scope, node);
 
         for (Node item : node.getBody()) {
             visit(item, bodyScope);

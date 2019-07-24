@@ -1,7 +1,6 @@
 package gyro.core.resource;
 
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -140,7 +139,7 @@ public abstract class Diffable {
     }
 
     protected <T extends Diffable> T newSubresource(Class<T> diffableClass) {
-        return DiffableType.getInstance(diffableClass).newDiffable(this, null, new DiffableScope(scope));
+        return DiffableType.getInstance(diffableClass).newDiffable(this, null, new DiffableScope(scope, null));
     }
 
     public String primaryKey() {
