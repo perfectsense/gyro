@@ -11,6 +11,7 @@ import gyro.core.scope.RootScope;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import gyro.core.scope.Scope;
+import gyro.core.validation.ValidationErrorException;
 import gyro.lang.Locatable;
 import gyro.lang.SyntaxError;
 import gyro.lang.SyntaxErrorException;
@@ -114,6 +115,9 @@ public class Gyro {
                 GyroCore.ui().write("\n%s %s:\n", syntaxError.getMessage(), syntaxError.toLocation());
                 GyroCore.ui().write("%s", syntaxError.toCodeSnippet());
             }
+
+        } else if (error instanceof ValidationErrorException) {
+            ((ValidationErrorException) error).write(GyroCore.ui());
 
         } else {
             StringWriter sw = new StringWriter();

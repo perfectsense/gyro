@@ -1,4 +1,4 @@
-package gyro.core.resource;
+package gyro.core.validation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -9,6 +9,9 @@ import java.lang.annotation.Target;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface Output {
+@ValidatorClass(ValidStringsValidator.class)
+public @interface ValidStrings {
+
+    String[] value();
 
 }

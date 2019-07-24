@@ -124,6 +124,7 @@ public class Workflow {
             root.getLoadFiles());
 
         pending.evaluate();
+        pending.validate();
 
         Set<String> diffFiles = state.getDiffFiles();
 

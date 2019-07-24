@@ -2,6 +2,8 @@ package gyro.core.resource;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +20,7 @@ import gyro.core.Type;
 import gyro.core.scope.DiffableScope;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
+import gyro.core.validation.ValidationError;
 import gyro.lang.ast.Node;
 import gyro.parser.antlr4.GyroParser;
 
@@ -147,6 +150,48 @@ public class DiffableType<R extends Diffable> {
         diffable.scope = scope;
 
         return diffable;
+    }
+
+    public List<ValidationError> validate(Diffable diffable) {
+        List<ValidationError> errors = new ArrayList<>();
+        validateValue(errors, diffable, null, diffable);
+        return errors;
+    }
+
+    private void validateValue(List<ValidationError> errors, Diffable parent, String name, Object value) {
+        if (value == null) {
+            errors.add(new ValidationError(
+                parent,
+                name,
+                "Can't validate a null!"));
+
+        } else if (value instanceof Collection) {
+            for (Object item : (Collection<?>) value) {
+                validateValue(errors, parent, name, item);
+            }
+
+        } else if (value instanceof Diffable) {
+            Diffable diffable = (Diffable) value;
+
+            for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
+                errors.addAll(field.validate(diffable));
+
+                if (field.shouldBeDiffed()) {
+                    validateValue(errors, diffable, field.getName(), field.getValue(diffable));
+                }
+            }
+
+            Optional.ofNullable(diffable.validate()).ifPresent(errors::addAll);
+
+        } else {
+            errors.add(new ValidationError(
+                parent,
+                name,
+                String.format(
+                    "Can't validate @|bold %s|@, an instance of @|bold %s|@!",
+                    value,
+                    value.getClass().getName())));
+        }
     }
 
 }
