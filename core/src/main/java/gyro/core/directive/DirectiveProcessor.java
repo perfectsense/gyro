@@ -38,10 +38,12 @@ public abstract class DirectiveProcessor<S extends Scope> {
                 errorCount = String.format("at most @|bold %d|@", maximum);
             }
 
-            throw new GyroException(locatable, String.format(
-                "%s requires %s arguments!",
-                errorName,
-                errorCount));
+            throw new GyroException(
+                hasMaximum ? arguments.get(maximum) : locatable,
+                String.format(
+                    "%s requires %s arguments!",
+                    errorName,
+                    errorCount));
         }
 
         return arguments;
