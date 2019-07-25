@@ -3,6 +3,7 @@ package gyro.core.resource;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -17,6 +18,7 @@ import gyro.core.diff.Change;
 import gyro.core.scope.DiffableScope;
 import gyro.core.scope.FileScope;
 import gyro.core.scope.Scope;
+import gyro.core.validation.ValidationError;
 
 public abstract class Diffable {
 
@@ -137,11 +139,15 @@ public abstract class Diffable {
     }
 
     protected <T extends Diffable> T newSubresource(Class<T> diffableClass) {
-        return DiffableType.getInstance(diffableClass).newDiffable(this, null, new DiffableScope(scope));
+        return DiffableType.getInstance(diffableClass).newDiffable(this, null, new DiffableScope(scope, null));
     }
 
     public String primaryKey() {
         return String.format("%s::%s", DiffableType.getInstance(getClass()).getName(), name);
+    }
+
+    public List<ValidationError> validate() {
+        return null;
     }
 
     public boolean writePlan(GyroUI ui, Change change) {
