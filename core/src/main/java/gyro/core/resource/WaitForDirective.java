@@ -51,7 +51,10 @@ public class WaitForDirective extends DirectiveProcessor<Scope> {
 
         Wait.atMost(atMost, timeUnit)
             .checkEvery(checkEvery, timeUnit)
-            .until(() -> (Boolean) evaluateDirectiveArguments(scope, node, 1, 1).get(0));
+            .until(() -> {
+                scope.getRootScope().findResources().forEach(DiffableInternals::refresh);
+                return (Boolean) evaluateDirectiveArguments(scope, node, 1, 1).get(0);
+            });
     }
 
 }
