@@ -37,6 +37,16 @@ public class DiffableField {
             }
         });
 
+    private final LoadingCache<DiffableCacheKey, Optional<Object>> values = CacheBuilder
+        .newBuilder()
+        .build(new CacheLoader<DiffableCacheKey, Optional<Object>>() {
+
+            @Override
+            public Optional<Object> load(DiffableCacheKey diffableCacheKey) {
+                return Optional.ofNullable(Reflections.invoke(getter, diffableCacheKey.diffable));
+            }
+        });
+
     private final String name;
     private final Method getter;
     private final Method setter;
@@ -88,6 +98,10 @@ public class DiffableField {
         return itemClass;
     }
 
+    public void refresh(Diffable diffable) {
+        values.invalidate(new DiffableCacheKey(diffable));
+    }
+
     @SuppressWarnings("unchecked")
     public boolean shouldBeDiffed() {
         return Diffable.class.isAssignableFrom(itemClass)
@@ -95,7 +109,8 @@ public class DiffableField {
     }
 
     public Object getValue(Diffable diffable) {
-        return Reflections.invoke(getter, diffable);
+         Optional<Object> optional = values.getUnchecked(new DiffableCacheKey(diffable));
+         return optional.orElse(null);
     }
 
     public void setValue(Diffable diffable, Object value) {
@@ -163,6 +178,34 @@ public class DiffableField {
         }
 
         return errors;
+    }
+
+    private class DiffableCacheKey {
+
+        private final Diffable diffable;
+
+        DiffableCacheKey(Diffable diffable) {
+            this.diffable = diffable;
+        }
+
+        @Override
+        public final int hashCode() {
+            return Objects.hash(diffable.parent(), diffable.name, diffable.primaryKey());
+        }
+
+        @Override
+        public final boolean equals(Object other) {
+            if (this == other) {
+                return true;
+            }
+
+            if (other == null || getClass() != other.getClass()) {
+                return false;
+            }
+
+            DiffableCacheKey otherKey = (DiffableCacheKey) other;
+            return this.diffable == otherKey.diffable;
+        }
     }
 
 }
