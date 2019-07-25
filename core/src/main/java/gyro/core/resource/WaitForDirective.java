@@ -1,13 +1,16 @@
 package gyro.core.resource;
 
+import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.Wait;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.scope.Scope;
+import gyro.lang.ast.Node;
 import gyro.lang.ast.block.DirectiveNode;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class WaitForDirective extends DirectiveProcessor<Scope> {
 
@@ -53,6 +56,13 @@ public class WaitForDirective extends DirectiveProcessor<Scope> {
             .checkEvery(checkEvery, timeUnit)
             .until(() -> {
                 scope.getRootScope().findResources().forEach(DiffableInternals::refresh);
+                GyroCore.ui().write(String.format("Waiting for %s ...%n",
+                    node.getArguments()
+                        .stream()
+                        .map(Node::toString)
+                        .collect(Collectors.joining())
+                ));
+
                 return (Boolean) evaluateDirectiveArguments(scope, node, 1, 1).get(0);
             });
     }
