@@ -399,6 +399,7 @@ public class Diff {
                     error);
             }
 
+            DiffableInternals.refresh(diffable);
             state.save();
 
             if (result != null) {
