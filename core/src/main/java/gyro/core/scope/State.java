@@ -195,7 +195,6 @@ public class State {
                     PrinterContext context = new PrinterContext(out, 0);
 
                     for (Resource resource : resources) {
-                        DiffableInternals.refresh(resource);
                         printer.visit(
                             new ResourceNode(
                                 DiffableType.getInstance(resource.getClass()).getName(),
