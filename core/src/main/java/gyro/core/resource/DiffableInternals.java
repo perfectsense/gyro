@@ -80,4 +80,20 @@ public final class DiffableInternals {
             }
         }
     }
+
+    public static void refresh(Diffable diffable) {
+        for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
+            field.refresh(diffable);
+
+            if (field.shouldBeDiffed()) {
+                Object value = field.getValue(diffable);
+
+                (value instanceof Collection ? ((Collection<?>) value).stream() : Stream.of(value))
+                    .filter(Diffable.class::isInstance)
+                    .map(Diffable.class::cast)
+                    .forEach(DiffableInternals::refresh);
+            }
+        }
+    }
+
 }
