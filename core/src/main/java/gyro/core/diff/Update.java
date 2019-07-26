@@ -66,7 +66,7 @@ public class Update extends Change {
         if (!state.isTest()) {
             pending.update(
                 ui,
-                state,
+                new Context(this, state),
                 current,
                 changedFields.stream()
                     .map(DiffableField::getName)

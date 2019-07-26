@@ -5,19 +5,19 @@ import java.util.Set;
 
 import gyro.core.GyroUI;
 import gyro.core.auth.Credentials;
-import gyro.core.scope.State;
+import gyro.core.diff.Context;
 
 public abstract class Resource extends Diffable {
 
     public abstract boolean refresh();
 
-    public abstract void create(GyroUI ui, State state) throws Exception;
+    public abstract void create(GyroUI ui, Context context) throws Exception;
 
-    public abstract void update(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception;
+    public abstract void update(GyroUI ui, Context context, Resource current, Set<String> changedFieldNames) throws Exception;
 
-    public abstract void delete(GyroUI ui, State state) throws Exception;
+    public abstract void delete(GyroUI ui, Context context) throws Exception;
 
-    public void testCreate(GyroUI ui, State state) throws Exception {
+    public void testCreate(GyroUI ui, Context context) throws Exception {
         DiffableType.getInstance(getClass()).getFields().forEach(f -> f.testUpdate(this));
     }
 

@@ -41,7 +41,7 @@ public class Delete extends Change {
         }
 
         if (!state.isTest()) {
-            resource.delete(ui, state);
+            resource.delete(ui, new Context(this, state));
         }
 
         for (ChangeProcessor processor : processors) {
