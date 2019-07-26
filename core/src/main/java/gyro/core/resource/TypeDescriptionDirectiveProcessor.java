@@ -16,7 +16,7 @@ public class TypeDescriptionDirectiveProcessor extends DirectiveProcessor<RootSc
 
     @Override
     public void process(RootScope scope, DirectiveNode node) {
-        List<Node> arguments = validateDirectiveArguments(node, 2, 2);
+        List<Node> arguments = validateArguments(node, 2, 2);
         String type = (String) scope.getEvaluator().visit(arguments.get(0), scope);
 
         scope.getSettings(DescriptionSettings.class).getTypeDescriptions().put(type, arguments.get(1));

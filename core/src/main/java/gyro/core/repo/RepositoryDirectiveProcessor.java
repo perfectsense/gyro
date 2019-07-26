@@ -1,7 +1,5 @@
 package gyro.core.repo;
 
-import java.util.List;
-
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.scope.RootScope;
 import gyro.lang.ast.block.DirectiveNode;
@@ -16,8 +14,9 @@ public class RepositoryDirectiveProcessor extends DirectiveProcessor<RootScope> 
 
     @Override
     public void process(RootScope scope, DirectiveNode node) {
-        List<Object> arguments = evaluateDirectiveArguments(scope, node, 1, 1);
-        String url = (String) arguments.get(0);
+        validateArguments(node, 1, 1);
+
+        String url = getArgument(scope, node, String.class, 0);
 
         scope.getSettings(RepositorySettings.class)
             .getRepositories()

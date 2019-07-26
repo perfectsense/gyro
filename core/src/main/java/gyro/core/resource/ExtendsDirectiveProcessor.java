@@ -21,9 +21,8 @@ public class ExtendsDirectiveProcessor extends DirectiveProcessor<DiffableScope>
 
     @Override
     public void process(DiffableScope scope, DirectiveNode node) {
-        List<Object> arguments = evaluateDirectiveArguments(scope, node, 1, 1);
-
-        processSource(scope, arguments.get(0));
+        validateArguments(node, 1, 1);
+        processSource(scope, getArgument(scope, node, Object.class, 0));
         scope.setExtended(true);
     }
 
