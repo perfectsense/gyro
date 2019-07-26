@@ -16,7 +16,7 @@ public class UpdateDirectiveProcessor extends DirectiveProcessor<Scope> {
 
     @Override
     public void process(Scope scope, DirectiveNode node) {
-        List<Node> arguments = validateDirectiveArguments(node, 1, 1);
+        List<Node> arguments = validateArguments(node, 1, 1);
 
         scope.getSettings(WorkflowSettings.class)
             .getActions()
