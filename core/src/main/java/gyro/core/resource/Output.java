@@ -11,8 +11,4 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface Output {
 
-    public String value() default "";
-
-    public boolean randomSuffix() default true;
-
 }

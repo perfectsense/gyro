@@ -70,7 +70,7 @@ public class Replace extends Change {
 
     @Override
     public void writePlan(GyroUI ui) {
-        ui.write("@|cyan ⇅ Replace %s|@", currentDiffable.toDisplayString());
+        ui.write("@|cyan ⇅ Replace %s|@", getLabel(currentDiffable, false));
         ui.write(" (because of %s, ", changedFields.stream()
             .filter(f -> !f.isUpdatable())
             .map(DiffableField::getName)
@@ -89,7 +89,7 @@ public class Replace extends Change {
 
     @Override
     public void writeExecution(GyroUI ui) {
-        ui.write("@|magenta ⇅ Replacing %s|@", currentDiffable.toDisplayString());
+        ui.write("@|magenta ⇅ Replacing %s|@", getLabel(currentDiffable, true));
         writeFields(ui);
     }
 

@@ -33,9 +33,4 @@ public class TestResource extends Resource {
     public void delete(GyroUI ui, State state) {
     }
 
-    @Override
-    public String toDisplayString() {
-        return null;
-    }
-
 }

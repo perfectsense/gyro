@@ -1,7 +1,5 @@
 package gyro.core.virtual;
 
-import java.util.List;
-
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.scope.FileScope;
 import gyro.lang.ast.block.DirectiveNode;
@@ -15,10 +13,10 @@ public class VirtualDirectiveProcessor extends DirectiveProcessor<FileScope> {
 
     @Override
     public void process(FileScope scope, DirectiveNode node) {
-        List<Object> arguments = evaluateDirectiveArguments(scope, node, 1, 1);
+        validateArguments(node, 1, 1);
 
         scope.getRootScope().put(
-            (String) arguments.get(0),
+            getArgument(scope, node, String.class, 0),
             new VirtualResourceVisitor(scope, node.getBody()));
     }
 

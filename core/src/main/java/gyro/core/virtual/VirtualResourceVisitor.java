@@ -28,9 +28,8 @@ public class VirtualResourceVisitor extends ResourceVisitor {
                 DirectiveNode directive = (DirectiveNode) child;
 
                 if ("param".equals(directive.getName())) {
-                    List<Object> arguments = DirectiveProcessor.evaluateDirectiveArguments(scope, directive, 1, 1);
-
-                    parametersBuilder.add(new VirtualParameter((String) arguments.get(0)));
+                    DirectiveProcessor.validateArguments(directive, 1, 1);
+                    parametersBuilder.add(new VirtualParameter(DirectiveProcessor.getArgument(scope, directive, String.class, 0)));
                     continue;
                 }
             }
@@ -53,9 +52,10 @@ public class VirtualResourceVisitor extends ResourceVisitor {
     @Override
     public void visit(String name, Scope scope) {
         RootScope root = scope.getRootScope();
-        RootScope virtualRoot = new RootScope(root.getFile(), root.getBackend(), null, ImmutableSet.of());
+        RootScope virtualRoot = new RootScope(root.getFile(), root.getBackend(), new VirtualRootScope(root.getCurrent(), name), ImmutableSet.of());
 
-        virtualRoot.load();
+        virtualRoot.evaluate();
+        virtualRoot.validate();
         virtualRoot.putAll(root);
 
         FileScope file = scope.getFileScope();
@@ -68,7 +68,7 @@ public class VirtualResourceVisitor extends ResourceVisitor {
         String prefix = name + "/";
 
         for (Resource resource : virtualRoot.findResources()) {
-            DiffableInternals.setName(resource, prefix + resource.name());
+            DiffableInternals.setName(resource, prefix + DiffableInternals.getName(resource));
             file.put(resource.primaryKey(), resource);
         }
     }

@@ -1,10 +1,12 @@
 package gyro.core.diff;
 
 import java.util.List;
+import java.util.Set;
 
 import gyro.core.GyroUI;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.DiffableField;
+import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
 import gyro.core.resource.Resource;
 import gyro.core.scope.State;
@@ -23,8 +25,10 @@ public class Create extends Change {
     }
 
     private void writeFields(GyroUI ui) {
+        Set<String> configuredFields = DiffableInternals.getConfiguredFields(diffable);
+
         for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
-            if (!field.shouldBeDiffed()) {
+            if (!field.shouldBeDiffed() && configuredFields.contains(field.getName())) {
                 ui.write("\n· %s: %s", field.getName(), stringify(field.getValue(diffable)));
             }
         }
@@ -32,7 +36,7 @@ public class Create extends Change {
 
     @Override
     public void writePlan(GyroUI ui) {
-        ui.write("@|green + Create %s|@", diffable.toDisplayString());
+        ui.write("@|green + Create %s|@", getLabel(diffable, false));
 
         if (ui.isVerbose()) {
             writeFields(ui);
@@ -41,7 +45,7 @@ public class Create extends Change {
 
     @Override
     public void writeExecution(GyroUI ui) {
-        ui.write("@|magenta + Creating %s|@", diffable.toDisplayString());
+        ui.write("@|magenta + Creating %s|@", getLabel(diffable, true));
 
         if (ui.isVerbose()) {
             writeFields(ui);

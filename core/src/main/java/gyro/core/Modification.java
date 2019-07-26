@@ -34,9 +34,4 @@ public abstract class Modification extends Resource {
 
     }
 
-    @Override
-    public String toDisplayString() {
-        return null;
-    }
-
 }

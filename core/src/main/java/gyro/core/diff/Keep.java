@@ -21,7 +21,7 @@ public class Keep extends Change {
 
     @Override
     public void writePlan(GyroUI ui) {
-        ui.write("= Keep %s", diffable.toDisplayString());
+        ui.write("@|white,faint = Keep %s|@", getLabel(diffable, false));
     }
 
     @Override

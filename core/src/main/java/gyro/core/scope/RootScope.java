@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.psddev.dari.util.Converter;
+import com.psddev.dari.util.StringUtils;
 import gyro.core.FileBackend;
 import gyro.core.GyroException;
 import gyro.core.GyroInputStream;
@@ -36,12 +37,16 @@ import gyro.core.reference.FinderReferenceResolver;
 import gyro.core.reference.ReferencePlugin;
 import gyro.core.reference.ReferenceSettings;
 import gyro.core.repo.RepositoryDirectiveProcessor;
+import gyro.core.resource.DescriptionDirectiveProcessor;
 import gyro.core.resource.DiffableField;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
 import gyro.core.resource.ExtendsDirectiveProcessor;
 import gyro.core.resource.Resource;
 import gyro.core.resource.ResourcePlugin;
+import gyro.core.resource.TypeDescriptionDirectiveProcessor;
+import gyro.core.validation.ValidationError;
+import gyro.core.validation.ValidationErrorException;
 import gyro.core.virtual.VirtualDirectiveProcessor;
 import gyro.core.workflow.CreateDirectiveProcessor;
 import gyro.core.workflow.DeleteDirectiveProcessor;
@@ -60,6 +65,8 @@ public class RootScope extends FileScope {
     private final RootScope current;
     private final Set<String> loadFiles;
     private final List<FileScope> fileScopes = new ArrayList<>();
+    private final Node initNode;
+    private final List<Node> bodyNodes = new ArrayList<>();
 
     @SuppressWarnings("unchecked")
     public RootScope(String file, FileBackend backend, RootScope current, Set<String> loadFiles) {
@@ -107,6 +114,7 @@ public class RootScope extends FileScope {
             new CreateDirectiveProcessor(),
             new CredentialsDirectiveProcessor(),
             new DeleteDirectiveProcessor(),
+            new DescriptionDirectiveProcessor(),
             new ExtendsDirectiveProcessor(),
             new ForDirectiveProcessor(),
             new IfDirectiveProcessor(),
@@ -114,6 +122,7 @@ public class RootScope extends FileScope {
             new ReplaceDirectiveProcessor(),
             new RepositoryDirectiveProcessor(),
             new PluginDirectiveProcessor(),
+            new TypeDescriptionDirectiveProcessor(),
             new UpdateDirectiveProcessor(),
             new UsesCredentialsDirectiveProcessor(),
             new VirtualDirectiveProcessor(),
@@ -127,6 +136,31 @@ public class RootScope extends FileScope {
             .forEach(r -> getSettings(ReferenceSettings.class).getResolvers().put(r.getName(), r));
 
         put("ENV", System.getenv());
+
+        if (!StringUtils.isBlank(getFile())) {
+            try (GyroInputStream input = openInput(getFile())) {
+                initNode = Node.parse(input, getFile(), GyroParser::file);
+
+            } catch (IOException error) {
+                throw new Bug(error);
+            }
+        } else {
+            initNode = null;
+        }
+
+        for (String loadFile : this.loadFiles) {
+            try (GyroInputStream input = openInput(loadFile)) {
+                bodyNodes.add(Node.parse(input, loadFile, GyroParser::file));
+
+            } catch (IOException error) {
+                throw new Bug(error);
+
+            } catch (Exception error) {
+                throw new GyroException(
+                    String.format("Can't parse @|bold %s|@ in @|bold %s|@!", loadFile, this.backend),
+                    error);
+            }
+        }
     }
 
     public NodeEvaluator getEvaluator() {
@@ -166,6 +200,17 @@ public class RootScope extends FileScope {
 
     public OutputStream openOutput(String file) {
         return new GyroOutputStream(backend, file);
+    }
+
+    public void delete(String file) {
+        try {
+            backend.delete(file);
+
+        } catch (Exception error) {
+            throw new GyroException(
+                String.format("Can't delete @|bold %s|@ in @|bold %s|@!", file, backend),
+                error);
+        }
     }
 
     public Object convertValue(Type returnType, Object object) {
@@ -217,44 +262,28 @@ public class RootScope extends FileScope {
             .orElseGet(() -> {
                 T r = Reflections.newInstance(resourceClass);
                 DiffableInternals.setExternal(r, true);
-                DiffableInternals.setScope(r, new DiffableScope(this));
+                DiffableInternals.setScope(r, new DiffableScope(this, null));
                 idField.setValue(r, id);
                 return r;
             });
     }
 
-    public void load() {
-        try (GyroInputStream input = openInput(getFile())) {
-            evaluator.visit(Node.parse(input, getFile(), GyroParser::file), this);
-
-        } catch (IOException error) {
-            throw new Bug(error);
-        }
-
-        List<Node> nodes = new ArrayList<>();
-
-        for (String file : loadFiles) {
-            try (GyroInputStream input = openInput(file)) {
-                nodes.add(Node.parse(input, file, GyroParser::file));
-
-            } catch (IOException error) {
-                throw new Bug(error);
-            }
-        }
-
-        evaluator.visitBody(nodes, this);
-        validate();
+    public void evaluate() {
+        evaluator.visit(initNode, this);
+        evaluator.visitBody(bodyNodes, this);
     }
 
-    private void validate() {
+    public void validate() {
         StringBuilder sb = new StringBuilder();
 
         if (values().stream().anyMatch(Resource.class::isInstance)) {
             sb.append(String.format("Resources are not allowed in '%s'%n", getFile()));
         }
 
+        List<Resource> resources = findResources();
         Map<String, List<String>> duplicateResources = new HashMap<>();
-        for (Resource resource : findResources()) {
+
+        for (Resource resource : resources) {
             String fullName = resource.primaryKey();
             duplicateResources.putIfAbsent(fullName, new ArrayList<>());
             duplicateResources.get(fullName).add(DiffableInternals.getScope(resource).getFileScope().getFile());
@@ -272,6 +301,15 @@ public class RootScope extends FileScope {
         if (sb.length() != 0) {
             sb.insert(0, "Invalid configs\n");
             throw new GyroException(sb.toString());
+        }
+
+        List<ValidationError> errors = resources.stream()
+            .map(r -> DiffableType.getInstance(r.getClass()).validate(r))
+            .flatMap(List::stream)
+            .collect(Collectors.toList());
+
+        if (!errors.isEmpty()) {
+            throw new ValidationErrorException(errors);
         }
     }
 
