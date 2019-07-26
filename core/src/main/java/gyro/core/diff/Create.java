@@ -63,10 +63,10 @@ public class Create extends Change {
         }
 
         if (state.isTest()) {
-            resource.testCreate(ui, state);
+            resource.testCreate(ui, new Context(this, state));
 
         } else {
-            resource.create(ui, state);
+            resource.create(ui, new Context(this, state));
         }
 
         for (ChangeProcessor processor : processors) {
