@@ -16,8 +16,8 @@ public class PrintDirectiveProcessor extends DirectiveProcessor<Scope> {
 
     @Override
     public void process(Scope scope, DirectiveNode node) {
-        List<Object> arguments = evaluateDirectiveArguments(scope, node, 1, 1);
-        Object argument = arguments.get(0);
+        validateArguments(node, 1, 1);
+        Object argument = getArgument(scope, node, Object.class, 0);
 
         StringBuilder sb = new StringBuilder();
         if (argument instanceof List) {
