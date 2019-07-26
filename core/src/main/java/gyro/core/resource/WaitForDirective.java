@@ -1,9 +1,9 @@
 package gyro.core.resource;
 
 import gyro.core.GyroCore;
-import gyro.core.GyroException;
 import gyro.core.Wait;
 import gyro.core.directive.DirectiveProcessor;
+import gyro.core.scope.NodeEvaluator;
 import gyro.core.scope.Scope;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.DirectiveNode;
@@ -21,36 +21,17 @@ public class WaitForDirective extends DirectiveProcessor<Scope> {
 
     @Override
     public void process(Scope scope, DirectiveNode node) {
-        List<Object> arguments = evaluateDirectiveArguments(scope, node, 1, 1);
-        Object argument = arguments.get(0);
-        if (!(argument instanceof Boolean)) {
-            throw new GyroException(String.format(
-                "@|bold %s|@ is not a @|bold Boolean|@ condition!",
-                argument));
-        }
+        validateArguments(node, 1, 1);
 
-        Integer atMost = 60;
-        Integer checkEvery = 10;
-        TimeUnit timeUnit = TimeUnit.SECONDS;
+        List<Node> atMostArguments = validateOptionArguments(node, "at-most", 0, 1);
+        List<Node> checkEveryArguments = validateOptionArguments(node, "check-every", 0, 1);
+        List<Node> timeUnitArguments = validateOptionArguments(node, "time-unit", 0, 1);
 
-        Scope bodyScope = evaluateBody(scope, node);
-        if (bodyScope.containsKey("at-most")) {
-            atMost = (Integer) bodyScope.remove("at-most");
-        }
+        NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
 
-        if (bodyScope.containsKey("check-every")) {
-            checkEvery = (Integer) bodyScope.remove("check-every");
-        }
-
-        if (bodyScope.containsKey("time-unit")) {
-            timeUnit = TimeUnit.valueOf((String) bodyScope.remove("time-unit"));
-        }
-
-        if (!bodyScope.isEmpty()) {
-            throw new GyroException(String.format(
-                "@|bold %s|@ is not a valid field!",
-                bodyScope.keySet().stream().findFirst().get()));
-        }
+        int atMost = atMostArguments.isEmpty() ? 60 : (Integer) evaluator.visit(atMostArguments.get(0), scope);
+        int checkEvery = checkEveryArguments.isEmpty() ? 10 : (Integer) evaluator.visit(checkEveryArguments.get(0), scope);
+        TimeUnit timeUnit = timeUnitArguments.isEmpty() ? TimeUnit.SECONDS : TimeUnit.valueOf((String) evaluator.visit(timeUnitArguments.get(0), scope));
 
         Wait.atMost(atMost, timeUnit)
             .checkEvery(checkEvery, timeUnit)
@@ -63,7 +44,7 @@ public class WaitForDirective extends DirectiveProcessor<Scope> {
                         .collect(Collectors.joining())
                 ));
 
-                return (Boolean) evaluateDirectiveArguments(scope, node, 1, 1).get(0);
+                return Boolean.TRUE.equals(getArgument(scope, node, Boolean.class, 0));
             });
     }
 
