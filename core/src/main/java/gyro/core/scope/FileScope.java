@@ -1,5 +1,7 @@
 package gyro.core.scope;
 
+import com.google.common.base.Preconditions;
+
 public class FileScope extends Scope {
 
     private final String file;
@@ -7,7 +9,7 @@ public class FileScope extends Scope {
     public FileScope(RootScope parent, String file) {
         super(parent);
 
-        this.file = file;
+        this.file = Preconditions.checkNotNull(file);
     }
 
     public String getFile() {
