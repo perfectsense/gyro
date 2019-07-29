@@ -2,7 +2,6 @@ package gyro.core.scope;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Map;
 
 import gyro.core.FileBackend;
 import org.junit.jupiter.api.BeforeEach;
@@ -114,131 +113,6 @@ class ScopeTest {
         @Test
         void getFileScope() {
             assertThat(scope.getFileScope()).isEqualTo(file);
-        }
-
-    }
-
-    @Nested
-    class Delegate {
-
-        Map<String, Object> map;
-        Scope scope;
-
-        @BeforeEach
-        @SuppressWarnings("unchecked")
-        void beforeEach() {
-            map = mock(Map.class);
-            scope = new Scope(null, map);
-        }
-
-        @Test
-        void clear() {
-            scope.clear();
-
-            verify(map).clear();
-            verifyNoMoreInteractions(map);
-        }
-
-        @Test
-        void containsKey() {
-            Object key = new Object();
-
-            scope.containsKey(key);
-
-            verify(map).containsKey(key);
-            verifyNoMoreInteractions(map);
-        }
-
-        @Test
-        void containsValue() {
-            Object value = new Object();
-
-            scope.containsValue(value);
-
-            verify(map).containsValue(value);
-            verifyNoMoreInteractions(map);
-        }
-
-        @Test
-        void entrySet() {
-            scope.entrySet();
-
-            verify(map).entrySet();
-            verifyNoMoreInteractions(map);
-        }
-
-        @Test
-        void keySet() {
-            scope.keySet();
-
-            verify(map).keySet();
-            verifyNoMoreInteractions(map);
-        }
-
-        @Test
-        void get() {
-            Object key = new Object();
-
-            scope.get(key);
-
-            verify(map).get(key);
-            verifyNoMoreInteractions(map);
-        }
-
-        @Test
-        void isEmpty() {
-            scope.isEmpty();
-
-            verify(map).isEmpty();
-            verifyNoMoreInteractions(map);
-        }
-
-        @Test
-        void put() {
-            String key = "foo";
-            Object value = new Object();
-
-            scope.put(key, value);
-
-            verify(map).put(key, value);
-            verifyNoMoreInteractions(map);
-        }
-
-        @Test
-        @SuppressWarnings("unchecked")
-        void putAll() {
-            Map<String, Object> other = mock(Map.class);
-
-            scope.putAll(other);
-
-            verify(map).putAll(other);
-            verifyNoMoreInteractions(other);
-        }
-
-        @Test
-        void remove() {
-            Object key = new Object();
-
-            scope.remove(key);
-
-            verify(map).remove(key);
-            verifyNoMoreInteractions(map);
-        }
-
-        @Test
-        void size() {
-            scope.size();
-
-            verify(map).size();
-            verifyNoMoreInteractions(map);
-        }
-
-        @Test
-        void values() {
-            scope.values();
-
-            verify(map).values();
-            verifyNoMoreInteractions(map);
         }
 
     }
