@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -106,7 +107,7 @@ public class Scope implements Map<String, Object> {
 
     @SuppressWarnings("unchecked")
     public <S extends Settings> S getSettings(Class<S> settingsClass) {
-        return (S) settingsByClass.getUnchecked(settingsClass);
+        return (S) settingsByClass.getUnchecked(Preconditions.checkNotNull(settingsClass));
     }
 
     @Override
@@ -167,16 +168,6 @@ public class Scope implements Map<String, Object> {
     @Override
     public Collection<Object> values() {
         return values.values();
-    }
-
-    @Override
-    public int hashCode() {
-        return values.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        return this == other || (other instanceof Map && values.equals(other));
     }
 
     @Override
