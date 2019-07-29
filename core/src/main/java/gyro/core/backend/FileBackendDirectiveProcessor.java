@@ -1,6 +1,7 @@
 package gyro.core.backend;
 
 import com.google.common.base.CaseFormat;
+import gyro.core.FileBackend;
 import gyro.core.Reflections;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.scope.RootScope;
@@ -30,7 +31,7 @@ public class FileBackendDirectiveProcessor extends DirectiveProcessor<RootScope>
         FileBackend fileBackend =  Reflections.newInstance(fileBackendClass);
         fileBackend.setName(name);
 
-        fileBackend.scope = scope;
+//        fileBackend.scope = scope;
 
         for (PropertyDescriptor property : Reflections.getBeanInfo(fileBackendClass).getPropertyDescriptors()) {
 

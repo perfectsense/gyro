@@ -3,7 +3,7 @@ package gyro.core.scope;
 import java.util.Arrays;
 
 import com.google.common.collect.ImmutableMap;
-import gyro.core.backend.FileBackend;
+import gyro.core.FileBackend;
 import gyro.core.GyroException;
 import gyro.core.reference.ReferenceSettings;
 import gyro.lang.ast.Node;

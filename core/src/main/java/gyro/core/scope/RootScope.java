@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 
 import com.psddev.dari.util.Converter;
 import com.psddev.dari.util.StringUtils;
-import gyro.core.backend.FileBackend;
+import gyro.core.FileBackend;
 import gyro.core.GyroException;
 import gyro.core.GyroInputStream;
 import gyro.core.GyroOutputStream;

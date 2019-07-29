@@ -1,7 +1,5 @@
 package gyro.core;
 
-import gyro.core.backend.FileBackend;
-
 import java.io.IOException;
 import java.io.InputStream;
 

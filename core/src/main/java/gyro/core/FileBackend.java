@@ -1,7 +1,6 @@
-package gyro.core.backend;
+package gyro.core;
 
-import gyro.core.GyroException;
-import gyro.core.NamespaceUtils;
+import gyro.core.backend.FileBackendSettings;
 import gyro.core.scope.DiffableScope;
 import gyro.core.scope.Scope;
 
