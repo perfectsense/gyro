@@ -107,13 +107,13 @@ public class Gyro {
 
         } else if (error instanceof SyntaxErrorException) {
             SyntaxErrorException s = (SyntaxErrorException) error;
-            List<SyntaxError> syntaxErrors = s.getSyntaxErrors();
+            List<SyntaxError> errors = s.getErrors();
 
-            GyroCore.ui().write("@|red %d syntax errors in %s!|@\n", syntaxErrors.size(), s.getFile());
+            GyroCore.ui().write("@|red %d syntax errors in %s!|@\n", errors.size(), s.getFile());
 
-            for (SyntaxError syntaxError : syntaxErrors) {
-                GyroCore.ui().write("\n%s %s:\n", syntaxError.getMessage(), syntaxError.toLocation());
-                GyroCore.ui().write("%s", syntaxError.toCodeSnippet());
+            for (SyntaxError e : errors) {
+                GyroCore.ui().write("\n%s %s:\n", e.getMessage(), e.toLocation());
+                GyroCore.ui().write("%s", e.toCodeSnippet());
             }
 
         } else if (error instanceof ValidationErrorException) {
