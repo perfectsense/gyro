@@ -1,5 +1,7 @@
 package gyro.core;
 
+import gyro.core.backend.FileBackend;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,6 +9,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Set;
 import java.util.stream.Stream;
 
 public class LocalFileBackend extends FileBackend {
@@ -58,6 +61,11 @@ public class LocalFileBackend extends FileBackend {
     @Override
     public void delete(String file) throws IOException {
         Files.deleteIfExists(rootDirectory.resolve(file));
+    }
+
+    @Override
+    public Set<String> getNameSpaces() throws Exception {
+        return null;
     }
 
     @Override

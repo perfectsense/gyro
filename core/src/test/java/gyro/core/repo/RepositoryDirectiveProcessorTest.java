@@ -3,7 +3,7 @@ package gyro.core.repo;
 import java.util.Collections;
 import java.util.List;
 
-import gyro.core.FileBackend;
+import gyro.core.backend.FileBackend;
 import gyro.core.scope.RootScope;
 import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.value.ValueNode;

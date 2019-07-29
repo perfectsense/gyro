@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 
 import com.psddev.dari.util.Converter;
 import com.psddev.dari.util.StringUtils;
-import gyro.core.FileBackend;
+import gyro.core.backend.FileBackend;
 import gyro.core.GyroException;
 import gyro.core.GyroInputStream;
 import gyro.core.GyroOutputStream;
@@ -22,6 +22,8 @@ import gyro.core.Reflections;
 import gyro.core.auth.CredentialsDirectiveProcessor;
 import gyro.core.auth.CredentialsPlugin;
 import gyro.core.auth.UsesCredentialsDirectiveProcessor;
+import gyro.core.backend.FileBackendDirectiveProcessor;
+import gyro.core.backend.FileBackendPlugin;
 import gyro.core.command.HighlanderDirectiveProcessor;
 import gyro.core.control.ForDirectiveProcessor;
 import gyro.core.control.IfDirectiveProcessor;
@@ -103,6 +105,7 @@ public class RootScope extends FileScope {
             new DirectivePlugin(),
             new FinderPlugin(),
             new ReferencePlugin(),
+            new FileBackendPlugin(),
             new ResourcePlugin())
             .forEach(p -> getSettings(PluginSettings.class).getPlugins().add(p));
 
@@ -122,6 +125,7 @@ public class RootScope extends FileScope {
             new UpdateDirectiveProcessor(),
             new UsesCredentialsDirectiveProcessor(),
             new VirtualDirectiveProcessor(),
+            new FileBackendDirectiveProcessor(),
             new WorkflowDirectiveProcessor())
             .forEach(p -> getSettings(DirectiveSettings.class).getProcessors().put(p.getName(), p));
 
