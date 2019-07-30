@@ -267,6 +267,20 @@ public class RootScope extends FileScope {
     public void evaluate() {
         evaluator.visit(initNode, this);
         evaluator.visitBody(bodyNodes, this);
+
+        for (Resource resource : findResources()) {
+            DiffableType<?> type = DiffableType.getInstance(resource.getClass());
+            DiffableScope scope = DiffableInternals.getScope(resource);
+            Map<String, Node> nodes = scope.getValueNodes();
+
+            for (DiffableField field : type.getFields()) {
+                Node node = nodes.get(field.getName());
+
+                if (node != null) {
+                    field.setValue(resource, evaluator.visit(node, scope));
+                }
+            }
+        }
     }
 
     public void validate() {
