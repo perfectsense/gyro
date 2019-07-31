@@ -43,14 +43,11 @@ import gyro.core.resource.ExtendsDirectiveProcessor;
 import gyro.core.resource.Resource;
 import gyro.core.resource.ResourcePlugin;
 import gyro.core.resource.TypeDescriptionDirectiveProcessor;
-<<<<<<< HEAD
 import gyro.core.vault.VaultDirectiveProcessor;
 import gyro.core.vault.VaultPlugin;
 import gyro.core.vault.VaultReferenceResolver;
-=======
 import gyro.core.validation.ValidationError;
 import gyro.core.validation.ValidationErrorException;
->>>>>>> master
 import gyro.core.virtual.VirtualDirectiveProcessor;
 import gyro.core.workflow.CreateDirectiveProcessor;
 import gyro.core.workflow.DeleteDirectiveProcessor;
