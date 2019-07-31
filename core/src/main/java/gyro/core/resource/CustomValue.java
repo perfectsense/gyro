@@ -4,6 +4,6 @@ import gyro.lang.ast.Node;
 
 public interface CustomValue {
 
-    public Node toStateNode();
+    Node toStateNode();
 
 }

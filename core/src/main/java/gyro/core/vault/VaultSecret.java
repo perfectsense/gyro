@@ -46,7 +46,7 @@ public class VaultSecret implements CustomValue {
 
     @Override
     public String toString() {
-        return String.format("hash/%s", getHash());
+        return "<vault secret>";
     }
 
     @Override
