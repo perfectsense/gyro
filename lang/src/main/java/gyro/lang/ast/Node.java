@@ -31,6 +31,7 @@ import gyro.util.Bug;
 import gyro.util.ImmutableCollectors;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
@@ -65,15 +66,15 @@ public abstract class Node extends Rule {
         .put(GyroParser.ResourceContext.class, c -> new ResourceNode((GyroParser.ResourceContext) c))
         .put(GyroParser.StatementContext.class, GET_FIRST_CHILD)
         .put(GyroParser.StringContentContext.class, GET_FIRST_CHILD)
-        .put(GyroParser.TextContext.class, c -> new ValueNode(c.getText()))
+        .put(GyroParser.TextContext.class, c -> new ValueNode((GyroParser.TextContext) c))
         .put(GyroParser.TwoAddContext.class, c -> new BinaryNode((GyroParser.TwoAddContext) c))
         .put(GyroParser.TwoAndContext.class, c -> new BinaryNode((GyroParser.TwoAndContext) c))
         .put(GyroParser.TwoMulContext.class, c -> new BinaryNode((GyroParser.TwoMulContext) c))
         .put(GyroParser.TwoRelContext.class, c -> new BinaryNode((GyroParser.TwoRelContext) c))
         .put(GyroParser.TwoValueContext.class, c -> new BinaryNode((GyroParser.TwoValueContext) c))
-        .put(GyroParser.TypeContext.class, c -> new ValueNode(c.getText()))
+        .put(GyroParser.TypeContext.class, c -> new ValueNode((GyroParser.TypeContext) c))
         .put(GyroParser.ValueContext.class, GET_FIRST_CHILD)
-        .put(GyroParser.WordContext.class, c -> new ValueNode(c.getText()))
+        .put(GyroParser.WordContext.class, c -> new ValueNode((GyroParser.WordContext) c))
         .build();
 
     public static Node create(ParseTree context) {
@@ -85,7 +86,7 @@ public abstract class Node extends Rule {
             node = nodeConstructor.apply(context);
 
         } else if (TerminalNode.class.isAssignableFrom(contextClass)) {
-            node = new ValueNode(context.getText());
+            node = new ValueNode((TerminalNode) context);
 
         } else {
             throw new Bug(String.format(
@@ -147,6 +148,10 @@ public abstract class Node extends Rule {
         }
 
         return Node.create(tree);
+    }
+
+    public Node(Token start, Token stop) {
+        super(start, stop);
     }
 
     public Node(ParserRuleContext context) {
