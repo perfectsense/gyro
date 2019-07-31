@@ -60,7 +60,7 @@ public class PluginAddCommand extends PluginCommand {
 
         getRepositoryNodes()
             .stream()
-            .map(this::toPluginString)
+            .map(this::toRepositoryUrl)
             .forEach(s -> repositories.add(new RemoteRepository.Builder(s, "default", s).build()));
 
         plugins = plugins

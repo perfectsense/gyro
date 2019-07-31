@@ -112,10 +112,11 @@ public abstract class PluginCommand extends AbstractCommand {
     }
 
     public String toPluginString(DirectiveNode pluginNode) {
-        NodeEvaluator evaluator = new NodeEvaluator();
-        Scope scope = new Scope(null);
+        return evaluateFirstArgument(pluginNode);
+    }
 
-        return (String) evaluator.visit(pluginNode.getArguments().get(0), scope);
+    public String toRepositoryUrl(DirectiveNode repositoryNode) {
+        return evaluateFirstArgument(repositoryNode);
     }
 
     public List<String> load() throws Exception {
@@ -130,6 +131,13 @@ public abstract class PluginCommand extends AbstractCommand {
         try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(backend.openOutput(GyroCore.INIT_FILE)))) {
             writer.write(s);
         }
+    }
+
+    private String evaluateFirstArgument(DirectiveNode node) {
+        NodeEvaluator evaluator = new NodeEvaluator();
+        Scope scope = new Scope(null);
+
+        return (String) evaluator.visit(node.getArguments().get(0), scope);
     }
 
 }
