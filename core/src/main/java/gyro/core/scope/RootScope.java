@@ -5,7 +5,6 @@ import java.io.OutputStream;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -290,30 +289,12 @@ public class RootScope extends FileScope {
             sb.append(String.format("Resources are not allowed in '%s'%n", getFile()));
         }
 
-        List<Resource> resources = findResources();
-        Map<String, List<String>> duplicateResources = new HashMap<>();
-
-        for (Resource resource : resources) {
-            String fullName = resource.primaryKey();
-            duplicateResources.putIfAbsent(fullName, new ArrayList<>());
-            duplicateResources.get(fullName).add(DiffableInternals.getScope(resource).getFileScope().getFile());
-        }
-
-        for (Map.Entry<String, List<String>> entry : duplicateResources.entrySet()) {
-            if (entry.getValue().size() > 1) {
-                sb.append(String.format("%nDuplicate resource %s defined in the following files:%n", entry.getKey()));
-                entry.getValue().stream()
-                    .map(p -> p + "\n")
-                    .forEach(sb::append);
-            }
-        }
-
         if (sb.length() != 0) {
             sb.insert(0, "Invalid configs\n");
             throw new GyroException(sb.toString());
         }
 
-        List<ValidationError> errors = resources.stream()
+        List<ValidationError> errors = findResources().stream()
             .map(r -> DiffableType.getInstance(r.getClass()).validate(r))
             .flatMap(List::stream)
             .collect(Collectors.toList());
