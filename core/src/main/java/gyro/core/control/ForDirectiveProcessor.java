@@ -21,7 +21,9 @@ public class ForDirectiveProcessor extends DirectiveProcessor<Scope> {
 
     @Override
     public void process(Scope scope, DirectiveNode node) {
-        List<Object> variables = evaluateDirectiveArguments(scope, node, 1, 0);
+        validateArguments(node, 1, 0);
+
+        List<String> variables = getArguments(scope, node, String.class);
         List<Node> inArguments = validateOptionArguments(node, "in", 1, 1);
         Node inNode = inArguments.get(0);
         Object in = scope.getRootScope().getEvaluator().visit(inNode, scope);
@@ -42,7 +44,7 @@ public class ForDirectiveProcessor extends DirectiveProcessor<Scope> {
                     int k = i + j;
 
                     values.put(
-                        (String) variables.get(j),
+                        variables.get(j),
                         k < listSize
                             ? list.get(k)
                             : null);
@@ -52,10 +54,10 @@ public class ForDirectiveProcessor extends DirectiveProcessor<Scope> {
             }
 
         } else if (in instanceof Map) {
-            String keyVariable = (String) variables.get(0);
+            String keyVariable = variables.get(0);
 
             if (variables.size() > 1) {
-                String valueVariable = (String) variables.get(1);
+                String valueVariable = variables.get(1);
 
                 for (Map.Entry<?, ?> entry : ((Map<?, ?>) in).entrySet()) {
                     Map<String, Object> values = new LinkedHashMap<>();

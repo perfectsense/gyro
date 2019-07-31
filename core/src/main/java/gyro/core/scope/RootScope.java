@@ -43,9 +43,14 @@ import gyro.core.resource.ExtendsDirectiveProcessor;
 import gyro.core.resource.Resource;
 import gyro.core.resource.ResourcePlugin;
 import gyro.core.resource.TypeDescriptionDirectiveProcessor;
+<<<<<<< HEAD
 import gyro.core.vault.VaultDirectiveProcessor;
 import gyro.core.vault.VaultPlugin;
 import gyro.core.vault.VaultReferenceResolver;
+=======
+import gyro.core.validation.ValidationError;
+import gyro.core.validation.ValidationErrorException;
+>>>>>>> master
 import gyro.core.virtual.VirtualDirectiveProcessor;
 import gyro.core.workflow.CreateDirectiveProcessor;
 import gyro.core.workflow.DeleteDirectiveProcessor;
@@ -154,6 +159,11 @@ public class RootScope extends FileScope {
 
             } catch (IOException error) {
                 throw new Bug(error);
+
+            } catch (Exception error) {
+                throw new GyroException(
+                    String.format("Can't parse @|bold %s|@ in @|bold %s|@!", loadFile, this.backend),
+                    error);
             }
         }
     }
@@ -257,7 +267,7 @@ public class RootScope extends FileScope {
             .orElseGet(() -> {
                 T r = Reflections.newInstance(resourceClass);
                 DiffableInternals.setExternal(r, true);
-                DiffableInternals.setScope(r, new DiffableScope(this));
+                DiffableInternals.setScope(r, new DiffableScope(this, null));
                 idField.setValue(r, id);
                 return r;
             });
@@ -266,14 +276,33 @@ public class RootScope extends FileScope {
     public void evaluate() {
         evaluator.visit(initNode, this);
         evaluator.visitBody(bodyNodes, this);
-        validate();
+
+        for (Resource resource : findResources()) {
+            DiffableType<?> type = DiffableType.getInstance(resource.getClass());
+            DiffableScope scope = DiffableInternals.getScope(resource);
+            Map<String, Node> nodes = scope.getValueNodes();
+
+            for (DiffableField field : type.getFields()) {
+                Node node = nodes.get(field.getName());
+
+                if (node != null) {
+                    field.setValue(resource, evaluator.visit(node, scope));
+                }
+            }
+        }
     }
 
-    private void validate() {
+    public void validate() {
         StringBuilder sb = new StringBuilder();
 
+        if (values().stream().anyMatch(Resource.class::isInstance)) {
+            sb.append(String.format("Resources are not allowed in '%s'%n", getFile()));
+        }
+
+        List<Resource> resources = findResources();
         Map<String, List<String>> duplicateResources = new HashMap<>();
-        for (Resource resource : findResources()) {
+
+        for (Resource resource : resources) {
             String fullName = resource.primaryKey();
             duplicateResources.putIfAbsent(fullName, new ArrayList<>());
             duplicateResources.get(fullName).add(DiffableInternals.getScope(resource).getFileScope().getFile());
@@ -291,6 +320,15 @@ public class RootScope extends FileScope {
         if (sb.length() != 0) {
             sb.insert(0, "Invalid configs\n");
             throw new GyroException(sb.toString());
+        }
+
+        List<ValidationError> errors = resources.stream()
+            .map(r -> DiffableType.getInstance(r.getClass()).validate(r))
+            .flatMap(List::stream)
+            .collect(Collectors.toList());
+
+        if (!errors.isEmpty()) {
+            throw new ValidationErrorException(errors);
         }
     }
 

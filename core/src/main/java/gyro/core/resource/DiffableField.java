@@ -1,29 +1,47 @@
 package gyro.core.resource;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
+import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 import com.google.common.base.CaseFormat;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.psddev.dari.util.ConversionException;
-import com.psddev.dari.util.ObjectUtils;
 import gyro.core.GyroException;
 import gyro.core.Reflections;
 import gyro.core.scope.DiffableScope;
 import gyro.core.scope.Scope;
+import gyro.core.validation.ValidationError;
+import gyro.core.validation.Validator;
+import gyro.core.validation.ValidatorClass;
 
 public class DiffableField {
+
+    private static final LoadingCache<Class<? extends Validator<? extends Annotation>>, Validator<Annotation>> VALIDATORS = CacheBuilder.newBuilder()
+        .weakKeys()
+        .build(new CacheLoader<Class<? extends Validator<? extends Annotation>>, Validator<Annotation>>() {
+
+            @Override
+            @SuppressWarnings("unchecked")
+            public Validator<Annotation> load(Class<? extends Validator<? extends Annotation>> c) {
+                return (Validator) Reflections.newInstance(c);
+            }
+        });
 
     private final String name;
     private final Method getter;
     private final Method setter;
     private final boolean updatable;
-    private final String testValue;
-    private final boolean testValueRandomSuffix;
     private final boolean collection;
     private final Class<?> itemClass;
 
@@ -32,17 +50,6 @@ public class DiffableField {
         this.getter = getter;
         this.setter = setter;
         this.updatable = getter.isAnnotationPresent(Updatable.class);
-
-        Output output = getter.getAnnotation(Output.class);
-
-        if (output != null) {
-            this.testValue = !ObjectUtils.isBlank(output.value()) ? output.value() : name;
-            this.testValueRandomSuffix = output.randomSuffix();
-
-        } else {
-            this.testValue = null;
-            this.testValueRandomSuffix = false;
-        }
 
         if (type instanceof Class) {
             this.collection = false;
@@ -72,14 +79,6 @@ public class DiffableField {
 
     public boolean isUpdatable() {
         return updatable;
-    }
-
-    public String getTestValue() {
-        return testValue;
-    }
-
-    public boolean isTestValueRandomSuffix() {
-        return testValueRandomSuffix;
     }
 
     public boolean isCollection() {
@@ -134,6 +133,47 @@ public class DiffableField {
                     value,
                     type.getTypeName()));
         }
+    }
+
+    public void testUpdate(Diffable diffable) {
+        if (!getter.isAnnotationPresent(Output.class)) {
+            return;
+        }
+
+        Optional<Object> testValue = Optional.ofNullable(getter.getAnnotation(TestValue.class)).map(TestValue::value);
+
+        if (Date.class.isAssignableFrom(itemClass)) {
+            setValue(diffable, testValue.orElseGet(Date::new));
+
+        } else if (Number.class.isAssignableFrom(itemClass)) {
+            setValue(diffable, testValue.orElseGet(() -> Math.random() * Integer.MAX_VALUE));
+
+        } else if (String.class.isAssignableFrom(itemClass)) {
+            setValue(diffable, testValue.orElseGet(() -> String.join(
+                "-",
+                "test",
+                name,
+                UUID.randomUUID().toString().replace("-", "").substring(16))));
+        }
+    }
+
+    public List<ValidationError> validate(Diffable diffable) {
+        Object value = getValue(diffable);
+        List<ValidationError> errors = new ArrayList<>();
+
+        for (Annotation annotation : getter.getAnnotations()) {
+            ValidatorClass validatorClass = annotation.annotationType().getAnnotation(ValidatorClass.class);
+
+            if (validatorClass != null) {
+                Validator<Annotation> validator = VALIDATORS.getUnchecked(validatorClass.value());
+
+                if (!validator.isValid(annotation, value)) {
+                    errors.add(new ValidationError(diffable, name, validator.getMessage(annotation)));
+                }
+            }
+        }
+
+        return errors;
     }
 
 }

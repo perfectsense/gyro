@@ -1,5 +1,6 @@
-package gyro.core.resource;
+package gyro.core.validation;
 
+import java.lang.annotation.Annotation;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -8,7 +9,9 @@ import java.lang.annotation.Target;
 
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface Output {
+@Target(ElementType.ANNOTATION_TYPE)
+public @interface ValidatorClass {
+
+    Class<? extends Validator<? extends Annotation>> value();
 
 }

@@ -17,9 +17,9 @@ import gyro.core.GyroUI;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.DiffableField;
 import gyro.core.resource.DiffableInternals;
-import gyro.core.scope.DiffableScope;
 import gyro.core.resource.DiffableType;
 import gyro.core.resource.Resource;
+import gyro.core.scope.DiffableScope;
 import gyro.core.scope.State;
 
 public class Diff {
@@ -393,7 +393,7 @@ public class Diff {
             } catch (Exception error) {
                 throw new GyroException(
                     String.format(
-                        "Can't @|bold %s| @|bold %s| resource!",
+                        "Can't %s @|bold %s|@ resource!",
                         change.getClass().getSimpleName().toLowerCase(Locale.ENGLISH),
                         diffable),
                     error);
