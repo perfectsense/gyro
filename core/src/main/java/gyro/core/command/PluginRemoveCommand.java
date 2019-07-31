@@ -1,5 +1,6 @@
 package gyro.core.command;
 
+import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.lang.ast.block.DirectiveNode;
 import io.airlift.airline.Command;
@@ -40,6 +41,11 @@ public class PluginRemoveCommand extends PluginCommand {
         }
 
         save(sb.toString());
+
+        removeNodes.stream()
+            .map(this::toPluginString)
+            .map(p -> String.format("@|bold %s|@ has been removed.%n", p))
+            .forEach(GyroCore.ui()::write);
     }
 
 }

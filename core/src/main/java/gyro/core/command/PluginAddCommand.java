@@ -1,5 +1,6 @@
 package gyro.core.command;
 
+import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import io.airlift.airline.Command;
 
@@ -28,6 +29,10 @@ public class PluginAddCommand extends PluginCommand {
 
         plugins.forEach(p -> sb.append(String.format("%s '%s'%n", "@plugin:", p)));
         save(sb.toString());
+
+        plugins.stream()
+            .map(p -> String.format("@|bold %s|@ has been added.%n", p))
+            .forEach(GyroCore.ui()::write);
     }
 
 }

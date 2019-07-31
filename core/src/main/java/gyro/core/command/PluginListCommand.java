@@ -12,7 +12,7 @@ public class PluginListCommand extends PluginCommand {
         getPluginNodes()
             .stream()
             .map(this::toPluginString)
-            .map(s -> s + "\n")
+            .map(p -> String.format("@|bold %s|@%n", p))
             .forEach(GyroCore.ui()::write);
     }
 
