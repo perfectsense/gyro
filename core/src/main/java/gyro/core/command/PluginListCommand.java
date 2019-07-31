@@ -8,7 +8,7 @@ import io.airlift.airline.Command;
 public class PluginListCommand extends PluginCommand {
 
     @Override
-    protected void executeSubCommand() throws Exception {
+    protected void executeSubCommand() {
         getPluginNodes()
             .stream()
             .map(this::toPluginString)
