@@ -18,6 +18,8 @@ import gyro.core.FileBackend;
 import gyro.core.GyroException;
 import gyro.core.GyroInputStream;
 import gyro.core.GyroOutputStream;
+import gyro.core.LogDirectiveProcessor;
+import gyro.core.PrintDirectiveProcessor;
 import gyro.core.Reflections;
 import gyro.core.auth.CredentialsDirectiveProcessor;
 import gyro.core.auth.CredentialsPlugin;
@@ -124,7 +126,9 @@ public class RootScope extends FileScope {
             new UpdateDirectiveProcessor(),
             new UsesCredentialsDirectiveProcessor(),
             new VirtualDirectiveProcessor(),
-            new WorkflowDirectiveProcessor())
+            new WorkflowDirectiveProcessor(),
+            new PrintDirectiveProcessor(),
+            new LogDirectiveProcessor())
             .forEach(p -> getSettings(DirectiveSettings.class).getProcessors().put(p.getName(), p));
 
         Stream.of(
