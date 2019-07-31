@@ -22,7 +22,7 @@ public class PluginCommandGroup implements GyroCommandGroup {
 
     @Override
     public Class<?> getDefaultCommand() {
-        return PluginListCommand.class;
+        return PluginHelp.class;
     }
 
 }
