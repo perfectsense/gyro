@@ -31,6 +31,8 @@ public abstract class PluginCommand extends AbstractCommand {
 
     private List<DirectiveNode> pluginNodes;
 
+    private List<DirectiveNode> repositoryNodes;
+
     public List<String> getPlugins() {
         if (plugins == null) {
             plugins = Collections.emptyList();
@@ -41,6 +43,10 @@ public abstract class PluginCommand extends AbstractCommand {
 
     public List<DirectiveNode> getPluginNodes() {
         return pluginNodes;
+    }
+
+    public List<DirectiveNode> getRepositoryNodes() {
+        return repositoryNodes;
     }
 
     @Override
@@ -59,12 +65,19 @@ public abstract class PluginCommand extends AbstractCommand {
 
         FileBackend backend = new LocalFileBackend(GyroCore.getRootDirectory());
         try (GyroInputStream input = new GyroInputStream(backend, GyroCore.INIT_FILE)) {
-            pluginNodes = ((FileNode) Node.parse(input, GyroCore.INIT_FILE, GyroParser::file))
+            List<DirectiveNode> nodes = ((FileNode) Node.parse(input, GyroCore.INIT_FILE, GyroParser::file))
                 .getBody()
                 .stream()
                 .filter(DirectiveNode.class::isInstance)
                 .map(DirectiveNode.class::cast)
+                .collect(Collectors.toList());
+
+            pluginNodes = nodes.stream()
                 .filter(n -> "plugin".equals(n.getName()))
+                .collect(Collectors.toList());
+
+            repositoryNodes = nodes.stream()
+                .filter(n -> "repository".equals(n.getName()))
                 .collect(Collectors.toList());
 
         } catch (IOException error) {
