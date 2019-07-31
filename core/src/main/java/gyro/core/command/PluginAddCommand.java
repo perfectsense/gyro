@@ -3,7 +3,6 @@ package gyro.core.command;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.repo.RepositorySettings;
-import gyro.core.scope.Scope;
 import io.airlift.airline.Command;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;
