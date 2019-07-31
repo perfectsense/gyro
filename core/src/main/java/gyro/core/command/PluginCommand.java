@@ -13,47 +13,43 @@ import gyro.lang.ast.block.FileNode;
 import gyro.parser.antlr4.GyroParser;
 import gyro.util.Bug;
 import io.airlift.airline.Arguments;
-import io.airlift.airline.Command;
-import io.airlift.airline.Option;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Command(name = "plugin", description = "Add or remove Gyro plugins.")
-public class PluginCommand extends AbstractCommand {
+public abstract class PluginCommand extends AbstractCommand {
 
-    @Arguments(description = "add|remove plugins. A list of plugins specified in the format of <group>:<artifact>:<version>. "
-        + "For example: add gyro:gyro-aws-provider:0.1-SNAPSHOT")
-    private List<String> arguments;
+    @Arguments(description = "A list of plugins specified in the format of <group>:<artifact>:<version>. "
+        + "For example: gyro:gyro-aws-provider:0.1-SNAPSHOT")
+    private List<String> plugins;
+
+    private List<DirectiveNode> pluginNodes;
+
+    public List<String> getPlugins() {
+        if (plugins == null) {
+            plugins = Collections.emptyList();
+        }
+
+        return plugins;
+    }
+
+    public List<DirectiveNode> getPluginNodes() {
+        return pluginNodes;
+    }
 
     @Override
-    protected void doExecute() throws Exception {
+    protected final void doExecute() throws Exception {
         if (GyroCore.getRootDirectory() == null) {
             throw new GyroException("Can't find gyro root directory!");
         }
 
-        if (arguments == null || arguments.isEmpty()) {
-            throw new GyroException("Expected 'gyro plugin add|remove plugins'!");
-        }
-
-        String command = arguments.get(0);
-        if (!"add".equalsIgnoreCase(command) && !"remove".equalsIgnoreCase(command)) {
-            throw new GyroException("Unknown command. Valid commands are: add and remove");
-        }
-
-        List<String> plugins = new ArrayList<>(arguments.subList(1, arguments.size()));
-        if (plugins.isEmpty()) {
-            throw new GyroException("List of plugins is required!");
-        }
-
-        for (String plugin : plugins) {
+        for (String plugin : getPlugins()) {
             if (plugin.split(":").length != 3) {
                 throw new GyroException(String.format(
                     "@|bold %s|@ isn't properly formatted!",
@@ -62,7 +58,6 @@ public class PluginCommand extends AbstractCommand {
         }
 
         FileBackend backend = new LocalFileBackend(GyroCore.getRootDirectory());
-        List<DirectiveNode> pluginNodes;
         try (GyroInputStream input = new GyroInputStream(backend, GyroCore.INIT_FILE)) {
             pluginNodes = ((FileNode) Node.parse(input, GyroCore.INIT_FILE, GyroParser::file))
                 .getBody()
@@ -76,53 +71,51 @@ public class PluginCommand extends AbstractCommand {
             throw new Bug(error);
         }
 
+        executeSubCommand();
+    }
+
+    protected abstract void executeSubCommand() throws Exception;
+
+    public boolean pluginExist(String plugin) {
         NodeEvaluator evaluator = new NodeEvaluator();
         Scope scope = new Scope(null);
 
-        List<DirectiveNode> removeNodes = new ArrayList<>();
-        Iterator<String> iter = plugins.iterator();
-        while (iter.hasNext()) {
-            String plugin = iter.next();
-            for (DirectiveNode pluginNode : pluginNodes) {
-                String existPlugin = (String) evaluator.visit(pluginNode.getArguments().get(0), scope);
-                if (plugin.equals(existPlugin)) {
-                    removeNodes.add(pluginNode);
-                    iter.remove();
-                    break;
-                }
+        for (DirectiveNode pluginNode : pluginNodes) {
+            String existPlugin = (String) evaluator.visit(pluginNode.getArguments().get(0), scope);
+            if (plugin.equals(existPlugin)) {
+                return true;
             }
         }
 
-        StringBuilder sb = new StringBuilder();
+        return false;
+    }
+
+    public boolean pluginNotExist(String plugin) {
+        return !pluginExist(plugin);
+    }
+
+    public boolean pluginNodeExist(DirectiveNode pluginNode) {
+        return getPlugins().contains(toPluginString(pluginNode));
+    }
+
+    public String toPluginString(DirectiveNode pluginNode) {
+        NodeEvaluator evaluator = new NodeEvaluator();
+        Scope scope = new Scope(null);
+
+        return (String) evaluator.visit(pluginNode.getArguments().get(0), scope);
+    }
+
+    public List<String> load() throws Exception {
+        FileBackend backend = new LocalFileBackend(GyroCore.getRootDirectory());
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(backend.openInput(GyroCore.INIT_FILE)))) {
-            String line = reader.readLine();
-            int lineNumber = 0;
-            while (line != null) {
-                boolean skipLine = false;
-                if ("remove".equalsIgnoreCase(command)) {
-                    for (DirectiveNode pluginNode : removeNodes) {
-                        if (lineNumber >= pluginNode.getStartLine() && lineNumber <= pluginNode.getStopLine()) {
-                            skipLine = true;
-                        }
-                    }
-                }
-
-                if (!skipLine) {
-                    sb.append(line);
-                    sb.append("\n");
-                }
-
-                line = reader.readLine();
-                lineNumber++;
-            }
+            return reader.lines().collect(Collectors.toList());
         }
+    }
 
-        if ("add".equalsIgnoreCase(command)) {
-            plugins.forEach(p -> sb.append(String.format("%s '%s'%n", "@plugin:", p)));
-        }
-
+    public void save(String s) throws Exception {
+        FileBackend backend = new LocalFileBackend(GyroCore.getRootDirectory());
         try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(backend.openOutput(GyroCore.INIT_FILE)))) {
-            writer.write(sb.toString());
+            writer.write(s);
         }
     }
 
