@@ -325,6 +325,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Object visitResource(ResourceNode node, Scope scope) {
         DiffableScope bodyScope = new DiffableScope(scope, node);
 
@@ -337,7 +338,6 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         String fullName = type + "::" + name;
         RootScope rootScope = scope.getRootScope();
 
-        @SuppressWarnings("unchecked")
         Collection<String> pendingConfiguredFields = ImmutableSet.copyOf(
             Optional.ofNullable((Collection<String>) bodyScope.get("_configured-fields"))
                 .orElseGet(bodyScope::getAddedKeys));
@@ -375,10 +375,22 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             Class<?> c = (Class<?>) value;
 
             if (Resource.class.isAssignableFrom(c)) {
+                FileScope file = scope.getFileScope();
+
+                if (file.containsKey(fullName)) {
+                    throw new GyroException(
+                        node,
+                        String.format("@|bold %s %s|@ has been defined already!", type, name),
+                        new GyroException(
+                            file.getKeyNodes().get(fullName),
+                            "Defined previously:"));
+                }
+
                 Resource resource = DiffableType.getInstance((Class<? extends Resource>) c).newDiffable(null, name, bodyScope);
 
                 resource.initialize(bodyScope.isExtended() ? new LinkedHashMap<>(bodyScope) : bodyScope);
-                scope.getFileScope().put(fullName, resource);
+                file.put(fullName, resource);
+                file.getKeyNodes().put(fullName, node);
 
             } else {
                 throw new GyroException(String.format(

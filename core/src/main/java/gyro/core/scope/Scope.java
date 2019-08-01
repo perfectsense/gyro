@@ -1,24 +1,23 @@
 package gyro.core.scope;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
+import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import gyro.core.Reflections;
 import gyro.lang.ast.Node;
+import gyro.util.MapWrapper;
 
-public class Scope implements Map<String, Object> {
+public class Scope extends MapWrapper<String, Object> {
 
     private final Scope parent;
-    private final Map<String, Object> values;
     private final Map<Object, String> names = new IdentityHashMap<>();
     private final Map<String, Node> valueNodes = new HashMap<>();
     private final Map<String, Node> keyNodes = new HashMap<>();
@@ -35,11 +34,18 @@ public class Scope implements Map<String, Object> {
             }
         });
 
+    /**
+     * @param parent Nullable.
+     * @param values Nullable.
+     */
     public Scope(Scope parent, Map<String, Object> values) {
+        super(values != null ? values : new LinkedHashMap<>());
         this.parent = parent;
-        this.values = values != null ? values : new LinkedHashMap<>();
     }
 
+    /**
+     * @param parent Nullable.
+     */
     public Scope(Scope parent) {
         this(parent, null);
     }
@@ -84,7 +90,7 @@ public class Scope implements Map<String, Object> {
         }
 
         list.add(value);
-        values.put(key, list);
+        put(key, list);
         names.put(value, name);
     }
 
@@ -106,82 +112,7 @@ public class Scope implements Map<String, Object> {
 
     @SuppressWarnings("unchecked")
     public <S extends Settings> S getSettings(Class<S> settingsClass) {
-        return (S) settingsByClass.getUnchecked(settingsClass);
-    }
-
-    @Override
-    public void clear() {
-        values.clear();
-    }
-
-    @Override
-    public boolean containsKey(Object key) {
-        return values.containsKey(key);
-    }
-
-    @Override
-    public boolean containsValue(Object value) {
-        return values.containsValue(value);
-    }
-
-    @Override
-    public Set<Entry<String, Object>> entrySet() {
-        return values.entrySet();
-    }
-
-    @Override
-    public Set<String> keySet() {
-        return values.keySet();
-    }
-
-    @Override
-    public Object get(Object key) {
-        return values.get(key);
-    }
-
-    @Override
-    public boolean isEmpty() {
-        return values.isEmpty();
-    }
-
-    @Override
-    public Object put(String key, Object value) {
-        return values.put(key, value);
-    }
-
-    @Override
-    public void putAll(Map<? extends String, ?> map) {
-        values.putAll(map);
-    }
-
-    @Override
-    public Object remove(Object key) {
-        return values.remove(key);
-    }
-
-    @Override
-    public int size() {
-        return values.size();
-    }
-
-    @Override
-    public Collection<Object> values() {
-        return values.values();
-    }
-
-    @Override
-    public int hashCode() {
-        return values.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        return this == other || (other instanceof Map && values.equals(other));
-    }
-
-    @Override
-    public String toString() {
-        return values.toString();
+        return (S) settingsByClass.getUnchecked(Preconditions.checkNotNull(settingsClass));
     }
 
 }
