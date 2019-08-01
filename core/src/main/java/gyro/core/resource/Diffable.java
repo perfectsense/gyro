@@ -48,7 +48,7 @@ public abstract class Diffable {
     }
 
     public <T extends Resource> T findById(Class<T> resourceClass, Object id) {
-        return scope.getRootScope().findResourceById(resourceClass, id);
+        return id != null ? scope.getRootScope().findResourceById(resourceClass, id) : null;
     }
 
     public GyroInputStream openInput(String file) {
