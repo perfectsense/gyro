@@ -23,7 +23,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public abstract class PluginCommand extends AbstractCommand {
+public abstract class PluginCommand implements GyroCommand {
 
     @Arguments(description = "A list of plugins specified in the format of <group>:<artifact>:<version>. "
         + "For example: gyro:gyro-aws-provider:0.1-SNAPSHOT")
@@ -50,7 +50,7 @@ public abstract class PluginCommand extends AbstractCommand {
     }
 
     @Override
-    protected final void doExecute() throws Exception {
+    public final void execute() throws Exception {
         if (GyroCore.getRootDirectory() == null) {
             throw new GyroException("Can't find gyro root directory!");
         }
