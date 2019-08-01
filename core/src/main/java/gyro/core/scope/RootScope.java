@@ -44,6 +44,7 @@ import gyro.core.resource.ExtendsDirectiveProcessor;
 import gyro.core.resource.Resource;
 import gyro.core.resource.ResourcePlugin;
 import gyro.core.resource.TypeDescriptionDirectiveProcessor;
+import gyro.core.scope.converter.ResourceToIdObject;
 import gyro.core.validation.ValidationError;
 import gyro.core.validation.ValidationErrorException;
 import gyro.core.virtual.VirtualDirectiveProcessor;
@@ -83,14 +84,7 @@ public class RootScope extends FileScope {
                 returnType,
                 findResourceById((Class<? extends Resource>) returnType, id)));
 
-        converter.putInheritableFunction(
-            Resource.class,
-            Object.class,
-            (c, returnType, resource) -> c.convert(
-                returnType,
-                DiffableType.getInstance(resource.getClass())
-                    .getIdField()
-                    .getValue(resource)));
+        converter.putInheritableFunction(Resource.class, Object.class, new ResourceToIdObject());
 
         this.evaluator = new NodeEvaluator();
         this.backend = backend;
