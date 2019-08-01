@@ -18,6 +18,7 @@ import org.eclipse.aether.repository.LocalRepository;
 import org.eclipse.aether.repository.LocalRepositoryManager;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.resolution.DependencyRequest;
+import org.eclipse.aether.resolution.DependencyResolutionException;
 import org.eclipse.aether.spi.connector.RepositoryConnectorFactory;
 import org.eclipse.aether.spi.connector.transport.TransporterFactory;
 import org.eclipse.aether.transport.file.FileTransporterFactory;
@@ -41,6 +42,17 @@ public class PluginAddCommand extends PluginCommand {
         if (getPlugins().isEmpty()) {
             throw new GyroException("List of plugins is required!");
         }
+
+        GyroCore.ui().write("\n");
+
+        Set<String> installedPlugins = getPlugins()
+            .stream()
+            .filter(f -> !pluginNotExist(f))
+            .collect(Collectors.toSet());
+
+        installedPlugins.stream()
+            .map(p -> String.format("@|bold %s|@ is already installed.%n", p))
+            .forEach(GyroCore.ui()::write);
 
         Set<String> plugins = getPlugins()
             .stream()
@@ -103,10 +115,17 @@ public class PluginAddCommand extends PluginCommand {
             CollectRequest collectRequest = new CollectRequest(dependency, repositories);
             DependencyRequest request = new DependencyRequest(collectRequest, filter);
             system.resolveDependencies(session, request);
-            return true;
 
-        } catch (Exception e) {
-            GyroCore.ui().write(String.format("Unable to add the @|bold %s|@ plugin!%n", plugin));
+            return true;
+        } catch (DependencyResolutionException e) {
+            GyroCore.ui().write("@|bold %s|@ was not installed for the following reason(s):\n", plugin);
+
+            for (Exception ex : e.getResult().getCollectExceptions()) {
+                GyroCore.ui().write("   @|red %s|@\n", ex.getMessage());
+            }
+
+            GyroCore.ui().write("\n");
+
             return false;
         }
     }
