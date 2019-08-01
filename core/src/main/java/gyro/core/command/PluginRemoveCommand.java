@@ -8,7 +8,7 @@ import io.airlift.airline.Command;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Command(name = "remove", description = "Remove Gyro plugins.")
+@Command(name = "remove", description = "Remove one or more plugins.")
 public class PluginRemoveCommand extends PluginCommand {
 
     @Override

@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Command(name = "add", description = "Add Gyro plugins.")
+@Command(name = "add", description = "Add one or more plugins.")
 public class PluginAddCommand extends PluginCommand {
 
     private List<RemoteRepository> repositories;
