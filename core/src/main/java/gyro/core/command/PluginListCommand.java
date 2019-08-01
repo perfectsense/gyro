@@ -9,6 +9,8 @@ public class PluginListCommand extends PluginCommand {
 
     @Override
     protected void executeSubCommand() {
+        GyroCore.ui().write("\n");
+
         getPluginNodes()
             .stream()
             .map(this::toPluginString)
