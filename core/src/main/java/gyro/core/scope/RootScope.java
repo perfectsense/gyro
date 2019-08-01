@@ -44,6 +44,7 @@ import gyro.core.resource.ExtendsDirectiveProcessor;
 import gyro.core.resource.Resource;
 import gyro.core.resource.ResourcePlugin;
 import gyro.core.resource.TypeDescriptionDirectiveProcessor;
+import gyro.core.scope.converter.IdObjectToResource;
 import gyro.core.scope.converter.ResourceToIdObject;
 import gyro.core.validation.ValidationError;
 import gyro.core.validation.ValidationErrorException;
@@ -68,7 +69,6 @@ public class RootScope extends FileScope {
     private final Node initNode;
     private final List<Node> bodyNodes = new ArrayList<>();
 
-    @SuppressWarnings("unchecked")
     public RootScope(String file, FileBackend backend, RootScope current, Set<String> loadFiles) {
         super(null, file);
 
@@ -76,14 +76,7 @@ public class RootScope extends FileScope {
 
         converter.setThrowError(true);
         converter.putAllStandardFunctions();
-
-        converter.putInheritableFunction(
-            Object.class,
-            Resource.class,
-            (c, returnType, id) -> c.convert(
-                returnType,
-                findResourceById((Class<? extends Resource>) returnType, id)));
-
+        converter.putInheritableFunction(Object.class, Resource.class, new IdObjectToResource(this));
         converter.putInheritableFunction(Resource.class, Object.class, new ResourceToIdObject());
 
         this.evaluator = new NodeEvaluator();
