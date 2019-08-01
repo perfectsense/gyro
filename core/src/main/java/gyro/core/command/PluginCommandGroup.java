@@ -12,7 +12,7 @@ public class PluginCommandGroup implements GyroCommandGroup {
 
     @Override
     public String getDescription() {
-        return "Manage Gyro plugins.";
+        return "Add, remove, or list plugins.";
     }
 
     @Override

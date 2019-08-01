@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 
 public abstract class PluginCommand implements GyroCommand {
 
-    @Arguments(description = "A list of plugins specified in the format of <group>:<artifact>:<version>. "
+    @Arguments(description = "A space separated list of plugins specified in the format of <group>:<artifact>:<version>. "
         + "For example: gyro:gyro-aws-provider:0.1-SNAPSHOT")
     private List<String> plugins;
 
