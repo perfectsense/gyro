@@ -189,6 +189,8 @@ public class Gyro {
         } else if (command instanceof AbstractCommand) {
             ((AbstractCommand) command).setInit(init);
             ((AbstractCommand) command).execute();
+        } else if (command instanceof GyroCommand) {
+            ((GyroCommand) command).execute();
 
         } else {
             throw new IllegalStateException(String.format(
