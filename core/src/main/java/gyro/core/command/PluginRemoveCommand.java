@@ -1,9 +1,10 @@
 package gyro.core.command;
 
 import gyro.core.GyroCore;
-import gyro.core.GyroException;
 import gyro.lang.ast.block.DirectiveNode;
 import io.airlift.airline.Command;
+import io.airlift.airline.Help;
+import io.airlift.airline.model.MetadataLoader;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -14,7 +15,8 @@ public class PluginRemoveCommand extends PluginCommand {
     @Override
     protected void executeSubCommand() throws Exception {
         if (getPlugins().isEmpty()) {
-            throw new GyroException("List of plugins is required!");
+            Help.help(MetadataLoader.loadCommand(PluginRemoveCommand.class));
+            return;
         }
 
         List<DirectiveNode> removeNodes = getPluginNodes()

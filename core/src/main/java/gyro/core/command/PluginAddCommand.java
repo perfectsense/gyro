@@ -1,9 +1,10 @@
 package gyro.core.command;
 
 import gyro.core.GyroCore;
-import gyro.core.GyroException;
 import gyro.core.repo.RepositorySettings;
 import io.airlift.airline.Command;
+import io.airlift.airline.Help;
+import io.airlift.airline.model.MetadataLoader;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
@@ -40,7 +41,8 @@ public class PluginAddCommand extends PluginCommand {
     @Override
     protected void executeSubCommand() throws Exception {
         if (getPlugins().isEmpty()) {
-            throw new GyroException("List of plugins is required!");
+            Help.help(MetadataLoader.loadCommand(PluginAddCommand.class));
+            return;
         }
 
         GyroCore.ui().write("\n");
