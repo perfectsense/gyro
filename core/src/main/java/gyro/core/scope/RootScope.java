@@ -249,6 +249,10 @@ public class RootScope extends FileScope {
     }
 
     public <T extends Resource> T findResourceById(Class<T> resourceClass, Object id) {
+        if (id == null) {
+            return null;
+        }
+
         DiffableField idField = DiffableType.getInstance(resourceClass).getIdField();
 
         return findResourcesByClass(resourceClass)
