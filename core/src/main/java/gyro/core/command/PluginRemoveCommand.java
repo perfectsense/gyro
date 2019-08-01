@@ -22,6 +22,11 @@ public class PluginRemoveCommand extends PluginCommand {
             .filter(this::pluginNodeExist)
             .collect(Collectors.toList());
 
+        List<DirectiveNode> invalidNodes = getPluginNodes()
+            .stream()
+            .filter(f -> !pluginNodeExist(f))
+            .collect(Collectors.toList());
+
         StringBuilder sb = new StringBuilder();
         int lineNumber = 0;
         for (String line : load()) {
@@ -41,6 +46,13 @@ public class PluginRemoveCommand extends PluginCommand {
         }
 
         save(sb.toString());
+
+        GyroCore.ui().write("\n");
+
+        invalidNodes.stream()
+            .map(this::toPluginString)
+            .map(p -> String.format("@|bold %s|@ was not installed.%n", p))
+            .forEach(GyroCore.ui()::write);
 
         removeNodes.stream()
             .map(this::toPluginString)
