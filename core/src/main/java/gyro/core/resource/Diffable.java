@@ -3,6 +3,7 @@ package gyro.core.resource;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -85,57 +86,33 @@ public abstract class Diffable {
         }
 
         DiffableType<? extends Diffable> type = DiffableType.getInstance(getClass());
-        Map<String, Object> undefinedValues = new HashMap<>(values);
+
+        Set<String> invalidFieldNames = values.keySet()
+            .stream()
+            .filter(n -> !n.startsWith("_"))
+            .collect(Collectors.toCollection(LinkedHashSet::new));
 
         for (DiffableField field : type.getFields()) {
             String fieldName = field.getName();
 
-            if (!values.containsKey(fieldName)) {
-                continue;
-            }
-
-            Object value = values.get(fieldName);
-
-            if (field.shouldBeDiffed()) {
-                @SuppressWarnings("unchecked")
-                Class<? extends Diffable> diffableClass = (Class<? extends Diffable>) field.getItemClass();
-
-                if (value instanceof Collection) {
-                    value = ((Collection<?>) value).stream()
-                            .map(v -> toDiffable(fieldName, diffableClass, v))
-                            .collect(Collectors.toList());
-
-                } else if (value instanceof DiffableScope) {
-                    value = toDiffable(fieldName, diffableClass, value);
-                }
-            }
-
-            field.setValue(this, value);
-            undefinedValues.remove(fieldName);
-        }
-
-        for (Map.Entry<String, Object> entry : undefinedValues.entrySet()) {
-            String key = entry.getKey();
-
-            if (!key.startsWith("_")) {
-                throw new GyroException(
-                    values instanceof Scope ? ((Scope) values).getKeyNodes().get(key) : null,
-                    String.format("@|bold %s|@ isn't a valid field in @|bold %s|@ type!", key, type.getName()));
+            if (values.containsKey(fieldName)) {
+                field.setValue(this, values.get(fieldName));
+                invalidFieldNames.remove(fieldName);
             }
         }
-    }
 
-    private Object toDiffable(String fieldName, Class<? extends Diffable> diffableClass, Object object) {
-        if (!(object instanceof DiffableScope)) {
-            return object;
+        if (!invalidFieldNames.isEmpty()) {
+            throw new GyroException(
+                values instanceof Scope
+                    ? ((Scope) values).getKeyNodes().get(invalidFieldNames.iterator().next())
+                    : null,
+                String.format(
+                    "Following fields aren't valid in @|bold %s|@ type! @|bold %s|@",
+                    type.getName(),
+                    String.join(", ", invalidFieldNames)));
         }
 
-        DiffableScope scope = (DiffableScope) object;
-        Diffable diffable = DiffableType.getInstance(diffableClass).newDiffable(this, fieldName, scope);
-
-        diffable.initialize(scope);
-
-        return diffable;
+        DiffableInternals.update(this, false);
     }
 
     protected <T extends Diffable> T newSubresource(Class<T> diffableClass) {
