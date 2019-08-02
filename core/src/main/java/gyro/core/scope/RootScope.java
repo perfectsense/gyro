@@ -37,6 +37,7 @@ import gyro.core.reference.ReferencePlugin;
 import gyro.core.reference.ReferenceSettings;
 import gyro.core.repo.RepositoryDirectiveProcessor;
 import gyro.core.resource.DescriptionDirectiveProcessor;
+import gyro.core.resource.Diffable;
 import gyro.core.resource.DiffableField;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
@@ -44,6 +45,7 @@ import gyro.core.resource.ExtendsDirectiveProcessor;
 import gyro.core.resource.Resource;
 import gyro.core.resource.ResourcePlugin;
 import gyro.core.resource.TypeDescriptionDirectiveProcessor;
+import gyro.core.scope.converter.DiffableScopeToDiffable;
 import gyro.core.scope.converter.IdObjectToResource;
 import gyro.core.scope.converter.ResourceToIdObject;
 import gyro.core.validation.ValidationError;
@@ -76,6 +78,7 @@ public class RootScope extends FileScope {
 
         converter.setThrowError(true);
         converter.putAllStandardFunctions();
+        converter.putInheritableFunction(DiffableScope.class, Diffable.class, new DiffableScopeToDiffable());
         converter.putInheritableFunction(Object.class, Resource.class, new IdObjectToResource(this));
         converter.putInheritableFunction(Resource.class, Object.class, new ResourceToIdObject());
 
