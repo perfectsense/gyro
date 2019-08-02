@@ -5,7 +5,6 @@ import java.io.OutputStream;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -18,6 +17,8 @@ import gyro.core.FileBackend;
 import gyro.core.GyroException;
 import gyro.core.GyroInputStream;
 import gyro.core.GyroOutputStream;
+import gyro.core.LogDirectiveProcessor;
+import gyro.core.PrintDirectiveProcessor;
 import gyro.core.Reflections;
 import gyro.core.auth.CredentialsDirectiveProcessor;
 import gyro.core.auth.CredentialsPlugin;
@@ -45,6 +46,8 @@ import gyro.core.resource.ExtendsDirectiveProcessor;
 import gyro.core.resource.Resource;
 import gyro.core.resource.ResourcePlugin;
 import gyro.core.resource.TypeDescriptionDirectiveProcessor;
+import gyro.core.validation.ValidationError;
+import gyro.core.validation.ValidationErrorException;
 import gyro.core.virtual.VirtualDirectiveProcessor;
 import gyro.core.workflow.CreateDirectiveProcessor;
 import gyro.core.workflow.DeleteDirectiveProcessor;
@@ -126,7 +129,9 @@ public class RootScope extends FileScope {
             new UsesCredentialsDirectiveProcessor(),
             new VirtualDirectiveProcessor(),
             new FileBackendDirectiveProcessor(),
-            new WorkflowDirectiveProcessor())
+            new WorkflowDirectiveProcessor(),
+            new PrintDirectiveProcessor(),
+            new LogDirectiveProcessor())
             .forEach(p -> getSettings(DirectiveSettings.class).getProcessors().put(p.getName(), p));
 
         Stream.of(
@@ -252,6 +257,10 @@ public class RootScope extends FileScope {
     }
 
     public <T extends Resource> T findResourceById(Class<T> resourceClass, Object id) {
+        if (id == null) {
+            return null;
+        }
+
         DiffableField idField = DiffableType.getInstance(resourceClass).getIdField();
 
         return findResourcesByClass(resourceClass)
@@ -260,7 +269,7 @@ public class RootScope extends FileScope {
             .orElseGet(() -> {
                 T r = Reflections.newInstance(resourceClass);
                 DiffableInternals.setExternal(r, true);
-                DiffableInternals.setScope(r, new DiffableScope(this));
+                DiffableInternals.setScope(r, new DiffableScope(this, null));
                 idField.setValue(r, id);
                 return r;
             });
@@ -269,35 +278,41 @@ public class RootScope extends FileScope {
     public void evaluate() {
         evaluator.visit(initNode, this);
         evaluator.visitBody(bodyNodes, this);
-        validate();
+
+        for (Resource resource : findResources()) {
+            DiffableType<?> type = DiffableType.getInstance(resource.getClass());
+            DiffableScope scope = DiffableInternals.getScope(resource);
+            Map<String, Node> nodes = scope.getValueNodes();
+
+            for (DiffableField field : type.getFields()) {
+                Node node = nodes.get(field.getName());
+
+                if (node != null) {
+                    field.setValue(resource, evaluator.visit(node, scope));
+                }
+            }
+        }
     }
 
-    private void validate() {
+    public void validate() {
         StringBuilder sb = new StringBuilder();
 
         if (values().stream().anyMatch(Resource.class::isInstance)) {
             sb.append(String.format("Resources are not allowed in '%s'%n", getFile()));
         }
 
-        Map<String, List<String>> duplicateResources = new HashMap<>();
-        for (Resource resource : findResources()) {
-            String fullName = resource.primaryKey();
-            duplicateResources.putIfAbsent(fullName, new ArrayList<>());
-            duplicateResources.get(fullName).add(DiffableInternals.getScope(resource).getFileScope().getFile());
-        }
-
-        for (Map.Entry<String, List<String>> entry : duplicateResources.entrySet()) {
-            if (entry.getValue().size() > 1) {
-                sb.append(String.format("%nDuplicate resource %s defined in the following files:%n", entry.getKey()));
-                entry.getValue().stream()
-                    .map(p -> p + "\n")
-                    .forEach(sb::append);
-            }
-        }
-
         if (sb.length() != 0) {
             sb.insert(0, "Invalid configs\n");
             throw new GyroException(sb.toString());
+        }
+
+        List<ValidationError> errors = findResources().stream()
+            .map(r -> DiffableType.getInstance(r.getClass()).validate(r))
+            .flatMap(List::stream)
+            .collect(Collectors.toList());
+
+        if (!errors.isEmpty()) {
+            throw new ValidationErrorException(errors);
         }
     }
 

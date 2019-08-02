@@ -21,7 +21,7 @@ public class FilterEvaluator implements FilterVisitor<FilterContext, Boolean> {
     @Override
     public Boolean visitComparison(ComparisonFilter filter, FilterContext context) {
         String operator = filter.getOperator();
-        Object x = NodeEvaluator.getValue(context.getValue(), filter.getKey());
+        Object x = NodeEvaluator.getValue(null, context.getValue(), filter.getKey());
         Scope scope = context.getScope();
         Object y = scope.getRootScope().getEvaluator().visit(filter.getValue(), scope);
 

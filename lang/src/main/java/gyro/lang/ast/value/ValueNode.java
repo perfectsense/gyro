@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.Node;
 import gyro.parser.antlr4.GyroParser;
+import org.antlr.v4.runtime.tree.TerminalNode;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 
@@ -33,6 +34,30 @@ public class ValueNode extends Node {
         super(Preconditions.checkNotNull(context));
 
         this.value = NumberUtils.createNumber(context.getText());
+    }
+
+    public ValueNode(GyroParser.TextContext context) {
+        super(Preconditions.checkNotNull(context));
+
+        this.value = context.getText();
+    }
+
+    public ValueNode(GyroParser.TypeContext context) {
+        super(Preconditions.checkNotNull(context));
+
+        this.value = context.getText();
+    }
+
+    public ValueNode(GyroParser.WordContext context) {
+        super(Preconditions.checkNotNull(context));
+
+        this.value = context.getText();
+    }
+
+    public ValueNode(TerminalNode context) {
+        super(context.getSymbol(), context.getSymbol());
+
+        this.value = context.getText();
     }
 
     public Object getValue() {

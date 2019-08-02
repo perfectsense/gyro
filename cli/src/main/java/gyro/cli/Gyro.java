@@ -6,11 +6,13 @@ import gyro.core.command.AbstractCommand;
 import gyro.core.command.GyroCommand;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
+import gyro.core.command.GyroCommandGroup;
 import gyro.core.scope.Defer;
 import gyro.core.scope.RootScope;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import gyro.core.scope.Scope;
+import gyro.core.validation.ValidationErrorException;
 import gyro.lang.Locatable;
 import gyro.lang.SyntaxError;
 import gyro.lang.SyntaxErrorException;
@@ -26,6 +28,7 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -115,6 +118,9 @@ public class Gyro {
                 GyroCore.ui().write("%s", syntaxError.toCodeSnippet());
             }
 
+        } else if (error instanceof ValidationErrorException) {
+            ((ValidationErrorException) error).write(GyroCore.ui());
+
         } else {
             StringWriter sw = new StringWriter();
             PrintWriter pw = new PrintWriter(sw);
@@ -133,14 +139,6 @@ public class Gyro {
     public void init(List<String> arguments, Scope init) {
         ((Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).setLevel(Level.OFF);
 
-        commands().add(Help.class);
-
-        for (Class<?> c : getReflections().getSubTypesOf(GyroCommand.class)) {
-            if (c.isAnnotationPresent(Command.class)) {
-                commands().add(c);
-            }
-        }
-
         String appName = "gyro";
         if (System.getProperty("gyro.app") != null) {
             File appFile = new File(System.getProperty("gyro.app"));
@@ -149,8 +147,27 @@ public class Gyro {
             }
         }
 
-        Cli.CliBuilder<Object> builder = Cli.<Object>builder(appName)
-            .withDescription("Gyro.")
+        Cli.CliBuilder<Object> builder = Cli.<Object>builder(appName);
+
+        List<Class<?>> groupCommands = new ArrayList<>();
+        for (Class<? extends GyroCommandGroup> c : getReflections().getSubTypesOf(GyroCommandGroup.class)) {
+            GyroCommandGroup group = gyro.core.Reflections.newInstance(c);
+            groupCommands.addAll(group.getCommands());
+
+            builder.withGroup(group.getName())
+                .withDescription(group.getDescription())
+                .withDefaultCommand(group.getDefaultCommand())
+                .withCommands(group.getCommands());
+        }
+
+        commands().add(Help.class);
+        for (Class<?> c : getReflections().getSubTypesOf(GyroCommand.class)) {
+            if (c.isAnnotationPresent(Command.class) && !groupCommands.contains(c)) {
+                commands().add(c);
+            }
+        }
+
+        builder.withDescription("Gyro.")
             .withDefaultCommand(Help.class)
             .withCommands(commands());
 
@@ -172,6 +189,8 @@ public class Gyro {
         } else if (command instanceof AbstractCommand) {
             ((AbstractCommand) command).setInit(init);
             ((AbstractCommand) command).execute();
+        } else if (command instanceof GyroCommand) {
+            ((GyroCommand) command).execute();
 
         } else {
             throw new IllegalStateException(String.format(

@@ -13,7 +13,7 @@ public class DescriptionDirectiveProcessor extends DirectiveProcessor<DiffableSc
 
     @Override
     public void process(DiffableScope scope, DirectiveNode node) {
-        scope.getSettings(DescriptionSettings.class).setDescription(validateDirectiveArguments(node, 1, 1).get(0));
+        scope.getSettings(DescriptionSettings.class).setDescription(validateArguments(node, 1, 1).get(0));
     }
 
 }

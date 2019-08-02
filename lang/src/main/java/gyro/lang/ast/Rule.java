@@ -2,8 +2,6 @@ package gyro.lang.ast;
 
 import gyro.lang.GyroCharStream;
 import gyro.lang.Locatable;
-import gyro.lang.SyntaxError;
-import org.antlr.v4.runtime.IntStream;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 
@@ -11,6 +9,11 @@ public abstract class Rule implements Locatable {
 
     protected final Token start;
     protected final Token stop;
+
+    public Rule(Token start, Token stop) {
+        this.start = start;
+        this.stop = stop;
+    }
 
     public Rule(ParserRuleContext context) {
         if (context != null) {
@@ -24,8 +27,8 @@ public abstract class Rule implements Locatable {
     }
 
     @Override
-    public String getFile() {
-        return start != null ? start.getTokenSource().getSourceName() : IntStream.UNKNOWN_SOURCE_NAME;
+    public GyroCharStream getStream() {
+        return start != null ? (GyroCharStream) start.getTokenSource().getInputStream() : null;
     }
 
     @Override
@@ -58,16 +61,6 @@ public abstract class Rule implements Locatable {
         }
 
         return column;
-    }
-
-    @Override
-    public String toCodeSnippet() {
-        return SyntaxError.toCodeSnippet(
-            (GyroCharStream) start.getInputStream(),
-            getStartLine(),
-            getStartColumn(),
-            getStopLine(),
-            getStopColumn());
     }
 
 }
