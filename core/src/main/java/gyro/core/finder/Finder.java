@@ -27,7 +27,7 @@ public abstract class Finder<R extends Resource> {
         Class<R> resourceClass = (Class<R>) TypeDefinition.getInstance(getClass())
             .getInferredGenericTypeArgumentClass(Finder.class, 0);
 
-        return DiffableType.getInstance(resourceClass).newDiffable(new DiffableScope(scope, null));
+        return DiffableType.getInstance(resourceClass).newInstance(new DiffableScope(scope, null));
     }
 
 }

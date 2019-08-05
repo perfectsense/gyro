@@ -63,7 +63,7 @@ public class ExtendsDirectiveProcessor extends DirectiveProcessor<DiffableScope>
             DiffableScope scope = diffable.scope;
 
             Diffable clone = DiffableType.getInstance(diffable.getClass())
-                .newDiffable(new DiffableScope(scope, null));
+                .newInstance(new DiffableScope(scope, null));
 
             DiffableInternals.setName(clone, diffable.name);
             clone.initialize(scope);

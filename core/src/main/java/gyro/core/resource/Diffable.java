@@ -115,7 +115,7 @@ public abstract class Diffable {
     }
 
     protected <T extends Diffable> T newSubresource(Class<T> diffableClass) {
-        return DiffableType.getInstance(diffableClass).newDiffable(new DiffableScope(scope, null));
+        return DiffableType.getInstance(diffableClass).newInstance(new DiffableScope(scope, null));
     }
 
     public String primaryKey() {

@@ -118,6 +118,12 @@ public class DiffableType<R extends Diffable> {
         return fieldByName.get(name);
     }
 
+    public R newInstance(DiffableScope scope) {
+        R diffable = Reflections.newInstance(diffableClass);
+        diffable.scope = scope;
+        return diffable;
+    }
+
     public String getDescription(Diffable diffable) {
         Map<String, Object> values = new HashMap<>();
 
@@ -141,12 +147,6 @@ public class DiffableType<R extends Diffable> {
         return description != null
             ? (String) root.getEvaluator().visit(node, new Scope(root, values))
             : null;
-    }
-
-    public R newDiffable(DiffableScope scope) {
-        R diffable = Reflections.newInstance(diffableClass);
-        diffable.scope = scope;
-        return diffable;
     }
 
     public List<ValidationError> validate(Diffable diffable) {

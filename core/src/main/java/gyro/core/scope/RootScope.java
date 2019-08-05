@@ -255,7 +255,7 @@ public class RootScope extends FileScope {
             .filter(r -> id.equals(idField.getValue(r)))
             .findFirst()
             .orElseGet(() -> {
-                T r = type.newDiffable(new DiffableScope(this, null));
+                T r = type.newInstance(new DiffableScope(this, null));
                 DiffableInternals.setExternal(r, true);
                 idField.setValue(r, id);
                 return r;
