@@ -44,6 +44,6 @@ public class FileBackendDirectiveProcessor extends DirectiveProcessor<RootScope>
             }
         }
 
-        settings.getFileBackendByName().put(NamespaceUtils.getNamespace(fileBackendClass), fileBackend);
+        settings.getFileBackendByName().put(name, fileBackend);
     }
 }
