@@ -143,12 +143,9 @@ public class DiffableType<R extends Diffable> {
             : null;
     }
 
-    public R newDiffable(Diffable parent, String name, DiffableScope scope) {
+    public R newDiffable(DiffableScope scope) {
         R diffable = Reflections.newInstance(diffableClass);
-        diffable.parent = parent;
-        diffable.name = name;
         diffable.scope = scope;
-
         return diffable;
     }
 

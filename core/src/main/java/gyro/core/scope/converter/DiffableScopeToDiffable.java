@@ -14,7 +14,7 @@ public class DiffableScopeToDiffable implements ConversionFunction<DiffableScope
     @SuppressWarnings("unchecked")
     public Diffable convert(Converter converter, Type returnType, DiffableScope scope) {
         DiffableType type = DiffableType.getInstance((Class<? extends Diffable>) returnType);
-        Diffable diffable = type.newDiffable(null, null, scope);
+        Diffable diffable = type.newDiffable(scope);
 
         diffable.initialize(scope);
 

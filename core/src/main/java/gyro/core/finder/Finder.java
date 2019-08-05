@@ -5,9 +5,9 @@ import java.util.Map;
 
 import com.psddev.dari.util.TypeDefinition;
 import gyro.core.auth.Credentials;
-import gyro.core.scope.DiffableScope;
 import gyro.core.resource.DiffableType;
 import gyro.core.resource.Resource;
+import gyro.core.scope.DiffableScope;
 import gyro.core.scope.Scope;
 
 public abstract class Finder<R extends Resource> {
@@ -27,8 +27,7 @@ public abstract class Finder<R extends Resource> {
         Class<R> resourceClass = (Class<R>) TypeDefinition.getInstance(getClass())
             .getInferredGenericTypeArgumentClass(Finder.class, 0);
 
-        return DiffableType.getInstance(resourceClass)
-            .newDiffable(null, null, new DiffableScope(scope, null));
+        return DiffableType.getInstance(resourceClass).newDiffable(new DiffableScope(scope, null));
     }
 
 }
