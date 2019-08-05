@@ -19,7 +19,6 @@ import gyro.core.GyroInputStream;
 import gyro.core.GyroOutputStream;
 import gyro.core.LogDirectiveProcessor;
 import gyro.core.PrintDirectiveProcessor;
-import gyro.core.Reflections;
 import gyro.core.auth.CredentialsDirectiveProcessor;
 import gyro.core.auth.CredentialsPlugin;
 import gyro.core.auth.UsesCredentialsDirectiveProcessor;
@@ -249,15 +248,15 @@ public class RootScope extends FileScope {
             return null;
         }
 
-        DiffableField idField = DiffableType.getInstance(resourceClass).getIdField();
+        DiffableType<T> type = DiffableType.getInstance(resourceClass);
+        DiffableField idField = type.getIdField();
 
         return findResourcesByClass(resourceClass)
             .filter(r -> id.equals(idField.getValue(r)))
             .findFirst()
             .orElseGet(() -> {
-                T r = Reflections.newInstance(resourceClass);
+                T r = type.newDiffable(new DiffableScope(this, null));
                 DiffableInternals.setExternal(r, true);
-                DiffableInternals.setScope(r, new DiffableScope(this, null));
                 idField.setValue(r, id);
                 return r;
             });
