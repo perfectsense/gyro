@@ -14,5 +14,6 @@ public class UsesFileBackendDirectiveProcessor extends DirectiveProcessor<Diffab
     public void process(DiffableScope scope, DirectiveNode node) throws Exception {
         validateArguments(node, 1, 1);
         scope.getSettings(FileBackendSettings.class).setUseFileBackend(getArgument(scope, node, String.class, 0));
+        scope.getStateNodes().add(node);
     }
 }
