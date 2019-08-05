@@ -1,6 +1,7 @@
 package gyro.core.backend;
 
 import gyro.core.FileBackend;
+import gyro.core.LocalFileBackend;
 import gyro.core.scope.Settings;
 
 import java.util.HashMap;
@@ -10,7 +11,7 @@ public class FileBackendSettings extends Settings {
 
     private Map<String, Class<? extends FileBackend>> fileBackendClasses;
     private Map<String, FileBackend> fileBackendByName;
-    private String fileBackendCredentials;
+    private String useFileBackend;
 
     public Map<String, Class<? extends FileBackend>> getFileBackendClasses() {
 
@@ -36,11 +37,12 @@ public class FileBackendSettings extends Settings {
         this.fileBackendByName = fileBackendByName;
     }
 
-    public String getFileBackendCredentials() {
-        return fileBackendCredentials;
+    public String getUseFileBackend() {
+        return useFileBackend;
     }
 
-    public void setFileBackendCredentials(String fileBackendCredentials) {
-        this.fileBackendCredentials = fileBackendCredentials;
+    public void setUseFileBackend(String useFileBackend) {
+        this.useFileBackend = useFileBackend;
     }
+
 }
