@@ -62,11 +62,6 @@ public class LocalFileBackend extends FileBackend {
     }
 
     @Override
-    public Set<String> getNameSpaces() throws Exception {
-        return null;
-    }
-
-    @Override
     public String toString() {
         return rootDirectory.toString();
     }

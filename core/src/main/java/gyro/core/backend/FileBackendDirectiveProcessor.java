@@ -2,8 +2,10 @@ package gyro.core.backend;
 
 import com.google.common.base.CaseFormat;
 import gyro.core.FileBackend;
+import gyro.core.NamespaceUtils;
 import gyro.core.Reflections;
 import gyro.core.directive.DirectiveProcessor;
+import gyro.core.resource.DiffableInternals;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
 import gyro.lang.ast.block.DirectiveNode;
@@ -42,8 +44,6 @@ public class FileBackendDirectiveProcessor extends DirectiveProcessor<RootScope>
             }
         }
 
-        fileBackend.getNameSpaces().stream()
-                .map(ns -> name)
-                .forEach(n -> settings.getFileBackendByName().put(n, fileBackend));
+        settings.getFileBackendByName().put(NamespaceUtils.getNamespace(fileBackendClass), fileBackend);
     }
 }
