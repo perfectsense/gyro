@@ -2,6 +2,7 @@ package gyro.core;
 
 import gyro.core.backend.FileBackendSettings;
 import gyro.core.scope.DiffableScope;
+import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
 
 import java.io.InputStream;
@@ -11,9 +12,11 @@ import java.util.stream.Stream;
 
 public abstract class FileBackend {
 
-    Scope scope;
+    RootScope rootScope;
 
     private String name;
+
+    private String fileLocation;
 
     public String getName() {
         return name;
@@ -33,12 +36,28 @@ public abstract class FileBackend {
 
     public abstract Set<String> getNameSpaces() throws Exception;
 
+    public RootScope getRootScope() {
+        return rootScope;
+    }
+
+    public void setRootScope(RootScope rootScope) {
+        this.rootScope = rootScope;
+    }
+
+    public String getFileLocation() {
+        return fileLocation;
+    }
+
+    public void setFileLocation(String fileLocation) {
+        this.fileLocation = fileLocation;
+    }
+
     @SuppressWarnings("unchecked")
     public static <C extends FileBackend> C getInstance(Class<C> fileBackendClass, Class<?> contextClass, Scope scope) {
         DiffableScope diffableScope = scope.getClosest(DiffableScope.class);
 
         String name = diffableScope != null
-                ? diffableScope.getSettings(FileBackendSettings.class).getUseCredentials()
+                ? diffableScope.getSettings(FileBackendSettings.class).getFileBackendCredentials()
                 : null;
 
         name = NamespaceUtils.getNamespacePrefix(contextClass) + (name != null ? name : "default");

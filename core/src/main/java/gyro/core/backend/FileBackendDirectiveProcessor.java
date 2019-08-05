@@ -20,9 +20,10 @@ public class FileBackendDirectiveProcessor extends DirectiveProcessor<RootScope>
 
     @Override
     public void process(RootScope scope, DirectiveNode node) throws Exception {
-        List<Object> arguments = evaluateDirectiveArguments(scope,node,1,2);
-        String type = (String) arguments.get(0);
-        String name = arguments.size() == 1? "default" : (String)arguments.get(1);
+        List<Object> arguments = getArguments(scope,node, Object.class);
+
+        String type = (String)arguments.get(0);
+        String name = arguments.size() == 1? "default" : (String) arguments.get(1);
         Scope bodyScope = evaluateBody(scope,node);
 
         FileBackendSettings settings = scope.getSettings(FileBackendSettings.class);
@@ -30,8 +31,6 @@ public class FileBackendDirectiveProcessor extends DirectiveProcessor<RootScope>
 
         FileBackend fileBackend =  Reflections.newInstance(fileBackendClass);
         fileBackend.setName(name);
-
-//        fileBackend.scope = scope;
 
         for (PropertyDescriptor property : Reflections.getBeanInfo(fileBackendClass).getPropertyDescriptors()) {
 

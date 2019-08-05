@@ -10,7 +10,7 @@ public class FileBackendSettings extends Settings {
 
     private Map<String, Class<? extends FileBackend>> fileBackendClasses;
     private Map<String, FileBackend> fileBackendByName;
-    private String useCredentials;
+    private String fileBackendCredentials;
 
     public Map<String, Class<? extends FileBackend>> getFileBackendClasses() {
 
@@ -36,15 +36,11 @@ public class FileBackendSettings extends Settings {
         this.fileBackendByName = fileBackendByName;
     }
 
-    public String getUseCredentials() {
-        return useCredentials;
+    public String getFileBackendCredentials() {
+        return fileBackendCredentials;
     }
 
-    public void setUseCredentials(String useCredentials) {
-        this.useCredentials = useCredentials;
-    }
-
-    public Class<? extends FileBackend> get(String local) {
-        return null;
+    public void setFileBackendCredentials(String fileBackendCredentials) {
+        this.fileBackendCredentials = fileBackendCredentials;
     }
 }
