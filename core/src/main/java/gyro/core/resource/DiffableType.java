@@ -49,6 +49,11 @@ public class DiffableType<D extends Diffable> {
         return (DiffableType<T>) INSTANCES.getUnchecked(diffableClass);
     }
 
+    @SuppressWarnings("unchecked")
+    public static <T extends Diffable> DiffableType<T> getInstance(T diffable) {
+        return (DiffableType<T>) INSTANCES.getUnchecked(diffable.getClass());
+    }
+
     private DiffableType(Class<D> diffableClass) {
         this.diffableClass = diffableClass;
 
