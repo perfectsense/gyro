@@ -24,7 +24,7 @@ import gyro.core.validation.ValidationError;
 import gyro.lang.ast.Node;
 import gyro.parser.antlr4.GyroParser;
 
-public class DiffableType<R extends Diffable> {
+public class DiffableType<D extends Diffable> {
 
     private static final LoadingCache<Class<? extends Diffable>, DiffableType<? extends Diffable>> INSTANCES = CacheBuilder
         .newBuilder()
@@ -36,7 +36,7 @@ public class DiffableType<R extends Diffable> {
             }
         });
 
-    private final Class<R> diffableClass;
+    private final Class<D> diffableClass;
     private final boolean root;
     private final String name;
     private final Node description;
@@ -45,11 +45,11 @@ public class DiffableType<R extends Diffable> {
     private final Map<String, DiffableField> fieldByName;
 
     @SuppressWarnings("unchecked")
-    public static <R extends Diffable> DiffableType<R> getInstance(Class<R> diffableClass) {
-        return (DiffableType<R>) INSTANCES.getUnchecked(diffableClass);
+    public static <T extends Diffable> DiffableType<T> getInstance(Class<T> diffableClass) {
+        return (DiffableType<T>) INSTANCES.getUnchecked(diffableClass);
     }
 
-    private DiffableType(Class<R> diffableClass) {
+    private DiffableType(Class<D> diffableClass) {
         this.diffableClass = diffableClass;
 
         Type typeAnnotation = diffableClass.getAnnotation(Type.class);
@@ -118,8 +118,8 @@ public class DiffableType<R extends Diffable> {
         return fieldByName.get(name);
     }
 
-    public R newInstance(DiffableScope scope) {
-        R diffable = Reflections.newInstance(diffableClass);
+    public D newInstance(DiffableScope scope) {
+        D diffable = Reflections.newInstance(diffableClass);
         diffable.scope = scope;
         return diffable;
     }
