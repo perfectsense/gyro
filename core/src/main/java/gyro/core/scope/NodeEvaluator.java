@@ -334,8 +334,8 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         }
 
         String name = (String) visit(node.getName(), scope);
-        String type = node.getType();
-        String fullName = type + "::" + name;
+        String typeName = node.getType();
+        String fullName = typeName + "::" + name;
         RootScope rootScope = scope.getRootScope();
 
         Collection<String> pendingConfiguredFields = ImmutableSet.copyOf(
@@ -364,12 +364,12 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             });
 
 
-        Object value = rootScope.get(type);
+        Object value = rootScope.get(typeName);
 
         if (value == null) {
             throw new Defer(node, String.format(
                 "Can't create a resource of @|bold %s|@ type!",
-                type));
+                typeName));
 
         } else if (value instanceof Class) {
             Class<?> c = (Class<?>) value;
@@ -380,23 +380,24 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                 if (file.containsKey(fullName)) {
                     throw new GyroException(
                         node,
-                        String.format("@|bold %s %s|@ has been defined already!", type, name),
+                        String.format("@|bold %s %s|@ has been defined already!", typeName, name),
                         new GyroException(
                             file.getKeyNodes().get(fullName),
                             "Defined previously:"));
                 }
 
-                Resource resource = DiffableType.getInstance((Class<? extends Resource>) c).newInstance(bodyScope);
+                DiffableType<Resource> type = DiffableType.getInstance((Class<Resource>) c);
+                Resource resource = type.newInstance(bodyScope);
 
                 DiffableInternals.setName(resource, name);
-                resource.initialize(bodyScope.isExtended() ? new LinkedHashMap<>(bodyScope) : bodyScope);
+                type.setValues(resource, bodyScope.isExtended() ? new LinkedHashMap<>(bodyScope) : bodyScope);
                 file.put(fullName, resource);
                 file.getKeyNodes().put(fullName, node);
 
             } else {
                 throw new GyroException(String.format(
                     "Can't create a resource of @|bold %s|@ type using the @|bold %s|@ class!",
-                    type,
+                    typeName,
                     c.getName()));
             }
 
@@ -406,7 +407,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         } else {
             throw new GyroException(String.format(
                 "Can't create a resource of @|bold %s|@ type using @|bold %s|@, an instance of @|bold %s|@!",
-                type,
+                typeName,
                 value,
                 value.getClass().getName()));
         }

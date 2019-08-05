@@ -13,10 +13,10 @@ public class DiffableScopeToDiffable implements ConversionFunction<DiffableScope
     @Override
     @SuppressWarnings("unchecked")
     public Diffable convert(Converter converter, Type returnType, DiffableScope scope) {
-        DiffableType type = DiffableType.getInstance((Class<? extends Diffable>) returnType);
+        DiffableType<Diffable> type = DiffableType.getInstance((Class<Diffable>) returnType);
         Diffable diffable = type.newInstance(scope);
 
-        diffable.initialize(scope);
+        type.setValues(diffable, scope);
 
         return diffable;
     }

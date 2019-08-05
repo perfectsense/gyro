@@ -5,15 +5,20 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import gyro.core.GyroException;
 import gyro.core.NamespaceUtils;
 import gyro.core.Reflections;
 import gyro.core.Type;
@@ -152,6 +157,57 @@ public class DiffableType<D extends Diffable> {
         return description != null
             ? (String) root.getEvaluator().visit(node, new Scope(root, values))
             : null;
+    }
+
+    public void setValues(D diffable, Map<String, Object> values) {
+        if (diffable.configuredFields == null) {
+
+            // Current state contains an explicit list of configured fields
+            // that were in the original diffable definition.
+            @SuppressWarnings("unchecked")
+            Collection<String> cf = (Collection<String>) values.get("_configured-fields");
+
+            if (cf == null) {
+
+                // Only save fields that are in the diffable definition and
+                // exclude the ones that were copied from the current state.
+                if (values instanceof DiffableScope) {
+                    cf = ((DiffableScope) values).getAddedKeys();
+
+                } else {
+                    cf = values.keySet();
+                }
+            }
+
+            diffable.configuredFields = ImmutableSet.copyOf(cf);
+        }
+
+        Set<String> invalidFieldNames = values.keySet()
+            .stream()
+            .filter(n -> !n.startsWith("_"))
+            .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        for (DiffableField field : fields) {
+            String fieldName = field.getName();
+
+            if (values.containsKey(fieldName)) {
+                field.setValue(diffable, values.get(fieldName));
+                invalidFieldNames.remove(fieldName);
+            }
+        }
+
+        if (!invalidFieldNames.isEmpty()) {
+            throw new GyroException(
+                values instanceof Scope
+                    ? ((Scope) values).getKeyNodes().get(invalidFieldNames.iterator().next())
+                    : null,
+                String.format(
+                    "Following fields aren't valid in @|bold %s|@ type! @|bold %s|@",
+                    name,
+                    String.join(", ", invalidFieldNames)));
+        }
+
+        DiffableInternals.update(diffable, false);
     }
 
     public List<ValidationError> validate(Diffable diffable) {
