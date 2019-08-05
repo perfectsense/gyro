@@ -13,7 +13,7 @@ public class ResourceToIdObject implements ConversionFunction<Resource, Object> 
 
     @Override
     public Object convert(Converter converter, Type returnType, Resource resource) {
-        DiffableType type = DiffableType.getInstance(resource.getClass());
+        DiffableType<Resource> type = DiffableType.getInstance(resource);
         DiffableField idField = type.getIdField();
 
         if (idField == null) {

@@ -165,7 +165,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
 
         } else if (object instanceof Diffable) {
             Diffable diffable = (Diffable) object;
-            DiffableType type = DiffableType.getInstance(diffable.getClass());
+            DiffableType<Diffable> type = DiffableType.getInstance(diffable);
             DiffableField field = type.getField(key);
 
             if (field == null) {

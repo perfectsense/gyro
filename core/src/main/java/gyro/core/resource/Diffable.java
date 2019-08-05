@@ -105,7 +105,7 @@ public abstract class Diffable {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        DiffableType type = DiffableType.getInstance(getClass());
+        DiffableType<Diffable> type = DiffableType.getInstance(this);
         String typeName = type.getName();
 
         if (typeName != null) {
