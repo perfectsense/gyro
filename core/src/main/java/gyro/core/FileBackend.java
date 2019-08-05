@@ -55,6 +55,8 @@ public abstract class FileBackend {
             fileBackend = diffableScope.getRootScope().getBackend();
         }
 
+        fileBackend.setRootScope(diffableScope.getRootScope());
+
         return (C) fileBackend;
     }
 
