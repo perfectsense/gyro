@@ -210,7 +210,7 @@ public class DiffableType<D extends Diffable> {
         DiffableInternals.update(diffable, false);
     }
 
-    public List<ValidationError> validate(Diffable diffable) {
+    public List<ValidationError> validate(D diffable) {
         List<ValidationError> errors = new ArrayList<>();
         validateValue(errors, diffable, null, diffable);
         return errors;

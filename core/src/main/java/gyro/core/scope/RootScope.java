@@ -294,7 +294,7 @@ public class RootScope extends FileScope {
         }
 
         List<ValidationError> errors = findResources().stream()
-            .map(r -> DiffableType.getInstance(r.getClass()).validate(r))
+            .map(r -> DiffableType.getInstance(r).validate(r))
             .flatMap(List::stream)
             .collect(Collectors.toList());
 
