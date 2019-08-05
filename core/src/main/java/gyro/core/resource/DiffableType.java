@@ -134,7 +134,7 @@ public class DiffableType<D extends Diffable> {
         return diffable;
     }
 
-    public String getDescription(Diffable diffable) {
+    public String getDescription(D diffable) {
         Map<String, Object> values = new HashMap<>();
 
         for (DiffableField field : fields) {
