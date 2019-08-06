@@ -9,14 +9,10 @@ import java.util.Map;
 
 public class FileBackendSettings extends Settings {
 
-    private Map<String, Class<? extends FileBackend>> fileBackendClasses;
-    private Map<String, FileBackend> fileBackendByName;
+    private Map<String, Class<? extends FileBackend>> fileBackendClasses = new HashMap<>();
+    private Map<String, FileBackend> fileBackendByName = new HashMap<>();
 
     public Map<String, Class<? extends FileBackend>> getFileBackendClasses() {
-
-        if(fileBackendClasses == null) {
-            fileBackendClasses = new HashMap<>();
-        }
         return fileBackendClasses;
     }
 
@@ -24,12 +20,17 @@ public class FileBackendSettings extends Settings {
         this.fileBackendClasses = fileBackendClasses;
     }
 
-    public Map<String, FileBackend> getFileBackendByName() {
-        if (fileBackendByName == null) {
-            fileBackendByName = new HashMap<>();
+    public FileBackend getFileBackendByName(String name) {
+        FileBackend backend = fileBackendByName.get(name);
+        if (backend == null) {
+            backend = fileBackendByName.get("default");
         }
 
-        return fileBackendByName;
+        return backend;
+    }
+
+    public void putFileBackendByName(String name, FileBackend backend) {
+        fileBackendByName.put(name, backend);
     }
 
     public void setFileBackendByName(Map<String, FileBackend> fileBackendByName) {
