@@ -16,4 +16,6 @@ public interface GyroInstance {
 
     public String getLaunchDate();
 
+    public String getLocation();
+
 }
