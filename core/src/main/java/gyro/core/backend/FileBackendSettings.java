@@ -11,7 +11,6 @@ public class FileBackendSettings extends Settings {
 
     private Map<String, Class<? extends FileBackend>> fileBackendClasses;
     private Map<String, FileBackend> fileBackendByName;
-    private String useFileBackend;
 
     public Map<String, Class<? extends FileBackend>> getFileBackendClasses() {
 
@@ -35,14 +34,6 @@ public class FileBackendSettings extends Settings {
 
     public void setFileBackendByName(Map<String, FileBackend> fileBackendByName) {
         this.fileBackendByName = fileBackendByName;
-    }
-
-    public String getUseFileBackend() {
-        return useFileBackend;
-    }
-
-    public void setUseFileBackend(String useFileBackend) {
-        this.useFileBackend = useFileBackend;
     }
 
 }
