@@ -410,13 +410,14 @@ public class Diff {
     private void resolve(Object object) {
         if (object instanceof Diffable) {
             Diffable diffable = (Diffable) object;
+            DiffableType<Diffable> type = DiffableType.getInstance(diffable);
             DiffableScope scope = DiffableInternals.getScope(diffable);
 
             if (scope != null) {
-                diffable.initialize(scope.resolve());
+                type.setValues(diffable, scope.resolve());
             }
 
-            for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
+            for (DiffableField field : type.getFields()) {
                 if (field.shouldBeDiffed()) {
                     resolve(field.getValue(diffable));
                 }

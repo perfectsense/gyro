@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableList;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.resource.DiffableInternals;
+import gyro.core.resource.DiffableType;
 import gyro.core.scope.DiffableScope;
 import gyro.core.scope.NodeEvaluator;
 import gyro.core.resource.Resource;
@@ -57,7 +58,7 @@ public class UpdateAction extends Action {
             evaluator.visit(item, resourceScope);
         }
 
-        pendingResource.initialize(resourceScope);
+        DiffableType.getInstance(pendingResource).setValues(pendingResource, resourceScope);
     }
 
 }
