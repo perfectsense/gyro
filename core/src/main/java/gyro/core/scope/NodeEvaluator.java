@@ -330,7 +330,9 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         DiffableScope bodyScope = new DiffableScope(scope, node);
 
         for (Node item : node.getBody()) {
-            visit(item, bodyScope);
+            if (!(item instanceof DirectiveNode)) {
+                visit(item, bodyScope);
+            }
         }
 
         String name = (String) visit(node.getName(), scope);
@@ -363,6 +365,11 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                 }
             });
 
+        for (Node item : node.getBody()) {
+            if (item instanceof DirectiveNode) {
+                visit(item, bodyScope);
+            }
+        }
 
         Object value = rootScope.get(typeName);
 
