@@ -7,6 +7,7 @@ import gyro.core.GyroException;
 import gyro.core.finder.Finder;
 import gyro.core.finder.FinderSettings;
 import gyro.core.finder.FinderType;
+import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.Resource;
 import gyro.core.scope.Scope;
 
@@ -47,6 +48,8 @@ public class FinderReferenceResolver extends ReferenceResolver {
         if (resources == null) {
             resources = finder.findAll();
         }
+
+        resources.forEach(r -> DiffableInternals.update(r, false));
 
         return resources;
     }

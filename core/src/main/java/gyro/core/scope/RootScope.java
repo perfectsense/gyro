@@ -19,7 +19,6 @@ import gyro.core.GyroInputStream;
 import gyro.core.GyroOutputStream;
 import gyro.core.LogDirectiveProcessor;
 import gyro.core.PrintDirectiveProcessor;
-import gyro.core.Reflections;
 import gyro.core.auth.CredentialsDirectiveProcessor;
 import gyro.core.auth.CredentialsPlugin;
 import gyro.core.auth.UsesCredentialsDirectiveProcessor;
@@ -39,6 +38,7 @@ import gyro.core.reference.ReferencePlugin;
 import gyro.core.reference.ReferenceSettings;
 import gyro.core.repo.RepositoryDirectiveProcessor;
 import gyro.core.resource.DescriptionDirectiveProcessor;
+import gyro.core.resource.Diffable;
 import gyro.core.resource.DiffableField;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
@@ -46,6 +46,10 @@ import gyro.core.resource.ExtendsDirectiveProcessor;
 import gyro.core.resource.Resource;
 import gyro.core.resource.ResourcePlugin;
 import gyro.core.resource.TypeDescriptionDirectiveProcessor;
+import gyro.core.scope.converter.DiffableScopeToDiffable;
+import gyro.core.scope.converter.IdObjectToResource;
+import gyro.core.scope.converter.IterableToOne;
+import gyro.core.scope.converter.ResourceToIdObject;
 import gyro.core.validation.ValidationError;
 import gyro.core.validation.ValidationErrorException;
 import gyro.core.virtual.VirtualDirectiveProcessor;
@@ -69,7 +73,6 @@ public class RootScope extends FileScope {
     private final Node initNode;
     private final List<Node> bodyNodes = new ArrayList<>();
 
-    @SuppressWarnings("unchecked")
     public RootScope(String file, FileBackend backend, RootScope current, Set<String> loadFiles) {
         super(null, file);
 
@@ -77,22 +80,10 @@ public class RootScope extends FileScope {
 
         converter.setThrowError(true);
         converter.putAllStandardFunctions();
-
-        converter.putInheritableFunction(
-            Object.class,
-            Resource.class,
-            (c, returnType, id) -> c.convert(
-                returnType,
-                findResourceById((Class<? extends Resource>) returnType, id)));
-
-        converter.putInheritableFunction(
-            Resource.class,
-            Object.class,
-            (c, returnType, resource) -> c.convert(
-                returnType,
-                DiffableType.getInstance(resource.getClass())
-                    .getIdField()
-                    .getValue(resource)));
+        converter.putInheritableFunction(DiffableScope.class, Diffable.class, new DiffableScopeToDiffable());
+        converter.putInheritableFunction(Iterable.class, Object.class, new IterableToOne());
+        converter.putInheritableFunction(Object.class, Resource.class, new IdObjectToResource(this));
+        converter.putInheritableFunction(Resource.class, Object.class, new ResourceToIdObject());
 
         this.evaluator = new NodeEvaluator();
         this.backend = backend;
@@ -261,15 +252,15 @@ public class RootScope extends FileScope {
             return null;
         }
 
-        DiffableField idField = DiffableType.getInstance(resourceClass).getIdField();
+        DiffableType<T> type = DiffableType.getInstance(resourceClass);
+        DiffableField idField = type.getIdField();
 
         return findResourcesByClass(resourceClass)
             .filter(r -> id.equals(idField.getValue(r)))
             .findFirst()
             .orElseGet(() -> {
-                T r = Reflections.newInstance(resourceClass);
+                T r = type.newInstance(new DiffableScope(this, null));
                 DiffableInternals.setExternal(r, true);
-                DiffableInternals.setScope(r, new DiffableScope(this, null));
                 idField.setValue(r, id);
                 return r;
             });
@@ -307,7 +298,7 @@ public class RootScope extends FileScope {
         }
 
         List<ValidationError> errors = findResources().stream()
-            .map(r -> DiffableType.getInstance(r.getClass()).validate(r))
+            .map(r -> DiffableType.getInstance(r).validate(r))
             .flatMap(List::stream)
             .collect(Collectors.toList());
 
