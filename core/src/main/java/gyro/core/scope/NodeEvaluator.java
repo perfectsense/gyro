@@ -179,7 +179,6 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         } else if (object instanceof GlobCollection) {
             return ((GlobCollection) object).stream()
                 .map(i -> getValue(node, i, key))
-                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
         } else if (object instanceof List) {
