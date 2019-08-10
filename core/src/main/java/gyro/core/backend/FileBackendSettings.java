@@ -1,7 +1,6 @@
 package gyro.core.backend;
 
 import gyro.core.FileBackend;
-import gyro.core.LocalFileBackend;
 import gyro.core.scope.Settings;
 
 import java.util.HashMap;
@@ -9,32 +8,29 @@ import java.util.Map;
 
 public class FileBackendSettings extends Settings {
 
-    private Map<String, Class<? extends FileBackend>> fileBackendClasses = new HashMap<>();
-    private Map<String, FileBackend> fileBackendByName = new HashMap<>();
+    private Map<String, Class<? extends FileBackend>> fileBackendsClasses;
+    private Map<String, FileBackend> fileBackendsByName;
 
-    public Map<String, Class<? extends FileBackend>> getFileBackendClasses() {
-        return fileBackendClasses;
-    }
-
-    public void setFileBackendClasses(Map<String, Class<? extends FileBackend>> fileBackendClasses) {
-        this.fileBackendClasses = fileBackendClasses;
-    }
-
-    public FileBackend getFileBackendByName(String name) {
-        FileBackend backend = fileBackendByName.get(name);
-        if (backend == null) {
-            backend = fileBackendByName.get("default");
+    public Map<String, Class<? extends FileBackend>> getFileBackendsClasses() {
+        if (fileBackendsClasses == null) {
+            fileBackendsClasses = new HashMap<>();
         }
-
-        return backend;
+        return fileBackendsClasses;
     }
 
-    public void putFileBackendByName(String name, FileBackend backend) {
-        fileBackendByName.put(name, backend);
+    public void setFileBackendsClasses(Map<String, Class<? extends FileBackend>> fileBackendsClasses) {
+        this.fileBackendsClasses = fileBackendsClasses;
     }
 
-    public void setFileBackendByName(Map<String, FileBackend> fileBackendByName) {
-        this.fileBackendByName = fileBackendByName;
+    public Map<String, FileBackend> getFileBackendsByName() {
+        if (fileBackendsByName == null) {
+            fileBackendsByName = new HashMap<>();
+        }
+        return fileBackendsByName;
+    }
+
+    public void setFileBackendsByName(Map<String, FileBackend> fileBackendsByName) {
+        this.fileBackendsByName = fileBackendsByName;
     }
 
 }
