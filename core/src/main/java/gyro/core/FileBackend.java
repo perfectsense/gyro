@@ -8,16 +8,8 @@ import java.util.stream.Stream;
 
 public abstract class FileBackend {
 
-    private RootScope rootScope;
     private String name;
-
-    public abstract Stream<String> list() throws Exception;
-
-    public abstract InputStream openInput(String file) throws Exception;
-
-    public abstract OutputStream openOutput(String file) throws Exception;
-
-    public abstract void delete(String file) throws Exception;
+    private RootScope rootScope;
 
     public String getName() {
         return name;
@@ -34,5 +26,13 @@ public abstract class FileBackend {
     public void setRootScope(RootScope rootScope) {
         this.rootScope = rootScope;
     }
+
+    public abstract Stream<String> list() throws Exception;
+
+    public abstract InputStream openInput(String file) throws Exception;
+
+    public abstract OutputStream openOutput(String file) throws Exception;
+
+    public abstract void delete(String file) throws Exception;
 
 }
