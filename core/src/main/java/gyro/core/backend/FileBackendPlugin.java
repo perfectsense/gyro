@@ -23,7 +23,7 @@ public class FileBackendPlugin extends Plugin {
                     .orElse(null);
 
             if (type != null) {
-                root.getSettings(FileBackendSettings.class)
+                root.getSettings(FileBackendsSettings.class)
                         .getFileBackendsClasses()
                         .put(namespacePrefix + type, fileBackendClass);
             } else {

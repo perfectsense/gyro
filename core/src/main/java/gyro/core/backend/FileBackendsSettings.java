@@ -6,7 +6,7 @@ import gyro.core.scope.Settings;
 import java.util.HashMap;
 import java.util.Map;
 
-public class FileBackendSettings extends Settings {
+public class FileBackendsSettings extends Settings {
 
     private Map<String, Class<? extends FileBackend>> fileBackendsClasses;
     private Map<String, FileBackend> fileBackendsByName;

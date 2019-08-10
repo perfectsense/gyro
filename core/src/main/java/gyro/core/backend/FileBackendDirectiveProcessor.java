@@ -26,7 +26,7 @@ public class FileBackendDirectiveProcessor extends DirectiveProcessor<RootScope>
 
         Scope bodyScope = evaluateBody(scope, node);
 
-        FileBackendSettings settings = scope.getSettings(FileBackendSettings.class);
+        FileBackendsSettings settings = scope.getSettings(FileBackendsSettings.class);
         Class<? extends FileBackend> fileBackendClass = settings.getFileBackendsClasses().get(type);
 
         FileBackend fileBackend = Reflections.newInstance(fileBackendClass);
