@@ -2,19 +2,17 @@ package gyro.core.backend;
 
 import com.google.common.base.CaseFormat;
 import gyro.core.FileBackend;
-import gyro.core.NamespaceUtils;
-import gyro.core.Reflections;
 import gyro.core.directive.DirectiveProcessor;
-import gyro.core.resource.DiffableInternals;
+import gyro.core.Reflections;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
 import gyro.lang.ast.block.DirectiveNode;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
-import java.util.List;
 
 public class FileBackendDirectiveProcessor extends DirectiveProcessor<RootScope> {
+
     @Override
     public String getName() {
         return "file-backend";
@@ -22,16 +20,16 @@ public class FileBackendDirectiveProcessor extends DirectiveProcessor<RootScope>
 
     @Override
     public void process(RootScope scope, DirectiveNode node) throws Exception {
-        List<Object> arguments = getArguments(scope,node, Object.class);
+        validateArguments(node, 0, 2);
+        String type = getArgument(scope, node, String.class, 0);
+        String name = getArgument(scope, node, String.class, 1);
 
-        String type = (String)arguments.get(0);
-        String name = arguments.size() == 1? "default" : (String) arguments.get(1);
-        Scope bodyScope = evaluateBody(scope,node);
+        Scope bodyScope = evaluateBody(scope, node);
 
         FileBackendSettings settings = scope.getSettings(FileBackendSettings.class);
-        Class<? extends FileBackend> fileBackendClass = settings.getFileBackendClasses().get(type);
+        Class<? extends FileBackend> fileBackendClass = settings.getFileBackendsClasses().get(type);
 
-        FileBackend fileBackend =  Reflections.newInstance(fileBackendClass);
+        FileBackend fileBackend = Reflections.newInstance(fileBackendClass);
         fileBackend.setName(name);
 
         for (PropertyDescriptor property : Reflections.getBeanInfo(fileBackendClass).getPropertyDescriptors()) {
@@ -43,7 +41,7 @@ public class FileBackendDirectiveProcessor extends DirectiveProcessor<RootScope>
                         bodyScope.get(CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, property.getName()))));
             }
         }
-
-        settings.putFileBackendByName(name, fileBackend);
+        settings.getFileBackendsByName().put(name, fileBackend);
     }
+
 }
