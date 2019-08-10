@@ -1,8 +1,8 @@
 package gyro.core.backend;
 
 import com.google.common.base.CaseFormat;
-import gyro.core.FileBackend;
 import gyro.core.directive.DirectiveProcessor;
+import gyro.core.FileBackend;
 import gyro.core.Reflections;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
