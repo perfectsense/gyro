@@ -1,14 +1,16 @@
 package gyro.core.backend;
 
 import gyro.core.FileBackend;
+import gyro.core.GyroException;
 import gyro.core.NamespaceUtils;
-import gyro.core.Type;
 import gyro.core.plugin.Plugin;
 import gyro.core.scope.RootScope;
+import gyro.core.Type;
 
 import java.util.Optional;
 
 public class FileBackendPlugin extends Plugin {
+
     @Override
     public void onEachClass(RootScope root, Class<?> aClass) throws Exception {
         if (FileBackend.class.isAssignableFrom(aClass)) {
@@ -20,10 +22,14 @@ public class FileBackendPlugin extends Plugin {
                     .map(Type::value)
                     .orElse(null);
 
-            root.getSettings(FileBackendSettings.class)
-                    .getFileBackendClasses()
-                    .put(namespacePrefix + type, fileBackendClass);
-
+            if (type != null) {
+                root.getSettings(FileBackendSettings.class)
+                        .getFileBackendsClasses()
+                        .put(namespacePrefix + type, fileBackendClass);
+            } else {
+                throw new GyroException("Loading file backend plugin failed. File Backend implementation is missing @Type annotation.");
+            }
         }
     }
+
 }
