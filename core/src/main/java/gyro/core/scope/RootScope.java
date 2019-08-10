@@ -97,9 +97,9 @@ public class RootScope extends FileScope {
             new ChangePlugin(),
             new CredentialsPlugin(),
             new DirectivePlugin(),
+            new FileBackendPlugin(),
             new FinderPlugin(),
             new ReferencePlugin(),
-            new FileBackendPlugin(),
             new ResourcePlugin())
             .forEach(p -> getSettings(PluginSettings.class).getPlugins().add(p));
 
@@ -109,6 +109,7 @@ public class RootScope extends FileScope {
             new DeleteDirectiveProcessor(),
             new DescriptionDirectiveProcessor(),
             new ExtendsDirectiveProcessor(),
+            new FileBackendDirectiveProcessor(),
             new ForDirectiveProcessor(),
             new IfDirectiveProcessor(),
             new HighlanderDirectiveProcessor(),
@@ -119,7 +120,6 @@ public class RootScope extends FileScope {
             new UpdateDirectiveProcessor(),
             new UsesCredentialsDirectiveProcessor(),
             new VirtualDirectiveProcessor(),
-            new FileBackendDirectiveProcessor(),
             new WorkflowDirectiveProcessor(),
             new PrintDirectiveProcessor(),
             new LogDirectiveProcessor())
