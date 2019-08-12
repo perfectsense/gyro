@@ -41,7 +41,7 @@ public class FileBackendDirectiveProcessor extends DirectiveProcessor<RootScope>
                         bodyScope.get(CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, property.getName()))));
             }
         }
-        settings.getFileBackendsByName().put(name, fileBackend);
+        settings.getFileBackends().put(name, fileBackend);
     }
 
 }

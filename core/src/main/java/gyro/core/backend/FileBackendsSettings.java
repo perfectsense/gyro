@@ -9,7 +9,7 @@ import java.util.Map;
 public class FileBackendsSettings extends Settings {
 
     private Map<String, Class<? extends FileBackend>> fileBackendsClasses;
-    private Map<String, FileBackend> fileBackendsByName;
+    private Map<String, FileBackend> fileBackends;
 
     public Map<String, Class<? extends FileBackend>> getFileBackendsClasses() {
         if (fileBackendsClasses == null) {
@@ -22,15 +22,15 @@ public class FileBackendsSettings extends Settings {
         this.fileBackendsClasses = fileBackendsClasses;
     }
 
-    public Map<String, FileBackend> getFileBackendsByName() {
-        if (fileBackendsByName == null) {
-            fileBackendsByName = new HashMap<>();
+    public Map<String, FileBackend> getFileBackends() {
+        if (fileBackends == null) {
+            fileBackends = new HashMap<>();
         }
-        return fileBackendsByName;
+        return fileBackends;
     }
 
-    public void setFileBackendsByName(Map<String, FileBackend> fileBackendsByName) {
-        this.fileBackendsByName = fileBackendsByName;
+    public void setFileBackends(Map<String, FileBackend> fileBackends) {
+        this.fileBackends = fileBackends;
     }
 
 }
