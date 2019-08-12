@@ -1,11 +1,11 @@
 package gyro.core.backend;
 
 import gyro.core.FileBackend;
-import gyro.core.GyroException;
 import gyro.core.NamespaceUtils;
 import gyro.core.plugin.Plugin;
 import gyro.core.scope.RootScope;
 import gyro.core.Type;
+import gyro.util.Bug;
 
 import java.util.Optional;
 
@@ -27,7 +27,7 @@ public class FileBackendPlugin extends Plugin {
                         .getFileBackendsClasses()
                         .put(namespacePrefix + type, fileBackendClass);
             } else {
-                throw new GyroException("Loading file backend plugin failed. File Backend implementation is missing @Type annotation.");
+                throw new Bug("Loading file backend plugin failed. File Backend implementation is missing @Type annotation.");
             }
         }
     }
