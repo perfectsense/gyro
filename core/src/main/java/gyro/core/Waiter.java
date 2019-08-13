@@ -13,7 +13,7 @@ public class Waiter {
     private long checkEvery;
     private boolean prompt;
 
-    Waiter() {
+    public Waiter() {
         atMost(10, TimeUnit.SECONDS);
         checkEvery(1, TimeUnit.SECONDS);
         prompt(true);
