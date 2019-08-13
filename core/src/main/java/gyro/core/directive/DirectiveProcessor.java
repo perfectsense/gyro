@@ -4,12 +4,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import com.google.common.collect.ImmutableList;
 import gyro.core.GyroException;
 import gyro.core.scope.NodeEvaluator;
 import gyro.core.scope.Scope;
 import gyro.lang.Locatable;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.DirectiveNode;
+import gyro.lang.ast.block.DirectiveOption;
 
 public abstract class DirectiveProcessor<S extends Scope> {
 
@@ -54,17 +56,29 @@ public abstract class DirectiveProcessor<S extends Scope> {
     }
 
     public static List<Node> validateOptionArguments(DirectiveNode node, String name, int minimum, int maximum) {
-        String errorName = String.format("@|bold @%s -%s|@ option", node.getName(), name);
-
-        return node.getOptions()
+        DirectiveOption option = node.getOptions()
             .stream()
             .filter(s -> s.getName().equals(name))
             .findFirst()
-            .map(option -> validate(option, option.getArguments(), minimum, maximum, errorName))
-            .orElseThrow(() -> new GyroException(node, String.format(
+            .orElse(null);
+
+        if (option != null) {
+            return validate(
+                option,
+                option.getArguments(),
+                minimum,
+                maximum,
+                String.format("@|bold @%s -%s|@ option", node.getName(), name));
+
+        } else if (minimum == 0) {
+            return ImmutableList.of();
+
+        } else {
+            throw new GyroException(node, String.format(
                 "@|bold @%s|@ directive requires the @|bold -%s|@ option!",
                 node.getName(),
-                name)));
+                name));
+        }
     }
 
     private static Node get(DirectiveNode node, int index) {
