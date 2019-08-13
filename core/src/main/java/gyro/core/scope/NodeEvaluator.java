@@ -168,14 +168,9 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             DiffableType<Diffable> type = DiffableType.getInstance(diffable);
             DiffableField field = type.getField(key);
 
-            if (field == null) {
-                throw new GyroException(node, String.format(
-                    "Can't find the @|bold %s|@ field in the @|bold %s|@ type!",
-                    key,
-                    type.getName()));
+            if (field != null) {
+                return field.getValue(diffable);
             }
-
-            return field.getValue(diffable);
 
         } else if (object instanceof GlobCollection) {
             return ((GlobCollection) object).stream()
@@ -218,10 +213,20 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             .map(PropertyDescriptor::getReadMethod)
             .filter(Objects::nonNull)
             .findFirst()
-            .orElseThrow(() -> new GyroException(node, String.format(
-                "Can't find the @|bold %s|@ property in the @|bold %s|@ class!",
-                key,
-                aClass.getName())));
+            .orElseThrow(() -> {
+                if (object instanceof Diffable) {
+                    return new GyroException(node, String.format(
+                        "Can't find the @|bold %s|@ field or property in the @|bold %s|@ type!",
+                        key,
+                        DiffableType.getInstance((Diffable) object).getName()));
+
+                } else {
+                    return new GyroException(node, String.format(
+                        "Can't find the @|bold %s|@ property in the @|bold %s|@ class!",
+                        key,
+                        aClass.getName()));
+                }
+            });
 
         return Reflections.invoke(getter, object);
     }
