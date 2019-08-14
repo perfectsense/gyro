@@ -123,6 +123,9 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         if (left == null || right == null) {
             throw new GyroException("Can't compare against a null!");
 
+        } else if (left instanceof Number && right instanceof Number) {
+            return Double.compare(((Number) left).doubleValue(), ((Number) right).doubleValue());
+
         } else if (left instanceof Comparable
             && left.getClass().isInstance(right)) {
 
