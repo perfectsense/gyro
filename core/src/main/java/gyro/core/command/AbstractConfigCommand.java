@@ -131,9 +131,17 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
     }
 
     private void refreshResources(RootScope scope) {
+        ScheduledExecutorService messageService = Executors.newSingleThreadScheduledExecutor();
+        GyroUI ui = GyroCore.ui();
+        AtomicInteger started = new AtomicInteger();
+        AtomicInteger done = new AtomicInteger();
+
+        messageService.scheduleAtFixedRate(() -> {
+            ui.replace("@|magenta ⟳ Refreshing resources:|@ %s started, %s done", started.get(), done.get());
+        }, 0, 100, TimeUnit.MILLISECONDS);
+
         ExecutorService refreshService = Executors.newCachedThreadPool();
         List<Refresh> refreshes = new ArrayList<>();
-        AtomicInteger refreshedCount = new AtomicInteger(1);
 
         for (FileScope fileScope : scope.getFileScopes()) {
             for (Object value : fileScope.values()) {
@@ -144,9 +152,9 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
                 Resource resource = (Resource) value;
 
                 refreshes.add(new Refresh(resource, refreshService.submit(() -> {
+                    started.incrementAndGet();
                     boolean keep = resource.refresh();
-
-                    refreshedCount.incrementAndGet();
+                    done.incrementAndGet();
 
                     if (keep) {
                         DiffableInternals.update(resource, true);
@@ -160,14 +168,6 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         }
 
         refreshService.shutdown();
-
-        ScheduledExecutorService messageService = Executors.newSingleThreadScheduledExecutor();
-        GyroUI ui = GyroCore.ui();
-        int refreshesTotal = refreshes.size();
-
-        messageService.scheduleAtFixedRate(() -> {
-            ui.replace("@|magenta ⟳ Refreshing resources:|@ %s/%s", refreshedCount.get(), refreshesTotal);
-        }, 0, 100, TimeUnit.MILLISECONDS);
 
         for (Refresh refresh : refreshes) {
             Resource resource = refresh.resource;
@@ -194,7 +194,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         }
 
         messageService.shutdown();
-        ui.replace("@|magenta ⟳ Refreshed resources:|@ %s\n", refreshesTotal);
+        ui.replace("@|magenta ⟳ Refreshed resources:|@ %s\n", refreshes.size());
     }
 
     private static class Refresh {
