@@ -263,6 +263,8 @@ public class State {
                 } else {
                     body.add(toPairNode(key, value));
                 }
+            } else if (value instanceof CustomValue) {
+                body.add(new PairNode(toNode(key), ((CustomValue) value).toStateNode()));
 
             } else {
                 throw new GyroException(String.format(
