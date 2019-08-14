@@ -129,7 +129,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         } else if (left instanceof Comparable && left.getClass().isInstance(right)) {
             return ((Comparable<Object>) left).compareTo(right);
 
-        } else if (right instanceof Comparable && left.getClass().isInstance(left)) {
+        } else if (right instanceof Comparable && right.getClass().isInstance(left)) {
             return 0 - ((Comparable<Object>) right).compareTo(left);
 
         } else {
