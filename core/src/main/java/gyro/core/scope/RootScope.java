@@ -55,6 +55,7 @@ import gyro.core.workflow.CreateDirectiveProcessor;
 import gyro.core.workflow.DeleteDirectiveProcessor;
 import gyro.core.workflow.ReplaceDirectiveProcessor;
 import gyro.core.workflow.UpdateDirectiveProcessor;
+import gyro.core.workflow.WaitDirectiveProcessor;
 import gyro.core.workflow.WorkflowDirectiveProcessor;
 import gyro.lang.ast.Node;
 import gyro.parser.antlr4.GyroParser;
@@ -116,6 +117,7 @@ public class RootScope extends FileScope {
             new UpdateDirectiveProcessor(),
             new UsesCredentialsDirectiveProcessor(),
             new VirtualDirectiveProcessor(),
+            new WaitDirectiveProcessor(),
             new WorkflowDirectiveProcessor(),
             new PrintDirectiveProcessor(),
             new LogDirectiveProcessor())
