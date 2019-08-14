@@ -126,10 +126,11 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         } else if (left instanceof Number && right instanceof Number) {
             return Double.compare(((Number) left).doubleValue(), ((Number) right).doubleValue());
 
-        } else if (left instanceof Comparable
-            && left.getClass().isInstance(right)) {
-
+        } else if (left instanceof Comparable && left.getClass().isInstance(right)) {
             return ((Comparable<Object>) left).compareTo(right);
+
+        } else if (right instanceof Comparable && left.getClass().isInstance(left)) {
+            return 0 - ((Comparable<Object>) right).compareTo(left);
 
         } else {
             throw new GyroException(String.format(
