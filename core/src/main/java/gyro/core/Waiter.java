@@ -45,7 +45,7 @@ public class Waiter {
                     }
 
                 } catch (Exception error) {
-                    LOGGER.debug("Failed to check!", error);
+                    throw new GyroException("Failed wait check!", error);
                 }
 
                 try {
