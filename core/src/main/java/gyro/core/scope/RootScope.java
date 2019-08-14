@@ -22,6 +22,8 @@ import gyro.core.PrintDirectiveProcessor;
 import gyro.core.auth.CredentialsDirectiveProcessor;
 import gyro.core.auth.CredentialsPlugin;
 import gyro.core.auth.UsesCredentialsDirectiveProcessor;
+import gyro.core.backend.FileBackendDirectiveProcessor;
+import gyro.core.backend.FileBackendPlugin;
 import gyro.core.command.HighlanderDirectiveProcessor;
 import gyro.core.control.ForDirectiveProcessor;
 import gyro.core.control.IfDirectiveProcessor;
@@ -95,6 +97,7 @@ public class RootScope extends FileScope {
             new ChangePlugin(),
             new CredentialsPlugin(),
             new DirectivePlugin(),
+            new FileBackendPlugin(),
             new FinderPlugin(),
             new ReferencePlugin(),
             new ResourcePlugin())
@@ -106,6 +109,7 @@ public class RootScope extends FileScope {
             new DeleteDirectiveProcessor(),
             new DescriptionDirectiveProcessor(),
             new ExtendsDirectiveProcessor(),
+            new FileBackendDirectiveProcessor(),
             new ForDirectiveProcessor(),
             new IfDirectiveProcessor(),
             new HighlanderDirectiveProcessor(),
