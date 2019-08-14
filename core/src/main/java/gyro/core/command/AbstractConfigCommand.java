@@ -11,10 +11,14 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
+import gyro.core.GyroUI;
 import gyro.core.LocalFileBackend;
 import gyro.core.auth.Credentials;
 import gyro.core.auth.CredentialsSettings;
@@ -106,7 +110,6 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
             if (!skipRefresh) {
                 refreshResources(current);
-                GyroCore.ui().write("\n");
             }
         }
 
@@ -128,8 +131,9 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
     }
 
     private void refreshResources(RootScope scope) {
-        ExecutorService service = Executors.newCachedThreadPool();
+        ExecutorService refreshService = Executors.newCachedThreadPool();
         List<Refresh> refreshes = new ArrayList<>();
+        AtomicInteger refreshedCount = new AtomicInteger(1);
 
         for (FileScope fileScope : scope.getFileScopes()) {
             for (Object value : fileScope.values()) {
@@ -139,8 +143,12 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
                 Resource resource = (Resource) value;
 
-                refreshes.add(new Refresh(resource, service.submit(() -> {
-                    if (resource.refresh()) {
+                refreshes.add(new Refresh(resource, refreshService.submit(() -> {
+                    boolean keep = resource.refresh();
+
+                    refreshedCount.incrementAndGet();
+
+                    if (keep) {
                         DiffableInternals.update(resource, true);
                         return false;
 
@@ -151,8 +159,15 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             }
         }
 
-        GyroCore.ui().write("@|magenta ⟳ Refreshing resources:|@ %s\n", refreshes.size());
-        service.shutdown();
+        refreshService.shutdown();
+
+        ScheduledExecutorService messageService = Executors.newSingleThreadScheduledExecutor();
+        GyroUI ui = GyroCore.ui();
+        int refreshesTotal = refreshes.size();
+
+        messageService.scheduleAtFixedRate(() -> {
+            ui.replace("@|magenta ⟳ Refreshing resources:|@ %s/%s", refreshedCount.get(), refreshesTotal);
+        }, 0, 100, TimeUnit.MILLISECONDS);
 
         for (Refresh refresh : refreshes) {
             Resource resource = refresh.resource;
@@ -161,11 +176,13 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
             try {
                 if (refresh.future.get()) {
-                    GyroCore.ui().write("@|magenta - Removing from state:|@ %s %s\n", typeName, name);
+                    ui.replace("@|magenta - Removing from state:|@ %s %s\n", typeName, name);
                     scope.getFileScopes().forEach(s -> s.remove(resource.primaryKey()));
                 }
 
             } catch (ExecutionException error) {
+                ui.write("\n");
+
                 throw new GyroException(
                     String.format("Can't refresh @|bold %s %s|@ resource!", typeName, name),
                     error.getCause());
@@ -175,6 +192,9 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
                 return;
             }
         }
+
+        messageService.shutdown();
+        ui.replace("@|magenta ⟳ Refreshed resources:|@ %s\n", refreshesTotal);
     }
 
     private static class Refresh {
