@@ -17,7 +17,7 @@ statement
 
 // directive
 directive
-    : AT IDENTIFIER COLON arguments
+    : AT IDENTIFIER COLON arguments option*
     | AT IDENTIFIER arguments? option* NEWLINE+ body section* AT END
     ;
 

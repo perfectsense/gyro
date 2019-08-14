@@ -2,24 +2,25 @@ package gyro.lang;
 
 import java.util.List;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
 public class SyntaxErrorException extends RuntimeException {
 
     private final String file;
-    private final List<SyntaxError> syntaxErrors;
+    private final List<SyntaxError> errors;
 
-    public SyntaxErrorException(String file, List<SyntaxError> syntaxErrors) {
-        this.file = file;
-        this.syntaxErrors = ImmutableList.copyOf(syntaxErrors);
+    public SyntaxErrorException(String file, List<SyntaxError> errors) {
+        this.file = Preconditions.checkNotNull(file);
+        this.errors = ImmutableList.copyOf(Preconditions.checkNotNull(errors));
     }
 
     public String getFile() {
         return file;
     }
 
-    public List<SyntaxError> getSyntaxErrors() {
-        return syntaxErrors;
+    public List<SyntaxError> getErrors() {
+        return errors;
     }
 
 }

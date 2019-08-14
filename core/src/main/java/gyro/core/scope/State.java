@@ -315,7 +315,7 @@ public class State {
 
         } else if (value instanceof Resource) {
             Resource resource = (Resource) value;
-            DiffableType type = DiffableType.getInstance(resource.getClass());
+            DiffableType<Resource> type = DiffableType.getInstance(resource);
 
             if (DiffableInternals.isExternal(resource)) {
                 return new ValueNode(type.getIdField().getValue(resource));

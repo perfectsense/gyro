@@ -5,15 +5,20 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import gyro.core.GyroException;
 import gyro.core.NamespaceUtils;
 import gyro.core.Reflections;
 import gyro.core.Type;
@@ -24,7 +29,7 @@ import gyro.core.validation.ValidationError;
 import gyro.lang.ast.Node;
 import gyro.parser.antlr4.GyroParser;
 
-public class DiffableType<R extends Diffable> {
+public class DiffableType<D extends Diffable> {
 
     private static final LoadingCache<Class<? extends Diffable>, DiffableType<? extends Diffable>> INSTANCES = CacheBuilder
         .newBuilder()
@@ -36,7 +41,7 @@ public class DiffableType<R extends Diffable> {
             }
         });
 
-    private final Class<R> diffableClass;
+    private final Class<D> diffableClass;
     private final boolean root;
     private final String name;
     private final Node description;
@@ -45,11 +50,16 @@ public class DiffableType<R extends Diffable> {
     private final Map<String, DiffableField> fieldByName;
 
     @SuppressWarnings("unchecked")
-    public static <R extends Diffable> DiffableType<R> getInstance(Class<R> diffableClass) {
-        return (DiffableType<R>) INSTANCES.getUnchecked(diffableClass);
+    public static <T extends Diffable> DiffableType<T> getInstance(Class<T> diffableClass) {
+        return (DiffableType<T>) INSTANCES.getUnchecked(diffableClass);
     }
 
-    private DiffableType(Class<R> diffableClass) {
+    @SuppressWarnings("unchecked")
+    public static <T extends Diffable> DiffableType<T> getInstance(T diffable) {
+        return (DiffableType<T>) INSTANCES.getUnchecked(diffable.getClass());
+    }
+
+    private DiffableType(Class<D> diffableClass) {
         this.diffableClass = diffableClass;
 
         Type typeAnnotation = diffableClass.getAnnotation(Type.class);
@@ -118,7 +128,13 @@ public class DiffableType<R extends Diffable> {
         return fieldByName.get(name);
     }
 
-    public String getDescription(Diffable diffable) {
+    public D newInstance(DiffableScope scope) {
+        D diffable = Reflections.newInstance(diffableClass);
+        diffable.scope = scope;
+        return diffable;
+    }
+
+    public String getDescription(D diffable) {
         Map<String, Object> values = new HashMap<>();
 
         for (DiffableField field : fields) {
@@ -143,16 +159,58 @@ public class DiffableType<R extends Diffable> {
             : null;
     }
 
-    public R newDiffable(Diffable parent, String name, DiffableScope scope) {
-        R diffable = Reflections.newInstance(diffableClass);
-        diffable.parent = parent;
-        diffable.name = name;
-        diffable.scope = scope;
+    public void setValues(D diffable, Map<String, Object> values) {
+        if (diffable.configuredFields == null) {
 
-        return diffable;
+            // Current state contains an explicit list of configured fields
+            // that were in the original diffable definition.
+            @SuppressWarnings("unchecked")
+            Collection<String> cf = (Collection<String>) values.get("_configured-fields");
+
+            if (cf == null) {
+
+                // Only save fields that are in the diffable definition and
+                // exclude the ones that were copied from the current state.
+                if (values instanceof DiffableScope) {
+                    cf = ((DiffableScope) values).getAddedKeys();
+
+                } else {
+                    cf = values.keySet();
+                }
+            }
+
+            diffable.configuredFields = ImmutableSet.copyOf(cf);
+        }
+
+        Set<String> invalidFieldNames = values.keySet()
+            .stream()
+            .filter(n -> !n.startsWith("_"))
+            .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        for (DiffableField field : fields) {
+            String fieldName = field.getName();
+
+            if (values.containsKey(fieldName)) {
+                field.setValue(diffable, values.get(fieldName));
+                invalidFieldNames.remove(fieldName);
+            }
+        }
+
+        if (!invalidFieldNames.isEmpty()) {
+            throw new GyroException(
+                values instanceof Scope
+                    ? ((Scope) values).getKeyNodes().get(invalidFieldNames.iterator().next())
+                    : null,
+                String.format(
+                    "Following fields aren't valid in @|bold %s|@ type! @|bold %s|@",
+                    name,
+                    String.join(", ", invalidFieldNames)));
+        }
+
+        DiffableInternals.update(diffable, false);
     }
 
-    public List<ValidationError> validate(Diffable diffable) {
+    public List<ValidationError> validate(D diffable) {
         List<ValidationError> errors = new ArrayList<>();
         validateValue(errors, diffable, null, diffable);
         return errors;

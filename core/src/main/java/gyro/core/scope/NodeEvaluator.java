@@ -165,7 +165,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
 
         } else if (object instanceof Diffable) {
             Diffable diffable = (Diffable) object;
-            DiffableType type = DiffableType.getInstance(diffable.getClass());
+            DiffableType<Diffable> type = DiffableType.getInstance(diffable);
             DiffableField field = type.getField(key);
 
             if (field == null) {
@@ -325,19 +325,21 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Object visitResource(ResourceNode node, Scope scope) {
         DiffableScope bodyScope = new DiffableScope(scope, node);
 
         for (Node item : node.getBody()) {
-            visit(item, bodyScope);
+            if (!(item instanceof DirectiveNode)) {
+                visit(item, bodyScope);
+            }
         }
 
         String name = (String) visit(node.getName(), scope);
-        String type = node.getType();
-        String fullName = type + "::" + name;
+        String typeName = node.getType();
+        String fullName = typeName + "::" + name;
         RootScope rootScope = scope.getRootScope();
 
-        @SuppressWarnings("unchecked")
         Collection<String> pendingConfiguredFields = ImmutableSet.copyOf(
             Optional.ofNullable((Collection<String>) bodyScope.get("_configured-fields"))
                 .orElseGet(bodyScope::getAddedKeys));
@@ -363,27 +365,46 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                 }
             });
 
+        for (Node item : node.getBody()) {
+            if (item instanceof DirectiveNode) {
+                visit(item, bodyScope);
+            }
+        }
 
-        Object value = rootScope.get(type);
+        Object value = rootScope.get(typeName);
 
         if (value == null) {
             throw new Defer(node, String.format(
                 "Can't create a resource of @|bold %s|@ type!",
-                type));
+                typeName));
 
         } else if (value instanceof Class) {
             Class<?> c = (Class<?>) value;
 
             if (Resource.class.isAssignableFrom(c)) {
-                Resource resource = DiffableType.getInstance((Class<? extends Resource>) c).newDiffable(null, name, bodyScope);
+                FileScope file = scope.getFileScope();
 
-                resource.initialize(bodyScope.isExtended() ? new LinkedHashMap<>(bodyScope) : bodyScope);
-                scope.getFileScope().put(fullName, resource);
+                if (file.containsKey(fullName)) {
+                    throw new GyroException(
+                        node,
+                        String.format("@|bold %s %s|@ has been defined already!", typeName, name),
+                        new GyroException(
+                            file.getKeyNodes().get(fullName),
+                            "Defined previously:"));
+                }
+
+                DiffableType<Resource> type = DiffableType.getInstance((Class<Resource>) c);
+                Resource resource = type.newInstance(bodyScope);
+
+                DiffableInternals.setName(resource, name);
+                type.setValues(resource, bodyScope.isExtended() ? new LinkedHashMap<>(bodyScope) : bodyScope);
+                file.put(fullName, resource);
+                file.getKeyNodes().put(fullName, node);
 
             } else {
                 throw new GyroException(String.format(
                     "Can't create a resource of @|bold %s|@ type using the @|bold %s|@ class!",
-                    type,
+                    typeName,
                     c.getName()));
             }
 
@@ -393,7 +414,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         } else {
             throw new GyroException(String.format(
                 "Can't create a resource of @|bold %s|@ type using @|bold %s|@, an instance of @|bold %s|@!",
-                type,
+                typeName,
                 value,
                 value.getClass().getName()));
         }

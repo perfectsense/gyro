@@ -5,7 +5,6 @@ import java.io.OutputStream;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -18,10 +17,13 @@ import gyro.core.FileBackend;
 import gyro.core.GyroException;
 import gyro.core.GyroInputStream;
 import gyro.core.GyroOutputStream;
-import gyro.core.Reflections;
+import gyro.core.LogDirectiveProcessor;
+import gyro.core.PrintDirectiveProcessor;
 import gyro.core.auth.CredentialsDirectiveProcessor;
 import gyro.core.auth.CredentialsPlugin;
 import gyro.core.auth.UsesCredentialsDirectiveProcessor;
+import gyro.core.backend.FileBackendDirectiveProcessor;
+import gyro.core.backend.FileBackendPlugin;
 import gyro.core.command.HighlanderDirectiveProcessor;
 import gyro.core.control.ForDirectiveProcessor;
 import gyro.core.control.IfDirectiveProcessor;
@@ -36,6 +38,7 @@ import gyro.core.reference.ReferencePlugin;
 import gyro.core.reference.ReferenceSettings;
 import gyro.core.repo.RepositoryDirectiveProcessor;
 import gyro.core.resource.DescriptionDirectiveProcessor;
+import gyro.core.resource.Diffable;
 import gyro.core.resource.DiffableField;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
@@ -46,6 +49,10 @@ import gyro.core.resource.TypeDescriptionDirectiveProcessor;
 import gyro.core.vault.VaultDirectiveProcessor;
 import gyro.core.vault.VaultPlugin;
 import gyro.core.vault.VaultReferenceResolver;
+import gyro.core.scope.converter.DiffableScopeToDiffable;
+import gyro.core.scope.converter.IdObjectToResource;
+import gyro.core.scope.converter.IterableToOne;
+import gyro.core.scope.converter.ResourceToIdObject;
 import gyro.core.validation.ValidationError;
 import gyro.core.validation.ValidationErrorException;
 import gyro.core.virtual.VirtualDirectiveProcessor;
@@ -69,7 +76,6 @@ public class RootScope extends FileScope {
     private final Node initNode;
     private final List<Node> bodyNodes = new ArrayList<>();
 
-    @SuppressWarnings("unchecked")
     public RootScope(String file, FileBackend backend, RootScope current, Set<String> loadFiles) {
         super(null, file);
 
@@ -77,22 +83,10 @@ public class RootScope extends FileScope {
 
         converter.setThrowError(true);
         converter.putAllStandardFunctions();
-
-        converter.putInheritableFunction(
-            Object.class,
-            Resource.class,
-            (c, returnType, id) -> c.convert(
-                returnType,
-                findResourceById((Class<? extends Resource>) returnType, id)));
-
-        converter.putInheritableFunction(
-            Resource.class,
-            Object.class,
-            (c, returnType, resource) -> c.convert(
-                returnType,
-                DiffableType.getInstance(resource.getClass())
-                    .getIdField()
-                    .getValue(resource)));
+        converter.putInheritableFunction(DiffableScope.class, Diffable.class, new DiffableScopeToDiffable());
+        converter.putInheritableFunction(Iterable.class, Object.class, new IterableToOne());
+        converter.putInheritableFunction(Object.class, Resource.class, new IdObjectToResource(this));
+        converter.putInheritableFunction(Resource.class, Object.class, new ResourceToIdObject());
 
         this.evaluator = new NodeEvaluator();
         this.backend = backend;
@@ -106,6 +100,7 @@ public class RootScope extends FileScope {
             new ChangePlugin(),
             new CredentialsPlugin(),
             new DirectivePlugin(),
+            new FileBackendPlugin(),
             new FinderPlugin(),
             new ReferencePlugin(),
             new ResourcePlugin(),
@@ -118,6 +113,7 @@ public class RootScope extends FileScope {
             new DeleteDirectiveProcessor(),
             new DescriptionDirectiveProcessor(),
             new ExtendsDirectiveProcessor(),
+            new FileBackendDirectiveProcessor(),
             new ForDirectiveProcessor(),
             new IfDirectiveProcessor(),
             new HighlanderDirectiveProcessor(),
@@ -129,7 +125,9 @@ public class RootScope extends FileScope {
             new UsesCredentialsDirectiveProcessor(),
             new VirtualDirectiveProcessor(),
             new WorkflowDirectiveProcessor(),
-            new VaultDirectiveProcessor())
+            new VaultDirectiveProcessor(),
+            new PrintDirectiveProcessor(),
+            new LogDirectiveProcessor())
             .forEach(p -> getSettings(DirectiveSettings.class).getProcessors().put(p.getName(), p));
 
         Stream.of(
@@ -256,15 +254,19 @@ public class RootScope extends FileScope {
     }
 
     public <T extends Resource> T findResourceById(Class<T> resourceClass, Object id) {
-        DiffableField idField = DiffableType.getInstance(resourceClass).getIdField();
+        if (id == null) {
+            return null;
+        }
+
+        DiffableType<T> type = DiffableType.getInstance(resourceClass);
+        DiffableField idField = type.getIdField();
 
         return findResourcesByClass(resourceClass)
             .filter(r -> id.equals(idField.getValue(r)))
             .findFirst()
             .orElseGet(() -> {
-                T r = Reflections.newInstance(resourceClass);
+                T r = type.newInstance(new DiffableScope(this, null));
                 DiffableInternals.setExternal(r, true);
-                DiffableInternals.setScope(r, new DiffableScope(this, null));
                 idField.setValue(r, id);
                 return r;
             });
@@ -296,31 +298,13 @@ public class RootScope extends FileScope {
             sb.append(String.format("Resources are not allowed in '%s'%n", getFile()));
         }
 
-        List<Resource> resources = findResources();
-        Map<String, List<String>> duplicateResources = new HashMap<>();
-
-        for (Resource resource : resources) {
-            String fullName = resource.primaryKey();
-            duplicateResources.putIfAbsent(fullName, new ArrayList<>());
-            duplicateResources.get(fullName).add(DiffableInternals.getScope(resource).getFileScope().getFile());
-        }
-
-        for (Map.Entry<String, List<String>> entry : duplicateResources.entrySet()) {
-            if (entry.getValue().size() > 1) {
-                sb.append(String.format("%nDuplicate resource %s defined in the following files:%n", entry.getKey()));
-                entry.getValue().stream()
-                    .map(p -> p + "\n")
-                    .forEach(sb::append);
-            }
-        }
-
         if (sb.length() != 0) {
             sb.insert(0, "Invalid configs\n");
             throw new GyroException(sb.toString());
         }
 
-        List<ValidationError> errors = resources.stream()
-            .map(r -> DiffableType.getInstance(r.getClass()).validate(r))
+        List<ValidationError> errors = findResources().stream()
+            .map(r -> DiffableType.getInstance(r).validate(r))
             .flatMap(List::stream)
             .collect(Collectors.toList());
 

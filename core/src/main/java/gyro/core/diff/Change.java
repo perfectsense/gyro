@@ -39,7 +39,7 @@ public abstract class Change {
 
     protected String getLabel(Diffable diffable, boolean includeParent) {
         Diffable parent = diffable.parent();
-        DiffableType type = DiffableType.getInstance(diffable.getClass());
+        DiffableType<Diffable> type = DiffableType.getInstance(diffable);
         String name = DiffableInternals.getName(diffable);
         String label;
 

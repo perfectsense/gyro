@@ -10,6 +10,11 @@ public abstract class Rule implements Locatable {
     protected final Token start;
     protected final Token stop;
 
+    public Rule(Token start, Token stop) {
+        this.start = start;
+        this.stop = stop;
+    }
+
     public Rule(ParserRuleContext context) {
         if (context != null) {
             start = context.getStart();

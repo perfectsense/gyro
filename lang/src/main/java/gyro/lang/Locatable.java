@@ -89,7 +89,7 @@ public interface Locatable {
 
             text.append(String.format(format, line + 1));
 
-            if (start > 1) {
+            if (start >= 1) {
                 text.append(current, 0, start);
             }
 

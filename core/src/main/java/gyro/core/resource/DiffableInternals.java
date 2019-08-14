@@ -33,10 +33,6 @@ public final class DiffableInternals {
         return diffable.scope;
     }
 
-    public static void setScope(Diffable diffable, DiffableScope scope) {
-        diffable.scope = scope;
-    }
-
     public static Set<String> getConfiguredFields(Diffable diffable) {
         Set<String> configuredFields = diffable.configuredFields;
         return configuredFields != null ? configuredFields : ImmutableSet.of();

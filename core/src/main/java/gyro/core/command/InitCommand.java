@@ -40,12 +40,8 @@ public class InitCommand extends AbstractCommand {
             Files.createDirectories(gyroDir);
 
         } else if (Files.isDirectory(gyroDir)) {
-            if (!GyroCore.ui().readBoolean(
-                Boolean.FALSE,
-                "Found an existing .gyro directory. Are you sure you want to update the plugins?")) {
-
-                return;
-            }
+            GyroCore.ui().write("This Gyro project directory has already been initialized.\n");
+            return;
 
         } else {
             throw new GyroException("Can't create the .gyro directory because there's a file there!");

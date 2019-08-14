@@ -1,23 +1,16 @@
 package gyro.core.resource;
 
 import java.nio.file.Paths;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.google.common.collect.ImmutableSet;
-import gyro.core.GyroException;
 import gyro.core.GyroInputStream;
 import gyro.core.GyroUI;
 import gyro.core.diff.Change;
 import gyro.core.scope.DiffableScope;
 import gyro.core.scope.FileScope;
-import gyro.core.scope.Scope;
 import gyro.core.validation.ValidationError;
 
 public abstract class Diffable {
@@ -61,85 +54,8 @@ public abstract class Diffable {
                 .toString());
     }
 
-    public void initialize(Map<String, Object> values) {
-        if (configuredFields == null) {
-
-            // Current state contains an explicit list of configured fields
-            // that were in the original diffable definition.
-            @SuppressWarnings("unchecked")
-            Collection<String> cf = (Collection<String>) values.get("_configured-fields");
-
-            if (cf == null) {
-
-                // Only save fields that are in the diffable definition and
-                // exclude the ones that were copied from the current state.
-                if (values instanceof DiffableScope) {
-                    cf = ((DiffableScope) values).getAddedKeys();
-
-                } else {
-                    cf = values.keySet();
-                }
-            }
-
-            configuredFields = ImmutableSet.copyOf(cf);
-        }
-
-        DiffableType<? extends Diffable> type = DiffableType.getInstance(getClass());
-        Map<String, Object> undefinedValues = new HashMap<>(values);
-
-        for (DiffableField field : type.getFields()) {
-            String fieldName = field.getName();
-
-            if (!values.containsKey(fieldName)) {
-                continue;
-            }
-
-            Object value = values.get(fieldName);
-
-            if (field.shouldBeDiffed()) {
-                @SuppressWarnings("unchecked")
-                Class<? extends Diffable> diffableClass = (Class<? extends Diffable>) field.getItemClass();
-
-                if (value instanceof Collection) {
-                    value = ((Collection<?>) value).stream()
-                            .map(v -> toDiffable(fieldName, diffableClass, v))
-                            .collect(Collectors.toList());
-
-                } else if (value instanceof DiffableScope) {
-                    value = toDiffable(fieldName, diffableClass, value);
-                }
-            }
-
-            field.setValue(this, value);
-            undefinedValues.remove(fieldName);
-        }
-
-        for (Map.Entry<String, Object> entry : undefinedValues.entrySet()) {
-            String key = entry.getKey();
-
-            if (!key.startsWith("_")) {
-                throw new GyroException(
-                    values instanceof Scope ? ((Scope) values).getKeyNodes().get(key) : null,
-                    String.format("@|bold %s|@ isn't a valid field in @|bold %s|@ type!", key, type.getName()));
-            }
-        }
-    }
-
-    private Object toDiffable(String fieldName, Class<? extends Diffable> diffableClass, Object object) {
-        if (!(object instanceof DiffableScope)) {
-            return object;
-        }
-
-        DiffableScope scope = (DiffableScope) object;
-        Diffable diffable = DiffableType.getInstance(diffableClass).newDiffable(this, fieldName, scope);
-
-        diffable.initialize(scope);
-
-        return diffable;
-    }
-
     protected <T extends Diffable> T newSubresource(Class<T> diffableClass) {
-        return DiffableType.getInstance(diffableClass).newDiffable(this, null, new DiffableScope(scope, null));
+        return DiffableType.getInstance(diffableClass).newInstance(new DiffableScope(scope, null));
     }
 
     public String primaryKey() {
@@ -189,7 +105,7 @@ public abstract class Diffable {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        DiffableType type = DiffableType.getInstance(getClass());
+        DiffableType<Diffable> type = DiffableType.getInstance(this);
         String typeName = type.getName();
 
         if (typeName != null) {

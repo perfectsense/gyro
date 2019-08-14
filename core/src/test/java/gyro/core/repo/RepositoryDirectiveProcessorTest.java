@@ -36,7 +36,7 @@ class RepositoryDirectiveProcessorTest {
 
         @BeforeEach
         void beforeEach() {
-            root = new RootScope(null, mock(FileBackend.class), null, null);
+            root = new RootScope("", mock(FileBackend.class), null, null);
         }
 
         @Test
