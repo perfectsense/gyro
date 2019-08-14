@@ -121,55 +121,6 @@ public abstract class DirectiveProcessor<S extends Scope> {
             .collect(Collectors.toList());
     }
 
-    @SuppressWarnings("unchecked")
-    public static <T> List<T> getListArgument(Scope scope, DirectiveNode node, Class<T> itemClass, int index) {
-        Node argument = get(node, index);
-
-        if (argument == null) {
-            return null;
-        }
-
-        Object value = scope.getRootScope().getEvaluator().visit(argument, scope);
-
-        if (value == null) {
-            throw new GyroException(argument, String.format(
-                "Expected a list at @|bold %s|@ but found a null!",
-                index));
-        }
-
-        if (!(value instanceof List)) {
-            throw new GyroException(argument, String.format(
-                "Expected a list at @|bold %s|@ but found @|bold %s|@, an instance of @|bold %s|@!",
-                index,
-                value,
-                value.getClass().getName()));
-        }
-
-        List<?> list = (List<?>) value;
-
-        for (int i = 0, s = list.size(); i < s; i++) {
-            Object item = list.get(i);
-
-            if (item == null) {
-                throw new GyroException(argument, String.format(
-                    "Expected an instance of @|bold %s|@ in the list at @|bold %s|@ but found a null!",
-                    itemClass.getName(),
-                    i));
-            }
-
-            if (!itemClass.isInstance(item)) {
-                throw new GyroException(argument, String.format(
-                    "Expected an instance of @|bold %s|@ in the list at @|bold %s|@ but found @|bold %s|@, an instance of @|bold %s|@!",
-                    itemClass.getName(),
-                    i,
-                    item,
-                    item.getClass().getName()));
-            }
-        }
-
-        return (List<T>) value;
-    }
-
     public static Scope evaluateBody(Scope scope, DirectiveNode node) {
         NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
         Scope bodyScope = new Scope(scope);
