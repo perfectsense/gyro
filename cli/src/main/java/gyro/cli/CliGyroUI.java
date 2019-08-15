@@ -12,6 +12,7 @@ import java.util.regex.Pattern;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import com.google.common.collect.ImmutableSet;
+import org.fusesource.jansi.Ansi;
 import org.fusesource.jansi.AnsiRenderer;
 
 public class CliGyroUI implements GyroUI {
@@ -163,6 +164,12 @@ public class CliGyroUI implements GyroUI {
         }
 
         System.out.flush();
+    }
+
+    @Override
+    public void replace(String message, Object... arguments) {
+        System.out.print(Ansi.ansi().eraseLine(Ansi.Erase.ALL).cursorToColumn(1));
+        write(message, arguments);
     }
 
 }

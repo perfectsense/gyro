@@ -3,15 +3,22 @@ package gyro.core.command;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
+import gyro.core.GyroUI;
 import gyro.core.LocalFileBackend;
 import gyro.core.auth.Credentials;
 import gyro.core.auth.CredentialsSettings;
@@ -103,7 +110,6 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
             if (!skipRefresh) {
                 refreshResources(current);
-                GyroCore.ui().write("\n");
             }
         }
 
@@ -125,29 +131,82 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
     }
 
     private void refreshResources(RootScope scope) {
+        ScheduledExecutorService messageService = Executors.newSingleThreadScheduledExecutor();
+        GyroUI ui = GyroCore.ui();
+        AtomicInteger started = new AtomicInteger();
+        AtomicInteger done = new AtomicInteger();
+
+        messageService.scheduleAtFixedRate(() -> {
+            ui.replace("@|magenta ⟳ Refreshing resources:|@ %s started, %s done", started.get(), done.get());
+        }, 0, 100, TimeUnit.MILLISECONDS);
+
+        ExecutorService refreshService = Executors.newCachedThreadPool();
+        List<Refresh> refreshes = new ArrayList<>();
+
         for (FileScope fileScope : scope.getFileScopes()) {
-            for (Iterator<Map.Entry<String, Object>> i = fileScope.entrySet().iterator(); i.hasNext(); ) {
-                Object value = i.next().getValue();
+            for (Object value : fileScope.values()) {
+                if (!(value instanceof Resource)) {
+                    continue;
+                }
 
-                if (value instanceof Resource) {
-                    Resource resource = (Resource) value;
+                Resource resource = (Resource) value;
 
-                    GyroCore.ui().write(
-                        "@|bold,blue Refreshing|@: @|yellow %s|@ -> %s...",
-                        DiffableType.getInstance(resource.getClass()).getName(),
-                        DiffableInternals.getName(resource));
+                refreshes.add(new Refresh(resource, refreshService.submit(() -> {
+                    started.incrementAndGet();
+                    boolean keep = resource.refresh();
+                    done.incrementAndGet();
 
-                    if (resource.refresh()) {
+                    if (keep) {
                         DiffableInternals.update(resource, true);
+                        return false;
 
                     } else {
-                        i.remove();
+                        return true;
                     }
-
-                    GyroCore.ui().write("\n");
-                }
+                })));
             }
         }
+
+        refreshService.shutdown();
+
+        for (Refresh refresh : refreshes) {
+            Resource resource = refresh.resource;
+            String typeName = DiffableType.getInstance(resource).getName();
+            String name = DiffableInternals.getName(resource);
+
+            try {
+                if (refresh.future.get()) {
+                    ui.replace("@|magenta - Removing from state:|@ %s %s\n", typeName, name);
+                    scope.getFileScopes().forEach(s -> s.remove(resource.primaryKey()));
+                }
+
+            } catch (ExecutionException error) {
+                ui.write("\n");
+
+                throw new GyroException(
+                    String.format("Can't refresh @|bold %s %s|@ resource!", typeName, name),
+                    error.getCause());
+
+            } catch (InterruptedException error) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+        }
+
+        messageService.shutdown();
+        ui.replace("@|magenta ⟳ Refreshed resources:|@ %s\n", refreshes.size());
+    }
+
+    private static class Refresh {
+
+        public final Resource resource;
+        public final Future<Boolean> future;
+
+        public Refresh(Resource resource, Future<Boolean> future) {
+            this.resource = resource;
+            this.future = future;
+        }
+
     }
 
 }
