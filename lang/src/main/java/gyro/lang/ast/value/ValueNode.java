@@ -6,7 +6,6 @@ import gyro.lang.ast.Node;
 import gyro.parser.antlr4.GyroParser;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 
 public class ValueNode extends Node {
 
@@ -33,7 +32,14 @@ public class ValueNode extends Node {
     public ValueNode(GyroParser.NumberContext context) {
         super(Preconditions.checkNotNull(context));
 
-        this.value = NumberUtils.createNumber(context.getText());
+        String text = context.getText();
+
+        if (text.contains(".")) {
+            this.value = Double.valueOf(text);
+
+        } else {
+            this.value = Long.valueOf(text);
+        }
     }
 
     public ValueNode(GyroParser.TextContext context) {
