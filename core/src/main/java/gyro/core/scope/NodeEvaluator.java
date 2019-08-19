@@ -230,9 +230,8 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         Defer.execute(body, i -> visit(i, scope));
     }
 
-    @Override
     @SuppressWarnings("unchecked")
-    public Object visitDirective(DirectiveNode node, Scope scope) {
+    public Object visitDirective(DirectiveNode node, Scope scope, Resource resource) {
         String name = node.getName();
 
         DirectiveProcessor processor = scope.getRootScope()
@@ -256,7 +255,11 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                     scope.getClass().getName()));
             }
 
-            processor.process(scope, node);
+            if (resource != null) {
+                processor.processResource(resource, node);
+            } else {
+                processor.process(scope, node);
+            }
 
         } catch (Exception error) {
             throw new GyroException(
@@ -266,6 +269,11 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         }
 
         return null;
+    }
+
+    @Override
+    public Object visitDirective(DirectiveNode node, Scope scope) {
+        return visitDirective(node, scope, null);
     }
 
     @Override
@@ -400,6 +408,12 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                 type.setValues(resource, bodyScope.isExtended() ? new LinkedHashMap<>(bodyScope) : bodyScope);
                 file.put(fullName, resource);
                 file.getKeyNodes().put(fullName, node);
+
+                for (Node item : node.getBody()) {
+                    if (item instanceof DirectiveNode) {
+                        visitDirective((DirectiveNode) item, bodyScope, resource);
+                    }
+                }
 
             } else {
                 throw new GyroException(String.format(

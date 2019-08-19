@@ -5,6 +5,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import gyro.core.GyroException;
+import gyro.core.resource.Resource;
+import gyro.core.scope.DiffableScope;
 import gyro.core.scope.NodeEvaluator;
 import gyro.core.scope.Scope;
 import gyro.lang.Locatable;
@@ -167,5 +169,9 @@ public abstract class DirectiveProcessor<S extends Scope> {
     public abstract String getName();
 
     public abstract void process(S scope, DirectiveNode node) throws Exception;
+
+    public void processResource(Resource resource, DirectiveNode node) throws Exception {
+
+    }
 
 }
