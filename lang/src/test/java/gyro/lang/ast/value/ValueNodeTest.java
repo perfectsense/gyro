@@ -17,10 +17,17 @@ class ValueNodeTest extends AbstractNodeTest<ValueNode> {
     }
 
     @Test
-    void constructorContextNumber() {
+    void constructorContextDouble() {
+        ValueNode node = (ValueNode) Node.parse("41.41", GyroParser::value);
+
+        assertThat(node.getValue()).isEqualTo(41.41);
+    }
+
+    @Test
+    void constructorContextLong() {
         ValueNode node = (ValueNode) Node.parse("41", GyroParser::value);
 
-        assertThat(node.getValue()).isEqualTo(41);
+        assertThat(node.getValue()).isEqualTo(41L);
     }
 
     @Test
