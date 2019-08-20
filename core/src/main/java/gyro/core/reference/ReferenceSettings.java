@@ -15,8 +15,13 @@ public class ReferenceSettings extends Settings {
     }
 
     public void addResolver(Class<? extends ReferenceResolver> resolverClass) {
-        ReferenceResolver resolver = Reflections.newInstance(resolverClass);
-        resolvers.put(resolver.getName(), resolver);
+        String type = Reflections.getType(resolverClass);
+
+        resolvers.put(
+            Reflections.getNamespaceOptional(resolverClass)
+                .map(ns -> ns + "::" + type)
+                .orElse(type),
+            Reflections.newInstance(resolverClass));
     }
 
 }

@@ -2,14 +2,11 @@ package gyro.core.scope;
 
 import java.util.List;
 
+import gyro.core.Type;
 import gyro.core.reference.ReferenceResolver;
 
+@Type("value")
 public class ValueReferenceResolver extends ReferenceResolver {
-
-    @Override
-    public String getName() {
-        return "value";
-    }
 
     @Override
     public Object resolve(Scope scope, List<Object> arguments) {
