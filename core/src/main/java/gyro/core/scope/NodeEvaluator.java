@@ -236,8 +236,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
 
         DirectiveProcessor processor = scope.getRootScope()
             .getSettings(DirectiveSettings.class)
-            .getProcessors()
-            .get(name);
+            .getProcessor(name);
 
         if (processor == null) {
             throw new GyroException(
