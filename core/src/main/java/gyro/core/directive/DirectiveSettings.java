@@ -16,8 +16,13 @@ public class DirectiveSettings extends Settings {
     }
 
     public void addProcessor(Class<? extends DirectiveProcessor<? extends Scope>> processorClass) {
-        DirectiveProcessor<? extends Scope> processor = Reflections.newInstance(processorClass);
-        processors.put(processor.getName(), processor);
+        String type = Reflections.getType(processorClass);
+
+        processors.put(
+            Reflections.getNamespaceOptional(processorClass)
+                .map(ns -> ns + "::" + type)
+                .orElse(type),
+            Reflections.newInstance(processorClass));
     }
 
 }

@@ -50,25 +50,25 @@ public class Reflections {
             }
         });
 
-    public static String getNamespace(Class<?> c) {
-        String namespace = Optional.ofNullable(c.getAnnotation(Namespace.class))
+    public static Optional<String> getNamespaceOptional(Class<?> aClass) {
+        String namespace = Optional.ofNullable(aClass.getAnnotation(Namespace.class))
             .map(Namespace::value)
             .filter(StringUtils::isNotBlank)
             .orElseGet(() -> {
-                Package pkg = c.getPackage();
+                Package pkg = aClass.getPackage();
 
                 return pkg != null
-                    ? NAMESPACES_BY_LOADER.getUnchecked(c.getClassLoader()).getUnchecked(pkg.getName())
+                    ? NAMESPACES_BY_LOADER.getUnchecked(aClass.getClassLoader()).getUnchecked(pkg.getName())
                     : "";
             });
 
-        if (namespace.isEmpty()) {
-            throw new Bug(String.format(
-                "@|bold %s|@ class or one of its packages requires a @Namespace annotation with a non-blank value!",
-                c.getName()));
-        }
+        return namespace.isEmpty() ? Optional.empty() : Optional.of(namespace);
+    }
 
-        return namespace;
+    public static String getNamespace(Class<?> aClass) {
+        return getNamespaceOptional(aClass).orElseThrow(() -> new Bug(String.format(
+            "@|bold %s|@ class or one of its packages requires a @Namespace annotation with a non-blank value!",
+            aClass.getName())));
     }
 
     public static Optional<String> getTypeOptional(Class<?> aClass) {

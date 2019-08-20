@@ -24,11 +24,6 @@ class RepositoryDirectiveProcessorTest {
         processor = new RepositoryDirectiveProcessor();
     }
 
-    @Test
-    void getName() {
-        assertThat(processor.getName()).isEqualTo("repository");
-    }
-
     @Nested
     class WithRootScope {
 

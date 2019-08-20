@@ -8,12 +8,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+@Type("log")
 public class LogDirectiveProcessor extends PrintDirectiveProcessor {
-
-    @Override
-    public String getName() {
-        return "log";
-    }
 
     @Override
     protected void print(String content) {

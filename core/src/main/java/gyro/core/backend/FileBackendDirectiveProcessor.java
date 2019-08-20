@@ -1,6 +1,7 @@
 package gyro.core.backend;
 
 import com.google.common.base.CaseFormat;
+import gyro.core.Type;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.FileBackend;
 import gyro.core.Reflections;
@@ -11,12 +12,8 @@ import gyro.lang.ast.block.DirectiveNode;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
 
+@Type("file-backend")
 public class FileBackendDirectiveProcessor extends DirectiveProcessor<RootScope> {
-
-    @Override
-    public String getName() {
-        return "file-backend";
-    }
 
     @Override
     public void process(RootScope scope, DirectiveNode node) throws Exception {

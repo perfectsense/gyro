@@ -13,6 +13,7 @@ import java.util.jar.JarFile;
 
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
+import gyro.core.Type;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.repo.RepositorySettings;
 import gyro.core.scope.RootScope;
@@ -39,15 +40,11 @@ import org.eclipse.aether.transport.http.HttpTransporterFactory;
 import org.eclipse.aether.util.artifact.JavaScopes;
 import org.eclipse.aether.util.filter.DependencyFilterUtils;
 
+@Type("plugin")
 public class PluginDirectiveProcessor extends DirectiveProcessor<RootScope> {
 
     private static final ConcurrentMap<String, Set<Class<?>>> CLASSES_BY_ARTIFACT_COORDS = new ConcurrentHashMap<>();
     private static final PluginClassLoader PLUGIN_CLASS_LOADER = new PluginClassLoader();
-
-    @Override
-    public String getName() {
-        return "plugin";
-    }
 
     @Override
     public void process(RootScope scope, DirectiveNode node) {

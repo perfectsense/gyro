@@ -34,7 +34,7 @@ public class DirectiveNode extends BlockNode {
     public DirectiveNode(GyroParser.DirectiveContext context) {
         super(Preconditions.checkNotNull(context), Node.create(context.body()));
 
-        this.name = context.IDENTIFIER().getText();
+        this.name = context.directiveType().getText();
         this.arguments = Node.create(context.arguments());
 
         this.options = context.option()
