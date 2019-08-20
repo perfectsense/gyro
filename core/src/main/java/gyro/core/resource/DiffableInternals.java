@@ -1,6 +1,7 @@
 package gyro.core.resource;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -34,8 +35,11 @@ public final class DiffableInternals {
     }
 
     public static Set<String> getConfiguredFields(Diffable diffable) {
-        Set<String> configuredFields = diffable.configuredFields;
-        return configuredFields != null ? configuredFields : ImmutableSet.of();
+        if (diffable.configuredFields == null) {
+            diffable.configuredFields = new HashSet<>();
+        }
+
+        return diffable.configuredFields;
     }
 
     public static Change getChange(Diffable diffable) {

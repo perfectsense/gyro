@@ -18,6 +18,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import gyro.core.GyroException;
 import gyro.core.NamespaceUtils;
 import gyro.core.Reflections;
@@ -179,7 +180,7 @@ public class DiffableType<D extends Diffable> {
                 }
             }
 
-            diffable.configuredFields = ImmutableSet.copyOf(cf);
+            diffable.configuredFields = Sets.newHashSet(cf);
         }
 
         Set<String> invalidFieldNames = values.keySet()
