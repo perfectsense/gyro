@@ -5,14 +5,15 @@ import java.io.OutputStream;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.psddev.dari.util.Converter;
-import com.psddev.dari.util.StringUtils;
 import gyro.core.FileBackend;
 import gyro.core.GyroException;
 import gyro.core.GyroInputStream;
@@ -25,6 +26,7 @@ import gyro.core.auth.UsesCredentialsDirectiveProcessor;
 import gyro.core.backend.FileBackendDirectiveProcessor;
 import gyro.core.backend.FileBackendPlugin;
 import gyro.core.command.HighlanderDirectiveProcessor;
+import gyro.core.command.HighlanderSettings;
 import gyro.core.control.ForDirectiveProcessor;
 import gyro.core.control.IfDirectiveProcessor;
 import gyro.core.diff.ChangePlugin;
@@ -59,8 +61,10 @@ import gyro.core.workflow.ReplaceDirectiveProcessor;
 import gyro.core.workflow.UpdateDirectiveProcessor;
 import gyro.core.workflow.WorkflowDirectiveProcessor;
 import gyro.lang.ast.Node;
+import gyro.lang.ast.block.FileNode;
 import gyro.parser.antlr4.GyroParser;
 import gyro.util.Bug;
+import org.apache.commons.lang3.StringUtils;
 
 public class RootScope extends FileScope {
 
@@ -68,12 +72,9 @@ public class RootScope extends FileScope {
     private final NodeEvaluator evaluator;
     private final FileBackend backend;
     private final RootScope current;
-    private final Set<String> loadFiles;
     private final List<FileScope> fileScopes = new ArrayList<>();
-    private final Node initNode;
-    private final List<Node> bodyNodes = new ArrayList<>();
 
-    public RootScope(String file, FileBackend backend, RootScope current, Set<String> loadFiles) {
+    public RootScope(String file, FileBackend backend, RootScope current) {
         super(null, file);
 
         converter = new Converter();
@@ -88,10 +89,6 @@ public class RootScope extends FileScope {
         this.evaluator = new NodeEvaluator();
         this.backend = backend;
         this.current = current;
-
-        try (Stream<String> s = list()) {
-            this.loadFiles = (loadFiles != null ? s.filter(loadFiles::contains) : s).collect(Collectors.toSet());
-        }
 
         Stream.of(
             new ChangePlugin(),
@@ -130,31 +127,6 @@ public class RootScope extends FileScope {
             .forEach(r -> getSettings(ReferenceSettings.class).getResolvers().put(r.getName(), r));
 
         put("ENV", System.getenv());
-
-        if (!StringUtils.isBlank(getFile())) {
-            try (GyroInputStream input = openInput(getFile())) {
-                initNode = Node.parse(input, getFile(), GyroParser::file);
-
-            } catch (IOException error) {
-                throw new Bug(error);
-            }
-        } else {
-            initNode = null;
-        }
-
-        for (String loadFile : this.loadFiles) {
-            try (GyroInputStream input = openInput(loadFile)) {
-                bodyNodes.add(Node.parse(input, loadFile, GyroParser::file));
-
-            } catch (IOException error) {
-                throw new Bug(error);
-
-            } catch (Exception error) {
-                throw new GyroException(
-                    String.format("Can't parse @|bold %s|@ in @|bold %s|@!", loadFile, this.backend),
-                    error);
-            }
-        }
     }
 
     public NodeEvaluator getEvaluator() {
@@ -167,10 +139,6 @@ public class RootScope extends FileScope {
 
     public RootScope getCurrent() {
         return current;
-    }
-
-    public Set<String> getLoadFiles() {
-        return loadFiles;
     }
 
     public List<FileScope> getFileScopes() {
@@ -205,6 +173,12 @@ public class RootScope extends FileScope {
                 String.format("Can't delete @|bold %s|@ in @|bold %s|@!", file, backend),
                 error);
         }
+    }
+
+    public Set<String> getFiles() {
+        return fileScopes.stream()
+            .map(FileScope::getFile)
+            .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     public Object convertValue(Type returnType, Object object) {
@@ -266,22 +240,69 @@ public class RootScope extends FileScope {
             });
     }
 
-    public void evaluate() {
-        evaluator.visit(initNode, this);
-        evaluator.visitBody(bodyNodes, this);
+    public void evaluate(Set<String> files) {
+        List<Node> nodes = new ArrayList<>();
+
+        evaluateFile(getFile(), node -> nodes.addAll(node.getBody()));
+
+        try {
+            evaluator.visitBody(nodes, this);
+
+        } catch (Defer error) {
+            // Ignore for now since this is reevaluated later.
+        }
+
+        if (getSettings(HighlanderSettings.class).isHighlander()) {
+            if (files != null) {
+                if (files.size() == 1) {
+                    evaluateFile(files.iterator().next(), nodes::add);
+
+                } else {
+                    throw new GyroException("Can't specify more than one file in highlander mode!");
+                }
+
+            } else {
+                throw new GyroException("Must specify a file in highlander mode!");
+            }
+
+        } else {
+            try (Stream<String> s = list()) {
+                s.forEach(f -> evaluateFile(f, nodes::add));
+            }
+        }
+
+        evaluator.visitBody(nodes, this);
 
         for (Resource resource : findResources()) {
             DiffableType<?> type = DiffableType.getInstance(resource.getClass());
             DiffableScope scope = DiffableInternals.getScope(resource);
-            Map<String, Node> nodes = scope.getValueNodes();
+            Map<String, Node> valueNodes = scope.getValueNodes();
 
             for (DiffableField field : type.getFields()) {
-                Node node = nodes.get(field.getName());
+                Node node = valueNodes.get(field.getName());
 
                 if (node != null) {
                     field.setValue(resource, evaluator.visit(node, scope));
                 }
             }
+        }
+    }
+
+    private void evaluateFile(String file, Consumer<FileNode> consumer) {
+        if (StringUtils.isBlank(file)) {
+            return;
+        }
+
+        try (GyroInputStream input = openInput(file)) {
+            consumer.accept((FileNode) Node.parse(input, file, GyroParser::file));
+
+        } catch (IOException error) {
+            throw new Bug(error);
+
+        } catch (Exception error) {
+            throw new GyroException(
+                String.format("Can't parse @|bold %s|@ in @|bold %s|@!", file, this.backend),
+                error);
         }
     }
 
