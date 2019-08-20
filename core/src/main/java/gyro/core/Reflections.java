@@ -5,10 +5,83 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Optional;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import gyro.util.Bug;
+import org.apache.commons.lang3.StringUtils;
 
 public class Reflections {
+
+    private static final LoadingCache<ClassLoader, LoadingCache<String, String>> NAMESPACES_BY_LOADER = CacheBuilder.newBuilder()
+        .weakKeys()
+        .build(new CacheLoader<ClassLoader, LoadingCache<String, String>>() {
+
+            @Override
+            public LoadingCache<String, String> load(ClassLoader loader) {
+                return CacheBuilder.newBuilder()
+                    .build(new CacheLoader<String, String>() {
+
+                        @Override
+                        public String load(String name) {
+                            Package pkg;
+
+                            try {
+                                pkg = Class.forName(name + ".package-info", true, loader).getPackage();
+
+                            } catch (ClassNotFoundException error) {
+                                pkg = null;
+                            }
+
+                            return Optional.ofNullable(pkg)
+                                .map(p -> p.getAnnotation(Namespace.class))
+                                .map(Namespace::value)
+                                .orElseGet(() -> {
+                                    int lastDotAt = name.lastIndexOf('.');
+
+                                    return lastDotAt > -1
+                                        ? NAMESPACES_BY_LOADER.getUnchecked(loader).getUnchecked(name.substring(0, lastDotAt))
+                                        : "";
+                                });
+                        }
+                    });
+            }
+        });
+
+    public static Optional<String> getNamespaceOptional(Class<?> aClass) {
+        String namespace = Optional.ofNullable(aClass.getAnnotation(Namespace.class))
+            .map(Namespace::value)
+            .filter(StringUtils::isNotBlank)
+            .orElseGet(() -> {
+                Package pkg = aClass.getPackage();
+
+                return pkg != null
+                    ? NAMESPACES_BY_LOADER.getUnchecked(aClass.getClassLoader()).getUnchecked(pkg.getName())
+                    : "";
+            });
+
+        return namespace.isEmpty() ? Optional.empty() : Optional.of(namespace);
+    }
+
+    public static String getNamespace(Class<?> aClass) {
+        return getNamespaceOptional(aClass).orElseThrow(() -> new Bug(String.format(
+            "@|bold %s|@ class or one of its packages requires a @Namespace annotation with a non-blank value!",
+            aClass.getName())));
+    }
+
+    public static Optional<String> getTypeOptional(Class<?> aClass) {
+        return Optional.ofNullable(aClass.getAnnotation(Type.class))
+            .map(Type::value)
+            .filter(StringUtils::isNotBlank);
+    }
+
+    public static String getType(Class<?> aClass) {
+        return getTypeOptional(aClass).orElseThrow(() -> new Bug(String.format(
+            "@|bold %s|@ class requires a @Type annotation with a non-blank value!",
+            aClass.getName())));
+    }
 
     public static BeanInfo getBeanInfo(Class<?> aClass) {
         try {

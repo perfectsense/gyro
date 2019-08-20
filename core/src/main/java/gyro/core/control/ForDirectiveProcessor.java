@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import gyro.core.GyroException;
+import gyro.core.Type;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.scope.NodeEvaluator;
 import gyro.core.scope.Scope;
@@ -12,12 +13,8 @@ import gyro.lang.ast.Node;
 import gyro.lang.ast.block.DirectiveNode;
 import gyro.util.CascadingMap;
 
+@Type("for")
 public class ForDirectiveProcessor extends DirectiveProcessor<Scope> {
-
-    @Override
-    public String getName() {
-        return "for";
-    }
 
     @Override
     public void process(Scope scope, DirectiveNode node) {

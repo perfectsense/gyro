@@ -2,17 +2,14 @@ package gyro.core.workflow;
 
 import java.util.List;
 
+import gyro.core.Type;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.scope.Scope;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.DirectiveNode;
 
+@Type("replace")
 public class ReplaceDirectiveProcessor extends DirectiveProcessor<Scope> {
-
-    @Override
-    public String getName() {
-        return "replace";
-    }
 
     @Override
     public void process(Scope scope, DirectiveNode node) {

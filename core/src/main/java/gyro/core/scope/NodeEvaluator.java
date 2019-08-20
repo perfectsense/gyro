@@ -236,8 +236,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
 
         DirectiveProcessor processor = scope.getRootScope()
             .getSettings(DirectiveSettings.class)
-            .getProcessors()
-            .get(name);
+            .getProcessor(name);
 
         if (processor == null) {
             throw new GyroException(
@@ -524,10 +523,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         if (node.getArguments().get(0) instanceof ValueNode) {
             RootScope root = scope.getRootScope();
             String referenceName = (String) value;
-
-            ReferenceResolver resolver = root.getSettings(ReferenceSettings.class)
-                .getResolvers()
-                .get(referenceName);
+            ReferenceResolver resolver = root.getSettings(ReferenceSettings.class).getResolver(referenceName);
 
             if (resolver != null) {
                 try {

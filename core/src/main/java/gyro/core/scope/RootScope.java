@@ -59,7 +59,7 @@ import gyro.core.workflow.CreateDirectiveProcessor;
 import gyro.core.workflow.DeleteDirectiveProcessor;
 import gyro.core.workflow.ReplaceDirectiveProcessor;
 import gyro.core.workflow.UpdateDirectiveProcessor;
-import gyro.core.workflow.WorkflowDirectiveProcessor;
+import gyro.core.workflow.DefineDirectiveProcessor;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.FileNode;
 import gyro.parser.antlr4.GyroParser;
@@ -101,30 +101,30 @@ public class RootScope extends FileScope {
             .forEach(p -> getSettings(PluginSettings.class).getPlugins().add(p));
 
         Stream.of(
-            new CreateDirectiveProcessor(),
-            new CredentialsDirectiveProcessor(),
-            new DeleteDirectiveProcessor(),
-            new DescriptionDirectiveProcessor(),
-            new ExtendsDirectiveProcessor(),
-            new FileBackendDirectiveProcessor(),
-            new ForDirectiveProcessor(),
-            new IfDirectiveProcessor(),
-            new HighlanderDirectiveProcessor(),
-            new ReplaceDirectiveProcessor(),
-            new RepositoryDirectiveProcessor(),
-            new PluginDirectiveProcessor(),
-            new TypeDescriptionDirectiveProcessor(),
-            new UpdateDirectiveProcessor(),
-            new UsesCredentialsDirectiveProcessor(),
-            new VirtualDirectiveProcessor(),
-            new WorkflowDirectiveProcessor(),
-            new PrintDirectiveProcessor(),
-            new LogDirectiveProcessor())
-            .forEach(p -> getSettings(DirectiveSettings.class).getProcessors().put(p.getName(), p));
+            CreateDirectiveProcessor.class,
+            CredentialsDirectiveProcessor.class,
+            DeleteDirectiveProcessor.class,
+            DescriptionDirectiveProcessor.class,
+            ExtendsDirectiveProcessor.class,
+            FileBackendDirectiveProcessor.class,
+            ForDirectiveProcessor.class,
+            IfDirectiveProcessor.class,
+            HighlanderDirectiveProcessor.class,
+            ReplaceDirectiveProcessor.class,
+            RepositoryDirectiveProcessor.class,
+            PluginDirectiveProcessor.class,
+            TypeDescriptionDirectiveProcessor.class,
+            UpdateDirectiveProcessor.class,
+            UsesCredentialsDirectiveProcessor.class,
+            VirtualDirectiveProcessor.class,
+            DefineDirectiveProcessor.class,
+            PrintDirectiveProcessor.class,
+            LogDirectiveProcessor.class)
+            .forEach(p -> getSettings(DirectiveSettings.class).addProcessor(p));
 
         Stream.of(
-            new FinderReferenceResolver())
-            .forEach(r -> getSettings(ReferenceSettings.class).getResolvers().put(r.getName(), r));
+            FinderReferenceResolver.class)
+            .forEach(r -> getSettings(ReferenceSettings.class).addResolver(r));
 
         put("ENV", System.getenv());
     }

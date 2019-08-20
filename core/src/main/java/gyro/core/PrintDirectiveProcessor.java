@@ -7,12 +7,8 @@ import gyro.lang.ast.block.DirectiveNode;
 
 import java.util.List;
 
+@Type("print")
 public class PrintDirectiveProcessor extends DirectiveProcessor<Scope> {
-
-    @Override
-    public String getName() {
-        return "print";
-    }
 
     @Override
     public void process(Scope scope, DirectiveNode node) {

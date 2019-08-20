@@ -10,9 +10,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import gyro.core.NamespaceUtils;
 import gyro.core.Reflections;
-import gyro.core.Type;
 import gyro.core.scope.Scope;
 
 public class FinderType<F extends Finder> {
@@ -40,7 +38,7 @@ public class FinderType<F extends Finder> {
 
     private FinderType(Class<F> finderClass) {
         this.finderClass = finderClass;
-        this.name = NamespaceUtils.getNamespacePrefix(finderClass ) + finderClass.getAnnotation(Type.class).value();
+        this.name = Reflections.getNamespace(finderClass) + "::" + Reflections.getType(finderClass);
 
         ImmutableList.Builder<FinderField> fields = ImmutableList.builder();
         ImmutableMap.Builder<String, FinderField> fieldByJavaName = ImmutableMap.builder();

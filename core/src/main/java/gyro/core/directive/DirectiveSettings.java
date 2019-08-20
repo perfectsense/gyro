@@ -3,23 +3,26 @@ package gyro.core.directive;
 import java.util.HashMap;
 import java.util.Map;
 
+import gyro.core.Reflections;
 import gyro.core.scope.Scope;
 import gyro.core.scope.Settings;
 
 public class DirectiveSettings extends Settings {
 
-    private Map<String, DirectiveProcessor<? extends Scope>> processors;
+    private final Map<String, DirectiveProcessor<? extends Scope>> processors = new HashMap<>();
 
-    public Map<String, DirectiveProcessor<? extends Scope>> getProcessors() {
-        if (processors == null) {
-            processors = new HashMap<>();
-        }
-
-        return processors;
+    public DirectiveProcessor<? extends Scope> getProcessor(String type) {
+        return processors.get(type);
     }
 
-    public void setProcessors(Map<String, DirectiveProcessor<? extends Scope>> processors) {
-        this.processors = processors;
+    public void addProcessor(Class<? extends DirectiveProcessor<? extends Scope>> processorClass) {
+        String type = Reflections.getType(processorClass);
+
+        processors.put(
+            Reflections.getNamespaceOptional(processorClass)
+                .map(ns -> ns + "::" + type)
+                .orElse(type),
+            Reflections.newInstance(processorClass));
     }
 
 }
