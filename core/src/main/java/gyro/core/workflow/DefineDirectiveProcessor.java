@@ -5,8 +5,8 @@ import gyro.core.directive.DirectiveProcessor;
 import gyro.core.scope.FileScope;
 import gyro.lang.ast.block.DirectiveNode;
 
-@Type("workflow")
-public class WorkflowDirectiveProcessor extends DirectiveProcessor<FileScope> {
+@Type("define")
+public class DefineDirectiveProcessor extends DirectiveProcessor<FileScope> {
 
     @Override
     public void process(FileScope scope, DirectiveNode node) {
