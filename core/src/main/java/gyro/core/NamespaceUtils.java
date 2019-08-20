@@ -5,6 +5,8 @@ import java.util.Optional;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import gyro.util.Bug;
+import org.apache.commons.lang3.StringUtils;
 
 public class NamespaceUtils {
 
@@ -44,8 +46,9 @@ public class NamespaceUtils {
         });
 
     public static String getNamespace(Class<?> c) {
-        return Optional.ofNullable(c.getAnnotation(Namespace.class))
+        String namespace = Optional.ofNullable(c.getAnnotation(Namespace.class))
             .map(Namespace::value)
+            .filter(StringUtils::isNotBlank)
             .orElseGet(() -> {
                 Package pkg = c.getPackage();
 
@@ -53,6 +56,14 @@ public class NamespaceUtils {
                     ? NAMESPACES_BY_LOADER.getUnchecked(c.getClassLoader()).getUnchecked(pkg.getName())
                     : "";
             });
+
+        if (namespace.isEmpty()) {
+            throw new Bug(String.format(
+                "@|bold %s|@ class or one of its packages requires a @Namespace annotation with a non-blank value!",
+                c.getName()));
+        }
+
+        return namespace;
     }
 
     public static String getNamespacePrefix(Class<?> c) {
