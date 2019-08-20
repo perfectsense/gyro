@@ -1,6 +1,5 @@
 package gyro.core.auth;
 
-import gyro.core.NamespaceUtils;
 import gyro.core.Reflections;
 import gyro.core.plugin.Plugin;
 import gyro.core.scope.RootScope;
@@ -12,7 +11,7 @@ public class CredentialsPlugin extends Plugin {
         if (Credentials.class.isAssignableFrom(aClass)) {
             @SuppressWarnings("unchecked")
             Class<? extends Credentials> credentialsClass = (Class<? extends Credentials>) aClass;
-            String namespace = NamespaceUtils.getNamespace(credentialsClass);
+            String namespace = Reflections.getNamespace(credentialsClass);
             String type = Reflections.getTypeOptional(credentialsClass).orElse("credentials");
 
             root.getSettings(CredentialsSettings.class)

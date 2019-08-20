@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import gyro.core.GyroException;
-import gyro.core.NamespaceUtils;
 import gyro.core.Reflections;
 import gyro.core.scope.DiffableScope;
 import gyro.core.scope.RootScope;
@@ -65,7 +64,7 @@ public class DiffableType<D extends Diffable> {
 
         if (type.isPresent()) {
             this.root = true;
-            this.name = NamespaceUtils.getNamespace(diffableClass) + "::" + type.get();
+            this.name = Reflections.getNamespace(diffableClass) + "::" + type.get();
 
         } else {
             this.root = false;

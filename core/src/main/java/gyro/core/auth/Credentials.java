@@ -6,7 +6,7 @@ import java.util.Set;
 import com.google.common.collect.ImmutableSet;
 import gyro.core.GyroException;
 import gyro.core.GyroInputStream;
-import gyro.core.NamespaceUtils;
+import gyro.core.Reflections;
 import gyro.core.scope.DiffableScope;
 import gyro.core.scope.FileScope;
 import gyro.core.scope.Scope;
@@ -23,7 +23,7 @@ public abstract class Credentials {
             ? diffableScope.getSettings(CredentialsSettings.class).getUseCredentials()
             : null;
 
-        name = NamespaceUtils.getNamespace(contextClass) + "::" + (name != null ? name : "default");
+        name = Reflections.getNamespace(contextClass) + "::" + (name != null ? name : "default");
 
         Credentials credentials = scope.getRootScope()
             .getSettings(CredentialsSettings.class)
@@ -48,7 +48,7 @@ public abstract class Credentials {
     }
 
     public Set<String> getNamespaces() {
-        return ImmutableSet.of(NamespaceUtils.getNamespace(getClass()));
+        return ImmutableSet.of(Reflections.getNamespace(getClass()));
     }
 
     public void refresh() {
