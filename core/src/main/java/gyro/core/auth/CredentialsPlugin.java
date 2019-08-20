@@ -1,9 +1,7 @@
 package gyro.core.auth;
 
-import java.util.Optional;
-
 import gyro.core.NamespaceUtils;
-import gyro.core.Type;
+import gyro.core.Reflections;
 import gyro.core.plugin.Plugin;
 import gyro.core.scope.RootScope;
 
@@ -15,10 +13,7 @@ public class CredentialsPlugin extends Plugin {
             @SuppressWarnings("unchecked")
             Class<? extends Credentials> credentialsClass = (Class<? extends Credentials>) aClass;
             String namespacePrefix = NamespaceUtils.getNamespacePrefix(credentialsClass);
-
-            String type = Optional.ofNullable(credentialsClass.getAnnotation(Type.class))
-                .map(Type::value)
-                .orElse("credentials");
+            String type = Reflections.getTypeOptional(credentialsClass).orElse("credentials");
 
             root.getSettings(CredentialsSettings.class)
                 .getCredentialsClasses()

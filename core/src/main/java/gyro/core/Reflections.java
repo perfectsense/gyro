@@ -5,10 +5,24 @@ import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Optional;
 
 import gyro.util.Bug;
+import org.apache.commons.lang3.StringUtils;
 
 public class Reflections {
+
+    public static Optional<String> getTypeOptional(Class<?> aClass) {
+        return Optional.ofNullable(aClass.getAnnotation(Type.class))
+            .map(Type::value)
+            .filter(StringUtils::isNotBlank);
+    }
+
+    public static String getType(Class<?> aClass) {
+        return getTypeOptional(aClass).orElseThrow(() -> new Bug(String.format(
+            "@|bold %s|@ class requires a @Type annotation with a non-blank value!",
+            aClass.getName())));
+    }
 
     public static BeanInfo getBeanInfo(Class<?> aClass) {
         try {
