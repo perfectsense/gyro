@@ -23,7 +23,7 @@ public abstract class Credentials {
             ? diffableScope.getSettings(CredentialsSettings.class).getUseCredentials()
             : null;
 
-        name = NamespaceUtils.getNamespacePrefix(contextClass) + (name != null ? name : "default");
+        name = NamespaceUtils.getNamespace(contextClass) + "::" + (name != null ? name : "default");
 
         Credentials credentials = scope.getRootScope()
             .getSettings(CredentialsSettings.class)

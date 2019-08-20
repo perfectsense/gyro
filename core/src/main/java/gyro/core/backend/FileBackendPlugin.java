@@ -13,12 +13,12 @@ public class FileBackendPlugin extends Plugin {
         if (FileBackend.class.isAssignableFrom(aClass)) {
             @SuppressWarnings("unchecked")
             Class<? extends FileBackend> fileBackendClass = (Class<? extends FileBackend>) aClass;
-            String namespacePrefix = NamespaceUtils.getNamespacePrefix(fileBackendClass);
+            String namespace = NamespaceUtils.getNamespace(fileBackendClass);
             String type = Reflections.getType(fileBackendClass);
 
             root.getSettings(FileBackendsSettings.class)
                 .getFileBackendsClasses()
-                .put(namespacePrefix + type, fileBackendClass);
+                .put(namespace + "::" + type, fileBackendClass);
         }
     }
 

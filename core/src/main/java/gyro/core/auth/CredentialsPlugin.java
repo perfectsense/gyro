@@ -12,12 +12,12 @@ public class CredentialsPlugin extends Plugin {
         if (Credentials.class.isAssignableFrom(aClass)) {
             @SuppressWarnings("unchecked")
             Class<? extends Credentials> credentialsClass = (Class<? extends Credentials>) aClass;
-            String namespacePrefix = NamespaceUtils.getNamespacePrefix(credentialsClass);
+            String namespace = NamespaceUtils.getNamespace(credentialsClass);
             String type = Reflections.getTypeOptional(credentialsClass).orElse("credentials");
 
             root.getSettings(CredentialsSettings.class)
                 .getCredentialsClasses()
-                .put(namespacePrefix + type, credentialsClass);
+                .put(namespace + "::" + type, credentialsClass);
         }
     }
 

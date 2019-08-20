@@ -66,10 +66,4 @@ public class NamespaceUtils {
         return namespace;
     }
 
-    public static String getNamespacePrefix(Class<?> c) {
-        String namespace = getNamespace(c);
-
-        return namespace.isEmpty() ? "" : namespace + "::";
-    }
-
 }

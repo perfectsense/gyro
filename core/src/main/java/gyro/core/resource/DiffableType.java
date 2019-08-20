@@ -65,7 +65,7 @@ public class DiffableType<D extends Diffable> {
 
         if (type.isPresent()) {
             this.root = true;
-            this.name = NamespaceUtils.getNamespacePrefix(diffableClass) + type.get();
+            this.name = NamespaceUtils.getNamespace(diffableClass) + "::" + type.get();
 
         } else {
             this.root = false;

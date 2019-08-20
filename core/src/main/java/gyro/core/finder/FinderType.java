@@ -39,7 +39,7 @@ public class FinderType<F extends Finder> {
 
     private FinderType(Class<F> finderClass) {
         this.finderClass = finderClass;
-        this.name = NamespaceUtils.getNamespacePrefix(finderClass ) + Reflections.getType(finderClass);
+        this.name = NamespaceUtils.getNamespace(finderClass) + "::" + Reflections.getType(finderClass);
 
         ImmutableList.Builder<FinderField> fields = ImmutableList.builder();
         ImmutableMap.Builder<String, FinderField> fieldByJavaName = ImmutableMap.builder();
