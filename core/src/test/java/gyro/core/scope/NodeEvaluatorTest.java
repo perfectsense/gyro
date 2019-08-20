@@ -57,23 +57,6 @@ class NodeEvaluatorTest {
             assertThat(evaluate("$(foo)")).isEqualTo("bar");
         }
 
-        private void addConstantReferenceResolver(Object constant) {
-            ConstantReferenceResolver r = new ConstantReferenceResolver(constant);
-            root.getSettings(ReferenceSettings.class).getResolvers().put(r.getName(), r);
-        }
-
-        @Test
-        void resolveNull() {
-            addConstantReferenceResolver(null);
-            assertThat(evaluate("$(constant)")).isNull();
-        }
-
-        @Test
-        void resolveString() {
-            addConstantReferenceResolver("foo");
-            assertThat(evaluate("$(constant)")).isEqualTo("foo");
-        }
-
         @Test
         void filter() {
             scope.put("foo", ImmutableMap.of("bar", "x"));
@@ -84,6 +67,26 @@ class NodeEvaluatorTest {
         void filterNull() {
             scope.put("foo", ImmutableMap.of("bar", "x"));
             assertThat(evaluate("$(foo | bar = 'y')")).isNull();
+        }
+
+        @Nested
+        class ValueTest {
+
+            @BeforeEach
+            void beforeEach() {
+                root.getSettings(ReferenceSettings.class).addResolver(ValueReferenceResolver.class);
+            }
+
+            @Test
+            void resolveNull() {
+                assertThat(evaluate("$(value)")).isNull();
+            }
+
+            @Test
+            void resolveString() {
+                assertThat(evaluate("$(value 'foo')")).isEqualTo("foo");
+            }
+
         }
 
         @Nested

@@ -123,8 +123,8 @@ public class RootScope extends FileScope {
             .forEach(p -> getSettings(DirectiveSettings.class).addProcessor(p));
 
         Stream.of(
-            new FinderReferenceResolver())
-            .forEach(r -> getSettings(ReferenceSettings.class).getResolvers().put(r.getName(), r));
+            FinderReferenceResolver.class)
+            .forEach(r -> getSettings(ReferenceSettings.class).addResolver(r));
 
         put("ENV", System.getenv());
     }
