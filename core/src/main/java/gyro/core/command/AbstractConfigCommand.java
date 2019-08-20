@@ -60,7 +60,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         }
 
         Set<String> files = this.files == null
-            ? ImmutableSet.of()
+            ? null
             : this.files.stream()
                 .map(file -> {
                     file = file.endsWith(".gyro") ? file : file + ".gyro";

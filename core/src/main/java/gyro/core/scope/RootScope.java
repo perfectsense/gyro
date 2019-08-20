@@ -267,7 +267,11 @@ public class RootScope extends FileScope {
 
         } else {
             try (Stream<String> s = list()) {
-                s.forEach(f -> evaluateFile(f, nodes::add));
+                s.forEach(f -> {
+                    if (files == null || files.contains(f)) {
+                        evaluateFile(f, nodes::add);
+                    }
+                });
             }
         }
 
