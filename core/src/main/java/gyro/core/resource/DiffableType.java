@@ -180,7 +180,7 @@ public class DiffableType<D extends Diffable> {
                 }
             }
 
-            diffable.configuredFields = Sets.newHashSet(cf);
+            diffable.configuredFields = new LinkedHashSet<>(cf);
         }
 
         Set<String> invalidFieldNames = values.keySet()
