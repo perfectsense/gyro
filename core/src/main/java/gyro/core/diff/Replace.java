@@ -57,12 +57,6 @@ public class Replace extends Change {
             if (!field.shouldBeDiffed()) {
                 if (changedFields.contains(field)) {
                     writeDifference(ui, field, currentDiffable, pendingDiffable);
-
-                } else {
-                    ui.write(
-                        "\n· %s: %s",
-                        field.getName(),
-                        stringify(field.getValue(pendingDiffable)));
                 }
             }
         }
