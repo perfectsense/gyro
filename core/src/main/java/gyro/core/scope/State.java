@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -49,9 +50,9 @@ public class State {
     private final Map<String, String> newKeys = new HashMap<>();
 
     public State(RootScope current, RootScope pending, boolean test, Set<String> diffFiles) {
-        this.root = new RootScope(current.getFile(), current.getBackend(), null, current.getLoadFiles());
+        this.root = new RootScope(current.getFile(), current.getBackend(), null);
 
-        root.evaluate();
+        root.evaluate(current.getFiles());
 
         this.test = test;
         this.diffFiles = diffFiles != null ? ImmutableSet.copyOf(diffFiles) : null;

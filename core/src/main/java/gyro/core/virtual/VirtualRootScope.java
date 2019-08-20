@@ -1,6 +1,7 @@
 package gyro.core.virtual;
 
-import com.google.common.collect.ImmutableSet;
+import java.util.Set;
+
 import gyro.core.resource.Resource;
 import gyro.core.scope.RootScope;
 
@@ -9,7 +10,7 @@ public class VirtualRootScope extends RootScope {
     private final String virtualName;
 
     public VirtualRootScope(RootScope scope, String virtualName) {
-        super(scope.getFile(), scope.getBackend(), null, ImmutableSet.of());
+        super(scope.getFile(), scope.getBackend(), null);
         this.virtualName = virtualName;
         putAll(scope);
         getFileScopes().addAll(scope.getFileScopes());
@@ -23,7 +24,7 @@ public class VirtualRootScope extends RootScope {
     }
 
     @Override
-    public void evaluate() {
+    public void evaluate(Set<String> files) {
         throw new UnsupportedOperationException();
     }
 

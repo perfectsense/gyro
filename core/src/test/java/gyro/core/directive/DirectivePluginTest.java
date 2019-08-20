@@ -37,7 +37,7 @@ class DirectivePluginTest {
 
     @Test
     void onEachClass() {
-        RootScope root = new RootScope("", mock(FileBackend.class), null, null);
+        RootScope root = new RootScope("", mock(FileBackend.class), null);
 
         new DirectivePlugin().onEachClass(root, TestDirectiveProcessor.class);
 

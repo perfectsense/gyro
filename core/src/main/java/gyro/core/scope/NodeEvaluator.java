@@ -291,15 +291,9 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
     @Override
     public Object visitFile(FileNode node, Scope scope) {
         RootScope rootScope = scope.getRootScope();
-        FileScope fileScope;
+        FileScope fileScope = new FileScope(rootScope, node.getFile());
 
-        if (rootScope.getFile().equals(node.getFile())) {
-            fileScope = rootScope;
-
-        } else {
-            fileScope = new FileScope(rootScope, node.getFile());
-            rootScope.getFileScopes().add(fileScope);
-        }
+        rootScope.getFileScopes().add(fileScope);
 
         try {
             visitBody(node.getBody(), fileScope);
