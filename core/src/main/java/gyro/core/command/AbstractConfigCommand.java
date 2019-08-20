@@ -4,7 +4,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.ImmutableSet;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
@@ -58,49 +59,35 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             throw new GyroException("Not a gyro project directory, use 'gyro init <plugins>...' to create one. See 'gyro help init' for detailed usage.");
         }
 
-        Set<String> loadFiles;
-        Set<String> diffFiles;
+        Set<String> files = this.files == null
+            ? null
+            : this.files.stream()
+                .map(file -> {
+                    file = file.endsWith(".gyro") ? file : file + ".gyro";
+                    file = rootDir.relativize(Paths.get("").toAbsolutePath().resolve(file)).normalize().toString();
 
-        if (getInit().getSettings(HighlanderSettings.class).isHighlander()) {
-            if (files != null) {
-                if (files.size() == 1) {
-                    loadFiles = Collections.singleton(resolve(rootDir, files.get(0)));
-                    diffFiles = null;
+                    if (Files.exists(rootDir.resolve(file))) {
+                        return file;
 
-                } else {
-                    throw new GyroException("Can't specify more than one file in highlander mode!");
-                }
-
-            } else {
-                throw new GyroException("Must specify a file in highlander mode!");
-            }
-
-        } else if (files != null) {
-            loadFiles = null;
-            diffFiles = files.stream()
-                .map(f -> resolve(rootDir, f))
-                .collect(Collectors.toSet());
-
-        } else {
-            loadFiles = null;
-            diffFiles = null;
-        }
+                    } else {
+                        throw new GyroException(String.format("File not found! %s", file));
+                    }
+                })
+                .collect(Collectors.toCollection(LinkedHashSet::new));
 
         core = new GyroCore();
 
         RootScope current = new RootScope(
             "../../" + GyroCore.INIT_FILE,
             new LocalFileBackend(rootDir.resolve(".gyro/state")),
-            null,
-            loadFiles);
+            null);
 
-        current.evaluate();
+        current.evaluate(files);
 
         RootScope pending = new RootScope(
             GyroCore.INIT_FILE,
             new LocalFileBackend(rootDir),
-            current,
-            loadFiles);
+            current);
 
         if (!test) {
             current.getSettings(CredentialsSettings.class)
@@ -113,21 +100,9 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             }
         }
 
-        pending.evaluate();
+        pending.evaluate(files);
         pending.validate();
-        doExecute(current, pending, new State(current, pending, test, diffFiles));
-    }
-
-    private String resolve(Path rootDir, String file) {
-        file = file.endsWith(".gyro") ? file : file + ".gyro";
-        file = rootDir.relativize(Paths.get("").toAbsolutePath().resolve(file)).normalize().toString();
-
-        if (Files.exists(rootDir.resolve(file))) {
-            return file;
-
-        } else {
-            throw new GyroException(String.format("File not found! %s", file));
-        }
+        doExecute(current, pending, new State(current, pending, test, files));
     }
 
     private void refreshResources(RootScope scope) {

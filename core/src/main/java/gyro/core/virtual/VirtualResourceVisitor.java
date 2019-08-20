@@ -52,9 +52,9 @@ public class VirtualResourceVisitor extends ResourceVisitor {
     @Override
     public void visit(String name, Scope scope) {
         RootScope root = scope.getRootScope();
-        RootScope virtualRoot = new RootScope(root.getFile(), root.getBackend(), new VirtualRootScope(root.getCurrent(), name), ImmutableSet.of());
+        RootScope virtualRoot = new RootScope(root.getFile(), root.getBackend(), new VirtualRootScope(root.getCurrent(), name));
 
-        virtualRoot.evaluate();
+        virtualRoot.evaluate(ImmutableSet.of());
         virtualRoot.validate();
         virtualRoot.putAll(root);
 

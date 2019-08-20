@@ -25,7 +25,7 @@ class NodeEvaluatorTest {
     @BeforeEach
     void beforeEach() {
         evaluator = new NodeEvaluator();
-        root = new RootScope("", mock(FileBackend.class), null, null);
+        root = new RootScope("", mock(FileBackend.class), null);
         scope = new Scope(root);
     }
 
