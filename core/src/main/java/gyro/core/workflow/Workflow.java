@@ -1,7 +1,6 @@
 package gyro.core.workflow;
 
 import java.util.List;
-import java.util.Set;
 
 import com.google.common.base.Preconditions;
 import gyro.core.Abort;
@@ -115,11 +114,9 @@ public class Workflow {
         pending.evaluate();
         pending.validate();
 
-        Set<String> diffFiles = state.getDiffFiles();
-
         Diff diff = new Diff(
-            current.findResourcesIn(diffFiles),
-            pending.findResourcesIn(diffFiles));
+            current.findResourcesIn(current.getLoadFiles()),
+            pending.findResourcesIn(pending.getLoadFiles()));
 
         diff.diff();
 

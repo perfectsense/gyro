@@ -115,7 +115,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
         pending.evaluate();
         pending.validate();
-        doExecute(current, pending, new State(current, pending, test, loadFiles));
+        doExecute(current, pending, new State(current, pending, test));
     }
 
     private void refreshResources(RootScope scope) {

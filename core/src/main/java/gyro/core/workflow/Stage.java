@@ -2,7 +2,6 @@ package gyro.core.workflow;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.google.common.base.Preconditions;
@@ -82,11 +81,9 @@ public class Stage {
 
         Defer.execute(actions, a -> a.execute(ui, state, pendingRootScope, scope));
 
-        Set<String> diffFiles = state.getDiffFiles();
-
         Diff diff = new Diff(
-            currentRootScope.findResourcesIn(diffFiles),
-            pendingRootScope.findResourcesIn(diffFiles));
+            currentRootScope.findResourcesIn(currentRootScope.getLoadFiles()),
+            pendingRootScope.findResourcesIn(pendingRootScope.getLoadFiles()));
 
         diff.diff();
 

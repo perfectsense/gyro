@@ -1,7 +1,5 @@
 package gyro.core.command;
 
-import java.util.Set;
-
 import gyro.core.GyroCore;
 import gyro.core.GyroUI;
 import gyro.core.diff.Diff;
@@ -18,11 +16,9 @@ public class UpCommand extends AbstractConfigCommand {
 
         ui.write("\n@|bold,white Looking for changes...\n\n|@");
 
-        Set<String> diffFiles = state.getDiffFiles();
-
         Diff diff = new Diff(
-            current.findResourcesIn(diffFiles),
-            pending.findResourcesIn(diffFiles));
+            current.findResourcesIn(current.getLoadFiles()),
+            pending.findResourcesIn(pending.getLoadFiles()));
 
         diff.diff();
 
