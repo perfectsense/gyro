@@ -50,9 +50,9 @@ public class State {
     private final Map<String, String> newKeys = new HashMap<>();
 
     public State(RootScope current, RootScope pending, boolean test, Set<String> diffFiles) {
-        this.root = new RootScope(current.getFile(), current.getBackend(), null);
+        this.root = new RootScope(current.getFile(), current.getBackend(), null, current.getLoadFiles());
 
-        root.evaluate(current.getFiles());
+        root.evaluate();
 
         this.test = test;
         this.diffFiles = diffFiles != null ? ImmutableSet.copyOf(diffFiles) : null;

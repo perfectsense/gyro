@@ -10,7 +10,7 @@ public class VirtualRootScope extends RootScope {
     private final String virtualName;
 
     public VirtualRootScope(RootScope scope, String virtualName) {
-        super(scope.getFile(), scope.getBackend(), null);
+        super(scope.getFile(), scope.getBackend(), null, scope.getLoadFiles());
         this.virtualName = virtualName;
         putAll(scope);
         getFileScopes().addAll(scope.getFileScopes());
@@ -24,7 +24,7 @@ public class VirtualRootScope extends RootScope {
     }
 
     @Override
-    public void evaluate(Set<String> files) {
+    public void evaluate() {
         throw new UnsupportedOperationException();
     }
 

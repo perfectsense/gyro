@@ -59,10 +59,10 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             throw new GyroException("Not a gyro project directory, use 'gyro init <plugins>...' to create one. See 'gyro help init' for detailed usage.");
         }
 
-        Set<String> normalizedFiles;
+        Set<String> loadFiles;
 
         if (files == null) {
-            normalizedFiles = null;
+            loadFiles = null;
 
         } else {
             Map<Boolean, Set<String>> p = files.stream()
@@ -75,7 +75,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             Set<String> nonexistent = p.get(Boolean.FALSE);
 
             if (nonexistent.isEmpty()) {
-                normalizedFiles = p.get(Boolean.TRUE);
+                loadFiles = p.get(Boolean.TRUE);
 
             } else {
                 throw new GyroException(String.format(
@@ -91,14 +91,16 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         RootScope current = new RootScope(
             "../../" + GyroCore.INIT_FILE,
             new LocalFileBackend(rootDir.resolve(".gyro/state")),
-            null);
+            null,
+            loadFiles);
 
-        current.evaluate(normalizedFiles);
+        current.evaluate();
 
         RootScope pending = new RootScope(
             GyroCore.INIT_FILE,
             new LocalFileBackend(rootDir),
-            current);
+            current,
+            loadFiles);
 
         if (!test) {
             current.getSettings(CredentialsSettings.class)
@@ -111,9 +113,9 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             }
         }
 
-        pending.evaluate(normalizedFiles);
+        pending.evaluate();
         pending.validate();
-        doExecute(current, pending, new State(current, pending, test, normalizedFiles));
+        doExecute(current, pending, new State(current, pending, test, loadFiles));
     }
 
     private void refreshResources(RootScope scope) {

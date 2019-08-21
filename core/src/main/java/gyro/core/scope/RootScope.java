@@ -8,11 +8,13 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.google.common.collect.ImmutableSet;
 import com.psddev.dari.util.Converter;
 import gyro.core.FileBackend;
 import gyro.core.GyroException;
@@ -72,9 +74,10 @@ public class RootScope extends FileScope {
     private final NodeEvaluator evaluator;
     private final FileBackend backend;
     private final RootScope current;
+    private final Set<String> loadFiles;
     private final List<FileScope> fileScopes = new ArrayList<>();
 
-    public RootScope(String file, FileBackend backend, RootScope current) {
+    public RootScope(String file, FileBackend backend, RootScope current, Set<String> loadFiles) {
         super(null, file);
 
         converter = new Converter();
@@ -89,6 +92,7 @@ public class RootScope extends FileScope {
         this.evaluator = new NodeEvaluator();
         this.backend = backend;
         this.current = current;
+        this.loadFiles = loadFiles != null ? ImmutableSet.copyOf(loadFiles) : ImmutableSet.of();
 
         Stream.of(
             new ChangePlugin(),
@@ -141,6 +145,10 @@ public class RootScope extends FileScope {
         return current;
     }
 
+    public Set<String> getLoadFiles() {
+        return loadFiles;
+    }
+
     public List<FileScope> getFileScopes() {
         return fileScopes;
     }
@@ -173,12 +181,6 @@ public class RootScope extends FileScope {
                 String.format("Can't delete @|bold %s|@ in @|bold %s|@!", file, backend),
                 error);
         }
-    }
-
-    public Set<String> getFiles() {
-        return fileScopes.stream()
-            .map(FileScope::getFile)
-            .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     public Object convertValue(Type returnType, Object object) {
@@ -240,7 +242,7 @@ public class RootScope extends FileScope {
             });
     }
 
-    public void evaluate(Set<String> files) {
+    public void evaluate() {
         List<Node> nodes = new ArrayList<>();
 
         evaluateFile(getFile(), node -> nodes.addAll(node.getBody()));
@@ -259,29 +261,22 @@ public class RootScope extends FileScope {
         }
 
         if (getSettings(HighlanderSettings.class).isHighlander()) {
-            if (files != null) {
-                if (files.size() > 1) {
-                    throw new GyroException("Can't specify more than one file in highlander mode!");
+            int s = loadFiles.size();
 
-                } else {
+            if (s == 0) {
+                throw new GyroException("Must specify a file in highlander mode!");
 
-                    // Note that files may be empty when trying to read a state file that hasn't been written yet.
-                    files.stream()
-                        .filter(existingFiles::contains)
-                        .findFirst()
-                        .ifPresent(f -> evaluateFile(f, nodes::add));
-                }
+            } else if (s != 1) {
+                throw new GyroException("Can't specify more than one file in highlander mode!");
 
             } else {
-                throw new GyroException("Must specify a file in highlander mode!");
+                Optional.of(loadFiles.iterator().next())
+                    .filter(existingFiles::contains)
+                    .ifPresent(f -> evaluateFile(f, nodes::add));
             }
 
         } else {
-            existingFiles.forEach(f -> {
-                if (files == null || files.contains(f)) {
-                    evaluateFile(f, nodes::add);
-                }
-            });
+            existingFiles.forEach(f -> evaluateFile(f, nodes::add));
         }
 
         evaluator.visitBody(nodes, this);

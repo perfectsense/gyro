@@ -52,8 +52,8 @@ public class Workflow {
 
     private RootScope copyCurrentRootScope() {
         RootScope current = root.getCurrent();
-        RootScope scope = new RootScope(current.getFile(), current.getBackend(), null);
-        scope.evaluate(current.getFiles());
+        RootScope scope = new RootScope(current.getFile(), current.getBackend(), null, current.getLoadFiles());
+        scope.evaluate();
         return scope;
     }
 
@@ -110,13 +110,9 @@ public class Workflow {
         } while (stageIndex < stagesSize);
 
         RootScope current = copyCurrentRootScope();
+        RootScope pending = new RootScope(root.getFile(), root.getBackend(), current, root.getLoadFiles());
 
-        RootScope pending = new RootScope(
-            root.getFile(),
-            root.getBackend(),
-            current);
-
-        pending.evaluate(root.getFiles());
+        pending.evaluate();
         pending.validate();
 
         Set<String> diffFiles = state.getDiffFiles();
