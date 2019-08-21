@@ -59,9 +59,9 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             throw new GyroException("Not a gyro project directory, use 'gyro init <plugins>...' to create one. See 'gyro help init' for detailed usage.");
         }
 
-        Set<String> files = this.files == null
+        Set<String> normalizedFiles = files == null
             ? null
-            : this.files.stream()
+            : files.stream()
                 .map(file -> {
                     file = file.endsWith(".gyro") ? file : file + ".gyro";
                     file = rootDir.relativize(Paths.get("").toAbsolutePath().resolve(file)).normalize().toString();
@@ -82,7 +82,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             new LocalFileBackend(rootDir.resolve(".gyro/state")),
             null);
 
-        current.evaluate(files);
+        current.evaluate(normalizedFiles);
 
         RootScope pending = new RootScope(
             GyroCore.INIT_FILE,
@@ -100,9 +100,9 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             }
         }
 
-        pending.evaluate(files);
+        pending.evaluate(normalizedFiles);
         pending.validate();
-        doExecute(current, pending, new State(current, pending, test, files));
+        doExecute(current, pending, new State(current, pending, test, normalizedFiles));
     }
 
     private void refreshResources(RootScope scope) {
