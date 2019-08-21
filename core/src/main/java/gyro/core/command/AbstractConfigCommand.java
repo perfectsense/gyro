@@ -6,6 +6,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -64,19 +65,25 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             normalizedFiles = null;
 
         } else {
-            normalizedFiles = files.stream()
-                .map(file -> {
-                    file = file.endsWith(".gyro") ? file : file + ".gyro";
-                    file = rootDir.relativize(Paths.get("").toAbsolutePath().resolve(file)).normalize().toString();
+            Map<Boolean, Set<String>> p = files.stream()
+                .map(f -> f.endsWith(".gyro") ? f : f + ".gyro")
+                .map(f -> rootDir.relativize(Paths.get("").toAbsolutePath().resolve(f)).normalize().toString())
+                .collect(Collectors.partitioningBy(
+                    f -> Files.exists(rootDir.resolve(f)),
+                    Collectors.toCollection(LinkedHashSet::new)));
 
-                    if (Files.exists(rootDir.resolve(file))) {
-                        return file;
+            Set<String> nonexistent = p.get(Boolean.FALSE);
 
-                    } else {
-                        throw new GyroException(String.format("File not found! %s", file));
-                    }
-                })
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+            if (nonexistent.isEmpty()) {
+                normalizedFiles = p.get(Boolean.TRUE);
+
+            } else {
+                throw new GyroException(String.format(
+                    "Files not found! %s",
+                    nonexistent.stream()
+                        .map(f -> String.format("@|bold %s|@", f))
+                        .collect(Collectors.joining(", "))));
+            }
         }
 
         core = new GyroCore();
