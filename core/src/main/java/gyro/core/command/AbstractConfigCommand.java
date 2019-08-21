@@ -16,7 +16,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.ImmutableSet;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
@@ -59,9 +58,13 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             throw new GyroException("Not a gyro project directory, use 'gyro init <plugins>...' to create one. See 'gyro help init' for detailed usage.");
         }
 
-        Set<String> normalizedFiles = files == null
-            ? null
-            : files.stream()
+        Set<String> normalizedFiles;
+
+        if (files == null) {
+            normalizedFiles = null;
+
+        } else {
+            normalizedFiles = files.stream()
                 .map(file -> {
                     file = file.endsWith(".gyro") ? file : file + ".gyro";
                     file = rootDir.relativize(Paths.get("").toAbsolutePath().resolve(file)).normalize().toString();
@@ -74,6 +77,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
                     }
                 })
                 .collect(Collectors.toCollection(LinkedHashSet::new));
+        }
 
         core = new GyroCore();
 
