@@ -80,7 +80,7 @@ class ScopeTest {
 
         @BeforeEach
         void beforeEach() {
-            root = new RootScope("", mock(FileBackend.class), null);
+            root = new RootScope("", mock(FileBackend.class), null, null);
             file = new FileScope(root, "");
             scope = new Scope(file);
         }

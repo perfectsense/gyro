@@ -6,6 +6,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -16,7 +17,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.ImmutableSet;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
@@ -59,35 +59,48 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             throw new GyroException("Not a gyro project directory, use 'gyro init <plugins>...' to create one. See 'gyro help init' for detailed usage.");
         }
 
-        Set<String> files = this.files == null
-            ? null
-            : this.files.stream()
-                .map(file -> {
-                    file = file.endsWith(".gyro") ? file : file + ".gyro";
-                    file = rootDir.relativize(Paths.get("").toAbsolutePath().resolve(file)).normalize().toString();
+        Set<String> loadFiles;
 
-                    if (Files.exists(rootDir.resolve(file))) {
-                        return file;
+        if (files == null) {
+            loadFiles = null;
 
-                    } else {
-                        throw new GyroException(String.format("File not found! %s", file));
-                    }
-                })
-                .collect(Collectors.toCollection(LinkedHashSet::new));
+        } else {
+            Map<Boolean, Set<String>> p = files.stream()
+                .map(f -> f.endsWith(".gyro") ? f : f + ".gyro")
+                .map(f -> rootDir.relativize(Paths.get("").toAbsolutePath().resolve(f)).normalize().toString())
+                .collect(Collectors.partitioningBy(
+                    f -> Files.exists(rootDir.resolve(f)),
+                    Collectors.toCollection(LinkedHashSet::new)));
+
+            Set<String> nonexistent = p.get(Boolean.FALSE);
+
+            if (nonexistent.isEmpty()) {
+                loadFiles = p.get(Boolean.TRUE);
+
+            } else {
+                throw new GyroException(String.format(
+                    "Files not found! %s",
+                    nonexistent.stream()
+                        .map(f -> String.format("@|bold %s|@", f))
+                        .collect(Collectors.joining(", "))));
+            }
+        }
 
         core = new GyroCore();
 
         RootScope current = new RootScope(
             "../../" + GyroCore.INIT_FILE,
             new LocalFileBackend(rootDir.resolve(".gyro/state")),
-            null);
+            null,
+            loadFiles);
 
-        current.evaluate(files);
+        current.evaluate();
 
         RootScope pending = new RootScope(
             GyroCore.INIT_FILE,
             new LocalFileBackend(rootDir),
-            current);
+            current,
+            loadFiles);
 
         if (!test) {
             current.getSettings(CredentialsSettings.class)
@@ -100,9 +113,9 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             }
         }
 
-        pending.evaluate(files);
+        pending.evaluate();
         pending.validate();
-        doExecute(current, pending, new State(current, pending, test, files));
+        doExecute(current, pending, new State(current, pending, test));
     }
 
     private void refreshResources(RootScope scope) {
