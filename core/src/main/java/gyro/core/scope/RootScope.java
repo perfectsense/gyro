@@ -252,13 +252,24 @@ public class RootScope extends FileScope {
             // Ignore for now since this is reevaluated later.
         }
 
+        Set<String> existingFiles;
+
+        try (Stream<String> s = list()) {
+            existingFiles = s.collect(Collectors.toCollection(LinkedHashSet::new));
+        }
+
         if (getSettings(HighlanderSettings.class).isHighlander()) {
             if (files != null) {
-                if (files.size() == 1) {
-                    evaluateFile(files.iterator().next(), nodes::add);
+                if (files.size() > 1) {
+                    throw new GyroException("Can't specify more than one file in highlander mode!");
 
                 } else {
-                    throw new GyroException("Can't specify more than one file in highlander mode!");
+
+                    // Note that files may be empty when trying to read a state file that hasn't been written yet.
+                    files.stream()
+                        .filter(existingFiles::contains)
+                        .findFirst()
+                        .ifPresent(f -> evaluateFile(f, nodes::add));
                 }
 
             } else {
@@ -266,13 +277,11 @@ public class RootScope extends FileScope {
             }
 
         } else {
-            try (Stream<String> s = list()) {
-                s.forEach(f -> {
-                    if (files == null || files.contains(f)) {
-                        evaluateFile(f, nodes::add);
-                    }
-                });
-            }
+            existingFiles.forEach(f -> {
+                if (files == null || files.contains(f)) {
+                    evaluateFile(f, nodes::add);
+                }
+            });
         }
 
         evaluator.visitBody(nodes, this);
