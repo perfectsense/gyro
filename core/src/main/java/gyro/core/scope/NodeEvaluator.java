@@ -239,15 +239,13 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         Defer.execute(body, i -> visit(i, scope));
     }
 
-    @Override
     @SuppressWarnings("unchecked")
-    public Object visitDirective(DirectiveNode node, Scope scope) {
+    public Object visitDirective(DirectiveNode node, Scope scope, Resource resource) {
         String name = node.getName();
 
         DirectiveProcessor processor = scope.getRootScope()
             .getSettings(DirectiveSettings.class)
-            .getProcessors()
-            .get(name);
+            .getProcessor(name);
 
         if (processor == null) {
             throw new GyroException(
@@ -265,7 +263,11 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                     scope.getClass().getName()));
             }
 
-            processor.process(scope, node);
+            if (resource != null) {
+                processor.processResource(resource, node);
+            } else {
+                processor.process(scope, node);
+            }
 
         } catch (Exception error) {
             throw new GyroException(
@@ -275,6 +277,11 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         }
 
         return null;
+    }
+
+    @Override
+    public Object visitDirective(DirectiveNode node, Scope scope) {
+        return visitDirective(node, scope, null);
     }
 
     @Override
@@ -292,15 +299,9 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
     @Override
     public Object visitFile(FileNode node, Scope scope) {
         RootScope rootScope = scope.getRootScope();
-        FileScope fileScope;
+        FileScope fileScope = new FileScope(rootScope, node.getFile());
 
-        if (rootScope.getFile().equals(node.getFile())) {
-            fileScope = rootScope;
-
-        } else {
-            fileScope = new FileScope(rootScope, node.getFile());
-            rootScope.getFileScopes().add(fileScope);
-        }
+        rootScope.getFileScopes().add(fileScope);
 
         try {
             visitBody(node.getBody(), fileScope);
@@ -409,6 +410,12 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                 type.setValues(resource, bodyScope.isExtended() ? new LinkedHashMap<>(bodyScope) : bodyScope);
                 file.put(fullName, resource);
                 file.getKeyNodes().put(fullName, node);
+
+                for (Node item : node.getBody()) {
+                    if (item instanceof DirectiveNode) {
+                        visitDirective((DirectiveNode) item, bodyScope, resource);
+                    }
+                }
 
             } else {
                 throw new GyroException(String.format(
@@ -525,10 +532,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         if (node.getArguments().get(0) instanceof ValueNode) {
             RootScope root = scope.getRootScope();
             String referenceName = (String) value;
-
-            ReferenceResolver resolver = root.getSettings(ReferenceSettings.class)
-                .getResolvers()
-                .get(referenceName);
+            ReferenceResolver resolver = root.getSettings(ReferenceSettings.class).getResolver(referenceName);
 
             if (resolver != null) {
                 try {

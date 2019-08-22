@@ -33,4 +33,6 @@ public interface GyroUI {
 
     void write(String message, Object... arguments);
 
+    void replace(String message, Object... arguments);
+
 }

@@ -1,17 +1,14 @@
 package gyro.cli;
 
 import gyro.core.Abort;
-import gyro.core.LocalFileBackend;
 import gyro.core.command.AbstractCommand;
 import gyro.core.command.GyroCommand;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.command.GyroCommandGroup;
 import gyro.core.scope.Defer;
-import gyro.core.scope.RootScope;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
-import gyro.core.scope.Scope;
 import gyro.core.validation.ValidationErrorException;
 import gyro.lang.Locatable;
 import gyro.lang.SyntaxError;
@@ -27,10 +24,8 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -39,7 +34,6 @@ public class Gyro {
 
     private Cli<Object> cli;
     private List<String> arguments;
-    private Scope init;
     private Set<Class<?>> commands = new HashSet<Class<?>>();
 
     public static Reflections reflections;
@@ -55,23 +49,7 @@ public class Gyro {
         GyroCore.pushUi(new CliGyroUI());
 
         try {
-            Path rootDir = GyroCore.getRootDirectory();
-            RootScope init;
-
-            if (rootDir != null) {
-                init = new RootScope(
-                    GyroCore.INIT_FILE,
-                    new LocalFileBackend(GyroCore.getRootDirectory()),
-                    null,
-                    Collections.emptySet());
-
-                init.evaluate();
-
-            } else {
-                init = null;
-            }
-
-            gyro.init(Arrays.asList(arguments), init);
+            gyro.init(Arrays.asList(arguments));
             gyro.run();
 
         } catch (Abort error) {
@@ -136,7 +114,7 @@ public class Gyro {
         }
     }
 
-    public void init(List<String> arguments, Scope init) {
+    public void init(List<String> arguments) {
         ((Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).setLevel(Level.OFF);
 
         String appName = "gyro";
@@ -173,7 +151,6 @@ public class Gyro {
 
         this.cli = builder.build();
         this.arguments = arguments;
-        this.init = init;
     }
 
     public Set<Class<?>> commands() {
@@ -187,8 +164,8 @@ public class Gyro {
             ((Runnable) command).run();
 
         } else if (command instanceof AbstractCommand) {
-            ((AbstractCommand) command).setInit(init);
             ((AbstractCommand) command).execute();
+
         } else if (command instanceof GyroCommand) {
             ((GyroCommand) command).execute();
 

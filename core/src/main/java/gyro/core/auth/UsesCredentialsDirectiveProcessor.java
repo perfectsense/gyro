@@ -1,15 +1,12 @@
 package gyro.core.auth;
 
+import gyro.core.Type;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.scope.DiffableScope;
 import gyro.lang.ast.block.DirectiveNode;
 
+@Type("uses-credentials")
 public class UsesCredentialsDirectiveProcessor extends DirectiveProcessor<DiffableScope> {
-
-    @Override
-    public String getName() {
-        return "uses-credentials";
-    }
 
     @Override
     public void process(DiffableScope scope, DirectiveNode node) {

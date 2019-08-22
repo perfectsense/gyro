@@ -1,15 +1,12 @@
 package gyro.core.resource;
 
+import gyro.core.Type;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.scope.DiffableScope;
 import gyro.lang.ast.block.DirectiveNode;
 
+@Type("description")
 public class DescriptionDirectiveProcessor extends DirectiveProcessor<DiffableScope> {
-
-    @Override
-    public String getName() {
-        return "description";
-    }
 
     @Override
     public void process(DiffableScope scope, DirectiveNode node) {

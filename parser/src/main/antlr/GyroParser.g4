@@ -17,9 +17,11 @@ statement
 
 // directive
 directive
-    : AT IDENTIFIER COLON arguments option*
-    | AT IDENTIFIER arguments? option* NEWLINE+ body section* AT END
+    : AT directiveType COLON arguments option*
+    | AT directiveType arguments? option* NEWLINE+ body section* AT END
     ;
+
+directiveType : IDENTIFIER (COLON COLON IDENTIFIER)?;
 
 arguments : value (COMMA? value)*;
 

@@ -17,7 +17,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.ImmutableSet;
 import gyro.core.GyroException;
 import gyro.core.diff.Change;
 import gyro.core.diff.Delete;
@@ -44,17 +43,15 @@ public class State {
     private final RootScope root;
     private final boolean test;
     private final Map<String, FileScope> states = new HashMap<>();
-    private final Set<String> diffFiles;
     private final Map<String, String> newNames = new HashMap<>();
     private final Map<String, String> newKeys = new HashMap<>();
 
-    public State(RootScope current, RootScope pending, boolean test, Set<String> diffFiles) {
+    public State(RootScope current, RootScope pending, boolean test) {
         this.root = new RootScope(current.getFile(), current.getBackend(), null, current.getLoadFiles());
 
         root.evaluate();
 
         this.test = test;
-        this.diffFiles = diffFiles != null ? ImmutableSet.copyOf(diffFiles) : null;
 
         for (FileScope state : root.getFileScopes()) {
             states.put(state.getFile(), state);
@@ -71,10 +68,6 @@ public class State {
 
     public boolean isTest() {
         return test;
-    }
-
-    public Set<String> getDiffFiles() {
-        return diffFiles;
     }
 
     public void update(Change change) {

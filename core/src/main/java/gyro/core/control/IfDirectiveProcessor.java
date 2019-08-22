@@ -3,6 +3,7 @@ package gyro.core.control;
 import java.util.List;
 
 import gyro.core.GyroException;
+import gyro.core.Type;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.scope.NodeEvaluator;
 import gyro.core.scope.Scope;
@@ -11,12 +12,8 @@ import gyro.lang.ast.Node;
 import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.block.DirectiveSection;
 
+@Type("if")
 public class IfDirectiveProcessor extends DirectiveProcessor<Scope> {
-
-    @Override
-    public String getName() {
-        return "if";
-    }
 
     @Override
     public void process(Scope scope, DirectiveNode node) {

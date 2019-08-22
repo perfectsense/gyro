@@ -8,16 +8,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import gyro.core.GyroException;
+import gyro.core.Type;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.scope.DiffableScope;
 import gyro.lang.ast.block.DirectiveNode;
 
+@Type("extends")
 public class ExtendsDirectiveProcessor extends DirectiveProcessor<DiffableScope> {
-
-    @Override
-    public String getName() {
-        return "extends";
-    }
 
     @Override
     public void process(DiffableScope scope, DirectiveNode node) {

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import gyro.core.GyroException;
+import gyro.core.Type;
 import gyro.core.finder.Finder;
 import gyro.core.finder.FinderSettings;
 import gyro.core.finder.FinderType;
@@ -11,12 +12,8 @@ import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.Resource;
 import gyro.core.scope.Scope;
 
+@Type("external-query")
 public class FinderReferenceResolver extends ReferenceResolver {
-
-    @Override
-    public String getName() {
-        return "external-query";
-    }
 
     @Override
     public Object resolve(Scope scope, List<Object> arguments) {

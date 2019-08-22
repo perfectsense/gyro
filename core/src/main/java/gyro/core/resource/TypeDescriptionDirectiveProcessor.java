@@ -2,17 +2,14 @@ package gyro.core.resource;
 
 import java.util.List;
 
+import gyro.core.Type;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.scope.RootScope;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.DirectiveNode;
 
+@Type("type-description")
 public class TypeDescriptionDirectiveProcessor extends DirectiveProcessor<RootScope> {
-
-    @Override
-    public String getName() {
-        return "type-description";
-    }
 
     @Override
     public void process(RootScope scope, DirectiveNode node) {

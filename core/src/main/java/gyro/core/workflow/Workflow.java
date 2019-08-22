@@ -1,7 +1,6 @@
 package gyro.core.workflow;
 
 import java.util.List;
-import java.util.Set;
 
 import com.google.common.base.Preconditions;
 import gyro.core.Abort;
@@ -52,14 +51,8 @@ public class Workflow {
 
     private RootScope copyCurrentRootScope() {
         RootScope current = root.getCurrent();
-        RootScope scope = new RootScope(
-            current.getFile(),
-            current.getBackend(),
-            null,
-            current.getLoadFiles());
-
+        RootScope scope = new RootScope(current.getFile(), current.getBackend(), null, current.getLoadFiles());
         scope.evaluate();
-
         return scope;
     }
 
@@ -116,21 +109,14 @@ public class Workflow {
         } while (stageIndex < stagesSize);
 
         RootScope current = copyCurrentRootScope();
-
-        RootScope pending = new RootScope(
-            root.getFile(),
-            root.getBackend(),
-            current,
-            root.getLoadFiles());
+        RootScope pending = new RootScope(root.getFile(), root.getBackend(), current, root.getLoadFiles());
 
         pending.evaluate();
         pending.validate();
 
-        Set<String> diffFiles = state.getDiffFiles();
-
         Diff diff = new Diff(
-            current.findResourcesIn(diffFiles),
-            pending.findResourcesIn(diffFiles));
+            current.findResourcesIn(current.getLoadFiles()),
+            pending.findResourcesIn(pending.getLoadFiles()));
 
         diff.diff();
 

@@ -6,17 +6,14 @@ import java.util.Optional;
 
 import com.google.common.base.CaseFormat;
 import gyro.core.Reflections;
+import gyro.core.Type;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
 import gyro.lang.ast.block.DirectiveNode;
 
+@Type("credentials")
 public class CredentialsDirectiveProcessor extends DirectiveProcessor<RootScope> {
-
-    @Override
-    public String getName() {
-        return "credentials";
-    }
 
     @Override
     public void process(RootScope scope, DirectiveNode node) {

@@ -1,10 +1,10 @@
 package gyro.core.resource;
 
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import com.google.common.collect.ImmutableSet;
 import gyro.core.diff.Change;
 import gyro.core.scope.DiffableScope;
 
@@ -34,8 +34,11 @@ public final class DiffableInternals {
     }
 
     public static Set<String> getConfiguredFields(Diffable diffable) {
-        Set<String> configuredFields = diffable.configuredFields;
-        return configuredFields != null ? configuredFields : ImmutableSet.of();
+        if (diffable.configuredFields == null) {
+            diffable.configuredFields = new LinkedHashSet<>();
+        }
+
+        return diffable.configuredFields;
     }
 
     public static Change getChange(Diffable diffable) {

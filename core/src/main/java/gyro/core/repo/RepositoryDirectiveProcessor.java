@@ -1,16 +1,13 @@
 package gyro.core.repo;
 
+import gyro.core.Type;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.scope.RootScope;
 import gyro.lang.ast.block.DirectiveNode;
 import org.eclipse.aether.repository.RemoteRepository;
 
+@Type("repository")
 public class RepositoryDirectiveProcessor extends DirectiveProcessor<RootScope> {
-
-    @Override
-    public String getName() {
-        return "repository";
-    }
 
     @Override
     public void process(RootScope scope, DirectiveNode node) {
