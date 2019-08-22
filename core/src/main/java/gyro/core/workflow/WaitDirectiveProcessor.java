@@ -1,5 +1,6 @@
 package gyro.core.workflow;
 
+import gyro.core.Type;
 import gyro.core.Waiter;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.scope.Scope;
@@ -8,12 +9,8 @@ import gyro.lang.ast.block.DirectiveNode;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+@Type("wait")
 public class WaitDirectiveProcessor extends DirectiveProcessor<Scope> {
-
-    @Override
-    public String getName() {
-        return "wait";
-    }
 
     @Override
     public void process(Scope scope, DirectiveNode node) {
