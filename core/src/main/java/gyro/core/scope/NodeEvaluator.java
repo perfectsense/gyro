@@ -123,10 +123,14 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         if (left == null || right == null) {
             throw new GyroException("Can't compare against a null!");
 
-        } else if (left instanceof Comparable
-            && left.getClass().isInstance(right)) {
+        } else if (left instanceof Number && right instanceof Number) {
+            return Double.compare(((Number) left).doubleValue(), ((Number) right).doubleValue());
 
+        } else if (left instanceof Comparable && left.getClass().isInstance(right)) {
             return ((Comparable<Object>) left).compareTo(right);
+
+        } else if (right instanceof Comparable && right.getClass().isInstance(left)) {
+            return 0 - ((Comparable<Object>) right).compareTo(left);
 
         } else {
             throw new GyroException(String.format(
@@ -168,14 +172,9 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             DiffableType<Diffable> type = DiffableType.getInstance(diffable);
             DiffableField field = type.getField(key);
 
-            if (field == null) {
-                throw new GyroException(node, String.format(
-                    "Can't find the @|bold %s|@ field in the @|bold %s|@ type!",
-                    key,
-                    type.getName()));
+            if (field != null) {
+                return field.getValue(diffable);
             }
-
-            return field.getValue(diffable);
 
         } else if (object instanceof GlobCollection) {
             return ((GlobCollection) object).stream()
@@ -218,10 +217,20 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             .map(PropertyDescriptor::getReadMethod)
             .filter(Objects::nonNull)
             .findFirst()
-            .orElseThrow(() -> new GyroException(node, String.format(
-                "Can't find the @|bold %s|@ property in the @|bold %s|@ class!",
-                key,
-                aClass.getName())));
+            .orElseThrow(() -> {
+                if (object instanceof Diffable) {
+                    return new GyroException(node, String.format(
+                        "Can't find the @|bold %s|@ field or property in the @|bold %s|@ type!",
+                        key,
+                        DiffableType.getInstance((Diffable) object).getName()));
+
+                } else {
+                    return new GyroException(node, String.format(
+                        "Can't find the @|bold %s|@ property in the @|bold %s|@ class!",
+                        key,
+                        aClass.getName()));
+                }
+            });
 
         return Reflections.invoke(getter, object);
     }

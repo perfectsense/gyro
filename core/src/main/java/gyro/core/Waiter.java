@@ -13,7 +13,7 @@ public class Waiter {
     private long checkEvery;
     private boolean prompt;
 
-    Waiter() {
+    public Waiter() {
         atMost(10, TimeUnit.SECONDS);
         checkEvery(1, TimeUnit.SECONDS);
         prompt(true);
@@ -45,7 +45,7 @@ public class Waiter {
                     }
 
                 } catch (Exception error) {
-                    LOGGER.debug("Failed to check!", error);
+                    throw new GyroException("Failed wait check!", error);
                 }
 
                 try {

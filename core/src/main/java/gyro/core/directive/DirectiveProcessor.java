@@ -4,13 +4,16 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import com.google.common.collect.ImmutableList;
 import gyro.core.GyroException;
 import gyro.core.resource.Resource;
 import gyro.core.scope.NodeEvaluator;
+import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
 import gyro.lang.Locatable;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.DirectiveNode;
+import gyro.lang.ast.block.DirectiveOption;
 
 public abstract class DirectiveProcessor<S extends Scope> {
 
@@ -54,52 +57,49 @@ public abstract class DirectiveProcessor<S extends Scope> {
         return validate(node, node.getArguments(), minimum, maximum, String.format("@|bold @%s|@ directive", node.getName()));
     }
 
-    public static List<Node> validateOptionArguments(DirectiveNode node, String name, int minimum, int maximum) {
-        String errorName = String.format("@|bold @%s -%s|@ option", node.getName(), name);
-
+    private static DirectiveOption getOption(DirectiveNode node, String name) {
         return node.getOptions()
             .stream()
             .filter(s -> s.getName().equals(name))
             .findFirst()
-            .map(option -> validate(option, option.getArguments(), minimum, maximum, errorName))
-            .orElseThrow(() -> new GyroException(node, String.format(
-                "@|bold @%s|@ directive requires the @|bold -%s|@ option!",
-                node.getName(),
-                name)));
+            .orElse(null);
     }
 
-    private static Node get(DirectiveNode node, int index) {
-        List<Node> arguments = node.getArguments();
-        return index < arguments.size() ? arguments.get(index) : null;
+    public static List<Node> validateOptionArguments(DirectiveNode node, String name, int minimum, int maximum) {
+        DirectiveOption option = getOption(node, name);
+
+        if (option != null) {
+            return validate(
+                option,
+                option.getArguments(),
+                minimum,
+                maximum,
+                String.format("@|bold @%s -%s|@ option", node.getName(), name));
+
+        } else if (minimum == 0) {
+            return ImmutableList.of();
+
+        } else {
+            throw new GyroException(node, String.format(
+                "@|bold @%s|@ directive requires the @|bold -%s|@ option!",
+                node.getName(),
+                name));
+        }
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> T getArgument(Scope scope, DirectiveNode node, Class<T> valueClass, int index) {
-        Node argument = get(node, index);
+    private static <T> T convert(Class<T> valueClass, Scope scope, List<Node> arguments, int index) {
+        if (index < arguments.size()) {
+            RootScope root = scope.getRootScope();
+            return (T) root.convertValue(valueClass, root.getEvaluator().visit(arguments.get(index), scope));
 
-        if (argument == null) {
+        } else {
             return null;
         }
+    }
 
-        Object value = scope.getRootScope().getEvaluator().visit(argument, scope);
-
-        if (value == null) {
-            throw new GyroException(argument, String.format(
-                "Expected an instance of @|bold %s|@ at @|bold %s|@ but found a null!",
-                valueClass.getName(),
-                index));
-        }
-
-        if (!valueClass.isInstance(value)) {
-            throw new GyroException(argument, String.format(
-                "Expected an instance of @|bold %s|@ at @|bold %s|@ but found @|bold %s|@, an instance of @|bold %s|@!",
-                valueClass.getName(),
-                index,
-                value,
-                value.getClass().getName()));
-        }
-
-        return (T) value;
+    public static <T> T getArgument(Scope scope, DirectiveNode node, Class<T> valueClass, int index) {
+        return convert(valueClass, scope, node.getArguments(), index);
     }
 
     public static <T> List<T> getArguments(Scope scope, DirectiveNode node, Class<T> valueClass) {
@@ -108,53 +108,9 @@ public abstract class DirectiveProcessor<S extends Scope> {
             .collect(Collectors.toList());
     }
 
-    @SuppressWarnings("unchecked")
-    public static <T> List<T> getListArgument(Scope scope, DirectiveNode node, Class<T> itemClass, int index) {
-        Node argument = get(node, index);
-
-        if (argument == null) {
-            return null;
-        }
-
-        Object value = scope.getRootScope().getEvaluator().visit(argument, scope);
-
-        if (value == null) {
-            throw new GyroException(argument, String.format(
-                "Expected a list at @|bold %s|@ but found a null!",
-                index));
-        }
-
-        if (!(value instanceof List)) {
-            throw new GyroException(argument, String.format(
-                "Expected a list at @|bold %s|@ but found @|bold %s|@, an instance of @|bold %s|@!",
-                index,
-                value,
-                value.getClass().getName()));
-        }
-
-        List<?> list = (List<?>) value;
-
-        for (int i = 0, s = list.size(); i < s; i++) {
-            Object item = list.get(i);
-
-            if (item == null) {
-                throw new GyroException(argument, String.format(
-                    "Expected an instance of @|bold %s|@ in the list at @|bold %s|@ but found a null!",
-                    itemClass.getName(),
-                    i));
-            }
-
-            if (!itemClass.isInstance(item)) {
-                throw new GyroException(argument, String.format(
-                    "Expected an instance of @|bold %s|@ in the list at @|bold %s|@ but found @|bold %s|@, an instance of @|bold %s|@!",
-                    itemClass.getName(),
-                    i,
-                    item,
-                    item.getClass().getName()));
-            }
-        }
-
-        return (List<T>) value;
+    public static <T> T getOptionArgument(Scope scope, DirectiveNode node, String name, Class<T> valueClass, int index) {
+        DirectiveOption option = getOption(node, name);
+        return option != null ? convert(valueClass, scope, option.getArguments(), index) : null;
     }
 
     public static Scope evaluateBody(Scope scope, DirectiveNode node) {
