@@ -22,7 +22,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.psddev.dari.util.TypeDefinition;
 import gyro.core.GyroException;
 import gyro.core.Reflections;
@@ -53,6 +52,7 @@ import gyro.lang.ast.value.MapNode;
 import gyro.lang.ast.value.ReferenceNode;
 import gyro.lang.ast.value.ValueNode;
 import gyro.lang.filter.Filter;
+import gyro.util.ImmutableCollectors;
 import org.apache.commons.lang3.math.NumberUtils;
 
 public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeException> {
@@ -336,43 +336,16 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             }
         }
 
-        String name = (String) visit(node.getName(), scope);
-        String typeName = node.getType();
-        String fullName = typeName + "::" + name;
-        RootScope rootScope = scope.getRootScope();
-
-        Collection<String> pendingConfiguredFields = ImmutableSet.copyOf(
-            Optional.ofNullable((Collection<String>) bodyScope.get("_configured-fields"))
-                .orElseGet(bodyScope::getAddedKeys));
-
-        // Initialize the bodyScope with the resource values from the current
-        // state scope.
-        Optional.ofNullable(rootScope.getCurrent())
-            .map(s -> s.findResource(fullName))
-            .ifPresent(r -> {
-                Set<String> currentConfiguredFields = DiffableInternals.getConfiguredFields(r);
-
-                for (DiffableField f : DiffableType.getInstance(r.getClass()).getFields()) {
-                    String key = f.getName();
-
-                    // Skip over fields that were previously configured
-                    // so that their removals can be detected by the
-                    // diff system.
-                    if (currentConfiguredFields.contains(key) || pendingConfiguredFields.contains(key)) {
-                        continue;
-                    }
-
-                    bodyScope.put(key, f.getValue(r));
-                }
-            });
-
         for (Node item : node.getBody()) {
             if (item instanceof DirectiveNode) {
                 visit(item, bodyScope);
             }
         }
 
-        Object value = rootScope.get(typeName);
+        String name = (String) visit(node.getName(), scope);
+        String typeName = node.getType();
+        RootScope root = scope.getRootScope();
+        Object value = root.get(typeName);
 
         if (value == null) {
             throw new Defer(node, String.format(
@@ -384,6 +357,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
 
             if (Resource.class.isAssignableFrom(c)) {
                 FileScope file = scope.getFileScope();
+                String fullName = typeName + "::" + name;
 
                 if (file.containsKey(fullName)) {
                     throw new GyroException(
@@ -399,6 +373,11 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
 
                 DiffableInternals.setName(resource, name);
                 type.setValues(resource, bodyScope.isExtended() ? new LinkedHashMap<>(bodyScope) : bodyScope);
+
+                Optional.ofNullable(root.getCurrent())
+                    .map(s -> s.findResource(fullName))
+                    .ifPresent(r -> copy(r, resource));
+
                 file.put(fullName, resource);
                 file.getKeyNodes().put(fullName, node);
 
@@ -427,6 +406,47 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         }
 
         return null;
+    }
+
+    private void copy(Diffable currentResource, Diffable pendingResource) {
+        if (currentResource == null) {
+            return;
+        }
+
+        Set<String> currentConfiguredFields = DiffableInternals.getConfiguredFields(currentResource);
+        Set<String> pendingConfiguredFields = DiffableInternals.getConfiguredFields(pendingResource);
+
+        for (DiffableField field : DiffableType.getInstance(currentResource).getFields()) {
+            String fieldName = field.getName();
+
+            // Current        Pending          Action
+            // -------------- ---------------- ----------
+            // Configured     Not configured   Don't copy
+            // Configured     Configured       Don't copy
+            // Not configured Not configured   Copy
+            // Not configured Configured       Don't copy
+            if (!currentConfiguredFields.contains(fieldName) && !pendingConfiguredFields.contains(fieldName)) {
+                field.setValue(pendingResource, field.getValue(currentResource));
+
+            } else if (field.shouldBeDiffed()) {
+                Object pendingValue = field.getValue(pendingResource);
+
+                if (pendingValue != null) {
+                    Map<String, Diffable> currentSubresources = Optional.ofNullable(field.getValue(currentResource))
+                        .map(v -> stream(v).collect(ImmutableCollectors.toMap(Diffable::primaryKey)))
+                        .orElseGet(ImmutableMap::of);
+
+                    stream(pendingValue).forEach(r -> copy(currentSubresources.get(r.primaryKey()), r));
+                }
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Stream<Diffable> stream(Object value) {
+        return (value instanceof Collection
+            ? ((Collection<Diffable>) value).stream()
+            : Stream.of((Diffable) value));
     }
 
     @Override
