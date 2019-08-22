@@ -342,56 +342,55 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             }
         }
 
+        String type = node.getType();
         String name = (String) visit(node.getName(), scope);
-        String typeName = node.getType();
         RootScope root = scope.getRootScope();
-        Object value = root.get(typeName);
+        Object value = root.get(type);
 
         if (value == null) {
             throw new Defer(node, String.format(
                 "Can't create a resource of @|bold %s|@ type!",
-                typeName));
+                type));
 
         } else if (value instanceof Class) {
             Class<?> c = (Class<?>) value;
 
-            if (Resource.class.isAssignableFrom(c)) {
-                FileScope file = scope.getFileScope();
-                String fullName = typeName + "::" + name;
-
-                if (file.containsKey(fullName)) {
-                    throw new GyroException(
-                        node,
-                        String.format("@|bold %s %s|@ has been defined already!", typeName, name),
-                        new GyroException(
-                            file.getKeyNodes().get(fullName),
-                            "Defined previously:"));
-                }
-
-                DiffableType<Resource> type = DiffableType.getInstance((Class<Resource>) c);
-                Resource resource = type.newInstance(bodyScope);
-
-                DiffableInternals.setName(resource, name);
-                type.setValues(resource, bodyScope.isExtended() ? new LinkedHashMap<>(bodyScope) : bodyScope);
-
-                Optional.ofNullable(root.getCurrent())
-                    .map(s -> s.findResource(fullName))
-                    .ifPresent(r -> copy(r, resource));
-
-                file.put(fullName, resource);
-                file.getKeyNodes().put(fullName, node);
-
-                for (Node item : node.getBody()) {
-                    if (item instanceof DirectiveNode) {
-                        visitDirective((DirectiveNode) item, bodyScope, resource);
-                    }
-                }
-
-            } else {
+            if (!Resource.class.isAssignableFrom(c)) {
                 throw new GyroException(String.format(
                     "Can't create a resource of @|bold %s|@ type using the @|bold %s|@ class!",
-                    typeName,
+                    type,
                     c.getName()));
+            }
+
+            FileScope file = scope.getFileScope();
+            String fullName = type + "::" + name;
+
+            if (file.containsKey(fullName)) {
+                throw new GyroException(
+                    node,
+                    String.format("@|bold %s %s|@ has been defined already!", type, name),
+                    new GyroException(
+                        file.getKeyNodes().get(fullName),
+                        "Defined previously:"));
+            }
+
+            DiffableType<Resource> resourceType = DiffableType.getInstance((Class<Resource>) c);
+            Resource resource = resourceType.newInstance(bodyScope);
+
+            DiffableInternals.setName(resource, name);
+            resourceType.setValues(resource, bodyScope.isExtended() ? new LinkedHashMap<>(bodyScope) : bodyScope);
+
+            Optional.ofNullable(root.getCurrent())
+                .map(s -> s.findResource(fullName))
+                .ifPresent(r -> copy(r, resource));
+
+            file.put(fullName, resource);
+            file.getKeyNodes().put(fullName, node);
+
+            for (Node item : node.getBody()) {
+                if (item instanceof DirectiveNode) {
+                    visitDirective((DirectiveNode) item, bodyScope, resource);
+                }
             }
 
         } else if (value instanceof ResourceVisitor) {
@@ -400,7 +399,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         } else {
             throw new GyroException(String.format(
                 "Can't create a resource of @|bold %s|@ type using @|bold %s|@, an instance of @|bold %s|@!",
-                typeName,
+                type,
                 value,
                 value.getClass().getName()));
         }
