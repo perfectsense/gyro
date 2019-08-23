@@ -431,11 +431,11 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                 Object pendingValue = field.getValue(pendingResource);
 
                 if (pendingValue != null) {
-                    Map<String, Diffable> currentSubresources = Optional.ofNullable(field.getValue(currentResource))
-                        .map(v -> stream(v).collect(ImmutableCollectors.toMap(Diffable::primaryKey)))
+                    Map<Optional<String>, Diffable> subs = Optional.ofNullable(field.getValue(currentResource))
+                        .map(v -> stream(v).collect(ImmutableCollectors.toMap(d -> Optional.ofNullable(d.primaryKey()))))
                         .orElseGet(ImmutableMap::of);
 
-                    stream(pendingValue).forEach(r -> copy(currentSubresources.get(r.primaryKey()), r));
+                    stream(pendingValue).forEach(r -> copy(subs.get(Optional.ofNullable(r.primaryKey())), r));
                 }
             }
         }
