@@ -16,7 +16,7 @@ public abstract class Finder<R extends Resource> {
 
     public abstract List<R> findAll();
 
-    public abstract List<R> find(Map<String, String> filters);
+    public abstract List<R> find(Map<String, Object> filters);
 
     public <C extends Credentials> C credentials(Class<C> credentialsClass) {
         return Credentials.getInstance(credentialsClass, getClass(), scope);
