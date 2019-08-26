@@ -17,8 +17,6 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import gyro.core.GyroException;
 import gyro.core.Reflections;
 import gyro.core.scope.DiffableScope;
@@ -158,27 +156,12 @@ public class DiffableType<D extends Diffable> {
             : null;
     }
 
+    @SuppressWarnings("unchecked")
     public void setValues(D diffable, Map<String, Object> values) {
         if (diffable.configuredFields == null) {
-
-            // Current state contains an explicit list of configured fields
-            // that were in the original diffable definition.
-            @SuppressWarnings("unchecked")
-            Collection<String> cf = (Collection<String>) values.get("_configured-fields");
-
-            if (cf == null) {
-
-                // Only save fields that are in the diffable definition and
-                // exclude the ones that were copied from the current state.
-                if (values instanceof DiffableScope) {
-                    cf = ((DiffableScope) values).getAddedKeys();
-
-                } else {
-                    cf = values.keySet();
-                }
-            }
-
-            diffable.configuredFields = new LinkedHashSet<>(cf);
+            diffable.configuredFields = new LinkedHashSet<>(
+                Optional.ofNullable((Collection<String>) values.get("_configured-fields"))
+                    .orElseGet(values::keySet));
         }
 
         Set<String> invalidFieldNames = values.keySet()

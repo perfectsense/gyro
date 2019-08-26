@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 import gyro.lang.ast.Node;
 
@@ -13,7 +12,6 @@ public class DiffableScope extends Scope {
 
     private final Node node;
     private List<Node> stateNodes = new ArrayList<>();
-    private boolean extended;
 
     public DiffableScope(Scope parent, Node node) {
         super(parent);
@@ -40,18 +38,6 @@ public class DiffableScope extends Scope {
         this.stateNodes = stateNodes;
     }
 
-    public boolean isExtended() {
-        return extended;
-    }
-
-    public void setExtended(boolean extended) {
-        this.extended = extended;
-    }
-
-    public Set<String> getAddedKeys() {
-        return getKeyNodes().keySet();
-    }
-
     public Map<String, Object> resolve() {
         NodeEvaluator evaluator = getRootScope().getEvaluator();
         Map<String, Object> resolved = new HashMap<>();
@@ -63,4 +49,5 @@ public class DiffableScope extends Scope {
 
         return resolved;
     }
+
 }

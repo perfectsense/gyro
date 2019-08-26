@@ -20,25 +20,15 @@ public class ExtendsDirectiveProcessor extends DirectiveProcessor<DiffableScope>
     public void process(DiffableScope scope, DirectiveNode node) {
         validateArguments(node, 1, 1);
         processSource(scope, getArgument(scope, node, Object.class, 0));
-        scope.setExtended(true);
     }
 
     @SuppressWarnings("unchecked")
     private void processSource(DiffableScope scope, Object source) {
         if (source instanceof Map) {
-            ((Map<String, Object>) source).forEach(scope::putIfAbsent);
+            ((Map<String, Object>) source).forEach((key, value) -> scope.computeIfAbsent(key, k -> clone(value)));
 
         } else if (source instanceof Resource) {
-            Resource resource = (Resource) source;
-            Set<String> configuredFields = DiffableInternals.getConfiguredFields(resource);
-
-            for (DiffableField field : DiffableType.getInstance(resource.getClass()).getFields()) {
-                String name = field.getName();
-
-                if (field.shouldBeDiffed() || configuredFields.contains(name)) {
-                    scope.putIfAbsent(name, clone(field.getValue(resource)));
-                }
-            }
+            processSource(scope, DiffableInternals.getScope((Resource) source));
 
         } else if (source instanceof String) {
             String name = (String) source;
