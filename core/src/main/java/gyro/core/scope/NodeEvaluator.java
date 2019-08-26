@@ -387,7 +387,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             Resource resource = resourceType.newInstance(bodyScope);
 
             DiffableInternals.setName(resource, name);
-            resourceType.setValues(resource, bodyScope.isExtended() ? new LinkedHashMap<>(bodyScope) : bodyScope);
+            resourceType.setValues(resource, bodyScope);
 
             Optional.ofNullable(root.getCurrent())
                 .map(s -> s.findResource(fullName))
