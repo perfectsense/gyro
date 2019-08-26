@@ -77,7 +77,7 @@ public class Stage {
 
         scope.put("NAME", DiffableInternals.getName(pendingResource));
         scope.put("CURRENT", currentResource);
-        scope.put("PENDING", pendingScope.resolve());
+        scope.put("PENDING", pendingResource);
 
         Defer.execute(actions, a -> a.execute(ui, state, pendingRootScope, scope));
 
