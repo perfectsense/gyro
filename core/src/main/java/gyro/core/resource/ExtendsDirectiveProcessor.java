@@ -55,6 +55,13 @@ public class ExtendsDirectiveProcessor extends DirectiveProcessor<DiffableScope>
             type.setValues(clone, scope);
             return clone;
 
+        } else if (value instanceof DiffableScope) {
+            DiffableScope scope = (DiffableScope) value;
+            DiffableScope clone = new DiffableScope(scope.getParent(), scope.getNode());
+
+            clone.putAll(scope);
+            return clone;
+
         } if (value instanceof List) {
             return ((List<?>) value).stream()
                 .map(this::clone)
