@@ -35,7 +35,7 @@ public class FinderReferenceResolver extends ReferenceResolver {
 
         if (!arguments.isEmpty()) {
             @SuppressWarnings("unchecked")
-            Map<String, String> filters = (Map<String, String>) arguments.remove(0);
+            Map<String, Object> filters = (Map<String, Object>) arguments.remove(0);
 
             if (!filters.isEmpty()) {
                 resources = finder.find(filters);
