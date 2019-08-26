@@ -1,6 +1,7 @@
 package gyro.cli;
 
 import gyro.core.Abort;
+import gyro.core.LocalFileBackend;
 import gyro.core.command.AbstractCommand;
 import gyro.core.command.GyroCommand;
 import gyro.core.GyroCore;
@@ -9,6 +10,7 @@ import gyro.core.command.GyroCommandGroup;
 import gyro.core.scope.Defer;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
+import gyro.core.scope.RootScope;
 import gyro.core.validation.ValidationErrorException;
 import gyro.lang.Locatable;
 import gyro.lang.SyntaxError;
@@ -28,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public class Gyro {
@@ -49,6 +52,10 @@ public class Gyro {
         GyroCore.pushUi(new CliGyroUI());
 
         try {
+            Optional.ofNullable(GyroCore.getRootDirectory())
+                .map(d -> new RootScope(GyroCore.INIT_FILE, new LocalFileBackend(d), null, null))
+                .ifPresent(RootScope::load);
+
             gyro.init(Arrays.asList(arguments));
             gyro.run();
 

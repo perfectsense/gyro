@@ -244,7 +244,7 @@ public class RootScope extends FileScope {
             });
     }
 
-    public void evaluate() {
+    public List<Node> load() {
         List<Node> nodes = new ArrayList<>();
 
         evaluateFile(getFile(), node -> nodes.addAll(node.getBody()));
@@ -256,6 +256,11 @@ public class RootScope extends FileScope {
             // Ignore for now since this is reevaluated later.
         }
 
+        return nodes;
+    }
+
+    public void evaluate() {
+        List<Node> nodes = load();
         Set<String> existingFiles;
 
         try (Stream<String> s = list()) {
