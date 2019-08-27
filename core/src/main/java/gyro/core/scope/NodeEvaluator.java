@@ -5,6 +5,9 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +40,7 @@ import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
 import gyro.core.resource.Resource;
 import gyro.core.resource.ResourceVisitor;
+import gyro.lang.ast.block.BlockNode;
 import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.NodeVisitor;
@@ -56,6 +60,8 @@ import gyro.util.ImmutableCollectors;
 import org.apache.commons.lang3.math.NumberUtils;
 
 public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeException> {
+
+    private Map<String, Set<Node>> typeNodes;
 
     private static final LoadingCache<Class<? extends DirectiveProcessor>, Class<? extends Scope>> DIRECTIVE_PROCESSOR_SCOPE_CLASSES = CacheBuilder.newBuilder()
         .build(new CacheLoader<Class<? extends DirectiveProcessor>, Class<? extends Scope>>() {
@@ -234,8 +240,47 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         return Reflections.invoke(getter, object);
     }
 
+    public void evaluate(RootScope root, List<Node> body) {
+        typeNodes = new HashMap<>();
+
+        body.stream()
+            .filter(FileNode.class::isInstance)
+            .map(FileNode.class::cast)
+            .map(FileNode::getBody)
+            .flatMap(List::stream)
+            .forEach(item -> addTypeNode(typeNodes, item, item));
+
+        visitBody(body, root);
+    }
+
+    private void addTypeNode(Map<String, Set<Node>> typeNodes, Node top, Node node) {
+        if (node instanceof ResourceNode) {
+            typeNodes.computeIfAbsent(((ResourceNode) node).getType(), key -> new HashSet<>()).add(top);
+        }
+
+        if (node instanceof BlockNode) {
+            for (Node item : ((BlockNode) node).getBody()) {
+                addTypeNode(typeNodes, top, item);
+            }
+        }
+    }
+
     public void visitBody(List<Node> body, Scope scope) {
         Defer.execute(body, i -> visit(i, scope));
+    }
+
+    private void removeTypeNode(Node node) {
+        if (typeNodes != null) {
+            for (Iterator<Set<Node>> i = typeNodes.values().iterator(); i.hasNext(); ) {
+                Set<Node> nodes = i.next();
+
+                nodes.remove(node);
+
+                if (nodes.isEmpty()) {
+                    i.remove();
+                }
+            }
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -275,6 +320,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                 error);
         }
 
+        removeTypeNode(node);
         return null;
     }
 
@@ -292,6 +338,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         scope.addValueNode(key, value);
         scope.getKeyNodes().put(key, node);
 
+        removeTypeNode(node);
         return scope.get(key);
     }
 
@@ -310,6 +357,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             throw e;
         }
 
+        removeTypeNode(node);
         return null;
     }
 
@@ -330,6 +378,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         scope.addValue(key, name, bodyScope);
         scope.getKeyNodes().put(key, node);
 
+        removeTypeNode(node);
         return null;
     }
 
@@ -412,6 +461,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                 value.getClass().getName()));
         }
 
+        removeTypeNode(node);
         return null;
     }
 
@@ -467,6 +517,8 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                 operator));
         }
 
+        removeTypeNode(node);
+
         return function.apply(
             visit(node.getLeft(), scope),
             visit(node.getRight(), scope));
@@ -477,6 +529,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         Object value = visit(node.getValue(), context);
 
         if (value == null) {
+            removeTypeNode(node);
             return null;
         }
 
@@ -484,21 +537,26 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             Object index = visit(indexNode, context);
 
             if (index == null) {
+                removeTypeNode(node);
                 return null;
             }
 
             value = getValue(node, value, index.toString());
 
             if (value == null) {
+                removeTypeNode(node);
                 return null;
             }
         }
 
+        removeTypeNode(node);
         return value;
     }
 
     @Override
     public Object visitInterpolatedString(InterpolatedStringNode node, Scope scope) {
+        removeTypeNode(node);
+
         return node.getItems()
             .stream()
             .map(i -> visit(i, scope))
@@ -515,6 +573,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             list.add(visit(item, scope));
         }
 
+        removeTypeNode(node);
         return list;
     }
 
@@ -527,6 +586,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             map.put((String) visit(entry.getKey(), bodyScope), visit(entry, bodyScope));
         }
 
+        removeTypeNode(node);
         return map;
     }
 
@@ -538,12 +598,14 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             .collect(Collectors.toList());
 
         if (arguments.isEmpty()) {
+            removeTypeNode(node);
             return null;
         }
 
         Object value = arguments.remove(0);
 
         if (value == null) {
+            removeTypeNode(node);
             return null;
         }
 
@@ -554,6 +616,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
 
             if (resolver != null) {
                 try {
+                    removeTypeNode(node);
                     return resolveFilters(node, scope, resolver.resolve(scope, arguments));
 
                 } catch (Exception error) {
@@ -571,6 +634,12 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                 }
 
                 if (resourceName.endsWith("*")) {
+                    if (typeNodes != null && typeNodes.containsKey(referenceName)) {
+                        throw new Defer(node, String.format(
+                            "Can't resolve wildcard reference to @|bold %s|@ type yet!",
+                            referenceName));
+                    }
+
                     Stream<Resource> s = root.findResources()
                         .stream()
                         .filter(r -> referenceName.equals(DiffableType.getInstance(r.getClass()).getName()));
@@ -615,10 +684,12 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             }
 
             if (value == null) {
+                removeTypeNode(node);
                 return null;
             }
         }
 
+        removeTypeNode(node);
         return resolveFilters(node, scope, value);
     }
 
@@ -653,6 +724,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
 
     @Override
     public Object visitValue(ValueNode node, Scope scope) {
+        removeTypeNode(node);
         return node.getValue();
     }
 
