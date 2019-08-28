@@ -438,7 +438,7 @@ Apply the configuration changes by running gyro up again. Gyro will show you wha
    + Create aws::route-table route-table-example
    + Create aws::route route-example
  
-	 Are you sure you want to change resources? (y/N) y
+   Are you sure you want to change resources? (y/N) y
  
    + Creating aws::internet-gateway ig-example OK
    + Creating aws::route-table route-table-example OK
@@ -536,6 +536,7 @@ The resource vpc and associated resources will get deleted after ``y`` is given 
 .. code:: shell
 
    $/usr/local/bin/gyro up vpc.gyro
+
     ↓ Loading plugin: gyro:gyro-aws-provider:0.15-SNAPSHOT
     ↓ Loading plugin: gyro:gyro-brightspot-plugin:0.15-SNAPSHOT
 
