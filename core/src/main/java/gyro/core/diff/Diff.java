@@ -20,9 +20,8 @@ import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
 import gyro.core.resource.Resource;
 import gyro.core.scope.DiffableScope;
-import gyro.core.scope.NodeEvaluator;
 import gyro.core.scope.State;
-import gyro.lang.ast.Node;
+import gyro.lang.ast.block.BlockNode;
 
 public class Diff {
 
@@ -68,7 +67,7 @@ public class Diff {
         );
 
         for (Diffable pendingDiffable : pendingDiffables) {
-            resolve(pendingDiffable);
+            reevaluate(pendingDiffable);
 
             Diffable currentDiffable = currentDiffables.remove(pendingDiffable.primaryKey());
 
@@ -375,7 +374,7 @@ public class Diff {
         }
 
         if (change.changed.compareAndSet(false, true)) {
-            resolve(diffable);
+            reevaluate(diffable);
 
             if (!diffable.writeExecution(ui, change)) {
                 change.writeExecution(ui);
@@ -409,33 +408,16 @@ public class Diff {
         }
     }
 
-    private void resolve(Object object) {
-        if (object instanceof Diffable) {
-            Diffable diffable = (Diffable) object;
-            DiffableType<Diffable> type = DiffableType.getInstance(diffable);
-            DiffableScope scope = DiffableInternals.getScope(diffable);
+    private void reevaluate(Diffable diffable) {
+        DiffableScope scope = DiffableInternals.getScope(diffable);
 
-            if (scope != null) {
-                NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
-                Map<String, Object> resolved = new LinkedHashMap<>();
+        if (scope != null) {
+            BlockNode block = scope.getBlock();
 
-                for (Map.Entry<String, Node> entry : scope.getValueNodes().entrySet()) {
-                    Node node = entry.getValue();
-                    resolved.put(entry.getKey(), evaluator.visit(node, scope));
-                }
-
-                type.setValues(diffable, resolved);
-            }
-
-            for (DiffableField field : type.getFields()) {
-                if (field.shouldBeDiffed()) {
-                    resolve(field.getValue(diffable));
-                }
-            }
-
-        } else if (object instanceof Collection) {
-            for (Object item : (Collection<?>) object) {
-                resolve(item);
+            if (block != null) {
+                scope.clear();
+                scope.getRootScope().getEvaluator().evaluateDiffable(block, scope);
+                DiffableType.getInstance(diffable).setValues(diffable, scope);
             }
         }
     }

@@ -361,13 +361,25 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         return null;
     }
 
+    public void evaluateDiffable(BlockNode node, Scope scope) {
+        for (Node item : node.getBody()) {
+            if (!(item instanceof DirectiveNode)) {
+                visit(item, scope);
+            }
+        }
+
+        for (Node item : node.getBody()) {
+            if (item instanceof DirectiveNode) {
+                visit(item, scope);
+            }
+        }
+    }
+
     @Override
     public Object visitKeyBlock(KeyBlockNode node, Scope scope) {
         DiffableScope bodyScope = new DiffableScope(scope, node);
 
-        for (Node item : node.getBody()) {
-            visit(item, bodyScope);
-        }
+        evaluateDiffable(node, bodyScope);
 
         String key = node.getKey();
 
@@ -387,17 +399,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
     public Object visitResource(ResourceNode node, Scope scope) {
         DiffableScope bodyScope = new DiffableScope(scope, node);
 
-        for (Node item : node.getBody()) {
-            if (!(item instanceof DirectiveNode)) {
-                visit(item, bodyScope);
-            }
-        }
-
-        for (Node item : node.getBody()) {
-            if (item instanceof DirectiveNode) {
-                visit(item, bodyScope);
-            }
-        }
+        evaluateDiffable(node, bodyScope);
 
         String type = node.getType();
         String name = (String) visit(node.getName(), scope);
