@@ -327,6 +327,7 @@ You should see output similar to the following :
 .. code:: shell
 
   $ /usr/local/bin/gyro up vpc.gyro
+
    ↓ Loading plugin: gyro:gyro-aws-provider:0.15-SNAPSHOT
    ↓ Loading plugin: gyro:gyro-brightspot-plugin:0.15-SNAPSHOT
    ⟳ Refreshed resources: 0
@@ -425,20 +426,21 @@ Apply the configuration changes by running gyro up again. Gyro will show you wha
 
 .. code:: shell
 
-	$ /usr/local/bin/gyro up vpc.gyro
-	 ↓ Loading plugin: gyro:gyro-aws-provider:0.15-SNAPSHOT
+  $ /usr/local/bin/gyro up vpc.gyro
+
+   ↓ Loading plugin: gyro:gyro-aws-provider:0.15-SNAPSHOT
    ↓ Loading plugin: gyro:gyro-brightspot-plugin:0.15-SNAPSHOT
    ⟳ Refreshed resources: 2
  
-	 Looking for changes...
+   Looking for changes...
  
-	 + Create aws::internet-gateway ig-example
+   + Create aws::internet-gateway ig-example
    + Create aws::route-table route-table-example
    + Create aws::route route-example
  
 	 Are you sure you want to change resources? (y/N) y
  
-	 + Creating aws::internet-gateway ig-example OK
+   + Creating aws::internet-gateway ig-example OK
    + Creating aws::route-table route-table-example OK
    + Creating aws::route route-example OK
 
@@ -533,26 +535,25 @@ The resource vpc and associated resources will get deleted after ``y`` is given 
 
 .. code:: shell
 
-    $/usr/local/bin/gyro up vpc.gyro
+   $/usr/local/bin/gyro up vpc.gyro
+    ↓ Loading plugin: gyro:gyro-aws-provider:0.15-SNAPSHOT
+    ↓ Loading plugin: gyro:gyro-brightspot-plugin:0.15-SNAPSHOT
 
-     ↓ Loading plugin: gyro:gyro-aws-provider:0.15-SNAPSHOT
-     ↓ Loading plugin: gyro:gyro-brightspot-plugin:0.15-SNAPSHOT
-  
-     ⟳ Refreshed resources: 4
-  
-     Looking for changes...
-     
-     - Delete aws::vpc vpc-example (vpc-0db28818a6cb91795)
-     - Delete aws::subnet subnet-public-us-east-2a (subnet-00ef07cf7a507d64c)
-     - Delete aws::internet-gateway ig-example (igw-04463fa091c36aff6)
-     - Delete aws::route-table route-table-example (rtb-09c6c85e550100385)
-  
-     Are you sure you want to change resources? (y/N) y
-  
-     - Deleting aws::route-table route-table-example (rtb-09c6c85e550100385) OK
-     - Deleting aws::internet-gateway ig-example (igw-04463fa091c36aff6) OK
-     - Deleting aws::subnet subnet-public-us-east-2a (subnet-00ef07cf7a507d64c) OK
-     - Deleting aws::vpc vpc-example (vpc-0db28818a6cb91795) OK
+    ⟳ Refreshed resources: 4
+
+    Looking for changes...
+
+    - Delete aws::vpc vpc-example (vpc-0db28818a6cb91795)
+    - Delete aws::subnet subnet-public-us-east-2a (subnet-00ef07cf7a507d64c)
+    - Delete aws::internet-gateway ig-example (igw-04463fa091c36aff6)
+    - Delete aws::route-table route-table-example (rtb-09c6c85e550100385)
+
+    Are you sure you want to change resources? (y/N) y
+
+    - Deleting aws::route-table route-table-example (rtb-09c6c85e550100385) OK
+    - Deleting aws::internet-gateway ig-example (igw-04463fa091c36aff6) OK
+    - Deleting aws::subnet subnet-public-us-east-2a (subnet-00ef07cf7a507d64c) OK
+    - Deleting aws::vpc vpc-example (vpc-0db28818a6cb91795) OK
 
 .. raw:: pdf
 
