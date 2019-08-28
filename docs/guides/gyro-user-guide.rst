@@ -53,8 +53,8 @@ Official distributions are:
 ================== =================
 OS                  Archive
 ================== =================
-**macOS**          `gyro-osx-0.14-20190401.141851-57.zip <https://artifactory.psdops.com/gyro-snapshots/gyro/gyro-cli-osx/0.15-SNAPSHOT/gyro-cli-osx-0.15-20190827.211110-49.zip>`_
-**Linux**          `gyro-linux-0.14-20190401.141747-56.zip <https://artifactory.psdops.com/gyro-snapshots/gyro/gyro-cli-linux/0.15-SNAPSHOT/gyro-cli-linux-0.15-20190827.211008-49.zip>`_
+**macOS**          `gyro-cli-osx-0.15-20190827.211110-49.zip <https://artifactory.psdops.com/gyro-snapshots/gyro/gyro-cli-osx/0.15-SNAPSHOT/gyro-cli-osx-0.15-20190827.211110-49.zip>`_
+**Linux**          `gyro-cli-linux-0.15-20190827.211008-49.zip <https://artifactory.psdops.com/gyro-snapshots/gyro/gyro-cli-linux/0.15-SNAPSHOT/gyro-cli-linux-0.15-20190827.211008-49.zip>`_
 ================== =================
 
 macOS and Linux
@@ -64,14 +64,16 @@ Download the distribution and extract it into ``/usr/local/bin``. For example:
 
 .. code:: shell
 
-    $ unzip -d /usr/local/bin gyro-osx-0.14-20190401.141851-57.zip
+    $ unzip -d /usr/local/bin gyro-cli-osx-0.15-20190827.211110-49.zip
 
-        Archive:  gyro-osx-0.14-20190401.141851-57.zip
-       creating: /usr/local/bin/gyro-rt/
-       creating: /usr/local/bin/gyro-rt/bin/
+     Archive:  gyro-cli-osx-0.15-20190827.211110-49.zip
+      creating: /usr/local/bin/gyro-rt/
+      creating: /usr/local/bin/gyro-rt/bin/
       inflating: /usr/local/bin/gyro-rt/bin/java
       inflating: /usr/local/bin/gyro-rt/bin/jrunscript
       inflating: /usr/local/bin/gyro-rt/bin/keytool
+      creating: /usr/local/bin/gyro-rt/conf/
+      inflating: /usr/local/bin/gyro-rt/conf/logging.properties
       .
       .
       .
@@ -84,7 +86,7 @@ Test Your Installation
 
 Check that Gyro is installed and working by creating a small test configuration and running Gyro in test mode. 
 
-Start by creating a gyro directory in your project folder and an initial configuration file named ``init.gyro``, which gets created by running this command:
+Start by creating a gyro directory in your project folder and an initial configuration file named ``init.gyro``, which gets created by running the following command:
 
  ``gyro init gyro:gyro-aws-provider:0.15-SNAPSHOT``
 
@@ -112,8 +114,7 @@ Create a file named `test.gyro` in the `gyro` directory, with the following conf
 
 
 
-To verify the installation run ``gyro up <file>`` in test mode. If ``y`` is given at the prompt a state file will be created
-in the local directory named ``.gyro/state/test.gyro``.
+To verify the installation run ``gyro up <file>`` in test mode. If ``y`` is given at the prompt, gyro will generate a state file in the local directory ``.gyro/state/``, you can check your state file here ``.gyro/state/test.gyro``.
 
 .. code:: shell
 
@@ -262,9 +263,11 @@ By the end of this guide you should have a working local Gyro environment and de
 Configuration
 +++++++++++++
 
-The first step to creating infrastructure with gyro is to defining the init config file which has details about your project such as plugins, credentials, global variables and backend file system.
+The first step to creating infrastructure with gyro is to define the init config file which has details about your project such as plugins, credentials, global variables and backend file systems.
 
-Inside your project folder, start by creating a `gyro` directory and run the `gyro init <plugins>` to create the init file with the required plugins. You can also run `gyro help init` for detailed usage of this command. You also need to add the project specific details in the  ``init.gyro`` configuration file such as credentials which will allow gyro to spin up resources on the cloud.
+Inside your project folder, start by creating a `gyro` directory and run the `gyro init <plugins>` to create the init file with the required plugins. You can also run `gyro help init` for detailed usage of this command. 
+
+You also need to add the project specific details in the  ``init.gyro`` configuration file such as credentials which will allow gyro to create resources on cloud.
 
     $ /usr/local/bin/gyro init gyro:gyro-aws-provider:0.15-SNAPSHOT
     + Creating a new .gyro directory
