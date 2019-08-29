@@ -527,8 +527,8 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
     }
 
     @Override
-    public Object visitIndexed(IndexedNode node, Scope context) {
-        Object value = visit(node.getValue(), context);
+    public Object visitIndexed(IndexedNode node, Scope scope) {
+        Object value = visit(node.getValue(), scope);
 
         if (value == null) {
             removeTypeNode(node);
@@ -536,7 +536,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         }
 
         for (Node indexNode : node.getIndexes()) {
-            Object index = visit(indexNode, context);
+            Object index = visit(indexNode, scope);
 
             if (index == null) {
                 removeTypeNode(node);
