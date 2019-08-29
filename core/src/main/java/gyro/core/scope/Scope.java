@@ -19,8 +19,7 @@ public class Scope extends MapWrapper<String, Object> {
 
     private final Scope parent;
     private final Map<Object, String> names = new IdentityHashMap<>();
-    private final Map<String, Node> valueNodes = new HashMap<>();
-    private final Map<String, Node> keyNodes = new HashMap<>();
+    private final Map<String, Node> locations = new HashMap<>();
 
     private final LoadingCache<Class<? extends Settings>, Settings> settingsByClass = CacheBuilder.newBuilder()
         .build(new CacheLoader<Class<? extends Settings>, Settings>() {
@@ -98,16 +97,12 @@ public class Scope extends MapWrapper<String, Object> {
         return names.get(value);
     }
 
-    public void addValueNode(String key, Node value) {
-        valueNodes.put(key, value);
+    public Node getLocation(String key) {
+        return locations.get(key);
     }
 
-    public Map<String, Node> getValueNodes() {
-        return valueNodes;
-    }
-
-    public Map<String, Node> getKeyNodes() {
-        return keyNodes;
+    public void putLocation(String key, Node node) {
+        locations.put(key, node);
     }
 
     @SuppressWarnings("unchecked")

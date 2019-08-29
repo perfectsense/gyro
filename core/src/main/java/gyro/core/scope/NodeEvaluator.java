@@ -335,8 +335,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         Node value = node.getValue();
 
         scope.put(key, visit(value, scope));
-        scope.addValueNode(key, value);
-        scope.getKeyNodes().put(key, node);
+        scope.putLocation(key, node);
 
         removeTypeNode(node);
         return scope.get(key);
@@ -388,7 +387,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             .orElse(null);
 
         scope.addValue(key, name, bodyScope);
-        scope.getKeyNodes().put(key, node);
+        scope.putLocation(key, node);
 
         removeTypeNode(node);
         return null;
@@ -429,7 +428,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                     node,
                     String.format("@|bold %s %s|@ has been defined already!", type, name),
                     new GyroException(
-                        file.getKeyNodes().get(fullName),
+                        file.getLocation(fullName),
                         "Defined previously:"));
             }
 
@@ -441,7 +440,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                 .ifPresent(r -> copy(r, resource));
 
             file.put(fullName, resource);
-            file.getKeyNodes().put(fullName, node);
+            file.putLocation(fullName, node);
 
             for (Node item : node.getBody()) {
                 if (item instanceof DirectiveNode) {

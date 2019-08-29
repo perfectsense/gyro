@@ -193,7 +193,7 @@ public class DiffableType<D extends Diffable> {
         if (!invalidFieldNames.isEmpty()) {
             throw new GyroException(
                 values instanceof Scope
-                    ? ((Scope) values).getKeyNodes().get(invalidFieldNames.iterator().next())
+                    ? ((Scope) values).getLocation(invalidFieldNames.iterator().next())
                     : null,
                 String.format(
                     "Following fields aren't valid in @|bold %s|@ type! @|bold %s|@",
