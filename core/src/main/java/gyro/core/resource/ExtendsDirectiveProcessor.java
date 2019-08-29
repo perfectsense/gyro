@@ -33,7 +33,18 @@ public class ExtendsDirectiveProcessor extends DirectiveProcessor<DiffableScope>
             sourceMap = (Map<String, Object>) source;
 
         } else if (source instanceof Resource) {
-            sourceMap = DiffableInternals.getScope((Resource) source);
+            Resource resource = (Resource) source;
+            sourceMap = DiffableInternals.getScope(resource);
+
+            if (sourceMap == null) {
+                sourceMap = DiffableType.getInstance(resource)
+                    .getFields()
+                    .stream()
+                    .collect(
+                        LinkedHashMap::new,
+                        (m, f) -> m.put(f.getName(), f.getValue(resource)),
+                        LinkedHashMap::putAll);
+            }
 
         } else {
             throw new GyroException(String.format(
