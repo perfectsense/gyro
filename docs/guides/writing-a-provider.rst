@@ -51,7 +51,7 @@ Implementation
 Annotations
 +++++++++++
 
-**@Type(string)*
+**@Type(string)**
     The class should be annotated with the ``@Type(string)`` annotation. The name provided by this annotation is
     used by the Gyro language to lookup the resource implementation. For example, ``@Type("instance")`` in the AWS
     provider will make ``aws::instance`` available to the Gyro language.
