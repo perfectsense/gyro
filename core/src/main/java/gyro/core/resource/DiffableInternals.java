@@ -7,6 +7,7 @@ import java.util.stream.Stream;
 
 import gyro.core.diff.Change;
 import gyro.core.scope.DiffableScope;
+import gyro.lang.ast.block.BlockNode;
 
 public final class DiffableInternals {
 
@@ -47,6 +48,22 @@ public final class DiffableInternals {
 
     public static void setChange(Diffable diffable, Change change) {
         diffable.change = change;
+    }
+
+    public static void reevaluate(Diffable diffable) {
+        DiffableScope oldScope = diffable.scope;
+
+        if (oldScope != null) {
+            BlockNode block = oldScope.getBlock();
+
+            if (block != null) {
+                DiffableScope newScope = new DiffableScope(oldScope.getParent(), block);
+                diffable.scope = newScope;
+
+                newScope.getRootScope().getEvaluator().evaluateDiffable(block, newScope);
+                DiffableType.getInstance(diffable).setValues(diffable, newScope);
+            }
+        }
     }
 
     public static void update(Diffable diffable, boolean newScope) {

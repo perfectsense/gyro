@@ -19,9 +19,7 @@ import gyro.core.resource.DiffableField;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
 import gyro.core.resource.Resource;
-import gyro.core.scope.DiffableScope;
 import gyro.core.scope.State;
-import gyro.lang.ast.block.BlockNode;
 
 public class Diff {
 
@@ -67,7 +65,7 @@ public class Diff {
         );
 
         for (Diffable pendingDiffable : pendingDiffables) {
-            reevaluate(pendingDiffable);
+            DiffableInternals.reevaluate(pendingDiffable);
 
             Diffable currentDiffable = currentDiffables.remove(pendingDiffable.primaryKey());
 
@@ -374,7 +372,7 @@ public class Diff {
         }
 
         if (change.changed.compareAndSet(false, true)) {
-            reevaluate(diffable);
+            DiffableInternals.reevaluate(diffable);
 
             if (!diffable.writeExecution(ui, change)) {
                 change.writeExecution(ui);
@@ -404,20 +402,6 @@ public class Diff {
 
             if (result != null) {
                 result.write(ui);
-            }
-        }
-    }
-
-    private void reevaluate(Diffable diffable) {
-        DiffableScope scope = DiffableInternals.getScope(diffable);
-
-        if (scope != null) {
-            BlockNode block = scope.getBlock();
-
-            if (block != null) {
-                scope.clear();
-                scope.getRootScope().getEvaluator().evaluateDiffable(block, scope);
-                DiffableType.getInstance(diffable).setValues(diffable, scope);
             }
         }
     }
