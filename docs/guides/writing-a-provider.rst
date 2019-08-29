@@ -51,11 +51,12 @@ Implementation
 Annotations
 +++++++++++
 
-The class should be annotated with the ``@Type(string)`` annotation. The name provided by this annotation is
-used by the Gyro language to lookup the resource implementation. For example, ``@Type("instance")`` in the AWS
-provider will make ``aws::instance`` available to the Gyro language.
+**@Type(string)*
+    The class should be annotated with the ``@Type(string)`` annotation. The name provided by this annotation is
+    used by the Gyro language to lookup the resource implementation. For example, ``@Type("instance")`` in the AWS
+    provider will make ``aws::instance`` available to the Gyro language.
 
-The Java package(s) that make up a provider should be annotated with one or more of the following:
+    The Java package(s) that make up a provider should be annotated with one or more of the following:
 
 **@Namespace(string)**
     This is name the primary namespace of the provider that will be exposed to the Gyro language. For example, for
@@ -113,7 +114,7 @@ Each resource must extend the abstract ``Resource`` class and implement the inte
     }
 
 
-The ``GyroUI`` parameter in create, update and delete methods is responsible for displaying the output on the console UI and the ``State`` parameter is responsible to generate and update state files for the resources.
+The ``GyroUI`` parameter in create, update and delete method is responsible for displaying the output on the console UI and the ``State`` parameter is responsible to generate and update state files for the resources.
 
 **refresh()**
 
@@ -167,14 +168,14 @@ The following example implementation of ``refresh()`` updates an EBS volume in A
          setAutoEnableIo(responseAutoEnableIo.autoEnableIO().value());
      }
 
-**create()**
+**create(GyroUI ui, State state)**
 
-The ``create()`` method is called by Gyro when it determines that it should create a resource. Implementations should
+The ``create(..)`` method is called by Gyro when it determines that it should create a resource. Implementations should
 create the resource and update any unique ID fields on the current object instance that will be necessary to query for
 the resource ``refresh()`` method.
 
-Gyro will call ``create()`` if the resource does not exist in state or if a non-updatable field has been modified. In
-the later case Gyro will first call ``delete()``.
+Gyro will call ``create(..)`` if the resource does not exist in state or if a non-updatable field has been modified. In
+the later case Gyro will first call ``delete(..)``.
 
 The following example implementation of ``create(GyroUI ui, State state)`` creates an EBS volume in AWS:
 
