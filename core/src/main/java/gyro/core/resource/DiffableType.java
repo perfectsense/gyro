@@ -125,6 +125,15 @@ public class DiffableType<D extends Diffable> {
         return fieldByName.get(name);
     }
 
+    public D newExternal(RootScope root, Object id) {
+        D diffable = Reflections.newInstance(diffableClass);
+        diffable.external = true;
+        diffable.scope = new DiffableScope(root, null);
+
+        idField.setValue(diffable, id);
+        return diffable;
+    }
+
     public D newInstance(DiffableScope scope) {
         D diffable = Reflections.newInstance(diffableClass);
         diffable.scope = scope;

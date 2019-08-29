@@ -18,10 +18,6 @@ public final class DiffableInternals {
         return diffable.external;
     }
 
-    public static void setExternal(Diffable diffable, boolean external) {
-        diffable.external = external;
-    }
-
     public static String getName(Diffable diffable) {
         return diffable.name;
     }
