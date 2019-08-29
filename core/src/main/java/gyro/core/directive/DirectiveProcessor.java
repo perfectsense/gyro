@@ -117,7 +117,7 @@ public abstract class DirectiveProcessor<S extends Scope> {
         NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
         Scope bodyScope = new Scope(scope);
 
-        evaluator.visitBody(node.getBody(), bodyScope);
+        evaluator.evaluateBody(node.getBody(), bodyScope);
         return bodyScope;
     }
 

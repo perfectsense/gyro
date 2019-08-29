@@ -250,7 +250,7 @@ public class RootScope extends FileScope {
         evaluateFile(getFile(), node -> nodes.addAll(node.getBody()));
 
         try {
-            evaluator.visitBody(nodes, this);
+            evaluator.evaluateBody(nodes, this);
 
         } catch (Defer error) {
             // Ignore for now since this is reevaluated later.

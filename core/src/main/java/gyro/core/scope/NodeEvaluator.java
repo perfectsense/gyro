@@ -250,7 +250,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             .flatMap(List::stream)
             .forEach(item -> addTypeNode(typeNodes, item, item));
 
-        visitBody(body, root);
+        evaluateBody(body, root);
     }
 
     private void addTypeNode(Map<String, Set<Node>> typeNodes, Node top, Node node) {
@@ -265,7 +265,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         }
     }
 
-    public void visitBody(List<Node> body, Scope scope) {
+    public void evaluateBody(List<Node> body, Scope scope) {
         Defer.execute(body, i -> visit(i, scope));
     }
 
@@ -350,7 +350,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         rootScope.getFileScopes().add(fileScope);
 
         try {
-            visitBody(node.getBody(), fileScope);
+            evaluateBody(node.getBody(), fileScope);
 
         } catch (Defer e) {
             rootScope.getFileScopes().remove(fileScope);

@@ -85,7 +85,7 @@ public class ForDirectiveProcessor extends DirectiveProcessor<Scope> {
         NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
         Scope bodyScope = new Scope(scope, new CascadingMap<>(scope, values));
 
-        evaluator.visitBody(node.getBody(), bodyScope);
+        evaluator.evaluateBody(node.getBody(), bodyScope);
         scope.getKeyNodes().putAll(bodyScope.getKeyNodes());
     }
 
