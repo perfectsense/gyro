@@ -113,6 +113,8 @@ Each resource must extend the abstract ``Resource`` class and implement the inte
     }
 
 
+The ``GyroUI`` parameter in create, update and delete methods is responsible for displaying the output on the console UI and the ``State`` parameter is responsible to generate and update state files for the resources.
+
 **refresh()**
 
 The ``refresh()`` method is called by Gyro to refresh the state of a resource. Implementations should query the
@@ -174,12 +176,12 @@ the resource ``refresh()`` method.
 Gyro will call ``create()`` if the resource does not exist in state or if a non-updatable field has been modified. In
 the later case Gyro will first call ``delete()``.
 
-The following example implementation of ``create()`` creates an EBS volume in AWS:
+The following example implementation of ``create(GyroUI ui, State state)`` creates an EBS volume in AWS:
 
 .. code-block:: java
 
     @Override
-    protected void create() {
+    protected void create(GyroUI ui, State state) {
         Ec2Client client = createClient(Ec2Client.class);
 
         validate(true);
@@ -199,14 +201,14 @@ The following example implementation of ``create()`` creates an EBS volume in AW
         setState(response.stateAsString());
     }
 
-**update(Resource current, Set<String> changedFieldNames)**
+**update(GyroUI ui, State state, AwsResource config, Set<String> changedProperties)**
 
 The ``update(..)`` method is called by Gyro when it determines that a resource attribute can be updated. This method
-will only be called if the fields that changed are marked with the ``@ResourceUpdatable`` annotation. In cases where
+will only be called if the fields that changed are marked with the ``@Updatable`` annotation. In cases where
 both updatable and non-updatable fields are changed Gyro will not call this method, instead it will call ``delete()``
 followed by ``create()``.
 
-The ``changedFieldNames`` set contains the names of fields that changed. This allows implementations to minimum the
+The ``changedProperties`` set contains the names of fields that changed. This allows implementations to minimum the
 of API calls necessary to effect an update.
 
 The following example implementation of ``update(..)`` updates an EBS volume in AWS:
@@ -235,7 +237,7 @@ The following example implementation of ``update(..)`` updates an EBS volume in 
         }
     }
 
-**delete()**
+**delete(GyroUI ui, State state)**
 
 The ``delete(GyroUI ui, State state)`` method is called by Gyro when it determines that a resource should be deleted from the provider. The
 resource implementation should delete the resource from the provider.
