@@ -88,31 +88,29 @@ public class ExtendsDirectiveProcessor extends DirectiveProcessor<DiffableScope>
         }
     }
 
-    private Object clone(Object value) {
+    @SuppressWarnings("unchecked")
+    private <T> T clone(T value) {
         if (value instanceof Diffable) {
             Diffable diffable = (Diffable) value;
             DiffableType<Diffable> type = DiffableType.getInstance(diffable);
-            DiffableScope scope = diffable.scope;
-            Diffable clone = type.newInstance(new DiffableScope(scope, null));
+            Diffable clone = type.newInternal(clone(diffable.scope), diffable.name);
 
-            DiffableInternals.setName(clone, diffable.name);
-            type.setValues(clone, scope);
-            return clone;
+            return (T) clone;
 
         } else if (value instanceof DiffableScope) {
             DiffableScope scope = (DiffableScope) value;
             DiffableScope clone = new DiffableScope(scope.getParent(), scope.getBlock());
 
             clone.putAll(scope);
-            return clone;
+            return (T) clone;
 
         } if (value instanceof List) {
-            return ((List<?>) value).stream()
+            return (T) ((List<?>) value).stream()
                 .map(this::clone)
                 .collect(Collectors.toList());
 
         } else if (value instanceof Map) {
-            return ((Map<?, ?>) value).entrySet()
+            return (T) ((Map<?, ?>) value).entrySet()
                 .stream()
                 .collect(
                     LinkedHashMap::new,
@@ -120,7 +118,7 @@ public class ExtendsDirectiveProcessor extends DirectiveProcessor<DiffableScope>
                     LinkedHashMap::putAll);
 
         } else if (value instanceof Set) {
-            return ((Set<?>) value).stream()
+            return (T) ((Set<?>) value).stream()
                 .map(this::clone)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
 

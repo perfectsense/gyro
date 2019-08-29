@@ -434,10 +434,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             }
 
             DiffableType<Resource> resourceType = DiffableType.getInstance((Class<Resource>) c);
-            Resource resource = resourceType.newInstance(bodyScope);
-
-            DiffableInternals.setName(resource, name);
-            resourceType.setValues(resource, bodyScope);
+            Resource resource = resourceType.newInternal(bodyScope, name);
 
             Optional.ofNullable(root.getCurrent())
                 .map(s -> s.findResource(fullName))

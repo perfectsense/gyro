@@ -134,9 +134,12 @@ public class DiffableType<D extends Diffable> {
         return diffable;
     }
 
-    public D newInstance(DiffableScope scope) {
+    public D newInternal(DiffableScope scope, String name) {
         D diffable = Reflections.newInstance(diffableClass);
         diffable.scope = scope;
+        diffable.name = name;
+
+        setValues(diffable, scope);
         return diffable;
     }
 
