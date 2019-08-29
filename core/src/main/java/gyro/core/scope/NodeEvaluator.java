@@ -668,8 +668,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
 
                 for (Scope s = scope instanceof DiffableScope ? scope.getParent() : scope; s != null; s = s.getParent()) {
                     if (s.containsKey(referenceName)) {
-                        Node valueNode = s.getValueNodes().get(referenceName);
-                        value = valueNode == null ? s.get(referenceName) : visit(valueNode, s);
+                        value = s.get(referenceName);
                         found = true;
                         break;
                     }
