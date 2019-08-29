@@ -265,11 +265,14 @@ Configuration
 
 The first step to creating infrastructure with gyro is to define the init config file which has details about your project such as plugins, credentials, global variables and backend file systems.
 
-Inside your project folder, start by creating a `gyro` directory and run the `gyro init <plugins>` to create the init file with the required plugins. You can also run `gyro help init` for detailed usage of this command. 
+Inside your project folder, start by creating a `gyro` directory and run the ``gyro init <plugins>`` to create the init file with the required plugins. You can also run ``gyro help init`` for detailed usage of this command.
 
 You also need to add the project specific details in the  ``init.gyro`` configuration file such as credentials which will allow gyro to create resources on cloud.
 
+.. code:: shell
+
     $ /usr/local/bin/gyro init gyro:gyro-aws-provider:0.15-SNAPSHOT
+
     + Creating a new .gyro directory
     + Writing to the .gyro/init.gyro file
 
