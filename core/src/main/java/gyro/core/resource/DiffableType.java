@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -45,6 +46,8 @@ public class DiffableType<D extends Diffable> {
     private final DiffableField idField;
     private final List<DiffableField> fields;
     private final Map<String, DiffableField> fieldByName;
+    private final List<ModificationField> modificationFields;
+    private final Map<String, ModificationField> modificationFieldByName;
 
     @SuppressWarnings("unchecked")
     public static <T extends Diffable> DiffableType<T> getInstance(Class<T> diffableClass) {
@@ -103,6 +106,12 @@ public class DiffableType<D extends Diffable> {
         this.idField = idField;
         this.fields = fields.build();
         this.fieldByName = fieldByName.build();
+        this.modificationFields = new ArrayList<>();
+        this.modificationFieldByName = new HashMap<>();
+
+        if (isModifier()) {
+            modify();
+        }
     }
 
     public boolean isRoot() {
@@ -118,11 +127,16 @@ public class DiffableType<D extends Diffable> {
     }
 
     public List<DiffableField> getFields() {
-        return fields;
+        return Stream.concat(fields.stream(), modificationFields.stream())
+            .collect(Collectors.toList());
     }
 
     public DiffableField getField(String name) {
-        return fieldByName.get(name);
+        return Stream.of(fieldByName, modificationFieldByName)
+            .map(Map::entrySet)
+            .flatMap(Collection::stream)
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
+        .get(name);
     }
 
     public D newInstance(DiffableScope scope) {
@@ -134,7 +148,7 @@ public class DiffableType<D extends Diffable> {
     public String getDescription(D diffable) {
         Map<String, Object> values = new HashMap<>();
 
-        for (DiffableField field : fields) {
+        for (DiffableField field : getFields()) {
             values.put(field.getName(), field.getValue(diffable));
         }
 
@@ -169,7 +183,7 @@ public class DiffableType<D extends Diffable> {
             .filter(n -> !n.startsWith("_"))
             .collect(Collectors.toCollection(LinkedHashSet::new));
 
-        for (DiffableField field : fields) {
+        for (DiffableField field : getFields()) {
             String fieldName = field.getName();
 
             if (values.containsKey(fieldName)) {
@@ -229,6 +243,25 @@ public class DiffableType<D extends Diffable> {
                     "Can't validate @|bold %s|@, an instance of @|bold %s|@!",
                     value,
                     value.getClass().getName())));
+        }
+    }
+
+    private boolean isModifier() {
+        return Optional.ofNullable(diffableClass.getAnnotation(Modify.class)).isPresent();
+    }
+
+    private void modify() {
+        Class<? extends Diffable> modifiedClass = Optional.ofNullable(diffableClass.getAnnotation(Modify.class))
+            .map(Modify::value)
+            .orElse(null);
+
+        if (modifiedClass != null) {
+            DiffableType<? extends Diffable> modifiedType = getInstance(modifiedClass);
+            for (DiffableField field : getFields()) {
+                ModificationField modificationField = new ModificationField(field, this);
+                modifiedType.modificationFields.add(modificationField);
+                modifiedType.modificationFieldByName.put(modificationField.getName(), modificationField);
+            }
         }
     }
 

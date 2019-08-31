@@ -72,6 +72,15 @@ public class DiffableField {
         }
     }
 
+    protected DiffableField(DiffableField field) {
+        name = field.name;
+        getter = field.getter;
+        setter = field.setter;
+        updatable = field.updatable;
+        collection = field.collection;
+        itemClass = field.itemClass;
+    }
+
     public String getName() {
         return name;
     }

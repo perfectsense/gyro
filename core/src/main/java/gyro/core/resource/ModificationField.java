@@ -1,0 +1,38 @@
+package gyro.core.resource;
+
+import gyro.core.validation.ValidationError;
+
+import java.util.Collections;
+import java.util.List;
+
+public class ModificationField extends DiffableField {
+
+    private DiffableType modifier;
+
+    public ModificationField(DiffableField field, DiffableType modifier) {
+        super(field);
+        this.modifier = modifier;
+    }
+
+    public DiffableType getModifier() {
+        return modifier;
+    }
+
+    @Override
+    public Object getValue(Diffable diffable) {
+        Diffable modification = DiffableInternals.getModificationByField(diffable).get(this);
+        return super.getValue(modification);
+    }
+
+    @Override
+    public void setValue(Diffable diffable, Object value) {
+        Diffable modification = DiffableInternals.getModificationByField(diffable).get(this);
+        super.setValue(modification, value);
+    }
+
+    @Override
+    public List<ValidationError> validate(Diffable diffable) {
+        return Collections.emptyList();
+    }
+
+}
