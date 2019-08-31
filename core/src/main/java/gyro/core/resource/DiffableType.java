@@ -142,6 +142,23 @@ public class DiffableType<D extends Diffable> {
     public D newInstance(DiffableScope scope) {
         D diffable = Reflections.newInstance(diffableClass);
         diffable.scope = scope;
+
+        Map<String, Diffable> modificationByName = new HashMap<>();
+        Map<ModificationField, Diffable> modificationByField = DiffableInternals.getModificationByField(diffable);
+
+        for (Map.Entry<String, ModificationField> entry : modificationFieldByName.entrySet()) {
+            ModificationField field = entry.getValue();
+            DiffableType type = field.getModifier();
+
+            if (!modificationByName.containsKey(type.name)) {
+                Diffable modification = type.newInstance(scope);
+                modification.scope = scope;
+                modificationByName.put(type.name, modification);
+            }
+
+            modificationByField.put(field, modificationByName.get(type.name));
+        }
+
         return diffable;
     }
 

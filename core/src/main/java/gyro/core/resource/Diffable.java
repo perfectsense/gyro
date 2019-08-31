@@ -1,7 +1,9 @@
 package gyro.core.resource;
 
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -21,6 +23,7 @@ public abstract class Diffable {
     DiffableScope scope;
     Change change;
     Set<String> configuredFields;
+    Map<ModificationField, Diffable> modificationByField;
 
     public Diffable parent() {
         return parent;
