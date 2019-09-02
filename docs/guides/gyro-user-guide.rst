@@ -106,13 +106,7 @@ Create a file named `test.gyro` in the `gyro` directory, with the following conf
 
     aws::vpc vpc
       cidr-block: "10.0.1.0/16"
-  
-      tags: {
-          Name: "vpc-example"
-      }
     end
-
-
 
 To verify the installation run ``gyro up <file>`` in test mode. If ``y`` is given at the prompt, gyro will generate a state file in the local directory ``.gyro/state/``, you can check your state file here ``.gyro/state/test.gyro``.
 
