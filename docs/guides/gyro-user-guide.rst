@@ -138,8 +138,9 @@ concepts necessary to inject logic into your infrastructure configuration.
 Resources
 +++++++++
 
-A resource is the primary type in Gyro. Everything in Gyro built around defining resources. Each
-resource maps to a resource in your cloud provider.
+A resource is the primary type in Gyro. Everything in Gyro is built around defining resources. Resources
+allow you to define configuration for a cloud resources. Gyro will create, update, or delete your
+cloud resources to keep them consistent with the definition of resources in a Gyro file.
 
 A resource is a group of key/value pairs and subresources. Resources can have one or more key/value
 pairs and zero or more subresources.
