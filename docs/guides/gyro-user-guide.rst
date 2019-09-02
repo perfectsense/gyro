@@ -245,8 +245,67 @@ Maps are zero or more comma-separated key/value pairs inside curly brackets (``{
 
 Lists are zero or more comma-separated values inside square brackets (``['item1', 'item2']``).
 
-Virtual Resources
-+++++++++++++++++
+Directives
+++++++++++
+
+Directives are Gyro language extensions that add functionality to the base language. Directives begin with
+the ``@`` symbol, for example, the line ``@plugin: 'gyro:gyro-aws-provider:0.15-SNAPSHOT'`` in the "Test Your Installation"
+section of this document is actually a directive that loads an external plugin.
+
+Gyro comes with a few built-in directives:
+
+**Respository**
+
+**Plugin**
+
+**Virtual Resources**
+
+The virtual resource directive, ``@virtual``, provides a mechanism for grouping resource configurations into
+a reuseable package. Once defined, a virtual resource looks just like any other resource definition.
+
+**Example:**
+
+The following example defines the ``brightspot::vpc`` virtual resource which creates a single vpc and subnet. It
+only requires a ``name`` be defined.
+
+.. code::
+
+    @virtual brightspot::vpc
+        @param name
+
+        aws::vpc vpc
+            cidr-block: "10.0.0.0/16"
+            tags: {
+                Name: "brightspot $name"
+            }
+        end
+
+        aws::subnet "us-east-1a"
+            vpc: $(aws::vpc vpc)
+            availability-zone: us-east-1a
+            cidr-block: "10.0.0.0/24"
+
+            tags: {
+                Name: "brightspot $name"
+            }
+        end
+    @end
+
+Here is an example of using this virtual resource:
+
+.. code::
+
+    brightspot::vpc development
+        name: "gyro"
+    end
+
+Resources defined inside a virtual resource can be referenced by prefixing the resource to be referenced with the
+name provided in the usage of the virtual resource:
+
+.. code::
+
+    development-vpc: $(aws::vpc development/vpc)
+
 
 Conditionals
 ++++++++++++
