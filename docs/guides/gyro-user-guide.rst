@@ -251,7 +251,24 @@ Gyro comes with a few built-in directives:
 
 **Respository**
 
+The repository directive adds to the list of repositories that will be searched for plugins. This directive takes
+a single argument with a URL to the root of a Maven repository. Multiple repositories can be added by calling
+this directive multiple times.
+
+.. code::
+
+    @repository: 'https://artifactory.psdops.com/public'
+
 **Plugin**
+
+The plugin directive loads a plugin. Support for cloud providers is implemented by plugins. All Gyro projects will
+have a minimum of one plugin to define the cloud provider in use. This directive takes a single argument in the
+format ``group-artifact:artifact-name:version``. Multiple plugins can be loaded by calling this directive
+multiple times.
+
+.. code::
+
+    @plugin: 'gyro:gyro-brightspot-plugin:0.15-SNAPSHOT'
 
 **Virtual Resources**
 
