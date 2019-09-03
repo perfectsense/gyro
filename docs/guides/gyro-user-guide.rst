@@ -247,9 +247,43 @@ Directives are Gyro language extensions that add functionality to the base langu
 the ``@`` symbol, for example, the line ``@plugin: 'gyro:gyro-aws-provider:0.15-SNAPSHOT'`` in the "Test Your Installation"
 section of this document is actually a directive that loads an external plugin.
 
+Simple directives, such as ``@plugin``, are defined in the format ``@<directive>: <arguments>``. All
+single line directives take at least one argument and must be on a single line, for example:
+
+.. code::
+
+    @plugin: 'gyro:gyro-aws-provider:0.15-SNAPSHOT'
+
+Advanced directives, such as ``@credentials`` take both an argument and one or more attributes. All advanced
+directives end with ``@end``, for example:
+
+.. code::
+
+    @credentials 'enterprise::aws-credentials'
+        enterprise-url: "https://enterprise.example.com"
+        project: $(project)
+        account: $(account)
+        region: "us-east-2"
+    @end
+
+Control Structures
+++++++++++++++++++
+
+Gyro provides control structures via directives. See the section _`@if` and _`@for` for examples of how to use
+these control structures in your Gyro configuration files.
+
+
+.. raw:: pdf
+
+    PageBreak
+
+Built-in Directives
+-------------------
+
 Gyro comes with a few built-in directives:
 
-**Respository**
+@respository
+++++++++++++
 
 The repository directive adds to the list of repositories that will be searched for plugins. This directive takes
 a single argument with a URL to the root of a Maven repository. Multiple repositories can be added by calling
@@ -259,7 +293,8 @@ this directive multiple times.
 
     @repository: 'https://artifactory.psdops.com/public'
 
-**Plugin**
+@plugin
++++++++
 
 The plugin directive loads a plugin. Support for cloud providers is implemented by plugins. All Gyro projects will
 have a minimum of one plugin to define the cloud provider in use. This directive takes a single argument in the
@@ -270,7 +305,8 @@ multiple times.
 
     @plugin: 'gyro:gyro-brightspot-plugin:0.15-SNAPSHOT'
 
-**Virtual Resources**
+@virtual
+++++++++
 
 The virtual resource directive, ``@virtual``, provides a mechanism for grouping resource configurations into
 a reuseable package. Once defined, a virtual resource looks just like any other resource definition.
@@ -318,11 +354,8 @@ name provided in the usage of the virtual resource:
 
     development-vpc: $(aws::vpc development/vpc)
 
-**Control Structures**
-
-Gyro provides two control structures, ``@if`` and ``@for``.
-
-**@if Directive**
+@if
++++
 
 .. code::
 
@@ -340,7 +373,8 @@ Gyro provides two control structures, ``@if`` and ``@for``.
         end
     @end
 
-**@for Directive**
+@for
+++++
 
 .. code::
 
