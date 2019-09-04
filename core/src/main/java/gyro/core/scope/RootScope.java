@@ -290,21 +290,7 @@ public class RootScope extends FileScope {
             existingFiles.forEach(f -> evaluateFile(f, nodes::add));
         }
 
-        evaluator.visitBody(nodes, this);
-
-        for (Resource resource : findResources()) {
-            DiffableType<?> type = DiffableType.getInstance(resource.getClass());
-            DiffableScope scope = DiffableInternals.getScope(resource);
-            Map<String, Node> valueNodes = scope.getValueNodes();
-
-            for (DiffableField field : type.getFields()) {
-                Node node = valueNodes.get(field.getName());
-
-                if (node != null) {
-                    field.setValue(resource, evaluator.visit(node, scope));
-                }
-            }
-        }
+        evaluator.evaluate(this, nodes);
     }
 
     private void evaluateFile(String file, Consumer<FileNode> consumer) {

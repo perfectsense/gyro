@@ -20,7 +20,9 @@ import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
 import gyro.core.resource.Resource;
 import gyro.core.scope.DiffableScope;
+import gyro.core.scope.NodeEvaluator;
 import gyro.core.scope.State;
+import gyro.lang.ast.Node;
 
 public class Diff {
 
@@ -414,7 +416,15 @@ public class Diff {
             DiffableScope scope = DiffableInternals.getScope(diffable);
 
             if (scope != null) {
-                type.setValues(diffable, scope.resolve());
+                NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
+                Map<String, Object> resolved = new LinkedHashMap<>();
+
+                for (Map.Entry<String, Node> entry : scope.getValueNodes().entrySet()) {
+                    Node node = entry.getValue();
+                    resolved.put(entry.getKey(), evaluator.visit(node, scope));
+                }
+
+                type.setValues(diffable, resolved);
             }
 
             for (DiffableField field : type.getFields()) {

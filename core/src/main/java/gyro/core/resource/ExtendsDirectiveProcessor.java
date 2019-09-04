@@ -57,7 +57,7 @@ public class ExtendsDirectiveProcessor extends DirectiveProcessor<DiffableScope>
 
         } else if (value instanceof DiffableScope) {
             DiffableScope scope = (DiffableScope) value;
-            DiffableScope clone = new DiffableScope(scope.getParent(), scope.getNode());
+            DiffableScope clone = new DiffableScope(scope.getParent(), scope.getBlock());
 
             clone.putAll(scope);
             return clone;

@@ -28,7 +28,7 @@ public class ValidationError implements Locatable {
 
         this.node = fieldName != null
             ? scope.getValueNodes().get(fieldName)
-            : scope.getNode();
+            : scope.getBlock();
     }
 
     public void write(GyroUI ui) {
