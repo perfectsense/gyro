@@ -34,7 +34,7 @@ public abstract class Change {
 
     public abstract void writeExecution(GyroUI ui);
 
-    protected String getLabel(Diffable diffable, boolean includeParent) {
+    public String getLabel(Diffable diffable, boolean includeParent) {
         Diffable parent = diffable.parent();
         DiffableType<Diffable> type = DiffableType.getInstance(diffable);
         String name = DiffableInternals.getName(diffable);

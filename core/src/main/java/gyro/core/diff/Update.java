@@ -27,6 +27,14 @@ public class Update extends Change {
         return pendingDiffable;
     }
 
+    public Diffable getCurrentDiffable() {
+        return currentDiffable;
+    }
+
+    public Set<DiffableField> getChangedFields() {
+        return changedFields;
+    }
+
     private void writeFields(GyroUI ui) {
         if (ui.isVerbose()) {
             for (DiffableField field : changedFields) {
