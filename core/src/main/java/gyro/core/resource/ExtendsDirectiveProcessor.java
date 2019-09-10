@@ -96,12 +96,10 @@ public class ExtendsDirectiveProcessor extends DirectiveProcessor<DiffableScope>
 
             if (type.isRoot()) {
                 return value;
+
+            } else {
+                return (T) type.newInternal(clone(diffable.scope), diffable.name);
             }
-
-            DiffableScope scope = diffable.scope;
-            Diffable clone = type.newInternal(clone(diffable.scope), diffable.name);
-
-            return (T) clone;
 
         } else if (value instanceof DiffableScope) {
             DiffableScope scope = (DiffableScope) value;
