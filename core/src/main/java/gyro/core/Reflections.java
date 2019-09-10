@@ -105,6 +105,7 @@ public class Reflections {
 
     public static Object invoke(Method method, Object object, Object... arguments) {
         try {
+            method.setAccessible(true);
             return method.invoke(object, arguments);
 
         } catch (IllegalAccessException error) {
