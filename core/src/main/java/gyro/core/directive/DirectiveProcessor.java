@@ -6,7 +6,6 @@ import java.util.stream.IntStream;
 
 import com.google.common.collect.ImmutableList;
 import gyro.core.GyroException;
-import gyro.core.resource.Resource;
 import gyro.core.scope.NodeEvaluator;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
@@ -122,9 +121,5 @@ public abstract class DirectiveProcessor<S extends Scope> {
     }
 
     public abstract void process(S scope, DirectiveNode node) throws Exception;
-
-    public void processResource(Resource resource, DirectiveNode node) throws Exception {
-
-    }
 
 }
