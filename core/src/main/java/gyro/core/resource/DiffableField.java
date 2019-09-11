@@ -125,7 +125,7 @@ public class DiffableField {
 
         } catch (ConversionException error) {
             throw new GyroException(
-                scope.getKeyNodes().get(name),
+                scope.getLocation(name),
                 String.format("Can't set @|bold %s|@ to @|bold %s|@ because it can't be converted to an instance of @|bold %s|@!",
                     name,
                     value,

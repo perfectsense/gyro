@@ -11,13 +11,11 @@ import gyro.core.scope.DiffableScope;
 public class DiffableScopeToDiffable implements ConversionFunction<DiffableScope, Diffable> {
 
     @Override
-    @SuppressWarnings("unchecked")
     public Diffable convert(Converter converter, Type returnType, DiffableScope scope) {
-        DiffableType<Diffable> type = DiffableType.getInstance((Class<Diffable>) returnType);
-        Diffable diffable = type.newInstance(scope);
+        @SuppressWarnings("unchecked")
+        Diffable diffable = DiffableType.getInstance((Class<Diffable>) returnType).newInternal(scope, null);
 
-        type.setValues(diffable, scope);
-
+        scope.process(diffable);
         return diffable;
     }
 

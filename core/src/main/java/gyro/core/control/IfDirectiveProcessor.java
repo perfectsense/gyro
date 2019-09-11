@@ -35,7 +35,7 @@ public class IfDirectiveProcessor extends DirectiveProcessor<Scope> {
                     break;
 
                 case "else" :
-                    scope.getRootScope().getEvaluator().visitBody(section.getBody(), scope);
+                    scope.getRootScope().getEvaluator().evaluateBody(section.getBody(), scope);
                     return;
 
                 default :
@@ -58,7 +58,7 @@ public class IfDirectiveProcessor extends DirectiveProcessor<Scope> {
         NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
 
         if (NodeEvaluator.test(evaluator.visit(arguments.get(0), scope))) {
-            evaluator.visitBody(body, scope);
+            evaluator.evaluateBody(body, scope);
             return true;
 
         } else {
