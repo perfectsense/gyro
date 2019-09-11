@@ -24,7 +24,7 @@ public abstract class Diffable {
     DiffableScope scope;
     Change change;
     Set<String> configuredFields;
-    Map<ModificationField, Diffable> modificationByField;
+    Map<ModificationField, Modification> modifications;
 
     public Diffable parent() {
         return parent;

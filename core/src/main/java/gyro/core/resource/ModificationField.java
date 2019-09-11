@@ -7,26 +7,19 @@ import java.util.List;
 
 public class ModificationField extends DiffableField {
 
-    private DiffableType modifier;
-
-    public ModificationField(DiffableField field, DiffableType modifier) {
+    public ModificationField(DiffableField field) {
         super(field);
-        this.modifier = modifier;
-    }
-
-    public DiffableType getModifier() {
-        return modifier;
     }
 
     @Override
     public Object getValue(Diffable diffable) {
-        Diffable modification = DiffableInternals.getModificationByField(diffable).get(this);
+        Diffable modification = DiffableInternals.getModificationForField(diffable, this);
         return super.getValue(modification);
     }
 
     @Override
     public void setValue(Diffable diffable, Object value) {
-        Diffable modification = DiffableInternals.getModificationByField(diffable).get(this);
+        Diffable modification = DiffableInternals.getModificationForField(diffable, this);
         super.setValue(modification, value);
     }
 
