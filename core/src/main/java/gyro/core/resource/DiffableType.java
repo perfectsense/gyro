@@ -44,8 +44,7 @@ public class DiffableType<D extends Diffable> {
     private final Node description;
     private final DiffableField idField;
     private final List<DiffableField> fields;
-    private final List<ModificationField> modificationFields;
-    private final Set<Class<? extends Modification>> modificationClasses;
+    private final Map<Class<? extends Modification>, List<ModificationField>> modificationFieldsByClass;
 
     @SuppressWarnings("unchecked")
     public static <T extends Diffable> DiffableType<T> getInstance(Class<T> diffableClass) {
@@ -100,8 +99,7 @@ public class DiffableType<D extends Diffable> {
 
         this.idField = idField;
         this.fields = fields.build();
-        this.modificationClasses = new HashSet<>();
-        this.modificationFields = new ArrayList<>();
+        this.modificationFieldsByClass = new HashMap<>();
     }
 
     public boolean isRoot() {
@@ -120,7 +118,8 @@ public class DiffableType<D extends Diffable> {
         ImmutableList.Builder<DiffableField> fields = ImmutableList.builder();
 
         fields.addAll(this.fields);
-        fields.addAll(this.modificationFields);
+        modificationFieldsByClass.values()
+            .forEach(fields::addAll);
 
         return fields.build();
     }
@@ -150,14 +149,12 @@ public class DiffableType<D extends Diffable> {
 
         Map<ModificationField, Modification> modifications = DiffableInternals.getModifications(diffable);
 
-        for (Class<? extends Modification> modificationClass : modificationClasses) {
+        // Instantiate Modification and associate it with the appropriate fields.
+        for (Class<? extends Modification> modificationClass : modificationFieldsByClass.keySet()) {
             DiffableType modificationType = DiffableType.getInstance(modificationClass);
             Modification modification = (Modification) modificationType.newInternal(new DiffableScope(scope, null), modificationType.getName() + "::" + name);
 
-            for (DiffableField field : (List<DiffableField>) modificationType.getFields()) {
-                ModificationField modificationField = new ModificationField(field);
-                modificationFields.add(modificationField);
-
+            for (ModificationField modificationField : modificationFieldsByClass.get(modificationClass)) {
                 modifications.put(modificationField, modification);
             }
         }
@@ -237,7 +234,19 @@ public class DiffableType<D extends Diffable> {
     }
 
     void modify(Class<? extends Modification> modificationClass) {
-        modificationClasses.add(modificationClass);
+        DiffableType modificationType = DiffableType.getInstance(modificationClass);
+        List<ModificationField> modificationFields = modificationFieldsByClass.get(modificationClass);
+
+        if (modificationFields == null) {
+            modificationFields = new ArrayList<>();
+
+            for (DiffableField field : (List<DiffableField>) modificationType.getFields()) {
+                ModificationField modificationField = new ModificationField(field);
+                modificationFields.add(modificationField);
+            }
+
+            modificationFieldsByClass.put(modificationClass, modificationFields);
+        }
     }
 
     private void validateValue(List<ValidationError> errors, Diffable parent, String name, Object value) {
