@@ -53,11 +53,12 @@ public final class DiffableInternals {
             BlockNode block = oldScope.getBlock();
 
             if (block != null) {
-                DiffableScope newScope = new DiffableScope(oldScope.getParent(), block);
+                DiffableScope newScope = new DiffableScope(oldScope);
                 diffable.scope = newScope;
 
                 newScope.getRootScope().getEvaluator().evaluateDiffable(block, newScope);
                 DiffableType.getInstance(diffable).setValues(diffable, newScope);
+                newScope.process(diffable);
             }
         }
     }

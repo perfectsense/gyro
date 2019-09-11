@@ -431,6 +431,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                 .map(s -> s.findResource(fullName))
                 .ifPresent(r -> copy(r, resource));
 
+            bodyScope.process(resource);
             file.put(fullName, resource);
             file.putLocation(fullName, node);
 

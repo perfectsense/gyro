@@ -15,12 +15,23 @@ import gyro.lang.ast.block.BlockNode;
 public class DiffableScope extends Scope {
 
     private final BlockNode block;
-    private final List<DiffableProcessor> processors = new ArrayList<>();
-    private List<Node> stateNodes = new ArrayList<>();
+    private final List<DiffableProcessor> processors;
+    private final List<Node> stateNodes;
 
     public DiffableScope(Scope parent, BlockNode block) {
         super(parent);
+
         this.block = block;
+        this.processors = new ArrayList<>();
+        this.stateNodes = new ArrayList<>();
+    }
+
+    public DiffableScope(DiffableScope scope) {
+        super(scope.getParent());
+
+        this.block = scope.block;
+        this.processors = new ArrayList<>(scope.processors);
+        this.stateNodes = new ArrayList<>(scope.stateNodes);
     }
 
     public BlockNode getBlock() {
@@ -37,10 +48,6 @@ public class DiffableScope extends Scope {
 
     public List<Node> getStateNodes() {
         return stateNodes;
-    }
-
-    public void setStateNodes(List<Node> stateNodes) {
-        this.stateNodes = stateNodes;
     }
 
     public void addProcessor(DiffableProcessor processor) {
