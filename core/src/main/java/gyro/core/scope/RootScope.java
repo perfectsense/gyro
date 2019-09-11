@@ -23,6 +23,8 @@ import gyro.core.GyroInputStream;
 import gyro.core.GyroOutputStream;
 import gyro.core.LogDirectiveProcessor;
 import gyro.core.PrintDirectiveProcessor;
+import gyro.core.AuditorDirectiveProcessor;
+import gyro.core.AuditorPlugin;
 import gyro.core.auth.CredentialsDirectiveProcessor;
 import gyro.core.auth.CredentialsPlugin;
 import gyro.core.auth.UsesCredentialsDirectiveProcessor;
@@ -106,7 +108,8 @@ public class RootScope extends FileScope {
             new FinderPlugin(),
             new ReferencePlugin(),
             new ResourcePlugin(),
-            new ModificationPlugin())
+            new ModificationPlugin(),
+            new AuditorPlugin())
             .forEach(p -> getSettings(PluginSettings.class).getPlugins().add(p));
 
         getSettings(PluginSettings.class).addClasses(Collections.singleton(ModificationChangeProcessor.class));
@@ -131,7 +134,8 @@ public class RootScope extends FileScope {
             DefineDirectiveProcessor.class,
             WaitDirectiveProcessor.class,
             PrintDirectiveProcessor.class,
-            LogDirectiveProcessor.class)
+            LogDirectiveProcessor.class,
+            AuditorDirectiveProcessor.class)
             .forEach(p -> getSettings(DirectiveSettings.class).addProcessor(p));
 
         Stream.of(

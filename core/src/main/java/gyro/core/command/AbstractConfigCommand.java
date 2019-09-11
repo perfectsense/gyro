@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -16,11 +17,13 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.LocalFileBackend;
+import gyro.core.AuditableGyroUI;
+import gyro.core.GyroAuditor;
+import gyro.core.AuditorSettings;
 import gyro.core.auth.Credentials;
 import gyro.core.auth.CredentialsSettings;
 import gyro.core.resource.DiffableInternals;
@@ -97,6 +100,16 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
         current.evaluate();
 
+        if (this instanceof AbstractAuditableCommand && GyroCore.ui() instanceof AuditableGyroUI) {
+            AuditableGyroUI ui = (AuditableGyroUI) GyroCore.ui();
+            ui.setAuditors(current.getSettings(AuditorSettings.class)
+                    .getAuditorMap().values().stream().collect(Collectors.toList()));
+
+            for (GyroAuditor auditor : current.getSettings(AuditorSettings.class).getAuditorMap().values()) {
+                auditor.start(new HashMap<>());
+            }
+        }
+
         RootScope pending = new RootScope(
             GyroCore.INIT_FILE,
             new LocalFileBackend(rootDir),
@@ -117,6 +130,12 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         pending.evaluate();
         pending.validate();
         doExecute(current, pending, new State(current, pending, test));
+
+        if (this instanceof AbstractAuditableCommand) {
+            for (GyroAuditor auditor : current.getSettings(AuditorSettings.class).getAuditorMap().values()) {
+                auditor.finish(new HashMap<>(), true);
+            }
+        }
     }
 
     private void refreshResources(RootScope scope) {
