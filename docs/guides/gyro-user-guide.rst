@@ -53,8 +53,8 @@ Official distributions are:
 ================== =================
 OS                  Archive
 ================== =================
-**macOS**          `gyro-osx-0.14-20190401.141851-57.zip <https://artifactory.psdops.com/gyro-snapshots/gyro/gyro-osx/0.14-SNAPSHOT/gyro-osx-0.14-20190401.141851-57.zip>`_
-**Linux**          `gyro-linux-0.14-20190401.141747-56.zip <https://artifactory.psdops.com/gyro-snapshots/gyro/gyro-linux/0.14-SNAPSHOT/gyro-linux-0.14-20190401.141747-56.zip>`_
+**macOS**          `gyro-cli-osx-0.15-20190827.211110-49.zip <https://artifactory.psdops.com/gyro-snapshots/gyro/gyro-cli-osx/0.15-SNAPSHOT/gyro-cli-osx-0.15-20190827.211110-49.zip>`_
+**Linux**          `gyro-cli-linux-0.15-20190827.211008-49.zip <https://artifactory.psdops.com/gyro-snapshots/gyro/gyro-cli-linux/0.15-SNAPSHOT/gyro-cli-linux-0.15-20190827.211008-49.zip>`_
 ================== =================
 
 macOS and Linux
@@ -64,14 +64,16 @@ Download the distribution and extract it into ``/usr/local/bin``. For example:
 
 .. code:: shell
 
-    $ unzip -d /usr/local/bin gyro-osx-0.14-20190401.141851-57.zip
+    $ unzip -d /usr/local/bin gyro-cli-osx-0.15-20190827.211110-49.zip
 
-        Archive:  gyro-osx-0.14-20190401.141851-57.zip
-       creating: /usr/local/bin/gyro-rt/
-       creating: /usr/local/bin/gyro-rt/bin/
+     Archive:  gyro-cli-osx-0.15-20190827.211110-49.zip
+      creating: /usr/local/bin/gyro-rt/
+      creating: /usr/local/bin/gyro-rt/bin/
       inflating: /usr/local/bin/gyro-rt/bin/java
       inflating: /usr/local/bin/gyro-rt/bin/jrunscript
       inflating: /usr/local/bin/gyro-rt/bin/keytool
+      creating: /usr/local/bin/gyro-rt/conf/
+      inflating: /usr/local/bin/gyro-rt/conf/logging.properties
       .
       .
       .
@@ -82,43 +84,44 @@ Download the distribution and extract it into ``/usr/local/bin``. For example:
 Test Your Installation
 ++++++++++++++++++++++
 
-Check that Gyro is installed and working by creating a small test configuration and running Gyro in test mode. Create
-a file named ``test.gyro`` with the following contents:
+Check that Gyro is installed and working by creating a small test configuration and running Gyro in test mode. 
+
+Start by creating a gyro directory in your project folder and an initial configuration file named ``init.gyro``, which gets created by running the following command:
+
+ ``gyro init gyro:gyro-aws-provider:0.15-SNAPSHOT``
+
+This will create a .gyro directory with an ``init.gyro`` file and will install all the plugins that are required to spin up a resource.
 
 .. code::
 
-    plugin
-        artifact: 'gyro:gyro-aws-provider:0.14-SNAPSHOT'
-        repositories: [
-            'https://artifactory.psdops.com/public',
-            'https://artifactory.psdops.com/gyro-snapshots'
-        ]
+    @repository: 'https://artifactory.psdops.com/public'
+    @repository: 'https://artifactory.psdops.com/gyro-snapshots'
+    @plugin: 'gyro:gyro-aws-provider:0.15-SNAPSHOT'
+    
+We will be creating a VPC resource to test our installation.
+
+Create a file named `test.gyro` in the `gyro` directory, with the following configs
+
+.. code::
+
+    aws::vpc vpc
+      cidr-block: "10.0.1.0/16"
     end
 
-    aws::credentials default
-        region: "us-east-1"
-    end
-
-    aws::vpc example-vpc
-        cidr-block: "10.0.0.0/16"
-    end
-
-
-To verify the installation run ``gyro`` in test mode. If ``y`` is given at the prompt a state file will be created
-in the local directory named ``test.gyro.state``.
+To verify the installation run ``gyro up <file>`` in test mode. If ``y`` is given at the prompt, gyro will generate a state file in the local directory ``.gyro/state/``, you can check your state file here ``.gyro/state/test.gyro``.
 
 .. code:: shell
 
     $ /usr/local/bin/gyro up --test test.gyro
-    Loading plugin: gyro:gyro-aws-provider:0.14-SNAPSHOT...
+    ↓ Loading plugin: gyro:gyro-aws-provider:0.15-SNAPSHOT
 
-    Looking for changes...
+     Looking for changes...
+     
+     + Create aws::vpc vpc
+     
+     Are you sure you want to change resources? (y/N) y
 
-    + Create vpc 10.0.0.0/16 - example-vpc
-
-    Are you sure you want to change resources? (y/N) y
-
-    + Creating vpc 10.0.0.0/16 - example-vpc OK
+     + Creating aws::vpc vpc OK
     $
 
 .. raw:: pdf
@@ -135,8 +138,9 @@ concepts necessary to inject logic into your infrastructure configuration.
 Resources
 +++++++++
 
-A resource is the primary type in Gyro. Everything in Gyro built around defining resources. Each
-resource maps to a resource in your cloud provider.
+A resource is the primary type in Gyro. Everything in Gyro is built around defining resources. Resources
+allow you to define configuration for a cloud resources. Gyro will create, update, or delete your
+cloud resources to keep them consistent with the definition of resources in a Gyro file.
 
 A resource is a group of key/value pairs and subresources. Resources can have one or more key/value
 pairs and zero or more subresources.
@@ -185,16 +189,29 @@ This example defines a security group in AWS named "db-group" in the vpc with an
 Variables
 +++++++++
 
-Variables in Gyro defined using the ``key: value`` syntax and can be defined directly within a file (globals) as
-well as within resources and subresources. For example:
+Variables in Gyro defined using the ``key: value`` syntax and can be defined directly within a file. Variables
+define in a file are scoped to that file.
+
+To define a variable that is scoped to all files in a Gyro project, define the variable ``.gyro/init.gyro``. Variables
+defined in Gyro files will override variables defined in ``.gyro/init.gyro``.
+
+Variables are referenced using the ``$name`` or ``$(name)`` syntax. Use ``$(name)`` to surround a variable name
+when used inside a string.
+
+**Example:**
 
 .. code::
 
     project: "gyro"
+    server-size: "t2.micro"
 
     aws::instance webserver
         image-id: "ami-0cd3dfa4e37921605"
-        instance-type: "t2.micro"
+        instance-type: $server-size
+
+        tags: {
+            Name: "$(gyro)-$(server-size)"
+        }
     end
 
 Keys must be a valid identifer, or string literal. Identifiers can be made up of letters, digits, ``_``, or ``-``. Spaces
@@ -202,8 +219,7 @@ can be included in keys by quoting the key using single quotes (``'``).
 
 Values can by one of the following types:
 
-Scalar Types
-++++++++++++
+**Scalar Types**
 
 Gyro has the following scalar types: string, numbers, and booleans.
 
@@ -216,8 +232,7 @@ Numbers can be integers or floats (``10``, ``10.5``, ``-10``).
 
 Booleans are defined as ``true`` or ``false``.
 
-Compound Types
-++++++++++++++
+**Compound Types**
 
 Gyro has two compound types: maps, and lists.
 
@@ -225,11 +240,151 @@ Maps are zero or more comma-separated key/value pairs inside curly brackets (``{
 
 Lists are zero or more comma-separated values inside square brackets (``['item1', 'item2']``).
 
-Virtual Resources
-+++++++++++++++++
+Directives
+++++++++++
 
-Conditionals
+Directives are Gyro language extensions that add functionality to the base language. Directives begin with
+the ``@`` symbol, for example, the line ``@plugin: 'gyro:gyro-aws-provider:0.15-SNAPSHOT'`` in the "Test Your Installation"
+section of this document is actually a directive that loads an external plugin.
+
+Simple directives, such as ``@plugin``, are defined in the format ``@<directive>: <arguments>``. All
+single line directives take at least one argument and must be on a single line, for example:
+
+.. code::
+
+    @plugin: 'gyro:gyro-aws-provider:0.15-SNAPSHOT'
+
+Advanced directives, such as ``@credentials`` take both an argument and one or more attributes. All advanced
+directives end with ``@end``, for example:
+
+.. code::
+
+    @credentials 'enterprise::aws-credentials'
+        enterprise-url: "https://enterprise.example.com"
+        project: $(project)
+        account: $(account)
+        region: "us-east-2"
+    @end
+
+Control Structures
+++++++++++++++++++
+
+Gyro provides control structures via directives. See the section _`@if` and _`@for` for examples of how to use
+these control structures in your Gyro configuration files.
+
+
+.. raw:: pdf
+
+    PageBreak
+
+Built-in Directives
+-------------------
+
+Gyro comes with a few built-in directives:
+
+@respository
 ++++++++++++
+
+The repository directive adds to the list of repositories that will be searched for plugins. This directive takes
+a single argument with a URL to the root of a Maven repository. Multiple repositories can be added by calling
+this directive multiple times.
+
+.. code::
+
+    @repository: 'https://artifactory.psdops.com/public'
+
+@plugin
++++++++
+
+The plugin directive loads a plugin. Support for cloud providers is implemented by plugins. All Gyro projects will
+have a minimum of one plugin to define the cloud provider in use. This directive takes a single argument in the
+format ``group-artifact:artifact-name:version``. Multiple plugins can be loaded by calling this directive
+multiple times.
+
+.. code::
+
+    @plugin: 'gyro:gyro-brightspot-plugin:0.15-SNAPSHOT'
+
+@virtual
+++++++++
+
+The virtual resource directive, ``@virtual``, provides a mechanism for grouping resource configurations into
+a reuseable package. Once defined, a virtual resource looks just like any other resource definition.
+
+**Example:**
+
+The following example defines the ``brightspot::vpc`` virtual resource which creates a single vpc and subnet. It
+only requires a ``name`` be defined.
+
+.. code::
+
+    @virtual brightspot::vpc
+        @param name
+
+        aws::vpc vpc
+            cidr-block: "10.0.0.0/16"
+            tags: {
+                Name: "brightspot $name"
+            }
+        end
+
+        aws::subnet "us-east-1a"
+            vpc: $(aws::vpc vpc)
+            availability-zone: us-east-1a
+            cidr-block: "10.0.0.0/24"
+
+            tags: {
+                Name: "brightspot $name"
+            }
+        end
+    @end
+
+Here is an example of using this virtual resource:
+
+.. code::
+
+    brightspot::vpc development
+        name: "gyro"
+    end
+
+Resources defined inside a virtual resource can be referenced by prefixing the resource to be referenced with the
+name provided in the usage of the virtual resource:
+
+.. code::
+
+    development-vpc: $(aws::vpc development/vpc)
+
+@if
++++
+
+.. code::
+
+    @if $(subnet).availability-zone = 'us-east-1a'
+        aws::instance us-east-1a-instance
+            image-id: "ami-0cd3dfa4e37921605"
+            instance-type: "t2.nano"
+            subnet: $subnet
+        end
+    -elseif $(subnet).availability-zone = 'us-east-1b'
+        aws::instance us-east-1b-instance
+            image-id: "ami-0dd3aea9e319ab101"
+            instance-type: "t2.micro"
+            subnet: $subnet
+        end
+    @end
+
+@for
+++++
+
+.. code::
+
+    @for subnet -in $(aws::subnet public-*)
+        aws::instance us-east-1b-instance
+            image-id: "ami-0dd3aea9e319ab101"
+            instance-type: "t2.micro"
+            subnet: $subnet
+        end
+    @end
 
 .. raw:: pdf
 
@@ -254,32 +409,39 @@ By the end of this guide you should have a working local Gyro environment and de
 Configuration
 +++++++++++++
 
-The first step to creating infrastructure with gyro is to define your project credentials and global resources in the gyro config file.
+The first step to creating infrastructure with gyro is to define the init config file which has details about your project such as plugins, credentials, global variables and backend file systems.
 
-Create a file named vpc.gyro with the following configuration :
+Inside your project folder, start by creating a `gyro` directory and run the ``gyro init <plugins>`` to create the init file with the required plugins. You can also run ``gyro help init`` for detailed usage of this command.
+
+You also need to add the project specific details in the  ``init.gyro`` configuration file such as credentials which will allow gyro to create resources on cloud.
+
+.. code:: shell
+
+    $ /usr/local/bin/gyro init gyro:gyro-aws-provider:0.15-SNAPSHOT
+
+    + Creating a new .gyro directory
+    + Writing to the .gyro/init.gyro file
+
+After generating th init.gyro config file, create a resource file named vpc.gyro with the following configuration :
 
 .. code::
 
-    plugin
-        artifact: 'gyro:gyro-aws-provider:0.14-SNAPSHOT'
-        repositories: [
-            'https://artifactory.psdops.com/public',
-            'https://artifactory.psdops.com/gyro-snapshots'
-        ]
-    end
-
-    aws::credentials default
-        region: "us-east-1"
-    end
-
     aws::vpc vpc-example
-    	cidr-block: "10.0.0.0/16"
+        cidr-block: "10.0.0.0/16"
+    
+        tags: {
+            Name: "vpc-example"
+        }
     end
 
-    aws::subnet subnet-public-us-east-1a
-        vpc-id: $(aws::vpc vpc-example | vpc-id)
-        cidr-block: "10.0.0.0/24"
-        availability-zone: "us-east-1a"
+    aws::subnet subnet-public-us-east-2a
+        vpc: $(aws::vpc vpc-example)
+        cidr-block: "10.0.0.0/26"
+        availability-zone: "us-east-2a"
+    
+        tags: {
+            Name: "subnet-public-us-east-2a"
+        }
     end
 
 VPC
@@ -307,24 +469,27 @@ The above given configuration would be creating a VPC resource and a subnet asso
 Launching Infrastructure
 ------------------------
 
-Now that the infrastructure configuration is defined, it is ready to launch. Run gyro up in test mode. When ``y`` is given at the prompt a state file will be created in the local directory named ``vpc.gyro.state``.
+Now that the infrastructure configuration is defined, it is ready to launch. Run gyro up ``vpc.gyro``, you can also pass ``--verbose`` flag to get additional details of the resource. When ``y`` is given at the prompt, resource state file gets generated under here ``.gyro/state/vpc.gyro``.
 
 You should see output similar to the following :
 
 .. code:: shell
 
   $ /usr/local/bin/gyro up vpc.gyro
-  Loading plugin: gyro:gyro-aws-provider:0.14-SNAPSHOT...
 
-  Looking for changes...
-
-  + Create vpc 10.0.0.0/16 - vpc-example
-  + Create subnet 10.0.0.0/24 in us-east-1a
-
-  Are you sure you want to change resources? (y/N) y
-
-  + Creating vpc 10.0.0.0/16 - vpc-example OK
-  + Creating subnet 10.0.0.0/24 in us-east-1a OK
+   ↓ Loading plugin: gyro:gyro-aws-provider:0.15-SNAPSHOT
+   ↓ Loading plugin: gyro:gyro-brightspot-plugin:0.15-SNAPSHOT
+   ⟳ Refreshed resources: 0
+   
+   Looking for changes...
+   
+   + Create aws::vpc vpc-example
+   + Create aws::subnet subnet-public-us-east-2a
+   
+   Are you sure you want to change resources? (y/N) y
+   
+   + Creating aws::vpc vpc-example OK
+   + Creating aws::subnet subnet-public-us-east-2a OK
 
 .. raw:: pdf
 
@@ -410,23 +575,25 @@ Apply the configuration changes by running gyro up again. Gyro will show you wha
 
 .. code:: shell
 
-	$ /usr/local/bin/gyro up vpc.gyro
+  $ /usr/local/bin/gyro up vpc.gyro
 
-	Loading plugin: gyro:gyro-aws-provider:0.14-SNAPSHOT...
-	Looking for changes...
-
-	+ Create internet gateway
-	+ Create route table
-	+ Create route 0.0.0.0/0
-
-	Are you sure you want to change resources? (y/N) y
-
-	+ Creating internet gateway OK
-	+ Creating route table OK
-	+ Creating route 0.0.0.0/0 through gateway test-internet-gateway-id-828368e3837140d7 OK
+   ↓ Loading plugin: gyro:gyro-aws-provider:0.15-SNAPSHOT
+   ↓ Loading plugin: gyro:gyro-brightspot-plugin:0.15-SNAPSHOT
+   ⟳ Refreshed resources: 2
+ 
+   Looking for changes...
+ 
+   + Create aws::internet-gateway ig-example
+   + Create aws::route-table route-table-example
+   + Create aws::route route-example
+ 
+   Are you sure you want to change resources? (y/N) y
+ 
+   + Creating aws::internet-gateway ig-example OK
+   + Creating aws::route-table route-table-example OK
+   + Creating aws::route route-example OK
 
 At this point the network environment displayed in the overview diagram is set up.
-
 
 .. raw:: pdf
 
@@ -445,27 +612,29 @@ In order to remove a resource from the existing infrastructure, remove the confi
 .. code::
 
    aws::route route-example
-       route-table-id: $(aws::route-table route-table-example | route-table-id)
-       destination-cidr-block: "0.0.0.0/0"
-       gateway-id: $(aws::internet-gateway ig-example | internet-gateway-id)
-       cidr-block: "10.0.0.0/16"
-   end
+    route-table: $(aws::route-table route-table-example)
+    destination-cidr-block: "0.0.0.0/0"
+    gateway: $(aws::internet-gateway ig-example)
+  end
 
 
 Removing the route resource will delete the internet-bound traffic route from the route table.
 
 .. code:: shell
 
-   $ /usr/local/bin/gyro up vpc.gyro
+  $ /usr/local/bin/gyro up vpc.gyro
 
-   Loading plugin: gyro:gyro-aws-provider:0.14-SNAPSHOT...
+   ↓ Loading plugin: gyro:gyro-aws-provider:0.15-SNAPSHOT
+   ↓ Loading plugin: gyro:gyro-brightspot-plugin:0.15-SNAPSHOT
+   ⟳ Refreshed resources: 5
+
    Looking for changes...
 
-   - Delete route 0.0.0.0/0 through gateway test-internet-gateway-id-8afdb2cd1cead425
+   - Delete aws::route route-example
 
    Are you sure you want to change resources? (y/N) y
 
-   - Deleting route 0.0.0.0/0 through gateway test-internet-gateway-id-8afdb2cd1cead425 OK
+   - Deleting aws::route route-example OK
 
 Gyro confirms the deletion. Typing y will execute the delete request. All resource deletions work the same way in gyro: remove the resource section from the config file.
 
@@ -478,50 +647,63 @@ Example given below : remove this entire section from the vpc.gyro file :
 
    aws::vpc vpc-example
        cidr-block: "10.0.0.0/16"
+   
+       tags: {
+           Name: "vpc-example-1"
+       }
    end
 
-   aws::subnet subnet-public-us-east-1a
-       vpc-id: $(aws::vpc vpc-example | vpc-id)
-       cidr-block: "10.0.0.0/24"
-       availability-zone: "us-east-1a"
+   aws::subnet subnet-public-us-east-2a
+       vpc: $(aws::vpc vpc-example)
+       cidr-block: "10.0.0.0/26"
+       availability-zone: "us-east-2a"
+   
+       tags: {
+           Name: "subnet-public-us-east-2a"
+       }
    end
-
-   aws::subnet subnet-public-us-east-1a
-       vpc-id: $(aws::vpc vpc-example | vpc-id)
-       cidr-block: "10.0.0.0/24"
-       availability-zone: "us-east-1a"
-   end
-
+   
    aws::internet-gateway ig-example
-       vpc-id: $(aws::vpc vpc-example | vpc-id)
+       vpc: $(aws::vpc vpc-example)
+   
+       tags: {
+           Name: "ig-example"
+       }
    end
-
+   
    aws::route-table route-table-example
-       vpc-id: $(aws::vpc vpc-example | vpc-id)
-       subnet-ids: $(aws::subnet subnet-public-us-east-1a | subnet-id)
-       cidr-block: "10.0.0.0/16"
+       vpc: $(aws::vpc vpc-example)
+       subnets: [$(aws::subnet subnet-public-us-east-2a)]
+   
+       tags: {
+           Name: "route-table-example"
+       }
    end
 
 The resource vpc and associated resources will get deleted after ``y`` is given at the prompt.
 
 .. code:: shell
 
-   $ /usr/local/bin/gyro up vpc.gyro
+   $/usr/local/bin/gyro up vpc.gyro
 
-   Loading plugin: gyro:gyro-aws-provider:0.14-SNAPSHOT...
-   Looking for changes...
+    ↓ Loading plugin: gyro:gyro-aws-provider:0.15-SNAPSHOT
+    ↓ Loading plugin: gyro:gyro-brightspot-plugin:0.15-SNAPSHOT
 
-   - Delete test-vpc-id-ae7c531b458e74ff 10.0.0.0/16 - vpc-example
-   - Delete test-subnet-id-9167df7f6b06349d 10.0.0.0/24 in us-east-1a
-   - Delete test-internet-gateway-id-8afdb2cd1cead425
-   - Delete test-route-table-id-b5a7bc3483284b7d
+    ⟳ Refreshed resources: 4
 
-   Are you sure you want to change resources? (y/N) y
+    Looking for changes...
 
-   - Deleting test-route-table-id-b5a7bc3483284b7d OK
-   - Deleting test-internet-gateway-id-8afdb2cd1cead425 OK
-   - Deleting test-subnet-id-9167df7f6b06349d 10.0.0.0/24 in us-east-1a OK
-   - Deleting test-vpc-id-ae7c531b458e74ff 10.0.0.0/16 - vpc-example OK
+    - Delete aws::vpc vpc-example (vpc-0db28818a6cb91795)
+    - Delete aws::subnet subnet-public-us-east-2a (subnet-00ef07cf7a507d64c)
+    - Delete aws::internet-gateway ig-example (igw-04463fa091c36aff6)
+    - Delete aws::route-table route-table-example (rtb-09c6c85e550100385)
+
+    Are you sure you want to change resources? (y/N) y
+
+    - Deleting aws::route-table route-table-example (rtb-09c6c85e550100385) OK
+    - Deleting aws::internet-gateway ig-example (igw-04463fa091c36aff6) OK
+    - Deleting aws::subnet subnet-public-us-east-2a (subnet-00ef07cf7a507d64c) OK
+    - Deleting aws::vpc vpc-example (vpc-0db28818a6cb91795) OK
 
 .. raw:: pdf
 

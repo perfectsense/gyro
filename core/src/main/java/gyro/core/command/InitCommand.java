@@ -50,11 +50,11 @@ public class InitCommand extends AbstractCommand {
         GyroCore.ui().write("@|magenta + Writing to the .gyro/init.gyro file|@\n");
 
         try (BufferedWriter writer = Files.newBufferedWriter(gyroDir.resolve("init.gyro"), StandardCharsets.UTF_8)) {
-            writer.write("@repository 'https://artifactory.psdops.com/public'\n");
-            writer.write("@repository 'https://artifactory.psdops.com/gyro-snapshots'\n");
+            writer.write("@repository: 'https://artifactory.psdops.com/public'\n");
+            writer.write("@repository: 'https://artifactory.psdops.com/gyro-snapshots'\n");
 
             for (String plugin : plugins) {
-                writer.write("@plugin '");
+                writer.write("@plugin: '");
                 writer.write(plugin);
                 writer.write("'\n");
             }
