@@ -257,7 +257,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             .flatMap(List::stream)
             .forEach(item -> addTypeNode(typeNodes, item, item));
 
-        visitBody(body, root);
+        evaluateBody(body, root);
     }
 
     private void addTypeNode(Map<String, Set<Node>> typeNodes, Node top, Node node) {
@@ -272,7 +272,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         }
     }
 
-    public void visitBody(List<Node> body, Scope scope) {
+    public void evaluateBody(List<Node> body, Scope scope) {
         Defer.execute(body, i -> visit(i, scope));
     }
 
@@ -290,11 +290,12 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         }
     }
 
-    @SuppressWarnings("unchecked")
-    public Object visitDirective(DirectiveNode node, Scope scope, Resource resource) {
+    @Override
+    public Object visitDirective(DirectiveNode node, Scope scope) {
         String name = node.getName();
 
-        DirectiveProcessor processor = scope.getRootScope()
+        @SuppressWarnings("unchecked")
+        DirectiveProcessor<Scope> processor = (DirectiveProcessor<Scope>) scope.getRootScope()
             .getSettings(DirectiveSettings.class)
             .getProcessor(name);
 
@@ -314,11 +315,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                     scope.getClass().getName()));
             }
 
-            if (resource != null) {
-                processor.processResource(resource, node);
-            } else {
-                processor.process(scope, node);
-            }
+            processor.process(scope, node);
 
         } catch (Exception error) {
             throw new GyroException(
@@ -332,18 +329,12 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
     }
 
     @Override
-    public Object visitDirective(DirectiveNode node, Scope scope) {
-        return visitDirective(node, scope, null);
-    }
-
-    @Override
     public Object visitPair(PairNode node, Scope scope) {
         String key = (String) visit(node.getKey(), scope);
         Node value = node.getValue();
 
         scope.put(key, visit(value, scope));
-        scope.addValueNode(key, value);
-        scope.getKeyNodes().put(key, node);
+        scope.putLocation(key, node);
 
         removeTypeNode(node);
         return scope.get(key);
@@ -357,7 +348,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         rootScope.getFileScopes().add(fileScope);
 
         try {
-            visitBody(node.getBody(), fileScope);
+            evaluateBody(node.getBody(), fileScope);
 
         } catch (Defer e) {
             rootScope.getFileScopes().remove(fileScope);
@@ -368,13 +359,25 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         return null;
     }
 
+    public void evaluateDiffable(BlockNode node, Scope scope) {
+        for (Node item : node.getBody()) {
+            if (!(item instanceof DirectiveNode)) {
+                visit(item, scope);
+            }
+        }
+
+        for (Node item : node.getBody()) {
+            if (item instanceof DirectiveNode) {
+                visit(item, scope);
+            }
+        }
+    }
+
     @Override
     public Object visitKeyBlock(KeyBlockNode node, Scope scope) {
         DiffableScope bodyScope = new DiffableScope(scope, node);
 
-        for (Node item : node.getBody()) {
-            visit(item, bodyScope);
-        }
+        evaluateDiffable(node, bodyScope);
 
         String key = node.getKey();
 
@@ -383,7 +386,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             .orElse(null);
 
         scope.addValue(key, name, bodyScope);
-        scope.getKeyNodes().put(key, node);
+        scope.putLocation(key, node);
 
         removeTypeNode(node);
         return null;
@@ -394,17 +397,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
     public Object visitResource(ResourceNode node, Scope scope) {
         DiffableScope bodyScope = new DiffableScope(scope, node);
 
-        for (Node item : node.getBody()) {
-            if (!(item instanceof DirectiveNode)) {
-                visit(item, bodyScope);
-            }
-        }
-
-        for (Node item : node.getBody()) {
-            if (item instanceof DirectiveNode) {
-                visit(item, bodyScope);
-            }
-        }
+        evaluateDiffable(node, bodyScope);
 
         String type = node.getType();
         String name = (String) visit(node.getName(), scope);
@@ -434,28 +427,20 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                     node,
                     String.format("@|bold %s %s|@ has been defined already!", type, name),
                     new GyroException(
-                        file.getKeyNodes().get(fullName),
+                        file.getLocation(fullName),
                         "Defined previously:"));
             }
 
             DiffableType<Resource> resourceType = DiffableType.getInstance((Class<Resource>) c);
-            Resource resource = resourceType.newInstance(bodyScope);
-
-            DiffableInternals.setName(resource, name);
-            resourceType.setValues(resource, bodyScope);
+            Resource resource = resourceType.newInternal(bodyScope, name);
 
             Optional.ofNullable(root.getCurrent())
                 .map(s -> s.findResource(fullName))
                 .ifPresent(r -> copy(r, resource));
 
+            bodyScope.process(resource);
             file.put(fullName, resource);
-            file.getKeyNodes().put(fullName, node);
-
-            for (Node item : node.getBody()) {
-                if (item instanceof DirectiveNode) {
-                    visitDirective((DirectiveNode) item, bodyScope, resource);
-                }
-            }
+            file.putLocation(fullName, node);
 
         } else if (value instanceof ResourceVisitor) {
             ((ResourceVisitor) value).visit(name, bodyScope);
@@ -532,8 +517,8 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
     }
 
     @Override
-    public Object visitIndexed(IndexedNode node, Scope context) {
-        Object value = visit(node.getValue(), context);
+    public Object visitIndexed(IndexedNode node, Scope scope) {
+        Object value = visit(node.getValue(), scope);
 
         if (value == null) {
             removeTypeNode(node);
@@ -541,7 +526,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         }
 
         for (Node indexNode : node.getIndexes()) {
-            Object index = visit(indexNode, context);
+            Object index = visit(indexNode, scope);
 
             if (index == null) {
                 removeTypeNode(node);
@@ -676,8 +661,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
 
                 for (Scope s = scope instanceof DiffableScope ? scope.getParent() : scope; s != null; s = s.getParent()) {
                     if (s.containsKey(referenceName)) {
-                        Node valueNode = s.getValueNodes().get(referenceName);
-                        value = valueNode == null ? s.get(referenceName) : visit(valueNode, s);
+                        value = s.get(referenceName);
                         found = true;
                         break;
                     }

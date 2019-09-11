@@ -125,9 +125,21 @@ public class DiffableType<D extends Diffable> {
         return fieldByName.get(name);
     }
 
-    public D newInstance(DiffableScope scope) {
+    public D newExternal(RootScope root, Object id) {
+        D diffable = Reflections.newInstance(diffableClass);
+        diffable.external = true;
+        diffable.scope = new DiffableScope(root, null);
+
+        idField.setValue(diffable, id);
+        return diffable;
+    }
+
+    public D newInternal(DiffableScope scope, String name) {
         D diffable = Reflections.newInstance(diffableClass);
         diffable.scope = scope;
+        diffable.name = name;
+
+        setValues(diffable, scope);
         return diffable;
     }
 
@@ -181,7 +193,7 @@ public class DiffableType<D extends Diffable> {
         if (!invalidFieldNames.isEmpty()) {
             throw new GyroException(
                 values instanceof Scope
-                    ? ((Scope) values).getKeyNodes().get(invalidFieldNames.iterator().next())
+                    ? ((Scope) values).getLocation(invalidFieldNames.iterator().next())
                     : null,
                 String.format(
                     "Following fields aren't valid in @|bold %s|@ type! @|bold %s|@",

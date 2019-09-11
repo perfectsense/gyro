@@ -236,12 +236,7 @@ public class RootScope extends FileScope {
         return findResourcesByClass(resourceClass)
             .filter(r -> id.equals(idField.getValue(r)))
             .findFirst()
-            .orElseGet(() -> {
-                T r = type.newInstance(new DiffableScope(this, null));
-                DiffableInternals.setExternal(r, true);
-                idField.setValue(r, id);
-                return r;
-            });
+            .orElseGet(() -> type.newExternal(this, id));
     }
 
     public List<Node> load() {
@@ -250,7 +245,7 @@ public class RootScope extends FileScope {
         evaluateFile(getFile(), node -> nodes.addAll(node.getBody()));
 
         try {
-            evaluator.visitBody(nodes, this);
+            evaluator.evaluateBody(nodes, this);
 
         } catch (Defer error) {
             // Ignore for now since this is reevaluated later.

@@ -27,7 +27,7 @@ public class ValidationError implements Locatable {
         DiffableScope scope = DiffableInternals.getScope(diffable);
 
         this.node = fieldName != null
-            ? scope.getValueNodes().get(fieldName)
+            ? scope.getLocation(fieldName)
             : scope.getBlock();
     }
 

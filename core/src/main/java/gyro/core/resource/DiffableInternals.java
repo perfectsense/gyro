@@ -7,6 +7,7 @@ import java.util.stream.Stream;
 
 import gyro.core.diff.Change;
 import gyro.core.scope.DiffableScope;
+import gyro.lang.ast.block.BlockNode;
 
 public final class DiffableInternals {
 
@@ -15,10 +16,6 @@ public final class DiffableInternals {
 
     public static boolean isExternal(Diffable diffable) {
         return diffable.external;
-    }
-
-    public static void setExternal(Diffable diffable, boolean external) {
-        diffable.external = external;
     }
 
     public static String getName(Diffable diffable) {
@@ -47,6 +44,23 @@ public final class DiffableInternals {
 
     public static void setChange(Diffable diffable, Change change) {
         diffable.change = change;
+    }
+
+    public static void reevaluate(Diffable diffable) {
+        DiffableScope oldScope = diffable.scope;
+
+        if (oldScope != null) {
+            BlockNode block = oldScope.getBlock();
+
+            if (block != null) {
+                DiffableScope newScope = new DiffableScope(oldScope);
+                diffable.scope = newScope;
+
+                newScope.getRootScope().getEvaluator().evaluateDiffable(block, newScope);
+                DiffableType.getInstance(diffable).setValues(diffable, newScope);
+                newScope.process(diffable);
+            }
+        }
     }
 
     public static void update(Diffable diffable, boolean newScope) {

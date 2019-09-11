@@ -65,7 +65,7 @@ public class VirtualResourceVisitor extends ResourceVisitor {
 
         virtualRoot.getFileScopes().add(virtualFile);
         parameters.forEach(p -> p.copy(scope, virtualFile));
-        virtualRoot.getEvaluator().visitBody(body, virtualFile);
+        virtualRoot.getEvaluator().evaluateBody(body, virtualFile);
 
         String prefix = name + "/";
 
