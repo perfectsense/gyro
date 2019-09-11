@@ -152,7 +152,7 @@ public class DiffableType<D extends Diffable> {
 
         for (Class<? extends Modification> modificationClass : modificationClasses) {
             DiffableType modificationType = DiffableType.getInstance(modificationClass);
-            Modification modification = (Modification) modificationType.newInternal(scope, name + "::" + modificationType.getName());
+            Modification modification = (Modification) modificationType.newInternal(new DiffableScope(scope, null), name + "::" + modificationType.getName());
 
             for (DiffableField field : (List<DiffableField>) modificationType.getFields()) {
                 ModificationField modificationField = new ModificationField(field);
