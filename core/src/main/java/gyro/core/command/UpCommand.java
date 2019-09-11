@@ -8,7 +8,7 @@ import gyro.core.scope.State;
 import io.airlift.airline.Command;
 
 @Command(name = "up", description = "Updates all resources to match the configuration.")
-public class UpCommand extends AbstractConfigCommand {
+public class UpCommand extends AbstractAuditableCommand {
 
     @Override
     public void doExecute(RootScope current, RootScope pending, State state) {
