@@ -12,20 +12,21 @@ import gyro.lang.ast.Node;
 
 public class WaitChangeProcessor extends ChangeProcessor {
 
-    private final DiffableScope scope;
+    private final DiffableScope parent;
     private final Waiter waiter;
     private final Node condition;
 
-    public WaitChangeProcessor(DiffableScope scope, Waiter waiter, Node condition) {
-        this.scope = scope;
+    public WaitChangeProcessor(DiffableScope parent, Waiter waiter, Node condition) {
+        this.parent = parent;
         this.waiter = waiter;
         this.condition = condition;
     }
 
-    private void wait(GyroUI ui) {
+    private void wait(GyroUI ui, Resource resource) {
         ui.write("@|magenta ⧖ Waiting for: %s|@\n", condition);
 
-        NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
+        NodeEvaluator evaluator = parent.getRootScope().getEvaluator();
+        ObjectScope scope = new ObjectScope(parent, resource);
 
         ui.indented(() ->
             waiter.until(() -> {
@@ -42,17 +43,17 @@ public class WaitChangeProcessor extends ChangeProcessor {
 
     @Override
     public void afterCreate(GyroUI ui, State state, Resource resource) {
-        wait(ui);
+        wait(ui, resource);
     }
 
     @Override
     public void afterUpdate(GyroUI ui, State state, Resource current, Resource pending, Set<DiffableField> changedFields) {
-        wait(ui);
+        wait(ui, pending);
     }
 
     @Override
     public void afterDelete(GyroUI ui, State state, Resource resource) {
-        wait(ui);
+        wait(ui, resource);
     }
 
 }
