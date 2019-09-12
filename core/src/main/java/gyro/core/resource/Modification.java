@@ -5,7 +5,7 @@ import gyro.core.scope.State;
 
 import java.util.Set;
 
-public abstract class Modification<T> extends Diffable {
+public abstract class Modification<T extends Diffable> extends Diffable {
 
     public boolean refresh(T current) {
         return false;
