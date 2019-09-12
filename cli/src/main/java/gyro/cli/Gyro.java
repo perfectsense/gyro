@@ -30,8 +30,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 public class Gyro {
 
@@ -73,12 +75,20 @@ public class Gyro {
     }
 
     private static void writeError(Throwable error) {
-        if (error instanceof Defer || error instanceof GyroException) {
+        if (error instanceof Defer) {
+            ((Defer) error).write(GyroCore.ui());
+
+            Throwable cause = error.getCause();
+
+            if (cause != null) {
+                GyroCore.ui().write("\n@|red Caused by:|@ ");
+                writeError(cause);
+            }
+
+        } else if (error instanceof GyroException) {
             GyroCore.ui().write("@|red Error:|@ %s\n", error.getMessage());
 
-            Locatable locatable = error instanceof Defer
-                ? ((Defer) error).getNode()
-                : ((GyroException) error).getLocatable();
+            Locatable locatable = ((GyroException) error).getLocatable();
 
             if (locatable != null) {
                 GyroCore.ui().write("\nIn @|bold %s|@ %s:\n", locatable.getFile(), locatable.toLocation());
