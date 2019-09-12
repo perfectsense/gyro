@@ -1,6 +1,7 @@
-package gyro.core.diff;
+package gyro.core.resource;
 
 import gyro.core.GyroUI;
+import gyro.core.diff.ChangeProcessor;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.DiffableField;
 import gyro.core.resource.DiffableInternals;
