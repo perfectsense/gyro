@@ -1,25 +1,28 @@
-package gyro.core.workflow;
+package gyro.core.resource;
+
+import java.util.Set;
 
 import gyro.core.GyroUI;
 import gyro.core.Waiter;
+import gyro.core.diff.ChangeProcessor;
+import gyro.core.scope.DiffableScope;
 import gyro.core.scope.NodeEvaluator;
-import gyro.core.scope.RootScope;
-import gyro.core.scope.Scope;
 import gyro.core.scope.State;
 import gyro.lang.ast.Node;
 
-public class WaitAction extends Action {
+public class WaitChangeProcessor extends ChangeProcessor {
 
+    private final DiffableScope scope;
     private final Waiter waiter;
     private final Node condition;
 
-    public WaitAction(Waiter waiter, Node condition) {
+    public WaitChangeProcessor(DiffableScope scope, Waiter waiter, Node condition) {
+        this.scope = scope;
         this.waiter = waiter;
         this.condition = condition;
     }
 
-    @Override
-    public void execute(GyroUI ui, State state, RootScope pending, Scope scope) {
+    private void wait(GyroUI ui) {
         ui.write("@|magenta ⧖ Waiting for: %s|@\n", condition);
 
         NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
@@ -35,6 +38,21 @@ public class WaitAction extends Action {
                 return result;
             })
         );
+    }
+
+    @Override
+    public void afterCreate(GyroUI ui, State state, Resource resource) {
+        wait(ui);
+    }
+
+    @Override
+    public void afterUpdate(GyroUI ui, State state, Resource current, Resource pending, Set<DiffableField> changedFields) {
+        wait(ui);
+    }
+
+    @Override
+    public void afterDelete(GyroUI ui, State state, Resource resource) {
+        wait(ui);
     }
 
 }
