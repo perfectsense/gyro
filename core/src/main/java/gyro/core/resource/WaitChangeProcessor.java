@@ -23,22 +23,25 @@ public class WaitChangeProcessor extends ChangeProcessor {
     }
 
     private void wait(GyroUI ui, Resource resource) {
-        ui.write("@|magenta ⧖ Waiting for: %s|@\n", condition);
+        ui.write("\n");
 
-        NodeEvaluator evaluator = parent.getRootScope().getEvaluator();
-        ObjectScope scope = new ObjectScope(parent, resource);
+        ui.indented(() -> {
+            ui.write("@|magenta ⧖ Waiting for: %s|@\n", condition);
 
-        ui.indented(() ->
-            waiter.until(() -> {
-                ui.write("@|magenta ✓ Checking |@");
+            NodeEvaluator evaluator = parent.getRootScope().getEvaluator();
+            ObjectScope scope = new ObjectScope(parent, resource);
 
-                boolean result = Boolean.TRUE.equals(evaluator.visit(condition, scope));
+            ui.indented(() ->
+                waiter.until(() -> {
+                    ui.write("@|magenta ✓ Checking |@");
 
-                ui.write(result ? "@|green PASSED|@" : "@|red FAILED|@");
-                ui.write("\n");
-                return result;
-            })
-        );
+                    boolean result = Boolean.TRUE.equals(evaluator.visit(condition, scope));
+
+                    ui.write(result ? "@|green PASSED|@" : "@|red FAILED|@\n");
+                    return result;
+                })
+            );
+        });
     }
 
     @Override
