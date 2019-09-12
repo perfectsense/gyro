@@ -7,8 +7,7 @@ import java.util.Set;
 
 public abstract class Modification<T extends Diffable> extends Diffable {
 
-    public boolean refresh(T current) {
-        return false;
+    public void refresh(T current) {
     }
 
     public void beforeCreate(GyroUI ui, State state, T resource) throws Exception {
