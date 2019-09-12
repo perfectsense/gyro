@@ -159,6 +159,8 @@ public class DiffableType<D extends Diffable> {
             }
         }
 
+        scope.addProcessor(new CalculatedDiffableProcessor());
+
         diffable.name = name;
 
         setValues(diffable, scope);
