@@ -33,7 +33,7 @@ import gyro.core.command.HighlanderSettings;
 import gyro.core.control.ForDirectiveProcessor;
 import gyro.core.control.IfDirectiveProcessor;
 import gyro.core.diff.ChangePlugin;
-import gyro.core.diff.ModificationProcessor;
+import gyro.core.diff.ModificationChangeProcessor;
 import gyro.core.directive.DirectivePlugin;
 import gyro.core.directive.DirectiveSettings;
 import gyro.core.finder.FinderPlugin;
@@ -109,7 +109,7 @@ public class RootScope extends FileScope {
             new ModificationPlugin())
             .forEach(p -> getSettings(PluginSettings.class).getPlugins().add(p));
 
-        getSettings(PluginSettings.class).addClasses(Collections.singleton(ModificationProcessor.class));
+        getSettings(PluginSettings.class).addClasses(Collections.singleton(ModificationChangeProcessor.class));
 
         Stream.of(
             CreateDirectiveProcessor.class,

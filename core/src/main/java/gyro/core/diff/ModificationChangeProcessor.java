@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class ModificationProcessor extends ChangeProcessor {
+public class ModificationChangeProcessor extends ChangeProcessor {
 
     @Override
     public void afterCreate(GyroUI ui, State state, Resource resource) throws Exception {
