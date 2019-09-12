@@ -27,8 +27,8 @@ public class ModificationProcessor extends ChangeProcessor {
 
     @Override
     public void afterUpdate(GyroUI ui, State state, Resource current, Resource pending, Set<DiffableField> changedFields) throws Exception {
-        for (Modification modification : DiffableInternals.getModifications(pending).values()) {
-            modification.update(ui, state, pending, changedFields);
+        for (Modification modification : DiffableInternals.getModifications(current).values()) {
+            modification.update(ui, state, current, changedFields);
         }
     }
 
