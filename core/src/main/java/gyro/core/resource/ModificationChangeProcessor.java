@@ -36,7 +36,7 @@ public class ModificationChangeProcessor implements ChangeProcessor {
     @Override
     public void beforeUpdate(GyroUI ui, State state, Resource current, Resource pending, Set<DiffableField> changedFields) throws Exception {
         for (Modification modification : DiffableInternals.getModifications(current).values()) {
-            modification.afterUpdate(ui, state, current, pending, changedFields);
+            modification.beforeUpdate(ui, state, current, pending, changedFields);
         }
     }
 
@@ -50,7 +50,7 @@ public class ModificationChangeProcessor implements ChangeProcessor {
     @Override
     public void beforeDelete(GyroUI ui, State state, Resource resource) throws Exception {
         for (Modification modification : DiffableInternals.getModifications(resource).values()) {
-            modification.afterDelete(ui, state, resource);
+            modification.beforeDelete(ui, state, resource);
         }
     }
 
