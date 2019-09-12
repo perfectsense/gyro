@@ -31,7 +31,7 @@ import gyro.core.command.HighlanderDirectiveProcessor;
 import gyro.core.command.HighlanderSettings;
 import gyro.core.control.ForDirectiveProcessor;
 import gyro.core.control.IfDirectiveProcessor;
-import gyro.core.diff.ChangePlugin;
+import gyro.core.diff.GlobalChangePlugin;
 import gyro.core.directive.DirectivePlugin;
 import gyro.core.directive.DirectiveSettings;
 import gyro.core.finder.FinderPlugin;
@@ -96,7 +96,7 @@ public class RootScope extends FileScope {
         this.loadFiles = loadFiles != null ? ImmutableSet.copyOf(loadFiles) : ImmutableSet.of();
 
         Stream.of(
-            new ChangePlugin(),
+            new GlobalChangePlugin(),
             new CredentialsPlugin(),
             new DirectivePlugin(),
             new FileBackendPlugin(),
