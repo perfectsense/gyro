@@ -73,4 +73,9 @@ public class DiffableScope extends Scope {
         }
     }
 
+    @Override
+    public Object find(Node node, String key) {
+        return getParent().find(node, key);
+    }
+
 }

@@ -72,6 +72,18 @@ public class Scope extends MapWrapper<String, Object> {
         return getClosest(FileScope.class);
     }
 
+    public Object find(Node node, String key) {
+        for (Scope s = this; s != null; s = s.parent) {
+            if (s.containsKey(key)) {
+                return s.get(key);
+            }
+        }
+
+        throw new Defer(node, String.format(
+            "Can't resolve @|bold %s|@!",
+            key));
+    }
+
     @SuppressWarnings("unchecked")
     public void addValue(String key, String name, Object value) {
         Object oldValue = get(key);

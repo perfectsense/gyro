@@ -657,21 +657,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                 }
 
             } else {
-                boolean found = false;
-
-                for (Scope s = scope instanceof DiffableScope ? scope.getParent() : scope; s != null; s = s.getParent()) {
-                    if (s.containsKey(referenceName)) {
-                        value = s.get(referenceName);
-                        found = true;
-                        break;
-                    }
-                }
-
-                if (!found) {
-                    throw new Defer(node, String.format(
-                        "Can't resolve @|bold %s|@!",
-                        referenceName));
-                }
+                value = scope.find(node, referenceName);
             }
 
             if (value == null) {
