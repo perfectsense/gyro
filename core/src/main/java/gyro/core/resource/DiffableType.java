@@ -234,13 +234,13 @@ public class DiffableType<D extends Diffable> {
     }
 
     void modify(Class<? extends Modification> modificationClass) {
-        DiffableType modificationType = DiffableType.getInstance(modificationClass);
+        DiffableType<? extends Modification> modificationType = DiffableType.getInstance(modificationClass);
         List<ModificationField> modificationFields = modificationFieldsByClass.get(modificationClass);
 
         if (modificationFields == null) {
             modificationFields = new ArrayList<>();
 
-            for (DiffableField field : (List<DiffableField>) modificationType.getFields()) {
+            for (DiffableField field : modificationType.getFields()) {
                 ModificationField modificationField = new ModificationField(field);
                 modificationFields.add(modificationField);
             }
