@@ -1,10 +1,8 @@
 package gyro.core.resource;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -42,15 +40,14 @@ public final class DiffableInternals {
         return diffable.configuredFields;
     }
 
-    public static Map<ModificationField, Modification> getModifications(Diffable diffable) {
+    public static <T extends Diffable> Map<ModificationField, Modification<? extends Diffable>> getModifications(T diffable) {
         if (diffable.modifications == null) {
             diffable.modifications = new LinkedHashMap<>();
         }
-
         return diffable.modifications;
     }
 
-    public static Modification getModificationForField(Diffable diffable, ModificationField field) {
+    public static Modification<? extends Diffable> getModificationForField(Diffable diffable, ModificationField field) {
         return diffable.modifications.get(field);
     }
 
