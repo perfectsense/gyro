@@ -147,12 +147,13 @@ public class DiffableType<D extends Diffable> {
         D diffable = Reflections.newInstance(diffableClass);
         diffable.scope = scope;
 
-        Map<ModificationField, Modification> modifications = DiffableInternals.getModifications(diffable);
+        Map<ModificationField, Modification<? extends Diffable>> modifications = DiffableInternals.getModifications(diffable);
 
         // Instantiate Modification and associate it with the appropriate fields.
         for (Class<? extends Modification> modificationClass : modificationFieldsByClass.keySet()) {
             DiffableType modificationType = DiffableType.getInstance(modificationClass);
-            Modification modification = (Modification) modificationType.newInternal(new DiffableScope(scope, null), modificationType.getName() + "::" + name);
+            Modification<? extends Diffable> modification = (Modification<? extends Diffable>)
+                modificationType.newInternal(new DiffableScope(scope, null), modificationType.getName() + "::" + name);
 
             for (ModificationField modificationField : modificationFieldsByClass.get(modificationClass)) {
                 modifications.put(modificationField, modification);
