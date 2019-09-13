@@ -13,13 +13,13 @@ public class ModificationField extends DiffableField {
 
     @Override
     public Object getValue(Diffable diffable) {
-        Diffable modification = DiffableInternals.getModificationForField(diffable, this);
+        Diffable modification = DiffableInternals.getModifications(diffable).get(this);
         return super.getValue(modification);
     }
 
     @Override
     public void setValue(Diffable diffable, Object value) {
-        Diffable modification = DiffableInternals.getModificationForField(diffable, this);
+        Diffable modification = DiffableInternals.getModifications(diffable).get(this);
         super.setValue(modification, value);
     }
 

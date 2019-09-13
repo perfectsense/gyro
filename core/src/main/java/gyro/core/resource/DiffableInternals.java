@@ -44,10 +44,6 @@ public final class DiffableInternals {
         return diffable.modifications;
     }
 
-    public static Modification<? extends Diffable> getModificationForField(Diffable diffable, ModificationField field) {
-        return diffable.modifications.get(field);
-    }
-
     public static Change getChange(Diffable diffable) {
         return diffable.change;
     }
