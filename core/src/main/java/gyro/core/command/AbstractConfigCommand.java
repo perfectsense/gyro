@@ -146,7 +146,6 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
                     if (keep) {
                         DiffableInternals.getModifications(resource).values()
-                            .stream()
                             .forEach(m -> m.refresh(resource));
                     }
 
