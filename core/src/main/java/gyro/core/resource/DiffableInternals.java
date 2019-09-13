@@ -41,9 +41,6 @@ public final class DiffableInternals {
     }
 
     public static <T extends Diffable> Map<ModificationField, Modification<? extends Diffable>> getModifications(T diffable) {
-        if (diffable.modifications == null) {
-            diffable.modifications = new LinkedHashMap<>();
-        }
         return diffable.modifications;
     }
 

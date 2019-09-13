@@ -25,7 +25,7 @@ public abstract class Diffable {
     DiffableScope scope;
     Change change;
     Set<String> configuredFields;
-    Map<ModificationField, Modification<? extends Diffable>> modifications;
+    final Map<ModificationField, Modification<? extends Diffable>> modifications = new LinkedHashMap<>();
 
     public Diffable parent() {
         return parent;
