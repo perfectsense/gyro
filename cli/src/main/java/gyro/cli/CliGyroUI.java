@@ -71,15 +71,15 @@ public class CliGyroUI extends AuditableGyroUI {
         write(message, arguments);
 
         if (Boolean.TRUE.equals(defaultValue)) {
-            System.out.print(" (Y/n) ");
+            write(" (Y/n) ");
             return !"n".equalsIgnoreCase(readOption(ImmutableSet.of("y", "Y", "n", "N", "")));
 
         } else if (Boolean.FALSE.equals(defaultValue)) {
-            System.out.print(" (y/N) ");
+            write(" (y/N) ");
             return "y".equalsIgnoreCase(readOption(ImmutableSet.of("y", "Y", "n", "N", "")));
 
         } else {
-            System.out.print(" (y/n) ");
+            write(" (y/n) ");
             return "y".equalsIgnoreCase(readOption(ImmutableSet.of("y", "Y", "n", "N")));
         }
     }
@@ -125,10 +125,10 @@ public class CliGyroUI extends AuditableGyroUI {
         -- indentLevel;
     }
 
-    private void writeIndentation() {
+    private void writeIndentation(StringBuilder sb) {
         if (pendingIndentation) {
             for (int i = 0, l = indentLevel * getIndentSize(); i < l; ++ i) {
-                System.out.print(' ');
+                sb.append(' ');
             }
 
             pendingIndentation = false;
@@ -137,6 +137,8 @@ public class CliGyroUI extends AuditableGyroUI {
 
     @Override
     public void write(String message, Object... arguments) {
+        StringBuilder sb = new StringBuilder();
+
         String text = arguments != null && arguments.length > 0
                 ? String.format(message, arguments)
                 : message;
@@ -148,9 +150,9 @@ public class CliGyroUI extends AuditableGyroUI {
         int offset = 0;
 
         for (Matcher m = NEWLINES.matcher(text); m.find();) {
-            writeIndentation();
-            System.out.print(text.substring(offset, m.start()));
-            System.out.print(m.group(1));
+            writeIndentation(sb);
+            sb.append(text.substring(offset, m.start()));
+            sb.append(m.group(1));
 
             pendingIndentation = true;
             offset = m.end();
@@ -159,11 +161,14 @@ public class CliGyroUI extends AuditableGyroUI {
         int length = text.length();
 
         if (length > offset) {
-            writeIndentation();
-            System.out.print(text.substring(offset, length));
+            writeIndentation(sb);
+            sb.append(text.substring(offset, length));
         }
 
+        System.out.print(sb.toString());
         System.out.flush();
+
+        sendAudit(sb.toString());
     }
 
     @Override

@@ -1,11 +1,15 @@
 package gyro.core;
 
+import java.util.LinkedList;
 import java.util.List;
 
 public abstract class AuditableGyroUI implements GyroUI {
     private List<GyroAuditor> auditors;
 
     public List<GyroAuditor> getAuditors() {
+        if (auditors == null) {
+            auditors = new LinkedList<>();
+        }
         return auditors;
     }
 
@@ -14,13 +18,7 @@ public abstract class AuditableGyroUI implements GyroUI {
     }
 
     public void addAuditor(GyroAuditor auditor) {
-        auditors.add(auditor);
-    }
-
-    protected void writeToStdout(String message) {
-        System.out.print(message);
-
-        sendAudit(message);
+        getAuditors().add(auditor);
     }
 
     protected void sendAudit(String message) {

@@ -6,9 +6,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -17,6 +17,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
@@ -100,40 +101,52 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
         current.evaluate();
 
-        if (this instanceof AbstractAuditableCommand && GyroCore.ui() instanceof AuditableGyroUI) {
+        if (this instanceof AuditableCommand && GyroCore.ui() instanceof AuditableGyroUI) {
+            Map<String, Object> log = new HashMap<String, Object>();
+            log.put("commandArguments", String.join(" ", getUnparsedArguments()));
+            log.put("environment", files.size() == 0 ? "world" : files.get(0));
+
             AuditableGyroUI ui = (AuditableGyroUI) GyroCore.ui();
-            ui.setAuditors(current.getSettings(AuditorSettings.class)
-                    .getAuditorMap().values().stream().collect(Collectors.toList()));
-
             for (GyroAuditor auditor : current.getSettings(AuditorSettings.class).getAuditorMap().values()) {
-                auditor.start(new HashMap<>());
+                ui.addAuditor(auditor);
+                auditor.start(log);
             }
         }
 
-        RootScope pending = new RootScope(
-            GyroCore.INIT_FILE,
-            new LocalFileBackend(rootDir),
-            current,
-            loadFiles);
+        Boolean success = false;
+        try {
+            RootScope pending = new RootScope(
+                    GyroCore.INIT_FILE,
+                    new LocalFileBackend(rootDir),
+                    current,
+                    loadFiles);
 
-        if (!test) {
-            current.getSettings(CredentialsSettings.class)
-                .getCredentialsByName()
-                .values()
-                .forEach(Credentials::refresh);
+            if (!test) {
+                current.getSettings(CredentialsSettings.class)
+                        .getCredentialsByName()
+                        .values()
+                        .forEach(Credentials::refresh);
 
-            if (!skipRefresh) {
-                refreshResources(current);
+                if (!skipRefresh) {
+                    refreshResources(current);
+                }
             }
+
+            pending.evaluate();
+            pending.validate();
+            doExecute(current, pending, new State(current, pending, test));
+
+            success = true;
+        } catch (Exception e) {
+            throw e;
         }
 
-        pending.evaluate();
-        pending.validate();
-        doExecute(current, pending, new State(current, pending, test));
+        if (this instanceof AuditableCommand) {
+            Map<String, Object> auditMetadata = new HashMap<>();
+            auditMetadata.put("metaData", new ArrayList<Object>());
 
-        if (this instanceof AbstractAuditableCommand) {
             for (GyroAuditor auditor : current.getSettings(AuditorSettings.class).getAuditorMap().values()) {
-                auditor.finish(new HashMap<>(), true);
+                auditor.finish(auditMetadata, success);
             }
         }
     }

@@ -14,10 +14,8 @@ import java.util.Map;
 public class AuditorDirectiveProcessor extends DirectiveProcessor<RootScope> {
     @Override
     public void process(RootScope scope, DirectiveNode node) {
-        // might need some more arguments
         validateArguments(node, 2, 2);
 
-        // create auditor based on type
         String type = getArgument(scope, node, String.class, 0);
         String name = getArgument(scope, node, String.class, 1);
         Scope bodyScope = evaluateBody(scope, node);

@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class AuditorSettings extends Settings {
     private Map<String, Class> auditorClasses;
-    private final Map<String, GyroAuditor> auditorMap = new HashMap<>();
+    private final Map<String, GyroAuditor> auditors = new HashMap<>();
 
     public Map<String, Class> getAuditorClasses() {
         if (auditorClasses == null) {
@@ -21,7 +21,7 @@ public class AuditorSettings extends Settings {
     }
 
     public Map<String, GyroAuditor> getAuditorMap() {
-        return auditorMap;
+        return auditors;
     }
 
 }
