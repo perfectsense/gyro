@@ -2,6 +2,7 @@ package gyro.core.resource;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -25,7 +26,7 @@ public abstract class Diffable {
     DiffableScope scope;
     Change change;
     Set<String> configuredFields;
-    final Map<ModificationField, Modification<? extends Diffable>> modifications = new LinkedHashMap<>();
+    final List<Modification<? extends Diffable>> modifications = new ArrayList<>();
 
     public Diffable parent() {
         return parent;
