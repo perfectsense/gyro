@@ -4,8 +4,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class CalculatedDiffableProcessor extends DiffableProcessor {
+
     @Override
-    public Set<String> process(Diffable diffable) throws Exception {
+    public Set<String> process(Diffable diffable) {
         DiffableType<Diffable> type = DiffableType.getInstance(diffable);
 
         return type.getFields()
@@ -14,4 +15,5 @@ public class CalculatedDiffableProcessor extends DiffableProcessor {
             .map(DiffableField::getName)
             .collect(Collectors.toSet());
     }
+
 }
