@@ -19,6 +19,7 @@ import gyro.core.resource.DiffableField;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
 import gyro.core.resource.Resource;
+import gyro.core.scope.Scope;
 import gyro.core.scope.State;
 
 public class Diff {
@@ -381,13 +382,13 @@ public class Diff {
             ExecutionResult result;
 
             try {
-                result = change.execute(
-                    ui,
-                    state,
-                    DiffableInternals.getScope(diffable)
-                        .getRootScope()
-                        .getSettings(ChangeSettings.class)
-                        .getProcessors());
+                List<ChangeProcessor> processors = new ArrayList<>();
+
+                for (Scope s = DiffableInternals.getScope(diffable); s != null; s = s.getParent()) {
+                    processors.addAll(0, s.getSettings(ChangeSettings.class).getProcessors());
+                }
+
+                result = change.execute(ui, state, processors);
 
             } catch (Exception error) {
                 throw new GyroException(
