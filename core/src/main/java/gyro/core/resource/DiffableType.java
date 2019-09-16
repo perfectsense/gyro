@@ -156,6 +156,8 @@ public class DiffableType<D extends Diffable> {
             DiffableInternals.getModifications(diffable).add(modification);
         }
 
+        scope.addProcessor(new CalculatedDiffableProcessor());
+
         diffable.name = name;
 
         setValues(diffable, scope);
