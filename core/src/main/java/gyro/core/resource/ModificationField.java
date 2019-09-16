@@ -1,31 +1,54 @@
 package gyro.core.resource;
 
-import gyro.core.validation.ValidationError;
-
-import java.util.Collections;
-import java.util.List;
+import gyro.util.Bug;
 
 public class ModificationField extends DiffableField {
 
-    public ModificationField(DiffableField field) {
-        super(field);
+    private DiffableField originalDiffableField;
+
+    public ModificationField(DiffableField originalDiffableField) {
+        super(originalDiffableField);
+
+        this.originalDiffableField = originalDiffableField;
     }
 
     @Override
     public Object getValue(Diffable diffable) {
-        Diffable modification = DiffableInternals.getModificationForField(diffable, this);
-        return super.getValue(modification);
+        for (Modification<? extends Diffable> modification : DiffableInternals.getModifications(diffable)) {
+            DiffableType<Modification<? extends Diffable>> modificationType = DiffableType.getInstance(modification);
+
+            for (DiffableField field : modificationType.getFields()) {
+                if (originalDiffableField == field) {
+                    return super.getValue(modification);
+                }
+            }
+        }
+
+        DiffableType<Diffable> type = DiffableType.getInstance(diffable);
+        String name = DiffableInternals.getName(diffable);
+
+        throw new Bug(String.format("Unable to match modification field '%s' with modification instance on resource %s %s",
+            getName(), type, name));
     }
 
     @Override
     public void setValue(Diffable diffable, Object value) {
-        Diffable modification = DiffableInternals.getModificationForField(diffable, this);
-        super.setValue(modification, value);
-    }
+        for (Modification<? extends Diffable> modification : DiffableInternals.getModifications(diffable)) {
+            DiffableType<Modification<? extends Diffable>> modificationType = DiffableType.getInstance(modification);
 
-    @Override
-    public List<ValidationError> validate(Diffable diffable) {
-        return Collections.emptyList();
+            for (DiffableField field : modificationType.getFields()) {
+                if (originalDiffableField == field) {
+                    super.setValue(modification, value);
+                    return;
+                }
+            }
+        }
+
+        DiffableType<Diffable> type = DiffableType.getInstance(diffable);
+        String name = DiffableInternals.getName(diffable);
+
+        throw new Bug(String.format("Unable to match modification field '%s' with modification instance on resource %s %s",
+            getName(), type, name));
     }
 
 }
