@@ -5,6 +5,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -16,7 +17,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import gyro.core.GyroException;
 import gyro.core.Reflections;
 import gyro.core.scope.DiffableScope;
@@ -44,7 +44,8 @@ public class DiffableType<D extends Diffable> {
     private final Node description;
     private final DiffableField idField;
     private final List<DiffableField> fields;
-    private final Map<String, DiffableField> fieldByName;
+    private final Set<Class<? extends Modification<D>>> modificationClasses = new HashSet<>();
+    private final List<ModificationField> modificationFields = new ArrayList<>();
 
     @SuppressWarnings("unchecked")
     public static <T extends Diffable> DiffableType<T> getInstance(Class<T> diffableClass) {
@@ -77,7 +78,6 @@ public class DiffableType<D extends Diffable> {
 
         DiffableField idField = null;
         ImmutableList.Builder<DiffableField> fields = ImmutableList.builder();
-        ImmutableMap.Builder<String, DiffableField> fieldByName = ImmutableMap.builder();
 
         for (PropertyDescriptor prop : Reflections.getBeanInfo(diffableClass).getPropertyDescriptors()) {
             Method getter = prop.getReadMethod();
@@ -89,20 +89,17 @@ public class DiffableType<D extends Diffable> {
 
                 if (getterType.equals(setterType)) {
                     DiffableField field = new DiffableField(prop.getName(), getter, setter, getterType);
-
                     if (getter.isAnnotationPresent(Id.class)) {
                         idField = field;
                     }
 
                     fields.add(field);
-                    fieldByName.put(field.getName(), field);
                 }
             }
         }
 
         this.idField = idField;
         this.fields = fields.build();
-        this.fieldByName = fieldByName.build();
     }
 
     public boolean isRoot() {
@@ -118,11 +115,22 @@ public class DiffableType<D extends Diffable> {
     }
 
     public List<DiffableField> getFields() {
-        return fields;
+        ImmutableList.Builder<DiffableField> fields = ImmutableList.builder();
+
+        fields.addAll(this.fields);
+        fields.addAll(this.modificationFields);
+
+        return fields.build();
     }
 
     public DiffableField getField(String name) {
-        return fieldByName.get(name);
+        for (DiffableField field : getFields()) {
+            if (field.getName().equals(name)) {
+                return field;
+            }
+        }
+
+        return null;
     }
 
     public D newExternal(RootScope root, Object id) {
@@ -137,6 +145,17 @@ public class DiffableType<D extends Diffable> {
     public D newInternal(DiffableScope scope, String name) {
         D diffable = Reflections.newInstance(diffableClass);
         diffable.scope = scope;
+
+        for (Class<? extends Modification<D>> modificationClass : modificationClasses) {
+            DiffableType<? extends Modification<D>> modificationType = DiffableType.getInstance(modificationClass);
+
+            Modification<D> modification = modificationType.newInternal(
+                new DiffableScope(scope, null),
+                modificationType.getName() + "::" + name);
+
+            DiffableInternals.getModifications(diffable).add(modification);
+        }
+
         diffable.name = name;
 
         setValues(diffable, scope);
@@ -146,7 +165,7 @@ public class DiffableType<D extends Diffable> {
     public String getDescription(D diffable) {
         Map<String, Object> values = new HashMap<>();
 
-        for (DiffableField field : fields) {
+        for (DiffableField field : getFields()) {
             values.put(field.getName(), field.getValue(diffable));
         }
 
@@ -181,7 +200,7 @@ public class DiffableType<D extends Diffable> {
             .filter(n -> !n.startsWith("_"))
             .collect(Collectors.toCollection(LinkedHashSet::new));
 
-        for (DiffableField field : fields) {
+        for (DiffableField field : getFields()) {
             String fieldName = field.getName();
 
             if (values.containsKey(fieldName)) {
@@ -208,6 +227,19 @@ public class DiffableType<D extends Diffable> {
         List<ValidationError> errors = new ArrayList<>();
         validateValue(errors, diffable, null, diffable);
         return errors;
+    }
+
+    void modify(Class<? extends Modification<D>> modificationClass) {
+        if (modificationClasses.add(modificationClass)) {
+            DiffableType<? extends Modification<D>> modificationType = DiffableType.getInstance(modificationClass);
+
+            modificationFields.addAll(
+                modificationType.getFields()
+                    .stream()
+                    .map(ModificationField::new)
+                    .collect(Collectors.toSet())
+            );
+        }
     }
 
     private void validateValue(List<ValidationError> errors, Diffable parent, String name, Object value) {

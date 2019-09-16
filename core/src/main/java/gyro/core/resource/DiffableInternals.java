@@ -2,6 +2,7 @@ package gyro.core.resource;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -36,6 +37,11 @@ public final class DiffableInternals {
         }
 
         return diffable.configuredFields;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T extends Diffable> List<Modification<T>> getModifications(T diffable) {
+        return (List) diffable.modifications;
     }
 
     public static Change getChange(Diffable diffable) {
