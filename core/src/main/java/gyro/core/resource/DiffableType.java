@@ -44,8 +44,8 @@ public class DiffableType<D extends Diffable> {
     private final Node description;
     private final DiffableField idField;
     private final List<DiffableField> fields;
-    private final List<ModificationField> modificationFields = new ArrayList();
-    private final Set<Class<? extends Modification>> modificationClasses = new HashSet<>();
+    private final Set<Class<? extends Modification<D>>> modificationClasses = new HashSet<>();
+    private final List<ModificationField> modificationFields = new ArrayList<>();
 
     @SuppressWarnings("unchecked")
     public static <T extends Diffable> DiffableType<T> getInstance(Class<T> diffableClass) {
@@ -146,10 +146,12 @@ public class DiffableType<D extends Diffable> {
         D diffable = Reflections.newInstance(diffableClass);
         diffable.scope = scope;
 
-        for (Class<? extends Modification> modificationClass : modificationClasses) {
-            DiffableType modificationType = DiffableType.getInstance(modificationClass);
-            Modification<? extends Diffable> modification = (Modification<? extends Diffable>)
-                modificationType.newInternal(new DiffableScope(scope, null), modificationType.getName() + "::" + name);
+        for (Class<? extends Modification<D>> modificationClass : modificationClasses) {
+            DiffableType<? extends Modification<D>> modificationType = DiffableType.getInstance(modificationClass);
+
+            Modification<D> modification = modificationType.newInternal(
+                new DiffableScope(scope, null),
+                modificationType.getName() + "::" + name);
 
             DiffableInternals.getModifications(diffable).add(modification);
         }
@@ -157,7 +159,6 @@ public class DiffableType<D extends Diffable> {
         diffable.name = name;
 
         setValues(diffable, scope);
-
         return diffable;
     }
 
@@ -228,9 +229,9 @@ public class DiffableType<D extends Diffable> {
         return errors;
     }
 
-    void modify(Class<? extends Modification> modificationClass) {
+    void modify(Class<? extends Modification<D>> modificationClass) {
         if (modificationClasses.add(modificationClass)) {
-            DiffableType<? extends Modification> modificationType = DiffableType.getInstance(modificationClass);
+            DiffableType<? extends Modification<D>> modificationType = DiffableType.getInstance(modificationClass);
 
             modificationFields.addAll(
                 modificationType.getFields()

@@ -39,8 +39,9 @@ public final class DiffableInternals {
         return diffable.configuredFields;
     }
 
-    public static <T extends Diffable> List<Modification<? extends Diffable>> getModifications(T diffable) {
-        return diffable.modifications;
+    @SuppressWarnings("unchecked")
+    public static <T extends Diffable> List<Modification<T>> getModifications(T diffable) {
+        return (List) diffable.modifications;
     }
 
     public static Change getChange(Diffable diffable) {
