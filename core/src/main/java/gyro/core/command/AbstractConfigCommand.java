@@ -25,7 +25,6 @@ import gyro.core.auth.Credentials;
 import gyro.core.auth.CredentialsSettings;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
-import gyro.core.resource.Modification;
 import gyro.core.scope.FileScope;
 import gyro.core.resource.Resource;
 import gyro.core.scope.RootScope;
@@ -145,8 +144,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
                     boolean keep = resource.refresh();
 
                     if (keep) {
-                        DiffableInternals.getModifications(resource).values()
-                            .forEach(m -> m.refresh(resource));
+                        DiffableInternals.getModifications(resource).forEach(m -> m.refresh(resource));
                     }
 
                     done.incrementAndGet();
