@@ -11,7 +11,7 @@ public class ModificationPlugin extends Plugin {
     public void onEachClass(RootScope root, Class<?> aClass) {
         if (Modification.class.isAssignableFrom(aClass)) {
             Class<? extends Modification<Diffable>> modificationClass = (Class<? extends Modification<Diffable>>) aClass;
-            Class<?> diffableClass = TypeResolver.resolveRawArgument(modificationClass, Modification.class);
+            Class<?> diffableClass = TypeResolver.resolveRawArgument(Modification.class, modificationClass);
             DiffableType<Diffable> type = DiffableType.getInstance((Class<Diffable>) diffableClass);
 
             type.modify(modificationClass);
