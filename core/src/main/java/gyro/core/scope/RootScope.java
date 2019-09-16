@@ -5,7 +5,6 @@ import java.io.OutputStream;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +31,7 @@ import gyro.core.command.HighlanderDirectiveProcessor;
 import gyro.core.command.HighlanderSettings;
 import gyro.core.control.ForDirectiveProcessor;
 import gyro.core.control.IfDirectiveProcessor;
+import gyro.core.diff.ChangeSettings;
 import gyro.core.diff.GlobalChangePlugin;
 import gyro.core.directive.DirectivePlugin;
 import gyro.core.directive.DirectiveSettings;
@@ -109,7 +109,9 @@ public class RootScope extends FileScope {
             new ModificationPlugin())
             .forEach(p -> getSettings(PluginSettings.class).getPlugins().add(p));
 
-        getSettings(PluginSettings.class).addClasses(Collections.singleton(ModificationChangeProcessor.class));
+        Stream.of(
+            new ModificationChangeProcessor())
+            .forEach(p -> getSettings(ChangeSettings.class).getProcessors().add(p));
 
         Stream.of(
             CreateDirectiveProcessor.class,
