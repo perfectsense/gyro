@@ -122,4 +122,8 @@ public class Scope extends MapWrapper<String, Object> {
         return (S) settingsByClass.getUnchecked(Preconditions.checkNotNull(settingsClass));
     }
 
+    public LoadingCache<Class<? extends Settings>, Settings> getSettingsByClass() {
+        return settingsByClass;
+    }
+
 }
