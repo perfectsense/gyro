@@ -58,6 +58,7 @@ public class CliGyroUI extends AuditableGyroUI {
             String selected = readLine();
 
             if (values.contains(selected)) {
+                sendAudit(selected);
                 return selected;
 
             } else {
@@ -112,7 +113,9 @@ public class CliGyroUI extends AuditableGyroUI {
     @Override
     public String readText(String message, Object... arguments) {
         write(message, arguments);
-        return readLine();
+        String line = readLine();
+        sendAudit(line);
+        return line;
     }
 
     @Override
