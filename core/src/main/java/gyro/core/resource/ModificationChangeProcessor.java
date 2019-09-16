@@ -2,20 +2,9 @@ package gyro.core.resource;
 
 import gyro.core.GyroUI;
 import gyro.core.diff.ChangeProcessor;
-import gyro.core.resource.Diffable;
-import gyro.core.resource.DiffableField;
-import gyro.core.resource.DiffableInternals;
-import gyro.core.resource.DiffableType;
-import gyro.core.resource.Modification;
-import gyro.core.resource.ModificationField;
-import gyro.core.resource.Resource;
 import gyro.core.scope.State;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class ModificationChangeProcessor extends ChangeProcessor {
 

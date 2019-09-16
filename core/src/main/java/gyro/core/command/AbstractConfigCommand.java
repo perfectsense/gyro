@@ -25,7 +25,6 @@ import gyro.core.auth.Credentials;
 import gyro.core.auth.CredentialsSettings;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
-import gyro.core.resource.Modification;
 import gyro.core.scope.FileScope;
 import gyro.core.resource.Resource;
 import gyro.core.scope.RootScope;
