@@ -171,6 +171,7 @@ public class Gyro {
             ((Runnable) command).run();
 
         } else if (command instanceof AbstractCommand) {
+            ((AbstractCommand) command).setUnparsedArguments(arguments);
             ((AbstractCommand) command).execute();
 
         } else if (command instanceof GyroCommand) {

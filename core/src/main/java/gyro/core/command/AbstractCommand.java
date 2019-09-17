@@ -7,6 +7,8 @@ import io.airlift.airline.Option;
 import io.airlift.airline.OptionType;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 /**
  * Basic {@link GyroCommand} implementation that adds the global {@code -debug} option for more detailed logging.
  *
@@ -24,7 +26,17 @@ public abstract class AbstractCommand implements GyroCommand {
     @Option(name = { "--verbose" })
     private boolean verbose;
 
+    private List<String> unparsedArguments;
+
     protected abstract void doExecute() throws Exception;
+
+    public List<String> getUnparsedArguments() {
+        return unparsedArguments;
+    }
+
+    public void setUnparsedArguments(List<String> unparsedArguments) {
+        this.unparsedArguments = unparsedArguments;
+    }
 
     @Override
     public void execute() throws Exception {
