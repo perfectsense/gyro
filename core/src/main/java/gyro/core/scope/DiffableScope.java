@@ -2,7 +2,6 @@ package gyro.core.scope;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import gyro.core.GyroException;
@@ -35,15 +34,7 @@ public class DiffableScope extends Scope {
     }
 
     public BlockNode getBlock() {
-        if (block != null) {
-            return block;
-
-        } else {
-            return Optional.ofNullable(getParent())
-                .map(p -> p.getClosest(DiffableScope.class))
-                .map(DiffableScope::getBlock)
-                .orElse(null);
-        }
+        return block;
     }
 
     public List<Node> getStateNodes() {
