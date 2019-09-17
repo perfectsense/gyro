@@ -4,28 +4,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import com.google.common.collect.ImmutableList;
 import gyro.core.GyroUI;
 import gyro.lang.ast.Node;
-import gyro.util.ImmutableCollectors;
 
 public class Defer extends Error {
 
-    private final List<Node> nodes;
+    private final Node node;
 
-    public Defer(Node node, String message) {
-        super(message);
+    public Defer(Node node, String message, Defer cause) {
+        super(message, cause);
 
-        this.nodes = ImmutableList.of(node);
+        this.node = node;
     }
 
-    private Defer(List<Defer> errors) {
-        super("Circular dependencies detected!");
-
-        this.nodes = errors.stream()
-            .map(e -> e.nodes)
-            .flatMap(List::stream)
-            .collect(ImmutableCollectors.toList());
+    public Defer(Node node, String message) {
+        this(node, message, null);
     }
 
     public static <T> void execute(List<T> items, Consumer<T> consumer) {
@@ -49,7 +42,12 @@ public class Defer extends Error {
                 break;
 
             } else if (size == deferred.size()) {
-                throw new Defer(errors);
+                if (errors.size() == 1) {
+                    throw errors.get(0);
+
+                } else {
+                    throw new MultipleDefers(errors);
+                }
 
             } else {
                 items = deferred;
@@ -61,9 +59,16 @@ public class Defer extends Error {
     public void write(GyroUI ui) {
         ui.write("@|red Error:|@ %s\n", getMessage());
 
-        for (Node node : nodes) {
+        if (node != null) {
             ui.write("\nIn @|bold %s|@ %s:\n", node.getFile(), node.toLocation());
             ui.write("%s", node.toCodeSnippet());
+        }
+
+        Throwable cause = getCause();
+
+        if (cause instanceof Defer) {
+            ui.write("\n@|red Caused by:|@ ");
+            ((Defer) cause).write(ui);
         }
     }
 

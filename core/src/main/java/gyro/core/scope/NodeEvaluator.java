@@ -395,12 +395,17 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
     @Override
     @SuppressWarnings("unchecked")
     public Object visitResource(ResourceNode node, Scope scope) {
-        DiffableScope bodyScope = new DiffableScope(scope, node);
-
-        evaluateDiffable(node, bodyScope);
-
         String type = node.getType();
         String name = (String) visit(node.getName(), scope);
+        DiffableScope bodyScope = new DiffableScope(scope, node);
+
+        try {
+            evaluateDiffable(node, bodyScope);
+
+        } catch (Defer error) {
+            throw new CreateResourceDefer(error, type, name);
+        }
+
         RootScope root = scope.getRootScope();
         Object value = root.get(type);
 
@@ -627,9 +632,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
 
                 if (resourceName.endsWith("*")) {
                     if (typeNodes != null && typeNodes.containsKey(referenceName)) {
-                        throw new Defer(node, String.format(
-                            "Can't resolve wildcard reference to @|bold %s|@ type yet!",
-                            referenceName));
+                        throw new FindByWildcardDefer(node, referenceName);
                     }
 
                     Stream<Resource> s = root.findResources()
@@ -647,10 +650,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                     Resource resource = root.findResource(referenceName + "::" + resourceName);
 
                     if (resource == null) {
-                        throw new Defer(node, String.format(
-                            "Can't find @|bold %s|@ resource of @|bold %s|@ type!",
-                            resourceName,
-                            referenceName));
+                        throw new FindByNameDefer(node, referenceName, resourceName);
                     }
 
                     value = resource;

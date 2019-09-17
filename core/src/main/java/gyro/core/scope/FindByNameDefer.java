@@ -1,0 +1,11 @@
+package gyro.core.scope;
+
+import gyro.lang.ast.Node;
+
+class FindByNameDefer extends Defer {
+
+    public FindByNameDefer(Node node, String type, String name) {
+        super(node, String.format("Can't find @|bold %s|@ resource of @|bold %s|@ type!", name, type));
+    }
+
+}

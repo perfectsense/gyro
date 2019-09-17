@@ -78,13 +78,6 @@ public class Gyro {
         if (error instanceof Defer) {
             ((Defer) error).write(GyroCore.ui());
 
-            Throwable cause = error.getCause();
-
-            if (cause != null) {
-                GyroCore.ui().write("\n@|red Caused by:|@ ");
-                writeError(cause);
-            }
-
         } else if (error instanceof GyroException) {
             GyroCore.ui().write("@|red Error:|@ %s\n", error.getMessage());
 
