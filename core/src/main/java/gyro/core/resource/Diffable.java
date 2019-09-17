@@ -2,6 +2,7 @@ package gyro.core.resource;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -22,6 +23,7 @@ public abstract class Diffable {
     DiffableScope scope;
     Change change;
     Set<String> configuredFields;
+    final List<Modification<? extends Diffable>> modifications = new ArrayList<>();
 
     public Diffable parent() {
         return parent;

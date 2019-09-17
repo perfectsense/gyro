@@ -142,6 +142,11 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
                 refreshes.add(new Refresh(resource, refreshService.submit(() -> {
                     started.incrementAndGet();
                     boolean keep = resource.refresh();
+
+                    if (keep) {
+                        DiffableInternals.getModifications(resource).forEach(m -> m.refresh(resource));
+                    }
+
                     done.incrementAndGet();
 
                     if (keep) {

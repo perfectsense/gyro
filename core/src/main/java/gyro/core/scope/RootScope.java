@@ -31,7 +31,8 @@ import gyro.core.command.HighlanderDirectiveProcessor;
 import gyro.core.command.HighlanderSettings;
 import gyro.core.control.ForDirectiveProcessor;
 import gyro.core.control.IfDirectiveProcessor;
-import gyro.core.diff.ChangePlugin;
+import gyro.core.diff.ChangeSettings;
+import gyro.core.diff.GlobalChangePlugin;
 import gyro.core.directive.DirectivePlugin;
 import gyro.core.directive.DirectiveSettings;
 import gyro.core.finder.FinderPlugin;
@@ -47,9 +48,12 @@ import gyro.core.resource.DiffableField;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
 import gyro.core.resource.ExtendsDirectiveProcessor;
+import gyro.core.resource.ModificationChangeProcessor;
+import gyro.core.resource.ModificationPlugin;
 import gyro.core.resource.Resource;
 import gyro.core.resource.ResourcePlugin;
 import gyro.core.resource.TypeDescriptionDirectiveProcessor;
+import gyro.core.resource.WaitDirectiveProcessor;
 import gyro.core.scope.converter.DiffableScopeToDiffable;
 import gyro.core.scope.converter.IdObjectToResource;
 import gyro.core.scope.converter.IterableToOne;
@@ -58,11 +62,10 @@ import gyro.core.validation.ValidationError;
 import gyro.core.validation.ValidationErrorException;
 import gyro.core.virtual.VirtualDirectiveProcessor;
 import gyro.core.workflow.CreateDirectiveProcessor;
+import gyro.core.workflow.DefineDirectiveProcessor;
 import gyro.core.workflow.DeleteDirectiveProcessor;
 import gyro.core.workflow.ReplaceDirectiveProcessor;
 import gyro.core.workflow.UpdateDirectiveProcessor;
-import gyro.core.workflow.DefineDirectiveProcessor;
-import gyro.core.workflow.WaitDirectiveProcessor;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.FileNode;
 import gyro.parser.antlr4.GyroParser;
@@ -96,14 +99,19 @@ public class RootScope extends FileScope {
         this.loadFiles = loadFiles != null ? ImmutableSet.copyOf(loadFiles) : ImmutableSet.of();
 
         Stream.of(
-            new ChangePlugin(),
             new CredentialsPlugin(),
             new DirectivePlugin(),
             new FileBackendPlugin(),
             new FinderPlugin(),
+            new GlobalChangePlugin(),
             new ReferencePlugin(),
-            new ResourcePlugin())
+            new ResourcePlugin(),
+            new ModificationPlugin())
             .forEach(p -> getSettings(PluginSettings.class).getPlugins().add(p));
+
+        Stream.of(
+            new ModificationChangeProcessor())
+            .forEach(p -> getSettings(ChangeSettings.class).getProcessors().add(p));
 
         Stream.of(
             CreateDirectiveProcessor.class,

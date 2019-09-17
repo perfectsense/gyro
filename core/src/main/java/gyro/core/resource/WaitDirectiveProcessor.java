@@ -1,19 +1,20 @@
-package gyro.core.workflow;
+package gyro.core.resource;
 
 import gyro.core.Type;
 import gyro.core.Waiter;
+import gyro.core.diff.ChangeSettings;
 import gyro.core.directive.DirectiveProcessor;
-import gyro.core.scope.Scope;
+import gyro.core.scope.DiffableScope;
 import gyro.lang.ast.block.DirectiveNode;
 
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Type("wait")
-public class WaitDirectiveProcessor extends DirectiveProcessor<Scope> {
+public class WaitDirectiveProcessor extends DirectiveProcessor<DiffableScope> {
 
     @Override
-    public void process(Scope scope, DirectiveNode node) {
+    public void process(DiffableScope scope, DirectiveNode node) {
         validateArguments(node, 1, 1);
         validateOptionArguments(node, "unit", 0, 1);
         validateOptionArguments(node, "at-most", 0, 1);
@@ -30,9 +31,9 @@ public class WaitDirectiveProcessor extends DirectiveProcessor<Scope> {
         Optional.ofNullable(getOptionArgument(scope, node, "check-every", Long.class, 0))
             .ifPresent(d -> waiter.checkEvery(d, unit));
 
-        scope.getSettings(WorkflowSettings.class)
-            .getActions()
-            .add(new WaitAction(waiter, node.getArguments().get(0)));
+        scope.getSettings(ChangeSettings.class)
+            .getProcessors()
+            .add(new WaitChangeProcessor(scope, waiter, node.getArguments().get(0)));
     }
 
 }
