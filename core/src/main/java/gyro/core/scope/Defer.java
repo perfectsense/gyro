@@ -1,6 +1,7 @@
 package gyro.core.scope;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -53,6 +54,17 @@ public class Defer extends Error {
             } else {
                 items = deferred;
                 size = items.size();
+            }
+        }
+    }
+
+    public static void writeErrors(GyroUI ui, String message, Collection<? extends Defer> errors) {
+        if (!errors.isEmpty()) {
+            ui.write(message);
+
+            for (Defer error : errors) {
+                ui.write("\n@|red -|@ ");
+                ui.indented(() -> error.write(ui));
             }
         }
     }

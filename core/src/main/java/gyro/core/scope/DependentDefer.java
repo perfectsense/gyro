@@ -7,33 +7,28 @@ import gyro.core.GyroUI;
 
 class DependentDefer extends Defer {
 
-    private final List<Defer> errors;
+    private final List<Defer> related;
 
-    public DependentDefer(List<Defer> errors, CreateResourceDefer cause) {
+    public DependentDefer(CreateResourceDefer cause, List<Defer> related) {
         super(null, null, cause);
 
-        this.errors = errors;
+        this.related = related;
     }
 
     @Override
     public Stream<Defer> stream() {
-        return errors.stream().flatMap(Defer::stream);
+        return related.stream().flatMap(Defer::stream);
     }
 
     @Override
     public void write(GyroUI ui) {
         getCause().write(ui);
+        writeErrors(ui, "\n@|red Related:|@\n", related);
+    }
 
-        ui.indented(() -> {
-            ui.write("\n@|red Related errors:|@\n");
-
-            for (int i = 0, l = errors.size(); i < l; ++i) {
-                Defer error = errors.get(i);
-
-                ui.write("\n@|red %s.|@ ", i + 1);
-                ui.indented(() -> error.write(ui));
-            }
-        });
+    @Override
+    public CreateResourceDefer getCause() {
+        return (CreateResourceDefer) super.getCause();
     }
 
 }

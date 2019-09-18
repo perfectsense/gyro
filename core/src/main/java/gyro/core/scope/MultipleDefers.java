@@ -1,9 +1,14 @@
 package gyro.core.scope;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import gyro.core.GyroUI;
@@ -52,13 +57,14 @@ class MultipleDefers extends Defer {
             }
         });
 
-        List<DependentDefer> dependentErrors = new ArrayList<>();
+        Map<String, DependentDefer> dependentErrorById = new LinkedHashMap<>();
 
         for (Map.Entry<String, List<Defer>> entry : causedByFindByNameErrors.entrySet()) {
-            CreateResourceDefer c = createResourceErrors.get(entry.getKey());
+            String k = entry.getKey();
+            CreateResourceDefer c = createResourceErrors.get(k);
 
             if (c != null) {
-                dependentErrors.add(new DependentDefer(entry.getValue(), c));
+                dependentErrorById.put(k, new DependentDefer(c, entry.getValue()));
             }
         }
 
@@ -66,12 +72,43 @@ class MultipleDefers extends Defer {
 
         displayErrors.addAll(createResourceErrors.values());
         displayErrors.addAll(otherErrors);
+
+        Collection<DependentDefer> dependentErrors = dependentErrorById.values();
+
         displayErrors.addAll(dependentErrors);
 
         dependentErrors.forEach(e -> {
             displayErrors.remove(e.getCause());
             e.stream().forEach(displayErrors::remove);
         });
+
+        while (!dependentErrorById.isEmpty()) {
+            Iterator<DependentDefer> i = dependentErrors.iterator();
+            DependentDefer d = i.next();
+            Set<CreateResourceDefer> seen = new LinkedHashSet<>();
+
+            if (findCircularDependency(dependentErrorById, d, seen)) {
+                List<Defer> related = new ArrayList<>();
+
+                for (Iterator<Defer> j = displayErrors.iterator(); j.hasNext(); ) {
+                    Defer je = j.next();
+
+                    if (je instanceof DependentDefer) {
+                        DependentDefer jd = (DependentDefer) je;
+
+                        if (seen.contains(jd.getCause())) {
+                            j.remove();
+                            jd.stream().forEach(related::add);
+                        }
+                    }
+                }
+
+                related.removeAll(seen);
+                displayErrors.add(new CircularDefer(seen, related));
+            }
+
+            i.remove();
+        }
 
         int displayErrorsSize = displayErrors.size();
 
@@ -85,6 +122,26 @@ class MultipleDefers extends Defer {
             ui.write("\n@|red ---|@\n\n");
             e.write(ui);
         });
+    }
+
+    private boolean findCircularDependency(
+        Map<String, DependentDefer> dependentErrors,
+        DependentDefer error,
+        Set<CreateResourceDefer> seen) {
+
+        CreateResourceDefer cause = error.getCause();
+
+        if (!seen.add(cause)) {
+            return true;
+        }
+
+        return error.stream()
+            .filter(CreateResourceDefer.class::isInstance)
+            .map(CreateResourceDefer.class::cast)
+            .map(CreateResourceDefer::getId)
+            .map(dependentErrors::get)
+            .filter(Objects::nonNull)
+            .anyMatch(e -> findCircularDependency(dependentErrors, e, seen));
     }
 
 }
