@@ -1,6 +1,7 @@
 package gyro.cli;
 
 import gyro.core.Abort;
+import gyro.core.GyroUI;
 import gyro.core.LocalFileBackend;
 import gyro.core.command.AbstractCommand;
 import gyro.core.command.GyroCommand;
@@ -49,7 +50,7 @@ public class Gyro {
         ((Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).setLevel(Level.OFF);
 
         Gyro gyro = new Gyro();
-        GyroCore.pushUi(new CliGyroUI());
+        GyroCore.pushUi(new GyroUI());
 
         try {
             Optional.ofNullable(GyroCore.getRootDirectory())

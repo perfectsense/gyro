@@ -3,7 +3,7 @@ package gyro.core;
 import java.util.LinkedList;
 import java.util.List;
 
-public abstract class AuditableGyroUI implements GyroUI {
+public abstract class AuditableGyroUI extends GyroUI {
     private List<GyroAuditor> auditors;
 
     public List<GyroAuditor> getAuditors() {
