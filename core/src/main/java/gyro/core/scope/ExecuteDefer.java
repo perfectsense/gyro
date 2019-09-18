@@ -33,17 +33,23 @@ class ExecuteDefer extends Defer {
         List<Defer> otherErrors = new ArrayList<>();
 
         for (Defer error : flattenedErrors) {
+
+            // Find all resources that were defined but couldn't be created,
+            // and store them by resource type and name key.
             if (error instanceof CreateDefer) {
                 CreateDefer c = (CreateDefer) error;
                 createErrors.put(c.getKey(), c);
             }
 
+            // Find the underlying cause.
             Defer cause = error;
 
             for (Defer c; (c = cause.getCause()) != null; ) {
                 cause = c;
             }
 
+            // If the underlying cause was not being able to find the resource by name,
+            // store those, grouped by the resource type and name key.
             if (cause instanceof FindDefer) {
                 causedByFindErrors.computeIfAbsent(((FindDefer) cause).getKey(), k -> new ArrayList<>()).add(error);
 
@@ -52,6 +58,8 @@ class ExecuteDefer extends Defer {
             }
         }
 
+        // If something failed because the underlying cause was not being able to find the resource by name,
+        // see if there's a corresponding error where the resource couldn't be created.
         Map<String, DependentDefer> dependentErrorById = new LinkedHashMap<>();
 
         for (Map.Entry<String, List<Defer>> entry : causedByFindErrors.entrySet()) {
@@ -63,11 +71,13 @@ class ExecuteDefer extends Defer {
             }
         }
 
+        // Start constructing a list of all errors to display to the user.
         List<Defer> displayErrors = new ArrayList<>();
 
         displayErrors.addAll(createErrors.values());
         displayErrors.addAll(otherErrors);
 
+        // Remove all errors associated with dependent errors to avoid duplicate display.
         Collection<DependentDefer> dependentErrors = dependentErrorById.values();
 
         displayErrors.addAll(dependentErrors);
@@ -77,12 +87,15 @@ class ExecuteDefer extends Defer {
             e.getRelated().forEach(displayErrors::remove);
         });
 
+        // Find circular dependencies among dependent errors.
         while (!dependentErrorById.isEmpty()) {
             Iterator<DependentDefer> i = dependentErrors.iterator();
             DependentDefer d = i.next();
             Set<CreateDefer> seen = new LinkedHashSet<>();
 
             if (findCircularDependency(dependentErrorById, d, seen)) {
+
+                // Once a circular dependency is found, find all related errors that it caused.
                 List<Defer> related = new ArrayList<>();
 
                 for (Iterator<Defer> j = displayErrors.iterator(); j.hasNext(); ) {
@@ -130,6 +143,9 @@ class ExecuteDefer extends Defer {
         }
     }
 
+    // Find the circular dependency by looking at all related errors. If a create error is seen more than once,
+    // we know that there's a circular dependency, and everything seen so far is involved in causing the circular
+    // dependency.
     private boolean findCircularDependency(
         Map<String, DependentDefer> dependentErrors,
         DependentDefer error,
