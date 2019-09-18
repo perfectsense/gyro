@@ -1,18 +1,25 @@
 package gyro.core.scope;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
+import gyro.core.GyroUI;
 import gyro.lang.ast.Node;
 
 public class Defer extends Error {
 
     private final Node node;
 
-    public Defer(Node node, String message) {
-        super(message);
+    public Defer(Node node, String message, Defer cause) {
+        super(message, cause);
+
         this.node = node;
+    }
+
+    public Defer(Node node, String message) {
+        this(node, message, null);
     }
 
     public static <T> void execute(List<T> items, Consumer<T> consumer) {
@@ -36,7 +43,7 @@ public class Defer extends Error {
                 break;
 
             } else if (size == deferred.size()) {
-                throw errors.get(0);
+                throw new ExecuteDefer(errors);
 
             } else {
                 items = deferred;
@@ -45,8 +52,36 @@ public class Defer extends Error {
         }
     }
 
-    public Node getNode() {
-        return node;
+    public static void writeErrors(GyroUI ui, String message, Collection<? extends Defer> errors) {
+        if (!errors.isEmpty()) {
+            ui.write(message);
+
+            for (Defer error : errors) {
+                ui.write("\n@|red -|@ ");
+                ui.indented(() -> error.write(ui));
+            }
+        }
+    }
+
+    public void write(GyroUI ui) {
+        ui.write("@|red Error:|@ %s\n", getMessage());
+
+        if (node != null) {
+            ui.write("\nIn @|bold %s|@ %s:\n", node.getFile(), node.toLocation());
+            ui.write("%s", node.toCodeSnippet());
+        }
+
+        Defer cause = getCause();
+
+        if (cause != null) {
+            ui.write("\n@|red Caused by:|@ ");
+            cause.write(ui);
+        }
+    }
+
+    @Override
+    public synchronized Defer getCause() {
+        return (Defer) super.getCause();
     }
 
 }
