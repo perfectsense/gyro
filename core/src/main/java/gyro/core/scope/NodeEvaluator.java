@@ -403,7 +403,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             evaluateDiffable(node, bodyScope);
 
         } catch (Defer error) {
-            throw new CreateResourceDefer(error, type, name);
+            throw new CreateDefer(error, type, name);
         }
 
         RootScope root = scope.getRootScope();

@@ -8,7 +8,7 @@ class DependentDefer extends Defer {
 
     private final List<Defer> related;
 
-    public DependentDefer(CreateResourceDefer cause, List<Defer> related) {
+    public DependentDefer(CreateDefer cause, List<Defer> related) {
         super(null, null, cause);
 
         this.related = related;
@@ -25,8 +25,8 @@ class DependentDefer extends Defer {
     }
 
     @Override
-    public CreateResourceDefer getCause() {
-        return (CreateResourceDefer) super.getCause();
+    public CreateDefer getCause() {
+        return (CreateDefer) super.getCause();
     }
 
 }

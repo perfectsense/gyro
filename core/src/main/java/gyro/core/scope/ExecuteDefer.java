@@ -28,14 +28,14 @@ class ExecuteDefer extends Defer {
 
         flattenErrors(errors, flattenedErrors);
 
-        Map<String, CreateResourceDefer> createResourceErrors = new LinkedHashMap<>();
+        Map<String, CreateDefer> createErrors = new LinkedHashMap<>();
         Map<String, List<Defer>> causedByFindByNameErrors = new LinkedHashMap<>();
         List<Defer> otherErrors = new ArrayList<>();
 
         for (Defer error : flattenedErrors) {
-            if (error instanceof CreateResourceDefer) {
-                CreateResourceDefer c = (CreateResourceDefer) error;
-                createResourceErrors.put(c.getKey(), c);
+            if (error instanceof CreateDefer) {
+                CreateDefer c = (CreateDefer) error;
+                createErrors.put(c.getKey(), c);
             }
 
             Defer cause = error;
@@ -50,7 +50,7 @@ class ExecuteDefer extends Defer {
                     k -> new ArrayList<>())
                     .add(error);
 
-            } else if (!(error instanceof CreateResourceDefer)) {
+            } else if (!(error instanceof CreateDefer)) {
                 otherErrors.add(error);
             }
         }
@@ -59,7 +59,7 @@ class ExecuteDefer extends Defer {
 
         for (Map.Entry<String, List<Defer>> entry : causedByFindByNameErrors.entrySet()) {
             String k = entry.getKey();
-            CreateResourceDefer c = createResourceErrors.get(k);
+            CreateDefer c = createErrors.get(k);
 
             if (c != null) {
                 dependentErrorById.put(k, new DependentDefer(c, entry.getValue()));
@@ -68,7 +68,7 @@ class ExecuteDefer extends Defer {
 
         List<Defer> displayErrors = new ArrayList<>();
 
-        displayErrors.addAll(createResourceErrors.values());
+        displayErrors.addAll(createErrors.values());
         displayErrors.addAll(otherErrors);
 
         Collection<DependentDefer> dependentErrors = dependentErrorById.values();
@@ -83,7 +83,7 @@ class ExecuteDefer extends Defer {
         while (!dependentErrorById.isEmpty()) {
             Iterator<DependentDefer> i = dependentErrors.iterator();
             DependentDefer d = i.next();
-            Set<CreateResourceDefer> seen = new LinkedHashSet<>();
+            Set<CreateDefer> seen = new LinkedHashSet<>();
 
             if (findCircularDependency(dependentErrorById, d, seen)) {
                 List<Defer> related = new ArrayList<>();
@@ -136,9 +136,9 @@ class ExecuteDefer extends Defer {
     private boolean findCircularDependency(
         Map<String, DependentDefer> dependentErrors,
         DependentDefer error,
-        Set<CreateResourceDefer> seen) {
+        Set<CreateDefer> seen) {
 
-        CreateResourceDefer cause = error.getCause();
+        CreateDefer cause = error.getCause();
 
         if (!seen.add(cause)) {
             return true;
@@ -146,9 +146,9 @@ class ExecuteDefer extends Defer {
 
         return error.getRelated()
             .stream()
-            .filter(CreateResourceDefer.class::isInstance)
-            .map(CreateResourceDefer.class::cast)
-            .map(CreateResourceDefer::getKey)
+            .filter(CreateDefer.class::isInstance)
+            .map(CreateDefer.class::cast)
+            .map(CreateDefer::getKey)
             .map(dependentErrors::get)
             .filter(Objects::nonNull)
             .anyMatch(e -> findCircularDependency(dependentErrors, e, seen));

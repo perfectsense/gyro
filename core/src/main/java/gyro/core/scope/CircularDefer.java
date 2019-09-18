@@ -7,10 +7,10 @@ import gyro.core.GyroUI;
 
 class CircularDefer extends Defer {
 
-    private final Set<CreateResourceDefer> errors;
+    private final Set<CreateDefer> errors;
     private final List<Defer> related;
 
-    public CircularDefer(Set<CreateResourceDefer> errors, List<Defer> related) {
+    public CircularDefer(Set<CreateDefer> errors, List<Defer> related) {
         super(null, null, null);
 
         this.errors = errors;
