@@ -1,12 +1,12 @@
 package gyro.core.resource;
 
 import gyro.core.GyroUI;
-import gyro.core.diff.ChangeProcessor;
+import gyro.core.diff.GlobalChangeProcessor;
 import gyro.core.scope.State;
 
 import java.util.Set;
 
-public class ModificationChangeProcessor extends ChangeProcessor {
+public class ModificationChangeProcessor extends GlobalChangeProcessor {
 
     @Override
     public void beforeCreate(GyroUI ui, State state, Resource resource) throws Exception {
