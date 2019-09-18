@@ -35,7 +35,7 @@ class ExecuteDefer extends Defer {
         for (Defer error : flattenedErrors) {
             if (error instanceof CreateResourceDefer) {
                 CreateResourceDefer c = (CreateResourceDefer) error;
-                createResourceErrors.put(c.getId(), c);
+                createResourceErrors.put(c.getKey(), c);
             }
 
             Defer cause = error;
@@ -46,7 +46,7 @@ class ExecuteDefer extends Defer {
 
             if (cause instanceof FindByNameDefer) {
                 causedByFindByNameErrors.computeIfAbsent(
-                    ((FindByNameDefer) cause).getId(),
+                    ((FindByNameDefer) cause).getKey(),
                     k -> new ArrayList<>())
                     .add(error);
 
@@ -148,7 +148,7 @@ class ExecuteDefer extends Defer {
             .stream()
             .filter(CreateResourceDefer.class::isInstance)
             .map(CreateResourceDefer.class::cast)
-            .map(CreateResourceDefer::getId)
+            .map(CreateResourceDefer::getKey)
             .map(dependentErrors::get)
             .filter(Objects::nonNull)
             .anyMatch(e -> findCircularDependency(dependentErrors, e, seen));

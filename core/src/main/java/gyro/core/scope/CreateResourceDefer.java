@@ -2,7 +2,7 @@ package gyro.core.scope;
 
 class CreateResourceDefer extends Defer {
 
-    private final String id;
+    private final String key;
 
     public CreateResourceDefer(Defer cause, String type, String name) {
         super(
@@ -10,11 +10,11 @@ class CreateResourceDefer extends Defer {
             String.format("Can't create @|bold %s|@ @|bold %s|@ resource!", type, name),
             cause);
 
-        this.id = type + "::" + name;
+        this.key = type + "::" + name;
     }
 
-    public String getId() {
-        return id;
+    public String getKey() {
+        return key;
     }
 
 }
