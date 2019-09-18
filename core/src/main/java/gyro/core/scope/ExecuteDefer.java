@@ -29,7 +29,7 @@ class ExecuteDefer extends Defer {
         flattenErrors(errors, flattenedErrors);
 
         Map<String, CreateDefer> createErrors = new LinkedHashMap<>();
-        Map<String, List<Defer>> causedByFindByNameErrors = new LinkedHashMap<>();
+        Map<String, List<Defer>> causedByFindErrors = new LinkedHashMap<>();
         List<Defer> otherErrors = new ArrayList<>();
 
         for (Defer error : flattenedErrors) {
@@ -44,11 +44,8 @@ class ExecuteDefer extends Defer {
                 cause = c;
             }
 
-            if (cause instanceof FindByNameDefer) {
-                causedByFindByNameErrors.computeIfAbsent(
-                    ((FindByNameDefer) cause).getKey(),
-                    k -> new ArrayList<>())
-                    .add(error);
+            if (cause instanceof FindDefer) {
+                causedByFindErrors.computeIfAbsent(((FindDefer) cause).getKey(), k -> new ArrayList<>()).add(error);
 
             } else if (!(error instanceof CreateDefer)) {
                 otherErrors.add(error);
@@ -57,7 +54,7 @@ class ExecuteDefer extends Defer {
 
         Map<String, DependentDefer> dependentErrorById = new LinkedHashMap<>();
 
-        for (Map.Entry<String, List<Defer>> entry : causedByFindByNameErrors.entrySet()) {
+        for (Map.Entry<String, List<Defer>> entry : causedByFindErrors.entrySet()) {
             String k = entry.getKey();
             CreateDefer c = createErrors.get(k);
 

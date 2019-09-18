@@ -650,7 +650,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                     Resource resource = root.findResource(referenceName + "::" + resourceName);
 
                     if (resource == null) {
-                        throw new FindByNameDefer(node, referenceName, resourceName);
+                        throw new FindDefer(node, referenceName, resourceName);
                     }
 
                     value = resource;
