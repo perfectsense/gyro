@@ -3,6 +3,7 @@ package gyro.core.scope;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import gyro.core.GyroUI;
 import gyro.lang.ast.Node;
@@ -56,6 +57,10 @@ public class Defer extends Error {
         }
     }
 
+    public Stream<Defer> stream() {
+        return Stream.of(this);
+    }
+
     public void write(GyroUI ui) {
         ui.write("@|red Error:|@ %s\n", getMessage());
 
@@ -64,12 +69,17 @@ public class Defer extends Error {
             ui.write("%s", node.toCodeSnippet());
         }
 
-        Throwable cause = getCause();
+        Defer cause = getCause();
 
-        if (cause instanceof Defer) {
+        if (cause != null) {
             ui.write("\n@|red Caused by:|@ ");
-            ((Defer) cause).write(ui);
+            cause.write(ui);
         }
+    }
+
+    @Override
+    public synchronized Defer getCause() {
+        return (Defer) super.getCause();
     }
 
 }
