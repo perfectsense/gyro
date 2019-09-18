@@ -37,7 +37,12 @@ public class LocalFileBackend extends FileBackend {
 
     @Override
     public OutputStream openOutput(String file) throws IOException {
-        Path tempFile = Files.createTempFile("local-file-backend-", ".gyro");
+        Path finalFile = rootDirectory.resolve(file);
+        Path finalDir = finalFile.getParent();
+
+        Files.createDirectories(finalDir);
+
+        Path tempFile = Files.createTempFile(finalDir, ".local-file-backend-", ".gyro.tmp");
 
         tempFile.toFile().deleteOnExit();
 
@@ -46,11 +51,7 @@ public class LocalFileBackend extends FileBackend {
             @Override
             public void close() throws IOException {
                 super.close();
-
-                Path f = rootDirectory.resolve(file);
-
-                Files.createDirectories(f.getParent());
-                Files.move(tempFile, f, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+                Files.move(tempFile, finalFile, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
             }
         };
     }
