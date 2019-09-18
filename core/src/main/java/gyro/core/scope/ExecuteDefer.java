@@ -29,8 +29,8 @@ class ExecuteDefer extends Defer {
         flattenErrors(errors, flattenedErrors);
 
         Map<String, CreateDefer> createErrors = new LinkedHashMap<>();
-        Map<String, List<Defer>> causedByFindErrors = new LinkedHashMap<>();
         List<Defer> otherErrors = new ArrayList<>();
+        Map<String, List<Defer>> causedByFindErrors = new LinkedHashMap<>();
 
         for (Defer error : flattenedErrors) {
 
@@ -39,6 +39,9 @@ class ExecuteDefer extends Defer {
             if (error instanceof CreateDefer) {
                 CreateDefer c = (CreateDefer) error;
                 createErrors.put(c.getKey(), c);
+
+            } else {
+                otherErrors.add(error);
             }
 
             // Find the underlying cause.
@@ -52,9 +55,6 @@ class ExecuteDefer extends Defer {
             // store those, grouped by the resource type and name key.
             if (cause instanceof FindDefer) {
                 causedByFindErrors.computeIfAbsent(((FindDefer) cause).getKey(), k -> new ArrayList<>()).add(error);
-
-            } else if (!(error instanceof CreateDefer)) {
-                otherErrors.add(error);
             }
         }
 
