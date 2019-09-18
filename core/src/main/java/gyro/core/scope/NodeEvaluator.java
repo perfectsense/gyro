@@ -632,7 +632,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
 
                 if (resourceName.endsWith("*")) {
                     if (typeNodes != null && typeNodes.containsKey(referenceName)) {
-                        throw new FindByWildcardDefer(node, referenceName);
+                        throw new WildcardDefer(node, referenceName);
                     }
 
                     Stream<Resource> s = root.findResources()
