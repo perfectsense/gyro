@@ -1,7 +1,6 @@
 package gyro.core.scope;
 
 import java.util.List;
-import java.util.stream.Stream;
 
 import gyro.core.GyroUI;
 
@@ -15,9 +14,8 @@ class DependentDefer extends Defer {
         this.related = related;
     }
 
-    @Override
-    public Stream<Defer> stream() {
-        return related.stream().flatMap(Defer::stream);
+    public List<Defer> getRelated() {
+        return related;
     }
 
     @Override

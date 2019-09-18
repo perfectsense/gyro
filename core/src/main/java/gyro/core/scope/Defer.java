@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 import gyro.core.GyroUI;
 import gyro.lang.ast.Node;
@@ -44,12 +43,7 @@ public class Defer extends Error {
                 break;
 
             } else if (size == deferred.size()) {
-                if (errors.size() == 1) {
-                    throw errors.get(0);
-
-                } else {
-                    throw new MultipleDefers(errors);
-                }
+                throw new ExecuteDefer(errors);
 
             } else {
                 items = deferred;
@@ -67,10 +61,6 @@ public class Defer extends Error {
                 ui.indented(() -> error.write(ui));
             }
         }
-    }
-
-    public Stream<Defer> stream() {
-        return Stream.of(this);
     }
 
     public void write(GyroUI ui) {

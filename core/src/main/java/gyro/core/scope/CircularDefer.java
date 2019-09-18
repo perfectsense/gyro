@@ -2,7 +2,6 @@ package gyro.core.scope;
 
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import gyro.core.GyroUI;
 
@@ -16,11 +15,6 @@ class CircularDefer extends Defer {
 
         this.errors = errors;
         this.related = related;
-    }
-
-    @Override
-    public Stream<Defer> stream() {
-        return errors.stream().flatMap(Defer::stream);
     }
 
     @Override

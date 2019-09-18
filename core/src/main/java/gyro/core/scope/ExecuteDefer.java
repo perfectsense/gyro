@@ -9,38 +9,36 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import gyro.core.GyroUI;
 
-class MultipleDefers extends Defer {
+class ExecuteDefer extends Defer {
 
     private final List<Defer> errors;
 
-    public MultipleDefers(List<Defer> errors) {
+    public ExecuteDefer(List<Defer> errors) {
         super(null, null, null);
 
         this.errors = errors;
     }
 
     @Override
-    public Stream<Defer> stream() {
-        return errors.stream().flatMap(Defer::stream);
-    }
-
-    @Override
     public void write(GyroUI ui) {
+        List<Defer> flattenedErrors = new ArrayList<>();
+
+        flattenErrors(errors, flattenedErrors);
+
         Map<String, CreateResourceDefer> createResourceErrors = new LinkedHashMap<>();
         Map<String, List<Defer>> causedByFindByNameErrors = new LinkedHashMap<>();
         List<Defer> otherErrors = new ArrayList<>();
 
-        stream().flatMap(Defer::stream).forEach(e -> {
-            if (e instanceof CreateResourceDefer) {
-                CreateResourceDefer c = (CreateResourceDefer) e;
+        for (Defer error : flattenedErrors) {
+            if (error instanceof CreateResourceDefer) {
+                CreateResourceDefer c = (CreateResourceDefer) error;
                 createResourceErrors.put(c.getId(), c);
             }
 
-            Defer cause = e;
+            Defer cause = error;
 
             for (Defer c; (c = cause.getCause()) != null; ) {
                 cause = c;
@@ -50,12 +48,12 @@ class MultipleDefers extends Defer {
                 causedByFindByNameErrors.computeIfAbsent(
                     ((FindByNameDefer) cause).getId(),
                     k -> new ArrayList<>())
-                    .add(e);
+                    .add(error);
 
-            } else if (!(e instanceof CreateResourceDefer)) {
-                otherErrors.add(e);
+            } else if (!(error instanceof CreateResourceDefer)) {
+                otherErrors.add(error);
             }
-        });
+        }
 
         Map<String, DependentDefer> dependentErrorById = new LinkedHashMap<>();
 
@@ -79,7 +77,7 @@ class MultipleDefers extends Defer {
 
         dependentErrors.forEach(e -> {
             displayErrors.remove(e.getCause());
-            e.stream().forEach(displayErrors::remove);
+            e.getRelated().forEach(displayErrors::remove);
         });
 
         while (!dependentErrorById.isEmpty()) {
@@ -98,7 +96,7 @@ class MultipleDefers extends Defer {
 
                         if (seen.contains(jd.getCause())) {
                             j.remove();
-                            jd.stream().forEach(related::add);
+                            related.addAll(jd.getRelated());
                         }
                     }
                 }
@@ -124,6 +122,17 @@ class MultipleDefers extends Defer {
         });
     }
 
+    private void flattenErrors(List<Defer> source, List<Defer> target) {
+        for (Defer error : source) {
+            if (error instanceof ExecuteDefer) {
+                flattenErrors(((ExecuteDefer) error).errors, target);
+
+            } else {
+                target.add(error);
+            }
+        }
+    }
+
     private boolean findCircularDependency(
         Map<String, DependentDefer> dependentErrors,
         DependentDefer error,
@@ -135,7 +144,8 @@ class MultipleDefers extends Defer {
             return true;
         }
 
-        return error.stream()
+        return error.getRelated()
+            .stream()
             .filter(CreateResourceDefer.class::isInstance)
             .map(CreateResourceDefer.class::cast)
             .map(CreateResourceDefer::getId)
