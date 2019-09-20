@@ -62,6 +62,7 @@ import org.apache.commons.lang3.math.NumberUtils;
 public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeException> {
 
     private Map<String, Set<Node>> typeNodes;
+    private List<Node> body;
 
     private static final LoadingCache<Class<? extends DirectiveProcessor>, Class<? extends Scope>> DIRECTIVE_PROCESSOR_SCOPE_CLASSES = CacheBuilder.newBuilder()
         .build(new CacheLoader<Class<? extends DirectiveProcessor>, Class<? extends Scope>>() {
@@ -247,27 +248,32 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         return Reflections.invoke(method, object);
     }
 
+    public List<Node> getBody() {
+        return body;
+    }
+
     public void evaluate(RootScope root, List<Node> body) {
-        typeNodes = new HashMap<>();
+        this.typeNodes = new HashMap<>();
+        this.body = body;
 
         body.stream()
             .filter(FileNode.class::isInstance)
             .map(FileNode.class::cast)
             .map(FileNode::getBody)
             .flatMap(List::stream)
-            .forEach(item -> addTypeNode(typeNodes, item, item));
+            .forEach(item -> addTypeNode(item, item));
 
         evaluateBody(body, root);
     }
 
-    private void addTypeNode(Map<String, Set<Node>> typeNodes, Node top, Node node) {
+    public void addTypeNode(Node top, Node node) {
         if (node instanceof ResourceNode) {
-            typeNodes.computeIfAbsent(((ResourceNode) node).getType(), key -> new HashSet<>()).add(top);
+            typeNodes.computeIfAbsent(((ResourceNode) node).getType(), k -> new HashSet<>()).add(top);
         }
 
         if (node instanceof BlockNode) {
             for (Node item : ((BlockNode) node).getBody()) {
-                addTypeNode(typeNodes, top, item);
+                addTypeNode(top, item);
             }
         }
     }
@@ -343,18 +349,20 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
     @Override
     public Object visitFile(FileNode node, Scope scope) {
         RootScope rootScope = scope.getRootScope();
-        FileScope fileScope = new FileScope(rootScope, node.getFile());
+        List<FileScope> fileScopes = rootScope.getFileScopes();
+        String file = node.getFile();
 
-        rootScope.getFileScopes().add(fileScope);
+        FileScope fileScope = fileScopes.stream()
+            .filter(f -> f.getFile().equals(file))
+            .findFirst()
+            .orElse(null);
 
-        try {
-            evaluateBody(node.getBody(), fileScope);
-
-        } catch (Defer e) {
-            rootScope.getFileScopes().remove(fileScope);
-            throw e;
+        if (fileScope == null) {
+            fileScope = new FileScope(rootScope, file);
+            fileScopes.add(fileScope);
         }
 
+        evaluateBody(node.getBody(), fileScope);
         removeTypeNode(node);
         return null;
     }
@@ -428,12 +436,14 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             String fullName = type + "::" + name;
 
             if (file.containsKey(fullName)) {
-                throw new GyroException(
-                    node,
-                    String.format("@|bold %s %s|@ has been defined already!", type, name),
-                    new GyroException(
-                        file.getLocation(fullName),
-                        "Defined previously:"));
+                Node location = file.getLocation(fullName);
+
+                if (!node.equals(location)) {
+                    throw new GyroException(
+                        node,
+                        String.format("@|bold %s %s|@ has been defined already!", type, name),
+                        new GyroException(location, "Defined previously:"));
+                }
             }
 
             DiffableType<Resource> resourceType = DiffableType.getInstance((Class<Resource>) c);
