@@ -349,18 +349,20 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
     @Override
     public Object visitFile(FileNode node, Scope scope) {
         RootScope rootScope = scope.getRootScope();
-        FileScope fileScope = new FileScope(rootScope, node.getFile());
+        List<FileScope> fileScopes = rootScope.getFileScopes();
+        String file = node.getFile();
 
-        rootScope.getFileScopes().add(fileScope);
+        FileScope fileScope = fileScopes.stream()
+            .filter(f -> f.getFile().equals(file))
+            .findFirst()
+            .orElse(null);
 
-        try {
-            evaluateBody(node.getBody(), fileScope);
-
-        } catch (Defer e) {
-            rootScope.getFileScopes().remove(fileScope);
-            throw e;
+        if (fileScope == null) {
+            fileScope = new FileScope(rootScope, file);
+            fileScopes.add(fileScope);
         }
 
+        evaluateBody(node.getBody(), fileScope);
         removeTypeNode(node);
         return null;
     }
@@ -434,12 +436,14 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             String fullName = type + "::" + name;
 
             if (file.containsKey(fullName)) {
-                throw new GyroException(
-                    node,
-                    String.format("@|bold %s %s|@ has been defined already!", type, name),
-                    new GyroException(
-                        file.getLocation(fullName),
-                        "Defined previously:"));
+                Node location = file.getLocation(fullName);
+
+                if (!node.equals(location)) {
+                    throw new GyroException(
+                        node,
+                        String.format("@|bold %s %s|@ has been defined already!", type, name),
+                        new GyroException(location, "Defined previously:"));
+                }
             }
 
             DiffableType<Resource> resourceType = DiffableType.getInstance((Class<Resource>) c);
