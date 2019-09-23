@@ -1,6 +1,7 @@
 package gyro.core.resource;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -56,7 +57,7 @@ public class ExtendsDirectiveProcessor extends DirectiveProcessor<DiffableScope>
                 source.getClass().getName()));
         }
 
-        Set<String> excludes = Optional.ofNullable(getOptionArgument(scope, node, "exclude", Set.class, 0)).orElse(new HashSet());
+        Set<String> excludes = Optional.ofNullable(getOptionArgument(scope, node, "exclude", Set.class, 0)).orElse(Collections.emptySet());
 
         sourceMap.entrySet().stream().filter(map -> !excludes.contains(map.getKey())).forEach(map -> scope.put(map.getKey(), merge(scope.get(map.getKey()), map.getValue())));
     }
