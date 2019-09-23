@@ -64,4 +64,15 @@ class ExtendsDirectiveProcessorTest {
                 "list", ImmutableList.of(1L, 2L, 3L, 4L, 5L))));
     }
 
+    @Test
+    void exclude() {
+        scope.put("d", "value_d");
+        processor.process(scope, parse("@extends: { a: value_a, b: value_b, c: value_c } -exclude [a, b]"));
+
+        assertThat(scope.get("a")).isNull();
+        assertThat(scope.get("b")).isNull();
+        assertThat(scope.get("c")).isEqualTo("value_c");
+        assertThat(scope.get("d")).isEqualTo("value_d");
+    }
+
 }
