@@ -1,6 +1,7 @@
 package gyro.core.resource;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -22,6 +23,7 @@ public class ExtendsDirectiveProcessor extends DirectiveProcessor<DiffableScope>
     @SuppressWarnings("unchecked")
     public void process(DiffableScope scope, DirectiveNode node) {
         validateArguments(node, 1, 1);
+        validateOptionArguments(node, "excludes", 0, 1);
 
         Object source = getArgument(scope, node, Object.class, 0);
         Map<String, Object> sourceMap;
@@ -53,7 +55,10 @@ public class ExtendsDirectiveProcessor extends DirectiveProcessor<DiffableScope>
                 source.getClass().getName()));
         }
 
-        sourceMap.forEach((key, value) -> scope.put(key, merge(scope.get(key), value)));
+        Set<String> excludedArguments = getOptionArgument(scope, node, "excludes", Set.class, 0);
+        Set<String> excludes = excludedArguments != null ? excludedArguments : new HashSet<>();
+
+        sourceMap.entrySet().stream().filter(map -> !excludes.contains(map.getKey())).forEach(map -> scope.put(map.getKey(), merge(scope.get(map.getKey()), map.getValue())));
     }
 
     private Object merge(Object oldValue, Object newValue) {
