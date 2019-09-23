@@ -1,7 +1,6 @@
 package gyro.core.scope;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -65,6 +64,7 @@ import gyro.core.workflow.CreateDirectiveProcessor;
 import gyro.core.workflow.DefineDirectiveProcessor;
 import gyro.core.workflow.DeleteDirectiveProcessor;
 import gyro.core.workflow.ReplaceDirectiveProcessor;
+import gyro.core.workflow.ResumeRootProcessor;
 import gyro.core.workflow.UpdateDirectiveProcessor;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.FileNode;
@@ -104,9 +104,10 @@ public class RootScope extends FileScope {
             new FileBackendPlugin(),
             new FinderPlugin(),
             new GlobalChangePlugin(),
+            new ModificationPlugin(),
             new ReferencePlugin(),
             new ResourcePlugin(),
-            new ModificationPlugin())
+            new RootPlugin())
             .forEach(p -> getSettings(PluginSettings.class).getPlugins().add(p));
 
         Stream.of(
@@ -139,6 +140,10 @@ public class RootScope extends FileScope {
         Stream.of(
             FinderReferenceResolver.class)
             .forEach(r -> getSettings(ReferenceSettings.class).addResolver(r));
+
+        Stream.of(
+            new ResumeRootProcessor())
+            .forEach(p -> getSettings(RootSettings.class).getProcessors().add(p));
 
         put("ENV", System.getenv());
     }
@@ -290,6 +295,17 @@ public class RootScope extends FileScope {
         }
 
         evaluator.evaluate(this, nodes);
+
+        getSettings(RootSettings.class).getProcessors().forEach(p -> {
+            try {
+                p.process(this);
+
+            } catch (Exception error) {
+                throw new GyroException(
+                    String.format("Can't process root using @|bold %s|@!", p),
+                    error);
+            }
+        });
     }
 
     private void evaluateFile(String file, Consumer<FileNode> consumer) {

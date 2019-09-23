@@ -1,12 +1,22 @@
 package gyro.core.workflow;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
+import com.psddev.dari.util.IoUtils;
+import com.psddev.dari.util.ObjectUtils;
 import gyro.core.Abort;
 import gyro.core.GyroException;
+import gyro.core.GyroInputStream;
+import gyro.core.GyroOutputStream;
 import gyro.core.GyroUI;
 import gyro.core.diff.Diff;
+import gyro.core.resource.DiffableInternals;
+import gyro.core.resource.DiffableType;
 import gyro.core.resource.Resource;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
@@ -15,10 +25,12 @@ import gyro.util.ImmutableCollectors;
 
 public class Workflow {
 
+    public static final String EXECUTION_FILE = "workflow-execution.json";
+
     private final String type;
     private final String name;
     private final RootScope root;
-    private final List<Stage> stages;
+    private final Map<String, Stage> stages;
 
     public Workflow(String type, String name, Scope scope) {
         this.type = Preconditions.checkNotNull(type);
@@ -34,7 +46,20 @@ public class Workflow {
 
         this.stages = stageScopes.stream()
             .map(s -> new Stage(scope.getName(s), s))
-            .collect(ImmutableCollectors.toList());
+            .collect(ImmutableCollectors.toMap(Stage::getName));
+    }
+
+    @SuppressWarnings("unchecked")
+    public static Map<String, String> getExecution(RootScope root) {
+        try (GyroInputStream input = root.openInput(Workflow.EXECUTION_FILE)) {
+            return (Map<String, String>) ObjectUtils.fromJson(IoUtils.toString(input, StandardCharsets.UTF_8));
+
+        } catch (GyroException error) {
+            return null;
+
+        } catch (IOException error) {
+            throw new GyroException(error);
+        }
     }
 
     public String getType() {
@@ -45,8 +70,17 @@ public class Workflow {
         return name;
     }
 
-    public List<Stage> getStages() {
-        return stages;
+    public Stage getStage(String name) {
+        Stage stage = stages.get(name);
+
+        if (stage == null) {
+            throw new GyroException(String.format(
+                "Can't find @|bold %s|@ stage in @|bold %s|@ workflow!",
+                name,
+                this.name));
+        }
+
+        return stage;
     }
 
     private RootScope copyCurrentRootScope() {
@@ -57,56 +91,53 @@ public class Workflow {
     }
 
     public void execute(
-            GyroUI ui,
-            State state,
-            Resource currentResource,
-            Resource pendingResource) {
+        GyroUI ui,
+        State state,
+        Resource currentResource,
+        Resource pendingResource) {
 
-        int stageIndex = 0;
-        int stagesSize = stages.size();
+        Map<String, String> execution = getExecution(root.getCurrent());
 
-        do {
-            Stage stage = stages.get(stageIndex);
-            String stageName = stage.getName();
+        Stage stage = execution != null
+            ? getStage(execution.get("nextStage"))
+            : stages.values().iterator().next();
 
-            ui.write("\n@|magenta %d Executing %s stage|@\n", stageIndex + 1, stageName);
+        while (true) {
+            ui.write("\n@|magenta · Executing %s stage|@\n", stage.getName());
 
             if (ui.isVerbose()) {
                 ui.write("\n");
             }
 
+            String nextStageName;
+            RootScope currentRoot = copyCurrentRootScope();
+
             ui.indent();
 
             try {
-                stageName = stage.execute(ui, state, currentResource, pendingResource, copyCurrentRootScope(), copyCurrentRootScope());
+                nextStageName = stage.execute(ui, state, currentResource, pendingResource, currentRoot, copyCurrentRootScope());
 
             } finally {
                 ui.unindent();
             }
 
-            if (stageName == null) {
-                ++stageIndex;
-
-            } else {
-                stageIndex = -1;
-
-                for (int i = 0; i < stagesSize; ++i) {
-                    Stage s = stages.get(i);
-
-                    if (s.getName().equals(stageName)) {
-                        stageIndex = i;
-                        break;
-                    }
-                }
-
-                if (stageIndex < 0) {
-                    throw new GyroException(String.format(
-                        "Can't transition to @|bold %s|@ stage because it doesn't exist!",
-                        stageName));
-                }
+            if (nextStageName == null) {
+                currentRoot.delete(EXECUTION_FILE);
+                break;
             }
 
-        } while (stageIndex < stagesSize);
+            try (GyroOutputStream output = currentRoot.openOutput(EXECUTION_FILE)) {
+                output.write(ObjectUtils.toJson(ImmutableMap.of(
+                    "type", DiffableType.getInstance(currentResource).getName(),
+                    "name", DiffableInternals.getName(currentResource),
+                    "workflow", name,
+                    "currentStage", stage.getName(),
+                    "nextStage", nextStageName
+                )).getBytes(StandardCharsets.UTF_8));
+            }
+
+            stage = getStage(nextStageName);
+        }
 
         RootScope current = copyCurrentRootScope();
         RootScope pending = new RootScope(root.getFile(), root.getBackend(), current, root.getLoadFiles());

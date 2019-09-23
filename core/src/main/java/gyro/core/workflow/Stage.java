@@ -50,13 +50,12 @@ public class Stage {
         return name;
     }
 
-    public String execute(
-            GyroUI ui,
-            State state,
-            Resource currentResource,
-            Resource pendingResource,
-            RootScope currentRootScope,
-            RootScope pendingRootScope) {
+    public void apply(
+        GyroUI ui,
+        State state,
+        Resource currentResource,
+        Resource pendingResource,
+        RootScope pendingRootScope) {
 
         DiffableScope pendingScope = DiffableInternals.getScope(pendingResource);
         FileScope pendingFileScope = pendingScope.getFileScope();
@@ -80,6 +79,17 @@ public class Stage {
         scope.put("PENDING", pendingResource);
 
         Defer.execute(actions, a -> a.execute(ui, state, pendingRootScope, scope));
+    }
+
+    public String execute(
+            GyroUI ui,
+            State state,
+            Resource currentResource,
+            Resource pendingResource,
+            RootScope currentRootScope,
+            RootScope pendingRootScope) {
+
+        apply(ui, state, currentResource, pendingResource, pendingRootScope);
 
         Diff diff = new Diff(
             currentRootScope.findResourcesIn(currentRootScope.getLoadFiles()),
