@@ -6,6 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -55,8 +56,7 @@ public class ExtendsDirectiveProcessor extends DirectiveProcessor<DiffableScope>
                 source.getClass().getName()));
         }
 
-        Set<String> excludedArguments = getOptionArgument(scope, node, "exclude", Set.class, 0);
-        Set<String> excludes = excludedArguments != null ? excludedArguments : new HashSet<>();
+        Set<String> excludes = Optional.ofNullable(getOptionArgument(scope, node, "exclude", Set.class, 0)).orElse(new HashSet());
 
         sourceMap.entrySet().stream().filter(map -> !excludes.contains(map.getKey())).forEach(map -> scope.put(map.getKey(), merge(scope.get(map.getKey()), map.getValue())));
     }
