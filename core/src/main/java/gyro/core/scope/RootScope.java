@@ -178,7 +178,7 @@ public class RootScope extends FileScope {
         return new GyroInputStream(backend, file);
     }
 
-    public OutputStream openOutput(String file) {
+    public GyroOutputStream openOutput(String file) {
         return new GyroOutputStream(backend, file);
     }
 
