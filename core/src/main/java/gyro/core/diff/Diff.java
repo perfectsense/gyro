@@ -179,8 +179,14 @@ public class Diff {
         } else if (changedFields.stream().allMatch(DiffableField::isUpdatable)) {
             change = new Update(currentDiffable, pendingDiffable, changedFields);
 
-        } else {
+        } else if (changedFields.stream().noneMatch(DiffableField::isUpdatable)) {
             change = new Replace(currentDiffable, pendingDiffable, changedFields);
+
+        } else if (DiffableInternals.isReplaceable(pendingDiffable)) {
+            change = new Replace(currentDiffable, pendingDiffable, changedFields);
+
+        } else {
+            change = new Update(currentDiffable, pendingDiffable, changedFields);
         }
 
         DiffableInternals.setChange(currentDiffable, change);
