@@ -49,7 +49,7 @@ class ExtendsDirectiveProcessorTest {
     @Test
     void mergeList() {
         scope.put("f", ImmutableList.of(1L, 2L, 3L));
-        processor.process(scope, parse("@extends: { f: [ 4, 5 ] }"));
+        processor.process(scope, parse("@extends: { f: [ 4, 5 ] } -merge true"));
 
         assertThat(scope.get("f")).isEqualTo(ImmutableList.of(1L, 2L, 3L, 4L, 5L));
     }
@@ -57,7 +57,7 @@ class ExtendsDirectiveProcessorTest {
     @Test
     void mergeMap() {
         scope.put("f", ImmutableMap.of("key1", "value1"));
-        processor.process(scope, parse("@extends: { f: { key2: value2 } }"));
+        processor.process(scope, parse("@extends: { f: { key2: value2 } } -merge true"));
 
         assertThat(scope.get("f")).isEqualTo(ImmutableMap.of(
             "key1", "value1",
@@ -71,7 +71,7 @@ class ExtendsDirectiveProcessorTest {
                 "key1", "value1",
                 "list", ImmutableList.of(1L, 2L, 3L))));
 
-        processor.process(scope, parse("@extends: { f: { map: { key2: value2, list: [ 4, 5 ] } } }"));
+        processor.process(scope, parse("@extends: { f: { map: { key2: value2, list: [ 4, 5 ] } } } -merge true"));
 
         assertThat(scope.get("f")).isEqualTo(ImmutableMap.of(
             "map", ImmutableMap.of(
