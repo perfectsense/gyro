@@ -24,7 +24,6 @@ import java.util.stream.Stream;
 
 import gyro.core.diff.Change;
 import gyro.core.scope.DiffableScope;
-import gyro.core.workflow.WorkflowSettings;
 import gyro.lang.ast.block.BlockNode;
 
 public final class DiffableInternals {
@@ -116,14 +115,4 @@ public final class DiffableInternals {
             }
         }
     }
-
-    public static boolean isReplaceable(Diffable diffable) {
-        return getScope(diffable)
-            .getRootScope()
-            .getSettings(WorkflowSettings.class)
-            .getWorkflows()
-            .stream()
-            .anyMatch(w -> w.getType().equals(DiffableType.getInstance(diffable.getClass()).getName()));
-    }
-
 }
