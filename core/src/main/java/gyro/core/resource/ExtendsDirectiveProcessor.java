@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019, Perfect Sense, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package gyro.core.resource;
 
 import java.util.Collection;
@@ -25,6 +41,10 @@ public class ExtendsDirectiveProcessor extends DirectiveProcessor<DiffableScope>
     public void process(DiffableScope scope, DirectiveNode node) {
         validateArguments(node, 1, 1);
         validateOptionArguments(node, "exclude", 0, 1);
+        validateOptionArguments(node, "merge", 0, 1);
+
+        boolean merge = Optional.ofNullable(getOptionArgument(scope, node, "merge", Boolean.class, 0))
+            .orElse(false);
 
         Object source = getArgument(scope, node, Object.class, 0);
         Map<String, Object> sourceMap;
@@ -59,10 +79,15 @@ public class ExtendsDirectiveProcessor extends DirectiveProcessor<DiffableScope>
         Set<String> excludes = Optional.ofNullable(getOptionArgument(scope, node, "exclude", Set.class, 0))
             .orElse(Collections.emptySet());
 
-        sourceMap.entrySet()
+        Stream<Map.Entry<String, Object>> entryStream = sourceMap.entrySet()
             .stream()
-            .filter(e -> !excludes.contains(e.getKey()))
-            .forEach(e -> scope.put(e.getKey(), merge(scope.get(e.getKey()), e.getValue())));
+            .filter(e -> !excludes.contains(e.getKey()));
+
+        if (merge) {
+            entryStream.forEach(e -> scope.put(e.getKey(), merge(scope.get(e.getKey()), e.getValue())));
+        } else {
+            entryStream.forEach(e -> scope.putIfAbsent(e.getKey(), e.getValue()));
+        }
     }
 
     private Object merge(Object oldValue, Object newValue) {
