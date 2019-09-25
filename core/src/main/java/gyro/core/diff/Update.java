@@ -53,12 +53,13 @@ public class Update extends Change {
 
     private void writeFields(GyroUI ui) {
         if (ui.isVerbose()) {
-            for (DiffableField field : changedFields) {
-                writeDifference(ui, field, currentDiffable, pendingDiffable);
-            }
+            changedFields.stream()
+                .filter(DiffableField::isUpdatable)
+                .forEach(f -> writeDifference(ui, f, currentDiffable, pendingDiffable));
 
         } else {
             ui.write(" (change %s)", changedFields.stream()
+                .filter(DiffableField::isUpdatable)
                 .map(DiffableField::getName)
                 .collect(Collectors.joining(", ")));
         }
