@@ -81,7 +81,11 @@ public class ReplaceAction extends Action {
         String resourceKey = resourceResource.primaryKey();
 
         ui.write("@|magenta ⤢ Replacing %s with %s|@\n", resourceKey, withResource.primaryKey());
-        state.replace(resourceResource, withResource);
+
+        if (state != null) {
+            state.replace(resourceResource, withResource);
+        }
+
         pending.getFileScopes().forEach(s -> s.remove(resourceKey));
     }
 
