@@ -18,6 +18,7 @@ package gyro.core.workflow;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -61,14 +62,14 @@ public class Workflow {
         }
 
         this.stages = stageScopes.stream()
-            .map(s -> new Stage(scope.getName(s), s))
+            .map(s -> new Stage(this, scope.getName(s), s))
             .collect(ImmutableCollectors.toMap(Stage::getName));
     }
 
     @SuppressWarnings("unchecked")
-    public static Map<String, String> getExecution(RootScope root) {
+    public static Map<String, Object> getExecution(RootScope root) {
         try (GyroInputStream input = root.openInput(Workflow.EXECUTION_FILE)) {
-            return (Map<String, String>) ObjectUtils.fromJson(IoUtils.toString(input, StandardCharsets.UTF_8));
+            return (Map<String, Object>) ObjectUtils.fromJson(IoUtils.toString(input, StandardCharsets.UTF_8));
 
         } catch (GyroException error) {
             return null;
@@ -106,53 +107,65 @@ public class Workflow {
         return scope;
     }
 
+    @SuppressWarnings("unchecked")
     public void execute(
         GyroUI ui,
         State state,
         Resource currentResource,
         Resource pendingResource) {
 
-        Map<String, String> execution = getExecution(root.getCurrent());
+        List<String> executedStages = new ArrayList<>();
+        Map<String, Object> execution = getExecution(root.getCurrent());
+        Stage stage;
 
-        Stage stage = execution != null
-            ? getStage(execution.get("nextStage"))
-            : stages.values().iterator().next();
+        if (execution != null) {
+            executedStages.addAll((List<String>) execution.get("executedStages"));
 
-        while (true) {
+            stage = getStage(executedStages.get(executedStages.size() - 1));
+
+            ui.write("\n@|magenta · Resuming from %s stage|@\n", stage.getName());
+            ui.indent();
+
+            try {
+                stage = stage.prompt(ui, DiffableInternals.getScope(currentResource).getRootScope());
+
+            } finally {
+                ui.unindent();
+            }
+
+        } else {
+            stage = stages.values().iterator().next();
+        }
+
+        while (stage != null) {
             ui.write("\n@|magenta · Executing %s stage|@\n", stage.getName());
 
             if (ui.isVerbose()) {
                 ui.write("\n");
             }
 
-            String nextStageName;
             RootScope currentRoot = copyCurrentRootScope();
 
             ui.indent();
 
             try {
-                nextStageName = stage.execute(ui, state, currentResource, pendingResource, currentRoot, copyCurrentRootScope());
+                stage.execute(ui, state, currentResource, pendingResource, currentRoot, copyCurrentRootScope());
+                executedStages.add(stage.getName());
+
+                try (GyroOutputStream output = currentRoot.openOutput(Workflow.EXECUTION_FILE)) {
+                    output.write(ObjectUtils.toJson(ImmutableMap.of(
+                        "type", DiffableType.getInstance(currentResource).getName(),
+                        "name", DiffableInternals.getName(currentResource),
+                        "workflow", name,
+                        "executedStages", executedStages
+                    )).getBytes(StandardCharsets.UTF_8));
+                }
+
+                stage = stage.prompt(ui, currentRoot);
 
             } finally {
                 ui.unindent();
             }
-
-            if (nextStageName == null) {
-                currentRoot.delete(EXECUTION_FILE);
-                break;
-            }
-
-            try (GyroOutputStream output = currentRoot.openOutput(EXECUTION_FILE)) {
-                output.write(ObjectUtils.toJson(ImmutableMap.of(
-                    "type", DiffableType.getInstance(currentResource).getName(),
-                    "name", DiffableInternals.getName(currentResource),
-                    "workflow", name,
-                    "currentStage", stage.getName(),
-                    "nextStage", nextStageName
-                )).getBytes(StandardCharsets.UTF_8));
-            }
-
-            stage = getStage(nextStageName);
         }
 
         RootScope current = copyCurrentRootScope();

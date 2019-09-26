@@ -80,7 +80,7 @@ import gyro.core.workflow.CreateDirectiveProcessor;
 import gyro.core.workflow.DefineDirectiveProcessor;
 import gyro.core.workflow.DeleteDirectiveProcessor;
 import gyro.core.workflow.ReplaceDirectiveProcessor;
-import gyro.core.workflow.ResumeRootProcessor;
+import gyro.core.workflow.RestoreRootProcessor;
 import gyro.core.workflow.UpdateDirectiveProcessor;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.FileNode;
@@ -158,7 +158,7 @@ public class RootScope extends FileScope {
             .forEach(r -> getSettings(ReferenceSettings.class).addResolver(r));
 
         Stream.of(
-            new ResumeRootProcessor())
+            new RestoreRootProcessor())
             .forEach(p -> getSettings(RootSettings.class).getProcessors().add(p));
 
         put("ENV", System.getenv());
