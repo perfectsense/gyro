@@ -79,14 +79,15 @@ public class ExtendsDirectiveProcessor extends DirectiveProcessor<DiffableScope>
         Set<String> excludes = Optional.ofNullable(getOptionArgument(scope, node, "exclude", Set.class, 0))
             .orElse(Collections.emptySet());
 
-        Stream<Map.Entry<String, Object>> entryStream = sourceMap.entrySet()
+        sourceMap = sourceMap.entrySet()
             .stream()
-            .filter(e -> !excludes.contains(e.getKey()));
+            .filter(e -> !excludes.contains(e.getKey()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         if (merge) {
-            entryStream.forEach(e -> scope.put(e.getKey(), merge(scope.get(e.getKey()), e.getValue())));
+            sourceMap.forEach((key, value) -> scope.put(key, merge(scope.get(key), value)));
         } else {
-            entryStream.forEach(e -> scope.putIfAbsent(e.getKey(), e.getValue()));
+            sourceMap.forEach(scope::putIfAbsent);
         }
     }
 
