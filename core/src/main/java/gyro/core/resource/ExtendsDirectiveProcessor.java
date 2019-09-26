@@ -1,10 +1,28 @@
+/*
+ * Copyright 2019, Perfect Sense, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package gyro.core.resource;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -22,6 +40,11 @@ public class ExtendsDirectiveProcessor extends DirectiveProcessor<DiffableScope>
     @SuppressWarnings("unchecked")
     public void process(DiffableScope scope, DirectiveNode node) {
         validateArguments(node, 1, 1);
+        validateOptionArguments(node, "exclude", 0, 1);
+        validateOptionArguments(node, "merge", 0, 1);
+
+        boolean merge = Optional.ofNullable(getOptionArgument(scope, node, "merge", Boolean.class, 0))
+            .orElse(false);
 
         Object source = getArgument(scope, node, Object.class, 0);
         Map<String, Object> sourceMap;
@@ -53,7 +76,19 @@ public class ExtendsDirectiveProcessor extends DirectiveProcessor<DiffableScope>
                 source.getClass().getName()));
         }
 
-        sourceMap.forEach((key, value) -> scope.put(key, merge(scope.get(key), value)));
+        Set<String> excludes = Optional.ofNullable(getOptionArgument(scope, node, "exclude", Set.class, 0))
+            .orElse(Collections.emptySet());
+
+        sourceMap = sourceMap.entrySet()
+            .stream()
+            .filter(e -> !excludes.contains(e.getKey()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        if (merge) {
+            sourceMap.forEach((key, value) -> scope.put(key, merge(scope.get(key), value)));
+        } else {
+            sourceMap.forEach(scope::putIfAbsent);
+        }
     }
 
     private Object merge(Object oldValue, Object newValue) {
