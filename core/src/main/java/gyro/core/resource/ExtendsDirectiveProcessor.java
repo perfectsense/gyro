@@ -17,6 +17,7 @@
 package gyro.core.resource;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -39,6 +40,7 @@ public class ExtendsDirectiveProcessor extends DirectiveProcessor<DiffableScope>
     @SuppressWarnings("unchecked")
     public void process(DiffableScope scope, DirectiveNode node) {
         validateArguments(node, 1, 1);
+        validateOptionArguments(node, "exclude", 0, 1);
         validateOptionArguments(node, "merge", 0, 1);
 
         boolean merge = Optional.ofNullable(getOptionArgument(scope, node, "merge", Boolean.class, 0))
@@ -73,6 +75,14 @@ public class ExtendsDirectiveProcessor extends DirectiveProcessor<DiffableScope>
                 source,
                 source.getClass().getName()));
         }
+
+        Set<String> excludes = Optional.ofNullable(getOptionArgument(scope, node, "exclude", Set.class, 0))
+            .orElse(Collections.emptySet());
+
+        sourceMap = sourceMap.entrySet()
+            .stream()
+            .filter(e -> !excludes.contains(e.getKey()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         if (merge) {
             sourceMap.forEach((key, value) -> scope.put(key, merge(scope.get(key), value)));
