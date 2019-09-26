@@ -21,7 +21,6 @@ import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.Node;
 import gyro.parser.antlr4.GyroParser;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import org.apache.commons.lang3.StringUtils;
 
 public class ValueNode extends Node {
 
@@ -42,7 +41,7 @@ public class ValueNode extends Node {
     public ValueNode(GyroParser.LiteralStringContext context) {
         super(Preconditions.checkNotNull(context));
 
-        this.value = StringUtils.strip(context.getText(), "'");
+        this.value = context.stringLiteral().getText();
     }
 
     public ValueNode(GyroParser.NumberContext context) {
