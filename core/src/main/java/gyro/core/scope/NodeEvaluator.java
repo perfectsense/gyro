@@ -56,6 +56,7 @@ import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
 import gyro.core.resource.Resource;
 import gyro.core.resource.ResourceVisitor;
+import gyro.core.resource.SelfSettings;
 import gyro.lang.ast.block.BlockNode;
 import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.Node;
@@ -464,7 +465,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
 
             DiffableType<Resource> resourceType = DiffableType.getInstance((Class<Resource>) c);
             Resource resource = resourceType.newInternal(bodyScope, name);
-            bodyScope.put("_SELF", resource);
+            bodyScope.getSettings(SelfSettings.class).setSelf(resource);
 
             try {
                 evaluateDiffable(node, bodyScope);

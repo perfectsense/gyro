@@ -24,6 +24,7 @@ import gyro.core.GyroException;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableProcessor;
+import gyro.core.resource.SelfSettings;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.BlockNode;
 
@@ -47,6 +48,7 @@ public class DiffableScope extends Scope {
         this.block = scope.block;
         this.processors = new ArrayList<>(scope.processors);
         this.stateNodes = new ArrayList<>(scope.stateNodes);
+        this.getSettingsByClass().putAll(scope.getSettingsByClass().asMap());
     }
 
     public BlockNode getBlock() {
@@ -84,8 +86,9 @@ public class DiffableScope extends Scope {
     public Object find(Node node, String key) {
         if ("_SELF".equals(key)) {
             for (Scope s = this; s instanceof DiffableScope; s = s.getParent()) {
-                if (s.containsKey(key)) {
-                    return s.get(key);
+                SelfSettings settings = s.getSettings(SelfSettings.class);
+                if (settings.getSelf() != null) {
+                    return settings.getSelf();
                 }
             }
 
