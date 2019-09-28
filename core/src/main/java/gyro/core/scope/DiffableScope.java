@@ -84,7 +84,7 @@ public class DiffableScope extends Scope {
 
     @Override
     public Object find(Node node, String key) {
-        if ("_SELF".equals(key)) {
+        if ("SELF".equals(key)) {
             for (Scope s = this; s instanceof DiffableScope; s = s.getParent()) {
                 SelfSettings settings = s.getSettings(SelfSettings.class);
                 if (settings.getSelf() != null) {
