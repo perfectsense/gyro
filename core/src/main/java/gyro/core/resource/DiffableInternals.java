@@ -76,6 +76,9 @@ public final class DiffableInternals {
 
             if (block != null) {
                 DiffableScope newScope = new DiffableScope(oldScope);
+                if (oldScope.containsKey("_SELF")) {
+                    newScope.put("_SELF", oldScope.get("_SELF"));
+                }
                 diffable.scope = newScope;
 
                 newScope.getRootScope().getEvaluator().evaluateDiffable(block, newScope);
