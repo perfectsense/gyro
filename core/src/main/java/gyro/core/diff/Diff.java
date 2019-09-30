@@ -27,6 +27,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
@@ -86,9 +87,12 @@ public class Diff {
 
             Diffable currentDiffable = currentDiffables.remove(pendingDiffable.primaryKey());
 
-            changes.add(currentDiffable == null
-                ? newCreate(pendingDiffable)
-                : newUpdate(currentDiffable, pendingDiffable));
+            if (currentDiffable == null) {
+                changes.add(newCreate(pendingDiffable));
+
+            } else {
+                changes.addAll(newUpdate(currentDiffable, pendingDiffable));
+            }
         }
 
         for (Diffable resource : currentDiffables.values()) {
@@ -130,7 +134,7 @@ public class Diff {
     }
 
     @SuppressWarnings("unchecked")
-    private Change newUpdate(Diffable currentDiffable, Diffable pendingDiffable) {
+    private List<Change> newUpdate(Diffable currentDiffable, Diffable pendingDiffable) {
         List<Diff> diffs = new ArrayList<>();
         DiffableType<? extends Diffable> type = DiffableType.getInstance(currentDiffable.getClass());
         Set<String> currentConfiguredFields = DiffableInternals.getConfiguredFields(currentDiffable);
@@ -187,23 +191,36 @@ public class Diff {
             .map(type::getField)
             .forEach(changedFields::add);
 
-        Change change;
+        List<Change> changes = new ArrayList<>();
 
         if (changedFields.isEmpty()) {
-            change = new Keep(pendingDiffable);
-
-        } else if (changedFields.stream().allMatch(DiffableField::isUpdatable)) {
-            change = new Update(currentDiffable, pendingDiffable, changedFields);
+            changes.add(new Keep(pendingDiffable));
 
         } else {
-            change = new Replace(currentDiffable, pendingDiffable, changedFields);
+            Set<DiffableField> updateFields = changedFields
+                .stream()
+                .filter(DiffableField::isUpdatable)
+                .collect(Collectors.toSet());
+
+            Set<DiffableField> replaceFields = changedFields
+                .stream()
+                .filter(f -> !f.isUpdatable())
+                .collect(Collectors.toSet());
+
+            if (!updateFields.isEmpty()) {
+                changes.add(new Update(currentDiffable, pendingDiffable, updateFields));
+            }
+
+            if (!replaceFields.isEmpty()) {
+                changes.add(new Replace(currentDiffable, pendingDiffable, replaceFields));
+            }
         }
 
-        DiffableInternals.setChange(currentDiffable, change);
-        DiffableInternals.setChange(pendingDiffable, change);
-        change.getDiffs().addAll(diffs);
+        DiffableInternals.setChange(currentDiffable, changes.get(0));
+        DiffableInternals.setChange(pendingDiffable, changes.get(0));
+        changes.forEach(c -> c.getDiffs().addAll(diffs));
 
-        return change;
+        return changes;
     }
 
     private Set<DiffableField> diffFields(Diffable currentDiffable, Diffable pendingDiffable) {
