@@ -196,7 +196,13 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             DiffableField field = type.getField(key);
 
             if (field != null) {
-                return field.getValue(diffable);
+                Object value = field.getValue(diffable);
+                if (value == null && field.isOutput()) {
+                    return new Output();
+
+                } else {
+                    return value;
+                }
             }
 
         } else if (object instanceof GlobCollection) {
