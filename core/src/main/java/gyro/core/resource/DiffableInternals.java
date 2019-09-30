@@ -60,12 +60,23 @@ public final class DiffableInternals {
         return (List) diffable.modifications;
     }
 
-    public static Change getChange(Diffable diffable) {
-        return diffable.change;
+    public static <T extends Change> boolean hasChange(Diffable diffable, Class<T> changeType) {
+        return diffable.changes
+            .stream()
+            .anyMatch(changeType::isInstance);
     }
 
-    public static void setChange(Diffable diffable, Change change) {
-        diffable.change = change;
+    public static <T extends Change> T getChange(Diffable diffable, Class<T> changeType) {
+        return diffable.changes
+            .stream()
+            .filter(changeType::isInstance)
+            .map(changeType::cast)
+            .findFirst()
+            .orElse(null);
+    }
+
+    public static void setChanges(Diffable diffable, List<Change> changes) {
+        diffable.changes = changes;
     }
 
     public static void reevaluate(Diffable diffable) {

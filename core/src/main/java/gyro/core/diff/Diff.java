@@ -104,7 +104,7 @@ public class Diff {
     private Change newCreate(Diffable diffable) {
         Create create = new Create(diffable);
 
-        DiffableInternals.setChange(diffable, create);
+        DiffableInternals.setChanges(diffable, Collections.singletonList(create));
 
         for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
             if (!field.shouldBeDiffed()) {
@@ -216,8 +216,8 @@ public class Diff {
             }
         }
 
-        DiffableInternals.setChange(currentDiffable, changes.get(0));
-        DiffableInternals.setChange(pendingDiffable, changes.get(0));
+        DiffableInternals.setChanges(currentDiffable, changes);
+        DiffableInternals.setChanges(pendingDiffable, changes);
         changes.forEach(c -> c.getDiffs().addAll(diffs));
 
         return changes;
@@ -262,7 +262,7 @@ public class Diff {
     private Change newDelete(Diffable diffable) {
         Delete delete = new Delete(diffable);
 
-        DiffableInternals.setChange(diffable, delete);
+        DiffableInternals.setChanges(diffable, Collections.singletonList(delete));
 
         for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
             if (!field.shouldBeDiffed()) {
