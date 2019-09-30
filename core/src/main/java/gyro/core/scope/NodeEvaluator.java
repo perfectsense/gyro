@@ -54,6 +54,7 @@ import gyro.core.resource.Diffable;
 import gyro.core.resource.DiffableField;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
+import gyro.core.resource.OutputValue;
 import gyro.core.resource.Resource;
 import gyro.core.resource.ResourceVisitor;
 import gyro.lang.ast.block.BlockNode;
@@ -198,7 +199,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             if (field != null) {
                 Object value = field.getValue(diffable);
                 if (value == null && field.isOutput()) {
-                    return new Output();
+                    return new OutputValue();
 
                 } else {
                     return value;

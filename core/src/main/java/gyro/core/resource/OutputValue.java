@@ -1,6 +1,6 @@
-package gyro.core.scope;
+package gyro.core.resource;
 
-public class Output {
+public class OutputValue {
 
     public String toString() {
         return "<Output>";
