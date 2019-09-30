@@ -37,6 +37,7 @@ import gyro.core.GyroException;
 import gyro.core.diff.Change;
 import gyro.core.diff.Delete;
 import gyro.core.diff.Replace;
+import gyro.core.diff.Update;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.DiffableField;
 import gyro.core.resource.DiffableInternals;
@@ -232,8 +233,23 @@ public class State {
 
         body.addAll(DiffableInternals.getScope(diffable).getStateNodes());
 
+        Diffable current = null;
+        Set<DiffableField> changedFields = null;
+        if (DiffableInternals.hasChange(diffable, Update.class)) {
+            Update update = DiffableInternals.getChange(diffable, Update.class);
+            current = update.getCurrentDiffable();
+            changedFields = update.getChangedFields();
+        }
+
         for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
-            Object value = field.getValue(diffable);
+            Object value;
+
+            if (current != null && !changedFields.contains(field)) {
+                value = field.getValue(current);
+
+            } else {
+                value = field.getValue(diffable);
+            }
 
             if (value == null) {
                 continue;
