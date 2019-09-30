@@ -59,6 +59,7 @@ public class DiffableField {
     private final boolean updatable;
     private final boolean collection;
     private final boolean calculated;
+    private final boolean output;
     private final Class<?> itemClass;
 
     protected DiffableField(String javaName, Method getter, Method setter, Type type) {
@@ -67,6 +68,7 @@ public class DiffableField {
         this.setter = setter;
         this.updatable = getter.isAnnotationPresent(Updatable.class);
         this.calculated = getter.isAnnotationPresent(Calculated.class);
+        this.output = getter.isAnnotationPresent(Output.class);
 
         if (type instanceof Class) {
             this.collection = false;
@@ -96,6 +98,7 @@ public class DiffableField {
         setter = field.setter;
         updatable = field.updatable;
         calculated = field.calculated;
+        output = field.output;
         collection = field.collection;
         itemClass = field.itemClass;
     }
@@ -110,6 +113,10 @@ public class DiffableField {
 
     public boolean isCalculated() {
         return calculated;
+    }
+
+    public boolean isOutput() {
+        return output;
     }
 
     public boolean isCollection() {
