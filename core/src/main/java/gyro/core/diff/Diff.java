@@ -87,12 +87,9 @@ public class Diff {
 
             Diffable currentDiffable = currentDiffables.remove(pendingDiffable.primaryKey());
 
-            if (currentDiffable == null) {
-                changes.add(newCreate(pendingDiffable));
-
-            } else {
-                changes.addAll(newUpdate(currentDiffable, pendingDiffable));
-            }
+            changes.add(currentDiffable == null
+                ? newCreate(pendingDiffable)
+                : newUpdate(currentDiffable, pendingDiffable));
         }
 
         for (Diffable resource : currentDiffables.values()) {
@@ -104,7 +101,7 @@ public class Diff {
     private Change newCreate(Diffable diffable) {
         Create create = new Create(diffable);
 
-        DiffableInternals.setChanges(diffable, Collections.singletonList(create));
+        DiffableInternals.setChange(diffable, create);
 
         for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
             if (!field.shouldBeDiffed()) {
@@ -134,7 +131,7 @@ public class Diff {
     }
 
     @SuppressWarnings("unchecked")
-    private List<Change> newUpdate(Diffable currentDiffable, Diffable pendingDiffable) {
+    private Change newUpdate(Diffable currentDiffable, Diffable pendingDiffable) {
         List<Diff> diffs = new ArrayList<>();
         DiffableType<? extends Diffable> type = DiffableType.getInstance(currentDiffable.getClass());
         Set<String> currentConfiguredFields = DiffableInternals.getConfiguredFields(currentDiffable);
@@ -191,36 +188,23 @@ public class Diff {
             .map(type::getField)
             .forEach(changedFields::add);
 
-        List<Change> changes = new ArrayList<>();
+        Change change;
 
         if (changedFields.isEmpty()) {
-            changes.add(new Keep(pendingDiffable));
+            change = new Keep(pendingDiffable);
+
+        } else if (changedFields.stream().allMatch(DiffableField::isUpdatable)) {
+            change = new Update(currentDiffable, pendingDiffable, changedFields);
 
         } else {
-            Set<DiffableField> updateFields = changedFields
-                .stream()
-                .filter(DiffableField::isUpdatable)
-                .collect(Collectors.toSet());
-
-            Set<DiffableField> replaceFields = changedFields
-                .stream()
-                .filter(f -> !f.isUpdatable())
-                .collect(Collectors.toSet());
-
-            if (!updateFields.isEmpty()) {
-                changes.add(new Update(currentDiffable, pendingDiffable, updateFields));
-            }
-
-            if (!replaceFields.isEmpty()) {
-                changes.add(new Replace(currentDiffable, pendingDiffable, replaceFields));
-            }
+            change = new Replace(currentDiffable, pendingDiffable, changedFields);
         }
 
-        DiffableInternals.setChanges(currentDiffable, changes);
-        DiffableInternals.setChanges(pendingDiffable, changes);
-        changes.forEach(c -> c.getDiffs().addAll(diffs));
+        DiffableInternals.setChange(currentDiffable, change);
+        DiffableInternals.setChange(pendingDiffable, change);
+        change.getDiffs().addAll(diffs);
 
-        return changes;
+        return change;
     }
 
     private Set<DiffableField> diffFields(Diffable currentDiffable, Diffable pendingDiffable) {
@@ -262,7 +246,7 @@ public class Diff {
     private Change newDelete(Diffable diffable) {
         Delete delete = new Delete(diffable);
 
-        DiffableInternals.setChanges(diffable, Collections.singletonList(delete));
+        DiffableInternals.setChange(diffable, delete);
 
         for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
             if (!field.shouldBeDiffed()) {

@@ -235,8 +235,8 @@ public class State {
 
         Diffable current = null;
         Set<DiffableField> changedFields = null;
-        if (DiffableInternals.hasChange(diffable, Update.class)) {
-            Update update = DiffableInternals.getChange(diffable, Update.class);
+        if (DiffableInternals.getChange(diffable) instanceof Update) {
+            Update update = (Update) DiffableInternals.getChange(diffable);
             current = update.getCurrentDiffable();
             changedFields = update.getChangedFields();
         }

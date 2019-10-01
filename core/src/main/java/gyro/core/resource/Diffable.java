@@ -37,7 +37,7 @@ public abstract class Diffable {
     Diffable parent;
     String name;
     DiffableScope scope;
-    List<Change> changes;
+    Change change;
     Set<String> configuredFields;
     final List<Modification<? extends Diffable>> modifications = new ArrayList<>();
 
