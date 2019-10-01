@@ -130,6 +130,7 @@ public class Replace extends Change {
         if (!updateFields.isEmpty()) {
             Update update = new Update(currentDiffable, pendingDiffable, updateFields);
             update.execute(ui, state, processors);
+            state.save();
         }
 
         if (workflow == null) {
