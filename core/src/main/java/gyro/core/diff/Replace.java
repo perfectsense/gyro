@@ -73,12 +73,9 @@ public class Replace extends Change {
         return pendingDiffable;
     }
 
-    public Diffable getCurrentDiffable() {
-        return currentDiffable;
-    }
-
-    public Set<DiffableField> getChangedFields() {
-        return updateFields;
+    public Object getUpdatedValue(DiffableField field) {
+        Diffable diffable = updateFields.contains(field) ? pendingDiffable : currentDiffable;
+        return field.getValue(diffable);
     }
 
     private void writeFields(GyroUI ui) {

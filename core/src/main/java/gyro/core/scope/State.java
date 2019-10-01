@@ -233,23 +233,8 @@ public class State {
 
         body.addAll(DiffableInternals.getScope(diffable).getStateNodes());
 
-        Diffable current = null;
-        Set<DiffableField> changedFields = null;
-        if (DiffableInternals.getChange(diffable) instanceof Replace) {
-            Replace replace = (Replace) DiffableInternals.getChange(diffable);
-            current = replace.getCurrentDiffable();
-            changedFields = replace.getChangedFields();
-        }
-
         for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
-            Object value;
-
-            if (current != null && !changedFields.contains(field)) {
-                value = field.getValue(current);
-
-            } else {
-                value = field.getValue(diffable);
-            }
+            Object value = DiffableInternals.getStateValue(diffable, field);
 
             if (value == null) {
                 continue;

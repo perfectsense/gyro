@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import gyro.core.diff.Change;
+import gyro.core.diff.Replace;
 import gyro.core.scope.DiffableScope;
 import gyro.lang.ast.block.BlockNode;
 
@@ -115,4 +116,14 @@ public final class DiffableInternals {
             }
         }
     }
+
+    public static Object getStateValue(Diffable diffable, DiffableField field) {
+        if (DiffableInternals.getChange(diffable) instanceof Replace) {
+            return ((Replace) DiffableInternals.getChange(diffable)).getUpdatedValue(field);
+
+        } else {
+            return field.getValue(diffable);
+        }
+    }
+
 }
