@@ -37,7 +37,6 @@ import gyro.core.GyroException;
 import gyro.core.diff.Change;
 import gyro.core.diff.Delete;
 import gyro.core.diff.Replace;
-import gyro.core.diff.Update;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.DiffableField;
 import gyro.core.resource.DiffableInternals;
