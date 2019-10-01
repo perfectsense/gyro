@@ -30,6 +30,12 @@ public enum ExecutionResult {
         public void write(GyroUI ui) {
             ui.write(ui.isVerbose() ? "\n@|bold,yellow SKIPPED|@\n\n" : " @|bold,yellow SKIPPED|@\n");
         }
+    },
+
+    UPDATED {
+        public void write(GyroUI ui) {
+            ui.write(ui.isVerbose() ? "\n@|bold,yellow UPDATED|@\n\n" : " @|bold,yellow UPDATED|@\n");
+        }
     };
 
     public abstract void write(GyroUI ui);

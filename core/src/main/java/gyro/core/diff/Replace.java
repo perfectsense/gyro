@@ -34,13 +34,22 @@ public class Replace extends Change {
 
     private final Diffable currentDiffable;
     private final Diffable pendingDiffable;
-    private final Set<DiffableField> changedFields;
+    private final Set<DiffableField> replaceFields;
+    private final Set<DiffableField> updateFields;
     private final Workflow workflow;
 
     public Replace(Diffable currentDiffable, Diffable pendingDiffable, Set<DiffableField> changedFields) {
         this.currentDiffable = currentDiffable;
         this.pendingDiffable = pendingDiffable;
-        this.changedFields = changedFields;
+        this.replaceFields = changedFields
+            .stream()
+            .filter(f -> !f.isUpdatable())
+            .collect(Collectors.toSet());
+
+        this.updateFields = changedFields
+            .stream()
+            .filter(DiffableField::isUpdatable)
+            .collect(Collectors.toSet());
 
         if (pendingDiffable instanceof Resource) {
             Resource pendingResource = (Resource) pendingDiffable;
@@ -64,6 +73,14 @@ public class Replace extends Change {
         return pendingDiffable;
     }
 
+    public Diffable getCurrentDiffable() {
+        return currentDiffable;
+    }
+
+    public Set<DiffableField> getChangedFields() {
+        return updateFields;
+    }
+
     private void writeFields(GyroUI ui) {
         if (!ui.isVerbose()) {
             return;
@@ -71,7 +88,8 @@ public class Replace extends Change {
 
         for (DiffableField field : DiffableType.getInstance(pendingDiffable.getClass()).getFields()) {
             if (!field.shouldBeDiffed()) {
-                if (changedFields.contains(field)) {
+                if (updateFields.contains(field)
+                    || (workflow != null && replaceFields.contains(field))) {
                     writeDifference(ui, field, currentDiffable, pendingDiffable);
                 }
             }
@@ -81,8 +99,15 @@ public class Replace extends Change {
     @Override
     public void writePlan(GyroUI ui) {
         ui.write("@|cyan ⇅ Replace %s|@", getLabel(currentDiffable, false));
-        ui.write(" (because of %s, ", changedFields.stream()
-            .filter(f -> !f.isUpdatable())
+        ui.write("（");
+
+        if (!updateFields.isEmpty()) {
+            ui.write("update %s, ", updateFields.stream()
+                .map(DiffableField::getName)
+                .collect(Collectors.joining(", ")));
+        }
+
+        ui.write("replace because of %s, ", replaceFields.stream()
             .map(DiffableField::getName)
             .collect(Collectors.joining(", ")));
 
@@ -104,9 +129,19 @@ public class Replace extends Change {
     }
 
     @Override
-    public ExecutionResult execute(GyroUI ui, State state, List<ChangeProcessor> processors) {
+    public ExecutionResult execute(GyroUI ui, State state, List<ChangeProcessor> processors) throws Exception {
+        if (!updateFields.isEmpty()) {
+            Update update = new Update(currentDiffable, pendingDiffable, updateFields);
+            update.execute(ui, state, processors);
+        }
+
         if (workflow == null) {
-            return ExecutionResult.SKIPPED;
+            if (!updateFields.isEmpty()) {
+                return ExecutionResult.UPDATED;
+
+            } else {
+                return ExecutionResult.SKIPPED;
+            }
         }
 
         if (ui.isVerbose()) {
