@@ -86,7 +86,7 @@ public class Replace extends Change {
         for (DiffableField field : DiffableType.getInstance(pendingDiffable.getClass()).getFields()) {
             if (!field.shouldBeDiffed()) {
                 if (updateFields.contains(field)
-                    || (workflow != null && replaceFields.contains(field))) {
+                    || replaceFields.contains(field)) {
                     writeDifference(ui, field, currentDiffable, pendingDiffable);
                 }
             }
@@ -112,7 +112,7 @@ public class Replace extends Change {
             ui.write("using %s", workflow.getName());
 
         } else {
-            ui.write("skipping without a workflow");
+            ui.write("skipping replace without a workflow");
         }
 
         ui.write(")");
