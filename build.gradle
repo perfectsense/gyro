@@ -95,3 +95,9 @@ subprojects {
         }
     }
 }
+
+// Only publish JARs once during the Linux build.
+configure(subprojects.findAll { it.name != 'gyro-cli' }) {
+    def osName = System.getenv('TRAVIS_OS_NAME') ?: 'unix'
+    publishMavenPublicationToMavenRepository.onlyIf { osName.equals("linux") }
+}
