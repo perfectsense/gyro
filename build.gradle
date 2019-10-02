@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
+def releaseVersion = '0.99.0'
+def releaseBuild = false;
+
 if (System.getenv('TRAVIS_BRANCH') && System.getenv('TRAVIS_PULL_REQUEST') == 'false') {
     defaultTasks 'build', 'publish'
 
+    releaseBuild = System.getenv('TRAVIS_BRANCH').startsWith("release/");
 } else {
     defaultTasks 'build', 'publishToMavenLocal'
 }
 
 allprojects {
     group = 'gyro'
-    version = '0.99.0-SNAPSHOT'
+    version = releaseBuild ? releaseVersion : releaseVersion + '-SNAPSHOT'
 }
 
 subprojects {
@@ -81,11 +85,11 @@ subprojects {
                     password System.getenv('GRADLE_DEPLOY_PASSWORD')
                 }
 
-                if (project.version.endsWith('-SNAPSHOT')) {
-                    url 'https://artifactory.psdops.com/gyro-snapshots'
+                if (releaseBuild) {
+                    url 'https://artifactory.psdops.com/gyro-releases'
 
                 } else {
-                    url 'https://artifactory.psdops.com/gyro-releases'
+                    url 'https://artifactory.psdops.com/gyro-snapshots'
                 }
             }
         }
