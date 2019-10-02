@@ -16,10 +16,7 @@
 
 package gyro.core;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -39,7 +36,7 @@ public class LocalFileBackend extends FileBackend {
             return Files.find(rootDirectory, Integer.MAX_VALUE, (file, attributes) -> attributes.isRegularFile())
                 .map(rootDirectory::relativize)
                 .map(Path::toString)
-                .filter(f -> !f.startsWith(".gyro/") && f.endsWith(".gyro"));
+                .filter(f -> !f.startsWith(".gyro" + File.separator) && f.endsWith(".gyro"));
 
         } else {
             return Stream.empty();

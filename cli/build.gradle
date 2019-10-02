@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.apache.tools.ant.taskdefs.condition.Os
 
 plugins {
     id 'org.springframework.boot' version '2.1.0.RELEASE'
@@ -48,13 +49,21 @@ task createDistributionBinary(type: Copy) {
 }
 
 def OS_NAME = System.getenv('TRAVIS_OS_NAME') ?: 'unix'
+if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+    OS_NAME = 'windows'
+}
 
 task bundleDistribution(type: Exec) {
     dependsOn createDistributionBinary
 
     environment OS_NAME: "${OS_NAME}"
     environment VERSION: "${version}"
-    commandLine 'sh', '-c', 'scripts/build-gyro-dist.sh'
+    
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        commandLine 'cmd', '/c', 'scripts\\build-gyro-dist.bat'
+    } else {
+        commandLine 'sh', '-c', 'scripts/build-gyro-dist.sh'
+    }
 }
 
 publish.dependsOn bundleDistribution
