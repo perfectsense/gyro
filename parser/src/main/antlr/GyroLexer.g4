@@ -70,12 +70,12 @@ COMMENT     : '#' ~[\n\r]* -> channel(HIDDEN);
 IDENTIFIER  : [A-Z_a-z] [-/0-9A-Z_a-z]*;
 
 mode LITERAL_MODE;
-ESCAPE_SQUOTE: '\\\'' { setText("'"); } ;
+ESCAPE       : '\\'.;
 L_SQUOTE     : '\'' -> type(SQUOTE), popMode;
 L_CHARACTER  : . -> type(CHARACTER);
 
 mode STRING_MODE;
-ESCAPE_DQUOTE: '\\"' { setText("\""); } ;
+S_ESCAPE     : '\\'~'(' -> type(ESCAPE);
 S_DOLLAR     : [$\\] -> type(DOLLAR);
 S_LPAREN     : '(' -> type(LPAREN), pushMode(DEFAULT_MODE);
 S_IDENTIFIER : [A-Z_a-z] [-/0-9A-Z_a-z]* -> type(IDENTIFIER);
