@@ -18,6 +18,7 @@ package gyro.lang.ast;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -30,6 +31,7 @@ import gyro.lang.GyroErrorListener;
 import gyro.lang.GyroErrorStrategy;
 import gyro.lang.SyntaxError;
 import gyro.lang.SyntaxErrorException;
+import gyro.lang.EscapeException;
 import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;
@@ -163,7 +165,13 @@ public abstract class Node extends Rule {
             throw new SyntaxErrorException(charStream.getSourceName(), errors);
         }
 
-        return Node.create(tree);
+        try {
+            return Node.create(tree);
+
+        } catch (EscapeException e) {
+            throw new SyntaxErrorException(charStream.getSourceName(),
+                Collections.singletonList(new SyntaxError(charStream, e.getMessage(), e.getToken())));
+        }
     }
 
     public Node(Token start, Token stop) {

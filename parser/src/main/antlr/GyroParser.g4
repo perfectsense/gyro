@@ -179,7 +179,11 @@ string
     ;
 
 stringLiteral
-    : (ESCAPE | CHARACTER)*
+    : (escape | CHARACTER)*
+    ;
+
+escape
+    : ESCAPE
     ;
 
 stringContent
@@ -190,7 +194,7 @@ stringContent
 text
     : DOLLAR
     | LPAREN
-    | (IDENTIFIER | ESCAPE | CHARACTER)+
+    | (IDENTIFIER | escape | CHARACTER)+
     ;
 
 word
