@@ -198,6 +198,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
 
             if (field != null) {
                 Object value = field.getValue(diffable);
+
                 if (value == null && field.isOutput()) {
                     return new OutputValue();
 

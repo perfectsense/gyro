@@ -57,9 +57,9 @@ public class DiffableField {
     private final Method getter;
     private final Method setter;
     private final boolean updatable;
-    private final boolean collection;
     private final boolean calculated;
     private final boolean output;
+    private final boolean collection;
     private final Class<?> itemClass;
 
     protected DiffableField(String javaName, Method getter, Method setter, Type type) {
