@@ -18,6 +18,7 @@ package gyro.core.resource;
 
 public class OutputValue {
 
+    @Override
     public String toString() {
         return "<Output>";
     }
