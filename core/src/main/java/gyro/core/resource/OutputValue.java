@@ -20,7 +20,7 @@ public class OutputValue {
 
     @Override
     public String toString() {
-        return "<Output>";
+        return "<output>";
     }
 
 }
