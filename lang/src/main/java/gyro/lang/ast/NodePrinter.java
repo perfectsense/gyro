@@ -232,7 +232,8 @@ public class NodePrinter implements NodeVisitor<PrinterContext, Void, IOExceptio
 
         if (value instanceof String) {
             context.append('\'');
-            context.append(((String) value).replace("'", "\\'"));
+            String s = ((String) value).replace("\\", "\\\\");
+            context.append(s.replace("'", "\\'"));
             context.append('\'');
 
         } else {
