@@ -4,7 +4,7 @@
 [![TravisCI](https://api.travis-ci.org/perfectsense/gyro.svg?branch=master)](https://travis-ci.org/perfectsense/gyro)
 [![Apache License 2.0](https://img.shields.io/github/license/perfectsense/gyro)](https://github.com/perfectsense/gyro/blob/master/LICENSE)
 
-Gyro is command-line tool for automating creating, updating, and maintaining cloud infrastructure. Gyro makes infrastructure-as-code possible.
+Gyro is command-line tool for creating, updating, and maintaining cloud infrastructure. Gyro makes infrastructure-as-code possible.
 
 Gyro is open source under the Apache 2.0 license.
 
