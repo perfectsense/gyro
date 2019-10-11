@@ -19,6 +19,7 @@ package gyro.core.command;
 import gyro.core.GyroCore;
 import gyro.core.GyroUI;
 import gyro.core.diff.Diff;
+import gyro.core.diff.Retry;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.State;
 import io.airlift.airline.Command;
@@ -32,20 +33,46 @@ public class UpCommand extends AbstractConfigCommand {
 
         ui.write("\n@|bold,white Looking for changes...\n\n|@");
 
-        Diff diff = new Diff(
-            current.findResourcesIn(current.getLoadFiles()),
-            pending.findResourcesIn(pending.getLoadFiles()));
+        while (true) {
+            Diff diff = new Diff(
+                current.findResourcesIn(current.getLoadFiles()),
+                pending.findResourcesIn(pending.getLoadFiles()));
 
-        diff.diff();
+            diff.diff();
 
-        if (diff.write(ui)) {
-            if (ui.readBoolean(Boolean.FALSE, "\nAre you sure you want to change resources?")) {
-                ui.write("\n");
-                diff.execute(ui, state);
+            if (!diff.write(ui)) {
+                ui.write("\n@|bold,green No changes.|@\n\n");
+                break;
             }
 
-        } else {
-            ui.write("\n@|bold,green No changes.|@\n\n");
+            if (!ui.readBoolean(Boolean.FALSE, "\nAre you sure you want to change resources?")) {
+                break;
+            }
+
+            ui.write("\n");
+
+            try {
+                diff.execute(ui, state);
+                break;
+
+            } catch (Retry error) {
+                ui.write("\n@|bold,white Relooking for changes after workflow...\n\n|@");
+
+                current = new RootScope(current.getFile(), current.getBackend(), null, current.getLoadFiles());
+
+                current.evaluate();
+
+                pending = new RootScope(
+                    pending.getFile(),
+                    pending.getBackend(),
+                    current,
+                    pending.getLoadFiles());
+
+                pending.evaluate();
+                pending.validate();
+
+                state = new State(current, pending, state.isTest());
+            }
         }
     }
 
