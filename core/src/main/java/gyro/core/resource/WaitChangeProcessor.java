@@ -38,10 +38,15 @@ public class WaitChangeProcessor extends ChangeProcessor {
         this.condition = condition;
     }
 
-    private void wait(GyroUI ui, Resource resource) {
+    private void wait(GyroUI ui, State state, Resource resource) {
         ui.write("\n");
 
         ui.indented(() -> {
+            if (state.isTest()) {
+                ui.write("@|magenta ⧖ Waiting skipped because in test mode|@");
+                return;
+            }
+
             ui.write("@|magenta ⧖ Waiting for: %s|@\n", condition);
 
             NodeEvaluator evaluator = parent.getRootScope().getEvaluator();
@@ -62,17 +67,17 @@ public class WaitChangeProcessor extends ChangeProcessor {
 
     @Override
     public void afterCreate(GyroUI ui, State state, Resource resource) {
-        wait(ui, resource);
+        wait(ui, state, resource);
     }
 
     @Override
     public void afterUpdate(GyroUI ui, State state, Resource current, Resource pending, Set<DiffableField> changedFields) {
-        wait(ui, pending);
+        wait(ui, state, pending);
     }
 
     @Override
     public void afterDelete(GyroUI ui, State state, Resource resource) {
-        wait(ui, resource);
+        wait(ui, state, resource);
     }
 
 }
