@@ -60,7 +60,6 @@ public class State {
     private final boolean test;
     private final Map<String, FileScope> states = new HashMap<>();
     private final Map<String, String> newNames = new HashMap<>();
-    private final Map<String, String> newKeys = new HashMap<>();
 
     public State(RootScope current, RootScope pending, boolean test) {
         this.root = new RootScope(current.getFile(), current.getBackend(), null, current.getLoadFiles());
@@ -103,10 +102,8 @@ public class State {
         // Delete goes through every state to remove the resource.
         if (change instanceof Delete) {
             if (typeRoot) {
-                for (FileScope state : states.values()) {
-                    String key = resource.primaryKey();
-                    state.remove(newKeys.getOrDefault(key, key));
-                }
+                String key = resource.primaryKey();
+                states.values().forEach(s -> s.remove(key));
 
             } else {
                 states.values()
@@ -123,23 +120,22 @@ public class State {
 
             if (typeRoot) {
                 String key = resource.primaryKey();
-                String newKey = newKeys.getOrDefault(key, key);
 
-                state.put(newKey, resource);
+                state.put(key, resource);
 
-                Resource oldResource = state.getRootScope().findResource(newKey);
+                Resource oldResource = state.getRootScope().findResource(key);
 
                 if (oldResource != null) {
                     FileScope oldState = states.get(DiffableInternals.getScope(oldResource).getFileScope().getFile());
 
                     if (state != oldState) {
-                        oldState.remove(newKey);
+                        oldState.remove(key);
                     }
                 }
 
             } else {
                 String key = resource.parentResource().primaryKey();
-                updateSubresource((Resource) state.get(newKeys.getOrDefault(key, key)), resource, false);
+                updateSubresource((Resource) state.get(key), resource, false);
             }
         }
     }
@@ -357,7 +353,6 @@ public class State {
 
         states.values().forEach(s -> s.remove(resourceKey));
         newNames.put(withKey, DiffableInternals.getName(resource));
-        newKeys.put(withKey, resourceKey);
         save();
     }
 
