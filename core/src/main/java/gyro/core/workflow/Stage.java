@@ -127,9 +127,14 @@ public class Stage {
     }
 
     public Stage prompt(GyroUI ui, RootScope currentRootScope) {
-        if (transitions.isEmpty()) {
+        int transitionsSize = transitions.size();
+
+        if (transitionsSize == 0) {
             currentRootScope.delete(Workflow.EXECUTION_FILE);
             return null;
+
+        } else if (transitionsSize == 1) {
+            return workflow.getStage(transitions.get(0).getName());
         }
 
         while (true) {
