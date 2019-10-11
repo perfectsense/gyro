@@ -202,6 +202,9 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         } else if (object instanceof GlobCollection) {
             return ((GlobCollection) object).stream()
                 .map(i -> getValue(node, i, key))
+                .flatMap(v -> v instanceof Collection
+                    ? ((Collection<?>) v).stream()
+                    : Stream.of(v))
                 .collect(Collectors.toList());
 
         } else if (object instanceof List) {
