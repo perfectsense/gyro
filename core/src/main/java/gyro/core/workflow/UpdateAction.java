@@ -66,8 +66,7 @@ public class UpdateAction extends Action {
                 resource.getClass().getName()));
         }
 
-        String fullName = ((Resource) resource).primaryKey();
-        Resource pendingResource = pending.findResource(fullName);
+        Resource pendingResource = (Resource) resource;
         DiffableScope resourceScope = DiffableInternals.getScope(pendingResource);
 
         for (Node item : body) {
@@ -75,6 +74,7 @@ public class UpdateAction extends Action {
         }
 
         DiffableType.getInstance(pendingResource).setValues(pendingResource, resourceScope);
+        DiffableInternals.update(pendingResource, true);
     }
 
 }

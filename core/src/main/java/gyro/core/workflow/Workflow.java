@@ -26,12 +26,11 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.psddev.dari.util.IoUtils;
 import com.psddev.dari.util.ObjectUtils;
-import gyro.core.Abort;
 import gyro.core.GyroException;
 import gyro.core.GyroInputStream;
 import gyro.core.GyroOutputStream;
 import gyro.core.GyroUI;
-import gyro.core.diff.Diff;
+import gyro.core.diff.Retry;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
 import gyro.core.resource.Resource;
@@ -168,27 +167,7 @@ public class Workflow {
             }
         }
 
-        RootScope current = copyCurrentRootScope();
-        RootScope pending = new RootScope(root.getFile(), root.getBackend(), current, root.getLoadFiles());
-
-        pending.evaluate();
-        pending.validate();
-
-        Diff diff = new Diff(
-            current.findResourcesIn(current.getLoadFiles()),
-            pending.findResourcesIn(pending.getLoadFiles()));
-
-        diff.diff();
-
-        if (diff.write(ui)) {
-            if (ui.readBoolean(Boolean.TRUE, "\nFinalize %s workflow?", name)) {
-                ui.write("\n");
-                diff.execute(ui, state);
-
-            } else {
-                throw new Abort();
-            }
-        }
+        throw Retry.INSTANCE;
     }
 
 }
