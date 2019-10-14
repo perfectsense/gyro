@@ -134,7 +134,7 @@ public class Stage {
             return null;
 
         } else if (transitionsSize == 1) {
-            return workflow.getStage(transitions.get(0).getName());
+            return workflow.getStage(transitions.get(0).getTo());
         }
 
         while (true) {
