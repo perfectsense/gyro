@@ -5,3 +5,10 @@ CHANGELOG
 
 Initial public release of Gyro!
 
+
+## 0.99.1
+
+ISSUES FIXED:
+
+* [172](https://github.com/perfectsense/gyro/issues/172): Include "gyro-release" maven repo in default repositories.
+
