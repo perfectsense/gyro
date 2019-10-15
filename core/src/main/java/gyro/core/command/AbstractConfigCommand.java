@@ -178,31 +178,35 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
         refreshService.shutdown();
 
-        for (Refresh refresh : refreshes) {
-            Resource resource = refresh.resource;
-            String typeName = DiffableType.getInstance(resource).getName();
-            String name = DiffableInternals.getName(resource);
+        try {
+            for (Refresh refresh : refreshes) {
+                Resource resource = refresh.resource;
+                String typeName = DiffableType.getInstance(resource).getName();
+                String name = DiffableInternals.getName(resource);
 
-            try {
-                if (refresh.future.get()) {
-                    ui.replace("@|magenta - Removing from state:|@ %s %s\n", typeName, name);
-                    scope.getFileScopes().forEach(s -> s.remove(resource.primaryKey()));
+                try {
+                    if (refresh.future.get()) {
+                        ui.replace("@|magenta - Removing from state:|@ %s %s\n", typeName, name);
+                        scope.getFileScopes().forEach(s -> s.remove(resource.primaryKey()));
+                    }
+
+                } catch (ExecutionException error) {
+                    ui.write("\n");
+
+                    throw new GyroException(
+                        String.format("Can't refresh @|bold %s %s|@ resource!", typeName, name),
+                        error.getCause());
+
+                } catch (InterruptedException error) {
+                    Thread.currentThread().interrupt();
+                    return;
                 }
-
-            } catch (ExecutionException error) {
-                ui.write("\n");
-
-                throw new GyroException(
-                    String.format("Can't refresh @|bold %s %s|@ resource!", typeName, name),
-                    error.getCause());
-
-            } catch (InterruptedException error) {
-                Thread.currentThread().interrupt();
-                return;
             }
+
+        } finally {
+            messageService.shutdown();
         }
 
-        messageService.shutdown();
         ui.replace("@|magenta ⟳ Refreshed resources:|@ %s\n", refreshes.size());
     }
 
