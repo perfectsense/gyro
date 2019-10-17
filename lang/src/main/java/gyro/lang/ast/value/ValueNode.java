@@ -17,15 +17,29 @@
 package gyro.lang.ast.value;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
+import gyro.lang.EscapeException;
 import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.Node;
 import gyro.parser.antlr4.GyroParser;
+import org.antlr.v4.runtime.RuleContext;
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import org.apache.commons.lang3.StringUtils;
+
+import java.util.Map;
 
 public class ValueNode extends Node {
 
     private final Object value;
+
+    // Escape character
+    private final static Map<Character, Character> ESCAPE = new ImmutableMap.Builder<Character, Character>()
+        .put('t', '\t')
+        .put('n', '\n')
+        .put('r', '\r')
+        .put('"', '"')
+        .put('\'', '\'')
+        .put('\\', '\\').build();
 
     public ValueNode(Object value) {
         super(null);
@@ -42,7 +56,7 @@ public class ValueNode extends Node {
     public ValueNode(GyroParser.LiteralStringContext context) {
         super(Preconditions.checkNotNull(context));
 
-        this.value = StringUtils.strip(context.getText(), "'");
+        this.value = getContextText(context.stringLiteral());
     }
 
     public ValueNode(GyroParser.NumberContext context) {
@@ -61,7 +75,7 @@ public class ValueNode extends Node {
     public ValueNode(GyroParser.TextContext context) {
         super(Preconditions.checkNotNull(context));
 
-        this.value = context.getText();
+        this.value = getContextText(context);
     }
 
     public ValueNode(GyroParser.TypeContext context) {
@@ -84,6 +98,36 @@ public class ValueNode extends Node {
 
     public Object getValue() {
         return value;
+    }
+
+    private String getContextText(RuleContext context) {
+        if (context.getChildCount() == 0) {
+            return "";
+        }
+
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < context.getChildCount(); i++) {
+            ParseTree child = context.getChild(i);
+
+            if (child instanceof GyroParser.EscapeContext) {
+                builder.append(getEscapeText((GyroParser.EscapeContext) child));
+
+            } else {
+                builder.append(child.getText());
+            }
+        }
+
+        return builder.toString();
+    }
+
+    private String getEscapeText(GyroParser.EscapeContext context) {
+        return ESCAPE.entrySet()
+            .stream()
+            .filter(e -> e.getKey().equals(context.getText().charAt(1)))
+            .findFirst()
+            .map(Map.Entry::getValue)
+            .map(String::valueOf)
+            .orElseThrow(() -> new EscapeException(context.getText(), context.ESCAPE().getSymbol()));
     }
 
     @Override

@@ -174,8 +174,16 @@ filter
     ;
 
 string
-    : STRING                       # LiteralString
+    : SQUOTE stringLiteral SQUOTE  # LiteralString
     | DQUOTE stringContent* DQUOTE # InterpolatedString
+    ;
+
+stringLiteral
+    : (escape | CHARACTER)*
+    ;
+
+escape
+    : ESCAPE
     ;
 
 stringContent
@@ -186,7 +194,7 @@ stringContent
 text
     : DOLLAR
     | LPAREN
-    | (IDENTIFIER | CHARACTER)+
+    | (IDENTIFIER | escape | CHARACTER)+
     ;
 
 word
