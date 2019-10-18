@@ -63,9 +63,10 @@ class RepositoryDirectiveProcessorTest {
 
             List<RemoteRepository> repositories = root.getSettings(RepositorySettings.class).getRepositories();
 
-            assertThat(repositories).hasSize(2);
+            assertThat(repositories).hasSize(3);
             assertThat(repositories.get(0)).isEqualTo(RepositorySettings.CENTRAL);
-            assertThat(repositories.get(1).getUrl()).isEqualTo(url);
+            assertThat(repositories.get(1)).isEqualTo(RepositorySettings.RELEASE);
+            assertThat(repositories.get(2).getUrl()).isEqualTo(url);
         }
     }
 
