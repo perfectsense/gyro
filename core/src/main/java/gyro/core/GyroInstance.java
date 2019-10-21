@@ -18,20 +18,20 @@ package gyro.core;
 
 public interface GyroInstance {
 
-    public String getInstanceId();
+    public String getGyroInstanceId();
 
-    public String getState();
+    public String getGyroInstanceState();
 
-    public String getPrivateIpAddress();
+    public String getGyroInstancePrivateIpAddress();
 
-    public String getPublicIpAddress();
+    public String getGyroInstancePublicIpAddress();
 
-    public String getHostname();
+    public String getGyroInstanceHostname();
 
-    public String getName();
+    public String getGyroInstanceName();
 
-    public String getLaunchDate();
+    public String getGyroInstanceLaunchDate();
 
-    public String getLocation();
+    public String getGyroInstanceLocation();
 
 }
