@@ -54,6 +54,7 @@ import gyro.core.resource.Diffable;
 import gyro.core.resource.DiffableField;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
+import gyro.core.resource.OutputValue;
 import gyro.core.resource.Resource;
 import gyro.core.resource.ResourceVisitor;
 import gyro.core.resource.SelfSettings;
@@ -197,7 +198,14 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             DiffableField field = type.getField(key);
 
             if (field != null) {
-                return field.getValue(diffable);
+                Object value = field.getValue(diffable);
+
+                if (value == null && field.isOutput()) {
+                    return new OutputValue();
+
+                } else {
+                    return value;
+                }
             }
 
         } else if (object instanceof GlobCollection) {
