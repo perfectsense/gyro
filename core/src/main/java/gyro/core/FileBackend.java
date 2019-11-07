@@ -16,6 +16,7 @@
 
 package gyro.core;
 
+import com.psddev.dari.util.ObjectUtils;
 import gyro.core.scope.RootScope;
 
 import java.io.InputStream;
@@ -26,6 +27,7 @@ public abstract class FileBackend {
 
     private String name;
     private RootScope rootScope;
+    private String credentials;
 
     public String getName() {
         return name;
@@ -42,6 +44,19 @@ public abstract class FileBackend {
     public void setRootScope(RootScope rootScope) {
         this.rootScope = rootScope;
     }
+
+    public String getCredentials() {
+        if (ObjectUtils.isBlank(credentials)) {
+            setCredentials("default");
+        }
+
+        return credentials;
+    }
+
+    public void setCredentials(String credentials) {
+        this.credentials = credentials;
+    }
+
 
     public abstract Stream<String> list() throws Exception;
 
