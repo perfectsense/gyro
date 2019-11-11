@@ -10,7 +10,7 @@ Gyro is open source under the Apache 2.0 license.
 
 Using Gyro allows you to describe your infrastructure using the Gyro language and then create, update, and maintain that infrastructure using the gyro command-line tool.
 
-The Gyro language is designed specifically for defining cloud infrastructure. It was built with readability and organizational flexbility in mind. The language provides the ability to concisely define cloud infrastructure resources along with language constructs such a `@for` loops, `@if` conditionals, and `@virtual` definitions for packaging resources into reusable components.
+The Gyro language is designed specifically for defining cloud infrastructure. It was built with readability and organizational flexibility in mind. The language provides the ability to concisely define cloud infrastructure resources along with language constructs such a `@for` loops, `@if` conditionals, and `@virtual` definitions for packaging resources into reusable components.
 
 Here is a sample configuration to create a single instance in AWS:
 
@@ -69,7 +69,7 @@ Join the [community](https://gyro.dev/guides/contribute/#chat) and [contribute](
 
 Gyro is written in Java using Gradle as the build tool. 
 
-We recommend installing [AdoptOpenJDK](https://adoptopenjdk.net/) if you're going to contribute to Gyro or one of its cloud
+We recommend installing [AdoptOpenJDK](https://adoptopenjdk.net/) 11 or higher if you're going to contribute to Gyro or one of its cloud
 provider implementations.
 
 The Gyro project is broken into several subprojects:
