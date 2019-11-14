@@ -16,20 +16,21 @@
 
 package gyro.core.resource;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Stream;
-
 import gyro.core.GyroInputStream;
 import gyro.core.GyroUI;
 import gyro.core.diff.Change;
 import gyro.core.scope.DiffableScope;
 import gyro.core.scope.FileScope;
 import gyro.core.validation.ValidationError;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public abstract class Diffable {
 
@@ -77,7 +78,27 @@ public abstract class Diffable {
     }
 
     public String primaryKey() {
-        return String.format("%s::%s", DiffableType.getInstance(getClass()).getName(), name);
+        String typeName = DiffableType.getInstance(getClass()).getName();
+
+        if (typeName != null) {
+            return String.format("%s::%s", DiffableType.getInstance(getClass()).getName(), name);
+
+        } else {
+            List<String> key = new ArrayList<>();
+            DiffableType type = DiffableType.getInstance(this);
+            List<DiffableField> fields = type.getFields();
+            for (DiffableField f : fields) {
+                Object value = f.getValue(this);
+                if (value != null) {
+                    key.add(f.getName() + "=" + f.getValue(this));
+                }
+            }
+
+            if (key.size() > 0) {
+                return key.stream().collect(Collectors.joining(", "));
+            }
+            return name;
+        }
     }
 
     public List<ValidationError> validate() {
