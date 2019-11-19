@@ -36,7 +36,6 @@ import com.psddev.dari.util.ConversionException;
 import gyro.core.GyroException;
 import gyro.core.Reflections;
 import gyro.core.scope.Scope;
-import gyro.core.validation.AbstractDependencyValidator;
 import gyro.core.validation.ValidationError;
 import gyro.core.validation.Validator;
 import gyro.core.validation.ValidatorClass;
@@ -196,11 +195,7 @@ public class DiffableField {
             if (validatorClass != null) {
                 Validator<Annotation> validator = VALIDATORS.getUnchecked(validatorClass.value());
 
-                if (AbstractDependencyValidator.class.isAssignableFrom(validatorClass.value())) {
-                    value = diffable;
-                }
-
-                if (!validator.isValid(annotation, value)) {
+                if (!validator.isValid(diffable, annotation, value)) {
                     errors.add(new ValidationError(diffable, name, validator.getMessage(annotation)));
                 }
             }

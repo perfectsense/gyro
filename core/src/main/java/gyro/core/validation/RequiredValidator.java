@@ -17,11 +17,12 @@
 package gyro.core.validation;
 
 import com.psddev.dari.util.ObjectUtils;
+import gyro.core.resource.Diffable;
 
 public class RequiredValidator implements Validator<Required> {
 
     @Override
-    public boolean isValid(Required annotation, Object value) {
+    public boolean isValid(Diffable diffable, Required annotation, Object value) {
         return !ObjectUtils.isBlank(value);
     }
 
