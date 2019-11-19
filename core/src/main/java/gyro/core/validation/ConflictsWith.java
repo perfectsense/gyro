@@ -8,11 +8,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Documented
-@Repeatable(ConflictFields.class)
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-@ValidatorClass(ConflictFieldValidator.class)
-public @interface ConflictField {
-    String source();
-    String conflict();
+@ValidatorClass(ConflictsWithValidator.class)
+public @interface ConflictsWith {
+    String[] value();
 }
