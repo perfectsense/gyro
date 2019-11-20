@@ -195,7 +195,7 @@ public class DiffableField {
             if (validatorClass != null) {
                 Validator<Annotation> validator = VALIDATORS.getUnchecked(validatorClass.value());
 
-                if (!validator.isValid(annotation, value)) {
+                if (!validator.isValid(diffable, annotation, value)) {
                     errors.add(new ValidationError(diffable, name, validator.getMessage(annotation)));
                 }
             }

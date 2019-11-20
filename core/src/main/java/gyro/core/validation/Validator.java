@@ -16,11 +16,13 @@
 
 package gyro.core.validation;
 
+import gyro.core.resource.Diffable;
+
 import java.lang.annotation.Annotation;
 
 public interface Validator<A extends Annotation> {
 
-    boolean isValid(A annotation, Object value);
+    boolean isValid(Diffable diffable, A annotation, Object value);
 
     String getMessage(A annotation);
 

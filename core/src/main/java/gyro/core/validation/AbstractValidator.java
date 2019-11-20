@@ -16,6 +16,8 @@
 
 package gyro.core.validation;
 
+import gyro.core.resource.Diffable;
+
 import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Map;
@@ -25,15 +27,15 @@ public abstract class AbstractValidator<A extends Annotation> implements Validat
     protected abstract boolean validate(A annotation, Object value);
 
     @Override
-    public final boolean isValid(A annotation, Object value) {
+    public final boolean isValid(Diffable diffable, A annotation, Object value) {
         if (value == null) {
             return true;
 
         } else if (value instanceof List) {
-            return ((List<?>) value).stream().allMatch(o -> isValid(annotation, o));
+            return ((List<?>) value).stream().allMatch(o -> isValid(diffable, annotation, o));
 
         } else if (value instanceof Map) {
-            return ((Map<?, ?>) value).keySet().stream().allMatch(o -> isValid(annotation, o));
+            return ((Map<?, ?>) value).keySet().stream().allMatch(o -> isValid(diffable, annotation, o));
 
         } else {
             return validate(annotation, value);
