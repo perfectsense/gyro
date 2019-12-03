@@ -204,4 +204,12 @@ public class DiffableField {
         return errors;
     }
 
+    public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
+        if (getter.isAnnotationPresent(annotationClass)) {
+            return getter.getAnnotation(annotationClass);
+        }
+
+        return null;
+    }
+
 }
