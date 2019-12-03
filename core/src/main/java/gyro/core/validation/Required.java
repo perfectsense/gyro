@@ -27,5 +27,9 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @ValidatorClass(RequiredValidator.class)
 public @interface Required {
+    enum RequiredConstraint{ONLY_ONE, AT_LEAST_ONE, REQUIRED, NOT_ALLOWED}
 
+    String when() default "";
+    String equals() default "";
+    RequiredConstraint constraint() default RequiredConstraint.REQUIRED;
 }
