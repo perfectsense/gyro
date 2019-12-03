@@ -100,30 +100,8 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         .put("%", (l, r) -> doArithmetic(l, r, (ld, rd) -> ld % rd, (ll, rl) -> ll % rl))
         .put("+", (l, r) -> doArithmetic(l, r, Double::sum, Long::sum))
         .put("-", (l, r) -> doArithmetic(l, r, (ld, rd) -> ld - rd, (ll, rl) -> ll - rl))
-        .put("=", (l, r) -> {
-            if (l != null && r != null) {
-                Class<?> lClass = l.getClass();
-                Class<?> rClass = r.getClass();
-
-                if (!lClass.equals(rClass)) {
-                    Object rConverted = ObjectUtils.to(lClass, r);
-
-                    if (rConverted != null) {
-                        return Objects.equals(l, rConverted);
-
-                    } else {
-                        Object lConverted = ObjectUtils.to(rClass, l);
-
-                        if (lConverted != null) {
-                            return Objects.equals(lConverted, r);
-                        }
-                    }
-                }
-            }
-
-            return Objects.equals(l, r);
-        })
-        .put("!=", (l, r) -> !Objects.equals(l, r))
+        .put("=", (l, r) -> equals(l, r))
+        .put("!=", (l, r) -> !equals(l, r))
         .put("<", (l, r) -> compare(l, r) < 0)
         .put("<=", (l, r) -> compare(l, r) <= 0)
         .put(">", (l, r) -> compare(l, r) > 0)
@@ -165,6 +143,30 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         } else {
             return longOperator.applyAsLong(leftNumber.longValue(), rightNumber.longValue());
         }
+    }
+
+    private static boolean equals(Object left, Object right) {
+        if (left != null && right != null) {
+            Class<?> lClass = left.getClass();
+            Class<?> rClass = right.getClass();
+
+            if (!lClass.equals(rClass)) {
+                Object rConverted = ObjectUtils.to(lClass, right);
+
+                if (rConverted != null) {
+                    return Objects.equals(left, rConverted);
+
+                } else {
+                    Object lConverted = ObjectUtils.to(rClass, left);
+
+                    if (lConverted != null) {
+                        return Objects.equals(lConverted, right);
+                    }
+                }
+            }
+        }
+
+        return Objects.equals(left, right);
     }
 
     @SuppressWarnings("unchecked")
