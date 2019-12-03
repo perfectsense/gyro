@@ -41,6 +41,8 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
+
+import com.psddev.dari.util.ObjectUtils;
 import com.psddev.dari.util.TypeDefinition;
 import gyro.core.GyroException;
 import gyro.core.Reflections;
@@ -98,7 +100,29 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         .put("%", (l, r) -> doArithmetic(l, r, (ld, rd) -> ld % rd, (ll, rl) -> ll % rl))
         .put("+", (l, r) -> doArithmetic(l, r, Double::sum, Long::sum))
         .put("-", (l, r) -> doArithmetic(l, r, (ld, rd) -> ld - rd, (ll, rl) -> ll - rl))
-        .put("=", Objects::equals)
+        .put("=", (l, r) -> {
+            if (l != null && r != null) {
+                Class<?> lClass = l.getClass();
+                Class<?> rClass = r.getClass();
+
+                if (!lClass.equals(rClass)) {
+                    Object rConverted = ObjectUtils.to(lClass, r);
+
+                    if (rConverted != null) {
+                        return Objects.equals(l, rConverted);
+
+                    } else {
+                        Object lConverted = ObjectUtils.to(rClass, l);
+
+                        if (lConverted != null) {
+                            return Objects.equals(lConverted, r);
+                        }
+                    }
+                }
+            }
+
+            return Objects.equals(l, r);
+        })
         .put("!=", (l, r) -> !Objects.equals(l, r))
         .put("<", (l, r) -> compare(l, r) < 0)
         .put("<=", (l, r) -> compare(l, r) <= 0)
