@@ -46,8 +46,8 @@ public class RequiredValidator implements Validator<Required> {
 
                     // 'when' field is not set
                     // condition did not match
-                    // invalid if field is set
-                } else if (!ObjectUtils.isBlank(fieldValue)) {
+                    // invalid if field is set with any constraint other than NOT_ALLOWED
+                } else if (!ObjectUtils.isBlank(fieldValue) && annotation.constraint() != Required.RequiredConstraint.NOT_ALLOWED) {
                     message = String.format("Cannot be set when '%s' is not set.", annotation.when());
                     return false;
                 }
@@ -60,8 +60,8 @@ public class RequiredValidator implements Validator<Required> {
                     return isValidWithConstraint(diffable, annotation, diffableType, fieldValue);
 
                     // condition did not match
-                    // invalid if field is set
-                } else if (!ObjectUtils.isBlank(fieldValue)) {
+                    // invalid if field is set with any constraint other than NOT_ALLOWED
+                } else if (!ObjectUtils.isBlank(fieldValue) && annotation.constraint() != Required.RequiredConstraint.NOT_ALLOWED) {
                     message = String.format("Cannot be set when '%s' is not set to '%s'.", annotation.when(), annotation.equals());
                     return false;
                 }
