@@ -16,10 +16,10 @@
 
 package gyro.lang.filter;
 
+import java.util.List;
+
 import com.google.common.collect.ImmutableList;
 import gyro.parser.antlr4.GyroParser;
-
-import java.util.List;
 
 public abstract class AbstractCompoundFilter extends Filter {
 

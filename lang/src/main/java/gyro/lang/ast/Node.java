@@ -26,12 +26,12 @@ import java.util.function.Function;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import gyro.lang.EscapeException;
 import gyro.lang.GyroCharStream;
 import gyro.lang.GyroErrorListener;
 import gyro.lang.GyroErrorStrategy;
 import gyro.lang.SyntaxError;
 import gyro.lang.SyntaxErrorException;
-import gyro.lang.EscapeException;
 import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;
@@ -64,7 +64,9 @@ public abstract class Node extends Rule {
         .put(GyroParser.GroupedMulItemContext.class, c -> Node.create(((GyroParser.GroupedMulItemContext) c).value()))
         .put(GyroParser.IndexContext.class, GET_FIRST_CHILD)
         .put(GyroParser.IndexedMulItemContext.class, c -> new IndexedNode((GyroParser.IndexedMulItemContext) c))
-        .put(GyroParser.InterpolatedStringContext.class, c -> new InterpolatedStringNode((GyroParser.InterpolatedStringContext) c))
+        .put(
+            GyroParser.InterpolatedStringContext.class,
+            c -> new InterpolatedStringNode((GyroParser.InterpolatedStringContext) c))
         .put(GyroParser.ItemContext.class, GET_FIRST_CHILD)
         .put(GyroParser.KeyBlockContext.class, c -> new KeyBlockNode((GyroParser.KeyBlockContext) c))
         .put(GyroParser.KeyContext.class, GET_FIRST_CHILD)
@@ -121,7 +123,9 @@ public abstract class Node extends Rule {
             .collect(ImmutableCollectors.toList());
     }
 
-    private static <T extends ParseTree, U extends ParseTree> List<Node> create(T context, Function<T, List<U>> toList) {
+    private static <T extends ParseTree, U extends ParseTree> List<Node> create(
+        T context,
+        Function<T, List<U>> toList) {
         return Optional.ofNullable(context)
             .map(toList)
             .map(Node::create)
@@ -140,7 +144,8 @@ public abstract class Node extends Rule {
         return parse(new GyroCharStream(text), function);
     }
 
-    public static Node parse(InputStream input, String file, Function<GyroParser, ? extends ParseTree> function) throws IOException {
+    public static Node parse(InputStream input, String file, Function<GyroParser, ? extends ParseTree> function)
+        throws IOException {
         return parse(new GyroCharStream(input, file), function);
     }
 
@@ -169,7 +174,8 @@ public abstract class Node extends Rule {
             return Node.create(tree);
 
         } catch (EscapeException e) {
-            throw new SyntaxErrorException(charStream.getSourceName(),
+            throw new SyntaxErrorException(
+                charStream.getSourceName(),
                 Collections.singletonList(new SyntaxError(charStream, e.getMessage(), e.getToken())));
         }
     }

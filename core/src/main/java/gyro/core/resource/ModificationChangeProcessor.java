@@ -16,11 +16,11 @@
 
 package gyro.core.resource;
 
+import java.util.Set;
+
 import gyro.core.GyroUI;
 import gyro.core.diff.GlobalChangeProcessor;
 import gyro.core.scope.State;
-
-import java.util.Set;
 
 public class ModificationChangeProcessor extends GlobalChangeProcessor {
 
@@ -39,14 +39,24 @@ public class ModificationChangeProcessor extends GlobalChangeProcessor {
     }
 
     @Override
-    public void beforeUpdate(GyroUI ui, State state, Resource current, Resource pending, Set<DiffableField> changedFields) throws Exception {
+    public void beforeUpdate(
+        GyroUI ui,
+        State state,
+        Resource current,
+        Resource pending,
+        Set<DiffableField> changedFields) throws Exception {
         for (Modification modification : DiffableInternals.getModifications(current)) {
             modification.beforeUpdate(ui, state, current, pending, changedFields);
         }
     }
 
     @Override
-    public void afterUpdate(GyroUI ui, State state, Resource current, Resource pending, Set<DiffableField> changedFields) throws Exception {
+    public void afterUpdate(
+        GyroUI ui,
+        State state,
+        Resource current,
+        Resource pending,
+        Set<DiffableField> changedFields) throws Exception {
         for (Modification modification : DiffableInternals.getModifications(current)) {
             modification.afterUpdate(ui, state, current, pending, changedFields);
         }

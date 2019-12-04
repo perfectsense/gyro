@@ -71,7 +71,12 @@ public class WaitChangeProcessor extends ChangeProcessor {
     }
 
     @Override
-    public void afterUpdate(GyroUI ui, State state, Resource current, Resource pending, Set<DiffableField> changedFields) {
+    public void afterUpdate(
+        GyroUI ui,
+        State state,
+        Resource current,
+        Resource pending,
+        Set<DiffableField> changedFields) {
         wait(ui, state, pending);
     }
 

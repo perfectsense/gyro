@@ -24,8 +24,8 @@ import gyro.core.scope.NodeEvaluator;
 import gyro.core.scope.Scope;
 import gyro.lang.filter.AndFilter;
 import gyro.lang.filter.ComparisonFilter;
-import gyro.lang.filter.OrFilter;
 import gyro.lang.filter.FilterVisitor;
+import gyro.lang.filter.OrFilter;
 
 public class FilterEvaluator implements FilterVisitor<FilterContext, Boolean> {
 
@@ -42,13 +42,13 @@ public class FilterEvaluator implements FilterVisitor<FilterContext, Boolean> {
         Object y = scope.getRootScope().getEvaluator().visit(filter.getValue(), scope);
 
         switch (operator) {
-            case ComparisonFilter.EQUALS_OPERATOR :
+            case ComparisonFilter.EQUALS_OPERATOR:
                 return roughlyEquals(x, y);
 
-            case ComparisonFilter.NOT_EQUALS_OPERATOR :
+            case ComparisonFilter.NOT_EQUALS_OPERATOR:
                 return !roughlyEquals(x, y);
 
-            default :
+            default:
                 throw new GyroException(String.format(
                     "@|bold %s|@ operator isn't supported!",
                     operator));

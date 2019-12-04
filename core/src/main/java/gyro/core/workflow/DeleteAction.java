@@ -18,8 +18,8 @@ package gyro.core.workflow;
 
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
-import gyro.core.scope.NodeEvaluator;
 import gyro.core.resource.Resource;
+import gyro.core.scope.NodeEvaluator;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
 import gyro.core.scope.State;

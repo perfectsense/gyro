@@ -16,14 +16,14 @@
 
 package gyro.core.command;
 
+import java.util.List;
+
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import gyro.core.GyroCore;
 import io.airlift.airline.Option;
 import io.airlift.airline.OptionType;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
 
 /**
  * Basic {@link GyroCommand} implementation that adds the global {@code -debug} option for more detailed logging.
@@ -39,7 +39,7 @@ public abstract class AbstractCommand implements GyroCommand {
     @Option(type = OptionType.GLOBAL, name = "--debug", description = "Debug mode")
     public boolean debug;
 
-    @Option(name = { "--verbose" })
+    @Option(name = "--verbose")
     private boolean verbose;
 
     private List<String> unparsedArguments;

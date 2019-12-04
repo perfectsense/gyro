@@ -31,10 +31,20 @@ public abstract class ChangeProcessor {
     public void afterCreate(GyroUI ui, State state, Resource resource) throws Exception {
     }
 
-    public void beforeUpdate(GyroUI ui, State state, Resource current, Resource pending, Set<DiffableField> changedFields) throws Exception {
+    public void beforeUpdate(
+        GyroUI ui,
+        State state,
+        Resource current,
+        Resource pending,
+        Set<DiffableField> changedFields) throws Exception {
     }
 
-    public void afterUpdate(GyroUI ui, State state, Resource current, Resource pending, Set<DiffableField> changedFields) throws Exception {
+    public void afterUpdate(
+        GyroUI ui,
+        State state,
+        Resource current,
+        Resource pending,
+        Set<DiffableField> changedFields) throws Exception {
     }
 
     public void beforeDelete(GyroUI ui, State state, Resource resource) throws Exception {

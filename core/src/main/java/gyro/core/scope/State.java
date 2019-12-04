@@ -141,7 +141,8 @@ public class State {
     }
 
     private void updateSubresource(Resource parent, Resource subresource, boolean delete) {
-        DiffableField field = DiffableType.getInstance(parent.getClass()).getField(DiffableInternals.getName(subresource));
+        DiffableField field = DiffableType.getInstance(parent.getClass())
+            .getField(DiffableInternals.getName(subresource));
         Object value = field.getValue(parent);
 
         if (value instanceof Collection) {
@@ -156,7 +157,7 @@ public class State {
                 List<Object> list = (List<Object>) value;
                 boolean found = false;
 
-                for (ListIterator<Object> i = list.listIterator(); i.hasNext();) {
+                for (ListIterator<Object> i = list.listIterator(); i.hasNext(); ) {
                     Object item = i.next();
 
                     if (subresource.equals(item)) {
@@ -203,7 +204,9 @@ public class State {
                         printer.visit(
                             new ResourceNode(
                                 DiffableType.getInstance(resource.getClass()).getName(),
-                                new ValueNode(newNames.getOrDefault(resource.primaryKey(), DiffableInternals.getName(resource))),
+                                new ValueNode(newNames.getOrDefault(
+                                    resource.primaryKey(),
+                                    DiffableInternals.getName(resource))),
                                 toBodyNodes(resource, resource)),
                             context);
                     }
@@ -330,7 +333,9 @@ public class State {
                 return new ReferenceNode(
                     Arrays.asList(
                         new ValueNode(type.getName()),
-                        new ValueNode(newNames.getOrDefault(resource.primaryKey(), DiffableInternals.getName(resource)))),
+                        new ValueNode(newNames.getOrDefault(
+                            resource.primaryKey(),
+                            DiffableInternals.getName(resource)))),
                     Collections.emptyList());
             }
 

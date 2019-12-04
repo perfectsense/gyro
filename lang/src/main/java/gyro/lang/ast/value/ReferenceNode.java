@@ -16,6 +16,11 @@
 
 package gyro.lang.ast.value;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import gyro.lang.ast.Node;
@@ -23,11 +28,6 @@ import gyro.lang.ast.NodeVisitor;
 import gyro.lang.filter.Filter;
 import gyro.parser.antlr4.GyroParser;
 import gyro.util.ImmutableCollectors;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
 
 public class ReferenceNode extends Node {
 

@@ -16,15 +16,15 @@
 
 package gyro.core.resource;
 
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+
 import gyro.core.Type;
 import gyro.core.Waiter;
 import gyro.core.diff.ChangeSettings;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.scope.DiffableScope;
 import gyro.lang.ast.block.DirectiveNode;
-
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 @Type("wait")
 public class WaitDirectiveProcessor extends DirectiveProcessor<DiffableScope> {

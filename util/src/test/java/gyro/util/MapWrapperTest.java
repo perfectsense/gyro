@@ -42,7 +42,7 @@ class MapWrapperTest {
         @SuppressWarnings("unchecked")
         void beforeEach() {
             map = mock(Map.class);
-            wrapper= new MapWrapper<>(map);
+            wrapper = new MapWrapper<>(map);
         }
 
         @Test

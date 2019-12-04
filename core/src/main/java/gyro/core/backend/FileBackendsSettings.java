@@ -16,11 +16,11 @@
 
 package gyro.core.backend;
 
-import gyro.core.FileBackend;
-import gyro.core.scope.Settings;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import gyro.core.FileBackend;
+import gyro.core.scope.Settings;
 
 public class FileBackendsSettings extends Settings {
 

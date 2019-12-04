@@ -58,7 +58,8 @@ public class Reflections {
                                     int lastDotAt = name.lastIndexOf('.');
 
                                     return lastDotAt > -1
-                                        ? NAMESPACES_BY_LOADER.getUnchecked(loader).getUnchecked(name.substring(0, lastDotAt))
+                                        ? NAMESPACES_BY_LOADER.getUnchecked(loader)
+                                        .getUnchecked(name.substring(0, lastDotAt))
                                         : "";
                                 });
                         }

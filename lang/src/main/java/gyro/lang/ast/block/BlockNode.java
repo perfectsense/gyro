@@ -16,12 +16,12 @@
 
 package gyro.lang.ast.block;
 
+import java.util.List;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import gyro.lang.ast.Node;
 import org.antlr.v4.runtime.ParserRuleContext;
-
-import java.util.List;
 
 public abstract class BlockNode extends Node {
 

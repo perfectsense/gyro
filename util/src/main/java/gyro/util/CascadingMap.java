@@ -80,10 +80,10 @@ public class CascadingMap<K, V> implements Map<K, V> {
     @Override
     public V get(Object key) {
         return sources.stream()
-                .filter(s -> s.containsKey(key))
-                .findFirst()
-                .map(s -> s.get(key))
-                .orElse(null);
+            .filter(s -> s.containsKey(key))
+            .findFirst()
+            .map(s -> s.get(key))
+            .orElse(null);
     }
 
     @Override

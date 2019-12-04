@@ -16,11 +16,11 @@
 
 package gyro.core.validation;
 
-import gyro.core.resource.Diffable;
-
 import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Map;
+
+import gyro.core.resource.Diffable;
 
 public abstract class AbstractValidator<A extends Annotation> implements Validator<A> {
 

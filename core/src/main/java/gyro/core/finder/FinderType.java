@@ -32,14 +32,14 @@ import gyro.core.scope.Scope;
 public class FinderType<F extends Finder> {
 
     private static final LoadingCache<Class<? extends Finder>, FinderType<? extends Finder>> INSTANCES = CacheBuilder
-            .newBuilder()
-            .build(new CacheLoader<Class<? extends Finder>, FinderType<? extends Finder>>() {
+        .newBuilder()
+        .build(new CacheLoader<Class<? extends Finder>, FinderType<? extends Finder>>() {
 
-                @Override
-                public FinderType<? extends Finder> load(Class<? extends Finder> finderClass) {
-                    return new FinderType<>(finderClass);
-                }
-            });
+            @Override
+            public FinderType<? extends Finder> load(Class<? extends Finder> finderClass) {
+                return new FinderType<>(finderClass);
+            }
+        });
 
     private final Class<F> finderClass;
     private final String name;

@@ -16,6 +16,12 @@
 
 package gyro.core.command;
 
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import gyro.core.GyroCore;
 import gyro.core.repo.RepositorySettings;
 import io.airlift.airline.Command;
@@ -42,12 +48,6 @@ import org.eclipse.aether.transport.file.FileTransporterFactory;
 import org.eclipse.aether.transport.http.HttpTransporterFactory;
 import org.eclipse.aether.util.artifact.JavaScopes;
 import org.eclipse.aether.util.filter.DependencyFilterUtils;
-
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Command(name = "add", description = "Add one or more plugins.")
 public class PluginAddCommand extends PluginCommand {

@@ -63,12 +63,12 @@ public class FinderField {
 
         } else if (type instanceof ParameterizedType) {
             this.itemClass = Optional.of((ParameterizedType) type)
-                    .map(ParameterizedType::getActualTypeArguments)
-                    .filter(args -> args.length > 0)
-                    .map(args -> args[0])
-                    .filter(a0 -> a0 instanceof Class)
-                    .map(Class.class::cast)
-                    .orElseThrow(UnsupportedOperationException::new);
+                .map(ParameterizedType::getActualTypeArguments)
+                .filter(args -> args.length > 0)
+                .map(args -> args[0])
+                .filter(a0 -> a0 instanceof Class)
+                .map(Class.class::cast)
+                .orElseThrow(UnsupportedOperationException::new);
 
         } else {
             throw new GyroException(String.format(
@@ -99,7 +99,7 @@ public class FinderField {
 
     public void setValue(Finder finder, Object value) {
         if (value instanceof Collection
-                && !Collection.class.isAssignableFrom(setter.getParameterTypes()[0])) {
+            && !Collection.class.isAssignableFrom(setter.getParameterTypes()[0])) {
 
             value = ((Collection<?>) value).stream()
                 .filter(Objects::nonNull)
