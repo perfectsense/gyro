@@ -143,7 +143,8 @@ public class ExtendsDirectiveProcessor extends DirectiveProcessor<DiffableScope>
             clone.putAll(scope);
             return (T) clone;
 
-        } if (value instanceof List) {
+        }
+        if (value instanceof List) {
             return (T) ((List<?>) value).stream()
                 .map(this::clone)
                 .collect(Collectors.toList());

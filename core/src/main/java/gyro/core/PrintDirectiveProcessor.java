@@ -16,12 +16,12 @@
 
 package gyro.core;
 
+import java.util.List;
+
 import com.psddev.dari.util.ObjectUtils;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.scope.Scope;
 import gyro.lang.ast.block.DirectiveNode;
-
-import java.util.List;
 
 @Type("print")
 public class PrintDirectiveProcessor extends DirectiveProcessor<Scope> {

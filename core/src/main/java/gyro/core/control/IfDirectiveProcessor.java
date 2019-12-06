@@ -41,20 +41,20 @@ public class IfDirectiveProcessor extends DirectiveProcessor<Scope> {
             String name = section.getName();
 
             switch (name) {
-                case "elseif" :
-                case "elsif" :
-                case "elif" :
+                case "elseif":
+                case "elsif":
+                case "elif":
                     if (processSection(scope, section, section.getArguments(), section.getBody())) {
                         return;
                     }
 
                     break;
 
-                case "else" :
+                case "else":
                     scope.getRootScope().getEvaluator().evaluateBody(section.getBody(), scope);
                     return;
 
-                default :
+                default:
                     throw new GyroException(section, String.format(
                         "@|bold -%s|@ isn't a valid section within an @|bold @if|@ directive!",
                         name));

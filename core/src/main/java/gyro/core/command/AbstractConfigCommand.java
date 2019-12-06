@@ -41,8 +41,8 @@ import gyro.core.auth.Credentials;
 import gyro.core.auth.CredentialsSettings;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
-import gyro.core.scope.FileScope;
 import gyro.core.resource.Resource;
+import gyro.core.scope.FileScope;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.State;
 import io.airlift.airline.Arguments;
@@ -50,10 +50,10 @@ import io.airlift.airline.Option;
 
 public abstract class AbstractConfigCommand extends AbstractCommand {
 
-    @Option(name = { "--skip-refresh" })
+    @Option(name = "--skip-refresh")
     public boolean skipRefresh;
 
-    @Option(name = { "--test" })
+    @Option(name = "--test")
     private boolean test;
 
     @Arguments
@@ -72,7 +72,8 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         Path rootDir = GyroCore.getRootDirectory();
 
         if (rootDir == null) {
-            throw new GyroException("Not a gyro project directory, use 'gyro init <plugins>...' to create one. See 'gyro help init' for detailed usage.");
+            throw new GyroException(
+                "Not a gyro project directory, use 'gyro init <plugins>...' to create one. See 'gyro help init' for detailed usage.");
         }
 
         Set<String> loadFiles;

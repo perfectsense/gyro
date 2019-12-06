@@ -16,9 +16,9 @@
 
 package gyro.core.command;
 
-import io.airlift.airline.Help;
-
 import java.util.Collections;
+
+import io.airlift.airline.Help;
 
 public class PluginHelp extends Help {
 

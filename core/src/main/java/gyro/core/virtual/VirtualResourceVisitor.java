@@ -21,9 +21,9 @@ import java.util.List;
 import com.google.common.collect.ImmutableList;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.resource.DiffableInternals;
-import gyro.core.scope.FileScope;
 import gyro.core.resource.Resource;
 import gyro.core.resource.ResourceVisitor;
+import gyro.core.scope.FileScope;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
 import gyro.lang.ast.Node;
@@ -44,7 +44,11 @@ public class VirtualResourceVisitor extends ResourceVisitor {
 
                 if ("param".equals(directive.getName())) {
                     DirectiveProcessor.validateArguments(directive, 1, 1);
-                    parametersBuilder.add(new VirtualParameter(DirectiveProcessor.getArgument(scope, directive, String.class, 0)));
+                    parametersBuilder.add(new VirtualParameter(DirectiveProcessor.getArgument(
+                        scope,
+                        directive,
+                        String.class,
+                        0)));
                     continue;
                 }
             }

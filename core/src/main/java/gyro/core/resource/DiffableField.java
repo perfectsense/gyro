@@ -42,7 +42,8 @@ import gyro.core.validation.ValidatorClass;
 
 public class DiffableField {
 
-    private static final LoadingCache<Class<? extends Validator<? extends Annotation>>, Validator<Annotation>> VALIDATORS = CacheBuilder.newBuilder()
+    private static final LoadingCache<Class<? extends Validator<? extends Annotation>>, Validator<Annotation>> VALIDATORS = CacheBuilder
+        .newBuilder()
         .weakKeys()
         .build(new CacheLoader<Class<? extends Validator<? extends Annotation>>, Validator<Annotation>>() {
 
@@ -143,7 +144,7 @@ public class DiffableField {
 
         try {
             if (value instanceof Collection
-                    && !Collection.class.isAssignableFrom(setter.getParameterTypes()[0])) {
+                && !Collection.class.isAssignableFrom(setter.getParameterTypes()[0])) {
 
                 value = ((Collection<?>) value).stream()
                     .filter(Objects::nonNull)
@@ -156,7 +157,8 @@ public class DiffableField {
         } catch (ConversionException error) {
             throw new GyroException(
                 scope.getLocation(name),
-                String.format("Can't set @|bold %s|@ to @|bold %s|@ because it can't be converted to an instance of @|bold %s|@!",
+                String.format(
+                    "Can't set @|bold %s|@ to @|bold %s|@ because it can't be converted to an instance of @|bold %s|@!",
                     name,
                     value,
                     type.getTypeName()));

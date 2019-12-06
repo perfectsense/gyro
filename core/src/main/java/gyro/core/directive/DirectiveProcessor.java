@@ -32,7 +32,12 @@ import gyro.lang.ast.block.DirectiveOption;
 
 public abstract class DirectiveProcessor<S extends Scope> {
 
-    private static List<Node> validate(Locatable locatable, List<Node> arguments, int minimum, int maximum, String errorName) {
+    private static List<Node> validate(
+        Locatable locatable,
+        List<Node> arguments,
+        int minimum,
+        int maximum,
+        String errorName) {
         int argumentsSize = arguments.size();
         boolean hasMinimum = minimum > 0;
         boolean hasMaximum = maximum > 0;
@@ -69,7 +74,12 @@ public abstract class DirectiveProcessor<S extends Scope> {
     }
 
     public static List<Node> validateArguments(DirectiveNode node, int minimum, int maximum) {
-        return validate(node, node.getArguments(), minimum, maximum, String.format("@|bold @%s|@ directive", node.getName()));
+        return validate(
+            node,
+            node.getArguments(),
+            minimum,
+            maximum,
+            String.format("@|bold @%s|@ directive", node.getName()));
     }
 
     private static DirectiveOption getOption(DirectiveNode node, String name) {
@@ -123,7 +133,12 @@ public abstract class DirectiveProcessor<S extends Scope> {
             .collect(Collectors.toList());
     }
 
-    public static <T> T getOptionArgument(Scope scope, DirectiveNode node, String name, Class<T> valueClass, int index) {
+    public static <T> T getOptionArgument(
+        Scope scope,
+        DirectiveNode node,
+        String name,
+        Class<T> valueClass,
+        int index) {
         DirectiveOption option = getOption(node, name);
         return option != null ? convert(valueClass, scope, option.getArguments(), index) : null;
     }

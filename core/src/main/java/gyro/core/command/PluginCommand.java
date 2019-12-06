@@ -16,6 +16,15 @@
 
 package gyro.core.command;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import gyro.core.FileBackend;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
@@ -30,19 +39,11 @@ import gyro.parser.antlr4.GyroParser;
 import gyro.util.Bug;
 import io.airlift.airline.Arguments;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
 public abstract class PluginCommand implements GyroCommand {
 
-    @Arguments(description = "A space separated list of plugins specified in the format of <group>:<artifact>:<version>. "
-        + "For example: gyro:gyro-aws-provider:0.1-SNAPSHOT")
+    @Arguments(description =
+        "A space separated list of plugins specified in the format of <group>:<artifact>:<version>. "
+            + "For example: gyro:gyro-aws-provider:0.1-SNAPSHOT")
     private List<String> plugins;
 
     private List<DirectiveNode> pluginNodes;

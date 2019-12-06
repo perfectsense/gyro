@@ -16,8 +16,6 @@
 
 package gyro.core.virtual;
 
-import java.util.Set;
-
 import gyro.core.resource.Resource;
 import gyro.core.scope.RootScope;
 

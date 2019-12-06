@@ -29,8 +29,14 @@ public class RepositorySettings extends Settings {
      *
      * @see <a href="https://maven.apache.org/guides/introduction/introduction-to-the-pom.html#Super_POM">Super POM</a>
      */
-    public static final RemoteRepository CENTRAL = new RemoteRepository.Builder("central", "default", "https://repo.maven.apache.org/maven2").build();
-    public static final RemoteRepository RELEASE = new RemoteRepository.Builder("http://artifactory.psdops.com/gyro-releases", "default", "http://artifactory.psdops.com/gyro-releases").build();
+    public static final RemoteRepository CENTRAL = new RemoteRepository.Builder(
+        "central",
+        "default",
+        "https://repo.maven.apache.org/maven2").build();
+    public static final RemoteRepository RELEASE = new RemoteRepository.Builder(
+        "http://artifactory.psdops.com/gyro-releases",
+        "default",
+        "http://artifactory.psdops.com/gyro-releases").build();
 
     private List<RemoteRepository> repositories;
 

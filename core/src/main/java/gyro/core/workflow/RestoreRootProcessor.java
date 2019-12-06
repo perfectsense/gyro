@@ -7,9 +7,9 @@ import java.util.Map;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
-import gyro.core.scope.RootProcessor;
 import gyro.core.resource.Resource;
 import gyro.core.scope.Defer;
+import gyro.core.scope.RootProcessor;
 import gyro.core.scope.RootScope;
 
 public class RestoreRootProcessor extends RootProcessor {

@@ -41,7 +41,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
-
 import com.psddev.dari.util.ObjectUtils;
 import com.psddev.dari.util.TypeDefinition;
 import gyro.core.GyroException;
@@ -60,11 +59,11 @@ import gyro.core.resource.OutputValue;
 import gyro.core.resource.Resource;
 import gyro.core.resource.ResourceVisitor;
 import gyro.core.resource.SelfSettings;
-import gyro.lang.ast.block.BlockNode;
-import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.PairNode;
+import gyro.lang.ast.block.BlockNode;
+import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.block.ResourceNode;
@@ -84,15 +83,17 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
     private Map<String, Set<Node>> typeNodes;
     private List<Node> body;
 
-    private static final LoadingCache<Class<? extends DirectiveProcessor>, Class<? extends Scope>> DIRECTIVE_PROCESSOR_SCOPE_CLASSES = CacheBuilder.newBuilder()
+    private static final LoadingCache<Class<? extends DirectiveProcessor>, Class<? extends Scope>> DIRECTIVE_PROCESSOR_SCOPE_CLASSES = CacheBuilder
+        .newBuilder()
         .build(new CacheLoader<Class<? extends DirectiveProcessor>, Class<? extends Scope>>() {
 
-           @Override
-           @SuppressWarnings("unchecked")
-           public Class<? extends Scope> load(Class<? extends DirectiveProcessor> directiveProcessorClass) {
-               return (Class<? extends Scope>) TypeDefinition.getInstance(directiveProcessorClass).getInferredGenericTypeArgumentClass(DirectiveProcessor.class, 0);
-           }
-       });
+            @Override
+            @SuppressWarnings("unchecked")
+            public Class<? extends Scope> load(Class<? extends DirectiveProcessor> directiveProcessorClass) {
+                return (Class<? extends Scope>) TypeDefinition.getInstance(directiveProcessorClass)
+                    .getInferredGenericTypeArgumentClass(DirectiveProcessor.class, 0);
+            }
+        });
 
     private static final Map<String, BiFunction<Object, Object, Object>> BINARY_FUNCTIONS = ImmutableMap.<String, BiFunction<Object, Object, Object>>builder()
         .put("*", (l, r) -> doArithmetic(l, r, (ld, rd) -> ld * rd, (ll, rl) -> ll * rl))
@@ -110,7 +111,11 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         .put("or", (l, r) -> test(l) && test(r))
         .build();
 
-    private static Object doArithmetic(Object left, Object right, DoubleBinaryOperator doubleOperator, LongBinaryOperator longOperator) {
+    private static Object doArithmetic(
+        Object left,
+        Object right,
+        DoubleBinaryOperator doubleOperator,
+        LongBinaryOperator longOperator) {
         if (left == null || right == null) {
             throw new GyroException("Can't do arithmetic with a null!");
         }

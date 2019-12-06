@@ -16,14 +16,14 @@
 
 package gyro.lang.ast.value;
 
+import java.util.List;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import gyro.lang.ast.Node;
 import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.PairNode;
-import gyro.lang.ast.Node;
 import gyro.parser.antlr4.GyroParser;
-
-import java.util.List;
 
 public class MapNode extends Node {
 

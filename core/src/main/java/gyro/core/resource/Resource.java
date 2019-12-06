@@ -29,7 +29,8 @@ public abstract class Resource extends Diffable {
 
     public abstract void create(GyroUI ui, State state) throws Exception;
 
-    public abstract void update(GyroUI ui, State state, Resource current, Set<String> changedFieldNames) throws Exception;
+    public abstract void update(GyroUI ui, State state, Resource current, Set<String> changedFieldNames)
+        throws Exception;
 
     public abstract void delete(GyroUI ui, State state) throws Exception;
 
@@ -43,8 +44,8 @@ public abstract class Resource extends Diffable {
 
     public Object get(String key) {
         return Optional.ofNullable(DiffableType.getInstance(getClass()).getField(key))
-                .map(f -> f.getValue(this))
-                .orElse(null);
+            .map(f -> f.getValue(this))
+            .orElse(null);
     }
 
 }

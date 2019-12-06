@@ -25,9 +25,9 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.google.common.collect.ImmutableSet;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
-import com.google.common.collect.ImmutableSet;
 import org.fusesource.jansi.Ansi;
 import org.fusesource.jansi.AnsiRenderer;
 
@@ -133,17 +133,17 @@ public class CliGyroUI implements GyroUI {
 
     @Override
     public void indent() {
-        ++ indentLevel;
+        ++indentLevel;
     }
 
     @Override
     public void unindent() {
-        -- indentLevel;
+        --indentLevel;
     }
 
     private void writeIndentation() {
         if (pendingIndentation) {
-            for (int i = 0, l = indentLevel * getIndentSize(); i < l; ++ i) {
+            for (int i = 0, l = indentLevel * getIndentSize(); i < l; ++i) {
                 System.out.print(' ');
             }
 
@@ -154,8 +154,8 @@ public class CliGyroUI implements GyroUI {
     @Override
     public void write(String message, Object... arguments) {
         String text = arguments != null && arguments.length > 0
-                ? String.format(message, arguments)
-                : message;
+            ? String.format(message, arguments)
+            : message;
 
         if (AnsiRenderer.test(text)) {
             text = AnsiRenderer.render(text);
@@ -163,7 +163,7 @@ public class CliGyroUI implements GyroUI {
 
         int offset = 0;
 
-        for (Matcher m = NEWLINES.matcher(text); m.find();) {
+        for (Matcher m = NEWLINES.matcher(text); m.find(); ) {
             writeIndentation();
             System.out.print(text.substring(offset, m.start()));
             System.out.print(m.group(1));

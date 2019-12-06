@@ -16,9 +16,9 @@
 
 package gyro.lang.filter;
 
-import gyro.parser.antlr4.GyroParser;
-
 import java.util.List;
+
+import gyro.parser.antlr4.GyroParser;
 
 public class AndFilter extends AbstractCompoundFilter {
 

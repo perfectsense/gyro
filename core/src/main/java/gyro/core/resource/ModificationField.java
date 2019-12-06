@@ -43,8 +43,11 @@ public class ModificationField extends DiffableField {
         DiffableType<Diffable> type = DiffableType.getInstance(diffable);
         String name = DiffableInternals.getName(diffable);
 
-        throw new Bug(String.format("Unable to match modification field '%s' with modification instance on resource %s %s",
-            getName(), type, name));
+        throw new Bug(String.format(
+            "Unable to match modification field '%s' with modification instance on resource %s %s",
+            getName(),
+            type,
+            name));
     }
 
     @Override
@@ -63,8 +66,11 @@ public class ModificationField extends DiffableField {
         DiffableType<Diffable> type = DiffableType.getInstance(diffable);
         String name = DiffableInternals.getName(diffable);
 
-        throw new Bug(String.format("Unable to match modification field '%s' with modification instance on resource %s %s",
-            getName(), type, name));
+        throw new Bug(String.format(
+            "Unable to match modification field '%s' with modification instance on resource %s %s",
+            getName(),
+            type,
+            name));
     }
 
 }

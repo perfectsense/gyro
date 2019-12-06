@@ -17,8 +17,8 @@
 package gyro.lang.ast.block;
 
 import com.google.common.base.Preconditions;
-import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.Node;
+import gyro.lang.ast.NodeVisitor;
 import gyro.parser.antlr4.GyroParser;
 
 public class FileNode extends BlockNode {

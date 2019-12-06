@@ -16,24 +16,24 @@
 
 package gyro.lang.ast.value;
 
+import java.util.Map;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import gyro.lang.EscapeException;
-import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.Node;
+import gyro.lang.ast.NodeVisitor;
 import gyro.parser.antlr4.GyroParser;
 import org.antlr.v4.runtime.RuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
-
-import java.util.Map;
 
 public class ValueNode extends Node {
 
     private final Object value;
 
     // Escape character
-    private final static Map<Character, Character> ESCAPE = new ImmutableMap.Builder<Character, Character>()
+    private static final Map<Character, Character> ESCAPE = new ImmutableMap.Builder<Character, Character>()
         .put('t', '\t')
         .put('n', '\n')
         .put('r', '\r')

@@ -16,14 +16,14 @@
 
 package gyro.core.command;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import gyro.core.GyroCore;
 import gyro.lang.ast.block.DirectiveNode;
 import io.airlift.airline.Command;
 import io.airlift.airline.Help;
 import io.airlift.airline.model.MetadataLoader;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Command(name = "remove", description = "Remove one or more plugins.")
 public class PluginRemoveCommand extends PluginCommand {

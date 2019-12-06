@@ -97,7 +97,7 @@ public interface Locatable {
             text.append('\n');
         }
 
-        for (int line = startLine; line <= stopLine; line ++) {
+        for (int line = startLine; line <= stopLine; line++) {
             String current = stream.getLineText(line);
             int end = current.length();
             int start = line == startLine ? startColumn : 0;

@@ -16,13 +16,13 @@
 
 package gyro.core;
 
-import gyro.util.Bug;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+
+import gyro.util.Bug;
 
 @Type("log")
 public class LogDirectiveProcessor extends PrintDirectiveProcessor {
@@ -39,7 +39,7 @@ public class LogDirectiveProcessor extends PrintDirectiveProcessor {
                 printWriter.write("\n");
 
             }
-        }catch (IOException error) {
+        } catch (IOException error) {
             throw new Bug(error);
         }
     }

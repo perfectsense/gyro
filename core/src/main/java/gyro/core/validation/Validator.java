@@ -16,9 +16,9 @@
 
 package gyro.core.validation;
 
-import gyro.core.resource.Diffable;
-
 import java.lang.annotation.Annotation;
+
+import gyro.core.resource.Diffable;
 
 public interface Validator<A extends Annotation> {
 
