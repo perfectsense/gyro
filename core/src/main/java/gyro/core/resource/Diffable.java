@@ -76,6 +76,12 @@ public abstract class Diffable {
         return DiffableType.getInstance(diffableClass).newInternal(new DiffableScope(scope, null), null);
     }
 
+    protected void requires(String fieldName) {
+        if (!scope.isEmpty()) {
+            DiffableType.getInstance(this).getField(fieldName).setValue(this, scope.get(fieldName));
+        }
+    }
+
     public String primaryKey() {
         return String.format("%s::%s", DiffableType.getInstance(getClass()).getName(), name);
     }
