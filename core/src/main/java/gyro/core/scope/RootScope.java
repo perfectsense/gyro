@@ -262,6 +262,10 @@ public class RootScope extends FileScope {
         DiffableType<T> type = DiffableType.getInstance(resourceClass);
         DiffableField idField = type.getIdField();
 
+        if (idField == null) {
+            throw new GyroException(String.format("Unable to find @Id on a getter in %s", resourceClass.getSimpleName()));
+        }
+
         return findResourcesByClass(resourceClass)
             .filter(r -> id.equals(idField.getValue(r)))
             .findFirst()
