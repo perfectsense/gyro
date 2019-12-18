@@ -17,6 +17,8 @@
 package gyro.core.scope;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
@@ -33,6 +35,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.psddev.dari.util.IoUtils;
 import gyro.core.GyroException;
 import gyro.core.diff.Change;
 import gyro.core.diff.Delete;
@@ -193,9 +196,11 @@ public class State {
                 .collect(Collectors.toList());
 
             if (!resources.isEmpty()) {
+                String tempFile = String.format("%s~", file);
+
                 try (PrintWriter out = new PrintWriter(
                     new OutputStreamWriter(
-                        root.openOutput(file),
+                        root.openOutput(tempFile),
                         StandardCharsets.UTF_8))) {
 
                     PrinterContext context = new PrinterContext(out, 0);
@@ -211,6 +216,15 @@ public class State {
                             context);
                     }
 
+                } catch (IOException error) {
+                    throw new Bug(error);
+                }
+
+                try (OutputStream out = root.openOutput(file)) {
+                    InputStream in = root.openInput(tempFile);
+                    IoUtils.copy(in, out);
+
+                    root.delete(tempFile);
                 } catch (IOException error) {
                     throw new Bug(error);
                 }
