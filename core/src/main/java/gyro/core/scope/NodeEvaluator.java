@@ -541,7 +541,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         return null;
     }
 
-    private void copy(Diffable currentResource, Diffable pendingResource) {
+    public void copy(Diffable currentResource, Diffable pendingResource) {
         if (currentResource == null) {
             return;
         }
