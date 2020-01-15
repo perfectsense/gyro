@@ -272,16 +272,19 @@ public class DiffableType<D extends Diffable> {
 
         } else if (value instanceof Diffable) {
             Diffable diffable = (Diffable) value;
+            Set<String> configuredFields = DiffableInternals.getConfiguredFields(diffable);
 
             for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
-                errors.addAll(field.validate(diffable));
+                if (configuredFields.contains(field.getName())) {
+                    errors.addAll(field.validate(diffable));
 
-                if (field.shouldBeDiffed()) {
-                    validateValue(errors, diffable, field.getName(), field.getValue(diffable));
+                    if (field.shouldBeDiffed()) {
+                        validateValue(errors, diffable, field.getName(), field.getValue(diffable));
+                    }
                 }
             }
 
-            Optional.ofNullable(diffable.validate()).ifPresent(errors::addAll);
+            Optional.ofNullable(diffable.validate(configuredFields)).ifPresent(errors::addAll);
 
         } else {
             errors.add(new ValidationError(
