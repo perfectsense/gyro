@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import gyro.core.GyroInputStream;
@@ -41,6 +40,8 @@ public abstract class Diffable {
     Change change;
     Set<String> configuredFields;
     final List<Modification<? extends Diffable>> modifications = new ArrayList<>();
+
+    public abstract String primaryKey();
 
     public Diffable parent() {
         return parent;
@@ -80,30 +81,6 @@ public abstract class Diffable {
     protected void requires(String fieldName) {
         if (!scope.isEmpty()) {
             DiffableType.getInstance(this).getField(fieldName).setValue(this, scope.get(fieldName));
-        }
-    }
-
-    public String primaryKey() {
-        String typeName = DiffableType.getInstance(getClass()).getName();
-
-        if (typeName != null) {
-            return String.format("%s::%s", DiffableType.getInstance(getClass()).getName(), name);
-
-        } else {
-            List<String> key = new ArrayList<>();
-            DiffableType type = DiffableType.getInstance(this);
-            List<DiffableField> fields = type.getFields();
-            for (DiffableField f : fields) {
-                Object value = f.getValue(this);
-                if (value != null) {
-                    key.add(f.getName() + "=" + f.getValue(this));
-                }
-            }
-
-            if (key.size() > 0) {
-                return key.stream().collect(Collectors.joining(", "));
-            }
-            return name;
         }
     }
 
