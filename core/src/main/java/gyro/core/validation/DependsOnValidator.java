@@ -47,7 +47,7 @@ public class DependsOnValidator implements Validator<DependsOn> {
 
     @Override
     public boolean isValid(Diffable diffable, DependsOn annotation, Object fieldValue) {
-        if (fieldValue == null) {
+        if (ObjectUtils.isBlank(fieldValue)) {
             return true;
         }
         DiffableType<Diffable> diffableType = DiffableType.getInstance(diffable);
