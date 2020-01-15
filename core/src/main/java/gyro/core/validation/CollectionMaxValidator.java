@@ -17,6 +17,6 @@ public class CollectionMaxValidator implements Validator<CollectionMax> {
 
     @Override
     public String getMessage(CollectionMax annotation) {
-        return String.format("Size of the collection must be less than or equal to @|bold %s|@", annotation.value());
+        return String.format("Size of the collection must be less than or equal to @|bold %d|@", annotation.value());
     }
 }
