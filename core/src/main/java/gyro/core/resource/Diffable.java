@@ -107,7 +107,7 @@ public abstract class Diffable {
         }
     }
 
-    public List<ValidationError> validate() {
+    public List<ValidationError> validate(Set<String> configuredFields) {
         return null;
     }
 
@@ -174,4 +174,11 @@ public abstract class Diffable {
         return builder.toString();
     }
 
+    /**
+     * @deprecated Use {@link #validate(Set)} instead.
+     */
+    @Deprecated
+    public List<ValidationError> validate() {
+        return validate(null);
+    }
 }
