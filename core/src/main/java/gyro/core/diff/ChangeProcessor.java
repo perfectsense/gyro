@@ -25,6 +25,12 @@ import gyro.core.scope.State;
 
 public abstract class ChangeProcessor {
 
+    public void beforeRefresh(GyroUI ui, Resource resource) throws Exception {
+    }
+
+    public void afterRefresh(GyroUI ui, Resource resource) throws Exception {
+    }
+
     public void beforeCreate(GyroUI ui, State state, Resource resource) throws Exception {
     }
 
