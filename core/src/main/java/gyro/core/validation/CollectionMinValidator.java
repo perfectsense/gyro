@@ -2,6 +2,7 @@ package gyro.core.validation;
 
 import java.util.Collection;
 
+import gyro.core.GyroException;
 import gyro.core.resource.Diffable;
 
 public class CollectionMinValidator implements Validator<CollectionMin> {
@@ -10,9 +11,9 @@ public class CollectionMinValidator implements Validator<CollectionMin> {
     public boolean isValid(Diffable diffable, CollectionMin annotation, Object value) {
         if (value instanceof Collection) {
             return ((Collection<?>) value).size() >= annotation.value();
+        } else {
+            throw new GyroException("Invalid usage of '@CollectionMin' validation annotation. Can only be used on types that extend Collection.");
         }
-
-        return true;
     }
 
     @Override

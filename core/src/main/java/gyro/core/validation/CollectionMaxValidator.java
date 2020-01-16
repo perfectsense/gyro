@@ -2,6 +2,7 @@ package gyro.core.validation;
 
 import java.util.Collection;
 
+import gyro.core.GyroException;
 import gyro.core.resource.Diffable;
 
 public class CollectionMaxValidator implements Validator<CollectionMax> {
@@ -10,9 +11,9 @@ public class CollectionMaxValidator implements Validator<CollectionMax> {
     public boolean isValid(Diffable diffable, CollectionMax annotation, Object value) {
         if (value instanceof Collection) {
             return ((Collection<?>) value).size() <= annotation.value();
+        } else {
+            throw new GyroException("Invalid usage of '@CollectionMax' validation annotation. Can only be used on types that extend Collection.");
         }
-
-        return true;
     }
 
     @Override
