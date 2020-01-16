@@ -73,4 +73,3 @@ public class DependsOnValidator implements Validator<DependsOn> {
             String.join("', '", annotation.value()));
     }
 }
-
