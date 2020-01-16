@@ -48,4 +48,8 @@ public abstract class Resource extends Diffable {
             .orElse(null);
     }
 
+    @Override
+    public String primaryKey() {
+        return String.format("%s::%s", DiffableType.getInstance(getClass()).getName(), name);
+    }
 }
