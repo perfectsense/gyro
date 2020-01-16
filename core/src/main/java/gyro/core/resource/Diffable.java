@@ -85,7 +85,7 @@ public abstract class Diffable {
     }
 
     public List<ValidationError> validate(Set<String> configuredFields) {
-        return null;
+        return validate();
     }
 
     public boolean writePlan(GyroUI ui, Change change) {
@@ -156,6 +156,6 @@ public abstract class Diffable {
      */
     @Deprecated
     public List<ValidationError> validate() {
-        return validate(null);
+        return null;
     }
 }
