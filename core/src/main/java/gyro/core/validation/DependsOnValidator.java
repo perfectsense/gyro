@@ -19,6 +19,7 @@ package gyro.core.validation;
 import java.util.stream.Stream;
 
 import com.psddev.dari.util.ObjectUtils;
+import gyro.core.GyroException;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.DiffableField;
 import gyro.core.resource.DiffableType;
@@ -55,14 +56,20 @@ public class DependsOnValidator implements Validator<DependsOn> {
         return Stream.of(annotation.value())
             .allMatch(name -> {
                 DiffableField field = diffableType.getField(name);
-                return field != null && !ObjectUtils.isBlank(field.getValue(diffable));
+
+                if (field == null) {
+                    throw new GyroException(String.format(
+                        "Invalid usage of '@DependsOn' validation annotation. The field @|bold '%s'|@ doesn't exist.",
+                        name));
+                }
+                return !ObjectUtils.isBlank(field.getValue(diffable));
             });
     }
 
     @Override
     public String getMessage(DependsOn annotation) {
         return String.format(
-            "Depends on the following field(s): ['%s']",
+            "Depends on the following field(s): @|bold ['%s']|@",
             String.join("', '", annotation.value()));
     }
 }
