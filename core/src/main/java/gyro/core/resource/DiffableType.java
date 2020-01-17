@@ -105,7 +105,7 @@ public class DiffableType<D extends Diffable> {
 
                 if (getterType.equals(setterType)) {
                     DiffableField field = new DiffableField(prop.getName(), getter, setter, getterType);
-                    if (getter.isAnnotationPresent(Id.class)) {
+                    if (DiffableField.isAnnotationPresent(getter, Id.class)) {
                         idField = field;
                     }
 
