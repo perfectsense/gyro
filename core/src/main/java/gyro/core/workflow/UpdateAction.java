@@ -67,6 +67,7 @@ public class UpdateAction extends Action {
         }
 
         Resource pendingResource = (Resource) resource;
+        DiffableInternals.disconnect(pendingResource);
         DiffableScope resourceScope = DiffableInternals.getScope(pendingResource);
 
         for (Node item : body) {
@@ -74,7 +75,7 @@ public class UpdateAction extends Action {
         }
 
         DiffableType.getInstance(pendingResource).setValues(pendingResource, resourceScope);
-        DiffableInternals.update(pendingResource, true);
+        DiffableInternals.update(pendingResource);
     }
 
 }

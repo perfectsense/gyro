@@ -238,7 +238,7 @@ public class DiffableType<D extends Diffable> {
                     String.join(", ", invalidFieldNames)));
         }
 
-        DiffableInternals.update(diffable, false);
+        DiffableInternals.update(diffable);
     }
 
     public List<ValidationError> validate(D diffable) {
