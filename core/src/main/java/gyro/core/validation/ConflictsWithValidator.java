@@ -20,11 +20,11 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import com.psddev.dari.util.ObjectUtils;
-import gyro.core.GyroException;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.DiffableField;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
+import gyro.util.Bug;
 
 public class ConflictsWithValidator implements Validator<ConflictsWith> {
 
@@ -42,7 +42,7 @@ public class ConflictsWithValidator implements Validator<ConflictsWith> {
                 DiffableField field = diffableType.getField(name);
 
                 if (field == null) {
-                    throw new GyroException(String.format(
+                    throw new Bug(String.format(
                         "Invalid usage of '@ConflictsWith' validation annotation. The field @|bold '%s'|@ doesn't exist.",
                         name));
                 }
