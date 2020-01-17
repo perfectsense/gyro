@@ -275,7 +275,7 @@ public class DiffableType<D extends Diffable> {
             Set<String> configuredFields = DiffableInternals.getConfiguredFields(diffable);
 
             for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
-                if (configuredFields.contains(field.getName())) {
+                if (field.isRequired() || configuredFields.contains(field.getName())) {
                     errors.addAll(field.validate(diffable));
 
                     if (field.shouldBeDiffed()) {
