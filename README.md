@@ -20,13 +20,14 @@ first, definitely won't be the last, haha. That's ok though, gyro sandwiches are
 
 ### Background
 
-Gyro evolved from an internal tool built [Perfect Sense](https://www.perfectsensedigital.com) to automation running [Brightspot](https://www.brightspot.com) starting way back in 2014. The initial goal of that tool
-was to automate creating and updating our infrastructure. As time went on we integrated different
-parts of our infrastructure into this tool. We use it to execute Chef on our hosts, ssh into hosts,
-interact with service discovery during maintenance, and deploy our code using with blue/green
-deployment model. We found this "one tool for most of your day-to-day operations activities" to be
-extremely valuable. This is why we decided to refactor the code, make it more flexible, and open
-source it so others could do the same.
+Gyro was built by [Perfect Sense](https://www.perfectsensedigital.com) to automate the creation and
+management of the cloud infrastructure we use to run [Brightspot](https://www.brightspot.com) for
+our clients. We integrated several tools that are part of our DevOps lifecycle such as Chef to
+install and configure software on our hosts, ssh to log into hosts, and service discovery to drain
+traffic during maintenance. We use workflows to deploy our code using with the blue/green model. We
+found this "one tool for your day-to-day operations activities" to be extremely valuable.  After six
+years of using this tool internally, we decided to refactor the code, make it more flexible, and
+open source it so others can benefit just as we have.
 
 ## Gyro Language
 
