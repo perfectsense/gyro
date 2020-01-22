@@ -61,7 +61,7 @@ When you run Gyro it'll tell you exactly what it's going to do.
 
 <img src="etc/gyro-create.svg" height="400"/>
 
-Enable verbose mode to get a more detailed view. In this we've made a small modification
+Enable verbose mode to get a more detailed view. In this example we've made a small modification
 to the original configuration to add a new security group:
 
 <img src="etc/gyro-update.svg" height="400"/>
