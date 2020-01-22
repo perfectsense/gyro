@@ -37,6 +37,7 @@ import com.psddev.dari.util.ConversionException;
 import gyro.core.GyroException;
 import gyro.core.Reflections;
 import gyro.core.scope.Scope;
+import gyro.core.validation.Required;
 import gyro.core.validation.ValidationError;
 import gyro.core.validation.Validator;
 import gyro.core.validation.ValidatorClass;
@@ -61,6 +62,7 @@ public class DiffableField {
     private final boolean updatable;
     private final boolean calculated;
     private final boolean output;
+    private final boolean required;
     private final boolean collection;
     private final Class<?> itemClass;
 
@@ -71,6 +73,7 @@ public class DiffableField {
         this.updatable = isAnnotationPresent(getter, Updatable.class);
         this.calculated = isAnnotationPresent(getter, Calculated.class);
         this.output = isAnnotationPresent(getter, Output.class);
+        this.required = isAnnotationPresent(getter, Required.class);
 
         if (type instanceof Class) {
             this.collection = false;
@@ -101,6 +104,7 @@ public class DiffableField {
         updatable = field.updatable;
         calculated = field.calculated;
         output = field.output;
+        required = field.required;
         collection = field.collection;
         itemClass = field.itemClass;
     }
@@ -119,6 +123,10 @@ public class DiffableField {
 
     public boolean isOutput() {
         return output;
+    }
+
+    public boolean isRequired() {
+        return required;
     }
 
     public boolean isCollection() {
@@ -258,5 +266,4 @@ public class DiffableField {
             return null;
         }
     }
-
 }
