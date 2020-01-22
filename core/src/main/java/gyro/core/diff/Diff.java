@@ -53,8 +53,8 @@ public class Diff {
             ? new ArrayList<>(pendingDiffables)
             : Collections.emptyList();
 
-        this.currentDiffables.forEach(d -> DiffableInternals.update(d, false));
-        this.pendingDiffables.forEach(d -> DiffableInternals.update(d, false));
+        this.currentDiffables.forEach(d -> DiffableInternals.update(d));
+        this.pendingDiffables.forEach(d -> DiffableInternals.update(d));
     }
 
     public Diff(Diffable currentDiffable, Diffable pendingDiffable) {
@@ -66,8 +66,8 @@ public class Diff {
             ? Collections.singletonList(pendingDiffable)
             : Collections.emptyList();
 
-        this.currentDiffables.forEach(d -> DiffableInternals.update(d, false));
-        this.pendingDiffables.forEach(d -> DiffableInternals.update(d, false));
+        this.currentDiffables.forEach(d -> DiffableInternals.update(d));
+        this.pendingDiffables.forEach(d -> DiffableInternals.update(d));
     }
 
     public List<Change> getChanges() {

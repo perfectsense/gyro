@@ -167,7 +167,8 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
                     done.incrementAndGet();
 
                     if (keep) {
-                        DiffableInternals.update(resource, true);
+                        DiffableInternals.disconnect(resource);
+                        DiffableInternals.update(resource);
                         return false;
 
                     } else {
