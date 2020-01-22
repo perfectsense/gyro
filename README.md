@@ -57,6 +57,15 @@ More information on the configuration syntax can be found in the [Language Guide
 
 <img src="etc/terminal-create.png" height="400"/>
 
+When you run Gyro it'll tell you exactly what it's going to do.
+
+<img src="etc/gyro-create.svg" height="400"/>
+
+Enable verbose mode to get a more detailed view. In this we've made a small modification
+to the original configuration to add a new security group:
+
+<img src="etc/gyro-update.svg" height="400"/>
+
 #### Control Structures
 
 We're aware of the debate about whether allowing logic (control structures) in a configuration is a
