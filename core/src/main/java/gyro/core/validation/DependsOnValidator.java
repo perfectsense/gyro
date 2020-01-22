@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Perfect Sense, Inc.
+ * Copyright 2020, Perfect Sense, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,44 +16,60 @@
 
 package gyro.core.validation;
 
-import java.util.Set;
 import java.util.stream.Stream;
 
 import com.psddev.dari.util.ObjectUtils;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.DiffableField;
-import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
 import gyro.util.Bug;
 
-public class ConflictsWithValidator implements Validator<ConflictsWith> {
+/**
+ * Validate if the fields that annotated field depends on are populated.
+ *
+ * <p>
+ * e.g.
+ *
+ * <pre><code>
+ *     public Parent getParent() {
+ *         ...
+ *     }
+ *
+ *     &#064;DependsOn({ "parent" })
+ *     public Child getChild() {
+ *         ...
+ *     }
+ * </code></pre>
+ *
+ * If 'child` field is provided but 'parent' field is not, validation will fail.
+ * </p>
+ */
+public class DependsOnValidator implements Validator<DependsOn> {
 
     @Override
-    public boolean isValid(Diffable diffable, ConflictsWith annotation, Object fieldValue) {
+    public boolean isValid(Diffable diffable, DependsOn annotation, Object fieldValue) {
         if (ObjectUtils.isBlank(fieldValue)) {
             return true;
         }
-        Set<String> configuredFields = DiffableInternals.getConfiguredFields(diffable);
         DiffableType<Diffable> diffableType = DiffableType.getInstance(diffable);
 
         return Stream.of(annotation.value())
-            .filter(name -> configuredFields.contains(name))
             .allMatch(name -> {
                 DiffableField field = diffableType.getField(name);
 
                 if (field == null) {
                     throw new Bug(String.format(
-                        "Invalid usage of '@ConflictsWith' validation annotation. The field @|bold '%s'|@ doesn't exist.",
+                        "Invalid usage of '@DependsOn' validation annotation. The field @|bold '%s'|@ doesn't exist.",
                         name));
                 }
-                return ObjectUtils.isBlank(field.getValue(diffable));
+                return !ObjectUtils.isBlank(field.getValue(diffable));
             });
     }
 
     @Override
-    public String getMessage(ConflictsWith annotation) {
+    public String getMessage(DependsOn annotation) {
         return String.format(
-            "Cannot be set when any of the following field(s) are set: ['%s']",
+            "Depends on the following field(s): @|bold ['%s']|@",
             String.join("', '", annotation.value()));
     }
 }

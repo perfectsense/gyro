@@ -19,11 +19,14 @@ package gyro.core.resource;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
 import gyro.core.diff.Change;
 import gyro.core.scope.DiffableScope;
+import gyro.core.scope.NodeEvaluator;
+import gyro.core.scope.RootScope;
 import gyro.lang.ast.block.BlockNode;
 
 public final class DiffableInternals {
@@ -78,22 +81,59 @@ public final class DiffableInternals {
                 DiffableScope newScope = new DiffableScope(oldScope);
                 diffable.scope = newScope;
 
-                newScope.getRootScope().getEvaluator().evaluateDiffable(block, newScope);
+                NodeEvaluator evaluator = newScope.getRootScope().getEvaluator();
+                evaluator.evaluateDiffable(block, newScope);
                 DiffableType.getInstance(diffable).setValues(diffable, newScope);
+
+                RootScope root = oldScope.getRootScope();
+                String fullName = DiffableType.getInstance(diffable).getName() + "::" + diffable.name;
+                Optional.ofNullable(root.getCurrent())
+                    .map(s -> s.findResource(fullName))
+                    .ifPresent(r -> evaluator.copy(r, diffable));
+
                 newScope.process(diffable);
             }
         }
     }
 
-    public static void update(Diffable diffable, boolean newScope) {
-        if (newScope) {
-            diffable.scope = new DiffableScope(diffable.scope.getParent(), null);
-        }
+    /**
+     * Create a new scope that is disconnected from the original configuration.
+     *
+     * @param diffable The diffable to disconnect
+     */
+    public static void disconnect(Diffable diffable) {
+        diffable.scope = new DiffableScope(diffable.scope.getParent(), null);
 
-        updateChildren(diffable, newScope);
+        disconnectChildren(diffable);
     }
 
-    private static void updateChildren(Diffable diffable, boolean newScope) {
+    private static void disconnectChildren(Diffable diffable) {
+        for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
+            if (field.shouldBeDiffed()) {
+                Object value = field.getValue(diffable);
+
+                (value instanceof Collection ? ((Collection<?>) value).stream() : Stream.of(value))
+                    .filter(Diffable.class::isInstance)
+                    .map(Diffable.class::cast)
+                    .forEach(d -> {
+                        d.scope = new DiffableScope(diffable.scope, null);
+
+                        disconnectChildren(d);
+                    });
+            }
+        }
+    }
+
+    /**
+     * Reconnect parent/child relationships and set fieldname.
+     *
+     * @param diffable The diffable to update
+     */
+    public static void update(Diffable diffable) {
+        updateChildren(diffable);
+    }
+
+    private static void updateChildren(Diffable diffable) {
         for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
             if (field.shouldBeDiffed()) {
                 String fieldName = field.getName();
@@ -103,14 +143,10 @@ public final class DiffableInternals {
                     .filter(Diffable.class::isInstance)
                     .map(Diffable.class::cast)
                     .forEach(d -> {
-                        if (newScope) {
-                            d.scope = new DiffableScope(diffable.scope, null);
-                        }
-
                         d.parent = diffable;
                         d.name = fieldName;
 
-                        updateChildren(d, newScope);
+                        updateChildren(d);
                     });
             }
         }

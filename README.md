@@ -4,52 +4,113 @@
 [![TravisCI](https://api.travis-ci.org/perfectsense/gyro.svg?branch=master)](https://travis-ci.org/perfectsense/gyro)
 [![Apache License 2.0](https://img.shields.io/github/license/perfectsense/gyro)](https://github.com/perfectsense/gyro/blob/master/LICENSE)
 
-Gyro is command-line tool for creating, updating, and maintaining cloud infrastructure. Gyro makes infrastructure-as-code possible.
+Gyro is command-line tool for creating, updating, and maintaining cloud infrastructure. Gyro makes
+infrastructure-as-code possible.
 
 Gyro is open source under the Apache 2.0 license.
 
-Using Gyro allows you to describe your infrastructure using the Gyro language and then create, update, and maintain that infrastructure using the gyro command-line tool.
+Using Gyro allows you to describe your infrastructure using the Gyro configuration language and then
+create, update, and maintain that infrastructure using the gyro command-line tool.
 
-The Gyro language is designed specifically for defining cloud infrastructure. It was built with readability and organizational flexibility in mind. The language provides the ability to concisely define cloud infrastructure resources along with language constructs such a `@for` loops, `@if` conditionals, and `@virtual` definitions for packaging resources into reusable components.
+### Name
 
-Here is a sample configuration to create a single instance in AWS:
+Why the name Gyro? It's short for Gyroscope which is an essential device that allows airplanes to
+navigate in the clouds. Also, if you read "gyro" and thought of a greek sandwich, you're not the
+first, definitely won't be the last, haha. That's ok though, gyro sandwiches are yummy. :)
 
-```
-ami-id: $(external-query aws::ami {
-    name: 'ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-20190628',
-    architecture: 'x86_64',
-    root-device-type: 'ebs',
-    virtualization-type: 'hvm',
-    owner-id: '099720109477',
-    state: 'available'
-}).0.id
+### Background
 
-aws::instance webserver
-    ami: $(ami-id)
-    instance-type: "t3.nano"
+Gyro was built by [Perfect Sense](https://www.perfectsensedigital.com) to automate the creation and
+management of the cloud infrastructure we use to run [Brightspot](https://www.brightspot.com) for
+our clients. We integrated several tools that are part of our DevOps lifecycle such as Chef to
+install and configure software on our hosts, ssh to log into hosts, and service discovery to drain
+traffic during maintenance. We use workflows to deploy our code using with the blue/green model. We
+found this "one tool for your day-to-day operations activities" to be extremely valuable.  After six
+years of using this tool internally, we decided to refactor the code, make it more flexible, and
+open source it so others can benefit just as we have.
 
-    tags: {
-        Name: "webserver"
-    }
-end
-```
+## Gyro Language
 
-Run this with gyro:
+The Gyro language is designed specifically for defining cloud infrastructure. It was built with
+readability and organizational flexibility in mind. The language provides the ability to concisely
+define cloud infrastructure resources along with language constructs such a `@for` loops, `@if`
+conditionals, and `@virtual` definitions for packaging resources into reusable components.
 
-```
-$ gyro up --verbose
-↓ Loading plugin: gyro:gyro-aws-provider:0.99.0-SNAPSHOT
+### What Makes It Different?
 
-Looking for changes...
+There are a few things that make Gyro different from similar tools. We'll try to highlight those here
+but encourage you to read the [developer documentation](https://gyro.dev).
 
-+ Create aws::instance webserver
-· ami: aws::ami id=ami-0cfee17793b08a293
-· instance-type: 't3.nano'
+#### Gyro Configuration Language
 
-Are you sure you want to change resources? (y/N) y
+We know, Yet Another DSL. Originally we wrote this using YAML but we wanted clean
+(and limited) logic in our configuration and YAML didn't really fit the bill. We tried a few
+different language based internal DSLs such as Kotlin, Groovy, and even TCL (don't hate) but the
+language always bled through and didn't feel right.
 
-+ Creating aws::instance webserver OK
-```
+We decided to design our own simplified, but powerful, language that allowed us to have
+greater control over scoping rules, control structures, and runtime execution. Building a tool that
+generates an internal graph of resources is extremely complex and not having complete control over
+what is happening during execution makes it much more complex.
+
+More information on the configuration syntax can be found in the [Language Guide](https://gyro.dev/guides/language/). There are also lots of working examples in each [provider](https://github.com/perfectsense/gyro-aws-provider/tree/master/examples).
+
+<img src="etc/terminal-create.png" height="400"/>
+
+When you run Gyro it'll tell you exactly what it's going to do.
+
+<img src="etc/gyro-create.svg" height="400"/>
+
+Enable verbose mode to get a more detailed view. In this example we've made a small modification
+to the original configuration to add a new security group:
+
+<img src="etc/gyro-update.svg" height="400"/>
+
+#### Control Structures
+
+We're aware of the debate about whether allowing logic (control structures) in a configuration is a
+good thing or not. We believe it is, as long as you provide reasonable limits. With Gyro we tried to
+strike a balance between no logic and too much logic (aka full programming language). To start with
+we've implemented two control structures we think are most important for configuration logic, "if"
+and "for".
+
+Control structures are actually an extension of Gyro rather than baked into the language parser.
+
+More information on control structures can be found in the [control structures](https://gyro.dev/guides/language/control-structures.html) documentation. For a real world example see our [EC2 subnet](https://github.com/perfectsense/gyro-aws-provider/blob/master/examples/ec2/subnet.gyro#L26-L37) example.
+
+<img src="etc/terminal-logic.png" height="400"/>
+
+#### Workflows
+
+We think this is huge. Workflows provide the ability to define transition stages for complex cloud
+infrastructure updates. Blue/green deployments are a good example of this. With Gyro you can define
+a stage to create a new load balancer and new virtual machines with your updated code. After this
+stage executes you can either prompt the user to continue, allowing them to validate the new
+deployment, or you can automate it. Then you can define a stage to either drop those new machines
+into the load balancer taking traffic or flip DNS depending on how you like to do blue/green. If at
+any point things don't look right Gyro can roll back to a previous stage.
+
+This functionality has been extremely important for us to be able to allow anyone to do deployments
+and still be able to quickly roll back should anything go wrong.
+
+More information on workflows can be found in the [workflow guide](https://gyro.dev/guides/workflows/).
+
+<img src="etc/terminal-workflow.png" height="400"/>
+
+#### Extensibility
+
+We've included a number of ways you can extend Gyro with plugins.
+
+- Add [new commands](https://gyro.dev/extending/commands)
+- Add [new language functionality](https://gyro.dev/extending/directive/), aka Directives 
+- Add [custom variable resolvers](https://gyro.dev/extending/resolver/)
+- Add custom event hooks (undocumented) to trigger custom logic when various things happen such as a
+resource is created or updated
+
+The power of extensions allow you to integrate Gyro with your other DevOps tools and extend Gyro with
+new features we haven't thought of.
+
+To get you started we've put together a [plugin template project](https://github.com/perfectsense/gyro-sample-plugin). You can also check out the [ssh plugin](https://github.com/perfectsense/gyro-ssh-plugin).
 
 ## Getting Started
 

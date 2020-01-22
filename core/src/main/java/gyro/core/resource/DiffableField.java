@@ -21,6 +21,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -36,6 +37,7 @@ import com.psddev.dari.util.ConversionException;
 import gyro.core.GyroException;
 import gyro.core.Reflections;
 import gyro.core.scope.Scope;
+import gyro.core.validation.Required;
 import gyro.core.validation.ValidationError;
 import gyro.core.validation.Validator;
 import gyro.core.validation.ValidatorClass;
@@ -60,6 +62,7 @@ public class DiffableField {
     private final boolean updatable;
     private final boolean calculated;
     private final boolean output;
+    private final boolean required;
     private final boolean collection;
     private final Class<?> itemClass;
 
@@ -67,9 +70,10 @@ public class DiffableField {
         this.name = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, javaName);
         this.getter = getter;
         this.setter = setter;
-        this.updatable = getter.isAnnotationPresent(Updatable.class);
-        this.calculated = getter.isAnnotationPresent(Calculated.class);
-        this.output = getter.isAnnotationPresent(Output.class);
+        this.updatable = isAnnotationPresent(getter, Updatable.class);
+        this.calculated = isAnnotationPresent(getter, Calculated.class);
+        this.output = isAnnotationPresent(getter, Output.class);
+        this.required = isAnnotationPresent(getter, Required.class);
 
         if (type instanceof Class) {
             this.collection = false;
@@ -100,6 +104,7 @@ public class DiffableField {
         updatable = field.updatable;
         calculated = field.calculated;
         output = field.output;
+        required = field.required;
         collection = field.collection;
         itemClass = field.itemClass;
     }
@@ -118,6 +123,10 @@ public class DiffableField {
 
     public boolean isOutput() {
         return output;
+    }
+
+    public boolean isRequired() {
+        return required;
     }
 
     public boolean isCollection() {
@@ -166,11 +175,11 @@ public class DiffableField {
     }
 
     public void testUpdate(Diffable diffable) {
-        if (!getter.isAnnotationPresent(Output.class)) {
+        if (!isAnnotationPresent(getter, Output.class)) {
             return;
         }
 
-        Optional<Object> testValue = Optional.ofNullable(getter.getAnnotation(TestValue.class)).map(TestValue::value);
+        Optional<Object> testValue = Optional.ofNullable(getAnnotation(getter, TestValue.class)).map(TestValue::value);
 
         if (Date.class.isAssignableFrom(itemClass)) {
             setValue(diffable, testValue.orElseGet(Date::new));
@@ -191,7 +200,7 @@ public class DiffableField {
         Object value = getValue(diffable);
         List<ValidationError> errors = new ArrayList<>();
 
-        for (Annotation annotation : getter.getAnnotations()) {
+        for (Annotation annotation : getAnnotations(getter)) {
             ValidatorClass validatorClass = annotation.annotationType().getAnnotation(ValidatorClass.class);
 
             if (validatorClass != null) {
@@ -206,4 +215,55 @@ public class DiffableField {
         return errors;
     }
 
+    protected static boolean isAnnotationPresent(Method method, Class<? extends Annotation> annotationClass) {
+        if (!method.isAnnotationPresent(annotationClass)) {
+            Method superMethod = getSuperMethod(method);
+
+            if (superMethod != null) {
+                return isAnnotationPresent(superMethod, annotationClass);
+            } else {
+                return false;
+            }
+        } else {
+            return true;
+        }
+    }
+
+    protected static List<Annotation> getAnnotations(Method method) {
+        List<Annotation> annotations = new ArrayList<>(Arrays.asList(method.getAnnotations()));
+        Method superMethod = getSuperMethod(method);
+
+        if (superMethod != null) {
+            annotations.addAll(getAnnotations(superMethod));
+        }
+
+        return annotations;
+    }
+
+    protected static <T extends Annotation> T getAnnotation(Method method, Class<T> annotationClass) {
+        if (method.isAnnotationPresent(annotationClass)) {
+            return method.getAnnotation(annotationClass);
+        } else {
+            Method superMethod = getSuperMethod(method);
+
+            if (superMethod != null) {
+                return getAnnotation(superMethod, annotationClass);
+            } else {
+                return null;
+            }
+        }
+    }
+
+    private static Method getSuperMethod(Method method) {
+        Class<?> superclass = method.getDeclaringClass().getSuperclass();
+        if (superclass != null) {
+            try {
+                return superclass.getMethod(method.getName());
+            } catch (NoSuchMethodException ignore) {
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
 }

@@ -62,7 +62,7 @@ public class FinderReferenceResolver extends ReferenceResolver {
             resources = finder.findAll();
         }
 
-        resources.forEach(r -> DiffableInternals.update(r, false));
+        resources.forEach(r -> DiffableInternals.update(r));
 
         return resources;
     }
