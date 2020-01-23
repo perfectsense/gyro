@@ -16,8 +16,10 @@
 
 package gyro.core.diff;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,8 +32,6 @@ import gyro.core.resource.Resource;
 import gyro.core.scope.State;
 
 public class ConfiguredFieldsChangeProcessor extends ChangeProcessor {
-
-    private static final String SCALAR_FIELD = "__scalar";
 
     @Override
     public void beforeRefresh(GyroUI ui, Resource resource) throws Exception {
@@ -54,12 +54,22 @@ public class ConfiguredFieldsChangeProcessor extends ChangeProcessor {
     }
 
     @Override
-    public void beforeUpdate(GyroUI ui, State state, Resource current, Resource pending, Set<DiffableField> changedFields) throws Exception {
+    public void beforeUpdate(
+        GyroUI ui,
+        State state,
+        Resource current,
+        Resource pending,
+        Set<DiffableField> changedFields) throws Exception {
         saveConfiguredFields(pending);
     }
 
     @Override
-    public void afterUpdate(GyroUI ui, State state, Resource current, Resource pending, Set<DiffableField> changedFields) throws Exception {
+    public void afterUpdate(
+        GyroUI ui,
+        State state,
+        Resource current,
+        Resource pending,
+        Set<DiffableField> changedFields) throws Exception {
         restoreConfiguredFields(pending);
     }
 
@@ -71,71 +81,84 @@ public class ConfiguredFieldsChangeProcessor extends ChangeProcessor {
      * @param resource Resource to store off configured fields.
      */
     private void saveConfiguredFields(Resource resource) {
-        DiffableType<Resource> type = DiffableType.getInstance(resource);
+        DiffableInternals.getScope(resource)
+            .getSettings(ConfiguredFieldsSettings.class)
+            .setStoredConfiguredFields(extractConfiguredFields(resource));
+    }
 
-        /*
-         * "field"  -> { "__scalar"      : ['field1', 'field2'] }
-         * "field2" -> { "<primarykey1>" : ['field1', 'field2']
-         *               "<primarykey2>" : ['field1', 'field2'] }
-         */
-        Map<String, Map<String, Set<String>>> storedConfiguredFields = new HashMap<>();
+    private DiffableConfiguredFields extractConfiguredFields(Diffable diffable) {
+        DiffableConfiguredFields diffableConfiguredFields = new DiffableConfiguredFields();
+        diffableConfiguredFields.setPrimaryKey(diffable.primaryKey());
+        diffableConfiguredFields.setConfiguredFields(DiffableInternals.getConfiguredFields(diffable));
+        Map<String, List<DiffableConfiguredFields>> children = new HashMap<>();
+        diffableConfiguredFields.setChildren(children);
+
+        DiffableType<Diffable> type = DiffableType.getInstance(diffable);
 
         for (DiffableField field : type.getFields()) {
             if (Diffable.class.isAssignableFrom(field.getItemClass())) {
-                Map<String, Set<String>> configuredFields = new HashMap<>();
-                Object value = field.getValue(resource);
-                if (value == null) {
+                Object fieldValue = field.getValue(diffable);
+
+                if (fieldValue == null) {
                     continue;
                 }
+                List<DiffableConfiguredFields> configuredFieldsHierarchies = new ArrayList<>();
+                children.put(field.getName(), configuredFieldsHierarchies);
 
                 if (field.isCollection()) {
-                    Collection<Diffable> values = (Collection<Diffable>) value;
-
-                    for (Diffable diffable : values) {
-                        configuredFields.put(diffable.primaryKey(), DiffableInternals.getConfiguredFields(diffable));
+                    for (Diffable fieldDiffable : (Collection<Diffable>) fieldValue) {
+                        configuredFieldsHierarchies.add(extractConfiguredFields(fieldDiffable));
                     }
                 } else {
-                    Diffable diffable = (Diffable) value;
-
-                    configuredFields.put(SCALAR_FIELD, DiffableInternals.getConfiguredFields(diffable));
+                    configuredFieldsHierarchies.add(extractConfiguredFields((Diffable) fieldValue));
                 }
-
-                storedConfiguredFields.put(field.getName(), configuredFields);
             }
         }
-
-        DiffableInternals.getScope(resource)
-            .getSettings(ConfiguredFieldsSettings.class)
-            .setStoredConfiguredFields(storedConfiguredFields);
+        return diffableConfiguredFields;
     }
 
     private void restoreConfiguredFields(Resource resource) {
-        DiffableType<Resource> type = DiffableType.getInstance(resource);
+        updateConfiguredFields(
+            resource,
+            DiffableInternals.getScope(resource)
+                .getSettings(ConfiguredFieldsSettings.class)
+                .getStoredConfiguredFields());
+    }
 
-        Map<String, Map<String, Set<String>>> storedConfiguredFields = DiffableInternals.getScope(resource)
-            .getSettings(ConfiguredFieldsSettings.class)
-            .getStoredConfiguredFields();
+    private void updateConfiguredFields(Diffable diffable, DiffableConfiguredFields diffableConfiguredFields) {
+        DiffableInternals.getConfiguredFields(diffable).addAll(diffableConfiguredFields.getConfiguredFields());
+        DiffableType<Diffable> type = DiffableType.getInstance(diffable);
 
-        for (String key : storedConfiguredFields.keySet()) {
-            DiffableField field = type.getField(key);
-            Object value = field.getValue(resource);
-            if (value == null) {
+        for (Map.Entry<String, List<DiffableConfiguredFields>> childEntry : diffableConfiguredFields.getChildren()
+            .entrySet()) {
+            List<DiffableConfiguredFields> configuredFieldsHierarchies = childEntry.getValue();
+
+            if (configuredFieldsHierarchies.isEmpty()) {
+                continue;
+            }
+            DiffableField field = type.getField(childEntry.getKey());
+            Object fieldValue = field.getValue(diffable);
+
+            if (fieldValue == null) {
                 continue;
             }
 
-            Map<String, Set<String>> configuredFields = storedConfiguredFields.get(key);
             if (field.isCollection()) {
-                Collection<Diffable> values = (Collection<Diffable>) value;
+                for (Diffable fieldDiffable : (Collection<Diffable>) fieldValue) {
+                    String primaryKey = fieldDiffable.primaryKey();
 
-                for (Diffable diffable : values) {
-                    DiffableInternals.getConfiguredFields(diffable).addAll(configuredFields.get(key));
+                    if (primaryKey == null) {
+                        continue;
+                    }
+                    configuredFieldsHierarchies.stream()
+                        .parallel()
+                        .filter(e -> primaryKey.equals(e.getPrimaryKey()))
+                        .findAny()
+                        .ifPresent(e -> updateConfiguredFields(fieldDiffable, e));
                 }
             } else {
-                Diffable diffable = (Diffable) value;
-
-                DiffableInternals.getConfiguredFields(diffable).addAll(configuredFields.get(SCALAR_FIELD));
+                updateConfiguredFields((Diffable) fieldValue, configuredFieldsHierarchies.get(0));
             }
         }
     }
-
 }

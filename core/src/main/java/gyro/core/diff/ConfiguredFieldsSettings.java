@@ -1,4 +1,3 @@
-package gyro.core.diff;
 /*
  * Copyright 2020, Perfect Sense, Inc.
  *
@@ -15,22 +14,19 @@ package gyro.core.diff;
  * limitations under the License.
  */
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+package gyro.core.diff;
 
 import gyro.core.scope.Settings;
 
 public class ConfiguredFieldsSettings extends Settings {
 
-    Map<String, Map<String, Set<String>>> storedConfiguredFields = new HashMap<>();
+    DiffableConfiguredFields storedConfiguredFields;
 
-    public Map<String, Map<String, Set<String>>> getStoredConfiguredFields() {
+    public DiffableConfiguredFields getStoredConfiguredFields() {
         return storedConfiguredFields;
     }
 
-    public void setStoredConfiguredFields(Map<String, Map<String, Set<String>>> storedConfiguredFields) {
+    public void setStoredConfiguredFields(DiffableConfiguredFields storedConfiguredFields) {
         this.storedConfiguredFields = storedConfiguredFields;
     }
-
 }
