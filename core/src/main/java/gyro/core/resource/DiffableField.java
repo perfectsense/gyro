@@ -61,6 +61,7 @@ public class DiffableField {
     private final Method setter;
     private final boolean updatable;
     private final boolean calculated;
+    private final boolean immutable;
     private final boolean output;
     private final boolean required;
     private final boolean collection;
@@ -72,6 +73,7 @@ public class DiffableField {
         this.setter = setter;
         this.updatable = isAnnotationPresent(getter, Updatable.class);
         this.calculated = isAnnotationPresent(getter, Calculated.class);
+        this.immutable = isAnnotationPresent(getter, Immutable.class);
         this.output = isAnnotationPresent(getter, Output.class);
         this.required = isAnnotationPresent(getter, Required.class);
 
@@ -103,6 +105,7 @@ public class DiffableField {
         setter = field.setter;
         updatable = field.updatable;
         calculated = field.calculated;
+        immutable = field.immutable;
         output = field.output;
         required = field.required;
         collection = field.collection;
@@ -119,6 +122,10 @@ public class DiffableField {
 
     public boolean isCalculated() {
         return calculated;
+    }
+
+    public boolean isImmutable() {
+        return immutable;
     }
 
     public boolean isOutput() {

@@ -214,7 +214,7 @@ public class Diff {
         for (DiffableField field : DiffableType.getInstance(currentDiffable.getClass()).getFields()) {
 
             // Skip nested diffables since they're handled by the diff system.
-            if (field.shouldBeDiffed()) {
+            if (field.shouldBeDiffed() || field.isImmutable()) {
                 continue;
             }
 
