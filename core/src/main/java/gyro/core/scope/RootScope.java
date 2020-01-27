@@ -47,6 +47,7 @@ import gyro.core.command.HighlanderSettings;
 import gyro.core.control.ForDirectiveProcessor;
 import gyro.core.control.IfDirectiveProcessor;
 import gyro.core.diff.ChangeSettings;
+import gyro.core.diff.ConfiguredFieldsChangeProcessor;
 import gyro.core.diff.GlobalChangePlugin;
 import gyro.core.directive.DirectivePlugin;
 import gyro.core.directive.DirectiveSettings;
@@ -127,7 +128,8 @@ public class RootScope extends FileScope {
             .forEach(p -> getSettings(PluginSettings.class).getPlugins().add(p));
 
         Stream.of(
-            new ModificationChangeProcessor())
+            new ModificationChangeProcessor(),
+            new ConfiguredFieldsChangeProcessor())
             .forEach(p -> getSettings(ChangeSettings.class).getProcessors().add(p));
 
         Stream.of(

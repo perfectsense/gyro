@@ -39,11 +39,14 @@ import gyro.core.GyroUI;
 import gyro.core.LocalFileBackend;
 import gyro.core.auth.Credentials;
 import gyro.core.auth.CredentialsSettings;
+import gyro.core.diff.ChangeProcessor;
+import gyro.core.diff.ChangeSettings;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
 import gyro.core.resource.Resource;
 import gyro.core.scope.FileScope;
 import gyro.core.scope.RootScope;
+import gyro.core.scope.Scope;
 import gyro.core.scope.State;
 import io.airlift.airline.Arguments;
 import io.airlift.airline.Option;
@@ -156,9 +159,23 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
                 Resource resource = (Resource) value;
 
+                List<ChangeProcessor> processors = new ArrayList<>();
+                for (Scope s = DiffableInternals.getScope(resource); s != null; s = s.getParent()) {
+                    processors.addAll(0, s.getSettings(ChangeSettings.class).getProcessors());
+                }
+
                 refreshes.add(new Refresh(resource, refreshService.submit(() -> {
                     started.incrementAndGet();
+
+                    for (ChangeProcessor processor : processors) {
+                        processor.beforeRefresh(ui, resource);
+                    }
+
                     boolean keep = resource.refresh();
+
+                    for (ChangeProcessor processor : processors) {
+                        processor.afterRefresh(ui, resource);
+                    }
 
                     if (keep) {
                         DiffableInternals.getModifications(resource).forEach(m -> m.refresh(resource));
