@@ -214,7 +214,12 @@ public class Diff {
         for (DiffableField field : DiffableType.getInstance(currentDiffable.getClass()).getFields()) {
 
             // Skip nested diffables since they're handled by the diff system.
-            if (field.shouldBeDiffed() || field.isImmutable()) {
+            if (field.shouldBeDiffed()) {
+                continue;
+            }
+
+            // Skip the field whose value can be modified by a cloud provider.
+            if (field.isImmutable()) {
                 continue;
             }
 
