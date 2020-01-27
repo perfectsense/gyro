@@ -218,6 +218,11 @@ public class Diff {
                 continue;
             }
 
+            // Skip the field whose value can be modified by a cloud provider.
+            if (field.isImmutable()) {
+                continue;
+            }
+
             String name = field.getName();
 
             // Skip if there isn't a pending value and the field wasn't
