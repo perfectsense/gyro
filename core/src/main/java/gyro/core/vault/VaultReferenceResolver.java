@@ -1,11 +1,12 @@
 package gyro.core.vault;
 
+import java.util.List;
+
 import gyro.core.GyroException;
+import gyro.core.Type;
 import gyro.core.reference.ReferenceResolver;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
-
-import java.util.List;
 
 /**
  * Examples:
@@ -13,12 +14,8 @@ import java.util.List;
  *     $(vault-lookup secret-key)       - Grab key from the 'default' vault
  *     $(vault-lookup secret-key vault) - Grab key from the vault provided by vault
  */
+@Type("vault-lookup")
 public class VaultReferenceResolver extends ReferenceResolver {
-
-    @Override
-    public String getName() {
-        return "vault-lookup";
-    }
 
     @Override
     public Object resolve(Scope scope, List<Object> arguments) throws Exception {
@@ -47,7 +44,8 @@ public class VaultReferenceResolver extends ReferenceResolver {
         Vault vault = settings.getVaultsByName().get(vaultName);
 
         if (vault == null) {
-            throw new GyroException("Unable to load the vault named '" + vaultName + "'. Ensure the vault is configured in .gyro/init.gyro.");
+            throw new GyroException("Unable to load the vault named '" + vaultName
+                + "'. Ensure the vault is configured in .gyro/init.gyro.");
         }
 
         return new VaultSecret(key, vaultName, vault.get(key), hash);
