@@ -1,16 +1,18 @@
 package gyro.core.vault;
 
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
+import gyro.core.LocalFileBackend;
 import gyro.core.command.AbstractCommand;
 import gyro.core.scope.RootScope;
 import io.airlift.airline.Arguments;
 import io.airlift.airline.Command;
 import io.airlift.airline.Option;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 @Command(name = "vault", description = "Store/retrieve secrets")
 public class VaultCommand extends AbstractCommand {
@@ -39,16 +41,31 @@ public class VaultCommand extends AbstractCommand {
 
     @Override
     protected void doExecute() throws Exception {
+        Path rootDir = GyroCore.getRootDirectory();
+
+        if (rootDir == null) {
+            throw new GyroException(
+                "Not a gyro project directory, use 'gyro init <plugins>...' to create one. See 'gyro help init' for detailed usage.");
+        }
+
         if (getArguments().isEmpty()) {
             throw new GyroException("Expected 'gyro vault get|put key' or 'gyro vault list'");
         }
 
-        RootScope scope = (RootScope) getInit();
+        RootScope scope = new RootScope(
+            "../../" + GyroCore.INIT_FILE,
+            new LocalFileBackend(rootDir.resolve(".gyro/state")),
+            null,
+            null);
+
+        scope.evaluate();
+
         VaultSettings settings = scope.getSettings(VaultSettings.class);
         Vault vault = settings.getVaultsByName().get(getVaultName());
 
         if (vault == null) {
-            throw new GyroException("Unable to load the vault named '" + getVaultName() + "'. Ensure the vault is configured in .gyro/init.gyro.");
+            throw new GyroException("Unable to load the vault named '" + getVaultName()
+                + "'. Ensure the vault is configured in .gyro/init.gyro.");
         }
 
         String command = getArguments().get(0);
@@ -67,15 +84,15 @@ public class VaultCommand extends AbstractCommand {
                 GyroCore.ui().write(vault.get(key) + "\n");
             }
         } else if ("remove".equalsIgnoreCase(command) || "rm".equalsIgnoreCase(command)) {
-                String key = getArguments().size() >= 2 ? getArguments().get(1) : null;
+            String key = getArguments().size() >= 2 ? getArguments().get(1) : null;
 
-                if (key == null) {
-                    throw new GyroException("Key argument missing. Expected 'gyro vault get <key>'");
-                }
+            if (key == null) {
+                throw new GyroException("Key argument missing. Expected 'gyro vault get <key>'");
+            }
 
-                vault.remove(key);
+            vault.remove(key);
 
-                GyroCore.ui().write("\nKey '%s' was removed in the '%s' vault.\n", key, getVaultName());
+            GyroCore.ui().write("\nKey '%s' was removed in the '%s' vault.\n", key, getVaultName());
         } else if ("put".equalsIgnoreCase(command)) {
             String key = getArguments().size() >= 2 ? getArguments().get(1) : null;
             String value = getArguments().size() >= 3 ? getArguments().get(2) : null;

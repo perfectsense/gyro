@@ -286,7 +286,7 @@ public class State {
                     body.add(toPairNode(key, value, resource));
                 }
             } else if (value instanceof CustomValue) {
-                body.add(new PairNode(toNode(key), ((CustomValue) value).toStateNode()));
+                body.add(new PairNode(toNode(key, resource), ((CustomValue) value).toStateNode()));
 
             } else {
                 throw new GyroException(String.format(
