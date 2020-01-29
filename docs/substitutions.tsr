@@ -1,8 +1,0 @@
-.. Use this file to define global substitutions. The make job includes these substitutions in all rst files.
-.. Note the extension of the file name .trs. We use this extension to ensure sphinx excludes it from the normal RST processing.
-.. |emdash|   unicode:: U+2014 .. EM DASH
-.. |endash|   unicode:: U+2013 .. EN DASH
-.. |gte|      unicode:: U+2265 .. GREATER-THAN OR EQUAL TO
-.. |lte|      unicode:: U+22DA .. LESS-THAN OR EQUAL TO
-.. |mult|     unicode:: U+00D7 .. MULTIPLICATION SIGN
-.. |div|     unicode:: U+00F7 .. DIVISION SIGN

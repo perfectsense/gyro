@@ -1,13 +1,33 @@
+/*
+ * Copyright 2019, Perfect Sense, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+def releaseVersion = '0.99.1'
+def releaseBuild = false;
+
 if (System.getenv('TRAVIS_BRANCH') && System.getenv('TRAVIS_PULL_REQUEST') == 'false') {
     defaultTasks 'build', 'publish'
 
+    releaseBuild = System.getenv('TRAVIS_BRANCH').startsWith("release/");
 } else {
     defaultTasks 'build', 'publishToMavenLocal'
 }
 
 allprojects {
     group = 'gyro'
-    version = '0.15-SNAPSHOT'
+    version = releaseBuild ? releaseVersion : releaseVersion + '-SNAPSHOT'
 }
 
 subprojects {
@@ -18,6 +38,10 @@ subprojects {
     java {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
     }
 
     repositories {
@@ -43,7 +67,7 @@ subprojects {
     }
 
     checkstyle {
-        toolVersion = '8.15'
+        toolVersion = '8.24'
         configFile = rootProject.file('config/checkstyle.xml')
     }
 
@@ -65,13 +89,19 @@ subprojects {
                     password System.getenv('GRADLE_DEPLOY_PASSWORD')
                 }
 
-                if (project.version.endsWith('-SNAPSHOT')) {
-                    url 'https://artifactory.psdops.com/gyro-snapshots'
+                if (releaseBuild) {
+                    url 'https://artifactory.psdops.com/gyro-releases'
 
                 } else {
-                    url 'https://artifactory.psdops.com/gyro-releases'
+                    url 'https://artifactory.psdops.com/gyro-snapshots'
                 }
             }
         }
     }
+}
+
+// Only publish JARs once during the Linux build.
+configure(subprojects.findAll { it.name != 'gyro-cli' }) {
+    def osName = System.getenv('TRAVIS_OS_NAME') ?: 'unix'
+    publishMavenPublicationToMavenRepository.onlyIf { osName.equals("linux") }
 }

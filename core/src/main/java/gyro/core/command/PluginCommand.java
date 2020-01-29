@@ -1,4 +1,29 @@
+/*
+ * Copyright 2019, Perfect Sense, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package gyro.core.command;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import gyro.core.FileBackend;
 import gyro.core.GyroCore;
@@ -14,19 +39,11 @@ import gyro.parser.antlr4.GyroParser;
 import gyro.util.Bug;
 import io.airlift.airline.Arguments;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
 public abstract class PluginCommand implements GyroCommand {
 
-    @Arguments(description = "A space separated list of plugins specified in the format of <group>:<artifact>:<version>. "
-        + "For example: gyro:gyro-aws-provider:0.1-SNAPSHOT")
+    @Arguments(description =
+        "A space separated list of plugins specified in the format of <group>:<artifact>:<version>. "
+            + "For example: gyro:gyro-aws-provider:0.1-SNAPSHOT")
     private List<String> plugins;
 
     private List<DirectiveNode> pluginNodes;

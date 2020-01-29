@@ -1,18 +1,42 @@
+/*
+ * Copyright 2019, Perfect Sense, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package gyro.cli;
 
+import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
 import gyro.core.Abort;
+import gyro.core.GyroCore;
+import gyro.core.GyroException;
 import gyro.core.LocalFileBackend;
 import gyro.core.command.AbstractCommand;
 import gyro.core.command.GyroCommand;
-import gyro.core.GyroCore;
-import gyro.core.GyroException;
-import gyro.core.resource.Resource;
 import gyro.core.command.GyroCommandGroup;
 import gyro.core.scope.Defer;
 import gyro.core.scope.RootScope;
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import gyro.core.scope.Scope;
 import gyro.core.validation.ValidationErrorException;
 import gyro.lang.Locatable;
 import gyro.lang.SyntaxError;
@@ -25,22 +49,10 @@ import org.reflections.Reflections;
 import org.reflections.util.ClasspathHelper;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 public class Gyro {
 
     private Cli<Object> cli;
     private List<String> arguments;
-    private Scope init;
     private Set<Class<?>> commands = new HashSet<Class<?>>();
 
     public static Reflections reflections;
@@ -56,27 +68,11 @@ public class Gyro {
         GyroCore.pushUi(new CliGyroUI());
 
         try {
-            Path rootDir = GyroCore.getRootDirectory();
-            RootScope init;
+            Optional.ofNullable(GyroCore.getRootDirectory())
+                .map(d -> new RootScope(GyroCore.INIT_FILE, new LocalFileBackend(d), null, null))
+                .ifPresent(RootScope::load);
 
-            if (rootDir != null) {
-                init = new RootScope(
-                    GyroCore.INIT_FILE,
-                    new LocalFileBackend(GyroCore.getRootDirectory()),
-                    null,
-                    Collections.emptySet());
-
-                init.evaluate();
-
-                if (init.values().stream().anyMatch(Resource.class::isInstance)) {
-                    throw new GyroException(String.format("Resources are not allowed in '%s'%n", GyroCore.INIT_FILE));
-                }
-
-            } else {
-                init = null;
-            }
-
-            gyro.init(Arrays.asList(arguments), init);
+            gyro.init(Arrays.asList(arguments));
             gyro.run();
 
         } catch (Abort error) {
@@ -93,12 +89,13 @@ public class Gyro {
     }
 
     private static void writeError(Throwable error) {
-        if (error instanceof Defer || error instanceof GyroException) {
+        if (error instanceof Defer) {
+            ((Defer) error).write(GyroCore.ui());
+
+        } else if (error instanceof GyroException) {
             GyroCore.ui().write("@|red Error:|@ %s\n", error.getMessage());
 
-            Locatable locatable = error instanceof Defer
-                ? ((Defer) error).getNode()
-                : ((GyroException) error).getLocatable();
+            Locatable locatable = ((GyroException) error).getLocatable();
 
             if (locatable != null) {
                 GyroCore.ui().write("\nIn @|bold %s|@ %s:\n", locatable.getFile(), locatable.toLocation());
@@ -133,7 +130,10 @@ public class Gyro {
             error.printStackTrace(pw);
 
             if (error instanceof Bug) {
-                GyroCore.ui().write("@|red This should've never happened. Please report this as a bug with the following stack trace:|@ %s\n", sw.toString());
+                GyroCore.ui()
+                    .write(
+                        "@|red This should've never happened. Please report this as a bug with the following stack trace:|@ %s\n",
+                        sw.toString());
 
             } else {
                 GyroCore.ui().write("@|red Unexpected error:|@ %s\n", sw.toString());
@@ -141,7 +141,7 @@ public class Gyro {
         }
     }
 
-    public void init(List<String> arguments, Scope init) {
+    public void init(List<String> arguments) {
         ((Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).setLevel(Level.OFF);
 
         String appName = "gyro";
@@ -178,7 +178,6 @@ public class Gyro {
 
         this.cli = builder.build();
         this.arguments = arguments;
-        this.init = init;
     }
 
     public Set<Class<?>> commands() {
@@ -192,8 +191,9 @@ public class Gyro {
             ((Runnable) command).run();
 
         } else if (command instanceof AbstractCommand) {
-            ((AbstractCommand) command).setInit(init);
+            ((AbstractCommand) command).setUnparsedArguments(arguments);
             ((AbstractCommand) command).execute();
+
         } else if (command instanceof GyroCommand) {
             ((GyroCommand) command).execute();
 

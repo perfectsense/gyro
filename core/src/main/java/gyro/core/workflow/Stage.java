@@ -1,20 +1,34 @@
+/*
+ * Copyright 2019, Perfect Sense, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package gyro.core.workflow;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import gyro.core.Abort;
 import gyro.core.GyroUI;
-import gyro.core.scope.Defer;
 import gyro.core.diff.Diff;
 import gyro.core.resource.DiffableInternals;
+import gyro.core.resource.Resource;
+import gyro.core.scope.Defer;
 import gyro.core.scope.DiffableScope;
 import gyro.core.scope.FileScope;
-import gyro.core.resource.Resource;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
 import gyro.core.scope.State;
@@ -22,13 +36,15 @@ import gyro.util.ImmutableCollectors;
 
 public class Stage {
 
+    private final Workflow workflow;
     private final String name;
     private final boolean confirmDiff;
     private final String transitionPrompt;
     private final List<Action> actions;
     private final List<Transition> transitions;
 
-    public Stage(String name, Scope scope) {
+    public Stage(Workflow workflow, String name, Scope scope) {
+        this.workflow = workflow;
         this.name = Preconditions.checkNotNull(name, "Stage requires a name!");
         this.confirmDiff = Boolean.TRUE.equals(scope.get("confirm-diff"));
         this.transitionPrompt = (String) scope.get("transition-prompt");
@@ -51,13 +67,12 @@ public class Stage {
         return name;
     }
 
-    public String execute(
-            GyroUI ui,
-            State state,
-            Resource currentResource,
-            Resource pendingResource,
-            RootScope currentRootScope,
-            RootScope pendingRootScope) {
+    public void apply(
+        GyroUI ui,
+        State state,
+        Resource currentResource,
+        Resource pendingResource,
+        RootScope pendingRootScope) {
 
         DiffableScope pendingScope = DiffableInternals.getScope(pendingResource);
         FileScope pendingFileScope = pendingScope.getFileScope();
@@ -78,15 +93,24 @@ public class Stage {
 
         scope.put("NAME", DiffableInternals.getName(pendingResource));
         scope.put("CURRENT", currentResource);
-        scope.put("PENDING", pendingScope.resolve());
+        scope.put("PENDING", pendingResource);
 
         Defer.execute(actions, a -> a.execute(ui, state, pendingRootScope, scope));
+    }
 
-        Set<String> diffFiles = state.getDiffFiles();
+    public void execute(
+        GyroUI ui,
+        State state,
+        Resource currentResource,
+        Resource pendingResource,
+        RootScope currentRootScope,
+        RootScope pendingRootScope) {
+
+        apply(ui, state, currentResource, pendingResource, pendingRootScope);
 
         Diff diff = new Diff(
-            currentRootScope.findResourcesIn(diffFiles),
-            pendingRootScope.findResourcesIn(diffFiles));
+            currentRootScope.findResourcesIn(currentRootScope.getLoadFiles()),
+            pendingRootScope.findResourcesIn(pendingRootScope.getLoadFiles()));
 
         diff.diff();
 
@@ -100,13 +124,18 @@ public class Stage {
         }
 
         diff.execute(ui, state);
+    }
 
-        if (transitions.isEmpty()) {
+    public Stage prompt(GyroUI ui, RootScope currentRootScope) {
+        int transitionsSize = transitions.size();
+
+        if (transitionsSize == 0) {
+            currentRootScope.delete(Workflow.EXECUTION_FILE);
             return null;
-        }
 
-        Map<String, String> options = transitions.stream()
-                .collect(Collectors.toMap(Transition::getName, Transition::getTo));
+        } else if (transitionsSize == 1) {
+            return workflow.getStage(transitions.get(0).getTo());
+        }
 
         while (true) {
             for (Transition transition : transitions) {
@@ -114,10 +143,15 @@ public class Stage {
             }
 
             String selected = ui.readText("\n%s ", transitionPrompt != null ? transitionPrompt : "Next stage?");
-            String selectedOption = options.get(selected);
 
-            if (selectedOption != null) {
-                return selectedOption;
+            Stage selectedStage = transitions.stream()
+                .filter(t -> selected.equals(t.getName()))
+                .map(t -> workflow.getStage(t.getTo()))
+                .findFirst()
+                .orElse(null);
+
+            if (selectedStage != null) {
+                return selectedStage;
 
             } else {
                 ui.write("[%s] isn't valid! Try again.\n", selected);

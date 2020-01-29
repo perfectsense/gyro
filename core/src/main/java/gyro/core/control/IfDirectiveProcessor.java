@@ -1,8 +1,25 @@
+/*
+ * Copyright 2019, Perfect Sense, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package gyro.core.control;
 
 import java.util.List;
 
 import gyro.core.GyroException;
+import gyro.core.Type;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.scope.NodeEvaluator;
 import gyro.core.scope.Scope;
@@ -11,12 +28,8 @@ import gyro.lang.ast.Node;
 import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.block.DirectiveSection;
 
+@Type("if")
 public class IfDirectiveProcessor extends DirectiveProcessor<Scope> {
-
-    @Override
-    public String getName() {
-        return "if";
-    }
 
     @Override
     public void process(Scope scope, DirectiveNode node) {
@@ -28,20 +41,20 @@ public class IfDirectiveProcessor extends DirectiveProcessor<Scope> {
             String name = section.getName();
 
             switch (name) {
-                case "elseif" :
-                case "elsif" :
-                case "elif" :
+                case "elseif":
+                case "elsif":
+                case "elif":
                     if (processSection(scope, section, section.getArguments(), section.getBody())) {
                         return;
                     }
 
                     break;
 
-                case "else" :
-                    scope.getRootScope().getEvaluator().visitBody(section.getBody(), scope);
+                case "else":
+                    scope.getRootScope().getEvaluator().evaluateBody(section.getBody(), scope);
                     return;
 
-                default :
+                default:
                     throw new GyroException(section, String.format(
                         "@|bold -%s|@ isn't a valid section within an @|bold @if|@ directive!",
                         name));
@@ -61,7 +74,7 @@ public class IfDirectiveProcessor extends DirectiveProcessor<Scope> {
         NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
 
         if (NodeEvaluator.test(evaluator.visit(arguments.get(0), scope))) {
-            evaluator.visitBody(body, scope);
+            evaluator.evaluateBody(body, scope);
             return true;
 
         } else {

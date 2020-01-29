@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019, Perfect Sense, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package gyro.core.plugin;
 
 import java.lang.reflect.Modifier;
@@ -13,6 +29,7 @@ import java.util.jar.JarFile;
 
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
+import gyro.core.Type;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.repo.RepositorySettings;
 import gyro.core.scope.RootScope;
@@ -39,15 +56,11 @@ import org.eclipse.aether.transport.http.HttpTransporterFactory;
 import org.eclipse.aether.util.artifact.JavaScopes;
 import org.eclipse.aether.util.filter.DependencyFilterUtils;
 
+@Type("plugin")
 public class PluginDirectiveProcessor extends DirectiveProcessor<RootScope> {
 
     private static final ConcurrentMap<String, Set<Class<?>>> CLASSES_BY_ARTIFACT_COORDS = new ConcurrentHashMap<>();
     private static final PluginClassLoader PLUGIN_CLASS_LOADER = new PluginClassLoader();
-
-    @Override
-    public String getName() {
-        return "plugin";
-    }
 
     @Override
     public void process(RootScope scope, DirectiveNode node) {

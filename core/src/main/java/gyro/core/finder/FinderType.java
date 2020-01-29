@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019, Perfect Sense, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package gyro.core.finder;
 
 import java.beans.PropertyDescriptor;
@@ -10,22 +26,20 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import gyro.core.NamespaceUtils;
 import gyro.core.Reflections;
-import gyro.core.Type;
 import gyro.core.scope.Scope;
 
 public class FinderType<F extends Finder> {
 
     private static final LoadingCache<Class<? extends Finder>, FinderType<? extends Finder>> INSTANCES = CacheBuilder
-            .newBuilder()
-            .build(new CacheLoader<Class<? extends Finder>, FinderType<? extends Finder>>() {
+        .newBuilder()
+        .build(new CacheLoader<Class<? extends Finder>, FinderType<? extends Finder>>() {
 
-                @Override
-                public FinderType<? extends Finder> load(Class<? extends Finder> finderClass) {
-                    return new FinderType<>(finderClass);
-                }
-            });
+            @Override
+            public FinderType<? extends Finder> load(Class<? extends Finder> finderClass) {
+                return new FinderType<>(finderClass);
+            }
+        });
 
     private final Class<F> finderClass;
     private final String name;
@@ -40,7 +54,7 @@ public class FinderType<F extends Finder> {
 
     private FinderType(Class<F> finderClass) {
         this.finderClass = finderClass;
-        this.name = NamespaceUtils.getNamespacePrefix(finderClass ) + finderClass.getAnnotation(Type.class).value();
+        this.name = Reflections.getNamespace(finderClass) + "::" + Reflections.getType(finderClass);
 
         ImmutableList.Builder<FinderField> fields = ImmutableList.builder();
         ImmutableMap.Builder<String, FinderField> fieldByJavaName = ImmutableMap.builder();

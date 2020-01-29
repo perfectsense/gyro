@@ -1,5 +1,22 @@
+/*
+ * Copyright 2019, Perfect Sense, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package gyro.core;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,7 +40,7 @@ public class LocalFileBackend extends FileBackend {
             return Files.find(rootDirectory, Integer.MAX_VALUE, (file, attributes) -> attributes.isRegularFile())
                 .map(rootDirectory::relativize)
                 .map(Path::toString)
-                .filter(f -> !f.startsWith(".gyro/") && f.endsWith(".gyro"));
+                .filter(f -> !f.startsWith(".gyro" + File.separator) && f.endsWith(".gyro"));
 
         } else {
             return Stream.empty();
@@ -37,7 +54,12 @@ public class LocalFileBackend extends FileBackend {
 
     @Override
     public OutputStream openOutput(String file) throws IOException {
-        Path tempFile = Files.createTempFile("local-file-backend-", ".gyro");
+        Path finalFile = rootDirectory.resolve(file);
+        Path finalDir = finalFile.getParent();
+
+        Files.createDirectories(finalDir);
+
+        Path tempFile = Files.createTempFile(finalDir, ".local-file-backend-", ".gyro.tmp");
 
         tempFile.toFile().deleteOnExit();
 
@@ -46,11 +68,7 @@ public class LocalFileBackend extends FileBackend {
             @Override
             public void close() throws IOException {
                 super.close();
-
-                Path f = rootDirectory.resolve(file);
-
-                Files.createDirectories(f.getParent());
-                Files.move(tempFile, f, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+                Files.move(tempFile, finalFile, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
             }
         };
     }

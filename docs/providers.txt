@@ -1,3 +1,0 @@
-git@github.com:perfectsense/gyro-aws-provider.git
-git@github.com:perfectsense/gyro-azure-provider.git
-git@github.com:perfectsense/gyro-openstack-provider.git

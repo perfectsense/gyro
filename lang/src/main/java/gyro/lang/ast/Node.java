@@ -1,7 +1,24 @@
+/*
+ * Copyright 2019, Perfect Sense, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package gyro.lang.ast;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -9,6 +26,7 @@ import java.util.function.Function;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import gyro.lang.EscapeException;
 import gyro.lang.GyroCharStream;
 import gyro.lang.GyroErrorListener;
 import gyro.lang.GyroErrorStrategy;
@@ -46,7 +64,9 @@ public abstract class Node extends Rule {
         .put(GyroParser.GroupedMulItemContext.class, c -> Node.create(((GyroParser.GroupedMulItemContext) c).value()))
         .put(GyroParser.IndexContext.class, GET_FIRST_CHILD)
         .put(GyroParser.IndexedMulItemContext.class, c -> new IndexedNode((GyroParser.IndexedMulItemContext) c))
-        .put(GyroParser.InterpolatedStringContext.class, c -> new InterpolatedStringNode((GyroParser.InterpolatedStringContext) c))
+        .put(
+            GyroParser.InterpolatedStringContext.class,
+            c -> new InterpolatedStringNode((GyroParser.InterpolatedStringContext) c))
         .put(GyroParser.ItemContext.class, GET_FIRST_CHILD)
         .put(GyroParser.KeyBlockContext.class, c -> new KeyBlockNode((GyroParser.KeyBlockContext) c))
         .put(GyroParser.KeyContext.class, GET_FIRST_CHILD)
@@ -103,7 +123,9 @@ public abstract class Node extends Rule {
             .collect(ImmutableCollectors.toList());
     }
 
-    private static <T extends ParseTree, U extends ParseTree> List<Node> create(T context, Function<T, List<U>> toList) {
+    private static <T extends ParseTree, U extends ParseTree> List<Node> create(
+        T context,
+        Function<T, List<U>> toList) {
         return Optional.ofNullable(context)
             .map(toList)
             .map(Node::create)
@@ -122,7 +144,8 @@ public abstract class Node extends Rule {
         return parse(new GyroCharStream(text), function);
     }
 
-    public static Node parse(InputStream input, String file, Function<GyroParser, ? extends ParseTree> function) throws IOException {
+    public static Node parse(InputStream input, String file, Function<GyroParser, ? extends ParseTree> function)
+        throws IOException {
         return parse(new GyroCharStream(input, file), function);
     }
 
@@ -147,7 +170,14 @@ public abstract class Node extends Rule {
             throw new SyntaxErrorException(charStream.getSourceName(), errors);
         }
 
-        return Node.create(tree);
+        try {
+            return Node.create(tree);
+
+        } catch (EscapeException e) {
+            throw new SyntaxErrorException(
+                charStream.getSourceName(),
+                Collections.singletonList(new SyntaxError(charStream, e.getMessage(), e.getToken())));
+        }
     }
 
     public Node(Token start, Token stop) {

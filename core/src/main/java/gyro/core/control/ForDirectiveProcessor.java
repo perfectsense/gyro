@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019, Perfect Sense, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package gyro.core.control;
 
 import java.util.LinkedHashMap;
@@ -5,19 +21,15 @@ import java.util.List;
 import java.util.Map;
 
 import gyro.core.GyroException;
+import gyro.core.Type;
 import gyro.core.directive.DirectiveProcessor;
-import gyro.core.scope.NodeEvaluator;
 import gyro.core.scope.Scope;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.DirectiveNode;
 import gyro.util.CascadingMap;
 
+@Type("for")
 public class ForDirectiveProcessor extends DirectiveProcessor<Scope> {
-
-    @Override
-    public String getName() {
-        return "for";
-    }
 
     @Override
     public void process(Scope scope, DirectiveNode node) {
@@ -85,11 +97,9 @@ public class ForDirectiveProcessor extends DirectiveProcessor<Scope> {
     }
 
     private void processBody(DirectiveNode node, Scope scope, Map<String, Object> values) {
-        NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
-        Scope bodyScope = new Scope(scope, new CascadingMap<>(scope, values));
-
-        evaluator.visitBody(node.getBody(), bodyScope);
-        scope.getKeyNodes().putAll(bodyScope.getKeyNodes());
+        scope.getRootScope().getEvaluator().evaluateBody(
+            node.getBody(),
+            new Scope(scope, new CascadingMap<>(scope, values)));
     }
 
 }

@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019, Perfect Sense, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package gyro.core.scope;
 
 import java.util.ArrayList;
@@ -19,8 +35,7 @@ public class Scope extends MapWrapper<String, Object> {
 
     private final Scope parent;
     private final Map<Object, String> names = new IdentityHashMap<>();
-    private final Map<String, Node> valueNodes = new HashMap<>();
-    private final Map<String, Node> keyNodes = new HashMap<>();
+    private final Map<String, Node> locations = new HashMap<>();
 
     private final LoadingCache<Class<? extends Settings>, Settings> settingsByClass = CacheBuilder.newBuilder()
         .build(new CacheLoader<Class<? extends Settings>, Settings>() {
@@ -73,6 +88,18 @@ public class Scope extends MapWrapper<String, Object> {
         return getClosest(FileScope.class);
     }
 
+    public Object find(Node node, String key) {
+        for (Scope s = this; s != null; s = s.parent) {
+            if (s.containsKey(key)) {
+                return s.get(key);
+            }
+        }
+
+        throw new Defer(node, String.format(
+            "Can't resolve @|bold %s|@!",
+            key));
+    }
+
     @SuppressWarnings("unchecked")
     public void addValue(String key, String name, Object value) {
         Object oldValue = get(key);
@@ -98,21 +125,21 @@ public class Scope extends MapWrapper<String, Object> {
         return names.get(value);
     }
 
-    public void addValueNode(String key, Node value) {
-        valueNodes.put(key, value);
+    public Node getLocation(String key) {
+        return locations.get(key);
     }
 
-    public Map<String, Node> getValueNodes() {
-        return valueNodes;
-    }
-
-    public Map<String, Node> getKeyNodes() {
-        return keyNodes;
+    public void putLocation(String key, Node node) {
+        locations.put(key, node);
     }
 
     @SuppressWarnings("unchecked")
     public <S extends Settings> S getSettings(Class<S> settingsClass) {
         return (S) settingsByClass.getUnchecked(Preconditions.checkNotNull(settingsClass));
+    }
+
+    public LoadingCache<Class<? extends Settings>, Settings> getSettingsByClass() {
+        return settingsByClass;
     }
 
 }

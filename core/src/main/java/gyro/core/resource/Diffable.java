@@ -1,6 +1,24 @@
+/*
+ * Copyright 2019, Perfect Sense, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package gyro.core.resource;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -21,6 +39,9 @@ public abstract class Diffable {
     DiffableScope scope;
     Change change;
     Set<String> configuredFields;
+    final List<Modification<? extends Diffable>> modifications = new ArrayList<>();
+
+    public abstract String primaryKey();
 
     public Diffable parent() {
         return parent;
@@ -46,24 +67,25 @@ public abstract class Diffable {
 
     public GyroInputStream openInput(String file) {
         FileScope fileScope = scope.getFileScope();
+        Path parent = Paths.get(fileScope.getFile()).getParent();
 
-        return fileScope.getRootScope()
-            .openInput(Paths.get(fileScope.getFile())
-                .getParent()
-                .resolve(file)
-                .toString());
+        return fileScope.getRootScope().openInput(parent != null
+            ? parent.resolve(file).toString()
+            : file);
     }
 
     protected <T extends Diffable> T newSubresource(Class<T> diffableClass) {
-        return DiffableType.getInstance(diffableClass).newInstance(new DiffableScope(scope, null));
+        return DiffableType.getInstance(diffableClass).newInternal(new DiffableScope(scope, null), null);
     }
 
-    public String primaryKey() {
-        return String.format("%s::%s", DiffableType.getInstance(getClass()).getName(), name);
+    protected void requires(String fieldName) {
+        if (!scope.isEmpty()) {
+            DiffableType.getInstance(this).getField(fieldName).setValue(this, scope.get(fieldName));
+        }
     }
 
-    public List<ValidationError> validate() {
-        return null;
+    public List<ValidationError> validate(Set<String> configuredFields) {
+        return validate();
     }
 
     public boolean writePlan(GyroUI ui, Change change) {
@@ -129,4 +151,11 @@ public abstract class Diffable {
         return builder.toString();
     }
 
+    /**
+     * @deprecated Use {@link #validate(Set)} instead.
+     */
+    @Deprecated
+    public List<ValidationError> validate() {
+        return null;
+    }
 }

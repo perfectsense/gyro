@@ -1,6 +1,24 @@
+/*
+ * Copyright 2019, Perfect Sense, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package gyro.core.scope;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
@@ -17,7 +35,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.ImmutableSet;
+import com.psddev.dari.util.IoUtils;
 import gyro.core.GyroException;
 import gyro.core.diff.Change;
 import gyro.core.diff.Delete;
@@ -45,17 +63,14 @@ public class State {
     private final RootScope root;
     private final boolean test;
     private final Map<String, FileScope> states = new HashMap<>();
-    private final Set<String> diffFiles;
     private final Map<String, String> newNames = new HashMap<>();
-    private final Map<String, String> newKeys = new HashMap<>();
 
-    public State(RootScope current, RootScope pending, boolean test, Set<String> diffFiles) {
+    public State(RootScope current, RootScope pending, boolean test) {
         this.root = new RootScope(current.getFile(), current.getBackend(), null, current.getLoadFiles());
 
         root.evaluate();
 
         this.test = test;
-        this.diffFiles = diffFiles != null ? ImmutableSet.copyOf(diffFiles) : null;
 
         for (FileScope state : root.getFileScopes()) {
             states.put(state.getFile(), state);
@@ -72,10 +87,6 @@ public class State {
 
     public boolean isTest() {
         return test;
-    }
-
-    public Set<String> getDiffFiles() {
-        return diffFiles;
     }
 
     public void update(Change change) {
@@ -95,10 +106,8 @@ public class State {
         // Delete goes through every state to remove the resource.
         if (change instanceof Delete) {
             if (typeRoot) {
-                for (FileScope state : states.values()) {
-                    String key = resource.primaryKey();
-                    state.remove(newKeys.getOrDefault(key, key));
-                }
+                String key = resource.primaryKey();
+                states.values().forEach(s -> s.remove(key));
 
             } else {
                 states.values()
@@ -115,29 +124,29 @@ public class State {
 
             if (typeRoot) {
                 String key = resource.primaryKey();
-                String newKey = newKeys.getOrDefault(key, key);
 
-                state.put(newKey, resource);
+                state.put(key, resource);
 
-                Resource oldResource = state.getRootScope().findResource(newKey);
+                Resource oldResource = state.getRootScope().findResource(key);
 
                 if (oldResource != null) {
                     FileScope oldState = states.get(DiffableInternals.getScope(oldResource).getFileScope().getFile());
 
                     if (state != oldState) {
-                        oldState.remove(newKey);
+                        oldState.remove(key);
                     }
                 }
 
             } else {
                 String key = resource.parentResource().primaryKey();
-                updateSubresource((Resource) state.get(newKeys.getOrDefault(key, key)), resource, false);
+                updateSubresource((Resource) state.get(key), resource, false);
             }
         }
     }
 
     private void updateSubresource(Resource parent, Resource subresource, boolean delete) {
-        DiffableField field = DiffableType.getInstance(parent.getClass()).getField(DiffableInternals.getName(subresource));
+        DiffableField field = DiffableType.getInstance(parent.getClass())
+            .getField(DiffableInternals.getName(subresource));
         Object value = field.getValue(parent);
 
         if (value instanceof Collection) {
@@ -152,7 +161,7 @@ public class State {
                 List<Object> list = (List<Object>) value;
                 boolean found = false;
 
-                for (ListIterator<Object> i = list.listIterator(); i.hasNext();) {
+                for (ListIterator<Object> i = list.listIterator(); i.hasNext(); ) {
                     Object item = i.next();
 
                     if (subresource.equals(item)) {
@@ -188,9 +197,11 @@ public class State {
                 .collect(Collectors.toList());
 
             if (!resources.isEmpty()) {
+                String tempFile = String.format("%s~", file);
+
                 try (PrintWriter out = new PrintWriter(
                     new OutputStreamWriter(
-                        root.openOutput(file),
+                        root.openOutput(tempFile),
                         StandardCharsets.UTF_8))) {
 
                     PrinterContext context = new PrinterContext(out, 0);
@@ -199,11 +210,22 @@ public class State {
                         printer.visit(
                             new ResourceNode(
                                 DiffableType.getInstance(resource.getClass()).getName(),
-                                new ValueNode(newNames.getOrDefault(resource.primaryKey(), DiffableInternals.getName(resource))),
-                                toBodyNodes(resource)),
+                                new ValueNode(newNames.getOrDefault(
+                                    resource.primaryKey(),
+                                    DiffableInternals.getName(resource))),
+                                toBodyNodes(resource, resource)),
                             context);
                     }
 
+                } catch (IOException error) {
+                    throw new Bug(error);
+                }
+
+                try (OutputStream out = root.openOutput(file)) {
+                    InputStream in = root.openInput(tempFile);
+                    IoUtils.copy(in, out);
+
+                    root.delete(tempFile);
                 } catch (IOException error) {
                     throw new Bug(error);
                 }
@@ -214,12 +236,12 @@ public class State {
         }
     }
 
-    private List<Node> toBodyNodes(Diffable diffable) {
+    private List<Node> toBodyNodes(Diffable diffable, Resource resource) {
         List<Node> body = new ArrayList<>();
         Set<String> configuredFields = DiffableInternals.getConfiguredFields(diffable);
 
         if (!configuredFields.isEmpty()) {
-            body.add(toPairNode("_configured-fields", configuredFields));
+            body.add(toPairNode("_configured-fields", configuredFields, resource));
         }
 
         body.addAll(DiffableInternals.getScope(diffable).getStateNodes());
@@ -238,30 +260,30 @@ public class State {
                 || value instanceof Number
                 || value instanceof String) {
 
-                body.add(toPairNode(key, value));
+                body.add(toPairNode(key, value, resource));
 
             } else if (value instanceof Date) {
-                body.add(toPairNode(key, value.toString()));
+                body.add(toPairNode(key, value.toString(), resource));
 
             } else if (value instanceof Enum<?>) {
-                body.add(toPairNode(key, ((Enum) value).name()));
+                body.add(toPairNode(key, ((Enum) value).name(), resource));
 
             } else if (value instanceof Diffable) {
                 if (field.shouldBeDiffed()) {
-                    body.add(new KeyBlockNode(key, null, toBodyNodes((Diffable) value)));
+                    body.add(new KeyBlockNode(key, null, toBodyNodes((Diffable) value, resource)));
 
                 } else {
-                    body.add(toPairNode(key, value));
+                    body.add(toPairNode(key, value, resource));
                 }
 
             } else if (value instanceof Collection) {
                 if (field.shouldBeDiffed()) {
                     for (Object item : (Collection<?>) value) {
-                        body.add(new KeyBlockNode(key, null, toBodyNodes((Diffable) item)));
+                        body.add(new KeyBlockNode(key, null, toBodyNodes((Diffable) item, resource)));
                     }
 
                 } else {
-                    body.add(toPairNode(key, value));
+                    body.add(toPairNode(key, value, resource));
                 }
             } else if (value instanceof CustomValue) {
                 body.add(new PairNode(toNode(key), ((CustomValue) value).toStateNode()));
@@ -277,11 +299,11 @@ public class State {
         return body;
     }
 
-    private PairNode toPairNode(Object key, Object value) {
-        return new PairNode(toNode(key), toNode(value));
+    private PairNode toPairNode(Object key, Object value, Resource resource) {
+        return new PairNode(toNode(key, resource), toNode(value, resource));
     }
 
-    private Node toNode(Object value) {
+    private Node toNode(Object value, Resource self) {
         if (value instanceof Boolean
             || value instanceof Number
             || value instanceof String) {
@@ -293,7 +315,7 @@ public class State {
 
             for (Object item : (Collection<?>) value) {
                 if (item != null) {
-                    items.add(toNode(item));
+                    items.add(toNode(item, self));
                 }
             }
 
@@ -309,7 +331,7 @@ public class State {
                 Object v = entry.getValue();
 
                 if (v != null) {
-                    entries.add(toPairNode(entry.getKey(), v));
+                    entries.add(toPairNode(entry.getKey(), v, self));
                 }
             }
 
@@ -322,11 +344,18 @@ public class State {
             if (DiffableInternals.isExternal(resource)) {
                 return new ValueNode(type.getIdField().getValue(resource));
 
+            } else if (value == self) {
+                return new ReferenceNode(
+                    Collections.singletonList(new ValueNode("SELF")),
+                    Collections.emptyList());
+
             } else {
                 return new ReferenceNode(
                     Arrays.asList(
                         new ValueNode(type.getName()),
-                        new ValueNode(newNames.getOrDefault(resource.primaryKey(), DiffableInternals.getName(resource)))),
+                        new ValueNode(newNames.getOrDefault(
+                            resource.primaryKey(),
+                            DiffableInternals.getName(resource)))),
                     Collections.emptyList());
             }
 
@@ -354,7 +383,6 @@ public class State {
 
         states.values().forEach(s -> s.remove(resourceKey));
         newNames.put(withKey, DiffableInternals.getName(resource));
-        newKeys.put(withKey, resourceKey);
         save();
     }
 

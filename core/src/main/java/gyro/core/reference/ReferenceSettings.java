@@ -1,24 +1,43 @@
+/*
+ * Copyright 2019, Perfect Sense, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package gyro.core.reference;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import gyro.core.Reflections;
 import gyro.core.scope.Settings;
 
 public class ReferenceSettings extends Settings {
 
-    private Map<String, ReferenceResolver> resolvers;
+    private final Map<String, ReferenceResolver> resolvers = new HashMap<>();
 
-    public Map<String, ReferenceResolver> getResolvers() {
-        if (resolvers == null) {
-            resolvers = new HashMap<>();
-        }
-
-        return resolvers;
+    public ReferenceResolver getResolver(String type) {
+        return resolvers.get(type);
     }
 
-    public void setResolvers(Map<String, ReferenceResolver> resolvers) {
-        this.resolvers = resolvers;
+    public void addResolver(Class<? extends ReferenceResolver> resolverClass) {
+        String type = Reflections.getType(resolverClass);
+
+        resolvers.put(
+            Reflections.getNamespaceOptional(resolverClass)
+                .map(ns -> ns + "::" + type)
+                .orElse(type),
+            Reflections.newInstance(resolverClass));
     }
 
 }

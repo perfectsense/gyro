@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019, Perfect Sense, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package gyro.core.scope;
 
 import java.beans.BeanInfo;
@@ -5,6 +21,9 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +41,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import com.psddev.dari.util.ObjectUtils;
 import com.psddev.dari.util.TypeDefinition;
 import gyro.core.GyroException;
 import gyro.core.Reflections;
@@ -36,12 +55,15 @@ import gyro.core.resource.Diffable;
 import gyro.core.resource.DiffableField;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
+import gyro.core.resource.OutputValue;
 import gyro.core.resource.Resource;
 import gyro.core.resource.ResourceVisitor;
-import gyro.lang.ast.block.DirectiveNode;
+import gyro.core.resource.SelfSettings;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.NodeVisitor;
 import gyro.lang.ast.PairNode;
+import gyro.lang.ast.block.BlockNode;
+import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.block.FileNode;
 import gyro.lang.ast.block.KeyBlockNode;
 import gyro.lang.ast.block.ResourceNode;
@@ -53,19 +75,25 @@ import gyro.lang.ast.value.MapNode;
 import gyro.lang.ast.value.ReferenceNode;
 import gyro.lang.ast.value.ValueNode;
 import gyro.lang.filter.Filter;
+import gyro.util.ImmutableCollectors;
 import org.apache.commons.lang3.math.NumberUtils;
 
 public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeException> {
 
-    private static final LoadingCache<Class<? extends DirectiveProcessor>, Class<? extends Scope>> DIRECTIVE_PROCESSOR_SCOPE_CLASSES = CacheBuilder.newBuilder()
+    private Map<String, Set<Node>> typeNodes;
+    private List<Node> body;
+
+    private static final LoadingCache<Class<? extends DirectiveProcessor>, Class<? extends Scope>> DIRECTIVE_PROCESSOR_SCOPE_CLASSES = CacheBuilder
+        .newBuilder()
         .build(new CacheLoader<Class<? extends DirectiveProcessor>, Class<? extends Scope>>() {
 
-           @Override
-           @SuppressWarnings("unchecked")
-           public Class<? extends Scope> load(Class<? extends DirectiveProcessor> directiveProcessorClass) {
-               return (Class<? extends Scope>) TypeDefinition.getInstance(directiveProcessorClass).getInferredGenericTypeArgumentClass(DirectiveProcessor.class, 0);
-           }
-       });
+            @Override
+            @SuppressWarnings("unchecked")
+            public Class<? extends Scope> load(Class<? extends DirectiveProcessor> directiveProcessorClass) {
+                return (Class<? extends Scope>) TypeDefinition.getInstance(directiveProcessorClass)
+                    .getInferredGenericTypeArgumentClass(DirectiveProcessor.class, 0);
+            }
+        });
 
     private static final Map<String, BiFunction<Object, Object, Object>> BINARY_FUNCTIONS = ImmutableMap.<String, BiFunction<Object, Object, Object>>builder()
         .put("*", (l, r) -> doArithmetic(l, r, (ld, rd) -> ld * rd, (ll, rl) -> ll * rl))
@@ -73,8 +101,8 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         .put("%", (l, r) -> doArithmetic(l, r, (ld, rd) -> ld % rd, (ll, rl) -> ll % rl))
         .put("+", (l, r) -> doArithmetic(l, r, Double::sum, Long::sum))
         .put("-", (l, r) -> doArithmetic(l, r, (ld, rd) -> ld - rd, (ll, rl) -> ll - rl))
-        .put("=", Objects::equals)
-        .put("!=", (l, r) -> !Objects.equals(l, r))
+        .put("=", (l, r) -> equals(l, r))
+        .put("!=", (l, r) -> !equals(l, r))
         .put("<", (l, r) -> compare(l, r) < 0)
         .put("<=", (l, r) -> compare(l, r) <= 0)
         .put(">", (l, r) -> compare(l, r) > 0)
@@ -83,7 +111,11 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         .put("or", (l, r) -> test(l) && test(r))
         .build();
 
-    private static Object doArithmetic(Object left, Object right, DoubleBinaryOperator doubleOperator, LongBinaryOperator longOperator) {
+    private static Object doArithmetic(
+        Object left,
+        Object right,
+        DoubleBinaryOperator doubleOperator,
+        LongBinaryOperator longOperator) {
         if (left == null || right == null) {
             throw new GyroException("Can't do arithmetic with a null!");
         }
@@ -118,15 +150,43 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         }
     }
 
+    private static boolean equals(Object left, Object right) {
+        if (left != null && right != null) {
+            Class<?> lClass = left.getClass();
+            Class<?> rClass = right.getClass();
+
+            if (!lClass.equals(rClass)) {
+                Object rConverted = ObjectUtils.to(lClass, right);
+
+                if (rConverted != null) {
+                    return Objects.equals(left, rConverted);
+
+                } else {
+                    Object lConverted = ObjectUtils.to(rClass, left);
+
+                    if (lConverted != null) {
+                        return Objects.equals(lConverted, right);
+                    }
+                }
+            }
+        }
+
+        return Objects.equals(left, right);
+    }
+
     @SuppressWarnings("unchecked")
     private static int compare(Object left, Object right) {
         if (left == null || right == null) {
             throw new GyroException("Can't compare against a null!");
 
-        } else if (left instanceof Comparable
-            && left.getClass().isInstance(right)) {
+        } else if (left instanceof Number && right instanceof Number) {
+            return Double.compare(((Number) left).doubleValue(), ((Number) right).doubleValue());
 
+        } else if (left instanceof Comparable && left.getClass().isInstance(right)) {
             return ((Comparable<Object>) left).compareTo(right);
+
+        } else if (right instanceof Comparable && right.getClass().isInstance(left)) {
+            return 0 - ((Comparable<Object>) right).compareTo(left);
 
         } else {
             throw new GyroException(String.format(
@@ -168,25 +228,28 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             DiffableType<Diffable> type = DiffableType.getInstance(diffable);
             DiffableField field = type.getField(key);
 
-            if (field == null) {
-                throw new GyroException(node, String.format(
-                    "Can't find the @|bold %s|@ field in the @|bold %s|@ type!",
-                    key,
-                    type.getName()));
-            }
+            if (field != null) {
+                Object value = field.getValue(diffable);
 
-            return field.getValue(diffable);
+                if (value == null && field.isOutput()) {
+                    return new OutputValue();
+
+                } else {
+                    return value;
+                }
+            }
 
         } else if (object instanceof GlobCollection) {
             return ((GlobCollection) object).stream()
                 .map(i -> getValue(node, i, key))
-                .filter(Objects::nonNull)
+                .flatMap(v -> v instanceof Collection
+                    ? ((Collection<?>) v).stream()
+                    : Stream.of(v))
                 .collect(Collectors.toList());
 
         } else if (object instanceof List) {
-            Number index = NumberUtils.createNumber(key);
-
-            if (index != null) {
+            try {
+                Number index = NumberUtils.createNumber(key);
                 List<?> list = (List<?>) object;
                 int size = list.size();
                 int i = index.intValue();
@@ -203,6 +266,9 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                 }
 
                 return list.get(i);
+
+            } catch (NumberFormatException error) {
+                // Ignore and try to look up getter/method.
             }
 
         } else if (object instanceof Map) {
@@ -213,32 +279,90 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         BeanInfo info = Reflections.getBeanInfo(aClass);
         String methodName = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_CAMEL, key);
 
-        Method getter = Stream.of(info.getPropertyDescriptors())
+        Method method = Stream.of(info.getPropertyDescriptors())
             .filter(p -> p.getName().equals(methodName))
             .map(PropertyDescriptor::getReadMethod)
             .filter(Objects::nonNull)
             .findFirst()
-            .orElseThrow(() -> new GyroException(node, String.format(
-                "Can't find the @|bold %s|@ property in the @|bold %s|@ class!",
-                key,
-                aClass.getName())));
+            .orElseGet(() -> Stream.of(aClass.getMethods())
+                .filter(m -> m.getName().equals(methodName))
+                .filter(m -> m.getParameterCount() == 0)
+                .filter(m -> !m.getReturnType().equals(void.class))
+                .findFirst()
+                .orElseThrow(() -> {
+                    if (object instanceof Diffable) {
+                        return new GyroException(node, String.format(
+                            "Can't find the @|bold %s|@ field or property in the @|bold %s|@ type!",
+                            key,
+                            DiffableType.getInstance((Diffable) object).getName()));
 
-        return Reflections.invoke(getter, object);
+                    } else {
+                        return new GyroException(node, String.format(
+                            "Can't find the @|bold %s|@ property in the @|bold %s|@ class!",
+                            key,
+                            aClass.getName()));
+                    }
+                }));
+
+        return Reflections.invoke(method, object);
     }
 
-    public void visitBody(List<Node> body, Scope scope) {
+    public List<Node> getBody() {
+        return body;
+    }
+
+    public void evaluate(RootScope root, List<Node> body) {
+        this.typeNodes = new HashMap<>();
+        this.body = body;
+
+        body.stream()
+            .filter(FileNode.class::isInstance)
+            .map(FileNode.class::cast)
+            .map(FileNode::getBody)
+            .flatMap(List::stream)
+            .forEach(item -> addTypeNode(item, item));
+
+        evaluateBody(body, root);
+    }
+
+    public void addTypeNode(Node top, Node node) {
+        if (node instanceof ResourceNode) {
+            typeNodes.computeIfAbsent(((ResourceNode) node).getType(), k -> new HashSet<>()).add(top);
+        }
+
+        if (node instanceof BlockNode) {
+            for (Node item : ((BlockNode) node).getBody()) {
+                addTypeNode(top, item);
+            }
+        }
+    }
+
+    public void evaluateBody(List<Node> body, Scope scope) {
         Defer.execute(body, i -> visit(i, scope));
     }
 
+    private void removeTypeNode(Node node) {
+        if (typeNodes != null) {
+            for (Iterator<Set<Node>> i = typeNodes.values().iterator(); i.hasNext(); ) {
+                Set<Node> nodes = i.next();
+
+                nodes.remove(node);
+
+                if (nodes.isEmpty()) {
+                    i.remove();
+                }
+            }
+        }
+    }
+
     @Override
-    @SuppressWarnings("unchecked")
     public Object visitDirective(DirectiveNode node, Scope scope) {
         String name = node.getName();
 
-        DirectiveProcessor processor = scope.getRootScope()
+        @SuppressWarnings("unchecked")
+        DirectiveProcessor<Scope> processor = (DirectiveProcessor<Scope>) scope.getRootScope()
             .getSettings(DirectiveSettings.class)
-            .getProcessors()
-            .get(name);
+            .getProcessor(name);
 
         if (processor == null) {
             throw new GyroException(
@@ -265,6 +389,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                 error);
         }
 
+        removeTypeNode(node);
         return null;
     }
 
@@ -274,43 +399,52 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         Node value = node.getValue();
 
         scope.put(key, visit(value, scope));
-        scope.addValueNode(key, value);
-        scope.getKeyNodes().put(key, node);
+        scope.putLocation(key, node);
 
+        removeTypeNode(node);
         return scope.get(key);
     }
 
     @Override
     public Object visitFile(FileNode node, Scope scope) {
         RootScope rootScope = scope.getRootScope();
-        FileScope fileScope;
+        List<FileScope> fileScopes = rootScope.getFileScopes();
+        String file = node.getFile();
 
-        if (rootScope.getFile().equals(node.getFile())) {
-            fileScope = rootScope;
+        FileScope fileScope = fileScopes.stream()
+            .filter(f -> f.getFile().equals(file))
+            .findFirst()
+            .orElse(null);
 
-        } else {
-            fileScope = new FileScope(rootScope, node.getFile());
-            rootScope.getFileScopes().add(fileScope);
+        if (fileScope == null) {
+            fileScope = new FileScope(rootScope, file);
+            fileScopes.add(fileScope);
         }
 
-        try {
-            visitBody(node.getBody(), fileScope);
-
-        } catch (Defer e) {
-            rootScope.getFileScopes().remove(fileScope);
-            throw e;
-        }
-
+        evaluateBody(node.getBody(), fileScope);
+        removeTypeNode(node);
         return null;
+    }
+
+    public void evaluateDiffable(BlockNode node, Scope scope) {
+        for (Node item : node.getBody()) {
+            if (!(item instanceof DirectiveNode)) {
+                visit(item, scope);
+            }
+        }
+
+        for (Node item : node.getBody()) {
+            if (item instanceof DirectiveNode) {
+                visit(item, scope);
+            }
+        }
     }
 
     @Override
     public Object visitKeyBlock(KeyBlockNode node, Scope scope) {
         DiffableScope bodyScope = new DiffableScope(scope, node);
 
-        for (Node item : node.getBody()) {
-            visit(item, bodyScope);
-        }
+        evaluateDiffable(node, bodyScope);
 
         String key = node.getKey();
 
@@ -319,94 +453,78 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             .orElse(null);
 
         scope.addValue(key, name, bodyScope);
-        scope.getKeyNodes().put(key, node);
+        scope.putLocation(key, node);
 
+        removeTypeNode(node);
         return null;
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public Object visitResource(ResourceNode node, Scope scope) {
+        String type = node.getType();
+        String name = (String) visit(node.getName(), scope);
         DiffableScope bodyScope = new DiffableScope(scope, node);
 
-        for (Node item : node.getBody()) {
-            if (!(item instanceof DirectiveNode)) {
-                visit(item, bodyScope);
-            }
+        try {
+            evaluateDiffable(node, bodyScope);
+
+        } catch (Defer error) {
+            throw new CreateDefer(error, type, name);
         }
 
-        String name = (String) visit(node.getName(), scope);
-        String typeName = node.getType();
-        String fullName = typeName + "::" + name;
-        RootScope rootScope = scope.getRootScope();
-
-        Collection<String> pendingConfiguredFields = ImmutableSet.copyOf(
-            Optional.ofNullable((Collection<String>) bodyScope.get("_configured-fields"))
-                .orElseGet(bodyScope::getAddedKeys));
-
-        // Initialize the bodyScope with the resource values from the current
-        // state scope.
-        Optional.ofNullable(rootScope.getCurrent())
-            .map(s -> s.findResource(fullName))
-            .ifPresent(r -> {
-                Set<String> currentConfiguredFields = DiffableInternals.getConfiguredFields(r);
-
-                for (DiffableField f : DiffableType.getInstance(r.getClass()).getFields()) {
-                    String key = f.getName();
-
-                    // Skip over fields that were previously configured
-                    // so that their removals can be detected by the
-                    // diff system.
-                    if (currentConfiguredFields.contains(key) || pendingConfiguredFields.contains(key)) {
-                        continue;
-                    }
-
-                    bodyScope.put(key, f.getValue(r));
-                }
-            });
-
-        for (Node item : node.getBody()) {
-            if (item instanceof DirectiveNode) {
-                visit(item, bodyScope);
-            }
-        }
-
-        Object value = rootScope.get(typeName);
+        RootScope root = scope.getRootScope();
+        Object value = root.get(type);
 
         if (value == null) {
             throw new Defer(node, String.format(
                 "Can't create a resource of @|bold %s|@ type!",
-                typeName));
+                type));
 
         } else if (value instanceof Class) {
             Class<?> c = (Class<?>) value;
 
-            if (Resource.class.isAssignableFrom(c)) {
-                FileScope file = scope.getFileScope();
-
-                if (file.containsKey(fullName)) {
-                    throw new GyroException(
-                        node,
-                        String.format("@|bold %s %s|@ has been defined already!", typeName, name),
-                        new GyroException(
-                            file.getKeyNodes().get(fullName),
-                            "Defined previously:"));
-                }
-
-                DiffableType<Resource> type = DiffableType.getInstance((Class<Resource>) c);
-                Resource resource = type.newInstance(bodyScope);
-
-                DiffableInternals.setName(resource, name);
-                type.setValues(resource, bodyScope.isExtended() ? new LinkedHashMap<>(bodyScope) : bodyScope);
-                file.put(fullName, resource);
-                file.getKeyNodes().put(fullName, node);
-
-            } else {
+            if (!Resource.class.isAssignableFrom(c)) {
                 throw new GyroException(String.format(
                     "Can't create a resource of @|bold %s|@ type using the @|bold %s|@ class!",
-                    typeName,
+                    type,
                     c.getName()));
             }
+
+            FileScope file = scope.getFileScope();
+            String fullName = type + "::" + name;
+
+            if (file.containsKey(fullName)) {
+                Node location = file.getLocation(fullName);
+
+                if (!node.equals(location)) {
+                    throw new GyroException(
+                        node,
+                        String.format("@|bold %s %s|@ has been defined already!", type, name),
+                        new GyroException(location, "Defined previously:"));
+                }
+            }
+
+            DiffableType<Resource> resourceType = DiffableType.getInstance((Class<Resource>) c);
+            Resource resource = resourceType.newInternal(bodyScope, name);
+            bodyScope.getSettings(SelfSettings.class).setSelf(resource);
+            bodyScope = new DiffableScope(bodyScope);
+
+            try {
+                evaluateDiffable(node, bodyScope);
+
+            } catch (Defer error) {
+                throw new CreateDefer(error, type, name);
+            }
+
+            resourceType.setValues(resource, bodyScope);
+            Optional.ofNullable(root.getCurrent())
+                .map(s -> s.findResource(fullName))
+                .ifPresent(r -> copy(r, resource));
+
+            bodyScope.process(resource);
+            file.put(fullName, resource);
+            file.putLocation(fullName, node);
 
         } else if (value instanceof ResourceVisitor) {
             ((ResourceVisitor) value).visit(name, bodyScope);
@@ -414,12 +532,54 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         } else {
             throw new GyroException(String.format(
                 "Can't create a resource of @|bold %s|@ type using @|bold %s|@, an instance of @|bold %s|@!",
-                typeName,
+                type,
                 value,
                 value.getClass().getName()));
         }
 
+        removeTypeNode(node);
         return null;
+    }
+
+    public void copy(Diffable currentResource, Diffable pendingResource) {
+        if (currentResource == null) {
+            return;
+        }
+
+        Set<String> currentConfiguredFields = DiffableInternals.getConfiguredFields(currentResource);
+        Set<String> pendingConfiguredFields = DiffableInternals.getConfiguredFields(pendingResource);
+
+        for (DiffableField field : DiffableType.getInstance(currentResource).getFields()) {
+            String fieldName = field.getName();
+
+            // Current        Pending          Action
+            // -------------- ---------------- ----------
+            // Configured     Not configured   Don't copy
+            // Configured     Configured       Don't copy
+            // Not configured Not configured   Copy
+            // Not configured Configured       Don't copy
+            if (!currentConfiguredFields.contains(fieldName) && !pendingConfiguredFields.contains(fieldName)) {
+                field.setValue(pendingResource, field.getValue(currentResource));
+
+            } else if (field.shouldBeDiffed()) {
+                Object pendingValue = field.getValue(pendingResource);
+
+                if (pendingValue != null) {
+                    Map<Optional<String>, Diffable> subs = Optional.ofNullable(field.getValue(currentResource))
+                        .map(v -> stream(v).collect(ImmutableCollectors.toMap(d -> Optional.ofNullable(d.primaryKey()))))
+                        .orElseGet(ImmutableMap::of);
+
+                    stream(pendingValue).forEach(r -> copy(subs.get(Optional.ofNullable(r.primaryKey())), r));
+                }
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Stream<Diffable> stream(Object value) {
+        return (value instanceof Collection
+            ? ((Collection<Diffable>) value).stream()
+            : Stream.of((Diffable) value));
     }
 
     @Override
@@ -433,38 +593,46 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                 operator));
         }
 
+        removeTypeNode(node);
+
         return function.apply(
             visit(node.getLeft(), scope),
             visit(node.getRight(), scope));
     }
 
     @Override
-    public Object visitIndexed(IndexedNode node, Scope context) {
-        Object value = visit(node.getValue(), context);
+    public Object visitIndexed(IndexedNode node, Scope scope) {
+        Object value = visit(node.getValue(), scope);
 
         if (value == null) {
+            removeTypeNode(node);
             return null;
         }
 
         for (Node indexNode : node.getIndexes()) {
-            Object index = visit(indexNode, context);
+            Object index = visit(indexNode, scope);
 
             if (index == null) {
+                removeTypeNode(node);
                 return null;
             }
 
             value = getValue(node, value, index.toString());
 
             if (value == null) {
+                removeTypeNode(node);
                 return null;
             }
         }
 
+        removeTypeNode(node);
         return value;
     }
 
     @Override
     public Object visitInterpolatedString(InterpolatedStringNode node, Scope scope) {
+        removeTypeNode(node);
+
         return node.getItems()
             .stream()
             .map(i -> visit(i, scope))
@@ -481,6 +649,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             list.add(visit(item, scope));
         }
 
+        removeTypeNode(node);
         return list;
     }
 
@@ -493,6 +662,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             map.put((String) visit(entry.getKey(), bodyScope), visit(entry, bodyScope));
         }
 
+        removeTypeNode(node);
         return map;
     }
 
@@ -504,25 +674,25 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             .collect(Collectors.toList());
 
         if (arguments.isEmpty()) {
+            removeTypeNode(node);
             return null;
         }
 
         Object value = arguments.remove(0);
 
         if (value == null) {
+            removeTypeNode(node);
             return null;
         }
 
         if (node.getArguments().get(0) instanceof ValueNode) {
             RootScope root = scope.getRootScope();
             String referenceName = (String) value;
-
-            ReferenceResolver resolver = root.getSettings(ReferenceSettings.class)
-                .getResolvers()
-                .get(referenceName);
+            ReferenceResolver resolver = root.getSettings(ReferenceSettings.class).getResolver(referenceName);
 
             if (resolver != null) {
                 try {
+                    removeTypeNode(node);
                     return resolveFilters(node, scope, resolver.resolve(scope, arguments));
 
                 } catch (Exception error) {
@@ -540,6 +710,10 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                 }
 
                 if (resourceName.endsWith("*")) {
+                    if (typeNodes != null && typeNodes.containsKey(referenceName)) {
+                        throw new WildcardDefer(node, referenceName);
+                    }
+
                     Stream<Resource> s = root.findResources()
                         .stream()
                         .filter(r -> referenceName.equals(DiffableType.getInstance(r.getClass()).getName()));
@@ -555,39 +729,23 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                     Resource resource = root.findResource(referenceName + "::" + resourceName);
 
                     if (resource == null) {
-                        throw new Defer(node, String.format(
-                            "Can't find @|bold %s|@ resource of @|bold %s|@ type!",
-                            resourceName,
-                            referenceName));
+                        throw new FindDefer(node, referenceName, resourceName);
                     }
 
                     value = resource;
                 }
 
             } else {
-                boolean found = false;
-
-                for (Scope s = scope instanceof DiffableScope ? scope.getParent() : scope; s != null; s = s.getParent()) {
-                    if (s.containsKey(referenceName)) {
-                        Node valueNode = s.getValueNodes().get(referenceName);
-                        value = valueNode == null ? s.get(referenceName) : visit(valueNode, s);
-                        found = true;
-                        break;
-                    }
-                }
-
-                if (!found) {
-                    throw new Defer(node, String.format(
-                        "Can't resolve @|bold %s|@!",
-                        referenceName));
-                }
+                value = scope.find(node, referenceName);
             }
 
             if (value == null) {
+                removeTypeNode(node);
                 return null;
             }
         }
 
+        removeTypeNode(node);
         return resolveFilters(node, scope, value);
     }
 
@@ -622,6 +780,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
 
     @Override
     public Object visitValue(ValueNode node, Scope scope) {
+        removeTypeNode(node);
         return node.getValue();
     }
 

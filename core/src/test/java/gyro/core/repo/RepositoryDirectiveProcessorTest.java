@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019, Perfect Sense, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package gyro.core.repo;
 
 import java.util.Collections;
@@ -24,11 +40,6 @@ class RepositoryDirectiveProcessorTest {
         processor = new RepositoryDirectiveProcessor();
     }
 
-    @Test
-    void getName() {
-        assertThat(processor.getName()).isEqualTo("repository");
-    }
-
     @Nested
     class WithRootScope {
 
@@ -52,9 +63,10 @@ class RepositoryDirectiveProcessorTest {
 
             List<RemoteRepository> repositories = root.getSettings(RepositorySettings.class).getRepositories();
 
-            assertThat(repositories).hasSize(2);
+            assertThat(repositories).hasSize(3);
             assertThat(repositories.get(0)).isEqualTo(RepositorySettings.CENTRAL);
-            assertThat(repositories.get(1).getUrl()).isEqualTo(url);
+            assertThat(repositories.get(1)).isEqualTo(RepositorySettings.RELEASE);
+            assertThat(repositories.get(2).getUrl()).isEqualTo(url);
         }
     }
 

@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019, Perfect Sense, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package gyro.core.diff;
 
 import java.util.ArrayList;
@@ -19,7 +35,7 @@ import gyro.core.resource.DiffableField;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
 import gyro.core.resource.Resource;
-import gyro.core.scope.DiffableScope;
+import gyro.core.scope.Scope;
 import gyro.core.scope.State;
 
 public class Diff {
@@ -37,8 +53,8 @@ public class Diff {
             ? new ArrayList<>(pendingDiffables)
             : Collections.emptyList();
 
-        this.currentDiffables.forEach(d -> DiffableInternals.update(d, false));
-        this.pendingDiffables.forEach(d -> DiffableInternals.update(d, false));
+        this.currentDiffables.forEach(d -> DiffableInternals.update(d));
+        this.pendingDiffables.forEach(d -> DiffableInternals.update(d));
     }
 
     public Diff(Diffable currentDiffable, Diffable pendingDiffable) {
@@ -50,8 +66,8 @@ public class Diff {
             ? Collections.singletonList(pendingDiffable)
             : Collections.emptyList();
 
-        this.currentDiffables.forEach(d -> DiffableInternals.update(d, false));
-        this.pendingDiffables.forEach(d -> DiffableInternals.update(d, false));
+        this.currentDiffables.forEach(d -> DiffableInternals.update(d));
+        this.pendingDiffables.forEach(d -> DiffableInternals.update(d));
     }
 
     public List<Change> getChanges() {
@@ -66,7 +82,7 @@ public class Diff {
         );
 
         for (Diffable pendingDiffable : pendingDiffables) {
-            resolve(pendingDiffable);
+            DiffableInternals.reevaluate(pendingDiffable);
 
             Diffable currentDiffable = currentDiffables.remove(pendingDiffable.primaryKey());
 
@@ -199,6 +215,11 @@ public class Diff {
 
             // Skip nested diffables since they're handled by the diff system.
             if (field.shouldBeDiffed()) {
+                continue;
+            }
+
+            // Skip the field whose value can be modified by a cloud provider.
+            if (field.isImmutable()) {
                 continue;
             }
 
@@ -373,7 +394,7 @@ public class Diff {
         }
 
         if (change.changed.compareAndSet(false, true)) {
-            resolve(diffable);
+            DiffableInternals.reevaluate(diffable);
 
             if (!diffable.writeExecution(ui, change)) {
                 change.writeExecution(ui);
@@ -382,13 +403,13 @@ public class Diff {
             ExecutionResult result;
 
             try {
-                result = change.execute(
-                    ui,
-                    state,
-                    DiffableInternals.getScope(diffable)
-                        .getRootScope()
-                        .getSettings(ChangeSettings.class)
-                        .getProcessors());
+                List<ChangeProcessor> processors = new ArrayList<>();
+
+                for (Scope s = DiffableInternals.getScope(diffable); s != null; s = s.getParent()) {
+                    processors.addAll(0, s.getSettings(ChangeSettings.class).getProcessors());
+                }
+
+                result = change.execute(ui, state, processors);
 
             } catch (Exception error) {
                 throw new GyroException(
@@ -403,29 +424,6 @@ public class Diff {
 
             if (result != null) {
                 result.write(ui);
-            }
-        }
-    }
-
-    private void resolve(Object object) {
-        if (object instanceof Diffable) {
-            Diffable diffable = (Diffable) object;
-            DiffableType<Diffable> type = DiffableType.getInstance(diffable);
-            DiffableScope scope = DiffableInternals.getScope(diffable);
-
-            if (scope != null) {
-                type.setValues(diffable, scope.resolve());
-            }
-
-            for (DiffableField field : type.getFields()) {
-                if (field.shouldBeDiffed()) {
-                    resolve(field.getValue(diffable));
-                }
-            }
-
-        } else if (object instanceof Collection) {
-            for (Object item : (Collection<?>) object) {
-                resolve(item);
             }
         }
     }

@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019, Perfect Sense, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package gyro.cli;
 
 import java.io.BufferedReader;
@@ -9,9 +25,10 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.google.common.collect.ImmutableSet;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
-import com.google.common.collect.ImmutableSet;
+import org.fusesource.jansi.Ansi;
 import org.fusesource.jansi.AnsiRenderer;
 
 public class CliGyroUI implements GyroUI {
@@ -116,17 +133,17 @@ public class CliGyroUI implements GyroUI {
 
     @Override
     public void indent() {
-        ++ indentLevel;
+        ++indentLevel;
     }
 
     @Override
     public void unindent() {
-        -- indentLevel;
+        --indentLevel;
     }
 
     private void writeIndentation() {
         if (pendingIndentation) {
-            for (int i = 0, l = indentLevel * getIndentSize(); i < l; ++ i) {
+            for (int i = 0, l = indentLevel * getIndentSize(); i < l; ++i) {
                 System.out.print(' ');
             }
 
@@ -137,8 +154,8 @@ public class CliGyroUI implements GyroUI {
     @Override
     public void write(String message, Object... arguments) {
         String text = arguments != null && arguments.length > 0
-                ? String.format(message, arguments)
-                : message;
+            ? String.format(message, arguments)
+            : message;
 
         if (AnsiRenderer.test(text)) {
             text = AnsiRenderer.render(text);
@@ -146,7 +163,7 @@ public class CliGyroUI implements GyroUI {
 
         int offset = 0;
 
-        for (Matcher m = NEWLINES.matcher(text); m.find();) {
+        for (Matcher m = NEWLINES.matcher(text); m.find(); ) {
             writeIndentation();
             System.out.print(text.substring(offset, m.start()));
             System.out.print(m.group(1));
@@ -163,6 +180,12 @@ public class CliGyroUI implements GyroUI {
         }
 
         System.out.flush();
+    }
+
+    @Override
+    public void replace(String message, Object... arguments) {
+        System.out.print(Ansi.ansi().eraseLine(Ansi.Erase.ALL).cursorToColumn(1));
+        write(message, arguments);
     }
 
 }
