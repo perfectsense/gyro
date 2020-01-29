@@ -1,13 +1,13 @@
 package gyro.core.vault;
 
+import java.util.Set;
+
 import gyro.core.GyroUI;
 import gyro.core.Namespace;
 import gyro.core.Type;
 import gyro.core.resource.Resource;
 import gyro.core.scope.State;
 import org.apache.commons.codec.binary.Base64;
-
-import java.util.Set;
 
 @Type("vault-secret")
 @Namespace("gyro")

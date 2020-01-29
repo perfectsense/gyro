@@ -1,14 +1,14 @@
 package gyro.core.vault;
 
+import java.util.Arrays;
+import java.util.Objects;
+
 import com.google.common.collect.ImmutableList;
 import com.psddev.dari.util.StringUtils;
 import gyro.core.resource.CustomValue;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.value.ReferenceNode;
 import gyro.lang.ast.value.ValueNode;
-
-import java.util.Arrays;
-import java.util.Objects;
 
 public class VaultSecret implements CustomValue {
 
@@ -56,7 +56,7 @@ public class VaultSecret implements CustomValue {
         ValueNode vaultNameNode = new ValueNode(getVault());
         ValueNode vaultHash = new ValueNode(getHash());
 
-        return new ReferenceNode(Arrays.asList(vaultResolver, vaultKey, vaultNameNode, vaultHash), ImmutableList.of()) ;
+        return new ReferenceNode(Arrays.asList(vaultResolver, vaultKey, vaultNameNode, vaultHash), ImmutableList.of());
     }
 
     @Override

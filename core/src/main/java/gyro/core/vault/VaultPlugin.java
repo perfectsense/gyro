@@ -1,11 +1,11 @@
 package gyro.core.vault;
 
+import java.util.Optional;
+
 import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.core.plugin.Plugin;
 import gyro.core.scope.RootScope;
-
-import java.util.Optional;
 
 public class VaultPlugin extends Plugin {
 

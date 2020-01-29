@@ -20,7 +20,7 @@ public class VaultCommand extends AbstractCommand {
     @Arguments
     private List<String> arguments = new ArrayList<>();
 
-    @Option(name = { "--vault" }, description = "The vault name to manipulate or query.")
+    @Option(name = "--vault", description = "The vault name to manipulate or query.")
     private String vaultName = "default";
 
     public List<String> getArguments() {

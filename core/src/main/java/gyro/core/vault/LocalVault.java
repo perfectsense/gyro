@@ -1,5 +1,34 @@
 package gyro.core.vault;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermissions;
+import java.security.SecureRandom;
+import java.security.spec.KeySpec;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
+
 import com.google.common.collect.ImmutableSet;
 import com.psddev.dari.util.IoUtils;
 import gyro.core.GyroCore;
@@ -25,37 +54,7 @@ import gyro.lang.ast.value.ValueNode;
 import gyro.util.Bug;
 import org.apache.commons.codec.binary.Base64;
 
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.PBEKeySpec;
-import javax.crypto.spec.SecretKeySpec;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.attribute.PosixFilePermissions;
-import java.security.SecureRandom;
-import java.security.spec.KeySpec;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
-import static java.nio.file.attribute.PosixFilePermission.OWNER_READ;
-import static java.nio.file.attribute.PosixFilePermission.OWNER_WRITE;
+import static java.nio.file.attribute.PosixFilePermission.*;
 
 @Type("local")
 public class LocalVault extends Vault {
@@ -103,7 +102,10 @@ public class LocalVault extends Vault {
 
     public void setKeyIterations(Integer keyIterations) {
         if (keyIterations != null && keyIterations < 10000) {
-            throw new GyroException(String.format(Locale.getDefault(), "Key iterations must be greater than %,d per NIST recommended guidelines.", 10000));
+            throw new GyroException(String.format(
+                Locale.getDefault(),
+                "Key iterations must be greater than %,d per NIST recommended guidelines.",
+                10000));
         }
 
         this.keyIterations = keyIterations;
@@ -118,7 +120,8 @@ public class LocalVault extends Vault {
             byte[] key = Base64.decodeBase64(IoUtils.toByteArray(new File(getKeyPath())));
             return new String(key, StandardCharsets.UTF_8).toCharArray();
         } catch (FileNotFoundException ex) {
-            throw new GyroException("Encryption key for '" + getName() + "' vault not found at path '" + getKeyPath() + "'");
+            throw new GyroException(
+                "Encryption key for '" + getName() + "' vault not found at path '" + getKeyPath() + "'");
         } catch (IOException ex) {
             throw new GyroException("Unable to load encryption key for '" + getName() + "' vault.", ex);
         }
@@ -128,7 +131,8 @@ public class LocalVault extends Vault {
     public String get(String key) {
         RootScope vaultScope = loadVault();
         DiffableType type = DiffableType.getInstance(LocalVaultSecretResource.class);
-        LocalVaultSecretResource secret = (LocalVaultSecretResource) vaultScope.findResource(type.getName() + "::" + key);
+        LocalVaultSecretResource secret = (LocalVaultSecretResource) vaultScope.findResource(
+            type.getName() + "::" + key);
 
         if (secret != null) {
             return decrypt(secret);
@@ -179,7 +183,9 @@ public class LocalVault extends Vault {
         if (!Files.exists(vaultPath())) {
             try {
                 Files.createDirectories(vaultPath().getParent());
-                Files.createFile(vaultPath(), PosixFilePermissions.asFileAttribute(ImmutableSet.of(OWNER_READ, OWNER_WRITE)));
+                Files.createFile(
+                    vaultPath(),
+                    PosixFilePermissions.asFileAttribute(ImmutableSet.of(OWNER_READ, OWNER_WRITE)));
             } catch (Exception ex) {
                 throw new GyroException(ex);
             }
@@ -191,7 +197,8 @@ public class LocalVault extends Vault {
             null,
             ImmutableSet.of());
 
-        vault.getRootScope().put(DiffableType.getInstance(LocalVaultSecretResource.class).getName(), LocalVaultSecretResource.class);
+        vault.getRootScope()
+            .put(DiffableType.getInstance(LocalVaultSecretResource.class).getName(), LocalVaultSecretResource.class);
 
         try {
             vault.evaluate();
@@ -376,7 +383,7 @@ public class LocalVault extends Vault {
             SecretKey tmp = factory.generateSecret(spec);
             SecretKeySpec skey = new SecretKeySpec(tmp.getEncoded(), "AES");
 
-            byte[] iv = new byte[128/8];
+            byte[] iv = new byte[128 / 8];
             SecureRandom.getInstanceStrong().nextBytes(iv);
             IvParameterSpec ivspec = new IvParameterSpec(iv);
 

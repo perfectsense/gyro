@@ -29,7 +29,6 @@ import com.google.common.collect.MapDifference;
 import com.google.common.collect.MapDifference.ValueDifference;
 import com.google.common.collect.Maps;
 import gyro.core.GyroUI;
-import gyro.core.resource.CustomValue;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.DiffableField;
 import gyro.core.resource.DiffableInternals;
@@ -123,7 +122,10 @@ public abstract class Change {
                 return stringify(valueDifference.rightValue());
             }
 
-            return String.format(" %s → %s", stringify(valueDifference.leftValue()), stringify(valueDifference.rightValue()));
+            return String.format(
+                " %s → %s",
+                stringify(valueDifference.leftValue()),
+                stringify(valueDifference.rightValue()));
 
         } else if (value instanceof Map.Entry) {
             Map.Entry e = (Map.Entry) value;

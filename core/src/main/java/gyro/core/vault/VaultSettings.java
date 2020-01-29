@@ -1,9 +1,9 @@
 package gyro.core.vault;
 
-import gyro.core.scope.Settings;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import gyro.core.scope.Settings;
 
 public class VaultSettings extends Settings {
 
