@@ -1,6 +1,8 @@
 CHANGELOG
 =========
 
+## 0.99.2 (Unreleased)
+
 ## 0.99.1 (January 30th, 2020)
 
 ENHANCEMENTS:
