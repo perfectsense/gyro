@@ -34,10 +34,10 @@ matrix:
       script: ./gradlew
 
     # Windows
-    #- language: shell
-    #  os: windows
-    #  before_install:
-    #    - choco install adoptopenjdk11 --version 11.0.4.11
-    #    - choco install zip
-    #    - export PATH=$PATH:"/c/Program Files/AdoptOpenJDK/jdk-11.0.4+11/bin"
-    #  script: ./gradlew
+    - language: shell
+      os: windows
+      before_install:
+        - choco install adoptopenjdk11 --version 11.0.4.11
+        - choco install zip
+        - export PATH=$PATH:"/c/Program Files/AdoptOpenJDK/jdk-11.0.4+11/bin"
+      script: ./gradlew
