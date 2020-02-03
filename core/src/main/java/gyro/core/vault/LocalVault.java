@@ -193,7 +193,7 @@ public class LocalVault extends Vault {
 
         RootScope vault = new RootScope(
             vaultPath().toString(),
-            new LocalFileBackend(GyroCore.getRootDirectory()),
+            new LocalFileBackend(vaultPath()),
             null,
             ImmutableSet.of());
 
