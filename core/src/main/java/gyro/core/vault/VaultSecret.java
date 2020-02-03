@@ -65,6 +65,10 @@ public class VaultSecret implements CustomValue {
             return true;
         }
 
+        if (o instanceof String) {
+            return Objects.equals(getValue(), o);
+        }
+
         if (!(o instanceof VaultSecret)) {
             return false;
         }
