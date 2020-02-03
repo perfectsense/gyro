@@ -48,10 +48,6 @@ public class VaultDirectiveProcessor extends DirectiveProcessor<RootScope> {
             }
         }
 
-        if (settings.getVaultsByName().containsKey(name)) {
-            throw new GyroException("A vault with the name '" + name + "' was previously defined.");
-        }
-
         settings.getVaultsByName().put(name, vault);
     }
 
