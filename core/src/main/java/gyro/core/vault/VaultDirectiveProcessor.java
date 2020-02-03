@@ -19,8 +19,11 @@ public class VaultDirectiveProcessor extends DirectiveProcessor<RootScope> {
     public void process(RootScope scope, DirectiveNode node) throws Exception {
         String type = getArgument(scope, node, String.class, 0);
         String name = getArgument(scope, node, String.class, 1);
-        Scope bodyScope = evaluateBody(scope, node);
+        if (name == null) {
+            name = "default";
+        }
 
+        Scope bodyScope = evaluateBody(scope, node);
         VaultSettings settings = scope.getSettings(VaultSettings.class);
         Class<? extends Vault> vaultClass = settings.getVaultClasses().get(type);
 
