@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.apache.tools.ant.filters.ReplaceTokens
 
 dependencies {
     api project(':gyro-lang')
@@ -28,4 +29,10 @@ dependencies {
     implementation 'org.eclipse.aether:aether-impl:1.1.0'
     implementation 'org.eclipse.aether:aether-transport-file:1.1.0'
     implementation 'org.eclipse.aether:aether-transport-http:1.1.0'
+}
+
+processResources {
+    filesMatching('gyro.properties') {
+        filter( ReplaceTokens, tokens:['version' : version])
+    }
 }
