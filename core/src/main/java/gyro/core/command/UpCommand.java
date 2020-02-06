@@ -16,6 +16,8 @@
 
 package gyro.core.command;
 
+import java.io.IOException;
+
 import gyro.core.GyroCore;
 import gyro.core.GyroUI;
 import gyro.core.diff.Diff;
@@ -28,7 +30,8 @@ import io.airlift.airline.Command;
 public class UpCommand extends AbstractConfigCommand {
 
     @Override
-    public void doExecute(RootScope current, RootScope pending, State state) {
+    public void doExecute(RootScope current, RootScope pending, State state) throws IOException {
+        VersionCommand.printUpdateVersion();
         GyroUI ui = GyroCore.ui();
 
         ui.write("\n@|bold,white Looking for changes...\n\n|@");
