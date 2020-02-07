@@ -28,6 +28,11 @@ import io.airlift.airline.Command;
 public class UpCommand extends AbstractConfigCommand {
 
     @Override
+    public boolean enableAuditor() {
+        return true;
+    }
+
+    @Override
     public void doExecute(RootScope current, RootScope pending, State state) {
         GyroUI ui = GyroCore.ui();
 
