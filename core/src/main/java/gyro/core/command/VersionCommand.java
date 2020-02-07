@@ -73,7 +73,7 @@ public class VersionCommand extends AbstractCommand {
             XPath xpath = XPathFactory.newInstance().newXPath();
             String version = (String) xpath.evaluate("/metadata/versioning/latest", dDoc, XPathConstants.STRING);
 
-            latestVersion = new ComparableVersion((String) "0.99.4");
+            latestVersion = new ComparableVersion((String) version);
         } catch (
             Exception error) {
             GyroCore.ui().write("@|red Error when trying to get the latest version info.|@\n");
