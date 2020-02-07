@@ -1,6 +1,5 @@
 package gyro.core.command;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
@@ -30,59 +29,40 @@ public class VersionCommand extends AbstractCommand {
     }
 
     public static void printVersion() throws IOException {
-        InputStream stream = VersionCommand.class.getResourceAsStream("/gyro.properties");
-        Properties properties = new Properties();
-        try {
-            properties.load(stream);
-            ComparableVersion currentVersion = VersionCommand.getCurrentVersion(properties);
-            VersionCommand.renderVersion(currentVersion.toString());
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        ComparableVersion currentVersion = VersionCommand.getCurrentVersion();
+        VersionCommand.renderVersionMessage(currentVersion.toString());
     }
 
     public static void printUpdateVersion() throws IOException {
+        ComparableVersion currentVersion = VersionCommand.getCurrentVersion();
+        ComparableVersion latestVersion = VersionCommand.getLatestVersion();
+
+        Boolean isUpdateAvailable = currentVersion.compareTo(latestVersion) < 0;
+        if (isUpdateAvailable) {
+            VersionCommand.renderUpdateMessage(latestVersion.toString(), getOsName());
+        }
+    }
+
+    public static ComparableVersion getCurrentVersion() {
+        ComparableVersion currentVersion = null;
         InputStream stream = VersionCommand.class.getResourceAsStream("/gyro.properties");
         Properties properties = new Properties();
         try {
             properties.load(stream);
-            ComparableVersion currentVersion = VersionCommand.getCurrentVersion(properties);
-            ComparableVersion latestVersion = VersionCommand.getLatestVersion(properties);
-
-            Boolean isUpdateAvailable = currentVersion.compareTo(latestVersion) < 0;
-            if (isUpdateAvailable) {
-                VersionCommand.renderUpdateMessage(latestVersion.toString(), properties.get("osName").toString());
-            }
+            currentVersion = new ComparableVersion((String) properties.get("version"));
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        return currentVersion;
     }
 
-    private static void renderVersion(String version) {
-        GyroCore.ui().write("@|white Gyro version:\t%s\n|@", version);
-    }
-
-    private static void renderUpdateMessage(String latestVersion, String osName) {
-        GyroCore.ui().write("@|green,bold Latest version:\t%s\n|@", latestVersion);
-        GyroCore.ui()
-            .write(
-                "@|green Update here:|@\t%s\n",
-                "https://artifactory.psdops.com/gyro-releases/gyro/gyro-cli-osx/" + latestVersion
-                    + "/gyro-cli-" + osName + "-"
-                    + latestVersion + ".zip", osName);
-    }
-
-    public static ComparableVersion getCurrentVersion(Properties properties) {
-        return new ComparableVersion((String) properties.get("version"));
-    }
-
-    public static ComparableVersion getLatestVersion(Properties properties) throws FileNotFoundException {
+    public static ComparableVersion getLatestVersion() {
         ComparableVersion latestVersion;
         DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
         try {
             URL artifactoryMetadataUrl = new URL(
-                "https://artifactory.psdops.com/gyro-releases/gyro/gyro-cli-" + properties.get("osName")
+                "https://artifactory.psdops.com/gyro-releases/gyro/gyro-cli-" + getOsName()
                     + "/maven-metadata.xml");
             String artifactoryMetadata = IoUtils.toString(artifactoryMetadataUrl);
 
@@ -92,8 +72,7 @@ public class VersionCommand extends AbstractCommand {
             XPath xpath = XPathFactory.newInstance().newXPath();
             String version = (String) xpath.evaluate("/metadata/versioning/latest", dDoc, XPathConstants.STRING);
 
-            latestVersion = new ComparableVersion((String) version);
-
+            latestVersion = new ComparableVersion((String) "0.99.3");
         } catch (
             Exception error) {
             throw new GyroException(
@@ -102,5 +81,33 @@ public class VersionCommand extends AbstractCommand {
         }
 
         return latestVersion;
+    }
+
+    private static String getOsName() {
+        String name = System.getProperty("os.name").toLowerCase();
+        if (name.contains("mac")) {
+            name = "osx";
+        } else if (name.contains("win")) {
+            name = "windows";
+        } else if (name.contains("nux")) {
+            name = "linux";
+        } else {
+            name = "osx";
+        }
+
+        return name;
+    }
+
+    private static void renderVersionMessage(String version) {
+        GyroCore.ui().write("@|white Gyro version:\t%s\n|@", version);
+    }
+
+    private static void renderUpdateMessage(String latestVersion, String osName) {
+        GyroCore.ui().write("@|green,bold Latest Gyro:\t%s\n|@", latestVersion);
+        GyroCore.ui()
+            .write(
+                "@|green Update here:|@\thttps://artifactory.psdops.com/gyro-releases/gyro/gyro-cli-%1$s/%2$s/gyro-cli-%1$s-%2$s.zip\n",
+                osName,
+                latestVersion);
     }
 }

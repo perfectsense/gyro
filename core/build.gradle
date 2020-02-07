@@ -31,25 +31,8 @@ dependencies {
     implementation 'org.eclipse.aether:aether-transport-http:1.1.0'
 }
 
-import org.gradle.internal.os.OperatingSystem
-
-switch (OperatingSystem.current()) {
-    case OperatingSystem.LINUX:
-        project.ext.osName = "linux";
-        break;
-    case OperatingSystem.MAC_OS:
-        project.ext.osName = "osx";
-        break;
-    case OperatingSystem.WINDOWS:
-        project.ext.osName = "windows";
-        break;
-    default:
-        project.ext.osName = "osx";
-        break;
-}
-
 processResources {
     filesMatching('gyro.properties') {
-        filter( ReplaceTokens, tokens:['osName': project.ext.osName, 'version' : version])
+        filter( ReplaceTokens, tokens:['version' : version])
     }
 }
