@@ -62,12 +62,6 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
     @Arguments
     private List<String> files;
 
-    private GyroCore core;
-
-    public GyroCore core() {
-        return core;
-    }
-
     protected abstract void doExecute(RootScope current, RootScope pending, State state) throws Exception;
 
     @Override
@@ -105,8 +99,6 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
                         .collect(Collectors.joining(", "))));
             }
         }
-
-        core = new GyroCore();
 
         RootScope current = new RootScope(
             "../../" + GyroCore.INIT_FILE,

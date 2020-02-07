@@ -21,6 +21,7 @@ import java.lang.reflect.Method;
 import java.util.Optional;
 
 import com.google.common.base.CaseFormat;
+import gyro.core.GyroException;
 import gyro.core.Reflections;
 import gyro.core.Type;
 import gyro.core.directive.DirectiveProcessor;
@@ -41,6 +42,11 @@ public class CredentialsDirectiveProcessor extends DirectiveProcessor<RootScope>
 
         CredentialsSettings settings = scope.getSettings(CredentialsSettings.class);
         Class<? extends Credentials> credentialsClass = settings.getCredentialsClasses().get(type);
+
+        if (credentialsClass == null) {
+            throw new GyroException(
+                "Make sure @|magenta '@plugin'|@ directive for a cloud provider is placed before @|magenta '@credentials'|@ directive in @|magenta '.gyro/init.gyro'|@ file.");
+        }
         Credentials credentials = Reflections.newInstance(credentialsClass);
         credentials.scope = scope;
 
