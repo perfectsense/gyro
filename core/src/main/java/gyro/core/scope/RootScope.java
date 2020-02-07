@@ -37,6 +37,8 @@ import gyro.core.GyroInputStream;
 import gyro.core.GyroOutputStream;
 import gyro.core.LogDirectiveProcessor;
 import gyro.core.PrintDirectiveProcessor;
+import gyro.core.auditor.AuditorDirectiveProcessor;
+import gyro.core.auditor.AuditorPlugin;
 import gyro.core.auth.CredentialsDirectiveProcessor;
 import gyro.core.auth.CredentialsPlugin;
 import gyro.core.auth.UsesCredentialsDirectiveProcessor;
@@ -116,6 +118,7 @@ public class RootScope extends FileScope {
         this.loadFiles = loadFiles != null ? ImmutableSet.copyOf(loadFiles) : ImmutableSet.of();
 
         Stream.of(
+            new AuditorPlugin(),
             new CredentialsPlugin(),
             new DirectivePlugin(),
             new FileBackendPlugin(),
@@ -133,6 +136,7 @@ public class RootScope extends FileScope {
             .forEach(p -> getSettings(ChangeSettings.class).getProcessors().add(p));
 
         Stream.of(
+            AuditorDirectiveProcessor.class,
             CreateDirectiveProcessor.class,
             CredentialsDirectiveProcessor.class,
             DeleteDirectiveProcessor.class,
@@ -265,7 +269,9 @@ public class RootScope extends FileScope {
         DiffableField idField = type.getIdField();
 
         if (idField == null) {
-            throw new GyroException(String.format("Unable to find @Id on a getter in %s", resourceClass.getSimpleName()));
+            throw new GyroException(String.format(
+                "Unable to find @Id on a getter in %s",
+                resourceClass.getSimpleName()));
         }
 
         return findResourcesByClass(resourceClass)
