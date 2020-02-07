@@ -13,7 +13,6 @@ import javax.xml.xpath.XPathFactory;
 
 import com.psddev.dari.util.IoUtils;
 import gyro.core.GyroCore;
-import gyro.core.GyroException;
 import io.airlift.airline.Command;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.w3c.dom.Document;
@@ -37,9 +36,11 @@ public class VersionCommand extends AbstractCommand {
         ComparableVersion currentVersion = VersionCommand.getCurrentVersion();
         ComparableVersion latestVersion = VersionCommand.getLatestVersion();
 
-        Boolean isUpdateAvailable = currentVersion.compareTo(latestVersion) < 0;
-        if (isUpdateAvailable) {
-            VersionCommand.renderUpdateMessage(latestVersion.toString(), getOsName());
+        if (latestVersion != null) {
+            Boolean isUpdateAvailable = currentVersion.compareTo(latestVersion) < 0;
+            if (isUpdateAvailable) {
+                VersionCommand.renderUpdateMessage(latestVersion.toString(), getOsName());
+            }
         }
     }
 
@@ -58,7 +59,7 @@ public class VersionCommand extends AbstractCommand {
     }
 
     public static ComparableVersion getLatestVersion() {
-        ComparableVersion latestVersion;
+        ComparableVersion latestVersion = null;
         DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
         try {
             URL artifactoryMetadataUrl = new URL(
@@ -72,12 +73,10 @@ public class VersionCommand extends AbstractCommand {
             XPath xpath = XPathFactory.newInstance().newXPath();
             String version = (String) xpath.evaluate("/metadata/versioning/latest", dDoc, XPathConstants.STRING);
 
-            latestVersion = new ComparableVersion((String) version);
+            latestVersion = new ComparableVersion((String) "0.99.4");
         } catch (
             Exception error) {
-            throw new GyroException(
-                String.format("An error occurred."),
-                error);
+            GyroCore.ui().write("@|red Error when trying to get the latest version info.|@\n");
         }
 
         return latestVersion;
