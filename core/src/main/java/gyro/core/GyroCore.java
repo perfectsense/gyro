@@ -22,6 +22,7 @@ import java.nio.file.Paths;
 
 import com.psddev.dari.util.Lazy;
 import com.psddev.dari.util.ThreadLocalStack;
+import gyro.core.command.GyroCommand;
 import org.apache.commons.lang3.StringUtils;
 
 public class GyroCore {
@@ -29,6 +30,8 @@ public class GyroCore {
     public static final String INIT_FILE = ".gyro/init.gyro";
 
     private static final ThreadLocalStack<GyroUI> UI = new ThreadLocalStack<>();
+
+    private static GyroCommand command;
 
     private static final Lazy<Path> HOME_DIRECTORY = new Lazy<Path>() {
 
@@ -68,6 +71,14 @@ public class GyroCore {
 
     public static GyroUI popUi() {
         return UI.pop();
+    }
+
+    public static GyroCommand getCommand() {
+        return command;
+    }
+
+    public static void setCommand(GyroCommand command) {
+        GyroCore.command = command;
     }
 
     public static Path getHomeDirectory() {

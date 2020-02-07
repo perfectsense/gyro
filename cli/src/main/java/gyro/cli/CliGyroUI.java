@@ -26,8 +26,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.google.common.collect.ImmutableSet;
+import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
+import gyro.core.auditor.GyroAuditor;
+import gyro.core.command.GyroCommand;
 import org.fusesource.jansi.Ansi;
 import org.fusesource.jansi.AnsiRenderer;
 
@@ -141,12 +144,11 @@ public class CliGyroUI implements GyroUI {
         --indentLevel;
     }
 
-    private void writeIndentation() {
+    private void writeIndentation(StringBuilder outputBuilder) {
         if (pendingIndentation) {
-            for (int i = 0, l = indentLevel * getIndentSize(); i < l; ++i) {
-                System.out.print(' ');
+            if (indentLevel > 0) {
+                outputBuilder.append(String.format("%" + indentLevel * getIndentSize() + "s", ""));
             }
-
             pendingIndentation = false;
         }
     }
@@ -162,11 +164,12 @@ public class CliGyroUI implements GyroUI {
         }
 
         int offset = 0;
+        StringBuilder outputBuilder = new StringBuilder();
 
         for (Matcher m = NEWLINES.matcher(text); m.find(); ) {
-            writeIndentation();
-            System.out.print(text.substring(offset, m.start()));
-            System.out.print(m.group(1));
+            writeIndentation(outputBuilder);
+            outputBuilder.append(text, offset, m.start());
+            outputBuilder.append(m.group(1));
 
             pendingIndentation = true;
             offset = m.end();
@@ -175,11 +178,29 @@ public class CliGyroUI implements GyroUI {
         int length = text.length();
 
         if (length > offset) {
-            writeIndentation();
-            System.out.print(text.substring(offset, length));
+            writeIndentation(outputBuilder);
+            outputBuilder.append(text, offset, length);
         }
-
+        String output = outputBuilder.toString();
+        System.out.print(output);
         System.out.flush();
+
+        GyroCommand command = GyroCore.getCommand();
+
+        if (command != null && command.enableAuditor()) {
+            GyroAuditor.AUDITOR_BY_NAME.values().stream()
+                .parallel()
+                .filter(GyroAuditor::isStarted)
+                .filter(auditor -> !auditor.isFinished())
+                .forEach(auditor -> {
+                    try {
+                        auditor.append(output);
+                    } catch (Exception ex) {
+                        // TODO: message
+                        System.err.print(ex.getMessage());
+                    }
+                });
+        }
     }
 
     @Override
