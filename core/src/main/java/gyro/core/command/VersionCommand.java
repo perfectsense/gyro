@@ -23,17 +23,17 @@ import org.xml.sax.InputSource;
 public class VersionCommand extends AbstractCommand {
 
     @Override
-    protected void doExecute() throws Exception {
+    protected void doExecute() {
         VersionCommand.printVersion();
         VersionCommand.printUpdateVersion();
     }
 
-    public static void printVersion() throws IOException {
+    public static void printVersion() {
         ComparableVersion currentVersion = VersionCommand.getCurrentVersion();
         VersionCommand.renderVersionMessage(currentVersion.toString());
     }
 
-    public static void printUpdateVersion() throws IOException {
+    public static void printUpdateVersion() {
         ComparableVersion currentVersion = VersionCommand.getCurrentVersion();
         ComparableVersion latestVersion = VersionCommand.getLatestVersion();
 
@@ -72,7 +72,7 @@ public class VersionCommand extends AbstractCommand {
             XPath xpath = XPathFactory.newInstance().newXPath();
             String version = (String) xpath.evaluate("/metadata/versioning/latest", dDoc, XPathConstants.STRING);
 
-            latestVersion = new ComparableVersion((String) "0.99.3");
+            latestVersion = new ComparableVersion((String) version);
         } catch (
             Exception error) {
             throw new GyroException(
