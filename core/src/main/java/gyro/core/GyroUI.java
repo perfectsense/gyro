@@ -16,6 +16,9 @@
 
 package gyro.core;
 
+import gyro.core.auditor.GyroAuditor;
+import gyro.core.command.AbstractCommand;
+
 public interface GyroUI {
 
     boolean isVerbose();
@@ -47,7 +50,28 @@ public interface GyroUI {
         }
     }
 
-    void write(String message, Object... arguments);
+    default void write(String message, Object... arguments) {
+        String output = doWrite(message, arguments);
+
+        AbstractCommand command = AbstractCommand.getCommand();
+
+        if (command != null && command.enableAuditor()) {
+            GyroAuditor.AUDITOR_BY_NAME.values().stream()
+                .parallel()
+                .filter(GyroAuditor::isStarted)
+                .filter(auditor -> !auditor.isFinished())
+                .forEach(auditor -> {
+                    try {
+                        auditor.append(output);
+                    } catch (Exception ex) {
+                        // TODO: message
+                        System.err.print(ex.getMessage());
+                    }
+                });
+        }
+    }
+
+    String doWrite(String message, Object... arguments);
 
     void replace(String message, Object... arguments);
 

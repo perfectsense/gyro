@@ -22,8 +22,4 @@ package gyro.core.command;
 public interface GyroCommand {
 
     void execute() throws Exception;
-
-    default boolean enableAuditor() {
-        return false;
-    }
 }

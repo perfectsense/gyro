@@ -26,11 +26,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.google.common.collect.ImmutableSet;
-import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
-import gyro.core.auditor.GyroAuditor;
-import gyro.core.command.GyroCommand;
 import org.fusesource.jansi.Ansi;
 import org.fusesource.jansi.AnsiRenderer;
 
@@ -154,7 +151,7 @@ public class CliGyroUI implements GyroUI {
     }
 
     @Override
-    public void write(String message, Object... arguments) {
+    public String doWrite(String message, Object... arguments) {
         String text = arguments != null && arguments.length > 0
             ? String.format(message, arguments)
             : message;
@@ -185,22 +182,7 @@ public class CliGyroUI implements GyroUI {
         System.out.print(output);
         System.out.flush();
 
-        GyroCommand command = GyroCore.getCommand();
-
-        if (command != null && command.enableAuditor()) {
-            GyroAuditor.AUDITOR_BY_NAME.values().stream()
-                .parallel()
-                .filter(GyroAuditor::isStarted)
-                .filter(auditor -> !auditor.isFinished())
-                .forEach(auditor -> {
-                    try {
-                        auditor.append(output);
-                    } catch (Exception ex) {
-                        // TODO: message
-                        System.err.print(ex.getMessage());
-                    }
-                });
-        }
+        return output;
     }
 
     @Override

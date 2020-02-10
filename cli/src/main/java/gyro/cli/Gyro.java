@@ -23,18 +23,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
-import com.google.common.collect.ImmutableMap;
 import gyro.core.Abort;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.LocalFileBackend;
-import gyro.core.auditor.GyroAuditor;
 import gyro.core.command.AbstractCommand;
 import gyro.core.command.GyroCommand;
 import gyro.core.command.GyroCommandGroup;
@@ -194,40 +191,11 @@ public class Gyro {
             ((Runnable) command).run();
 
         } else if (command instanceof GyroCommand) {
-            GyroCore.setCommand((GyroCommand) command);
-            // TODO: logging object
-            Map<String, Object> log = new ImmutableMap.Builder<String, Object>()
-                .put("accountName", "runtime.getAccount()")
-                .build();
-
-            try {
-                if (((GyroCommand) command).enableAuditor()) {
-                    // TODO: logging object
-                    GyroAuditor.AUDITOR_BY_NAME.values().stream()
-                        .parallel()
-                        .filter(auditor -> !auditor.isStarted())
-                        .forEach(auditor -> {
-                            try {
-                                auditor.start(log);
-                            } catch (Exception e) {
-                                // TODO: error message
-                                System.err.print(e.getMessage());
-                            }
-                        });
-                    Runtime.getRuntime().addShutdownHook(new Thread(() -> finishAuditors(log, false)));
-                }
-
-                if (command instanceof AbstractCommand) {
-                    ((AbstractCommand) command).setUnparsedArguments(arguments);
-                }
-
-                ((GyroCommand) command).execute();
-            } finally {
-                if (((GyroCommand) command).enableAuditor()) {
-                    // TODO: logging object
-                    finishAuditors(log, true);
-                }
+            if (command instanceof AbstractCommand) {
+                ((AbstractCommand) command).setUnparsedArguments(arguments);
             }
+
+            ((GyroCommand) command).execute();
 
         } else {
             throw new IllegalStateException(String.format(
@@ -245,20 +213,5 @@ public class Gyro {
         }
 
         return reflections;
-    }
-
-    private void finishAuditors(Map<String, Object> log, boolean success) {
-        GyroAuditor.AUDITOR_BY_NAME.values().stream()
-            .parallel()
-            .filter(GyroAuditor::isStarted)
-            .filter(auditor -> !auditor.isFinished())
-            .forEach(auditor -> {
-                try {
-                    auditor.finish(log, success);
-                } catch (Exception e) {
-                    // TODO: error message
-                    System.err.print(e.getMessage());
-                }
-            });
     }
 }

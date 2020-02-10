@@ -17,10 +17,13 @@
 package gyro.core.command;
 
 import java.util.List;
+import java.util.Map;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
+import com.google.common.collect.ImmutableMap;
 import gyro.core.GyroCore;
+import gyro.core.auditor.GyroAuditor;
 import io.airlift.airline.Option;
 import io.airlift.airline.OptionType;
 import org.slf4j.LoggerFactory;
@@ -36,6 +39,8 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractCommand implements GyroCommand {
 
+    private static AbstractCommand command;
+
     @Option(type = OptionType.GLOBAL, name = "--debug", description = "Debug mode")
     public boolean debug;
 
@@ -45,6 +50,14 @@ public abstract class AbstractCommand implements GyroCommand {
     private List<String> unparsedArguments;
 
     protected abstract void doExecute() throws Exception;
+
+    public static AbstractCommand getCommand() {
+        return command;
+    }
+
+    public static void setCommand(AbstractCommand command) {
+        AbstractCommand.command = command;
+    }
 
     public List<String> getUnparsedArguments() {
         return unparsedArguments;
@@ -68,11 +81,61 @@ public abstract class AbstractCommand implements GyroCommand {
             System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.NoOpLog");
         }
 
-        doExecute();
+        AbstractCommand.setCommand(this);
+
+        // TODO: logging object
+        Map<String, Object> log = new ImmutableMap.Builder<String, Object>()
+            .put("accountName", "runtime.getAccount()")
+            .build();
+
+        try {
+            if (enableAuditor()) {
+                // TODO: logging object
+                GyroAuditor.AUDITOR_BY_NAME.values().stream()
+                    .parallel()
+                    .filter(auditor -> !auditor.isStarted())
+                    .forEach(auditor -> {
+                        try {
+                            auditor.start(log);
+                        } catch (Exception e) {
+                            // TODO: error message
+                            System.err.print(e.getMessage());
+                        }
+                    });
+                Runtime.getRuntime().addShutdownHook(new Thread(() -> finishAuditors(log, false)));
+            }
+
+            doExecute();
+
+        } finally {
+            if (enableAuditor()) {
+                // TODO: logging object
+                finishAuditors(log, true);
+            }
+        }
     }
 
     public boolean isDebug() {
         return debug;
     }
 
+    // TODO: abstract?
+    public boolean enableAuditor() {
+        return false;
+    }
+
+    private void finishAuditors(Map<String, Object> log, boolean success) {
+        GyroAuditor.AUDITOR_BY_NAME.values().stream()
+            .parallel()
+            .filter(GyroAuditor::isStarted)
+            .filter(auditor -> !auditor.isFinished())
+            .forEach(auditor -> {
+                try {
+                    auditor.finish(log, success);
+                } catch (Exception e) {
+                    // TODO: error message
+                    System.err.print(e.getMessage());
+                }
+            });
+    }
 }
