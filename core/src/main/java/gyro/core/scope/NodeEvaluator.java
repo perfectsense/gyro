@@ -703,38 +703,30 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                 }
 
             } else if (referenceName.contains("::")) {
-                String resourceName = (String) arguments.remove(0);
+                List<Object> objects = new ArrayList<>();
 
-                if (!arguments.isEmpty()) {
-                    throw new GyroException("Too many arguments trying to resolve a resource by name!");
+                if (arguments.size() > 1 && arguments.contains("*")) {
+                    throw new GyroException("No other argument can be used if @|bold *|@ is used!");
                 }
 
-                if (resourceName.endsWith("*")) {
-                    if (typeNodes != null && typeNodes.containsKey(referenceName)) {
-                        throw new WildcardDefer(node, referenceName);
+                // Remove duplicate arguments
+                Set<String> argumentSet = arguments.stream().map(o -> (String) o).collect(Collectors.toSet());
+
+                for (Object argument : argumentSet) {
+                    Object resourceValue = resourceResolver((String) argument, referenceName, node, root);
+
+                    if (resourceValue != null) {
+                        if (resourceValue instanceof List) {
+                            objects = (List<Object>) resourceValue;
+                        } else {
+                            objects.add(resourceValue);
+                        }
                     }
-
-                    Stream<Resource> s = root.findResources()
-                        .stream()
-                        .filter(r -> referenceName.equals(DiffableType.getInstance(r.getClass()).getName()));
-
-                    if (!resourceName.equals("*")) {
-                        String prefix = resourceName.substring(0, resourceName.length() - 1);
-                        s = s.filter(r -> DiffableInternals.getName(r).startsWith(prefix));
-                    }
-
-                    value = s.collect(Collectors.toList());
-
-                } else {
-                    Resource resource = root.findResource(referenceName + "::" + resourceName);
-
-                    if (resource == null) {
-                        throw new FindDefer(node, referenceName, resourceName);
-                    }
-
-                    value = resource;
                 }
 
+                // set value to single resource object if only one is present
+                // set value to list of objects if multiple resource object present
+                value = !objects.isEmpty() ? (objects.size() > 1 ? objects : objects.get(0)) : value;
             } else {
                 value = scope.find(node, referenceName);
             }
@@ -747,6 +739,38 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
 
         removeTypeNode(node);
         return resolveFilters(node, scope, value);
+    }
+
+    private Object resourceResolver(String resourceName, String referenceName, ReferenceNode node, RootScope root) {
+        Object value = null;
+
+        if (resourceName.endsWith("*")) {
+            if (typeNodes != null && typeNodes.containsKey(referenceName)) {
+                throw new WildcardDefer(node, referenceName);
+            }
+
+            Stream<Resource> s = root.findResources()
+                .stream()
+                .filter(r -> referenceName.equals(DiffableType.getInstance(r.getClass()).getName()));
+
+            if (!resourceName.equals("*")) {
+                String prefix = resourceName.substring(0, resourceName.length() - 1);
+                s = s.filter(r -> DiffableInternals.getName(r).startsWith(prefix));
+            }
+
+            value = s.collect(Collectors.toList());
+
+        } else {
+            Resource resource = root.findResource(referenceName + "::" + resourceName);
+
+            if (resource == null) {
+                throw new FindDefer(node, referenceName, resourceName);
+            }
+
+            value = resource;
+        }
+
+        return value;
     }
 
     private Object resolveFilters(ReferenceNode node, Scope scope, Object value) {
