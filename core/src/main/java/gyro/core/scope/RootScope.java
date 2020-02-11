@@ -139,24 +139,24 @@ public class RootScope extends FileScope {
             AuditorDirectiveProcessor.class,
             CreateDirectiveProcessor.class,
             CredentialsDirectiveProcessor.class,
+            DefineDirectiveProcessor.class,
             DeleteDirectiveProcessor.class,
             DescriptionDirectiveProcessor.class,
             ExtendsDirectiveProcessor.class,
             FileBackendDirectiveProcessor.class,
             ForDirectiveProcessor.class,
-            IfDirectiveProcessor.class,
             HighlanderDirectiveProcessor.class,
+            IfDirectiveProcessor.class,
+            LogDirectiveProcessor.class,
+            PluginDirectiveProcessor.class,
+            PrintDirectiveProcessor.class,
             ReplaceDirectiveProcessor.class,
             RepositoryDirectiveProcessor.class,
-            PluginDirectiveProcessor.class,
             TypeDescriptionDirectiveProcessor.class,
             UpdateDirectiveProcessor.class,
             UsesCredentialsDirectiveProcessor.class,
             VirtualDirectiveProcessor.class,
-            DefineDirectiveProcessor.class,
-            WaitDirectiveProcessor.class,
-            PrintDirectiveProcessor.class,
-            LogDirectiveProcessor.class)
+            WaitDirectiveProcessor.class)
             .forEach(p -> getSettings(DirectiveSettings.class).addProcessor(p));
 
         Stream.of(
