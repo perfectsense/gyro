@@ -130,11 +130,6 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         doExecute(current, pending, new State(current, pending, test));
     }
 
-    @Override
-    public boolean enableAuditor() {
-        return true;
-    }
-
     private void refreshResources(RootScope scope) {
         ScheduledExecutorService messageService = Executors.newSingleThreadScheduledExecutor();
         GyroUI ui = GyroCore.ui();
