@@ -25,7 +25,7 @@ public interface GyroAuditor {
 
     void start(Map<String, Object> log) throws Exception;
 
-    void append(String output) throws Exception;
+    void append(String output, boolean replace) throws Exception;
 
     void finish(Map<String, Object> log, boolean success) throws Exception;
 
