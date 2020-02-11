@@ -16,12 +16,15 @@
 
 package gyro.core.reference;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.core.finder.Finder;
+import gyro.core.finder.FinderField;
 import gyro.core.finder.FinderSettings;
 import gyro.core.finder.FinderType;
 import gyro.core.resource.DiffableInternals;
@@ -46,7 +49,8 @@ public class FinderReferenceResolver extends ReferenceResolver {
                 type));
         }
 
-        Finder<Resource> finder = FinderType.getInstance(finderClass).newInstance(scope);
+        FinderType<? extends Finder<Resource>> finderType = FinderType.getInstance(finderClass);
+        Finder<Resource> finder = finderType.newInstance(scope);
         List<Resource> resources = null;
 
         if (!arguments.isEmpty()) {
@@ -54,6 +58,7 @@ public class FinderReferenceResolver extends ReferenceResolver {
             Map<String, Object> filters = (Map<String, Object>) arguments.remove(0);
 
             if (!filters.isEmpty()) {
+                filters = getFilteredFilters(filters, finderType);
                 resources = finder.find(filters);
             }
         }
@@ -65,6 +70,21 @@ public class FinderReferenceResolver extends ReferenceResolver {
         resources.forEach(r -> DiffableInternals.update(r));
 
         return resources;
+    }
+
+    private Map<String, Object> getFilteredFilters(Map<String, Object> argumentFilters, FinderType<? extends Finder<Resource>> finderType) {
+        Map<String, String> fieldNameMap = finderType.getFields()
+            .stream()
+            .filter(o -> !o.getFilterName().equals(o.getGyroName()))
+            .collect(Collectors.toMap(FinderField::getGyroName, FinderField::getFilterName));
+
+        Map<String, Object> filter = new HashMap<>();
+        for (String fieldName : argumentFilters.keySet()) {
+            String updatedFieldName = fieldNameMap.getOrDefault(fieldName, fieldName);
+            filter.put(updatedFieldName, argumentFilters.get(fieldName));
+        }
+
+        return filter;
     }
 
 }
