@@ -31,6 +31,7 @@ import gyro.core.GyroInputStream;
 import gyro.core.GyroOutputStream;
 import gyro.core.GyroUI;
 import gyro.core.diff.Retry;
+import gyro.core.metadata.MetadataDirectiveProcessor;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
 import gyro.core.resource.Resource;
@@ -137,7 +138,10 @@ public class Workflow {
         }
 
         while (stage != null) {
-            ui.write("\n@|magenta · Executing %s stage|@\n", stage.getName());
+            String stageName = stage.getName();
+            MetadataDirectiveProcessor.putMetadata("currentStage", stageName);
+
+            ui.write("\n@|magenta · Executing %s stage|@\n", stageName);
 
             if (ui.isVerbose()) {
                 ui.write("\n");
@@ -149,7 +153,7 @@ public class Workflow {
 
             try {
                 stage.execute(ui, state, currentResource, pendingResource, currentRoot, copyCurrentRootScope());
-                executedStages.add(stage.getName());
+                executedStages.add(stageName);
 
                 try (GyroOutputStream output = currentRoot.openOutput(Workflow.EXECUTION_FILE)) {
                     output.write(ObjectUtils.toJson(ImmutableMap.of(
