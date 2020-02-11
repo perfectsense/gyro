@@ -99,7 +99,7 @@ public class ForDirectiveProcessor extends DirectiveProcessor<Scope> {
     private void processBody(DirectiveNode node, Scope scope, Map<String, Object> values) {
         scope.getRootScope().getEvaluator().evaluateBody(
             node.getBody(),
-            new Scope(scope, new CascadingMap<>(scope, values)));
+            new Scope(scope, new CascadingMap<>(scope, values).combineTopDown()));
     }
 
 }
