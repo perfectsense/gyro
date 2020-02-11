@@ -86,18 +86,7 @@ public abstract class AbstractCommand implements GyroCommand {
         AbstractCommand.setCommand(this);
 
         if (enableAuditor()) {
-            GyroAuditor.AUDITOR_BY_NAME.values().stream()
-                .parallel()
-                .filter(auditor -> !auditor.isStarted())
-                .forEach(auditor -> {
-                    try {
-                        auditor.start(MetadataDirectiveProcessor.getMetadataMap());
-                    } catch (Exception e) {
-                        // TODO: error message
-                        System.err.print(e.getMessage());
-                    }
-                });
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> finishAuditors()));
+            startAuditors();
         }
 
         doExecute();
@@ -112,6 +101,21 @@ public abstract class AbstractCommand implements GyroCommand {
     // TODO: abstract?
     public boolean enableAuditor() {
         return false;
+    }
+
+    private void startAuditors() {
+        GyroAuditor.AUDITOR_BY_NAME.values().stream()
+            .parallel()
+            .filter(auditor -> !auditor.isStarted())
+            .forEach(auditor -> {
+                try {
+                    auditor.start(MetadataDirectiveProcessor.getMetadataMap());
+                } catch (Exception e) {
+                    // TODO: error message
+                    System.err.print(e.getMessage());
+                }
+            });
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> finishAuditors()));
     }
 
     private void finishAuditors() {
