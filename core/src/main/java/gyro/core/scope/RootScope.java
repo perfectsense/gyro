@@ -54,6 +54,7 @@ import gyro.core.diff.GlobalChangePlugin;
 import gyro.core.directive.DirectivePlugin;
 import gyro.core.directive.DirectiveSettings;
 import gyro.core.finder.FinderPlugin;
+import gyro.core.metadata.MetadataDirectiveProcessor;
 import gyro.core.plugin.PluginDirectiveProcessor;
 import gyro.core.plugin.PluginSettings;
 import gyro.core.reference.FinderReferenceResolver;
@@ -148,6 +149,7 @@ public class RootScope extends FileScope {
             HighlanderDirectiveProcessor.class,
             IfDirectiveProcessor.class,
             LogDirectiveProcessor.class,
+            MetadataDirectiveProcessor.class,
             PluginDirectiveProcessor.class,
             PrintDirectiveProcessor.class,
             ReplaceDirectiveProcessor.class,
