@@ -119,18 +119,17 @@ public abstract class AbstractCommand implements GyroCommand {
     }
 
     private void finishAuditors() {
+        boolean success = Optional.ofNullable(MetadataDirectiveProcessor.removeMetadata(SUCCESS_FLAG))
+            .filter(boolean.class::isInstance)
+            .map(boolean.class::cast)
+            .orElse(false);
         GyroAuditor.AUDITOR_BY_NAME.values().stream()
             .parallel()
             .filter(GyroAuditor::isStarted)
             .filter(auditor -> !auditor.isFinished())
             .forEach(auditor -> {
                 try {
-                    auditor.finish(
-                        MetadataDirectiveProcessor.getMetadataMap(),
-                        Optional.ofNullable(MetadataDirectiveProcessor.removeMetadata(SUCCESS_FLAG))
-                            .filter(boolean.class::isInstance)
-                            .map(boolean.class::cast)
-                            .orElse(false));
+                    auditor.finish(MetadataDirectiveProcessor.getMetadataMap(), success);
                 } catch (Exception e) {
                     // TODO: error message
                     System.err.print(e.getMessage());
