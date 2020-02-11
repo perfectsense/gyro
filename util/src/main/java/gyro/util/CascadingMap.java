@@ -36,7 +36,20 @@ public class CascadingMap<K, V> implements Map<K, V> {
         }
     }
 
-    // Combines all the sources, for when an unified view is required.
+    // Combines all the sources top down, for when an unified view is required
+    public Map<K, V> combineTopDown() {
+        Map<K, V> combined = new HashMap<>();
+
+        ListIterator<Map<K, V>> iterator = sources.listIterator();
+
+        while (iterator.hasNext()) {
+            combined.putAll(iterator.next());
+        }
+
+        return combined;
+    }
+
+    // Combines all the sources bottom up, for when an unified view is required.
     private Map<K, V> combine() {
 
         // The listIterator method without index argument of sources.size() - 1
