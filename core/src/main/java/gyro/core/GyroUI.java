@@ -39,6 +39,10 @@ public interface GyroUI {
 
     void unindent();
 
+    String doWrite(String message, Object... arguments);
+
+    String doReplace(String message, Object... arguments);
+
     default <E extends Throwable> void indented(ThrowingProcedure<E> procedure) throws E {
         indent();
 
@@ -51,8 +55,14 @@ public interface GyroUI {
     }
 
     default void write(String message, Object... arguments) {
-        String output = doWrite(message, arguments);
+        sendToAuditors(doWrite(message, arguments), false);
+    }
 
+    default void replace(String message, Object... arguments) {
+        sendToAuditors(doReplace(message, arguments), true);
+    }
+
+    static void sendToAuditors(String output, boolean isReplace) {
         AbstractCommand command = AbstractCommand.getCommand();
 
         if (command != null && command.enableAuditor()) {
@@ -62,7 +72,7 @@ public interface GyroUI {
                 .filter(auditor -> !auditor.isFinished())
                 .forEach(auditor -> {
                     try {
-                        auditor.append(output);
+                        auditor.append(output, isReplace);
                     } catch (Exception ex) {
                         // TODO: message
                         System.err.print(ex.getMessage());
@@ -70,9 +80,4 @@ public interface GyroUI {
                 });
         }
     }
-
-    String doWrite(String message, Object... arguments);
-
-    void replace(String message, Object... arguments);
-
 }
