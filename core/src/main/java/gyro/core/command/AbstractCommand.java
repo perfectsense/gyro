@@ -17,13 +17,13 @@
 package gyro.core.command;
 
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
-import com.google.common.collect.ImmutableMap;
 import gyro.core.GyroCore;
 import gyro.core.auditor.GyroAuditor;
+import gyro.core.metadata.MetadataDirectiveProcessor;
 import io.airlift.airline.Option;
 import io.airlift.airline.OptionType;
 import org.slf4j.LoggerFactory;
@@ -38,6 +38,8 @@ import org.slf4j.LoggerFactory;
  * </ul>
  */
 public abstract class AbstractCommand implements GyroCommand {
+
+    private static final String SUCCESS_FLAG = "gyro.abstractCommand.isSuccess";
 
     private static AbstractCommand command;
 
@@ -83,36 +85,24 @@ public abstract class AbstractCommand implements GyroCommand {
 
         AbstractCommand.setCommand(this);
 
-        // TODO: logging object
-        Map<String, Object> log = new ImmutableMap.Builder<String, Object>()
-            .put("accountName", "runtime.getAccount()")
-            .build();
-
-        try {
-            if (enableAuditor()) {
-                // TODO: logging object
-                GyroAuditor.AUDITOR_BY_NAME.values().stream()
-                    .parallel()
-                    .filter(auditor -> !auditor.isStarted())
-                    .forEach(auditor -> {
-                        try {
-                            auditor.start(log);
-                        } catch (Exception e) {
-                            // TODO: error message
-                            System.err.print(e.getMessage());
-                        }
-                    });
-                Runtime.getRuntime().addShutdownHook(new Thread(() -> finishAuditors(log, false)));
-            }
-
-            doExecute();
-
-        } finally {
-            if (enableAuditor()) {
-                // TODO: logging object
-                finishAuditors(log, true);
-            }
+        if (enableAuditor()) {
+            GyroAuditor.AUDITOR_BY_NAME.values().stream()
+                .parallel()
+                .filter(auditor -> !auditor.isStarted())
+                .forEach(auditor -> {
+                    try {
+                        auditor.start(MetadataDirectiveProcessor.getMetadataMap());
+                    } catch (Exception e) {
+                        // TODO: error message
+                        System.err.print(e.getMessage());
+                    }
+                });
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> finishAuditors()));
         }
+
+        doExecute();
+
+        MetadataDirectiveProcessor.putMetadata(SUCCESS_FLAG, true);
     }
 
     public boolean isDebug() {
@@ -124,14 +114,19 @@ public abstract class AbstractCommand implements GyroCommand {
         return false;
     }
 
-    private void finishAuditors(Map<String, Object> log, boolean success) {
+    private void finishAuditors() {
         GyroAuditor.AUDITOR_BY_NAME.values().stream()
             .parallel()
             .filter(GyroAuditor::isStarted)
             .filter(auditor -> !auditor.isFinished())
             .forEach(auditor -> {
                 try {
-                    auditor.finish(log, success);
+                    auditor.finish(
+                        MetadataDirectiveProcessor.getMetadataMap(),
+                        Optional.ofNullable(MetadataDirectiveProcessor.removeMetadata(SUCCESS_FLAG))
+                            .filter(boolean.class::isInstance)
+                            .map(boolean.class::cast)
+                            .orElse(false));
                 } catch (Exception e) {
                     // TODO: error message
                     System.err.print(e.getMessage());
