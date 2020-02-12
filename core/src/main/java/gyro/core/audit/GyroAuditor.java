@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package gyro.core.auditor;
+package gyro.core.audit;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

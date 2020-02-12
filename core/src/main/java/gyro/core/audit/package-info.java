@@ -14,25 +14,7 @@
  * limitations under the License.
  */
 
-package gyro.core.auditor;
+@Namespace("audit")
+package gyro.core.audit;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import gyro.core.scope.Settings;
-
-public class AuditorSettings extends Settings {
-
-    private Map<String, Class<? extends GyroAuditor>> auditorClasses;
-
-    public Map<String, Class<? extends GyroAuditor>> getAuditorClasses() {
-        if (auditorClasses == null) {
-            auditorClasses = new HashMap<>();
-        }
-        return auditorClasses;
-    }
-
-    public void setAuditorClasses(Map<String, Class<? extends GyroAuditor>> auditorsClasses) {
-        this.auditorClasses = auditorsClasses;
-    }
-}
+import gyro.core.Namespace;

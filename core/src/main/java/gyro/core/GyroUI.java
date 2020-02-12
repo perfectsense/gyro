@@ -16,7 +16,7 @@
 
 package gyro.core;
 
-import gyro.core.auditor.GyroAuditor;
+import gyro.core.audit.GyroAuditor;
 import gyro.core.command.AbstractCommand;
 
 public interface GyroUI {
