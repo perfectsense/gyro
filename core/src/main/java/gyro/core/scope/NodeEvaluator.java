@@ -717,16 +717,19 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
 
                     if (resourceValue != null) {
                         if (resourceValue instanceof List) {
-                            objects = (List<Object>) resourceValue;
+                            objects.addAll((List<Object>) resourceValue);
                         } else {
                             objects.add(resourceValue);
                         }
                     }
                 }
 
-                // set value to single resource object if only one is present
-                // set value to list of objects if multiple resource object present
-                value = !objects.isEmpty() ? (objects.size() > 1 ? objects : objects.get(0)) : value;
+                // set value to single resource object only if one argument passed which does not contain '*'
+                if (!objects.isEmpty() && arguments.size() == 1 && !((String) arguments.get(0)).contains("*")) {
+                    value = objects.get(0);
+                } else {
+                    value = objects;
+                }
             } else {
                 value = scope.find(node, referenceName);
             }
