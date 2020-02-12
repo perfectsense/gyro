@@ -29,6 +29,7 @@ public class UpCommand extends AbstractConfigCommand {
 
     @Override
     public void doExecute(RootScope current, RootScope pending, State state) {
+        VersionCommand.printUpdateVersion();
         GyroUI ui = GyroCore.ui();
 
         ui.write("\n@|bold,white Looking for changes...\n\n|@");
