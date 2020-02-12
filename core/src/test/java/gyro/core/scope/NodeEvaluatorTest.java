@@ -190,7 +190,7 @@ class NodeEvaluatorTest {
 
                 @Test
                 void duplicate() {
-                    assertThat(evaluate("$(test::resource foo foo)")).asList().hasSize(1);
+                    assertThat(evaluate("$(test::resource 'foo' 'foo' 'bar')")).asList().hasSize(2);
                 }
 
                 @Test
