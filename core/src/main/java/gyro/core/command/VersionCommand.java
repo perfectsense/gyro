@@ -98,14 +98,14 @@ public class VersionCommand extends AbstractCommand {
     }
 
     private static void renderVersionMessage(String version) {
-        GyroCore.ui().write("@|white Gyro version:\t%s\n|@", version);
+        GyroCore.ui().write("\nYou're running version @|blue %s|@ of Gyro.\n", version);
     }
 
     private static void renderUpdateMessage(String latestVersion, String osName) {
-        GyroCore.ui().write("@|green,bold Latest Gyro:\t%s\n|@", latestVersion);
+        GyroCore.ui().write("A new version of Gyro is available: @|blue %s|@\n", latestVersion);
         GyroCore.ui()
             .write(
-                "@|green Update here:|@\thttps://artifactory.psdops.com/gyro-releases/gyro/gyro-cli-%1$s/%2$s/gyro-cli-%1$s-%2$s.zip\n",
+                "Download the new release at @|blue https://artifactory.psdops.com/gyro-releases/gyro/gyro-cli-%1$s/%2$s/gyro-cli-%1$s-%2$s.zip|@\n",
                 osName,
                 latestVersion);
     }
