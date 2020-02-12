@@ -201,6 +201,9 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
                 }
 
             } catch (ExecutionException error) {
+                refreshService.shutdownNow();
+                messageService.shutdown();
+
                 ui.write("\n");
 
                 throw new GyroException(
