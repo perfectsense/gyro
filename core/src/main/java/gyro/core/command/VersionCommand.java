@@ -51,9 +51,8 @@ public class VersionCommand extends AbstractCommand {
 
     public static ComparableVersion getCurrentVersion() {
         ComparableVersion currentVersion = null;
-        InputStream stream = VersionCommand.class.getResourceAsStream("/gyro.properties");
         Properties properties = new Properties();
-        try {
+        try (InputStream stream = VersionCommand.class.getResourceAsStream("/gyro.properties")) {
             properties.load(stream);
             currentVersion = new ComparableVersion((String) properties.get("version"));
         } catch (IOException e) {
