@@ -58,7 +58,7 @@ public class FinderReferenceResolver extends ReferenceResolver {
             Map<String, Object> filters = (Map<String, Object>) arguments.remove(0);
 
             if (!filters.isEmpty()) {
-                filters = getFilteredFilters(filters, finderType);
+                filters = getTranslatedFilters(filters, finderType);
                 resources = finder.find(filters);
             }
         }
@@ -72,7 +72,8 @@ public class FinderReferenceResolver extends ReferenceResolver {
         return resources;
     }
 
-    private Map<String, Object> getFilteredFilters(Map<String, Object> argumentFilters, FinderType<? extends Finder<Resource>> finderType) {
+    // Translates the filter keys from the query into custom key names If @Filter() annotation present on the key in its finder implementation.
+    private Map<String, Object> getTranslatedFilters(Map<String, Object> argumentFilters, FinderType<? extends Finder<Resource>> finderType) {
         Map<String, String> fieldNameMap = finderType.getFields()
             .stream()
             .filter(o -> !o.getFilterName().equals(o.getGyroName()))
