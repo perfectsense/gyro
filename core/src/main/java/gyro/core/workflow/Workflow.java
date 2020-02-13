@@ -43,6 +43,7 @@ import gyro.util.ImmutableCollectors;
 public class Workflow {
 
     public static final String EXECUTION_FILE = "workflow-execution.json";
+    public static final String STAGE_TYPE_NAME = "stage";
 
     private final String type;
     private final String name;
@@ -55,7 +56,7 @@ public class Workflow {
         this.root = Preconditions.checkNotNull(scope).getRootScope();
 
         @SuppressWarnings("unchecked")
-        List<Scope> stageScopes = (List<Scope>) scope.get("stage");
+        List<Scope> stageScopes = (List<Scope>) scope.get(STAGE_TYPE_NAME);
 
         if (stageScopes.isEmpty()) {
             throw new GyroException("Workflow requires 1 or more stages!");
