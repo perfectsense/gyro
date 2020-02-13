@@ -63,19 +63,23 @@ public interface GyroUI {
     }
 
     static void sendToAuditors(String output, boolean isReplace) {
-        AbstractCommand command = AbstractCommand.getCommand();
+        AbstractCommand command = AbstractCommand.getCurrentCommand();
 
         if (command != null && command.enableAuditor()) {
-            GyroAuditor.AUDITOR_BY_NAME.values().stream()
+            GyroAuditor.AUDITOR_BY_NAME.entrySet().stream()
                 .parallel()
-                .filter(GyroAuditor::isStarted)
-                .filter(auditor -> !auditor.isFinished())
-                .forEach(auditor -> {
+                .filter(e -> e.getValue().isStarted())
+                .filter(e -> !e.getValue().isFinished())
+                .forEach(e -> {
                     try {
-                        auditor.append(output, isReplace);
+                        e.getValue().append(output, isReplace);
                     } catch (Exception ex) {
-                        // TODO: message
-                        System.err.print(ex.getMessage());
+                        String key = e.getKey();
+                        GyroAuditor.AUDITOR_BY_NAME.remove(key);
+                        GyroCore.ui().write(
+                            "@|magenta %s|@ auditor has been disabled due to the following reason: %s",
+                            key,
+                            ex.getMessage());
                     }
                 });
         }

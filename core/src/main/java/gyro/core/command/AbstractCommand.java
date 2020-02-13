@@ -16,14 +16,19 @@
 
 package gyro.core.command;
 
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import gyro.core.GyroCore;
 import gyro.core.audit.GyroAuditor;
 import gyro.core.audit.MetadataDirectiveProcessor;
+import gyro.core.workflow.Workflow;
 import io.airlift.airline.Option;
 import io.airlift.airline.OptionType;
 import org.slf4j.LoggerFactory;
@@ -40,9 +45,9 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractCommand implements GyroCommand {
 
-    private static final String SUCCESS_FLAG = "gyro.abstractCommand.isSuccess";
+    private static final AtomicBoolean SUCCESS = new AtomicBoolean();
 
-    private static AbstractCommand command;
+    private static final AtomicReference<AbstractCommand> CURRENT_COMMAND = new AtomicReference<>();
 
     @Option(type = OptionType.GLOBAL, name = "--debug", description = "Debug mode")
     public boolean debug;
@@ -54,13 +59,10 @@ public abstract class AbstractCommand implements GyroCommand {
 
     protected abstract void doExecute() throws Exception;
 
-    public static AbstractCommand getCommand() {
-        return command;
-    }
     public abstract boolean enableAuditor();
 
-    public static void setCommand(AbstractCommand command) {
-        AbstractCommand.command = command;
+    public static AbstractCommand getCurrentCommand() {
+        return CURRENT_COMMAND.get();
     }
 
     public List<String> getUnparsedArguments() {
@@ -85,7 +87,7 @@ public abstract class AbstractCommand implements GyroCommand {
             System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.NoOpLog");
         }
 
-        AbstractCommand.setCommand(this);
+        CURRENT_COMMAND.set(this);
 
         if (enableAuditor()) {
             startAuditors();
@@ -93,7 +95,7 @@ public abstract class AbstractCommand implements GyroCommand {
 
         doExecute();
 
-        MetadataDirectiveProcessor.putMetadata(SUCCESS_FLAG, true);
+        SUCCESS.set(true);
     }
 
     public boolean isDebug() {
@@ -101,35 +103,51 @@ public abstract class AbstractCommand implements GyroCommand {
     }
 
     private void startAuditors() {
-        GyroAuditor.AUDITOR_BY_NAME.values().stream()
+        Map<String, Object> log = new HashMap<>();
+        log.put("commandArguments", getUnparsedArguments());
+
+        try {
+            log.put("version", VersionCommand.getCurrentVersion().toString());
+        } catch (IOException e) {
+            // Do nothing.
+        }
+
+        GyroAuditor.AUDITOR_BY_NAME.entrySet().stream()
             .parallel()
-            .filter(auditor -> !auditor.isStarted())
-            .forEach(auditor -> {
+            .filter(e -> !e.getValue().isStarted())
+            .forEach(e -> {
                 try {
-                    auditor.start(MetadataDirectiveProcessor.getMetadataMap());
-                } catch (Exception e) {
-                    // TODO: error message
-                    System.err.print(e.getMessage());
+                    e.getValue().start(log);
+                } catch (Exception ex) {
+                    String key = e.getKey();
+                    GyroAuditor.AUDITOR_BY_NAME.remove(key);
+                    GyroCore.ui().write(
+                        "@|magenta %s|@ auditor has been disabled due to the following reason: %s",
+                        key,
+                        ex.getMessage());
                 }
             });
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> finishAuditors()));
+        Runtime.getRuntime().addShutdownHook(new Thread(this::finishAuditors));
     }
 
     private void finishAuditors() {
-        boolean success = Optional.ofNullable(MetadataDirectiveProcessor.removeMetadata(SUCCESS_FLAG))
-            .filter(boolean.class::isInstance)
-            .map(boolean.class::cast)
-            .orElse(false);
-        GyroAuditor.AUDITOR_BY_NAME.values().stream()
+        boolean success = SUCCESS.get();
+        Map<String, Object> log = MetadataDirectiveProcessor.getMetadata(Workflow.getSuccessfullyExecutedWorkflows());
+
+        GyroAuditor.AUDITOR_BY_NAME.entrySet().stream()
             .parallel()
-            .filter(GyroAuditor::isStarted)
-            .filter(auditor -> !auditor.isFinished())
-            .forEach(auditor -> {
+            .filter(e -> e.getValue().isStarted())
+            .filter(e -> !e.getValue().isFinished())
+            .forEach(e -> {
                 try {
-                    auditor.finish(MetadataDirectiveProcessor.getMetadataMap(), success);
-                } catch (Exception e) {
-                    // TODO: error message
-                    System.err.print(e.getMessage());
+                    e.getValue().finish(log, success);
+                } catch (Exception ex) {
+                    String key = e.getKey();
+                    GyroAuditor.AUDITOR_BY_NAME.remove(key);
+                    GyroCore.ui().write(
+                        "@|magenta %s|@ auditor has been disabled due to the following reason: %s",
+                        key,
+                        ex.getMessage());
                 }
             });
     }

@@ -33,7 +33,7 @@ public class UpCommand extends AbstractConfigCommand {
     }
 
     @Override
-    public void doExecute(RootScope current, RootScope pending, State state) {
+    public void doExecute(RootScope current, RootScope pending, State state) throws Exception {
         VersionCommand.printUpdateVersion();
         GyroUI ui = GyroCore.ui();
 
