@@ -44,6 +44,8 @@ public class Workflow {
     public static final String EXECUTION_FILE = "workflow-execution.json";
     public static final String STAGE_TYPE_NAME = "stage";
 
+    private static final List<Workflow> SUCCESSFULLY_EXECUTED_WORKFLOWS = new ArrayList<>();
+
     private final String type;
     private final String name;
     private final RootScope root;
@@ -78,6 +80,10 @@ public class Workflow {
         } catch (IOException error) {
             throw new GyroException(error);
         }
+    }
+
+    public static List<Workflow> getSuccessfullyExecutedWorkflows() {
+        return SUCCESSFULLY_EXECUTED_WORKFLOWS;
     }
 
     public String getType() {
@@ -177,6 +183,7 @@ public class Workflow {
                 ui.unindent();
             }
         }
+        SUCCESSFULLY_EXECUTED_WORKFLOWS.add(this);
 
         throw Retry.INSTANCE;
     }
