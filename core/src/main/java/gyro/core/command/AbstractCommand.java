@@ -34,7 +34,8 @@ import org.slf4j.LoggerFactory;
  * <p>Subclasses must override:</p>
  *
  * <ul>
- * <li>{@link #doExecute}</li>
+ * <li>{@link #doExecute()}</li>
+ * <li>{@link #enableAuditor()}</li>
  * </ul>
  */
 public abstract class AbstractCommand implements GyroCommand {
@@ -56,6 +57,7 @@ public abstract class AbstractCommand implements GyroCommand {
     public static AbstractCommand getCommand() {
         return command;
     }
+    public abstract boolean enableAuditor();
 
     public static void setCommand(AbstractCommand command) {
         AbstractCommand.command = command;
@@ -96,11 +98,6 @@ public abstract class AbstractCommand implements GyroCommand {
 
     public boolean isDebug() {
         return debug;
-    }
-
-    // TODO: abstract?
-    public boolean enableAuditor() {
-        return false;
     }
 
     private void startAuditors() {

@@ -27,7 +27,12 @@ public class VersionCommand extends AbstractCommand {
         VersionCommand.printUpdateVersion();
     }
 
-    public static void printVersion() {
+    @Override
+    public boolean enableAuditor() {
+        return false;
+    }
+
+    public static void printVersion() throws IOException {
         ComparableVersion currentVersion = VersionCommand.getCurrentVersion();
         VersionCommand.renderVersionMessage(currentVersion.toString());
     }

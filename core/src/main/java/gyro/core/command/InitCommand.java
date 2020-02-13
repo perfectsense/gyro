@@ -77,4 +77,9 @@ public class InitCommand extends AbstractCommand {
         }
     }
 
+    @Override
+    public boolean enableAuditor() {
+        return true;
+    }
+
 }
