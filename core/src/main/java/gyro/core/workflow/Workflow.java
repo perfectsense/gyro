@@ -31,7 +31,6 @@ import gyro.core.GyroInputStream;
 import gyro.core.GyroOutputStream;
 import gyro.core.GyroUI;
 import gyro.core.diff.Retry;
-import gyro.core.metadata.MetadataDirectiveProcessor;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
 import gyro.core.resource.Resource;
@@ -49,6 +48,7 @@ public class Workflow {
     private final String name;
     private final RootScope root;
     private final Map<String, Stage> stages;
+    private List<String> executedStages;
 
     public Workflow(String type, String name, Scope scope) {
         this.type = Preconditions.checkNotNull(type);
@@ -88,6 +88,13 @@ public class Workflow {
         return name;
     }
 
+    public List<String> getExecutedStages() {
+        if (executedStages == null) {
+            executedStages = new ArrayList<>();
+        }
+        return executedStages;
+    }
+
     public Stage getStage(String name) {
         Stage stage = stages.get(name);
 
@@ -115,7 +122,7 @@ public class Workflow {
         Resource currentResource,
         Resource pendingResource) {
 
-        List<String> executedStages = new ArrayList<>();
+        executedStages = new ArrayList<>();
         Map<String, Object> execution = getExecution(root.getCurrent());
         Stage stage;
 
@@ -140,7 +147,6 @@ public class Workflow {
 
         while (stage != null) {
             String stageName = stage.getName();
-            MetadataDirectiveProcessor.putMetadata("currentStage", stageName);
 
             ui.write("\n@|magenta · Executing %s stage|@\n", stageName);
 
