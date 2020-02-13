@@ -20,8 +20,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
@@ -45,9 +43,9 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractCommand implements GyroCommand {
 
-    private static final AtomicBoolean SUCCESS = new AtomicBoolean();
+    private static boolean success = false;
 
-    private static final AtomicReference<AbstractCommand> CURRENT_COMMAND = new AtomicReference<>();
+    private static AbstractCommand currentCommand;
 
     @Option(type = OptionType.GLOBAL, name = "--debug", description = "Debug mode")
     public boolean debug;
@@ -62,7 +60,7 @@ public abstract class AbstractCommand implements GyroCommand {
     public abstract boolean enableAuditor();
 
     public static AbstractCommand getCurrentCommand() {
-        return CURRENT_COMMAND.get();
+        return currentCommand;
     }
 
     public List<String> getUnparsedArguments() {
@@ -87,7 +85,7 @@ public abstract class AbstractCommand implements GyroCommand {
             System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.NoOpLog");
         }
 
-        CURRENT_COMMAND.set(this);
+        currentCommand = this;
 
         if (enableAuditor()) {
             startAuditors();
@@ -95,7 +93,7 @@ public abstract class AbstractCommand implements GyroCommand {
 
         doExecute();
 
-        SUCCESS.set(true);
+        success = true;
     }
 
     public boolean isDebug() {
@@ -131,7 +129,6 @@ public abstract class AbstractCommand implements GyroCommand {
     }
 
     private void finishAuditors() {
-        boolean success = SUCCESS.get();
         Map<String, Object> log = MetadataDirectiveProcessor.getMetadata(Workflow.getSuccessfullyExecutedWorkflows());
 
         GyroAuditor.AUDITOR_BY_NAME.entrySet().stream()
