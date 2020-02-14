@@ -24,6 +24,7 @@ import java.util.Map;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import gyro.core.GyroCore;
+import gyro.core.GyroException;
 import gyro.core.audit.GyroAuditor;
 import gyro.core.audit.MetadataDirectiveProcessor;
 import gyro.core.workflow.Workflow;
@@ -117,12 +118,7 @@ public abstract class AbstractCommand implements GyroCommand {
                 try {
                     e.getValue().start(log);
                 } catch (Exception ex) {
-                    String key = e.getKey();
-                    GyroAuditor.AUDITOR_BY_NAME.remove(key);
-                    GyroCore.ui().write(
-                        "@|magenta %s|@ auditor has been disabled due to the following reason: %s",
-                        key,
-                        ex.getMessage());
+                    throw new GyroException(ex.getMessage());
                 }
             });
         Runtime.getRuntime().addShutdownHook(new Thread(this::finishAuditors));
@@ -139,12 +135,7 @@ public abstract class AbstractCommand implements GyroCommand {
                 try {
                     e.getValue().finish(log, success);
                 } catch (Exception ex) {
-                    String key = e.getKey();
-                    GyroAuditor.AUDITOR_BY_NAME.remove(key);
-                    GyroCore.ui().write(
-                        "@|magenta %s|@ auditor has been disabled due to the following reason: %s",
-                        key,
-                        ex.getMessage());
+                    throw new GyroException(ex.getMessage());
                 }
             });
     }
