@@ -111,12 +111,12 @@ public abstract class AbstractCommand implements GyroCommand {
             // Do nothing.
         }
 
-        GyroAuditor.AUDITOR_BY_NAME.entrySet().stream()
+        GyroAuditor.AUDITOR_BY_NAME.values().stream()
             .parallel()
-            .filter(e -> !e.getValue().isStarted())
-            .forEach(e -> {
+            .filter(auditor -> !auditor.isStarted())
+            .forEach(auditor -> {
                 try {
-                    e.getValue().start(log);
+                    auditor.start(log);
                 } catch (Exception ex) {
                     throw new GyroException(ex.getMessage());
                 }
@@ -127,13 +127,13 @@ public abstract class AbstractCommand implements GyroCommand {
     private void finishAuditors() {
         Map<String, Object> log = MetadataDirectiveProcessor.getMetadata(Workflow.getSuccessfullyExecutedWorkflows());
 
-        GyroAuditor.AUDITOR_BY_NAME.entrySet().stream()
+        GyroAuditor.AUDITOR_BY_NAME.values().stream()
             .parallel()
-            .filter(e -> e.getValue().isStarted())
-            .filter(e -> !e.getValue().isFinished())
-            .forEach(e -> {
+            .filter(GyroAuditor::isStarted)
+            .filter(auditor -> !auditor.isFinished())
+            .forEach(auditor -> {
                 try {
-                    e.getValue().finish(log, success);
+                    auditor.finish(log, success);
                 } catch (Exception ex) {
                     throw new GyroException(ex.getMessage());
                 }

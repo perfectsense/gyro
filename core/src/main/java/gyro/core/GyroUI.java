@@ -66,20 +66,15 @@ public interface GyroUI {
         AbstractCommand command = AbstractCommand.getCurrentCommand();
 
         if (command != null && command.enableAuditor()) {
-            GyroAuditor.AUDITOR_BY_NAME.entrySet().stream()
+            GyroAuditor.AUDITOR_BY_NAME.values().stream()
                 .parallel()
-                .filter(e -> e.getValue().isStarted())
-                .filter(e -> !e.getValue().isFinished())
-                .forEach(e -> {
+                .filter(GyroAuditor::isStarted)
+                .filter(auditor -> !auditor.isFinished())
+                .forEach(auditor -> {
                     try {
-                        e.getValue().append(output, isReplace);
+                        auditor.append(output, isReplace);
                     } catch (Exception ex) {
-                        String key = e.getKey();
-                        GyroAuditor.AUDITOR_BY_NAME.remove(key);
-                        GyroCore.ui().write(
-                            "@|magenta %s|@ auditor has been disabled due to the following reason: %s",
-                            key,
-                            ex.getMessage());
+                        throw new GyroException(ex.getMessage());
                     }
                 });
         }
