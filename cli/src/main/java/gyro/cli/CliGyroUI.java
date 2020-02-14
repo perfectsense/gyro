@@ -187,7 +187,7 @@ public class CliGyroUI implements GyroUI {
 
     @Override
     public String doReplace(String message, Object... arguments) {
-        System.out.print(Ansi.ansi().eraseLine(Ansi.Erase.ALL).cursorToColumn(1));
+        message += Ansi.ansi().eraseLine(Ansi.Erase.ALL).cursorToColumn(1);
         return doWrite(message, arguments);
     }
 
