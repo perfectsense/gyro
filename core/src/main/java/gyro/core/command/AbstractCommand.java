@@ -27,7 +27,6 @@ import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.audit.GyroAuditor;
 import gyro.core.audit.MetadataDirectiveProcessor;
-import gyro.core.workflow.Workflow;
 import io.airlift.airline.Option;
 import io.airlift.airline.OptionType;
 import org.slf4j.LoggerFactory;
@@ -125,7 +124,7 @@ public abstract class AbstractCommand implements GyroCommand {
     }
 
     private void finishAuditors() {
-        Map<String, Object> log = MetadataDirectiveProcessor.getMetadata(Workflow.getSuccessfullyExecutedWorkflows());
+        Map<String, Object> log = MetadataDirectiveProcessor.getMetadata();
 
         GyroAuditor.AUDITOR_BY_NAME.values().stream()
             .parallel()

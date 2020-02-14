@@ -16,7 +16,6 @@
 
 package gyro.core.audit;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -39,10 +38,10 @@ public class MetadataDirectiveProcessor extends DirectiveProcessor<DiffableScope
 
     private static final Map<String, Map<String, Map<String, Object>>> METADATA_BY_WORKFLOW = new ConcurrentHashMap<>();
 
-    public static Map<String, Object> getMetadata(Collection<Workflow> workflows) {
+    public static Map<String, Object> getMetadata() {
         Map<String, Object> metadata = new HashMap<>();
 
-        for (Workflow workflow : workflows) {
+        for (Workflow workflow : Workflow.getSuccessfullyExecutedWorkflows()) {
             String workflowKey = String.format(
                 DefineDirectiveProcessor.WORKFLOW_KEY_PATTERN,
                 workflow.getType(),
