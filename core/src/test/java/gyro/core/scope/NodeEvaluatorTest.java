@@ -184,9 +184,19 @@ class NodeEvaluatorTest {
                 }
 
                 @Test
-                void noField() {
+                void multiName() {
+                    assertThat(evaluate("$(test::resource foo bar)")).asList().hasSize(2);
+                }
+
+                @Test
+                void duplicate() {
+                    assertThat(evaluate("$(test::resource 'foo' 'foo' 'bar')")).asList().hasSize(2);
+                }
+
+                @Test
+                void globPlusQuery() {
                     assertThatExceptionOfType(GyroException.class)
-                        .isThrownBy(() -> evaluate("$(test::resource foo bar)"));
+                        .isThrownBy(() -> evaluate("$(test::resource 'foo' '*')"));
                 }
 
             }
