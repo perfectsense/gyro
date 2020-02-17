@@ -54,6 +54,8 @@ import gyro.core.directive.DirectiveSettings;
 import gyro.core.finder.FinderPlugin;
 import gyro.core.plugin.PluginDirectiveProcessor;
 import gyro.core.plugin.PluginSettings;
+import gyro.core.preprocessor.Preprocessor;
+import gyro.core.preprocessor.PreprocessorSettings;
 import gyro.core.reference.FinderReferenceResolver;
 import gyro.core.reference.ReferencePlugin;
 import gyro.core.reference.ReferenceSettings;
@@ -279,14 +281,18 @@ public class RootScope extends FileScope {
 
         evaluateFile(getFile(), node -> nodes.addAll(node.getBody()));
 
+        List<Node> finalNodes = nodes;
         try {
-            evaluator.evaluateBody(nodes, this);
+            for (Preprocessor pp : getSettings(PreprocessorSettings.class).getPreprocessors()) {
+                finalNodes = pp.preprocess(finalNodes, this);
+            }
+            evaluator.evaluateBody(finalNodes, this);
 
         } catch (Defer error) {
             // Ignore for now since this is reevaluated later.
         }
 
-        return nodes;
+        return finalNodes;
     }
 
     public void evaluate() {
