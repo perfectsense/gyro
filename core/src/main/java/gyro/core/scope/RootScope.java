@@ -84,6 +84,8 @@ import gyro.core.workflow.ReplaceDirectiveProcessor;
 import gyro.core.workflow.RestoreRootProcessor;
 import gyro.core.workflow.UpdateDirectiveProcessor;
 import gyro.lang.ast.Node;
+import gyro.lang.ast.PairNode;
+import gyro.lang.ast.block.BlockNode;
 import gyro.lang.ast.block.FileNode;
 import gyro.parser.antlr4.GyroParser;
 import gyro.util.Bug;
@@ -275,18 +277,38 @@ public class RootScope extends FileScope {
     }
 
     public List<Node> load() {
+        return load(true, false);
+    }
+
+    public List<Node> load(boolean evaluateBody, boolean validate) {
         List<Node> nodes = new ArrayList<>();
 
         evaluateFile(getFile(), node -> nodes.addAll(node.getBody()));
 
-        try {
-            evaluator.evaluateBody(nodes, this);
+        if (validate) {
+            String duplicate = BlockNode.validateLocalImmutability(PairNode.getNodeVariables(nodes));
 
-        } catch (Defer error) {
-            // Ignore for now since this is reevaluated later.
+            if (duplicate != null) {
+                throw new Defer(
+                    PairNode.getKeyNode(nodes, duplicate),
+                    String.format("'%s' is already defined and cannot be reused!", duplicate));
+            }
+        }
+
+        if (evaluateBody) {
+            try {
+                evaluator.evaluateBody(nodes, this);
+
+            } catch (Defer error) {
+                // Ignore for now since this is reevaluated later.
+            }
         }
 
         return nodes;
+    }
+
+    public List<Node> getNodes() {
+        return load(false, false);
     }
 
     public void evaluate() {

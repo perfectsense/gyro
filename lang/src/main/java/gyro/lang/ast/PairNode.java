@@ -16,7 +16,11 @@
 
 package gyro.lang.ast;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.google.common.base.Preconditions;
+import gyro.lang.ast.value.ValueNode;
 import gyro.parser.antlr4.GyroParser;
 
 public class PairNode extends Node {
@@ -49,6 +53,18 @@ public class PairNode extends Node {
     @Override
     public <C, R, X extends Throwable> R accept(NodeVisitor<C, R, X> visitor, C context) throws X {
         return visitor.visitPair(this, context);
+    }
+
+    public static List<String> getNodeVariables(List<Node> nodes) {
+        return nodes.stream()
+            .filter(o -> o instanceof PairNode)
+            .map(o -> (String) ((ValueNode) ((PairNode) o).getKey()).getValue())
+            .collect(Collectors.toList());
+    }
+
+    public static Node getKeyNode(List<Node> nodes, String key) {
+        return nodes.stream().filter(o -> o instanceof PairNode).filter(o -> ((ValueNode) ((PairNode) o).getKey()).getValue().equals(
+            key)).findFirst().orElse(null);
     }
 
 }
