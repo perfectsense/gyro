@@ -35,6 +35,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableList;
 import gyro.core.GyroException;
 import gyro.core.Reflections;
+import gyro.core.auth.CredentialsSettings;
 import gyro.core.scope.DiffableScope;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
@@ -149,10 +150,11 @@ public class DiffableType<D extends Diffable> {
         return null;
     }
 
-    public D newExternal(RootScope root, Object id) {
+    public D newExternal(RootScope root, Object id, String credentials) {
         D diffable = Reflections.newInstance(diffableClass);
         diffable.external = true;
         diffable.scope = new DiffableScope(root, null);
+        diffable.scope.getSettings(CredentialsSettings.class).setUseCredentials(credentials);
 
         idField.setValue(diffable, id);
         return diffable;
