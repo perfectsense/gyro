@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 
 import gyro.core.GyroException;
 import gyro.core.Type;
+import gyro.core.auth.CredentialsSettings;
 import gyro.core.finder.Finder;
 import gyro.core.finder.FinderField;
 import gyro.core.finder.FinderSettings;
@@ -48,6 +49,14 @@ public class FinderReferenceResolver extends ReferenceResolver {
                 "@|bold %s|@ type doesn't support external queries!",
                 type));
         }
+
+        arguments.stream()
+            .filter(o -> o instanceof String)
+            .findFirst()
+            .ifPresent(o -> {
+                arguments.remove(o);
+                scope.getSettings(CredentialsSettings.class).setUseCredentials((String) o);
+            });
 
         FinderType<? extends Finder<Resource>> finderType = FinderType.getInstance(finderClass);
         Finder<Resource> finder = finderType.newInstance(scope);
