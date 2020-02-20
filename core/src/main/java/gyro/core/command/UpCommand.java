@@ -16,6 +16,10 @@
 
 package gyro.core.command;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
 import gyro.core.GyroCore;
 import gyro.core.GyroUI;
 import gyro.core.diff.Diff;
@@ -27,10 +31,7 @@ import io.airlift.airline.Command;
 @Command(name = "up", description = "Updates all resources to match the configuration.")
 public class UpCommand extends AbstractConfigCommand {
 
-    @Override
-    public boolean enableAuditor() {
-        return true;
-    }
+    private boolean auditStarted;
 
     @Override
     public void doExecute(RootScope current, RootScope pending, State state) throws Exception {
@@ -53,6 +54,20 @@ public class UpCommand extends AbstractConfigCommand {
 
             if (!ui.readBoolean(Boolean.FALSE, "\nAre you sure you want to change resources?")) {
                 break;
+            }
+
+            if (!auditStarted) {
+                Map<String, Object> log = new HashMap<>();
+                log.put("commandArguments", getUnparsedArguments());
+
+                try {
+                    log.put("version", VersionCommand.getCurrentVersion().toString());
+                } catch (IOException e) {
+                    // Do nothing.
+                }
+
+                ui.startAuditors(log);
+                auditStarted = true;
             }
 
             ui.write("\n");
@@ -80,6 +95,8 @@ public class UpCommand extends AbstractConfigCommand {
                 state = new State(current, pending, state.isTest());
             }
         }
+
+        ui.finishAuditors(null, true);
     }
 
 }

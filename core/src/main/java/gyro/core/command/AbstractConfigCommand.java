@@ -124,6 +124,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
                 refreshResources(current);
             }
         }
+        GyroCore.ui().setAuditPending(true);
 
         pending.evaluate();
         pending.validate();
