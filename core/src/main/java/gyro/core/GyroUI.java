@@ -18,6 +18,7 @@ package gyro.core;
 
 import gyro.core.audit.GyroAuditor;
 import gyro.core.command.AbstractCommand;
+import java.util.Map;
 
 public interface GyroUI {
 
@@ -42,6 +43,13 @@ public interface GyroUI {
     String doWrite(String message, Object... arguments);
 
     String doReplace(String message, Object... arguments);
+    boolean auditPending();
+
+    void setAuditPending(boolean auditPending);
+
+    void startAuditors(Map<String, Object> log);
+
+    void finishAuditors(Map<String, Object> log, boolean success);
 
     default <E extends Throwable> void indented(ThrowingProcedure<E> procedure) throws E {
         indent();
