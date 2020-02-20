@@ -27,11 +27,11 @@ import java.util.regex.Pattern;
 
 import com.google.common.collect.ImmutableSet;
 import gyro.core.GyroException;
-import gyro.core.GyroUI;
+import gyro.core.audit.GyroAuditableUI;
 import org.fusesource.jansi.Ansi;
 import org.fusesource.jansi.AnsiRenderer;
 
-public class CliGyroUI implements GyroUI {
+public class CliGyroUI extends GyroAuditableUI {
 
     private static final Pattern NEWLINES = Pattern.compile("([\r\n]+)");
 

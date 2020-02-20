@@ -16,8 +16,6 @@
 
 package gyro.core;
 
-import gyro.core.audit.GyroAuditor;
-import gyro.core.command.AbstractCommand;
 import java.util.Map;
 
 public interface GyroUI {
@@ -40,9 +38,10 @@ public interface GyroUI {
 
     void unindent();
 
-    String doWrite(String message, Object... arguments);
+    void write(String message, Object... arguments);
 
-    String doReplace(String message, Object... arguments);
+    void replace(String message, Object... arguments);
+
     boolean auditPending();
 
     void setAuditPending(boolean auditPending);
@@ -59,32 +58,6 @@ public interface GyroUI {
 
         } finally {
             unindent();
-        }
-    }
-
-    default void write(String message, Object... arguments) {
-        sendToAuditors(doWrite(message, arguments), false);
-    }
-
-    default void replace(String message, Object... arguments) {
-        sendToAuditors(doReplace(message, arguments), true);
-    }
-
-    static void sendToAuditors(String output, boolean isReplace) {
-        AbstractCommand command = AbstractCommand.getCurrentCommand();
-
-        if (command != null && command.enableAuditor()) {
-            GyroAuditor.AUDITOR_BY_NAME.values().stream()
-                .parallel()
-                .filter(GyroAuditor::isStarted)
-                .filter(auditor -> !auditor.isFinished())
-                .forEach(auditor -> {
-                    try {
-                        auditor.append(output, isReplace);
-                    } catch (Exception ex) {
-                        throw new GyroException(ex.getMessage());
-                    }
-                });
         }
     }
 }
