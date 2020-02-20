@@ -33,12 +33,14 @@ public class ReferenceNode extends Node {
 
     private final List<Node> arguments;
     private final List<Filter> filters;
+    private final List<ReferenceOption> options;
 
-    public ReferenceNode(List<Node> arguments, Collection<Filter> filters) {
+    public ReferenceNode(List<Node> arguments, Collection<Filter> filters, List<ReferenceOption> options) {
         super(null);
 
         this.arguments = ImmutableList.copyOf(Preconditions.checkNotNull(arguments));
         this.filters = ImmutableList.copyOf(Preconditions.checkNotNull(filters));
+        this.options = ImmutableList.copyOf(Preconditions.checkNotNull(options));
     }
 
     public ReferenceNode(GyroParser.ReferenceContext context) {
@@ -53,6 +55,11 @@ public class ReferenceNode extends Node {
             .stream()
             .map(Filter::create)
             .collect(ImmutableCollectors.toList());
+
+        this.options = context.option()
+            .stream()
+            .map(ReferenceOption::new)
+            .collect(ImmutableCollectors.toList());
     }
 
     public List<Node> getArguments() {
@@ -61,6 +68,10 @@ public class ReferenceNode extends Node {
 
     public List<Filter> getFilters() {
         return filters;
+    }
+
+    public List<ReferenceOption> getOptions() {
+        return options;
     }
 
     @Override

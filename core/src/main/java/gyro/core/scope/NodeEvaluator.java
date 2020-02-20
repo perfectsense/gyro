@@ -693,7 +693,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             if (resolver != null) {
                 try {
                     removeTypeNode(node);
-                    return resolveFilters(node, scope, resolver.resolve(scope, arguments));
+                    return resolveFilters(node, scope, resolver.resolve(node, scope, arguments));
 
                 } catch (Exception error) {
                     throw new GyroException(
