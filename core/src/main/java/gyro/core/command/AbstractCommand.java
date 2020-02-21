@@ -16,11 +16,15 @@
 
 package gyro.core.command;
 
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import gyro.core.GyroCore;
+import gyro.core.GyroUI;
 import io.airlift.airline.Option;
 import io.airlift.airline.OptionType;
 import org.slf4j.LoggerFactory;
@@ -73,5 +77,18 @@ public abstract class AbstractCommand implements GyroCommand {
 
     public boolean isDebug() {
         return debug;
+    }
+
+    protected void startAuditors(GyroUI ui) {
+        Map<String, Object> log = new HashMap<>();
+        log.put("commandArguments", getUnparsedArguments());
+
+        try {
+            log.put("version", VersionCommand.getCurrentVersion().toString());
+        } catch (IOException e) {
+            // Do nothing.
+        }
+
+        ui.startAuditors(log);
     }
 }

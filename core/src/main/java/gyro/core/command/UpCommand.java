@@ -16,10 +16,6 @@
 
 package gyro.core.command;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
 import gyro.core.GyroCore;
 import gyro.core.GyroUI;
 import gyro.core.diff.Diff;
@@ -57,16 +53,7 @@ public class UpCommand extends AbstractConfigCommand {
             }
 
             if (!auditStarted) {
-                Map<String, Object> log = new HashMap<>();
-                log.put("commandArguments", getUnparsedArguments());
-
-                try {
-                    log.put("version", VersionCommand.getCurrentVersion().toString());
-                } catch (IOException e) {
-                    // Do nothing.
-                }
-
-                ui.startAuditors(log);
+                startAuditors(ui);
                 auditStarted = true;
             }
 
@@ -98,5 +85,4 @@ public class UpCommand extends AbstractConfigCommand {
 
         ui.finishAuditors(null, true);
     }
-
 }
