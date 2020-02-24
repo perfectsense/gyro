@@ -22,17 +22,17 @@ import org.xml.sax.InputSource;
 public class VersionCommand extends AbstractCommand {
 
     @Override
-    protected void doExecute() {
+    protected void doExecute() throws Exception {
         VersionCommand.printVersion();
         VersionCommand.printUpdateVersion();
     }
 
-    public static void printVersion() {
+    public static void printVersion() throws IOException {
         ComparableVersion currentVersion = VersionCommand.getCurrentVersion();
         VersionCommand.renderVersionMessage(currentVersion.toString());
     }
 
-    public static void printUpdateVersion() {
+    public static void printUpdateVersion() throws IOException {
         ComparableVersion currentVersion = VersionCommand.getCurrentVersion();
         ComparableVersion latestVersion = VersionCommand.getLatestVersion();
 
@@ -44,18 +44,12 @@ public class VersionCommand extends AbstractCommand {
         }
     }
 
-    public static ComparableVersion getCurrentVersion() {
-        ComparableVersion currentVersion = null;
-        InputStream stream = VersionCommand.class.getResourceAsStream("/gyro.properties");
-        Properties properties = new Properties();
-        try {
+    public static ComparableVersion getCurrentVersion() throws IOException {
+        try (InputStream stream = VersionCommand.class.getResourceAsStream("/gyro.properties")) {
+            Properties properties = new Properties();
             properties.load(stream);
-            currentVersion = new ComparableVersion((String) properties.get("version"));
-        } catch (IOException e) {
-            e.printStackTrace();
+            return new ComparableVersion((String) properties.get("version"));
         }
-
-        return currentVersion;
     }
 
     public static ComparableVersion getLatestVersion() {

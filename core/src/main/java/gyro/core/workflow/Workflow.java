@@ -42,11 +42,15 @@ import gyro.util.ImmutableCollectors;
 public class Workflow {
 
     public static final String EXECUTION_FILE = "workflow-execution.json";
+    public static final String STAGE_TYPE_NAME = "stage";
+
+    private static final List<Workflow> SUCCESSFULLY_EXECUTED_WORKFLOWS = new ArrayList<>();
 
     private final String type;
     private final String name;
     private final RootScope root;
     private final Map<String, Stage> stages;
+    private List<String> executedStages;
 
     public Workflow(String type, String name, Scope scope) {
         this.type = Preconditions.checkNotNull(type);
@@ -54,7 +58,7 @@ public class Workflow {
         this.root = Preconditions.checkNotNull(scope).getRootScope();
 
         @SuppressWarnings("unchecked")
-        List<Scope> stageScopes = (List<Scope>) scope.get("stage");
+        List<Scope> stageScopes = (List<Scope>) scope.get(STAGE_TYPE_NAME);
 
         if (stageScopes.isEmpty()) {
             throw new GyroException("Workflow requires 1 or more stages!");
@@ -78,12 +82,23 @@ public class Workflow {
         }
     }
 
+    public static List<Workflow> getSuccessfullyExecutedWorkflows() {
+        return SUCCESSFULLY_EXECUTED_WORKFLOWS;
+    }
+
     public String getType() {
         return type;
     }
 
     public String getName() {
         return name;
+    }
+
+    public List<String> getExecutedStages() {
+        if (executedStages == null) {
+            executedStages = new ArrayList<>();
+        }
+        return executedStages;
     }
 
     public Stage getStage(String name) {
@@ -113,7 +128,7 @@ public class Workflow {
         Resource currentResource,
         Resource pendingResource) {
 
-        List<String> executedStages = new ArrayList<>();
+        executedStages = new ArrayList<>();
         Map<String, Object> execution = getExecution(root.getCurrent());
         Stage stage;
 
@@ -137,7 +152,9 @@ public class Workflow {
         }
 
         while (stage != null) {
-            ui.write("\n@|magenta · Executing %s stage|@\n", stage.getName());
+            String stageName = stage.getName();
+
+            ui.write("\n@|magenta · Executing %s stage|@\n", stageName);
 
             if (ui.isVerbose()) {
                 ui.write("\n");
@@ -149,7 +166,7 @@ public class Workflow {
 
             try {
                 stage.execute(ui, state, currentResource, pendingResource, currentRoot, copyCurrentRootScope());
-                executedStages.add(stage.getName());
+                executedStages.add(stageName);
 
                 try (GyroOutputStream output = currentRoot.openOutput(Workflow.EXECUTION_FILE)) {
                     output.write(ObjectUtils.toJson(ImmutableMap.of(
@@ -166,6 +183,7 @@ public class Workflow {
                 ui.unindent();
             }
         }
+        SUCCESSFULLY_EXECUTED_WORKFLOWS.add(this);
 
         throw Retry.INSTANCE;
     }

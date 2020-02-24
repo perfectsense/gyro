@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Perfect Sense, Inc.
+ * Copyright 2020, Perfect Sense, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,7 @@
  * limitations under the License.
  */
 
-package gyro.core.command;
+@Namespace("audit")
+package gyro.core.audit;
 
-/**
- * CLI command.
- */
-public interface GyroCommand {
-
-    void execute() throws Exception;
-}
+import gyro.core.Namespace;

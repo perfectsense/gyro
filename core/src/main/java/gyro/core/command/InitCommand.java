@@ -76,5 +76,4 @@ public class InitCommand extends AbstractCommand {
             }
         }
     }
-
 }

@@ -24,17 +24,27 @@ import gyro.lang.ast.block.DirectiveNode;
 @Type("define")
 public class DefineDirectiveProcessor extends DirectiveProcessor<FileScope> {
 
+    private static final ThreadLocal<String> CURRENT_WORKFLOW = new ThreadLocal<>();
+
+    public static final String WORKFLOW_KEY_PATTERN = "%s:::%s";
+
+    public static String getCurrentWorkflow() {
+        return CURRENT_WORKFLOW.get();
+    }
+
     @Override
     public void process(FileScope scope, DirectiveNode node) {
         validateArguments(node, 2, 2);
 
+        String type = getArgument(scope, node, String.class, 0);
+        String name = getArgument(scope, node, String.class, 1);
+
+        CURRENT_WORKFLOW.set(String.format(WORKFLOW_KEY_PATTERN, type, name));
         scope.getRootScope()
             .getSettings(WorkflowSettings.class)
             .getWorkflows()
-            .add(new Workflow(
-                getArgument(scope, node, String.class, 0),
-                getArgument(scope, node, String.class, 1),
-                evaluateBody(scope, node)));
+            .add(new Workflow(type, name, evaluateBody(scope, node)));
+        CURRENT_WORKFLOW.remove();
     }
 
 }

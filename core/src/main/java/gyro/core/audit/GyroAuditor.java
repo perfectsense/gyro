@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Perfect Sense, Inc.
+ * Copyright 2020, Perfect Sense, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,22 @@
  * limitations under the License.
  */
 
-package gyro.core.command;
+package gyro.core.audit;
 
-/**
- * CLI command.
- */
-public interface GyroCommand {
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-    void execute() throws Exception;
+public interface GyroAuditor {
+
+    Map<String, GyroAuditor> AUDITOR_BY_NAME = new ConcurrentHashMap<>();
+
+    void start(Map<String, Object> log) throws Exception;
+
+    void append(String output, boolean replace) throws Exception;
+
+    void finish(Map<String, Object> log, boolean success) throws Exception;
+
+    boolean isStarted();
+
+    boolean isFinished();
 }

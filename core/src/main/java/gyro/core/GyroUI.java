@@ -16,6 +16,8 @@
 
 package gyro.core;
 
+import java.util.Map;
+
 public interface GyroUI {
 
     boolean isVerbose();
@@ -36,6 +38,18 @@ public interface GyroUI {
 
     void unindent();
 
+    void write(String message, Object... arguments);
+
+    void replace(String message, Object... arguments);
+
+    boolean auditPending();
+
+    void setAuditPending(boolean auditPending);
+
+    void startAuditors(Map<String, Object> log);
+
+    void finishAuditors(Map<String, Object> log, boolean success);
+
     default <E extends Throwable> void indented(ThrowingProcedure<E> procedure) throws E {
         indent();
 
@@ -46,9 +60,4 @@ public interface GyroUI {
             unindent();
         }
     }
-
-    void write(String message, Object... arguments);
-
-    void replace(String message, Object... arguments);
-
 }
