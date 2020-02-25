@@ -273,7 +273,7 @@ public class RootScope extends FileScope {
         return findResourcesByClass(resourceClass)
             .filter(r -> id.equals(idField.getValue(r)))
             .findFirst()
-            .orElseGet(() -> type.newExternal(this, id, null));
+            .orElseGet(() -> type.newExternal(this, id));
     }
 
     public List<Node> load() {

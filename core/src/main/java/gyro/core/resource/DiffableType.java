@@ -150,13 +150,19 @@ public class DiffableType<D extends Diffable> {
         return null;
     }
 
-    public D newExternal(RootScope root, Object id, String credentials) {
+    public D newExternal(RootScope root, Object id) {
         D diffable = Reflections.newInstance(diffableClass);
         diffable.external = true;
         diffable.scope = new DiffableScope(root, null);
-        diffable.scope.getSettings(CredentialsSettings.class).setUseCredentials(credentials);
 
         idField.setValue(diffable, id);
+        return diffable;
+    }
+
+    public D newExternalWithCredentials(RootScope root, Object id) {
+        D diffable = newExternal(root, id);
+        diffable.scope.getClosest(DiffableScope.class).getSettings(CredentialsSettings.class).setUseCredentials(root.getSettings(CredentialsSettings.class).getUseCredentials());
+
         return diffable;
     }
 

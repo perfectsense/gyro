@@ -37,7 +37,7 @@ public abstract class Credentials {
 
         String name = diffableScope != null
             ? diffableScope.getSettings(CredentialsSettings.class).getUseCredentials()
-            : scope.getSettings(CredentialsSettings.class).getUseCredentials();
+            : scope.getRootScope().getSettings(CredentialsSettings.class).getUseCredentials();
 
         name = Reflections.getNamespace(contextClass) + "::" + (name != null ? name : "default");
 

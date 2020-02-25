@@ -60,7 +60,7 @@ public class FinderReferenceResolver extends ReferenceResolver {
         Optional.ofNullable(getOptionArgument(scope, node, "credentials", String.class, 0))
             .ifPresent(o -> {
                 arguments.remove(o);
-                scope.getSettings(CredentialsSettings.class).setUseCredentials(o);
+                scope.getRootScope().getSettings(CredentialsSettings.class).setUseCredentials(o);
             });
 
         FinderType<? extends Finder<Resource>> finderType = FinderType.getInstance(finderClass);
