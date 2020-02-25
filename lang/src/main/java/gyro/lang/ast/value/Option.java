@@ -7,19 +7,19 @@ import com.google.common.collect.ImmutableList;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.Rule;
 
-public class ReferenceOption extends Rule {
+public class Option extends Rule {
 
     private final String name;
     private final List<Node> arguments;
 
-    public ReferenceOption(String name, List<Node> arguments) {
+    public Option(String name, List<Node> arguments) {
         super(null);
 
         this.name = Preconditions.checkNotNull(name);
         this.arguments = ImmutableList.copyOf(Preconditions.checkNotNull(arguments));
     }
 
-    public ReferenceOption(gyro.parser.antlr4.GyroParser.OptionContext context) {
+    public Option(gyro.parser.antlr4.GyroParser.OptionContext context) {
         super(Preconditions.checkNotNull(context));
 
         this.name = context.IDENTIFIER().getText();

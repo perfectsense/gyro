@@ -38,9 +38,11 @@ import gyro.lang.ast.value.ReferenceNode;
 public class FinderReferenceResolver extends ReferenceResolver {
 
     @Override
-    public Object resolve(ReferenceNode node, Scope scope, List<Object> arguments) {
+    public Object resolve(ReferenceNode node, Scope scope) {
         validateArguments(node, 1, 2);
         validateOptionArguments(node, "credentials", 0, 1);
+
+        List<Object> arguments = getArguments(scope, node, Object.class);
 
         String type = (String) arguments.remove(0);
 
