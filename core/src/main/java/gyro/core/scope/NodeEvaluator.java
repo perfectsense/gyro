@@ -668,79 +668,78 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
 
     @Override
     public Object visitReference(ReferenceNode node, Scope scope) {
-        List<Object> arguments = node.getArguments()
-            .stream()
-            .map(v -> visit(v, scope))
-            .collect(Collectors.toList());
+        Object value = null;
 
-        if (arguments.isEmpty()) {
-            removeTypeNode(node);
-            return null;
-        }
+        // check if the reference has arguments
+        if (!node.getArguments().isEmpty()) {
+            // get the list of arguments as a separate list
+            List<Node> nodes = new ArrayList<>(node.getArguments());
 
-        Object value = arguments.remove(0);
+            // get the resolved value of the first argument and remove it from the argument list
+            // only resolve the first argument to decide if it is a resolver or not
+            // if it is a resolver, then the respective resolver processor would handle the rest of the arguments
+            value = visit(nodes.remove(0), scope);
 
-        if (value == null) {
-            removeTypeNode(node);
-            return null;
-        }
+            // check if the resolved first argument is not null and if the first argument is a ValueNode
+            if (value != null && node.getArguments().get(0) instanceof ValueNode) {
+                RootScope root = scope.getRootScope();
+                String referenceName = (String) value;
+                ReferenceResolver resolver = root.getSettings(ReferenceSettings.class).getResolver(referenceName);
 
-        if (node.getArguments().get(0) instanceof ValueNode) {
-            RootScope root = scope.getRootScope();
-            String referenceName = (String) value;
-            ReferenceResolver resolver = root.getSettings(ReferenceSettings.class).getResolver(referenceName);
+                if (resolver != null) {
+                    try {
+                        removeTypeNode(node);
+                        value = resolver.resolve(node, scope);
 
-            if (resolver != null) {
-                try {
-                    removeTypeNode(node);
-                    return resolveFilters(node, scope, resolver.resolve(node, scope));
+                    } catch (Exception error) {
+                        throw new GyroException(
+                            node,
+                            String.format("Can't resolve @|bold %s|@ reference!", referenceName),
+                            error);
+                    }
 
-                } catch (Exception error) {
-                    throw new GyroException(
-                        node,
-                        String.format("Can't resolve @|bold %s|@ reference!", referenceName),
-                        error);
-                }
+                } else if (referenceName.contains("::")) {
+                    List<Object> objects = new ArrayList<>();
 
-            } else if (referenceName.contains("::")) {
-                List<Object> objects = new ArrayList<>();
+                    // resolve the rest of the arguments
+                    List<Object> arguments = nodes.stream().map(o -> visit(o, scope)).collect(Collectors.toList());
 
-                if (arguments.size() > 1 && arguments.contains("*")) {
-                    throw new GyroException("No other argument can be used if @|bold *|@ is used!");
-                }
+                    if (arguments.size() > 1 && arguments.contains("*")) {
+                        throw new GyroException("No other argument can be used if @|bold *|@ is used!");
+                    }
 
-                // Remove duplicate arguments
-                Set<String> argumentSet = arguments.stream().map(o -> (String) o).collect(Collectors.toSet());
+                    // remove duplicate arguments
+                    Set<String> argumentSet = arguments.stream().map(o -> (String) o).collect(Collectors.toSet());
 
-                for (Object argument : argumentSet) {
-                    Object resourceValue = resourceResolver((String) argument, referenceName, node, root);
+                    for (Object argument : argumentSet) {
+                        Object resourceValue = resourceResolver((String) argument, referenceName, node, root);
 
-                    if (resourceValue != null) {
-                        if (resourceValue instanceof List) {
-                            objects.addAll((List<Object>) resourceValue);
-                        } else {
-                            objects.add(resourceValue);
+                        if (resourceValue != null) {
+                            if (resourceValue instanceof List) {
+                                objects.addAll((List<Object>) resourceValue);
+                            } else {
+                                objects.add(resourceValue);
+                            }
                         }
                     }
-                }
 
-                // set value to single resource object only if one argument passed which does not contain '*'
-                if (!objects.isEmpty() && arguments.size() == 1 && !((String) arguments.get(0)).contains("*")) {
-                    value = objects.get(0);
+                    // set value to single resource object only if one argument passed which does not contain '*'
+                    if (!objects.isEmpty() && arguments.size() == 1 && !((String) arguments.get(0)).contains("*")) {
+                        value = objects.get(0);
+                    } else {
+                        value = objects;
+                    }
                 } else {
-                    value = objects;
+                    value = scope.find(node, referenceName);
                 }
-            } else {
-                value = scope.find(node, referenceName);
-            }
-
-            if (value == null) {
-                removeTypeNode(node);
-                return null;
             }
         }
 
         removeTypeNode(node);
+        if (value == null) {
+            return null;
+        }
+
         return resolveFilters(node, scope, value);
     }
 
