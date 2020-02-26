@@ -40,4 +40,5 @@ matrix:
         - choco install adoptopenjdk11 --version 11.0.4.11
         - choco install zip
         - export PATH=$PATH:"/c/Program Files/AdoptOpenJDK/jdk-11.0.4+11/bin"
+        - export GRADLE_OPTS="-Dorg.gradle.daemon=false"
       script: ./gradlew
