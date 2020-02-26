@@ -22,62 +22,54 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.NodeVisitor;
+import gyro.lang.ast.OptionArgumentNode;
+import gyro.lang.ast.value.Option;
 import gyro.parser.antlr4.GyroParser;
 import gyro.util.ImmutableCollectors;
 
-public class DirectiveNode extends BlockNode {
+public class DirectiveNode extends OptionArgumentNode {
 
     private final String name;
-    private final List<Node> arguments;
-    private final List<DirectiveOption> options;
     private final List<DirectiveSection> sections;
+    private final List<Node> body;
 
     public DirectiveNode(
         String name,
         List<Node> arguments,
-        List<DirectiveOption> options,
+        List<Option> options,
         List<Node> body,
         List<DirectiveSection> sections) {
 
-        super(null, body);
+        super(arguments, options);
 
         this.name = Preconditions.checkNotNull(name);
-        this.arguments = ImmutableList.copyOf(Preconditions.checkNotNull(arguments));
-        this.options = ImmutableList.copyOf(Preconditions.checkNotNull(options));
         this.sections = ImmutableList.copyOf(Preconditions.checkNotNull(sections));
+        this.body = ImmutableList.copyOf(Preconditions.checkNotNull(body));
     }
 
     public DirectiveNode(GyroParser.DirectiveContext context) {
-        super(Preconditions.checkNotNull(context), Node.create(context.body()));
+        super(Preconditions.checkNotNull(context));
 
         this.name = context.directiveType().getText();
-        this.arguments = Node.create(context.arguments());
-
-        this.options = context.option()
-            .stream()
-            .map(DirectiveOption::new)
-            .collect(ImmutableCollectors.toList());
 
         this.sections = context.section()
             .stream()
             .map(DirectiveSection::new)
             .collect(ImmutableCollectors.toList());
+
+        this.body = Node.create(context.body());
     }
 
     public String getName() {
         return name;
     }
 
-    public List<Node> getArguments() {
-        return arguments;
-    }
-
-    public List<DirectiveOption> getOptions() {
-        return options;
-    }
-
     public List<DirectiveSection> getSections() {
         return sections;
+    }
+
+    public List<Node> getBody() {
+        return body;
     }
 
     @Override

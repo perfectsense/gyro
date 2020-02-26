@@ -16,12 +16,12 @@
 
 package gyro.core.reference;
 
-import java.util.List;
-
+import gyro.core.OptionArgumentProcessor;
 import gyro.core.scope.Scope;
+import gyro.lang.ast.value.ReferenceNode;
 
-public abstract class ReferenceResolver {
+public abstract class ReferenceResolver extends OptionArgumentProcessor {
 
-    public abstract Object resolve(Scope scope, List<Object> arguments) throws Exception;
+    public abstract Object resolve(ReferenceNode node, Scope scope) throws Exception;
 
 }
