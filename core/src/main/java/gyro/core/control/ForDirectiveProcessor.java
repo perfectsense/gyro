@@ -16,9 +16,11 @@
 
 package gyro.core.control;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import gyro.core.GyroException;
 import gyro.core.Type;
@@ -44,8 +46,8 @@ public class ForDirectiveProcessor extends DirectiveProcessor<Scope> {
             return;
         }
 
-        if (in instanceof List) {
-            List<?> list = (List<?>) in;
+        if (in instanceof List || in instanceof Set) {
+            List<?> list = in instanceof List ? (List<?>) in : new ArrayList<>((Set<?>) in);
             int variablesSize = variables.size();
             int listSize = list.size();
 
