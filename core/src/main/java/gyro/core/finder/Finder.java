@@ -42,7 +42,7 @@ public abstract class Finder<R extends Resource> {
         Class<R> resourceClass = (Class<R>) TypeDefinition.getInstance(getClass())
             .getInferredGenericTypeArgumentClass(Finder.class, 0);
 
-        return DiffableType.getInstance(resourceClass).newExternal(scope.getRootScope(), null);
+        return DiffableType.getInstance(resourceClass).newExternalWithCredentials(scope.getRootScope(), null);
     }
 
 }

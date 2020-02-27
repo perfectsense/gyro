@@ -53,7 +53,7 @@ public class Gyro {
 
     private Cli<Object> cli;
     private List<String> arguments;
-    private Set<Class<?>> commands = new HashSet<Class<?>>();
+    private Set<Class<?>> commands = new HashSet<>();
 
     public static Reflections reflections;
 
@@ -190,11 +190,11 @@ public class Gyro {
         if (command instanceof Runnable) {
             ((Runnable) command).run();
 
-        } else if (command instanceof AbstractCommand) {
-            ((AbstractCommand) command).setUnparsedArguments(arguments);
-            ((AbstractCommand) command).execute();
-
         } else if (command instanceof GyroCommand) {
+            if (command instanceof AbstractCommand) {
+                ((AbstractCommand) command).setUnparsedArguments(arguments);
+            }
+
             ((GyroCommand) command).execute();
 
         } else {
@@ -214,5 +214,4 @@ public class Gyro {
 
         return reflections;
     }
-
 }

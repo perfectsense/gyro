@@ -62,12 +62,6 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
     @Arguments
     private List<String> files;
 
-    private GyroCore core;
-
-    public GyroCore core() {
-        return core;
-    }
-
     protected abstract void doExecute(RootScope current, RootScope pending, State state) throws Exception;
 
     @Override
@@ -106,8 +100,6 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             }
         }
 
-        core = new GyroCore();
-
         RootScope current = new RootScope(
             "../../" + GyroCore.INIT_FILE,
             new LocalFileBackend(rootDir.resolve(".gyro/state")),
@@ -132,6 +124,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
                 refreshResources(current);
             }
         }
+        GyroCore.ui().setAuditPending(true);
 
         pending.evaluate();
         pending.validate();

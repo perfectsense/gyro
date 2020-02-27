@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Perfect Sense, Inc.
+ * Copyright 2020, Perfect Sense, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,22 @@
  * limitations under the License.
  */
 
-package gyro.core.reference;
+package gyro.core.audit;
 
-import gyro.core.OptionArgumentProcessor;
-import gyro.core.scope.Scope;
-import gyro.lang.ast.value.ReferenceNode;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-public abstract class ReferenceResolver extends OptionArgumentProcessor {
+public interface GyroAuditor {
 
-    public abstract Object resolve(ReferenceNode node, Scope scope) throws Exception;
+    Map<String, GyroAuditor> AUDITOR_BY_NAME = new ConcurrentHashMap<>();
 
+    void start(Map<String, Object> log) throws Exception;
+
+    void append(String output, boolean replace) throws Exception;
+
+    void finish(Map<String, Object> log, boolean success) throws Exception;
+
+    boolean isStarted();
+
+    boolean isFinished();
 }

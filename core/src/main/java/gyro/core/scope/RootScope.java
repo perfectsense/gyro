@@ -37,6 +37,9 @@ import gyro.core.GyroInputStream;
 import gyro.core.GyroOutputStream;
 import gyro.core.LogDirectiveProcessor;
 import gyro.core.PrintDirectiveProcessor;
+import gyro.core.audit.AuditorDirectiveProcessor;
+import gyro.core.audit.AuditorPlugin;
+import gyro.core.audit.MetadataDirectiveProcessor;
 import gyro.core.auth.CredentialsDirectiveProcessor;
 import gyro.core.auth.CredentialsPlugin;
 import gyro.core.auth.UsesCredentialsDirectiveProcessor;
@@ -123,6 +126,7 @@ public class RootScope extends FileScope {
             .forEach(p -> getSettings(PreprocessorSettings.class).getPreprocessors().add(p));
 
         Stream.of(
+            new AuditorPlugin(),
             new CredentialsPlugin(),
             new DirectivePlugin(),
             new FileBackendPlugin(),
@@ -140,26 +144,28 @@ public class RootScope extends FileScope {
             .forEach(p -> getSettings(ChangeSettings.class).getProcessors().add(p));
 
         Stream.of(
+            AuditorDirectiveProcessor.class,
             CreateDirectiveProcessor.class,
             CredentialsDirectiveProcessor.class,
+            DefineDirectiveProcessor.class,
             DeleteDirectiveProcessor.class,
             DescriptionDirectiveProcessor.class,
             ExtendsDirectiveProcessor.class,
             FileBackendDirectiveProcessor.class,
             ForDirectiveProcessor.class,
-            IfDirectiveProcessor.class,
             HighlanderDirectiveProcessor.class,
+            IfDirectiveProcessor.class,
+            LogDirectiveProcessor.class,
+            MetadataDirectiveProcessor.class,
+            PluginDirectiveProcessor.class,
+            PrintDirectiveProcessor.class,
             ReplaceDirectiveProcessor.class,
             RepositoryDirectiveProcessor.class,
-            PluginDirectiveProcessor.class,
             TypeDescriptionDirectiveProcessor.class,
             UpdateDirectiveProcessor.class,
             UsesCredentialsDirectiveProcessor.class,
             VirtualDirectiveProcessor.class,
-            DefineDirectiveProcessor.class,
-            WaitDirectiveProcessor.class,
-            PrintDirectiveProcessor.class,
-            LogDirectiveProcessor.class)
+            WaitDirectiveProcessor.class)
             .forEach(p -> getSettings(DirectiveSettings.class).addProcessor(p));
 
         Stream.of(
@@ -272,7 +278,9 @@ public class RootScope extends FileScope {
         DiffableField idField = type.getIdField();
 
         if (idField == null) {
-            throw new GyroException(String.format("Unable to find @Id on a getter in %s", resourceClass.getSimpleName()));
+            throw new GyroException(String.format(
+                "Unable to find @Id on a getter in %s",
+                resourceClass.getSimpleName()));
         }
 
         return findResourcesByClass(resourceClass)

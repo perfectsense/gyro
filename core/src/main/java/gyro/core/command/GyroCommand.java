@@ -21,6 +21,5 @@ package gyro.core.command;
  */
 public interface GyroCommand {
 
-    public void execute() throws Exception;
-
+    void execute() throws Exception;
 }
