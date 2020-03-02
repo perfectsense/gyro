@@ -507,6 +507,18 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
 
             DiffableType<Resource> resourceType = DiffableType.getInstance((Class<Resource>) c);
             Resource resource = resourceType.newInternal(bodyScope, name);
+
+            // TODO:
+            boolean wf = Optional.ofNullable(scope.get("FROM-WORKFLOW"))
+                .filter(Boolean.class::isInstance)
+                .map(Boolean.class::cast)
+                .orElse(false)
+                || Optional.ofNullable(bodyScope.get("_from-workflow"))
+                .filter(Boolean.class::isInstance)
+                .map(Boolean.class::cast)
+                .orElse(false);
+            resource.setInWorkflow(wf ? Boolean.TRUE : null);
+
             bodyScope.getSettings(SelfSettings.class).setSelf(resource);
             bodyScope = new DiffableScope(bodyScope);
 

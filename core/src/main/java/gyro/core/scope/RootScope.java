@@ -102,8 +102,14 @@ public class RootScope extends FileScope {
     private final RootScope current;
     private final Set<String> loadFiles;
     private final List<FileScope> fileScopes = new ArrayList<>();
+    // TODO: separate workflow scope?
+    private final Boolean inWorkflow;
 
     public RootScope(String file, FileBackend backend, RootScope current, Set<String> loadFiles) {
+        this(file, backend, current, loadFiles, null);
+    }
+
+    public RootScope(String file, FileBackend backend, RootScope current, Set<String> loadFiles, Boolean inWorkflow) {
         super(null, file);
 
         converter = new Converter();
@@ -119,6 +125,7 @@ public class RootScope extends FileScope {
         this.backend = backend;
         this.current = current;
         this.loadFiles = loadFiles != null ? ImmutableSet.copyOf(loadFiles) : ImmutableSet.of();
+        this.inWorkflow = inWorkflow;
 
         Stream.of(
             new AuditorPlugin(),
@@ -192,6 +199,10 @@ public class RootScope extends FileScope {
 
     public List<FileScope> getFileScopes() {
         return fileScopes;
+    }
+
+    public boolean isInWorkflow() {
+        return Boolean.TRUE.equals(inWorkflow);
     }
 
     public Stream<String> list() {

@@ -243,6 +243,9 @@ public class State {
             body.add(toPairNode("_configured-fields", configuredFields, resource));
         }
 
+        if (diffable.equals(resource) && resource.isInWorkflow()) {
+            body.add(toPairNode("_from-workflow", true, resource));
+        }
         body.addAll(DiffableInternals.getScope(diffable).getStateNodes());
 
         for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
