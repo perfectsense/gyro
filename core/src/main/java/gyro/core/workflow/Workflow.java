@@ -23,17 +23,16 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableMap;
 import com.psddev.dari.util.IoUtils;
 import com.psddev.dari.util.ObjectUtils;
+import com.psddev.dari.util.StringUtils;
 import gyro.core.GyroException;
 import gyro.core.GyroInputStream;
-import gyro.core.GyroOutputStream;
 import gyro.core.GyroUI;
 import gyro.core.diff.Retry;
 import gyro.core.resource.DiffableInternals;
-import gyro.core.resource.DiffableType;
 import gyro.core.resource.Resource;
+import gyro.core.scope.FileScope;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
 import gyro.core.scope.State;
@@ -116,9 +115,48 @@ public class Workflow {
 
     private RootScope copyCurrentRootScope() {
         RootScope current = root.getCurrent();
-        RootScope scope = new RootScope(current.getFile(), current.getBackend(), null, current.getLoadFiles());
+        RootScope scope = new RootScope(current.getFile(), current.getBackend(), null, current.getLoadFiles(), true);
         scope.evaluate();
+
+        filterWorkflowOnlyFilescopes(scope);
         return scope;
+    }
+
+    private RootScope copyPendingRootScope() {
+        RootScope pending = root;
+        RootScope scope = new RootScope(
+            pending.getFile(),
+            pending.getBackend(),
+            pending.getCurrent(),
+            pending.getLoadFiles(),
+            true);
+        scope.evaluate();
+        scope.getFileScopes().clear();
+        scope.getFileScopes().addAll(pending.getFileScopes());
+
+        filterWorkflowOnlyFilescopes(scope);
+        return scope;
+    }
+
+    private void filterWorkflowOnlyFilescopes(RootScope scope) {
+        List<FileScope> newFileScopes = new ArrayList<>();
+
+        for (FileScope fileScope : scope.getFileScopes()) {
+            FileScope newFileScope = new FileScope(fileScope.getRootScope(), fileScope.getFile());
+
+            for (Map.Entry<String, Object> entry : fileScope.entrySet()) {
+                Object value = entry.getValue();
+
+                if (value instanceof Resource) {
+                    if (((Resource) value).isInWorkflow()) {
+                        newFileScope.put(entry.getKey(), value);
+                    }
+                }
+            }
+            newFileScopes.add(newFileScope);
+        }
+        scope.getFileScopes().clear();
+        scope.getFileScopes().addAll(newFileScopes);
     }
 
     @SuppressWarnings("unchecked")
@@ -134,22 +172,29 @@ public class Workflow {
 
         if (execution != null) {
             executedStages.addAll((List<String>) execution.get("executedStages"));
+            String executingStage = (String) execution.get("executingStage");
 
-            stage = getStage(executedStages.get(executedStages.size() - 1));
+            stage = getStage(StringUtils.isEmpty(executingStage)
+                ? executedStages.get(executedStages.size() - 1)
+                : executingStage);
 
             ui.write("\n@|magenta · Resuming from %s stage|@\n", stage.getName());
-            ui.indent();
 
-            try {
-                stage = stage.prompt(ui, DiffableInternals.getScope(currentResource).getRootScope());
+            if (StringUtils.isEmpty(executingStage)) {
+                ui.indent();
 
-            } finally {
-                ui.unindent();
+                try {
+                    stage = stage.prompt(ui, DiffableInternals.getScope(currentResource).getRootScope());
+
+                } finally {
+                    ui.unindent();
+                }
             }
-
         } else {
             stage = stages.values().iterator().next();
         }
+
+        RootScope pendingRoot = copyPendingRootScope();
 
         while (stage != null) {
             String stageName = stage.getName();
@@ -165,18 +210,14 @@ public class Workflow {
             ui.indent();
 
             try {
-                stage.execute(ui, state, currentResource, pendingResource, currentRoot, copyCurrentRootScope());
+                stage.execute(
+                    ui,
+                    state,
+                    currentResource,
+                    pendingResource,
+                    currentRoot,
+                    pendingRoot);
                 executedStages.add(stageName);
-
-                try (GyroOutputStream output = currentRoot.openOutput(Workflow.EXECUTION_FILE)) {
-                    output.write(ObjectUtils.toJson(ImmutableMap.of(
-                        "type", DiffableType.getInstance(currentResource).getName(),
-                        "name", DiffableInternals.getName(currentResource),
-                        "workflow", name,
-                        "executedStages", executedStages
-                    )).getBytes(StandardCharsets.UTF_8));
-                }
-
                 stage = stage.prompt(ui, currentRoot);
 
             } finally {
