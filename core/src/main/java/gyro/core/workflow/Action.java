@@ -23,6 +23,7 @@ import gyro.core.scope.State;
 
 public abstract class Action {
 
-    public abstract void execute(GyroUI ui, State state, RootScope pending, Scope scope);
+    // TODO: get current from pending.
+    public abstract void execute(GyroUI ui, State state, RootScope current, RootScope pending, Scope scope);
 
 }
