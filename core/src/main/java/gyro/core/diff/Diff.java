@@ -27,6 +27,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
@@ -74,14 +75,36 @@ public class Diff {
         return changes;
     }
 
+    public void diffIgnoringWorkflow() {
+        diff(true);
+    }
+
     public void diff() {
-        Map<String, Diffable> currentDiffables = this.currentDiffables.stream().collect(
+        diff(false);
+    }
+
+    private void diff(boolean ignoreWorkflowStages) {
+        Stream<Diffable> currentDiffableStream = this.currentDiffables.stream();
+
+        if (ignoreWorkflowStages) {
+            currentDiffableStream = currentDiffableStream
+                .filter(e -> !ignoreWorkflowStages
+                    || !(e instanceof Resource)
+                    || !((Resource) e).isInWorkflow());
+        }
+        Map<String, Diffable> currentDiffables = currentDiffableStream.collect(
             LinkedHashMap::new,
             (map, r) -> map.put(r.primaryKey(), r),
             Map::putAll
         );
 
         for (Diffable pendingDiffable : pendingDiffables) {
+            if (ignoreWorkflowStages
+                && pendingDiffable instanceof Resource
+                && ((Resource) pendingDiffable).isInWorkflow()) {
+                continue;
+            }
+
             DiffableInternals.reevaluate(pendingDiffable);
 
             Diffable currentDiffable = currentDiffables.remove(pendingDiffable.primaryKey());

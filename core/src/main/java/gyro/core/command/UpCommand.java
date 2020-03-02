@@ -41,7 +41,7 @@ public class UpCommand extends AbstractConfigCommand {
                 current.findResourcesIn(current.getLoadFiles()),
                 pending.findResourcesIn(pending.getLoadFiles()));
 
-            diff.diff();
+            diff.diffIgnoringWorkflow();
 
             if (!diff.write(ui)) {
                 ui.write("\n@|bold,green No changes.|@\n\n");
