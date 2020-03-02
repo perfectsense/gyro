@@ -38,7 +38,7 @@ public class DeleteAction extends Action {
     }
 
     @Override
-    public void execute(GyroUI ui, State state, RootScope current, RootScope pending, Scope scope) {
+    public void execute(GyroUI ui, State state, RootScope pending, Scope scope) {
         NodeEvaluator evaluator = pending.getEvaluator();
         Object resource = evaluator.visit(this.resource, pending);
 

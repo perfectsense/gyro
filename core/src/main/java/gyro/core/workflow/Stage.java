@@ -77,13 +77,11 @@ public class Stage {
         State state,
         Resource currentResource,
         Resource pendingResource,
-        RootScope currentRootScope,
         RootScope pendingRootScope) {
 
         DiffableScope pendingScope = DiffableInternals.getScope(pendingResource);
         FileScope pendingFileScope = pendingScope.getFileScope();
 
-        // TODO: is scope needed?
         Scope scope = new Scope(pendingRootScope.getFileScopes()
             .stream()
             .filter(s -> s.getFile().equals(pendingFileScope.getFile()))
@@ -103,7 +101,7 @@ public class Stage {
         scope.put("PENDING", pendingResource);
         scope.put("FROM-WORKFLOW", true);
 
-        Defer.execute(actions, a -> a.execute(ui, state, currentRootScope, pendingRootScope, scope));
+        Defer.execute(actions, a -> a.execute(ui, state, pendingRootScope, scope));
     }
 
     public void execute(
@@ -114,7 +112,7 @@ public class Stage {
         RootScope currentRootScope,
         RootScope pendingRootScope) {
 
-        apply(ui, state, currentResource, pendingResource, currentRootScope, pendingRootScope);
+        apply(ui, state, currentResource, pendingResource, pendingRootScope);
 
         Diff diff = new Diff(
             currentRootScope.findResourcesIn(currentRootScope.getLoadFiles()),

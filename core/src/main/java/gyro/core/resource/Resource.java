@@ -25,7 +25,7 @@ import gyro.core.scope.State;
 
 public abstract class Resource extends Diffable {
 
-    Boolean inWorkflow;
+    private Boolean inWorkflow;
 
     public boolean isInWorkflow() {
         return Boolean.TRUE.equals(inWorkflow);

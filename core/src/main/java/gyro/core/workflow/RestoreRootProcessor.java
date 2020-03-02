@@ -75,7 +75,6 @@ public class RestoreRootProcessor extends RootProcessor {
                 null,
                 current.findResource(resourceType + "::" + resourceName),
                 resource,
-                root.getCurrent(),
                 root);
         }
     }
