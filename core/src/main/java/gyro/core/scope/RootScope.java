@@ -56,6 +56,7 @@ import gyro.core.directive.DirectivePlugin;
 import gyro.core.directive.DirectiveSettings;
 import gyro.core.finder.FinderPlugin;
 import gyro.core.plugin.PluginDirectiveProcessor;
+import gyro.core.plugin.PluginPreprocessor;
 import gyro.core.plugin.PluginSettings;
 import gyro.core.preprocessor.Preprocessor;
 import gyro.core.preprocessor.PreprocessorSettings;
@@ -119,6 +120,10 @@ public class RootScope extends FileScope {
         this.backend = backend;
         this.current = current;
         this.loadFiles = loadFiles != null ? ImmutableSet.copyOf(loadFiles) : ImmutableSet.of();
+
+        Stream.of(
+            new PluginPreprocessor())
+            .forEach(p -> getSettings(PreprocessorSettings.class).getPreprocessors().add(p));
 
         Stream.of(
             new AuditorPlugin(),
