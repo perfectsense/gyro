@@ -99,7 +99,7 @@ public class Stage {
         scope.put("NAME", DiffableInternals.getName(pendingResource));
         scope.put("CURRENT", currentResource);
         scope.put("PENDING", pendingResource);
-        scope.put("FROM-WORKFLOW", true);
+        scope.put("IN-WORKFLOW", true);
 
         Defer.execute(actions, a -> a.execute(ui, state, scope));
     }

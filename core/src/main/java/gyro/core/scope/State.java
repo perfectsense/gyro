@@ -244,7 +244,7 @@ public class State {
         }
 
         if (diffable.equals(resource) && resource.isInWorkflow()) {
-            body.add(toPairNode("_from-workflow", true, resource));
+            body.add(toPairNode("_in-workflow", true, resource));
         }
         body.addAll(DiffableInternals.getScope(diffable).getStateNodes());
 

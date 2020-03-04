@@ -509,11 +509,11 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             Resource resource = resourceType.newInternal(bodyScope, name);
 
             // TODO:
-            boolean wf = Optional.ofNullable(scope.get("FROM-WORKFLOW"))
+            boolean wf = Optional.ofNullable(scope.get("IN-WORKFLOW"))
                 .filter(Boolean.class::isInstance)
                 .map(Boolean.class::cast)
                 .orElse(false)
-                || Optional.ofNullable(bodyScope.get("_from-workflow"))
+                || Optional.ofNullable(bodyScope.get("_in-workflow"))
                 .filter(Boolean.class::isInstance)
                 .map(Boolean.class::cast)
                 .orElse(false);
