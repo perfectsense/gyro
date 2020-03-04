@@ -38,7 +38,8 @@ public class DeleteAction extends Action {
     }
 
     @Override
-    public void execute(GyroUI ui, State state, RootScope pending, Scope scope) {
+    public void execute(GyroUI ui, State state, Scope scope) {
+        RootScope pending = scope.getRootScope();
         NodeEvaluator evaluator = pending.getEvaluator();
         Object resource = evaluator.visit(this.resource, pending);
 
@@ -57,5 +58,4 @@ public class DeleteAction extends Action {
 
         pending.getFileScopes().forEach(s -> s.remove(fullName));
     }
-
 }

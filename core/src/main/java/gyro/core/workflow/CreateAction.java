@@ -22,7 +22,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import gyro.core.GyroUI;
 import gyro.core.scope.NodeEvaluator;
-import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
 import gyro.core.scope.State;
 import gyro.lang.ast.Node;
@@ -53,7 +52,7 @@ public class CreateAction extends Action {
     }
 
     @Override
-    public void execute(GyroUI ui, State state, RootScope pending, Scope scope) {
+    public void execute(GyroUI ui, State state, Scope scope) {
         NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
 
         evaluator.visit(
@@ -63,5 +62,4 @@ public class CreateAction extends Action {
                 body),
             scope);
     }
-
 }

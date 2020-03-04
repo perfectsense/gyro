@@ -101,7 +101,7 @@ public class Stage {
         scope.put("PENDING", pendingResource);
         scope.put("FROM-WORKFLOW", true);
 
-        Defer.execute(actions, a -> a.execute(ui, state, pendingRootScope, scope));
+        Defer.execute(actions, a -> a.execute(ui, state, scope));
     }
 
     public void execute(
