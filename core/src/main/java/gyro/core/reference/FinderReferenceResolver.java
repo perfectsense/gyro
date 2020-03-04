@@ -24,7 +24,6 @@ import java.util.stream.Collectors;
 
 import gyro.core.GyroException;
 import gyro.core.Type;
-import gyro.core.auth.CredentialsSettings;
 import gyro.core.finder.Finder;
 import gyro.core.finder.FinderField;
 import gyro.core.finder.FinderSettings;
@@ -57,14 +56,10 @@ public class FinderReferenceResolver extends ReferenceResolver {
                 type));
         }
 
-        Optional.ofNullable(getOptionArgument(scope, node, "credentials", String.class, 0))
-            .ifPresent(o -> {
-                arguments.remove(o);
-                scope.getRootScope().getSettings(CredentialsSettings.class).setUseCredentials(o);
-            });
-
         FinderType<? extends Finder<Resource>> finderType = FinderType.getInstance(finderClass);
         Finder<Resource> finder = finderType.newInstance(scope);
+        Optional.ofNullable(getOptionArgument(scope, node, "credentials", String.class, 0))
+            .ifPresent(finder::setCredentials);
         List<Resource> resources = null;
 
         if (!arguments.isEmpty()) {
