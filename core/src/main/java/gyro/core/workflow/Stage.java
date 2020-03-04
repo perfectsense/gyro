@@ -16,20 +16,16 @@
 
 package gyro.core.workflow;
 
-import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.psddev.dari.util.ObjectUtils;
 import gyro.core.Abort;
-import gyro.core.GyroOutputStream;
 import gyro.core.GyroUI;
 import gyro.core.diff.Diff;
 import gyro.core.resource.DiffableInternals;
-import gyro.core.resource.DiffableType;
 import gyro.core.resource.Resource;
 import gyro.core.scope.Defer;
 import gyro.core.scope.DiffableScope;
@@ -104,15 +100,35 @@ public class Stage {
         Defer.execute(actions, a -> a.execute(ui, state, scope));
     }
 
+    private void filterWorkflowOnlyFilescopes(RootScope scope) {
+        List<FileScope> newFileScopes = new ArrayList<>();
+
+        for (FileScope fileScope : scope.getFileScopes()) {
+            FileScope newFileScope = new FileScope(fileScope.getRootScope(), fileScope.getFile());
+
+            for (Map.Entry<String, Object> entry : fileScope.entrySet()) {
+                Object value = entry.getValue();
+
+                if (value instanceof Resource) {
+                    if (((Resource) value).isInWorkflow()) {
+                        newFileScope.put(entry.getKey(), value);
+                    }
+                }
+            }
+            newFileScopes.add(newFileScope);
+        }
+        scope.getFileScopes().clear();
+        scope.getFileScopes().addAll(newFileScopes);
+    }
+
     public void execute(
         GyroUI ui,
         State state,
-        Resource currentResource,
-        Resource pendingResource,
-        RootScope currentRootScope,
         RootScope pendingRootScope) {
 
-        apply(ui, state, currentResource, pendingResource, pendingRootScope);
+        RootScope currentRootScope = pendingRootScope.getCurrent();
+        filterWorkflowOnlyFilescopes(currentRootScope);
+        filterWorkflowOnlyFilescopes(pendingRootScope);
 
         Diff diff = new Diff(
             currentRootScope.findResourcesIn(currentRootScope.getLoadFiles()),
@@ -129,29 +145,7 @@ public class Stage {
             }
         }
 
-        // TODO: DRY
-        try (GyroOutputStream output = currentRootScope.openOutput(Workflow.EXECUTION_FILE)) {
-            output.write(ObjectUtils.toJson(ImmutableMap.of(
-                "type", DiffableType.getInstance(currentResource).getName(),
-                "name", DiffableInternals.getName(currentResource),
-                "workflow", workflow.getName(),
-                "executingStage", getName(),
-                "executedStages", workflow.getExecutedStages()
-            )).getBytes(StandardCharsets.UTF_8));
-        }
-
         diff.execute(ui, state);
-        workflow.getExecutedStages().add(getName());
-
-        // TODO: DRY
-        try (GyroOutputStream output = currentRootScope.openOutput(Workflow.EXECUTION_FILE)) {
-            output.write(ObjectUtils.toJson(ImmutableMap.of(
-                "type", DiffableType.getInstance(currentResource).getName(),
-                "name", DiffableInternals.getName(currentResource),
-                "workflow", workflow.getName(),
-                "executedStages", workflow.getExecutedStages()
-            )).getBytes(StandardCharsets.UTF_8));
-        }
     }
 
     public Stage prompt(GyroUI ui, State state, RootScope currentRootScope) {

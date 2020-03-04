@@ -1,10 +1,8 @@
 package gyro.core.workflow;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
@@ -55,28 +53,13 @@ public class RestoreRootProcessor extends RootProcessor {
         GyroUI ui = GyroCore.ui();
         @SuppressWarnings("unchecked")
         List<String> executedStageNames = (List<String>) execution.get("executedStages");
-        List<String> restoringStages = new ArrayList<>(executedStageNames);
-        Optional.ofNullable(execution.get("executingStage"))
-            .filter(String.class::isInstance)
-            .map(String.class::cast)
-            .ifPresent(restoringStages::add);
+
         ui.write(
             "@|magenta ~ Restoring workflow:|@ @|bold %s|@ stages in @|bold %s|@ for replacing @|bold %s|@ @|bold %s|@\n",
-            String.join(", ", restoringStages),
+            String.join(", ", executedStageNames),
             workflowName,
             resourceType,
             resourceName);
-
-        for (String stageName : executedStageNames) {
-            Stage stage = workflow.getStage(stageName);
-
-            stage.apply(
-                ui,
-                null,
-                current.findResource(resourceType + "::" + resourceName),
-                resource,
-                root);
-        }
     }
 
 }

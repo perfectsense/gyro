@@ -508,7 +508,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             DiffableType<Resource> resourceType = DiffableType.getInstance((Class<Resource>) c);
             Resource resource = resourceType.newInternal(bodyScope, name);
 
-            // TODO:
+            // TODO: move to change processor
             boolean wf = Optional.ofNullable(scope.get("IN-WORKFLOW"))
                 .filter(Boolean.class::isInstance)
                 .map(Boolean.class::cast)

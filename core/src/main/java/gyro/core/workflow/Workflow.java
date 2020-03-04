@@ -20,19 +20,22 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
+import java.util.Optional;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 import com.psddev.dari.util.IoUtils;
 import com.psddev.dari.util.ObjectUtils;
-import com.psddev.dari.util.StringUtils;
 import gyro.core.GyroException;
 import gyro.core.GyroInputStream;
+import gyro.core.GyroOutputStream;
 import gyro.core.GyroUI;
 import gyro.core.diff.Retry;
 import gyro.core.resource.DiffableInternals;
+import gyro.core.resource.DiffableType;
 import gyro.core.resource.Resource;
-import gyro.core.scope.FileScope;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
 import gyro.core.scope.State;
@@ -49,7 +52,7 @@ public class Workflow {
     private final String name;
     private final RootScope root;
     private final Map<String, Stage> stages;
-    private List<String> executedStages;
+    private final List<String> executedStages = new ArrayList<>();
 
     public Workflow(String type, String name, Scope scope) {
         this.type = Preconditions.checkNotNull(type);
@@ -94,9 +97,6 @@ public class Workflow {
     }
 
     public List<String> getExecutedStages() {
-        if (executedStages == null) {
-            executedStages = new ArrayList<>();
-        }
         return executedStages;
     }
 
@@ -118,7 +118,6 @@ public class Workflow {
         RootScope scope = new RootScope(current.getFile(), current.getBackend(), null, current.getLoadFiles(), true);
         scope.evaluate();
 
-        filterWorkflowOnlyFilescopes(scope);
         return scope;
     }
 
@@ -127,36 +126,12 @@ public class Workflow {
         RootScope scope = new RootScope(
             pending.getFile(),
             pending.getBackend(),
-            pending.getCurrent(),
+            copyCurrentRootScope(),
             pending.getLoadFiles(),
             true);
         scope.evaluate();
-        scope.getFileScopes().clear();
-        scope.getFileScopes().addAll(pending.getFileScopes());
 
-        filterWorkflowOnlyFilescopes(scope);
         return scope;
-    }
-
-    private void filterWorkflowOnlyFilescopes(RootScope scope) {
-        List<FileScope> newFileScopes = new ArrayList<>();
-
-        for (FileScope fileScope : scope.getFileScopes()) {
-            FileScope newFileScope = new FileScope(fileScope.getRootScope(), fileScope.getFile());
-
-            for (Map.Entry<String, Object> entry : fileScope.entrySet()) {
-                Object value = entry.getValue();
-
-                if (value instanceof Resource) {
-                    if (((Resource) value).isInWorkflow()) {
-                        newFileScope.put(entry.getKey(), value);
-                    }
-                }
-            }
-            newFileScopes.add(newFileScope);
-        }
-        scope.getFileScopes().clear();
-        scope.getFileScopes().addAll(newFileScopes);
     }
 
     @SuppressWarnings("unchecked")
@@ -166,59 +141,65 @@ public class Workflow {
         Resource currentResource,
         Resource pendingResource) {
 
-        executedStages = new ArrayList<>();
         Map<String, Object> execution = getExecution(root.getCurrent());
-        Stage stage;
+        String stageName;
 
         if (execution != null) {
             executedStages.addAll((List<String>) execution.get("executedStages"));
-            String executingStage = (String) execution.get("executingStage");
-
-            stage = getStage(StringUtils.isEmpty(executingStage)
-                ? executedStages.get(executedStages.size() - 1)
-                : executingStage);
-
-            ui.write("\n@|magenta · Resuming from %s stage|@\n", stage.getName());
-
-            if (StringUtils.isEmpty(executingStage)) {
-                ui.indent();
-
-                try {
-                    stage = stage.prompt(ui, DiffableInternals.getScope(currentResource).getRootScope());
-
-                } finally {
-                    ui.unindent();
-                }
-            }
+            stageName = executedStages.get(executedStages.size() - 1);
+            ui.write("\n@|magenta · Resuming from %s stage|@\n", stageName);
         } else {
-            stage = stages.values().iterator().next();
+            stageName = stages.values().iterator().next().getName();
         }
 
-        RootScope pendingRoot = copyPendingRootScope();
-
-        while (stage != null) {
-            String stageName = stage.getName();
-
+        // TODO: optimize performance.
+        while (stageName != null) {
             ui.write("\n@|magenta · Executing %s stage|@\n", stageName);
 
             if (ui.isVerbose()) {
                 ui.write("\n");
             }
 
-            RootScope currentRoot = copyCurrentRootScope();
+            RootScope pendingRoot = copyPendingRootScope();
+
+            int indexOf = executedStages.indexOf(stageName);
+
+            if (indexOf > -1) {
+                ListIterator<String> iterator = executedStages.listIterator(indexOf + 1);
+
+                while (iterator.hasNext()) {
+                    iterator.next();
+                    iterator.remove();
+                }
+            } else {
+                executedStages.add(stageName);
+            }
+
+            RootScope currentRoot = pendingRoot.getCurrent();
+
+            try (GyroOutputStream output = currentRoot.openOutput(Workflow.EXECUTION_FILE)) {
+                output.write(ObjectUtils.toJson(ImmutableMap.of(
+                    "type", DiffableType.getInstance(currentResource).getName(),
+                    "name", DiffableInternals.getName(currentResource),
+                    "workflow", name,
+                    "executedStages", executedStages
+                )).getBytes(StandardCharsets.UTF_8));
+            }
+
+            Stage stage = null;
+
+            for (String executedStage : executedStages) {
+                stage = getStage(executedStage);
+                stage.apply(ui, state, currentResource, pendingResource, pendingRoot);
+            }
 
             ui.indent();
 
             try {
-                stage.execute(
-                    ui,
-                    state,
-                    currentResource,
-                    pendingResource,
-                    currentRoot,
-                    pendingRoot);
-                executedStages.add(stageName);
-                stage = stage.prompt(ui, currentRoot);
+                stage.execute(ui, state, pendingRoot);
+                stageName = Optional.ofNullable(stage.prompt(ui, state, currentRoot))
+                    .map(Stage::getName)
+                    .orElse(null);
 
             } finally {
                 ui.unindent();
