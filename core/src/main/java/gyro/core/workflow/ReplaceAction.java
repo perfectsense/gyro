@@ -45,9 +45,11 @@ public class ReplaceAction extends Action {
     }
 
     @Override
-    public void execute(GyroUI ui, State state, RootScope pending, Scope scope) {
-        NodeEvaluator evaluator = pending.getEvaluator();
-        Object resource = evaluator.visit(this.resource, pending);
+    public void execute(GyroUI ui, State state, Scope scope) {
+        RootScope pending = scope.getRootScope();
+        RootScope current = pending.getCurrent();
+        NodeEvaluator evaluator = current.getEvaluator();
+        Object resource = evaluator.visit(this.resource, current);
 
         if (resource == null) {
             throw new GyroException("Can't replace a null resource!");
@@ -60,7 +62,7 @@ public class ReplaceAction extends Action {
                 resource.getClass().getName()));
         }
 
-        Object with = evaluator.visit(this.with, scope);
+        Object with = evaluator.visit(this.with, current);
 
         if (with == null) {
             throw new GyroException(String.format(

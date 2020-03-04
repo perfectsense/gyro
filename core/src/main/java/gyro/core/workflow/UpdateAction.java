@@ -51,9 +51,29 @@ public class UpdateAction extends Action {
     }
 
     @Override
-    public void execute(GyroUI ui, State state, RootScope pending, Scope scope) {
+    public void execute(GyroUI ui, State state, Scope scope) {
+        // TODO: allow updating resources outside workflow scope.
+        // TODO: DRY
+        RootScope pending = scope.getRootScope();
+        RootScope current = pending.getCurrent();
+        NodeEvaluator currentEvaluator = current.getEvaluator();
+        Object currentResource = currentEvaluator.visit(this.resource, current);
+
+        if (currentResource == null) {
+            throw new GyroException("Can't update a null resource!");
+        }
+
+        if (!(currentResource instanceof Resource)) {
+            throw new GyroException(String.format(
+                "Can't update @|bold %s|@, an instance of @|bold %s|@, because it's not a resource!",
+                currentResource,
+                currentResource.getClass().getName()));
+        }
+
+        ((Resource) currentResource).setInWorkflow(true);
+
         NodeEvaluator evaluator = pending.getEvaluator();
-        Object resource = evaluator.visit(this.resource, pending);
+        Object resource = evaluator.visit(this.resource, scope);
 
         if (resource == null) {
             throw new GyroException("Can't update a null resource!");
@@ -67,6 +87,7 @@ public class UpdateAction extends Action {
         }
 
         Resource pendingResource = (Resource) resource;
+        pendingResource.setInWorkflow(true);
         DiffableInternals.disconnect(pendingResource);
         DiffableScope resourceScope = DiffableInternals.getScope(pendingResource);
 
