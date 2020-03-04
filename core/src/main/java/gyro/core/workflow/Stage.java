@@ -154,11 +154,13 @@ public class Stage {
         }
     }
 
-    public Stage prompt(GyroUI ui, RootScope currentRootScope) {
+    public Stage prompt(GyroUI ui, State state, RootScope currentRootScope) {
         int transitionsSize = transitions.size();
 
         if (transitionsSize == 0) {
             currentRootScope.delete(Workflow.EXECUTION_FILE);
+            state.setRemoveWorkflowFlag(true);
+            state.save();
             return null;
 
         } else if (transitionsSize == 1) {

@@ -63,6 +63,7 @@ public class State {
     private final boolean test;
     private final Map<String, FileScope> states = new HashMap<>();
     private final Map<String, String> newNames = new HashMap<>();
+    private Boolean removeWorkflowFlag;
 
     public State(RootScope current, RootScope pending, boolean test) {
         this.root = new RootScope(current.getFile(), current.getBackend(), null, current.getLoadFiles());
@@ -86,6 +87,10 @@ public class State {
 
     public boolean isTest() {
         return test;
+    }
+
+    public void setRemoveWorkflowFlag(Boolean removeWorkflowFlag) {
+        this.removeWorkflowFlag = removeWorkflowFlag;
     }
 
     public void update(Change change) {
@@ -243,7 +248,7 @@ public class State {
             body.add(toPairNode("_configured-fields", configuredFields, resource));
         }
 
-        if (diffable.equals(resource) && resource.isInWorkflow()) {
+        if (!Boolean.TRUE.equals(removeWorkflowFlag) && diffable.equals(resource) && resource.isInWorkflow()) {
             body.add(toPairNode("_in-workflow", true, resource));
         }
         body.addAll(DiffableInternals.getScope(diffable).getStateNodes());
