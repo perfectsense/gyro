@@ -223,6 +223,10 @@ public class DiffableType<D extends Diffable> {
                     .orElseGet(values::keySet));
         }
 
+        if (diffable instanceof Resource && ((Resource) diffable).inWorkflow == null) {
+            ((Resource) diffable).inWorkflow = (Boolean) values.get("_in-workflow");
+        }
+
         Set<String> invalidFieldNames = values.keySet()
             .stream()
             .filter(n -> !n.startsWith("_"))

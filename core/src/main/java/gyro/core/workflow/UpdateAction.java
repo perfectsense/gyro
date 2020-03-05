@@ -52,8 +52,6 @@ public class UpdateAction extends Action {
 
     @Override
     public void execute(GyroUI ui, State state, Scope scope) {
-        // TODO: allow updating resources outside workflow scope.
-        // TODO: DRY
         RootScope pending = scope.getRootScope();
         RootScope current = pending.getCurrent();
         NodeEvaluator currentEvaluator = current.getEvaluator();
