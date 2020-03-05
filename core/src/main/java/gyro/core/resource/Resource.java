@@ -25,16 +25,6 @@ import gyro.core.scope.State;
 
 public abstract class Resource extends Diffable {
 
-    Boolean inWorkflow;
-
-    public boolean isInWorkflow() {
-        return Boolean.TRUE.equals(inWorkflow);
-    }
-
-    public void setInWorkflow(boolean inWorkflow) {
-        this.inWorkflow = inWorkflow ? Boolean.TRUE : null;
-    }
-
     public abstract boolean refresh();
 
     public abstract void create(GyroUI ui, State state) throws Exception;

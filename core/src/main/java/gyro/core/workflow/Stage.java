@@ -114,7 +114,7 @@ public class Stage {
                 Object value = entry.getValue();
 
                 if (value instanceof Resource) {
-                    if (((Resource) value).isInWorkflow()) {
+                    if (DiffableInternals.isInWorkflow((Resource) value)) {
                         newFileScope.put(entry.getKey(), value);
                     }
                 }

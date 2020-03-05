@@ -58,6 +58,14 @@ public final class DiffableInternals {
         return diffable.configuredFields;
     }
 
+    public static boolean isInWorkflow(Diffable diffable) {
+        return Boolean.TRUE.equals(diffable.inWorkflow);
+    }
+
+    public static void setInWorkflow(Diffable diffable, boolean inWorkflow) {
+        diffable.inWorkflow = inWorkflow ? Boolean.TRUE : null;
+    }
+
     @SuppressWarnings("unchecked")
     public static <T extends Diffable> List<Modification<T>> getModifications(T diffable) {
         return (List) diffable.modifications;

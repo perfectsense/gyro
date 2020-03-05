@@ -83,14 +83,12 @@ public class Diff {
         diff(false);
     }
 
-    private void diff(boolean ignoreWorkflowStages) {
+    private void diff(boolean ignoreWorkflowResources) {
         Stream<Diffable> currentDiffableStream = this.currentDiffables.stream();
 
-        if (ignoreWorkflowStages) {
+        if (ignoreWorkflowResources) {
             currentDiffableStream = currentDiffableStream
-                .filter(e -> !ignoreWorkflowStages
-                    || !(e instanceof Resource)
-                    || !((Resource) e).isInWorkflow());
+                .filter(e -> !(e instanceof Resource) || !DiffableInternals.isInWorkflow(e));
         }
         Map<String, Diffable> currentDiffables = currentDiffableStream.collect(
             LinkedHashMap::new,
@@ -99,9 +97,9 @@ public class Diff {
         );
 
         for (Diffable pendingDiffable : pendingDiffables) {
-            if (ignoreWorkflowStages
+            if (ignoreWorkflowResources
                 && pendingDiffable instanceof Resource
-                && ((Resource) pendingDiffable).isInWorkflow()) {
+                && DiffableInternals.isInWorkflow(pendingDiffable)) {
                 continue;
             }
 

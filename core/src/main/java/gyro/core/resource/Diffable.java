@@ -39,6 +39,7 @@ public abstract class Diffable {
     DiffableScope scope;
     Change change;
     Set<String> configuredFields;
+    Boolean inWorkflow;
     final List<Modification<? extends Diffable>> modifications = new ArrayList<>();
 
     public abstract String primaryKey();

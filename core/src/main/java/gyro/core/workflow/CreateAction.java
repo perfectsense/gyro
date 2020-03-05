@@ -22,6 +22,7 @@ import java.util.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import gyro.core.GyroUI;
+import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.Resource;
 import gyro.core.scope.NodeEvaluator;
 import gyro.core.scope.Scope;
@@ -65,6 +66,6 @@ public class CreateAction extends Action {
             scope))
             .filter(Resource.class::isInstance)
             .map(Resource.class::cast)
-            .ifPresent(e -> e.setInWorkflow(true));
+            .ifPresent(e -> DiffableInternals.setInWorkflow(e, true));
     }
 }
