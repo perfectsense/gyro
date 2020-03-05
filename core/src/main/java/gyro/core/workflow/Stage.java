@@ -16,16 +16,21 @@
 
 package gyro.core.workflow;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.psddev.dari.util.ObjectUtils;
 import gyro.core.Abort;
+import gyro.core.GyroOutputStream;
 import gyro.core.GyroUI;
 import gyro.core.diff.Diff;
 import gyro.core.resource.DiffableInternals;
+import gyro.core.resource.DiffableType;
 import gyro.core.resource.Resource;
 import gyro.core.scope.Defer;
 import gyro.core.scope.DiffableScope;
@@ -124,6 +129,7 @@ public class Stage {
     public void execute(
         GyroUI ui,
         State state,
+        Resource currentResource,
         RootScope pendingRootScope) {
 
         RootScope currentRootScope = pendingRootScope.getCurrent();
@@ -143,6 +149,15 @@ public class Stage {
             } else {
                 throw new Abort();
             }
+        }
+
+        try (GyroOutputStream output = currentRootScope.openOutput(Workflow.EXECUTION_FILE)) {
+            output.write(ObjectUtils.toJson(ImmutableMap.of(
+                "type", DiffableType.getInstance(currentResource).getName(),
+                "name", DiffableInternals.getName(currentResource),
+                "workflow", workflow.getName(),
+                "executedStages", workflow.getExecutedStages()
+            )).getBytes(StandardCharsets.UTF_8));
         }
 
         diff.execute(ui, state);

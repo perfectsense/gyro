@@ -25,16 +25,12 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableMap;
 import com.psddev.dari.util.IoUtils;
 import com.psddev.dari.util.ObjectUtils;
 import gyro.core.GyroException;
 import gyro.core.GyroInputStream;
-import gyro.core.GyroOutputStream;
 import gyro.core.GyroUI;
 import gyro.core.diff.Retry;
-import gyro.core.resource.DiffableInternals;
-import gyro.core.resource.DiffableType;
 import gyro.core.resource.Resource;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
@@ -175,17 +171,6 @@ public class Workflow {
                 executedStages.add(stageName);
             }
 
-            RootScope currentRoot = pendingRoot.getCurrent();
-
-            try (GyroOutputStream output = currentRoot.openOutput(Workflow.EXECUTION_FILE)) {
-                output.write(ObjectUtils.toJson(ImmutableMap.of(
-                    "type", DiffableType.getInstance(currentResource).getName(),
-                    "name", DiffableInternals.getName(currentResource),
-                    "workflow", name,
-                    "executedStages", executedStages
-                )).getBytes(StandardCharsets.UTF_8));
-            }
-
             Stage stage = null;
 
             for (String executedStage : executedStages) {
@@ -196,8 +181,8 @@ public class Workflow {
             ui.indent();
 
             try {
-                stage.execute(ui, state, pendingRoot);
-                stageName = Optional.ofNullable(stage.prompt(ui, state, currentRoot))
+                stage.execute(ui, state, currentResource, pendingRoot);
+                stageName = Optional.ofNullable(stage.prompt(ui, state, pendingRoot.getCurrent()))
                     .map(Stage::getName)
                     .orElse(null);
 
