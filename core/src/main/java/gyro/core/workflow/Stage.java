@@ -20,6 +20,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -104,7 +105,7 @@ public class Stage {
         Defer.execute(actions, a -> a.execute(ui, state, scope));
     }
 
-    private void filterWorkflowOnlyFilescopes(RootScope scope) {
+    private void filterWorkflowOnlyFileScopes(RootScope scope) {
         List<FileScope> newFileScopes = new ArrayList<>();
 
         for (FileScope fileScope : scope.getFileScopes()) {
@@ -132,8 +133,8 @@ public class Stage {
         RootScope pendingRootScope) {
 
         RootScope currentRootScope = pendingRootScope.getCurrent();
-        filterWorkflowOnlyFilescopes(currentRootScope);
-        filterWorkflowOnlyFilescopes(pendingRootScope);
+        filterWorkflowOnlyFileScopes(currentRootScope);
+        filterWorkflowOnlyFileScopes(pendingRootScope);
 
         Diff diff = new Diff(
             currentRootScope.findResourcesIn(currentRootScope.getLoadFiles()),
@@ -155,7 +156,7 @@ public class Stage {
                 "type", DiffableType.getInstance(currentResource).getName(),
                 "name", DiffableInternals.getName(currentResource),
                 "workflow", workflow.getName(),
-                "executedStages", workflow.getExecutedStages()
+                "executedStages", workflow.getExecutedStages().stream().map(Stage::getName).collect(Collectors.toList())
             )).getBytes(StandardCharsets.UTF_8));
         }
 

@@ -27,6 +27,7 @@ import gyro.core.directive.DirectiveProcessor;
 import gyro.core.scope.DiffableScope;
 import gyro.core.scope.Scope;
 import gyro.core.workflow.DefineDirectiveProcessor;
+import gyro.core.workflow.Stage;
 import gyro.core.workflow.Workflow;
 import gyro.lang.ast.block.BlockNode;
 import gyro.lang.ast.block.DirectiveNode;
@@ -47,10 +48,11 @@ public class MetadataDirectiveProcessor extends DirectiveProcessor<DiffableScope
                 workflow.getType(),
                 workflow.getName());
 
-            for (String executedStage : workflow.getExecutedStages()) {
+            for (Stage executedStage : workflow.getExecutedStages()) {
+                String stageName = executedStage.getName();
                 Optional.of(METADATA_BY_WORKFLOW)
                     .map(e -> e.get(workflowKey))
-                    .map(e -> e.get(executedStage))
+                    .map(e -> e.get(stageName))
                     .ifPresent(metadata::putAll);
             }
         }

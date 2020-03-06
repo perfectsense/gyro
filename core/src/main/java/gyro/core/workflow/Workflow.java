@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 import com.google.common.base.Preconditions;
 import com.psddev.dari.util.IoUtils;
@@ -48,7 +48,7 @@ public class Workflow {
     private final String name;
     private final RootScope root;
     private final Map<String, Stage> stages;
-    private final List<String> executedStages = new ArrayList<>();
+    private final List<Stage> executedStages = new ArrayList<>();
 
     public Workflow(String type, String name, Scope scope) {
         this.type = Preconditions.checkNotNull(type);
@@ -92,7 +92,7 @@ public class Workflow {
         return name;
     }
 
-    public List<String> getExecutedStages() {
+    public List<Stage> getExecutedStages() {
         return executedStages;
     }
 
@@ -138,54 +138,49 @@ public class Workflow {
         Resource pendingResource) {
 
         Map<String, Object> execution = getExecution(root.getCurrent());
-        String stageName;
+        Stage stage = null;
 
         if (execution != null) {
-            executedStages.addAll((List<String>) execution.get("executedStages"));
-            stageName = executedStages.get(executedStages.size() - 1);
-            ui.write("\n@|magenta · Resuming from %s stage|@\n", stageName);
+            ((List<String>) execution.get("executedStages")).stream()
+                .map(this::getStage)
+                .collect(Collectors.toCollection(() -> executedStages));
+            stage = executedStages.get(executedStages.size() - 1);
+            ui.write("\n@|magenta · Resuming from %s stage|@\n", stage.getName());
         } else {
-            stageName = stages.values().iterator().next().getName();
+            stage = stages.values().iterator().next();
         }
 
         // TODO: optimize performance.
-        while (stageName != null) {
-            ui.write("\n@|magenta · Executing %s stage|@\n", stageName);
+        while (stage != null) {
+            ui.write("\n@|magenta · Executing %s stage|@\n", stage.getName());
 
             if (ui.isVerbose()) {
                 ui.write("\n");
             }
 
             RootScope pendingRoot = copyPendingRootScope();
+            int indexOfCurrentStage = executedStages.indexOf(stage);
 
-            int indexOf = executedStages.indexOf(stageName);
-
-            if (indexOf > -1) {
-                ListIterator<String> iterator = executedStages.listIterator(indexOf + 1);
+            if (indexOfCurrentStage > -1) {
+                ListIterator<Stage> iterator = executedStages.listIterator(indexOfCurrentStage + 1);
 
                 while (iterator.hasNext()) {
                     iterator.next();
                     iterator.remove();
                 }
             } else {
-                executedStages.add(stageName);
+                executedStages.add(stage);
             }
 
-            Stage stage = null;
-
-            for (String executedStage : executedStages) {
-                stage = getStage(executedStage);
-                stage.apply(ui, state, currentResource, pendingResource, pendingRoot);
+            for (Stage executedStage : executedStages) {
+                executedStage.apply(ui, state, currentResource, pendingResource, pendingRoot);
             }
 
             ui.indent();
 
             try {
                 stage.execute(ui, state, currentResource, pendingRoot);
-                stageName = Optional.ofNullable(stage.prompt(ui, state, pendingRoot.getCurrent()))
-                    .map(Stage::getName)
-                    .orElse(null);
-
+                stage = stage.prompt(ui, state, pendingRoot.getCurrent());
             } finally {
                 ui.unindent();
             }
