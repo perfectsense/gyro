@@ -35,8 +35,12 @@ import gyro.core.resource.DiffableField;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
 import gyro.core.resource.Resource;
+import gyro.core.scope.DiffableScope;
+import gyro.core.scope.NodeEvaluator;
 import gyro.core.scope.Scope;
 import gyro.core.scope.State;
+import gyro.lang.ast.Node;
+import gyro.lang.ast.block.DirectiveNode;
 
 public class Diff {
 
@@ -250,6 +254,8 @@ public class Diff {
     private Change newDelete(Diffable diffable) {
         Delete delete = new Delete(diffable);
 
+        setCredentials(diffable);
+
         DiffableInternals.setChange(diffable, delete);
 
         for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
@@ -277,6 +283,21 @@ public class Diff {
         }
 
         return delete;
+    }
+
+    private void setCredentials(Diffable diffable) {
+        DiffableScope scope = DiffableInternals.getScope(diffable);
+
+        Node node = scope.getStateNodes()
+            .stream()
+            .filter(o -> o instanceof DirectiveNode)
+            .filter(o -> ((DirectiveNode) o).getName().equals("uses-credentials"))
+            .findFirst().orElse(null);
+
+        if (node != null) {
+            NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
+            evaluator.visit(node, scope);
+        }
     }
 
     public boolean hasChanges() {
