@@ -159,11 +159,11 @@ public class DiffableType<D extends Diffable> {
         return diffable;
     }
 
-    public D newExternalWithCredentials(RootScope root, Object id) {
+    public D newExternalWithCredentials(RootScope root, Object id, String credentials) {
         D diffable = newExternal(root, id);
         diffable.scope.getClosest(DiffableScope.class)
             .getSettings(CredentialsSettings.class)
-            .setUseCredentials(root.getSettings(CredentialsSettings.class).getUseCredentials());
+            .setUseCredentials(credentials);
 
         return diffable;
     }
