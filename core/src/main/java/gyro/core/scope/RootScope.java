@@ -258,6 +258,7 @@ public class RootScope extends FileScope {
         List<Resource> allResources = findResourcesIn(diffFiles);
         List<Resource> sortedResources = new ArrayList<>();
         Defer.execute(allResources, i -> addResource(i, sortedResources, allResources));
+
         return sortedResources;
     }
 
@@ -280,10 +281,8 @@ public class RootScope extends FileScope {
                     if (allResources.contains(v) && !sortedResources.contains(v)) {
                         return false;
                     }
-                } else if (v instanceof Diffable) {
-                    if (!shouldAddResource((Diffable) v, sortedResources, allResources)) {
-                        return false;
-                    }
+                } else if (v instanceof Diffable && !shouldAddResource((Diffable) v, sortedResources, allResources)) {
+                    return false;
                 }
             }
         }
