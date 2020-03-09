@@ -58,8 +58,7 @@ public class WaitDirectiveProcessor extends DirectiveProcessor<DiffableScope> {
             // This directive processor is visited multiple times by {@link NodeEvaluator#evaluateDiffable}.
             if (processor instanceof WaitChangeProcessor
                 && ((WaitChangeProcessor) processor).getParent().equals(scope)
-                && ((WaitChangeProcessor) processor).getCondition().equals(condition)
-            ) {
+                && ((WaitChangeProcessor) processor).getCondition().equals(condition)) {
                 found = true;
                 break;
             }
