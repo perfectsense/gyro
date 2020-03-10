@@ -16,14 +16,17 @@
 
 package gyro.core.resource;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import gyro.core.Type;
 import gyro.core.Waiter;
+import gyro.core.diff.ChangeProcessor;
 import gyro.core.diff.ChangeSettings;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.scope.DiffableScope;
+import gyro.lang.ast.Node;
 import gyro.lang.ast.block.DirectiveNode;
 
 @Type("wait")
@@ -47,9 +50,22 @@ public class WaitDirectiveProcessor extends DirectiveProcessor<DiffableScope> {
         Optional.ofNullable(getOptionArgument(scope, node, "check-every", Long.class, 0))
             .ifPresent(d -> waiter.checkEvery(d, unit));
 
-        scope.getSettings(ChangeSettings.class)
-            .getProcessors()
-            .add(new WaitChangeProcessor(scope, waiter, node.getArguments().get(0)));
-    }
+        boolean found = false;
+        Node condition = node.getArguments().get(0);
+        List<ChangeProcessor> processors = scope.getSettings(ChangeSettings.class).getProcessors();
 
+        for (ChangeProcessor processor : processors) {
+            // This directive processor is visited multiple times by {@link NodeEvaluator#evaluateDiffable}.
+            if (processor instanceof WaitChangeProcessor
+                && ((WaitChangeProcessor) processor).getParent().equals(scope)
+                && ((WaitChangeProcessor) processor).getCondition().equals(condition)) {
+                found = true;
+                break;
+            }
+        }
+
+        if (!found) {
+            processors.add(new WaitChangeProcessor(scope, waiter, condition));
+        }
+    }
 }

@@ -38,6 +38,14 @@ public class WaitChangeProcessor extends ChangeProcessor {
         this.condition = condition;
     }
 
+    public DiffableScope getParent() {
+        return parent;
+    }
+
+    public Node getCondition() {
+        return condition;
+    }
+
     private void wait(GyroUI ui, State state, Resource resource) {
         ui.write("\n");
 
