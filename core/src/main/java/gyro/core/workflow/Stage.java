@@ -105,40 +105,17 @@ public class Stage {
         Defer.execute(actions, a -> a.execute(ui, state, scope));
     }
 
-    private void filterWorkflowOnlyFileScopes(RootScope scope) {
-        List<FileScope> newFileScopes = new ArrayList<>();
-
-        for (FileScope fileScope : scope.getFileScopes()) {
-            FileScope newFileScope = new FileScope(fileScope.getRootScope(), fileScope.getFile());
-
-            for (Map.Entry<String, Object> entry : fileScope.entrySet()) {
-                Object value = entry.getValue();
-
-                if (value instanceof Resource) {
-                    if (DiffableInternals.isInWorkflow((Resource) value)) {
-                        newFileScope.put(entry.getKey(), value);
-                    }
-                }
-            }
-            newFileScopes.add(newFileScope);
-        }
-        scope.getFileScopes().clear();
-        scope.getFileScopes().addAll(newFileScopes);
-    }
-
     public void execute(
         GyroUI ui,
         State state,
         Resource currentResource,
         RootScope pendingRootScope) {
-
-        RootScope currentRootScope = pendingRootScope.getCurrent();
-        filterWorkflowOnlyFileScopes(currentRootScope);
-        filterWorkflowOnlyFileScopes(pendingRootScope);
+        RootScope newPendingRootScope = copyRootScope(pendingRootScope);
+        RootScope newCurrentRootScope = newPendingRootScope.getCurrent();
 
         Diff diff = new Diff(
-            currentRootScope.findResourcesIn(currentRootScope.getLoadFiles()),
-            pendingRootScope.findResourcesIn(pendingRootScope.getLoadFiles()));
+            newCurrentRootScope.findResourcesIn(newCurrentRootScope.getLoadFiles()),
+            newPendingRootScope.findResourcesIn(newPendingRootScope.getLoadFiles()));
 
         diff.diff();
 
@@ -151,7 +128,7 @@ public class Stage {
             }
         }
 
-        try (GyroOutputStream output = currentRootScope.openOutput(Workflow.EXECUTION_FILE)) {
+        try (GyroOutputStream output = newCurrentRootScope.openOutput(Workflow.EXECUTION_FILE)) {
             output.write(ObjectUtils.toJson(ImmutableMap.of(
                 "type", DiffableType.getInstance(currentResource).getName(),
                 "name", DiffableInternals.getName(currentResource),
@@ -198,4 +175,49 @@ public class Stage {
         }
     }
 
+    private RootScope copyRootScope(RootScope root) {
+        RootScope pending = root;
+        RootScope scope = new RootScope(
+            pending.getFile(),
+            pending.getBackend(),
+            copyCurrentRootScope(pending),
+            pending.getLoadFiles(),
+            true);
+        scope.evaluate();
+
+        updateWorkflowFileScopes(scope, pending.getFileScopes());
+
+        return scope;
+    }
+
+    private RootScope copyCurrentRootScope(RootScope root) {
+        RootScope current = root.getCurrent();
+        RootScope scope = new RootScope(current.getFile(), current.getBackend(), null, current.getLoadFiles(), true);
+        scope.evaluate();
+
+        updateWorkflowFileScopes(scope, current.getFileScopes());
+
+        return scope;
+    }
+
+    private void updateWorkflowFileScopes(RootScope root, List<FileScope> fileScopes) {
+        List<FileScope> workflowFileScopes = new ArrayList<>();
+
+        for (FileScope fileScope : fileScopes) {
+            FileScope workflowFileScope = new FileScope(fileScope.getRootScope(), fileScope.getFile());
+
+            for (Map.Entry<String, Object> entry : fileScope.entrySet()) {
+                Object value = entry.getValue();
+
+                if (value instanceof Resource) {
+                    if (DiffableInternals.isInWorkflow((Resource) value)) {
+                        workflowFileScope.put(entry.getKey(), value);
+                    }
+                }
+            }
+            workflowFileScopes.add(workflowFileScope);
+        }
+        root.getFileScopes().clear();
+        root.getFileScopes().addAll(workflowFileScopes);
+    }
 }
