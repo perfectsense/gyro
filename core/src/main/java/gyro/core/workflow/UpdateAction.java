@@ -68,7 +68,10 @@ public class UpdateAction extends Action {
                 currentResource.getClass().getName()));
         }
 
-        DiffableInternals.setInWorkflow((Resource) currentResource, true);
+        ModifiedIn modifiedIn = DiffableInternals.getModifiedIn((Resource) currentResource) == ModifiedIn.WORKFLOW_ONLY
+            ? ModifiedIn.WORKFLOW_ONLY
+            : ModifiedIn.BOTH;
+        DiffableInternals.setModifiedIn((Resource) currentResource, modifiedIn);
 
         NodeEvaluator evaluator = pending.getEvaluator();
         Object resource = evaluator.visit(this.resource, scope);
@@ -85,7 +88,7 @@ public class UpdateAction extends Action {
         }
 
         Resource pendingResource = (Resource) resource;
-        DiffableInternals.setInWorkflow(pendingResource, true);
+        DiffableInternals.setModifiedIn(pendingResource, modifiedIn);
         DiffableInternals.disconnect(pendingResource);
         DiffableScope resourceScope = DiffableInternals.getScope(pendingResource);
 

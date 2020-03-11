@@ -27,6 +27,7 @@ import gyro.core.diff.Change;
 import gyro.core.scope.DiffableScope;
 import gyro.core.scope.NodeEvaluator;
 import gyro.core.scope.RootScope;
+import gyro.core.workflow.ModifiedIn;
 import gyro.lang.ast.block.BlockNode;
 
 public final class DiffableInternals {
@@ -58,12 +59,12 @@ public final class DiffableInternals {
         return diffable.configuredFields;
     }
 
-    public static boolean isInWorkflow(Diffable diffable) {
-        return Boolean.TRUE.equals(diffable.inWorkflow);
+    public static ModifiedIn getModifiedIn(Diffable diffable) {
+        return diffable.modifiedIn;
     }
 
-    public static void setInWorkflow(Diffable diffable, boolean inWorkflow) {
-        diffable.inWorkflow = inWorkflow ? Boolean.TRUE : null;
+    public static void setModifiedIn(Diffable diffable, ModifiedIn modifiedIn) {
+        diffable.modifiedIn = modifiedIn;
     }
 
     @SuppressWarnings("unchecked")

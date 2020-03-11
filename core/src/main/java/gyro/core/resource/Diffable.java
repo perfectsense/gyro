@@ -30,6 +30,7 @@ import gyro.core.diff.Change;
 import gyro.core.scope.DiffableScope;
 import gyro.core.scope.FileScope;
 import gyro.core.validation.ValidationError;
+import gyro.core.workflow.ModifiedIn;
 
 public abstract class Diffable {
 
@@ -39,7 +40,7 @@ public abstract class Diffable {
     DiffableScope scope;
     Change change;
     Set<String> configuredFields;
-    Boolean inWorkflow;
+    ModifiedIn modifiedIn;
     final List<Modification<? extends Diffable>> modifications = new ArrayList<>();
 
     public abstract String primaryKey();

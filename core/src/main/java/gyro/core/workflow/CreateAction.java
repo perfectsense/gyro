@@ -66,6 +66,6 @@ public class CreateAction extends Action {
             scope))
             .filter(Resource.class::isInstance)
             .map(Resource.class::cast)
-            .ifPresent(e -> DiffableInternals.setInWorkflow(e, true));
+            .ifPresent(e -> DiffableInternals.setModifiedIn(e, ModifiedIn.WORKFLOW_ONLY));
     }
 }

@@ -250,8 +250,8 @@ public class State {
 
         if (!Boolean.TRUE.equals(removeWorkflowFlag)
             && diffable.equals(resource)
-            && DiffableInternals.isInWorkflow(resource)) {
-            body.add(toPairNode("_in-workflow", true, resource));
+            && DiffableInternals.getModifiedIn(resource) != null) {
+            body.add(toPairNode("_modified-in", DiffableInternals.getModifiedIn(resource).toString(), resource));
         }
         body.addAll(DiffableInternals.getScope(diffable).getStateNodes());
 

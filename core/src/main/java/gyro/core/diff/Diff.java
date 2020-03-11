@@ -38,6 +38,7 @@ import gyro.core.resource.DiffableType;
 import gyro.core.resource.Resource;
 import gyro.core.scope.Scope;
 import gyro.core.scope.State;
+import gyro.core.workflow.ModifiedIn;
 
 public class Diff {
 
@@ -88,7 +89,8 @@ public class Diff {
 
         if (ignoreWorkflowResources) {
             currentDiffableStream = currentDiffableStream
-                .filter(e -> !(e instanceof Resource) || !DiffableInternals.isInWorkflow(e));
+                .filter(e -> !(e instanceof Resource)
+                    || DiffableInternals.getModifiedIn(e) != ModifiedIn.WORKFLOW_ONLY);
         }
         Map<String, Diffable> currentDiffables = currentDiffableStream.collect(
             LinkedHashMap::new,
@@ -99,7 +101,7 @@ public class Diff {
         for (Diffable pendingDiffable : pendingDiffables) {
             if (ignoreWorkflowResources
                 && pendingDiffable instanceof Resource
-                && DiffableInternals.isInWorkflow(pendingDiffable)) {
+                && DiffableInternals.getModifiedIn(pendingDiffable) == ModifiedIn.WORKFLOW_ONLY) {
                 continue;
             }
 
