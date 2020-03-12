@@ -109,27 +109,6 @@ public class Workflow {
         return stage;
     }
 
-    private RootScope copyCurrentRootScope() {
-        RootScope current = root.getCurrent();
-        RootScope scope = new RootScope(current.getFile(), current.getBackend(), null, current.getLoadFiles(), true);
-        scope.evaluate();
-
-        return scope;
-    }
-
-    private RootScope copyPendingRootScope() {
-        RootScope pending = root;
-        RootScope scope = new RootScope(
-            pending.getFile(),
-            pending.getBackend(),
-            copyCurrentRootScope(),
-            pending.getLoadFiles(),
-            true);
-        scope.evaluate();
-
-        return scope;
-    }
-
     @SuppressWarnings("unchecked")
     public void execute(
         GyroUI ui,
@@ -190,4 +169,24 @@ public class Workflow {
         throw Retry.INSTANCE;
     }
 
+    private RootScope copyCurrentRootScope() {
+        RootScope current = root.getCurrent();
+        RootScope scope = new RootScope(current.getFile(), current.getBackend(), null, current.getLoadFiles(), true);
+        scope.evaluate();
+
+        return scope;
+    }
+
+    private RootScope copyPendingRootScope() {
+        RootScope pending = root;
+        RootScope scope = new RootScope(
+            pending.getFile(),
+            pending.getBackend(),
+            copyCurrentRootScope(),
+            pending.getLoadFiles(),
+            true);
+        scope.evaluate();
+
+        return scope;
+    }
 }
