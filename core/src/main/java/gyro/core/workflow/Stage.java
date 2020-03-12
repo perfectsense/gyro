@@ -145,7 +145,7 @@ public class Stage {
 
         if (transitionsSize == 0) {
             currentRootScope.delete(Workflow.EXECUTION_FILE);
-            state.setRemoveWorkflowFlag(true);
+            state.setRemoveModifiedInField(true);
             state.save();
             return null;
 

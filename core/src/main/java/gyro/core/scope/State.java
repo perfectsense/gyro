@@ -63,7 +63,7 @@ public class State {
     private final boolean test;
     private final Map<String, FileScope> states = new HashMap<>();
     private final Map<String, String> newNames = new HashMap<>();
-    private Boolean removeWorkflowFlag;
+    private Boolean removeModifiedInField;
 
     public State(RootScope current, RootScope pending, boolean test) {
         this.root = new RootScope(current.getFile(), current.getBackend(), null, current.getLoadFiles());
@@ -89,8 +89,8 @@ public class State {
         return test;
     }
 
-    public void setRemoveWorkflowFlag(Boolean removeWorkflowFlag) {
-        this.removeWorkflowFlag = removeWorkflowFlag;
+    public void setRemoveModifiedInField(Boolean removeModifiedInField) {
+        this.removeModifiedInField = removeModifiedInField;
     }
 
     public void update(Change change) {
@@ -248,7 +248,7 @@ public class State {
             body.add(toPairNode("_configured-fields", configuredFields, resource));
         }
 
-        if (!Boolean.TRUE.equals(removeWorkflowFlag)
+        if (!Boolean.TRUE.equals(removeModifiedInField)
             && diffable.equals(resource)
             && DiffableInternals.getModifiedIn(resource) != null) {
             body.add(toPairNode("_modified-in", DiffableInternals.getModifiedIn(resource).toString(), resource));
