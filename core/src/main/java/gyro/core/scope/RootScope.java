@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -252,42 +251,6 @@ public class RootScope extends FileScope {
         }
 
         return stream.collect(Collectors.toList());
-    }
-
-    public List<Resource> findSortedResourcesIn(Set<String> diffFiles) {
-        List<Resource> allResources = findResourcesIn(diffFiles);
-        List<Resource> sortedResources = new ArrayList<>();
-        Defer.execute(allResources, i -> addResource(i, sortedResources, allResources));
-
-        return sortedResources;
-    }
-
-    private void addResource(Resource resource, List<Resource> sortedResources, List<Resource> allResources) {
-        if (shouldAddResource(resource, sortedResources, allResources)) {
-            sortedResources.add(resource);
-        } else {
-            throw new Defer(null, String.format("Can't resolve dependencies of @|bold %s|@!", resource.primaryKey()));
-        }
-    }
-
-    private boolean shouldAddResource(Diffable diffable, List<Resource> sortedResources, List<Resource> allResources) {
-        for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
-            Object value = field.getValue(diffable);
-
-            for (Object v : (value instanceof Collection
-                ? ((Collection<?>) value)
-                : Collections.singletonList(value))) {
-                if (v instanceof Resource) {
-                    if (allResources.contains(v) && !sortedResources.contains(v)) {
-                        return false;
-                    }
-                } else if (v instanceof Diffable && !shouldAddResource((Diffable) v, sortedResources, allResources)) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
     }
 
     public <T extends Resource> Stream<T> findResourcesByClass(Class<T> resourceClass) {

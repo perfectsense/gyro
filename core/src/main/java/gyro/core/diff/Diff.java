@@ -30,11 +30,13 @@ import java.util.Set;
 
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
+import gyro.core.Reflections;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.DiffableField;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
 import gyro.core.resource.Resource;
+import gyro.core.scope.Defer;
 import gyro.core.scope.Scope;
 import gyro.core.scope.State;
 
@@ -428,4 +430,61 @@ public class Diff {
         }
     }
 
+    public static List<Resource> sortResources(List<Resource> pendingResources, List<Resource> allCurrentResources) {
+        List<Resource> allResources = new ArrayList<>(pendingResources);
+        allResources.addAll(allCurrentResources);
+        List<Resource> sortedResources = new ArrayList<>();
+        Defer.execute(pendingResources, i -> addResource(i, sortedResources, pendingResources, allResources));
+
+        return sortedResources;
+    }
+
+    private static void addResource(
+        Resource resource,
+        List<Resource> sortedResources,
+        List<Resource> pendingResources,
+        List<Resource> allResources) {
+        verifyResource(resource, sortedResources, pendingResources, allResources);
+        sortedResources.add(resource);
+    }
+
+    private static void verifyResource(
+        Diffable diffable,
+        List<Resource> sortedResources,
+        List<Resource> pendingResources,
+        List<Resource> allResources) {
+        for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {
+            Object value = field.getValue(diffable);
+
+            for (Object v : (value instanceof Collection
+                ? ((Collection<?>) value)
+                : Collections.singletonList(value))) {
+                if (v instanceof Resource && Reflections.getTypeOptional(value.getClass()).isPresent()) {
+                    if (DiffableInternals.isExternal((Diffable) v)) {
+                        continue;
+                    }
+
+                    // Referencing a resource that hasn't been created and isn't pending, throw GyroException to terminate early
+                    if (!allResources.contains(v)) {
+                        throw new GyroException(
+                            String.format(
+                                "Reference to @|bold %s|@ cannot be resolved as it has not been created yet!",
+                                ((Resource) v).primaryKey()));
+                    }
+
+                    // Referencing a resource that is pending but hasn't been added to the list yet so defer
+                    if (pendingResources.contains(v) && !sortedResources.contains(v)) {
+                        throw new Defer(
+                            null,
+                            String.format(
+                                "Reference to @|bold %s|@ hasn't been sorted yet, so deferring creation.",
+                                ((Resource) v).primaryKey()));
+                    }
+                } else if (v instanceof Diffable) {
+                    // Verify fields within complex types and subresources
+                    verifyResource((Diffable) v, sortedResources, pendingResources, allResources);
+                }
+            }
+        }
+    }
 }

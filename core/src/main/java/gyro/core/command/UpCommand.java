@@ -38,8 +38,8 @@ public class UpCommand extends AbstractConfigCommand {
 
         while (true) {
             Diff diff = new Diff(
-                current.findSortedResourcesIn(current.getLoadFiles()),
-                pending.findSortedResourcesIn(pending.getLoadFiles()));
+                current.findResourcesIn(current.getLoadFiles()),
+                Diff.sortResources(pending.findResourcesIn(pending.getLoadFiles()), current.findResources()));
 
             diff.diff();
 
