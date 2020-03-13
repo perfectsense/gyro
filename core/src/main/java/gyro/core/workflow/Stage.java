@@ -17,7 +17,6 @@
 package gyro.core.workflow;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -110,7 +109,7 @@ public class Stage {
         State state,
         Resource currentResource,
         RootScope pendingRootScope) {
-        RootScope newPendingRootScope = copyRootScope(pendingRootScope);
+        RootScope newPendingRootScope = RootScope.copy(pendingRootScope, true, false, true);
         RootScope newCurrentRootScope = newPendingRootScope.getCurrent();
 
         Diff diff = new Diff(
@@ -173,51 +172,5 @@ public class Stage {
                 ui.write("[%s] isn't valid! Try again.\n", selected);
             }
         }
-    }
-
-    private RootScope copyRootScope(RootScope root) {
-        RootScope pending = root;
-        RootScope scope = new RootScope(
-            pending.getFile(),
-            pending.getBackend(),
-            copyCurrentRootScope(pending),
-            pending.getLoadFiles(),
-            true);
-        scope.evaluate();
-
-        updateWorkflowFileScopes(scope, pending.getFileScopes());
-
-        return scope;
-    }
-
-    private RootScope copyCurrentRootScope(RootScope root) {
-        RootScope current = root.getCurrent();
-        RootScope scope = new RootScope(current.getFile(), current.getBackend(), null, current.getLoadFiles(), true);
-        scope.evaluate();
-
-        updateWorkflowFileScopes(scope, current.getFileScopes());
-
-        return scope;
-    }
-
-    private void updateWorkflowFileScopes(RootScope root, List<FileScope> fileScopes) {
-        List<FileScope> workflowFileScopes = new ArrayList<>();
-
-        for (FileScope fileScope : fileScopes) {
-            FileScope workflowFileScope = new FileScope(fileScope.getRootScope(), fileScope.getFile());
-
-            for (Map.Entry<String, Object> entry : fileScope.entrySet()) {
-                Object value = entry.getValue();
-
-                if (value instanceof Resource) {
-                    if (DiffableInternals.getModifiedIn((Resource) value) != null) {
-                        workflowFileScope.put(entry.getKey(), value);
-                    }
-                }
-            }
-            workflowFileScopes.add(workflowFileScope);
-        }
-        root.getFileScopes().clear();
-        root.getFileScopes().addAll(workflowFileScopes);
     }
 }

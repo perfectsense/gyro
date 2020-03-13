@@ -137,7 +137,7 @@ public class Workflow {
                 ui.write("\n");
             }
 
-            RootScope pendingRoot = copyPendingRootScope();
+            RootScope pendingRoot = RootScope.copy(root, true, true, false);
             int indexOfCurrentStage = executedStages.indexOf(stage);
 
             if (indexOfCurrentStage > -1) {
@@ -167,26 +167,5 @@ public class Workflow {
         SUCCESSFULLY_EXECUTED_WORKFLOWS.add(this);
 
         throw Retry.INSTANCE;
-    }
-
-    private RootScope copyCurrentRootScope() {
-        RootScope current = root.getCurrent();
-        RootScope scope = new RootScope(current.getFile(), current.getBackend(), null, current.getLoadFiles(), true);
-        scope.evaluate();
-
-        return scope;
-    }
-
-    private RootScope copyPendingRootScope() {
-        RootScope pending = root;
-        RootScope scope = new RootScope(
-            pending.getFile(),
-            pending.getBackend(),
-            copyCurrentRootScope(),
-            pending.getLoadFiles(),
-            true);
-        scope.evaluate();
-
-        return scope;
     }
 }

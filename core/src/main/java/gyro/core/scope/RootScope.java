@@ -186,6 +186,38 @@ public class RootScope extends FileScope {
         put("ENV", System.getenv());
     }
 
+    public static RootScope copy(
+        RootScope rootScope,
+        Boolean inWorkflow,
+        boolean evaluateCurrent,
+        boolean workflowResourceOnly) {
+        RootScope current = rootScope.getCurrent();
+
+        if (current != null) {
+            current = copy(current, inWorkflow, evaluateCurrent, workflowResourceOnly);
+        }
+        RootScope scope = new RootScope(
+            rootScope.getFile(),
+            rootScope.getBackend(),
+            current,
+            rootScope.getLoadFiles(),
+            inWorkflow);
+
+        if (current == null && evaluateCurrent) {
+            scope.evaluate();
+        } else {
+            scope.load();
+            scope.putAll(rootScope);
+            scope.getFileScopes()
+                .addAll(rootScope.getFileScopes()
+                    .stream()
+                    .map(e -> FileScope.copy(scope, e, workflowResourceOnly))
+                    .collect(Collectors.toList()));
+            scope.processRootSettings();
+        }
+        return scope;
+    }
+
     public NodeEvaluator getEvaluator() {
         return evaluator;
     }
@@ -348,34 +380,7 @@ public class RootScope extends FileScope {
 
         evaluator.evaluate(this, nodes);
 
-        getSettings(RootSettings.class).getProcessors().forEach(p -> {
-            try {
-                p.process(this);
-
-            } catch (Exception error) {
-                throw new GyroException(
-                    String.format("Can't process root using @|bold %s|@!", p),
-                    error);
-            }
-        });
-    }
-
-    private void evaluateFile(String file, Consumer<FileNode> consumer) {
-        if (StringUtils.isBlank(file)) {
-            return;
-        }
-
-        try (GyroInputStream input = openInput(file)) {
-            consumer.accept((FileNode) Node.parse(input, file, GyroParser::file));
-
-        } catch (IOException error) {
-            throw new Bug(error);
-
-        } catch (Exception error) {
-            throw new GyroException(
-                String.format("Can't parse @|bold %s|@ in @|bold %s|@!", file, this.backend),
-                error);
-        }
+        processRootSettings();
     }
 
     public void validate() {
@@ -400,4 +405,34 @@ public class RootScope extends FileScope {
         }
     }
 
+    private void evaluateFile(String file, Consumer<FileNode> consumer) {
+        if (StringUtils.isBlank(file)) {
+            return;
+        }
+
+        try (GyroInputStream input = openInput(file)) {
+            consumer.accept((FileNode) Node.parse(input, file, GyroParser::file));
+
+        } catch (IOException error) {
+            throw new Bug(error);
+
+        } catch (Exception error) {
+            throw new GyroException(
+                String.format("Can't parse @|bold %s|@ in @|bold %s|@!", file, this.backend),
+                error);
+        }
+    }
+
+    private void processRootSettings() {
+        getSettings(RootSettings.class).getProcessors().forEach(p -> {
+            try {
+                p.process(this);
+
+            } catch (Exception error) {
+                throw new GyroException(
+                    String.format("Can't process root using @|bold %s|@!", p),
+                    error);
+            }
+        });
+    }
 }
