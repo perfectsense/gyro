@@ -254,7 +254,7 @@ public class Diff {
     private Change newDelete(Diffable diffable) {
         Delete delete = new Delete(diffable);
 
-        setCredentials(diffable);
+        setUsesCredentialFromState(diffable);
 
         DiffableInternals.setChange(diffable, delete);
 
@@ -285,7 +285,7 @@ public class Diff {
         return delete;
     }
 
-    private void setCredentials(Diffable diffable) {
+    private void setUsesCredentialFromState(Diffable diffable) {
         DiffableScope scope = DiffableInternals.getScope(diffable);
 
         Node node = scope.getStateNodes()
