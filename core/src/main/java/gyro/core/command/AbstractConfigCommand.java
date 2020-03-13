@@ -48,8 +48,6 @@ import gyro.core.scope.FileScope;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
 import gyro.core.scope.State;
-import gyro.lang.ast.Node;
-import gyro.lang.ast.block.DirectiveNode;
 import io.airlift.airline.Arguments;
 import io.airlift.airline.Option;
 
@@ -198,21 +196,9 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             String name = DiffableInternals.getName(resource);
 
             try {
-                Node credentialNode = DiffableInternals.getScope(resource)
-                    .getStateNodes()
-                    .stream()
-                    .filter(o -> o instanceof DirectiveNode)
-                    .filter(o -> ((DirectiveNode) o).getName().equals("uses-credentials"))
-                    .findFirst().orElse(null);
-
                 if (refresh.future.get()) {
                     ui.replace("@|magenta - Removing from state:|@ %s %s\n", typeName, name);
                     scope.getFileScopes().forEach(s -> s.remove(resource.primaryKey()));
-                }
-
-                if (credentialNode != null) {
-                    DiffableInternals.getScope(resource)
-                        .getStateNodes().add(credentialNode);
                 }
 
             } catch (ExecutionException error) {

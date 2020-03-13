@@ -21,6 +21,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import gyro.core.diff.Change;
@@ -28,6 +29,7 @@ import gyro.core.scope.DiffableScope;
 import gyro.core.scope.NodeEvaluator;
 import gyro.core.scope.RootScope;
 import gyro.lang.ast.block.BlockNode;
+import gyro.lang.ast.block.DirectiveNode;
 
 public final class DiffableInternals {
 
@@ -98,13 +100,21 @@ public final class DiffableInternals {
 
     /**
      * Create a new scope that is disconnected from the original configuration.
+     * Save any directives nodes part of the state
      *
      * @param diffable The diffable to disconnect
      */
     public static void disconnect(Diffable diffable) {
+        List<DirectiveNode> directiveNodes = diffable.scope.getStateNodes().stream()
+            .filter(o -> o instanceof DirectiveNode)
+            .map(o -> (DirectiveNode) o)
+            .collect(Collectors.toList());
+
         diffable.scope = new DiffableScope(diffable.scope.getParent(), null);
 
         disconnectChildren(diffable);
+
+        diffable.scope.getStateNodes().addAll(directiveNodes);
     }
 
     private static void disconnectChildren(Diffable diffable) {
