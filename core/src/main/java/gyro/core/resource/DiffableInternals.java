@@ -16,6 +16,7 @@
 
 package gyro.core.resource;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -28,6 +29,7 @@ import gyro.core.diff.Change;
 import gyro.core.scope.DiffableScope;
 import gyro.core.scope.NodeEvaluator;
 import gyro.core.scope.RootScope;
+import gyro.lang.ast.Node;
 import gyro.lang.ast.block.BlockNode;
 import gyro.lang.ast.block.DirectiveNode;
 
@@ -100,21 +102,34 @@ public final class DiffableInternals {
 
     /**
      * Create a new scope that is disconnected from the original configuration.
-     * Save any directives nodes part of the state
      *
      * @param diffable The diffable to disconnect
      */
     public static void disconnect(Diffable diffable) {
-        List<DirectiveNode> directiveNodes = diffable.scope.getStateNodes().stream()
-            .filter(o -> o instanceof DirectiveNode)
-            .map(o -> (DirectiveNode) o)
-            .collect(Collectors.toList());
-
         diffable.scope = new DiffableScope(diffable.scope.getParent(), null);
 
         disconnectChildren(diffable);
+    }
 
-        diffable.scope.getStateNodes().addAll(directiveNodes);
+    /**
+     * Create a new scope that is disconnected from the original configuration.
+     *
+     * @param diffable The diffable to disconnect
+     * @param keepStateNodes A flag signifying if state nodes be copied back to the new scope
+     */
+    public static void disconnect(Diffable diffable, boolean keepStateNodes) {
+        List<Node> stateNodes = new ArrayList<>();
+
+        if (keepStateNodes) {
+            stateNodes = diffable.scope.getStateNodes().stream()
+                .filter(o -> o instanceof DirectiveNode)
+                .map(o -> (DirectiveNode) o)
+                .collect(Collectors.toList());
+        }
+
+        disconnect(diffable);
+
+        diffable.scope.getStateNodes().addAll(stateNodes);
     }
 
     private static void disconnectChildren(Diffable diffable) {
