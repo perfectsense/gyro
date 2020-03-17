@@ -102,6 +102,7 @@ public class RootScope extends FileScope {
     private final FileBackend backend;
     private final RootScope current;
     private final Set<String> loadFiles;
+    private final Set<Resource> resources = new LinkedHashSet<>();
     private final List<FileScope> fileScopes = new ArrayList<>();
 
     public RootScope(String file, FileBackend backend, RootScope current, Set<String> loadFiles) {
@@ -195,6 +196,10 @@ public class RootScope extends FileScope {
         return loadFiles;
     }
 
+    public Set<Resource> getResources() {
+        return resources;
+    }
+
     public List<FileScope> getFileScopes() {
         return fileScopes;
     }
@@ -238,13 +243,15 @@ public class RootScope extends FileScope {
     }
 
     public List<Resource> findResourcesIn(Set<String> diffFiles) {
-        Stream<Resource> stream = Stream.concat(Stream.of(this), getFileScopes().stream())
+        Stream<Resource> stream = Stream.of(this)
             .map(Map::entrySet)
             .flatMap(Collection::stream)
             .filter(e -> e.getValue() instanceof Resource)
             .filter(e -> ((Resource) e.getValue()).primaryKey().equals(e.getKey()))
             .map(Entry::getValue)
             .map(Resource.class::cast);
+
+        stream = Stream.concat(stream, getResources().stream());
 
         if (diffFiles != null && !diffFiles.isEmpty()) {
             stream = stream.filter(r -> diffFiles.contains(DiffableInternals.getScope(r).getFileScope().getFile()));
