@@ -22,7 +22,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import gyro.core.diff.Change;
@@ -31,7 +30,6 @@ import gyro.core.scope.NodeEvaluator;
 import gyro.core.scope.RootScope;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.BlockNode;
-import gyro.lang.ast.block.DirectiveNode;
 
 public final class DiffableInternals {
 
@@ -121,10 +119,7 @@ public final class DiffableInternals {
         List<Node> stateNodes = new ArrayList<>();
 
         if (keepStateNodes) {
-            stateNodes = diffable.scope.getStateNodes().stream()
-                .filter(o -> o instanceof DirectiveNode)
-                .map(o -> (DirectiveNode) o)
-                .collect(Collectors.toList());
+            stateNodes = diffable.scope.getStateNodes();
         }
 
         disconnect(diffable);
