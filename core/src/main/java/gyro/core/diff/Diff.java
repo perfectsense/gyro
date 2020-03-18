@@ -85,7 +85,9 @@ public class Diff {
         );
 
         for (Diffable pendingDiffable : pendingDiffables) {
-            DiffableInternals.reevaluate(pendingDiffable);
+            if (pendingDiffable instanceof Resource) {
+                DiffableInternals.reevaluate(pendingDiffable);
+            }
 
             Diffable currentDiffable = currentDiffables.remove(pendingDiffable.primaryKey());
 
