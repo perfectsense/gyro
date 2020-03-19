@@ -28,13 +28,18 @@ import gyro.core.scope.Scope;
 public abstract class Finder<R extends Resource> {
 
     Scope scope;
+    String credentials;
+
+    public void setCredentials(String credentials) {
+        this.credentials = credentials;
+    }
 
     public abstract List<R> findAll();
 
     public abstract List<R> find(Map<String, Object> filters);
 
     public <C extends Credentials> C credentials(Class<C> credentialsClass) {
-        return Credentials.getInstance(credentialsClass, getClass(), scope);
+        return Credentials.getInstance(credentialsClass, getClass(), scope, credentials);
     }
 
     public R newResource() {
@@ -42,7 +47,7 @@ public abstract class Finder<R extends Resource> {
         Class<R> resourceClass = (Class<R>) TypeDefinition.getInstance(getClass())
             .getInferredGenericTypeArgumentClass(Finder.class, 0);
 
-        return DiffableType.getInstance(resourceClass).newExternal(scope.getRootScope(), null);
+        return DiffableType.getInstance(resourceClass).newExternalWithCredentials(scope.getRootScope(), null, credentials);
     }
 
 }

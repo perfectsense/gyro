@@ -27,8 +27,10 @@ import io.airlift.airline.Command;
 @Command(name = "up", description = "Updates all resources to match the configuration.")
 public class UpCommand extends AbstractConfigCommand {
 
+    private boolean auditStarted;
+
     @Override
-    public void doExecute(RootScope current, RootScope pending, State state) {
+    public void doExecute(RootScope current, RootScope pending, State state) throws Exception {
         VersionCommand.printUpdateVersion();
         GyroUI ui = GyroCore.ui();
 
@@ -48,6 +50,11 @@ public class UpCommand extends AbstractConfigCommand {
 
             if (!ui.readBoolean(Boolean.FALSE, "\nAre you sure you want to change resources?")) {
                 break;
+            }
+
+            if (!auditStarted) {
+                startAuditors(ui);
+                auditStarted = true;
             }
 
             ui.write("\n");
@@ -75,6 +82,7 @@ public class UpCommand extends AbstractConfigCommand {
                 state = new State(current, pending, state.isTest());
             }
         }
-    }
 
+        ui.finishAuditors(null, true);
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Perfect Sense, Inc.
+ * Copyright 2020, Perfect Sense, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,7 @@
  * limitations under the License.
  */
 
-package gyro.core.reference;
+@Namespace("audit")
+package gyro.core.audit;
 
-import gyro.core.OptionArgumentProcessor;
-import gyro.core.scope.Scope;
-import gyro.lang.ast.value.ReferenceNode;
-
-public abstract class ReferenceResolver extends OptionArgumentProcessor {
-
-    public abstract Object resolve(ReferenceNode node, Scope scope) throws Exception;
-
-}
+import gyro.core.Namespace;

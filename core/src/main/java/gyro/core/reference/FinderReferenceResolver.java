@@ -19,6 +19,7 @@ package gyro.core.reference;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import gyro.core.GyroException;
@@ -30,12 +31,18 @@ import gyro.core.finder.FinderType;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.Resource;
 import gyro.core.scope.Scope;
+import gyro.lang.ast.value.ReferenceNode;
 
 @Type("external-query")
 public class FinderReferenceResolver extends ReferenceResolver {
 
     @Override
-    public Object resolve(Scope scope, List<Object> arguments) {
+    public Object resolve(ReferenceNode node, Scope scope) {
+        validateArguments(node, 1, 2);
+        validateOptionArguments(node, "credentials", 0, 1);
+
+        List<Object> arguments = getArguments(scope, node, Object.class);
+
         String type = (String) arguments.remove(0);
 
         Class<? extends Finder<Resource>> finderClass = scope.getRootScope()
@@ -51,6 +58,8 @@ public class FinderReferenceResolver extends ReferenceResolver {
 
         FinderType<? extends Finder<Resource>> finderType = FinderType.getInstance(finderClass);
         Finder<Resource> finder = finderType.newInstance(scope);
+        Optional.ofNullable(getOptionArgument(scope, node, "credentials", String.class, 0))
+            .ifPresent(finder::setCredentials);
         List<Resource> resources = null;
 
         if (!arguments.isEmpty()) {

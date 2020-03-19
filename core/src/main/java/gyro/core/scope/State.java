@@ -341,6 +341,7 @@ public class State {
             } else if (value == self) {
                 return new ReferenceNode(
                     Collections.singletonList(new ValueNode("SELF")),
+                    Collections.emptyList(),
                     Collections.emptyList());
 
             } else {
@@ -350,6 +351,7 @@ public class State {
                         new ValueNode(newNames.getOrDefault(
                             resource.primaryKey(),
                             DiffableInternals.getName(resource)))),
+                    Collections.emptyList(),
                     Collections.emptyList());
             }
 

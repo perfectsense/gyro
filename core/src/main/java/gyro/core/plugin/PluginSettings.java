@@ -16,10 +16,15 @@
 
 package gyro.core.plugin;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -28,8 +33,15 @@ import gyro.core.GyroException;
 import gyro.core.Reflections;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.Settings;
+import org.apache.maven.artifact.versioning.ComparableVersion;
+import org.eclipse.aether.artifact.Artifact;
+import org.eclipse.aether.resolution.DependencyResult;
 
 public class PluginSettings extends Settings {
+
+    private static final ConcurrentMap<String, VersionUrl> VERSIONED_URLS = new ConcurrentHashMap<>();
+    private static final ConcurrentMap<String, DependencyResult> RESULT_BY_ARTIFACT_COORDS = new ConcurrentHashMap<>();
+    private static final PluginClassLoader PLUGIN_CLASS_LOADER = new PluginClassLoader();
 
     private List<Plugin> plugins;
     private List<Class<?>> otherClasses;
@@ -105,4 +117,56 @@ public class PluginSettings extends Settings {
         }
     }
 
+    public PluginClassLoader getPluginClassLoader() {
+        return PLUGIN_CLASS_LOADER;
+    }
+
+    public DependencyResult getDependencyResult(String ac) {
+        return RESULT_BY_ARTIFACT_COORDS.get(ac);
+    }
+
+    public void putDependencyResult(String ac, DependencyResult result) {
+        RESULT_BY_ARTIFACT_COORDS.put(ac, result);
+    }
+
+    public boolean pluginInitialized(String artifactCoord) {
+        return RESULT_BY_ARTIFACT_COORDS.containsKey(artifactCoord);
+    }
+
+    public void putArtifactIfNewer(Artifact artifact) throws MalformedURLException {
+        String id = artifact.getGroupId() + "/" + artifact.getArtifactId();
+        VersionUrl versionUrl = new VersionUrl(artifact.getVersion(), artifact.getFile().toURI().toURL());
+
+        if (!VERSIONED_URLS.containsKey(id) || versionUrl.compareTo(VERSIONED_URLS.get(id)) > 0) {
+            VERSIONED_URLS.put(id, versionUrl);
+        }
+    }
+
+    public void addAllUrls() {
+        PLUGIN_CLASS_LOADER.add(VERSIONED_URLS.values().stream().map(VersionUrl::getUrl).collect(Collectors.toList()));
+    }
+
+    private static class VersionUrl implements Comparable<VersionUrl> {
+
+        private String version;
+        private URL url;
+
+        public String getVersion() {
+            return version;
+        }
+
+        public URL getUrl() {
+            return url;
+        }
+
+        public VersionUrl(String version, URL url) {
+            this.version = version;
+            this.url = url;
+        }
+
+        @Override
+        public int compareTo(VersionUrl other) {
+            return new ComparableVersion(this.getVersion()).compareTo(new ComparableVersion(other.getVersion()));
+        }
+    }
 }

@@ -31,7 +31,6 @@ public abstract class Credentials {
 
     Scope scope;
 
-    @SuppressWarnings("unchecked")
     public static <C extends Credentials> C getInstance(Class<C> credentialsClass, Class<?> contextClass, Scope scope) {
         DiffableScope diffableScope = scope.getClosest(DiffableScope.class);
 
@@ -39,23 +38,28 @@ public abstract class Credentials {
             ? diffableScope.getSettings(CredentialsSettings.class).getUseCredentials()
             : null;
 
-        name = Reflections.getNamespace(contextClass) + "::" + (name != null ? name : "default");
+        return getInstance(credentialsClass, contextClass, scope, name);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <C extends Credentials> C getInstance(Class<C> credentialsClass, Class<?> contextClass, Scope scope, String credentialName) {
+        credentialName = Reflections.getNamespace(contextClass) + "::" + (credentialName != null ? credentialName : "default");
 
         Credentials credentials = scope.getRootScope()
             .getSettings(CredentialsSettings.class)
             .getCredentialsByName()
-            .get(name);
+            .get(credentialName);
 
         if (credentials == null) {
             throw new GyroException(String.format(
                 "Can't find @|bold %s|@ credentials!",
-                name));
+                credentialName));
         }
 
         if (!credentialsClass.isInstance(credentials)) {
             throw new GyroException(String.format(
                 "Can't use @|bold %s|@ credentials because it's an instance of @|bold %s|@, not @|bold %s|@!",
-                name,
+                credentialName,
                 credentials.getClass().getName(),
                 credentialsClass.getName()));
         }

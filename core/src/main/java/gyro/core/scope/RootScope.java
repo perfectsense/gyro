@@ -37,6 +37,9 @@ import gyro.core.GyroInputStream;
 import gyro.core.GyroOutputStream;
 import gyro.core.LogDirectiveProcessor;
 import gyro.core.PrintDirectiveProcessor;
+import gyro.core.audit.AuditorDirectiveProcessor;
+import gyro.core.audit.AuditorPlugin;
+import gyro.core.audit.MetadataDirectiveProcessor;
 import gyro.core.auth.CredentialsDirectiveProcessor;
 import gyro.core.auth.CredentialsPlugin;
 import gyro.core.auth.UsesCredentialsDirectiveProcessor;
@@ -53,7 +56,10 @@ import gyro.core.directive.DirectivePlugin;
 import gyro.core.directive.DirectiveSettings;
 import gyro.core.finder.FinderPlugin;
 import gyro.core.plugin.PluginDirectiveProcessor;
+import gyro.core.plugin.PluginPreprocessor;
 import gyro.core.plugin.PluginSettings;
+import gyro.core.preprocessor.Preprocessor;
+import gyro.core.preprocessor.PreprocessorSettings;
 import gyro.core.reference.FinderReferenceResolver;
 import gyro.core.reference.ReferencePlugin;
 import gyro.core.reference.ReferenceSettings;
@@ -85,7 +91,6 @@ import gyro.core.workflow.RestoreRootProcessor;
 import gyro.core.workflow.UpdateDirectiveProcessor;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.PairNode;
-import gyro.lang.ast.block.BlockNode;
 import gyro.lang.ast.block.FileNode;
 import gyro.parser.antlr4.GyroParser;
 import gyro.util.Bug;
@@ -118,6 +123,11 @@ public class RootScope extends FileScope {
         this.loadFiles = loadFiles != null ? ImmutableSet.copyOf(loadFiles) : ImmutableSet.of();
 
         Stream.of(
+            new PluginPreprocessor())
+            .forEach(p -> getSettings(PreprocessorSettings.class).getPreprocessors().add(p));
+
+        Stream.of(
+            new AuditorPlugin(),
             new CredentialsPlugin(),
             new DirectivePlugin(),
             new FileBackendPlugin(),
@@ -135,26 +145,28 @@ public class RootScope extends FileScope {
             .forEach(p -> getSettings(ChangeSettings.class).getProcessors().add(p));
 
         Stream.of(
+            AuditorDirectiveProcessor.class,
             CreateDirectiveProcessor.class,
             CredentialsDirectiveProcessor.class,
+            DefineDirectiveProcessor.class,
             DeleteDirectiveProcessor.class,
             DescriptionDirectiveProcessor.class,
             ExtendsDirectiveProcessor.class,
             FileBackendDirectiveProcessor.class,
             ForDirectiveProcessor.class,
-            IfDirectiveProcessor.class,
             HighlanderDirectiveProcessor.class,
+            IfDirectiveProcessor.class,
+            LogDirectiveProcessor.class,
+            MetadataDirectiveProcessor.class,
+            PluginDirectiveProcessor.class,
+            PrintDirectiveProcessor.class,
             ReplaceDirectiveProcessor.class,
             RepositoryDirectiveProcessor.class,
-            PluginDirectiveProcessor.class,
             TypeDescriptionDirectiveProcessor.class,
             UpdateDirectiveProcessor.class,
             UsesCredentialsDirectiveProcessor.class,
             VirtualDirectiveProcessor.class,
-            DefineDirectiveProcessor.class,
-            WaitDirectiveProcessor.class,
-            PrintDirectiveProcessor.class,
-            LogDirectiveProcessor.class)
+            WaitDirectiveProcessor.class)
             .forEach(p -> getSettings(DirectiveSettings.class).addProcessor(p));
 
         Stream.of(
@@ -267,7 +279,9 @@ public class RootScope extends FileScope {
         DiffableField idField = type.getIdField();
 
         if (idField == null) {
-            throw new GyroException(String.format("Unable to find @Id on a getter in %s", resourceClass.getSimpleName()));
+            throw new GyroException(String.format(
+                "Unable to find @Id on a getter in %s",
+                resourceClass.getSimpleName()));
         }
 
         return findResourcesByClass(resourceClass)
@@ -286,25 +300,32 @@ public class RootScope extends FileScope {
         evaluateFile(getFile(), node -> nodes.addAll(node.getBody()));
 
         if (validate) {
-            String duplicate = BlockNode.validateLocalImmutability(PairNode.getNodeVariables(nodes));
+            String duplicate = Node.validateLocalImmutability(PairNode.getNodeVariables(nodes));
 
             if (duplicate != null) {
                 throw new Defer(
                     PairNode.getKeyNode(nodes, duplicate),
                     String.format("'%s' is already defined and cannot be reused!", duplicate));
             }
+
         }
+
+        List<Node> finalNodes = nodes;
 
         if (evaluateBody) {
             try {
-                evaluator.evaluateBody(nodes, this);
+                for (Preprocessor pp : getSettings(PreprocessorSettings.class).getPreprocessors()) {
+                    finalNodes = pp.preprocess(finalNodes, this);
+                }
+
+                evaluator.evaluateBody(finalNodes, this);
 
             } catch (Defer error) {
                 // Ignore for now since this is reevaluated later.
             }
         }
 
-        return nodes;
+        return finalNodes;
     }
 
     public List<Node> getNodes() {

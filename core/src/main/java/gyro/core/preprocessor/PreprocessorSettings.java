@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Perfect Sense, Inc.
+ * Copyright 2020, Perfect Sense, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,25 @@
  * limitations under the License.
  */
 
-package gyro.core.reference;
+package gyro.core.preprocessor;
 
-import gyro.core.OptionArgumentProcessor;
-import gyro.core.scope.Scope;
-import gyro.lang.ast.value.ReferenceNode;
+import java.util.ArrayList;
+import java.util.List;
 
-public abstract class ReferenceResolver extends OptionArgumentProcessor {
+import gyro.core.scope.Settings;
 
-    public abstract Object resolve(ReferenceNode node, Scope scope) throws Exception;
+public class PreprocessorSettings extends Settings {
 
+    private List<Preprocessor> preprocessors;
+
+    public List<Preprocessor> getPreprocessors() {
+        if (preprocessors == null) {
+            preprocessors = new ArrayList<>();
+        }
+        return preprocessors;
+    }
+
+    public void setPreprocessors(List<Preprocessor> preprocessors) {
+        this.preprocessors = preprocessors;
+    }
 }

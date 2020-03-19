@@ -163,7 +163,7 @@ map
 number : MINUS? NUMBERS (DOT NUMBERS)?;
 
 reference
-    : DOLLAR LPAREN value* (BAR filter)* RPAREN
+    : DOLLAR LPAREN value* option* (BAR filter)* RPAREN
     | DOLLAR IDENTIFIER
     ;
 

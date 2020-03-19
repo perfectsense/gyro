@@ -27,11 +27,11 @@ import java.util.regex.Pattern;
 
 import com.google.common.collect.ImmutableSet;
 import gyro.core.GyroException;
-import gyro.core.GyroUI;
+import gyro.core.audit.GyroAuditableUI;
 import org.fusesource.jansi.Ansi;
 import org.fusesource.jansi.AnsiRenderer;
 
-public class CliGyroUI implements GyroUI {
+public class CliGyroUI extends GyroAuditableUI {
 
     private static final Pattern NEWLINES = Pattern.compile("([\r\n]+)");
 
@@ -141,18 +141,17 @@ public class CliGyroUI implements GyroUI {
         --indentLevel;
     }
 
-    private void writeIndentation() {
+    private void writeIndentation(StringBuilder outputBuilder) {
         if (pendingIndentation) {
-            for (int i = 0, l = indentLevel * getIndentSize(); i < l; ++i) {
-                System.out.print(' ');
+            if (indentLevel > 0) {
+                outputBuilder.append(String.format("%" + indentLevel * getIndentSize() + "s", ""));
             }
-
             pendingIndentation = false;
         }
     }
 
     @Override
-    public void write(String message, Object... arguments) {
+    public String doWrite(String message, Object... arguments) {
         String text = arguments != null && arguments.length > 0
             ? String.format(message, arguments)
             : message;
@@ -162,11 +161,12 @@ public class CliGyroUI implements GyroUI {
         }
 
         int offset = 0;
+        StringBuilder outputBuilder = new StringBuilder();
 
         for (Matcher m = NEWLINES.matcher(text); m.find(); ) {
-            writeIndentation();
-            System.out.print(text.substring(offset, m.start()));
-            System.out.print(m.group(1));
+            writeIndentation(outputBuilder);
+            outputBuilder.append(text, offset, m.start());
+            outputBuilder.append(m.group(1));
 
             pendingIndentation = true;
             offset = m.end();
@@ -175,17 +175,20 @@ public class CliGyroUI implements GyroUI {
         int length = text.length();
 
         if (length > offset) {
-            writeIndentation();
-            System.out.print(text.substring(offset, length));
+            writeIndentation(outputBuilder);
+            outputBuilder.append(text, offset, length);
         }
-
+        String output = outputBuilder.toString();
+        System.out.print(output);
         System.out.flush();
+
+        return output;
     }
 
     @Override
-    public void replace(String message, Object... arguments) {
-        System.out.print(Ansi.ansi().eraseLine(Ansi.Erase.ALL).cursorToColumn(1));
-        write(message, arguments);
+    public String doReplace(String message, Object... arguments) {
+        message += Ansi.ansi().eraseLine(Ansi.Erase.ALL).cursorToColumn(1);
+        return doWrite(message, arguments);
     }
 
 }

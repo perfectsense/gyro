@@ -16,6 +16,7 @@
 
 package gyro.core.control;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -30,7 +31,6 @@ import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.PairNode;
-import gyro.lang.ast.block.BlockNode;
 import gyro.lang.ast.block.DirectiveNode;
 import gyro.util.CascadingMap;
 
@@ -52,8 +52,8 @@ public class ForDirectiveProcessor extends DirectiveProcessor<Scope> {
             return;
         }
 
-        if (in instanceof List) {
-            List<?> list = (List<?>) in;
+        if (in instanceof List || in instanceof Set) {
+            List<?> list = in instanceof List ? (List<?>) in : new ArrayList<>((Set<?>) in);
             int variablesSize = variables.size();
             int listSize = list.size();
 
@@ -112,7 +112,9 @@ public class ForDirectiveProcessor extends DirectiveProcessor<Scope> {
 
     private void validateScopedVariables(Scope scope, DirectiveNode node, List<String> variables) {
         RootScope rootScope = scope.getRootScope();
-        Set<String> globalScopedVariables = !scope.equals(rootScope) ? new HashSet<>(PairNode.getNodeVariables(scope.getRootScope().getNodes())) : new HashSet<>();
+        Set<String> globalScopedVariables = !scope.equals(rootScope)
+            ? new HashSet<>(PairNode.getNodeVariables(scope.getRootScope().getNodes()))
+            : new HashSet<>();
         Set<String> fileScopedVariables = scope.keySet();
 
         // variable check
@@ -122,9 +124,13 @@ public class ForDirectiveProcessor extends DirectiveProcessor<Scope> {
         validateBody(node, variables, fileScopedVariables, globalScopedVariables);
     }
 
-    private void validateVariables(DirectiveNode node, List<String> variables, Set<String> fileScopedVariables, Set<String> globalScopedVariables) {
+    private void validateVariables(
+        DirectiveNode node,
+        List<String> variables,
+        Set<String> fileScopedVariables,
+        Set<String> globalScopedVariables) {
         // duplicate inline variable
-        String duplicate = BlockNode.validateLocalImmutability(variables);
+        String duplicate = DirectiveNode.validateLocalImmutability(variables);
 
         if (duplicate != null) {
             throw new Defer(node, String.format("duplicate inline variable '%s'!", duplicate));
@@ -133,12 +139,18 @@ public class ForDirectiveProcessor extends DirectiveProcessor<Scope> {
         validateGlobalAndFileScope(node, variables, fileScopedVariables, globalScopedVariables, false);
     }
 
-    private void validateBody(DirectiveNode node, List<String> variables, Set<String> fileScopedVariables, Set<String> globalScopedVariables) {
+    private void validateBody(
+        DirectiveNode node,
+        List<String> variables,
+        Set<String> fileScopedVariables,
+        Set<String> globalScopedVariables) {
         // duplicate body variable
-        String duplicate = BlockNode.validateLocalImmutability(node);
+        String duplicate = DirectiveNode.validateLocalImmutability(node);
 
         if (duplicate != null) {
-            throw new Defer(PairNode.getKeyNode(node.getBody(), duplicate), String.format("duplicate for body variable '%s'!", duplicate));
+            throw new Defer(
+                PairNode.getKeyNode(node.getBody(), duplicate),
+                String.format("duplicate for body variable '%s'!", duplicate));
         }
 
         List<String> bodyVariables = PairNode.getNodeVariables(node.getBody());
@@ -147,7 +159,9 @@ public class ForDirectiveProcessor extends DirectiveProcessor<Scope> {
         duplicate = bodyVariables.stream().filter(variables::contains).findFirst().orElse(null);
 
         if (duplicate != null) {
-            throw new Defer(PairNode.getKeyNode(node.getBody(), duplicate), String.format("'%s' is already defined inline and cannot be reused!", duplicate));
+            throw new Defer(
+                PairNode.getKeyNode(node.getBody(), duplicate),
+                String.format("'%s' is already defined inline and cannot be reused!", duplicate));
         }
 
         validateGlobalAndFileScope(node, bodyVariables, fileScopedVariables, globalScopedVariables, true);
@@ -164,14 +178,18 @@ public class ForDirectiveProcessor extends DirectiveProcessor<Scope> {
         String duplicate = variables.stream().filter(fileScopedVariables::contains).findFirst().orElse(null);
 
         if (duplicate != null) {
-            throw new Defer(isBody ? PairNode.getKeyNode(node.getBody(), duplicate) : node, String.format("'%s' is already defined in the file scope and cannot be reused!", duplicate));
+            throw new Defer(
+                isBody ? PairNode.getKeyNode(node.getBody(), duplicate) : node,
+                String.format("'%s' is already defined in the file scope and cannot be reused!", duplicate));
         }
 
         // global scoped variable defined as inline/body variable
         duplicate = variables.stream().filter(globalScopedVariables::contains).findFirst().orElse(null);
 
         if (duplicate != null) {
-            throw new Defer(isBody ? PairNode.getKeyNode(node.getBody(), duplicate) : node, String.format("'%s' is already defined in the global scope and cannot be reused!", duplicate));
+            throw new Defer(
+                isBody ? PairNode.getKeyNode(node.getBody(), duplicate) : node,
+                String.format("'%s' is already defined in the global scope and cannot be reused!", duplicate));
         }
     }
 
