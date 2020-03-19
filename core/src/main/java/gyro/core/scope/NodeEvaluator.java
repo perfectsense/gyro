@@ -525,7 +525,6 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             bodyScope.process(resource);
             file.put(fullName, resource);
             file.putLocation(fullName, node);
-            file.getRootScope().getResources().add(resource);
 
         } else if (value instanceof ResourceVisitor) {
             ((ResourceVisitor) value).visit(name, bodyScope);
@@ -749,7 +748,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                 throw new WildcardDefer(node, referenceName);
             }
 
-            Stream<Resource> s = root.findResources()
+            Stream<Resource> s = root.findSortedResources()
                 .stream()
                 .filter(r -> referenceName.equals(DiffableType.getInstance(r.getClass()).getName()));
 

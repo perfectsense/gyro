@@ -109,8 +109,8 @@ public class Stage {
         apply(ui, state, currentResource, pendingResource, pendingRootScope);
 
         Diff diff = new Diff(
-            currentRootScope.findResourcesIn(currentRootScope.getLoadFiles()),
-            pendingRootScope.findResourcesIn(pendingRootScope.getLoadFiles()));
+            currentRootScope.findSortedResourcesIn(currentRootScope.getLoadFiles()),
+            pendingRootScope.findSortedResourcesIn(pendingRootScope.getLoadFiles()));
 
         diff.diff();
 
