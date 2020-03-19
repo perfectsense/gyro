@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -193,6 +194,24 @@ public abstract class Node extends Rule {
     @Override
     public String toString() {
         return NodePrinter.toString(this);
+    }
+
+    public static List<String> getNodeVariables(List<Node> nodes) {
+        return nodes.stream()
+            .filter(o -> o instanceof PairNode)
+            .map(o -> (String) ((ValueNode) ((PairNode) o).getKey()).getValue())
+            .collect(Collectors.toList());
+    }
+
+    public static Node getKeyNode(List<Node> nodes, String key) {
+        return nodes.stream().filter(o -> o instanceof PairNode).filter(o -> ((ValueNode) ((PairNode) o).getKey()).getValue().equals(
+            key)).findFirst().orElse(null);
+    }
+
+    public static String validateLocalImmutability(List<String> nodeVariables) {
+        return nodeVariables.stream()
+            .filter(e -> Collections.frequency(nodeVariables, e) > 1)
+            .findFirst().orElse(null);
     }
 
 }

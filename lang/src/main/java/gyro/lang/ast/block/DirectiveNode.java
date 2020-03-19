@@ -77,4 +77,7 @@ public class DirectiveNode extends OptionArgumentNode {
         return visitor.visitDirective(this, context);
     }
 
+    public static String validateLocalImmutability(DirectiveNode node) {
+        return validateLocalImmutability(Node.getNodeVariables(node.getBody()));
+    }
 }

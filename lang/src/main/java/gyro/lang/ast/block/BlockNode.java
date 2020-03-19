@@ -16,7 +16,6 @@
 
 package gyro.lang.ast.block;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -39,16 +38,6 @@ public abstract class BlockNode extends Node {
 
     public List<Node> getBody() {
         return body;
-    }
-
-    public static String validateLocalImmutability(BlockNode blockNode) {
-        return validateLocalImmutability(PairNode.getNodeVariables(blockNode.getBody()));
-    }
-
-    public static String validateLocalImmutability(List<String> nodeVariables) {
-        return nodeVariables.stream()
-            .filter(e -> Collections.frequency(nodeVariables, e) > 1)
-            .findFirst().orElse(null);
     }
 
     public static String validateGlobalImmutability(BlockNode blockNode, List<Node> globalNode) {

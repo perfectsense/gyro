@@ -429,7 +429,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                 String.format("'%s' is already defined as a global variable and cannot be reused!", duplicate));
         }
 
-        duplicate = BlockNode.validateLocalImmutability(node);
+        duplicate = DirectiveNode.validateLocalImmutability(PairNode.getNodeVariables(node.getBody()));
 
         if (duplicate != null) {
             throw new Defer(
