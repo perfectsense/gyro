@@ -50,4 +50,5 @@ public class PairNode extends Node {
     public <C, R, X extends Throwable> R accept(NodeVisitor<C, R, X> visitor, C context) throws X {
         return visitor.visitPair(this, context);
     }
+
 }

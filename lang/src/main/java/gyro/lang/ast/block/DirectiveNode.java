@@ -76,4 +76,5 @@ public class DirectiveNode extends OptionArgumentNode {
     public <C, R, X extends Throwable> R accept(NodeVisitor<C, R, X> visitor, C context) throws X {
         return visitor.visitDirective(this, context);
     }
+
 }
