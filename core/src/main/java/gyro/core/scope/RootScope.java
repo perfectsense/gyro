@@ -90,7 +90,6 @@ import gyro.core.workflow.ReplaceDirectiveProcessor;
 import gyro.core.workflow.RestoreRootProcessor;
 import gyro.core.workflow.UpdateDirectiveProcessor;
 import gyro.lang.ast.Node;
-import gyro.lang.ast.PairNode;
 import gyro.lang.ast.block.FileNode;
 import gyro.parser.antlr4.GyroParser;
 import gyro.util.Bug;
@@ -300,11 +299,11 @@ public class RootScope extends FileScope {
         evaluateFile(getFile(), node -> nodes.addAll(node.getBody()));
 
         if (validate) {
-            String duplicate = Node.validateLocalImmutability(PairNode.getNodeVariables(nodes));
+            String duplicate = ScopingPolice.validateLocalImmutability(nodes);
 
             if (duplicate != null) {
                 throw new Defer(
-                    PairNode.getKeyNode(nodes, duplicate),
+                    ScopingPolice.getKeyNode(nodes, duplicate),
                     String.format("'%s' is already defined and cannot be reused!", duplicate));
             }
 

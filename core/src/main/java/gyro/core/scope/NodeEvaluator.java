@@ -80,9 +80,6 @@ import org.apache.commons.lang3.math.NumberUtils;
 
 public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeException> {
 
-    private Map<String, Set<Node>> typeNodes;
-    private List<Node> body;
-
     private static final LoadingCache<Class<? extends DirectiveProcessor>, Class<? extends Scope>> DIRECTIVE_PROCESSOR_SCOPE_CLASSES = CacheBuilder
         .newBuilder()
         .build(new CacheLoader<Class<? extends DirectiveProcessor>, Class<? extends Scope>>() {
@@ -94,7 +91,6 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                     .getInferredGenericTypeArgumentClass(DirectiveProcessor.class, 0);
             }
         });
-
     private static final Map<String, BiFunction<Object, Object, Object>> BINARY_FUNCTIONS = ImmutableMap.<String, BiFunction<Object, Object, Object>>builder()
         .put("*", (l, r) -> doArithmetic(l, r, (ld, rd) -> ld * rd, (ll, rl) -> ll * rl))
         .put("/", (l, r) -> doArithmetic(l, r, (ld, rd) -> ld / rd, (ll, rl) -> ll / rl))
@@ -110,6 +106,8 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         .put("and", (l, r) -> test(l) && test(r))
         .put("or", (l, r) -> test(l) && test(r))
         .build();
+    private Map<String, Set<Node>> typeNodes;
+    private List<Node> body;
 
     private static Object doArithmetic(
         Object left,
@@ -421,19 +419,19 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             fileScopes.add(fileScope);
         }
 
-        String duplicate = BlockNode.validateGlobalImmutability(node, rootScope.getNodes());
+        String duplicate = ScopingPolice.validateGlobalImmutability(node.getBody(), rootScope.getNodes());
 
         if (duplicate != null) {
             throw new Defer(
-                PairNode.getKeyNode(node.getBody(), duplicate),
+                ScopingPolice.getKeyNode(node.getBody(), duplicate),
                 String.format("'%s' is already defined as a global variable and cannot be reused!", duplicate));
         }
 
-        duplicate = DirectiveNode.validateLocalImmutability(PairNode.getNodeVariables(node.getBody()));
+        duplicate = ScopingPolice.validateLocalImmutability(node.getBody());
 
         if (duplicate != null) {
             throw new Defer(
-                PairNode.getKeyNode(node.getBody(), duplicate),
+                ScopingPolice.getKeyNode(node.getBody(), duplicate),
                 String.format("'%s' is already defined and cannot be reused!", duplicate));
         }
 
