@@ -12,6 +12,22 @@ import gyro.lang.ast.value.ValueNode;
 
 public class ScopingPolice {
 
+    private enum SCOPETYPE {
+        LOCAL,
+        GLOBAL,
+        INLINE;
+
+        @Override
+        public String toString() {
+            switch (this) {
+                case LOCAL: return "local";
+                case GLOBAL: return "global";
+                case INLINE: return "inline";
+                default: return super.toString();
+            }
+        }
+    }
+
     public static List<String> getNodeVariables(List<Node> nodes) {
         return nodes.stream()
             .filter(o -> o instanceof PairNode)
@@ -47,7 +63,7 @@ public class ScopingPolice {
         if (duplicate != null) {
             throw new Defer(
                 ScopingPolice.getKeyNode(nodes, duplicate, 1),
-                String.format("'%s' is already defined and cannot be reused!", duplicate));
+                getMessage(SCOPETYPE.LOCAL, duplicate));
         }
     }
 
@@ -63,7 +79,7 @@ public class ScopingPolice {
         if (duplicate != null) {
             throw new Defer(
                 ScopingPolice.getKeyNode(localNodes, duplicate),
-                String.format("'%s' is already defined as a global variable and cannot be reused!", duplicate));
+                getMessage(SCOPETYPE.GLOBAL, duplicate));
         }
     }
 
@@ -77,7 +93,7 @@ public class ScopingPolice {
         String duplicate = ScopingPolice.validateLocalImmutabilityVariables(variables);
 
         if (duplicate != null) {
-            throw new Defer(node, String.format("duplicate inline variable '%s'!", duplicate));
+            throw new Defer(node, getMessage(SCOPETYPE.INLINE, duplicate));
         }
 
         validateGlobalAndFileScope(node, body, variables, fileScopedVariables, globalScopedVariables, false);
@@ -101,7 +117,7 @@ public class ScopingPolice {
         if (duplicate != null) {
             throw new Defer(
                 ScopingPolice.getKeyNode(body, duplicate),
-                String.format("'%s' is already defined inline and cannot be reused!", duplicate));
+                getMessage(SCOPETYPE.INLINE, duplicate));
         }
 
         validateGlobalAndFileScope(node, body, bodyVariables, fileScopedVariables, globalScopedVariables, true);
@@ -121,7 +137,7 @@ public class ScopingPolice {
         if (duplicate != null) {
             throw new Defer(
                 isBody ? ScopingPolice.getKeyNode(body, duplicate) : node,
-                String.format("'%s' is already defined in the file scope and cannot be reused!", duplicate));
+                getMessage(SCOPETYPE.LOCAL, duplicate));
         }
 
         // global scoped variable defined as inline/body variable
@@ -130,7 +146,11 @@ public class ScopingPolice {
         if (duplicate != null) {
             throw new Defer(
                 isBody ? ScopingPolice.getKeyNode(body, duplicate) : node,
-                String.format("'%s' is already defined in the global scope and cannot be reused!", duplicate));
+                getMessage(SCOPETYPE.GLOBAL, duplicate));
         }
+    }
+
+    private static String getMessage(SCOPETYPE scopeType, String variable) {
+        return String.format("'%s' is already defined as a @|bold %s|@ variable and cannot be reused!", variable, scopeType);
     }
 }
