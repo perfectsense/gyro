@@ -19,13 +19,20 @@ public class ScopingPolice {
             .collect(Collectors.toList());
     }
 
-    public static Node getKeyNode(List<Node> nodes, String key) {
+    public static List<Node> getKeyNodes(List<Node> nodes, String key) {
         return nodes.stream()
             .filter(o -> o instanceof PairNode)
             .filter(o -> ((ValueNode) ((PairNode) o).getKey()).getValue().equals(
-                key))
-            .findFirst()
-            .orElse(null);
+                key)).collect(Collectors.toList());
+    }
+
+    public static Node getKeyNode(List<Node> nodes, String key) {
+        return getKeyNode(nodes, key, 0);
+    }
+
+    public static Node getKeyNode(List<Node> nodes, String key, int index) {
+        List<Node> keyNodes = getKeyNodes(nodes, key);
+        return keyNodes.size() > index ? keyNodes.get(index) : null;
     }
 
     public static String validateLocalImmutabilityVariables(List<String> nodeVariables) {
@@ -34,18 +41,30 @@ public class ScopingPolice {
             .findFirst().orElse(null);
     }
 
-    public static String validateLocalImmutability(List<Node> nodes) {
-        return validateLocalImmutabilityVariables(getNodeVariables(nodes));
+    public static void validateLocalImmutability(List<Node> nodes) {
+        String duplicate = validateLocalImmutabilityVariables(getNodeVariables(nodes));
+
+        if (duplicate != null) {
+            throw new Defer(
+                ScopingPolice.getKeyNode(nodes, duplicate, 1),
+                String.format("'%s' is already defined and cannot be reused!", duplicate));
+        }
     }
 
-    public static String validateGlobalImmutability(List<Node> localNodes, List<Node> globalNodes) {
+    public static void validateGlobalImmutability(List<Node> localNodes, List<Node> globalNodes) {
         List<String> nodeVariables = getNodeVariables(localNodes);
 
         Set<String> globalKeys = new HashSet<>(getNodeVariables(globalNodes));
 
-        return nodeVariables.stream()
+        String duplicate = nodeVariables.stream()
             .filter(globalKeys::contains)
             .findFirst().orElse(null);
+
+        if (duplicate != null) {
+            throw new Defer(
+                ScopingPolice.getKeyNode(localNodes, duplicate),
+                String.format("'%s' is already defined as a global variable and cannot be reused!", duplicate));
+        }
     }
 
     public static void validateVariables(
@@ -70,19 +89,14 @@ public class ScopingPolice {
         List<String> variables,
         Set<String> fileScopedVariables,
         Set<String> globalScopedVariables) {
-        // duplicate body variable
-        String duplicate = ScopingPolice.validateLocalImmutability(body);
 
-        if (duplicate != null) {
-            throw new Defer(
-                ScopingPolice.getKeyNode(body, duplicate),
-                String.format("duplicate for body variable '%s'!", duplicate));
-        }
+        // duplicate body variable
+        ScopingPolice.validateLocalImmutability(body);
 
         List<String> bodyVariables = ScopingPolice.getNodeVariables(body);
 
         // inline scoped variable defined as body variable
-        duplicate = bodyVariables.stream().filter(variables::contains).findFirst().orElse(null);
+        String duplicate = bodyVariables.stream().filter(variables::contains).findFirst().orElse(null);
 
         if (duplicate != null) {
             throw new Defer(

@@ -299,14 +299,7 @@ public class RootScope extends FileScope {
         evaluateFile(getFile(), node -> nodes.addAll(node.getBody()));
 
         if (validate) {
-            String duplicate = ScopingPolice.validateLocalImmutability(nodes);
-
-            if (duplicate != null) {
-                throw new Defer(
-                    ScopingPolice.getKeyNode(nodes, duplicate),
-                    String.format("'%s' is already defined and cannot be reused!", duplicate));
-            }
-
+            ScopingPolice.validateLocalImmutability(nodes);
         }
 
         List<Node> finalNodes = nodes;

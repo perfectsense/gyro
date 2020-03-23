@@ -419,21 +419,9 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             fileScopes.add(fileScope);
         }
 
-        String duplicate = ScopingPolice.validateGlobalImmutability(node.getBody(), rootScope.getNodes());
+        ScopingPolice.validateGlobalImmutability(node.getBody(), rootScope.getNodes());
 
-        if (duplicate != null) {
-            throw new Defer(
-                ScopingPolice.getKeyNode(node.getBody(), duplicate),
-                String.format("'%s' is already defined as a global variable and cannot be reused!", duplicate));
-        }
-
-        duplicate = ScopingPolice.validateLocalImmutability(node.getBody());
-
-        if (duplicate != null) {
-            throw new Defer(
-                ScopingPolice.getKeyNode(node.getBody(), duplicate),
-                String.format("'%s' is already defined and cannot be reused!", duplicate));
-        }
+        ScopingPolice.validateLocalImmutability(node.getBody());
 
         evaluateBody(node.getBody(), fileScope);
         removeTypeNode(node);
