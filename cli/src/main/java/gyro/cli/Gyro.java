@@ -70,7 +70,7 @@ public class Gyro {
         try {
             Optional.ofNullable(GyroCore.getRootDirectory())
                 .map(d -> new RootScope(GyroCore.INIT_FILE, new LocalFileBackend(d), null, null))
-                .ifPresent(rs -> rs.load(true, true));
+                .ifPresent(RootScope::load);
 
             gyro.init(Arrays.asList(arguments));
             gyro.run();

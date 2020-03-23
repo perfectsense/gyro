@@ -290,7 +290,7 @@ public class RootScope extends FileScope {
     }
 
     public List<Node> load() {
-        return load(true, false);
+        return load(true, true);
     }
 
     public List<Node> load(boolean evaluateBody, boolean validate) {
@@ -325,7 +325,7 @@ public class RootScope extends FileScope {
     }
 
     public void evaluate() {
-        List<Node> nodes = load();
+        List<Node> nodes = load(true, false);
         Set<String> existingFiles;
 
         try (Stream<String> s = list()) {
