@@ -748,7 +748,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                 throw new WildcardDefer(node, referenceName);
             }
 
-            Stream<Resource> s = root.findResources()
+            Stream<Resource> s = root.findSortedResources()
                 .stream()
                 .filter(r -> referenceName.equals(DiffableType.getInstance(r.getClass()).getName()));
 
