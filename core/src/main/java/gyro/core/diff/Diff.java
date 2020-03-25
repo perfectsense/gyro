@@ -27,6 +27,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
@@ -39,6 +40,7 @@ import gyro.core.scope.DiffableScope;
 import gyro.core.scope.NodeEvaluator;
 import gyro.core.scope.Scope;
 import gyro.core.scope.State;
+import gyro.core.workflow.ModifiedIn;
 import gyro.lang.ast.Node;
 
 public class Diff {
@@ -77,14 +79,35 @@ public class Diff {
         return changes;
     }
 
+    public void diffIgnoringWorkflow() {
+        diff(true);
+    }
+
     public void diff() {
-        Map<String, Diffable> currentDiffables = this.currentDiffables.stream().collect(
+        diff(false);
+    }
+
+    private void diff(boolean ignoreWorkflowResources) {
+        Stream<Diffable> currentDiffableStream = this.currentDiffables.stream();
+
+        if (ignoreWorkflowResources) {
+            currentDiffableStream = currentDiffableStream
+                .filter(e -> !(e instanceof Resource)
+                    || DiffableInternals.getModifiedIn(e) != ModifiedIn.WORKFLOW_ONLY);
+        }
+        Map<String, Diffable> currentDiffables = currentDiffableStream.collect(
             LinkedHashMap::new,
             (map, r) -> map.put(r.primaryKey(), r),
             Map::putAll
         );
 
         for (Diffable pendingDiffable : pendingDiffables) {
+            if (ignoreWorkflowResources
+                && pendingDiffable instanceof Resource
+                && DiffableInternals.getModifiedIn(pendingDiffable) == ModifiedIn.WORKFLOW_ONLY) {
+                continue;
+            }
+
             if (pendingDiffable instanceof Resource) {
                 DiffableInternals.reevaluate(pendingDiffable);
             }

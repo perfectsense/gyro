@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.base.Preconditions;
+import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.Resource;
 
 public class FileScope extends Scope {
@@ -34,6 +35,23 @@ public class FileScope extends Scope {
         super(parent);
 
         this.file = Preconditions.checkNotNull(file);
+    }
+
+    public static FileScope copy(RootScope parent, FileScope fileScope, boolean workflowResourceOnly) {
+        FileScope scope = new FileScope(parent, fileScope.getFile());
+
+        if (workflowResourceOnly) {
+            for (Map.Entry<String, Object> entry : fileScope.entrySet()) {
+                Object value = entry.getValue();
+
+                if (value instanceof Resource && DiffableInternals.getModifiedIn((Resource) value) != null) {
+                    scope.put(entry.getKey(), value);
+                }
+            }
+        } else {
+            scope.putAll(fileScope);
+        }
+        return scope;
     }
 
     public String getFile() {

@@ -105,8 +105,14 @@ public class RootScope extends FileScope {
     private final Set<String> loadFiles;
     private final Map<String, Resource> resources = new LinkedHashMap<>();
     private final List<FileScope> fileScopes = new ArrayList<>();
+    // TODO: separate workflow scope?
+    private final Boolean inWorkflow;
 
     public RootScope(String file, FileBackend backend, RootScope current, Set<String> loadFiles) {
+        this(file, backend, current, loadFiles, null);
+    }
+
+    public RootScope(String file, FileBackend backend, RootScope current, Set<String> loadFiles, Boolean inWorkflow) {
         super(null, file);
 
         converter = new Converter();
@@ -122,6 +128,7 @@ public class RootScope extends FileScope {
         this.backend = backend;
         this.current = current;
         this.loadFiles = loadFiles != null ? ImmutableSet.copyOf(loadFiles) : ImmutableSet.of();
+        this.inWorkflow = inWorkflow;
 
         Stream.of(
             new PluginPreprocessor())
@@ -181,6 +188,38 @@ public class RootScope extends FileScope {
         put("ENV", System.getenv());
     }
 
+    public static RootScope copy(
+        RootScope rootScope,
+        Boolean inWorkflow,
+        boolean evaluateCurrent,
+        boolean workflowResourceOnly) {
+        RootScope current = rootScope.getCurrent();
+
+        if (current != null) {
+            current = copy(current, inWorkflow, evaluateCurrent, workflowResourceOnly);
+        }
+        RootScope scope = new RootScope(
+            rootScope.getFile(),
+            rootScope.getBackend(),
+            current,
+            rootScope.getLoadFiles(),
+            inWorkflow);
+
+        if (current == null && evaluateCurrent) {
+            scope.evaluate();
+        } else {
+            scope.load();
+            scope.putAll(rootScope);
+            scope.getFileScopes()
+                .addAll(rootScope.getFileScopes()
+                    .stream()
+                    .map(e -> FileScope.copy(scope, e, workflowResourceOnly))
+                    .collect(Collectors.toList()));
+            scope.processRootSettings();
+        }
+        return scope;
+    }
+
     public NodeEvaluator getEvaluator() {
         return evaluator;
     }
@@ -203,6 +242,10 @@ public class RootScope extends FileScope {
 
     public List<FileScope> getFileScopes() {
         return fileScopes;
+    }
+
+    public boolean isInWorkflow() {
+        return Boolean.TRUE.equals(inWorkflow);
     }
 
     public Stream<String> list() {
@@ -343,34 +386,7 @@ public class RootScope extends FileScope {
 
         evaluator.evaluate(this, nodes);
 
-        getSettings(RootSettings.class).getProcessors().forEach(p -> {
-            try {
-                p.process(this);
-
-            } catch (Exception error) {
-                throw new GyroException(
-                    String.format("Can't process root using @|bold %s|@!", p),
-                    error);
-            }
-        });
-    }
-
-    private void evaluateFile(String file, Consumer<FileNode> consumer) {
-        if (StringUtils.isBlank(file)) {
-            return;
-        }
-
-        try (GyroInputStream input = openInput(file)) {
-            consumer.accept((FileNode) Node.parse(input, file, GyroParser::file));
-
-        } catch (IOException error) {
-            throw new Bug(error);
-
-        } catch (Exception error) {
-            throw new GyroException(
-                String.format("Can't parse @|bold %s|@ in @|bold %s|@!", file, this.backend),
-                error);
-        }
+        processRootSettings();
     }
 
     public void validate() {
@@ -395,4 +411,34 @@ public class RootScope extends FileScope {
         }
     }
 
+    private void evaluateFile(String file, Consumer<FileNode> consumer) {
+        if (StringUtils.isBlank(file)) {
+            return;
+        }
+
+        try (GyroInputStream input = openInput(file)) {
+            consumer.accept((FileNode) Node.parse(input, file, GyroParser::file));
+
+        } catch (IOException error) {
+            throw new Bug(error);
+
+        } catch (Exception error) {
+            throw new GyroException(
+                String.format("Can't parse @|bold %s|@ in @|bold %s|@!", file, this.backend),
+                error);
+        }
+    }
+
+    private void processRootSettings() {
+        getSettings(RootSettings.class).getProcessors().forEach(p -> {
+            try {
+                p.process(this);
+
+            } catch (Exception error) {
+                throw new GyroException(
+                    String.format("Can't process root using @|bold %s|@!", p),
+                    error);
+            }
+        });
+    }
 }

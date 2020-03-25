@@ -18,7 +18,7 @@ public class RestoreRootProcessor extends RootProcessor {
     public void process(RootScope root) throws IOException {
         RootScope current = root.getCurrent();
 
-        if (current == null) {
+        if (current == null || root.isInWorkflow()) {
             return;
         }
 
@@ -60,17 +60,6 @@ public class RestoreRootProcessor extends RootProcessor {
             workflowName,
             resourceType,
             resourceName);
-
-        for (String stageName : executedStageNames) {
-            Stage stage = workflow.getStage(stageName);
-
-            stage.apply(
-                ui,
-                null,
-                current.findResource(resourceType + "::" + resourceName),
-                resource,
-                root);
-        }
     }
 
 }

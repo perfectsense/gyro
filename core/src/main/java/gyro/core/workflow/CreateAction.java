@@ -17,12 +17,14 @@
 package gyro.core.workflow;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import gyro.core.GyroUI;
+import gyro.core.resource.DiffableInternals;
+import gyro.core.resource.Resource;
 import gyro.core.scope.NodeEvaluator;
-import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
 import gyro.core.scope.State;
 import gyro.lang.ast.Node;
@@ -53,15 +55,17 @@ public class CreateAction extends Action {
     }
 
     @Override
-    public void execute(GyroUI ui, State state, RootScope pending, Scope scope) {
+    public void execute(GyroUI ui, State state, Scope scope) {
         NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
 
-        evaluator.visit(
+        Optional.ofNullable(evaluator.visit(
             new ResourceNode(
                 (String) evaluator.visit(type, scope),
                 name,
                 body),
-            scope);
+            scope))
+            .filter(Resource.class::isInstance)
+            .map(Resource.class::cast)
+            .ifPresent(e -> DiffableInternals.setModifiedIn(e, ModifiedIn.WORKFLOW_ONLY));
     }
-
 }
