@@ -113,8 +113,8 @@ public class Stage {
         RootScope newCurrentRootScope = newPendingRootScope.getCurrent();
 
         Diff diff = new Diff(
-            newCurrentRootScope.findResourcesIn(newCurrentRootScope.getLoadFiles()),
-            newPendingRootScope.findResourcesIn(newPendingRootScope.getLoadFiles()));
+            newCurrentRootScope.findSortedResourcesIn(newCurrentRootScope.getLoadFiles()),
+            newPendingRootScope.findSortedResourcesIn(newPendingRootScope.getLoadFiles()));
 
         diff.diff();
 

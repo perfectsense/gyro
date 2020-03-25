@@ -28,7 +28,10 @@ public class UsesCredentialsDirectiveProcessor extends DirectiveProcessor<Diffab
     public void process(DiffableScope scope, DirectiveNode node) {
         validateArguments(node, 1, 1);
         scope.getSettings(CredentialsSettings.class).setUseCredentials(getArgument(scope, node, String.class, 0));
-        scope.getStateNodes().add(node);
+
+        if (scope.getStateNodes().stream().noneMatch(o -> o.equals(node))) {
+            scope.getStateNodes().add(node);
+        }
     }
 
 }

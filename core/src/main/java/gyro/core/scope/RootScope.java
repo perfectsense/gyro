@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -102,6 +103,7 @@ public class RootScope extends FileScope {
     private final FileBackend backend;
     private final RootScope current;
     private final Set<String> loadFiles;
+    private final Map<String, Resource> resources = new LinkedHashMap<>();
     private final List<FileScope> fileScopes = new ArrayList<>();
     // TODO: separate workflow scope?
     private final Boolean inWorkflow;
@@ -234,6 +236,10 @@ public class RootScope extends FileScope {
         return loadFiles;
     }
 
+    public Map<String, Resource> getResources() {
+        return resources;
+    }
+
     public List<FileScope> getFileScopes() {
         return fileScopes;
     }
@@ -276,12 +282,12 @@ public class RootScope extends FileScope {
         return converter.convert(returnType, object);
     }
 
-    public List<Resource> findResources() {
-        return findResourcesIn(null);
+    public List<Resource> findSortedResources() {
+        return findSortedResourcesIn(null);
     }
 
-    public List<Resource> findResourcesIn(Set<String> diffFiles) {
-        Stream<Resource> stream = Stream.concat(Stream.of(this), getFileScopes().stream())
+    public List<Resource> findSortedResourcesIn(Set<String> diffFiles) {
+        Stream<Resource> stream = Stream.concat(Stream.of(this), Stream.of(getResources()))
             .map(Map::entrySet)
             .flatMap(Collection::stream)
             .filter(e -> e.getValue() instanceof Resource)
@@ -297,7 +303,7 @@ public class RootScope extends FileScope {
     }
 
     public <T extends Resource> Stream<T> findResourcesByClass(Class<T> resourceClass) {
-        return findResources()
+        return findSortedResources()
             .stream()
             .filter(resourceClass::isInstance)
             .map(resourceClass::cast);
@@ -395,7 +401,7 @@ public class RootScope extends FileScope {
             throw new GyroException(sb.toString());
         }
 
-        List<ValidationError> errors = findResources().stream()
+        List<ValidationError> errors = findSortedResources().stream()
             .map(r -> DiffableType.getInstance(r).validate(r))
             .flatMap(List::stream)
             .collect(Collectors.toList());
