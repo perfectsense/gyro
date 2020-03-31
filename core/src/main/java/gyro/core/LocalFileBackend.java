@@ -81,12 +81,6 @@ public class LocalFileBackend extends FileBackend {
 
                 return false;
             } else {
-                System.out.println(String.format(
-                    "\n -->*** pattern - [%s] - transformed - [%s] - string - [%s] - flag - [%s]",
-                    pattern,
-                    processedPattern,
-                    filePath,
-                    Pattern.matches(processedPattern, filePath) && !specialCase.contains(filePath)));
                 return Pattern.matches(processedPattern, filePath) && !specialCase.contains(filePath);
             }
         } catch (PatternSyntaxException ex) {
