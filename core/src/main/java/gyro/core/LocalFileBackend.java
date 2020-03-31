@@ -24,7 +24,15 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import com.psddev.dari.util.ObjectUtils;
 
 public class LocalFileBackend extends FileBackend {
 
@@ -37,14 +45,105 @@ public class LocalFileBackend extends FileBackend {
     @Override
     public Stream<String> list() throws IOException {
         if (Files.exists(rootDirectory)) {
+            Path rootPath = rootDirectory.resolve(rootDirectory.toString().replace("/.gyro/state", "/"));
+            List<String> ignoreList = Files.lines(rootPath.resolve(GyroCore.IGNORE_FILE))
+                .filter(o -> !o.startsWith("#"))
+                .filter(o -> !ObjectUtils.isBlank(o))
+                .collect(Collectors.toList());
+
             return Files.find(rootDirectory, Integer.MAX_VALUE, (file, attributes) -> attributes.isRegularFile())
                 .map(rootDirectory::relativize)
                 .map(Path::toString)
-                .filter(f -> !f.startsWith(".gyro" + File.separator) && f.endsWith(".gyro"));
-
+                .filter(f -> !f.startsWith(".gyro" + File.separator) && f.endsWith(".gyro"))
+                .filter(f -> !ignoreFile(ignoreList, f));
         } else {
             return Stream.empty();
         }
+    }
+
+    private boolean ignoreFile(List<String> ignoreList, String filePath) {
+        Set<String> specialCase = new HashSet<>();
+
+        return ignoreList.stream()
+            .anyMatch(pattern -> ignoreFile(pattern, filePath, specialCase, rootDirectory.endsWith(".gyro/state")));
+    }
+
+    private boolean ignoreFile(String pattern, String filePath, Set<String> specialCase, boolean isStateFile) {
+        String processedPattern = processedPattern(pattern);
+        filePath = isStateFile ? filePath.replace("/.gyro/state", "/") : filePath;
+
+        try {
+            if (processedPattern.startsWith("!")) {
+                processedPattern = processedPattern.replaceFirst("!", "");
+                if (Pattern.matches(processedPattern, filePath)) {
+                    specialCase.add(filePath);
+                }
+
+                return false;
+            } else {
+                System.out.println(String.format(
+                    "\n -->*** pattern - [%s] - transformed - [%s] - string - [%s] - flag - [%s]",
+                    pattern,
+                    processedPattern,
+                    filePath,
+                    Pattern.matches(processedPattern, filePath) && !specialCase.contains(filePath)));
+                return Pattern.matches(processedPattern, filePath) && !specialCase.contains(filePath);
+            }
+        } catch (PatternSyntaxException ex) {
+            //ignore
+            return false;
+        }
+    }
+
+    private String processedPattern(String pattern) {
+        pattern = pattern.replaceAll("\\.", "\\.");
+
+        if (pattern.matches(".*/(\\*)\\1+")) { // pattern --> /**, /***, /**** => /**
+            pattern = pattern.replaceAll("(\\*)\\1+$", "**");
+        } else if (pattern.matches(".*[^/](\\*)\\1+")) { // pattern --> a**, a***, a/b**, a/b*** => a*, a*, a/b*, a/b*
+            pattern = pattern.replaceAll("(\\*)\\1+$", "*");
+        }
+
+        if (pattern.endsWith("*") && !pattern.endsWith("/**")) {
+            pattern = pattern.substring(0, pattern.lastIndexOf("*")) + "[^/]*";
+        }
+
+        if (pattern.matches("(\\*)\\1+/")) {
+            // anything post **/
+            pattern = pattern.replaceFirst("(\\*)\\1+/", "*/");
+        }
+
+        if (pattern.endsWith("/**")) {
+            // anything under the pattern before /**
+            pattern = pattern.substring(0, pattern.lastIndexOf("/**")) + "/*";
+        }
+
+        if (pattern.contains("/**/")) {
+            // anything before and after /**/
+            pattern = pattern.replaceAll("/\\*\\*/", "/*/");
+        }
+
+        if (pattern.contains(".")) {
+            pattern = pattern.replaceAll("\\.", "\\\\.");
+        }
+
+        if (pattern.contains("**")) { // replace redundant * with single *
+            pattern = pattern.replaceAll("(\\*)\\1+", "*");
+        }
+
+        if (pattern.contains("*")) { // escape * so that it is a valid regex
+            pattern = pattern.replaceAll("\\*", ".*");
+        }
+
+        if (pattern.contains("].*")) { // revert an exception case of escaping *
+            pattern = pattern.replaceAll("].\\*", "]*");
+        }
+
+        if (!pattern.endsWith("*")) { // add regex end symbol
+            pattern = pattern + "$";
+        }
+
+        return pattern;
     }
 
     @Override

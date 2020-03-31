@@ -28,6 +28,8 @@ public class GyroCore {
 
     public static final String INIT_FILE = ".gyro/init.gyro";
 
+    public static final String IGNORE_FILE = ".gyro/.gyroignore";
+
     private static final ThreadLocalStack<GyroUI> UI = new ThreadLocalStack<>();
 
     private static final Lazy<Path> HOME_DIRECTORY = new Lazy<Path>() {
