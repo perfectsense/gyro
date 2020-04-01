@@ -33,6 +33,7 @@ import java.util.stream.Stream;
 import com.google.common.collect.ImmutableSet;
 import com.psddev.dari.util.Converter;
 import gyro.core.FileBackend;
+import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.GyroInputStream;
 import gyro.core.GyroOutputStream;
@@ -101,6 +102,7 @@ public class RootScope extends FileScope {
     private final Converter converter;
     private final NodeEvaluator evaluator;
     private final FileBackend backend;
+    private final FileBackend stateBackend;
     private final RootScope current;
     private final Set<String> loadFiles;
     private final Map<String, Resource> resources = new LinkedHashMap<>();
@@ -109,10 +111,25 @@ public class RootScope extends FileScope {
     private final Boolean inWorkflow;
 
     public RootScope(String file, FileBackend backend, RootScope current, Set<String> loadFiles) {
-        this(file, backend, current, loadFiles, null);
+        this(file, backend, null, current, loadFiles);
     }
 
-    public RootScope(String file, FileBackend backend, RootScope current, Set<String> loadFiles, Boolean inWorkflow) {
+    public RootScope(
+        String file,
+        FileBackend backend,
+        FileBackend stateBackend,
+        RootScope current,
+        Set<String> loadFiles) {
+        this(file, backend, stateBackend, current, loadFiles, null);
+    }
+
+    public RootScope(
+        String file,
+        FileBackend backend,
+        FileBackend stateBackend,
+        RootScope current,
+        Set<String> loadFiles,
+        Boolean inWorkflow) {
         super(null, file);
 
         converter = new Converter();
@@ -126,6 +143,7 @@ public class RootScope extends FileScope {
 
         this.evaluator = new NodeEvaluator();
         this.backend = backend;
+        this.stateBackend = stateBackend;
         this.current = current;
         this.loadFiles = loadFiles != null ? ImmutableSet.copyOf(loadFiles) : ImmutableSet.of();
         this.inWorkflow = inWorkflow;
@@ -201,6 +219,7 @@ public class RootScope extends FileScope {
         RootScope scope = new RootScope(
             rootScope.getFile(),
             rootScope.getBackend(),
+            rootScope.getStateBackend(),
             current,
             rootScope.getLoadFiles(),
             inWorkflow);
@@ -228,6 +247,10 @@ public class RootScope extends FileScope {
         return backend;
     }
 
+    public FileBackend getStateBackend() {
+        return stateBackend;
+    }
+
     public RootScope getCurrent() {
         return current;
     }
@@ -250,7 +273,7 @@ public class RootScope extends FileScope {
 
     public Stream<String> list() {
         try {
-            return backend.list();
+            return getFileBackend(null).list();
 
         } catch (Exception error) {
             throw new GyroException(
@@ -260,22 +283,31 @@ public class RootScope extends FileScope {
     }
 
     public GyroInputStream openInput(String file) {
-        return new GyroInputStream(backend, file);
+        return new GyroInputStream(getFileBackend(file), file);
     }
 
     public GyroOutputStream openOutput(String file) {
-        return new GyroOutputStream(backend, file);
+        return new GyroOutputStream(getFileBackend(file), file);
     }
 
     public void delete(String file) {
         try {
-            backend.delete(file);
+            getFileBackend(file).delete(file);
 
         } catch (Exception error) {
             throw new GyroException(
                 String.format("Can't delete @|bold %s|@ in @|bold %s|@!", file, backend),
                 error);
         }
+    }
+
+    private FileBackend getFileBackend(String file) {
+        if (stateBackend != null
+            && (file == null || (file.endsWith(".gyro") && !file.contains(GyroCore.INIT_FILE)))) {
+            return stateBackend;
+        }
+
+        return backend;
     }
 
     public Object convertValue(Type returnType, Object object) {
