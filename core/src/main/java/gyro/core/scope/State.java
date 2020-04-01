@@ -66,7 +66,12 @@ public class State {
     private Boolean removeModifiedInField;
 
     public State(RootScope current, RootScope pending, boolean test) {
-        this.root = new RootScope(current.getFile(), current.getBackend(), null, current.getLoadFiles());
+        this.root = new RootScope(
+            current.getFile(),
+            current.getBackend(),
+            current.getStateBackend(),
+            null,
+            current.getLoadFiles());
 
         root.evaluate();
 

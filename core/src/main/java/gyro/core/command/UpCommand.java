@@ -66,7 +66,12 @@ public class UpCommand extends AbstractConfigCommand {
             } catch (Retry error) {
                 ui.write("\n@|bold,white Relooking for changes after workflow...\n\n|@");
 
-                current = new RootScope(current.getFile(), current.getBackend(), null, current.getLoadFiles());
+                current = new RootScope(
+                    current.getFile(),
+                    current.getBackend(),
+                    current.getStateBackend(),
+                    null,
+                    current.getLoadFiles());
 
                 current.evaluate();
 

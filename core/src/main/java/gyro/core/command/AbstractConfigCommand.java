@@ -103,6 +103,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         RootScope current = new RootScope(
             "../../" + GyroCore.INIT_FILE,
             new LocalFileBackend(rootDir.resolve(".gyro/state")),
+            GyroCore.getFileBackend(GyroCore.STATE_BACKEND),
             null,
             loadFiles);
 
