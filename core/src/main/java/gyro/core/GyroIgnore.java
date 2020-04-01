@@ -37,7 +37,7 @@ public class GyroIgnore {
                 ignorePatterns = Files.exists(gyroIgnorePath) ? Files.lines(gyroIgnorePath)
                     .filter(o -> !o.startsWith("#"))
                     .filter(o -> !ObjectUtils.isBlank(o))
-                    .map(GyroIgnore::processedPattern)
+                    //.map(GyroIgnore::processedPattern)
                     .collect(Collectors.toList()) : Collections.emptyList();
             } catch (IOException ex) {
                 ignorePatterns = Collections.emptyList();
@@ -57,50 +57,93 @@ public class GyroIgnore {
     }
 
     private static String processedPattern(String pattern) {
-        pattern = pattern.replaceAll("\\.", "\\.");
-
-        if (pattern.matches(".*/(\\*)\\1+")) { // pattern --> /**, /***, /**** => /**
+        if (pattern.matches(".*/(\\*)\\1+")) {
+            // Replace stings ending with /**, /***, /**** and so on with /**
+            // Ex. dir/*** => dir/**, dir/**** => dir/**
             pattern = pattern.replaceAll("(\\*)\\1+$", "**");
-        } else if (pattern.matches(".*[^/](\\*)\\1+")) { // pattern --> a**, a***, a/b**, a/b*** => a*, a*, a/b*, a/b*
+        } else if (pattern.matches(".*[^/](\\*)\\1+")) {
+            // Replace stings ending with **, ***, **** and so on with *
+            // Ex. dir** => dir*, dir/file** => dir/file*, dir/** => dir/**
             pattern = pattern.replaceAll("(\\*)\\1+$", "*");
         }
 
         if (pattern.endsWith("*") && !pattern.endsWith("/**")) {
+            // Escape dangling * with [^/]* so the match is all file at the directory level and not below
+            // Ex.
+            //      dir
+            //       -> file1.gyro
+            //       -> file2.gyro
+            //       -> sub
+            //          -> file3.gyro
+            //          -> file4.gyro
+            // dir/* matches files "file1.gyro" and "file2.gyro" but not files under the directory "sub" which is also under "dir"
             pattern = pattern.substring(0, pattern.lastIndexOf("*")) + "[^/]*";
         }
 
         if (pattern.matches("(\\*)\\1+/")) {
-            // anything post **/
+            // Replace prepending multiple * with a single *
+            // Ex. **/dir => */dir, ***/dir => */dir
             pattern = pattern.replaceFirst("(\\*)\\1+/", "*/");
         }
 
         if (pattern.endsWith("/**")) {
-            // anything under the pattern before /**
+            // Replace string ending with /** with /*
+            // Ex.
+            //      dir
+            //       -> file1.gyro
+            //       -> file2.gyro
+            //       -> sub
+            //          -> file3.gyro
+            //          -> file4.gyro
+            // dir/* matches all 4 files
             pattern = pattern.substring(0, pattern.lastIndexOf("/**")) + "/*";
         }
 
-        if (pattern.contains("/**/")) {
-            // anything before and after /**/
-            pattern = pattern.replaceAll("/\\*\\*/", "/*/");
+        if (pattern.contains("/*/")) {
+            // Replace /**/ with /*/
+            // Escape dangling /** with /[^/]*/ so the match is a single directory level and not below
+            // Ex.
+            //      dir
+            //       -> file1.gyro
+            //       -> file2.gyro
+            //       -> sub
+            //          -> file3.gyro
+            //          -> file4.gyro
+            //          -> deepdir
+            //              -> file5.gyro
+            //       -> sub2
+            //          -> sub3
+            //              -> deepdir
+            //                  -> file6.gyro
+            // dir/*/deepdir/**
+            //         -> matches file "file5.gyro" as the path is dir/sub/deepdir/file5.gyro
+            //         -> does not match file "file6.gyro" as the path is dir/sub2/sub3/deepdir/file5.gyro
+            pattern = pattern.replaceAll("/\\*/", "/[^/]*/");
         }
 
         if (pattern.contains(".")) {
+            // Escape dangling .
             pattern = pattern.replaceAll("\\.", "\\\\.");
         }
 
-        if (pattern.contains("**")) { // replace redundant * with single *
+        if (pattern.contains("**")) {
+            // Replace redundant * with single *
+            // Ex. dir***/*****/***/sub****/ => dir*/*/*/sub*/
             pattern = pattern.replaceAll("(\\*)\\1+", "*");
         }
 
-        if (pattern.contains("*")) { // escape * so that it is a valid regex
+        if (pattern.contains("*")) {
+            // Escape * so that it is a valid regex character
             pattern = pattern.replaceAll("\\*", ".*");
         }
 
-        if (pattern.contains("].*")) { // revert an exception case of escaping *
+        if (pattern.contains("].*")) {
+            // Revert an exception case of escaping *
             pattern = pattern.replaceAll("].\\*", "]*");
         }
 
-        if (!pattern.endsWith("*")) { // add regex end symbol
+        if (!pattern.endsWith("*")) {
+            // Add regex end symbol
             pattern = pattern + "$";
         }
 
@@ -120,28 +163,38 @@ public class GyroIgnore {
         String filePath,
         Set<String> filePathExceptionList,
         boolean isStateFile) {
-
+        String processedPattern = processedPattern(pattern);
+        System.out.println(String.format(
+            "\n -->*** pattern - [%s] - transformed - [%s] - string - [%s] - flag - [%s]",
+            pattern,
+            processedPattern,
+            filePath,
+            Pattern.matches(processedPattern, filePath) && !filePathExceptionList.contains(filePath)));
         // Remove the portion of the ptah that resembles it is a state file
         // The patterns mentioned in the gyroignore file dont take into state file paths
         // If the configured gyro file is to be ignore then so will its state file
-        filePath = isStateFile ? filePath.replace("/.gyro/state", "/") : filePath;
+        if (pattern.endsWith("???")) {
+            filePath = isStateFile ? filePath.replace("/.gyro/state", "/") : filePath;
 
-        try {
-            // For patterns starting with a `!` character resembles a special case
-            // If the pattern matches the file path, then the file needs to be included
-            if (pattern.startsWith("!")) {
-                pattern = pattern.replaceFirst("!", "");
-                if (Pattern.matches(pattern, filePath)) {
-                    filePathExceptionList.add(filePath);
+            try {
+                // For patterns starting with a `!` character resembles a special case
+                // If the pattern matches the file path, then the file needs to be included
+                if (pattern.startsWith("!")) {
+                    pattern = pattern.replaceFirst("!", "");
+                    if (Pattern.matches(pattern, filePath)) {
+                        filePathExceptionList.add(filePath);
+                    }
+
+                    return false;
+                } else {
+                    return Pattern.matches(pattern, filePath) && !filePathExceptionList.contains(filePath);
                 }
-
+            } catch (PatternSyntaxException ex) {
+                //ignore a bad pattern
                 return false;
-            } else {
-                return Pattern.matches(pattern, filePath) && !filePathExceptionList.contains(filePath);
             }
-        } catch (PatternSyntaxException ex) {
-            //ignore a bad pattern
-            return false;
         }
+
+        return false;
     }
 }
