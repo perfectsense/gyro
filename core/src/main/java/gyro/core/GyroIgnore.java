@@ -37,7 +37,7 @@ public class GyroIgnore {
                 ignorePatterns = Files.exists(gyroIgnorePath) ? Files.lines(gyroIgnorePath)
                     .filter(o -> !o.startsWith("#"))
                     .filter(o -> !ObjectUtils.isBlank(o))
-                    //.map(GyroIgnore::processedPattern)
+                    .map(GyroIgnore::processedPattern)
                     .collect(Collectors.toList()) : Collections.emptyList();
             } catch (IOException ex) {
                 ignorePatterns = Collections.emptyList();
@@ -163,17 +163,9 @@ public class GyroIgnore {
         String filePath,
         Set<String> filePathExceptionList,
         boolean isStateFile) {
-        String processedPattern = processedPattern(pattern);
-        System.out.println(String.format(
-            "\n -->*** pattern - [%s] - transformed - [%s] - string - [%s] - flag - [%s]",
-            pattern,
-            processedPattern,
-            filePath,
-            Pattern.matches(processedPattern, filePath) && !filePathExceptionList.contains(filePath)));
         // Remove the portion of the ptah that resembles it is a state file
         // The patterns mentioned in the gyroignore file dont take into state file paths
         // If the configured gyro file is to be ignore then so will its state file
-        if (pattern.endsWith("???")) {
             filePath = isStateFile ? filePath.replace("/.gyro/state", "/") : filePath;
 
             try {
@@ -193,8 +185,5 @@ public class GyroIgnore {
                 //ignore a bad pattern
                 return false;
             }
-        }
-
-        return false;
     }
 }
