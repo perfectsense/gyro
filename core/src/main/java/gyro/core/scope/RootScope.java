@@ -39,6 +39,7 @@ import gyro.core.GyroInputStream;
 import gyro.core.GyroOutputStream;
 import gyro.core.LogDirectiveProcessor;
 import gyro.core.PrintDirectiveProcessor;
+import gyro.core.RemoteStateBackend;
 import gyro.core.audit.AuditorDirectiveProcessor;
 import gyro.core.audit.AuditorPlugin;
 import gyro.core.audit.MetadataDirectiveProcessor;
@@ -102,7 +103,7 @@ public class RootScope extends FileScope {
     private final Converter converter;
     private final NodeEvaluator evaluator;
     private final FileBackend backend;
-    private final FileBackend stateBackend;
+    private final RemoteStateBackend stateBackend;
     private final RootScope current;
     private final Set<String> loadFiles;
     private final Map<String, Resource> resources = new LinkedHashMap<>();
@@ -117,7 +118,7 @@ public class RootScope extends FileScope {
     public RootScope(
         String file,
         FileBackend backend,
-        FileBackend stateBackend,
+        RemoteStateBackend stateBackend,
         RootScope current,
         Set<String> loadFiles) {
         this(file, backend, stateBackend, current, loadFiles, null);
@@ -126,7 +127,7 @@ public class RootScope extends FileScope {
     public RootScope(
         String file,
         FileBackend backend,
-        FileBackend stateBackend,
+        RemoteStateBackend stateBackend,
         RootScope current,
         Set<String> loadFiles,
         Boolean inWorkflow) {
@@ -247,7 +248,7 @@ public class RootScope extends FileScope {
         return backend;
     }
 
-    public FileBackend getStateBackend() {
+    public RemoteStateBackend getStateBackend() {
         return stateBackend;
     }
 
@@ -273,41 +274,58 @@ public class RootScope extends FileScope {
 
     public Stream<String> list() {
         try {
-            return getFileBackend(null).list();
+            if (stateBackend != null) {
+                return stateBackend.getRemoteBackend().list();
+            } else {
+                return backend.list();
+            }
 
         } catch (Exception error) {
             throw new GyroException(
-                String.format("Can't list files in @|bold %s|@!", backend),
+                String.format(
+                    "Can't list files in @|bold %s|@!",
+                    stateBackend != null ? stateBackend.getRemoteBackend() : backend),
                 error);
         }
     }
 
     public GyroInputStream openInput(String file) {
-        return new GyroInputStream(getFileBackend(file), file);
+        if (useStateBackend(file)) {
+            return new GyroInputStream(stateBackend.getRemoteBackend(), file);
+        }
+
+        return new GyroInputStream(backend, file);
     }
 
     public GyroOutputStream openOutput(String file) {
-        return new GyroOutputStream(getFileBackend(file), file);
+        if (useStateBackend(file)) {
+            return new GyroOutputStream(stateBackend.getLocalBackend(), file);
+        }
+
+        return new GyroOutputStream(backend, file);
     }
 
     public void delete(String file) {
         try {
-            getFileBackend(file).delete(file);
+            if (useStateBackend(file)) {
+                stateBackend.getRemoteBackend().delete(file);
+                stateBackend.getLocalBackend().delete(file);
+            } else {
+                backend.delete(file);
+            }
 
         } catch (Exception error) {
             throw new GyroException(
-                String.format("Can't delete @|bold %s|@ in @|bold %s|@!", file, backend),
+                String.format(
+                    "Can't delete @|bold %s|@ in @|bold %s|@!",
+                    file,
+                    useStateBackend(file) ? stateBackend.getRemoteBackend() : backend),
                 error);
         }
     }
 
-    private FileBackend getFileBackend(String file) {
-        if (stateBackend != null
-            && (file == null || (file.endsWith(".gyro") && !file.contains(GyroCore.INIT_FILE)))) {
-            return stateBackend;
-        }
-
-        return backend;
+    private boolean useStateBackend(String file) {
+        return stateBackend != null && file.endsWith(".gyro") && !file.contains(GyroCore.INIT_FILE);
     }
 
     public Object convertValue(Type returnType, Object object) {
