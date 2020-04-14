@@ -69,7 +69,7 @@ public class State {
         this.root = new RootScope(
             current.getFile(),
             current.getBackend(),
-            current.getStateBackend(),
+            current.getRemoteStateBackend(),
             null,
             current.getLoadFiles());
 

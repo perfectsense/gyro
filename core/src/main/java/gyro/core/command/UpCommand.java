@@ -70,7 +70,7 @@ public class UpCommand extends AbstractConfigCommand {
                 current = new RootScope(
                     current.getFile(),
                     current.getBackend(),
-                    current.getStateBackend(),
+                    current.getRemoteStateBackend(),
                     null,
                     current.getLoadFiles());
 
@@ -100,14 +100,14 @@ public class UpCommand extends AbstractConfigCommand {
     }
 
     private void pushToRemote(RootScope current, GyroUI ui) {
-        RemoteStateBackend stateBackend = current.getStateBackend();
-        if (stateBackend != null && !stateBackend.isLocalBackendEmpty()) {
+        RemoteStateBackend remoteStateBackend = current.getRemoteStateBackend();
+        if (remoteStateBackend != null && !remoteStateBackend.isLocalBackendEmpty()) {
             ui.write(ui.isVerbose()
                 ? "@|bold,white Pushing state files to remote backend...|@"
                 : "\n@|bold,white Pushing state files to remote backend...|@");
 
             try {
-                stateBackend.copyToRemote(true, false);
+                remoteStateBackend.copyToRemote(true, false);
                 ui.write(ui.isVerbose() ? "\n@|bold,green OK|@\n\n" : "@|bold,green  OK|@\n");
 
             } catch (Exception ex) {

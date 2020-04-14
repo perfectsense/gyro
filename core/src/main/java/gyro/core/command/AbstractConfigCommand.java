@@ -102,24 +102,24 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             }
         }
 
-        RemoteStateBackend stateBackend = Optional.ofNullable(GyroCore.getFileBackend(GyroCore.STATE_BACKEND))
+        RemoteStateBackend remoteStateBackend = Optional.ofNullable(GyroCore.getFileBackend(GyroCore.STATE_BACKEND))
             .map(sb -> new RemoteStateBackend(sb, new LocalFileBackend(rootDir.resolve(".gyro/.temp-state"))))
             .orElse(null);
 
-        if (stateBackend != null && !stateBackend.isLocalBackendEmpty()) {
+        if (remoteStateBackend != null && !remoteStateBackend.isLocalBackendEmpty()) {
             if (!GyroCore.ui().readBoolean(
                 Boolean.FALSE,
                 "\n@|bold,red Temporary state files were detected, indicating a past failure pushing to a remote backend.\nWould you like to attempt to push the files to your remote backend?|@")) {
-                stateBackend.deleteLocalBackend();
+                remoteStateBackend.deleteLocalBackend();
             } else {
-                stateBackend.copyToRemote(true, true);
+                remoteStateBackend.copyToRemote(true, true);
             }
         }
 
         RootScope current = new RootScope(
             "../../" + GyroCore.INIT_FILE,
             new LocalFileBackend(rootDir.resolve(".gyro/state")),
-            stateBackend,
+            remoteStateBackend,
             null,
             loadFiles);
 

@@ -75,7 +75,7 @@ public class VirtualResourceVisitor extends ResourceVisitor {
         RootScope virtualRoot = new RootScope(
             root.getFile(),
             root.getBackend(),
-            root.getStateBackend(),
+            root.getRemoteStateBackend(),
             new VirtualRootScope(root.getCurrent(), name),
             root.getLoadFiles());
 

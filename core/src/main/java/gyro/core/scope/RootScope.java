@@ -103,7 +103,7 @@ public class RootScope extends FileScope {
     private final Converter converter;
     private final NodeEvaluator evaluator;
     private final FileBackend backend;
-    private final RemoteStateBackend stateBackend;
+    private final RemoteStateBackend remoteStateBackend;
     private final RootScope current;
     private final Set<String> loadFiles;
     private final Map<String, Resource> resources = new LinkedHashMap<>();
@@ -118,16 +118,16 @@ public class RootScope extends FileScope {
     public RootScope(
         String file,
         FileBackend backend,
-        RemoteStateBackend stateBackend,
+        RemoteStateBackend remoteStateBackend,
         RootScope current,
         Set<String> loadFiles) {
-        this(file, backend, stateBackend, current, loadFiles, null);
+        this(file, backend, remoteStateBackend, current, loadFiles, null);
     }
 
     public RootScope(
         String file,
         FileBackend backend,
-        RemoteStateBackend stateBackend,
+        RemoteStateBackend remoteStateBackend,
         RootScope current,
         Set<String> loadFiles,
         Boolean inWorkflow) {
@@ -144,7 +144,7 @@ public class RootScope extends FileScope {
 
         this.evaluator = new NodeEvaluator();
         this.backend = backend;
-        this.stateBackend = stateBackend;
+        this.remoteStateBackend = remoteStateBackend;
         this.current = current;
         this.loadFiles = loadFiles != null ? ImmutableSet.copyOf(loadFiles) : ImmutableSet.of();
         this.inWorkflow = inWorkflow;
@@ -220,7 +220,7 @@ public class RootScope extends FileScope {
         RootScope scope = new RootScope(
             rootScope.getFile(),
             rootScope.getBackend(),
-            rootScope.getStateBackend(),
+            rootScope.getRemoteStateBackend(),
             current,
             rootScope.getLoadFiles(),
             inWorkflow);
@@ -248,8 +248,8 @@ public class RootScope extends FileScope {
         return backend;
     }
 
-    public RemoteStateBackend getStateBackend() {
-        return stateBackend;
+    public RemoteStateBackend getRemoteStateBackend() {
+        return remoteStateBackend;
     }
 
     public RootScope getCurrent() {
@@ -274,8 +274,8 @@ public class RootScope extends FileScope {
 
     public Stream<String> list() {
         try {
-            if (stateBackend != null) {
-                return stateBackend.getRemoteBackend().list();
+            if (remoteStateBackend != null) {
+                return remoteStateBackend.getRemoteBackend().list();
             } else {
                 return backend.list();
             }
@@ -284,14 +284,14 @@ public class RootScope extends FileScope {
             throw new GyroException(
                 String.format(
                     "Can't list files in @|bold %s|@!",
-                    stateBackend != null ? stateBackend.getRemoteBackend() : backend),
+                    remoteStateBackend != null ? remoteStateBackend.getRemoteBackend() : backend),
                 error);
         }
     }
 
     public GyroInputStream openInput(String file) {
         if (useStateBackend(file)) {
-            return new GyroInputStream(stateBackend.getRemoteBackend(), file);
+            return new GyroInputStream(remoteStateBackend.getRemoteBackend(), file);
         }
 
         return new GyroInputStream(backend, file);
@@ -299,7 +299,7 @@ public class RootScope extends FileScope {
 
     public GyroOutputStream openOutput(String file) {
         if (useStateBackend(file)) {
-            return new GyroOutputStream(stateBackend.getLocalBackend(), file);
+            return new GyroOutputStream(remoteStateBackend.getLocalBackend(), file);
         }
 
         return new GyroOutputStream(backend, file);
@@ -308,8 +308,8 @@ public class RootScope extends FileScope {
     public void delete(String file) {
         try {
             if (useStateBackend(file)) {
-                stateBackend.getRemoteBackend().delete(file);
-                stateBackend.getLocalBackend().delete(file);
+                remoteStateBackend.getRemoteBackend().delete(file);
+                remoteStateBackend.getLocalBackend().delete(file);
             } else {
                 backend.delete(file);
             }
@@ -319,13 +319,13 @@ public class RootScope extends FileScope {
                 String.format(
                     "Can't delete @|bold %s|@ in @|bold %s|@!",
                     file,
-                    useStateBackend(file) ? stateBackend.getRemoteBackend() : backend),
+                    useStateBackend(file) ? remoteStateBackend.getRemoteBackend() : backend),
                 error);
         }
     }
 
     private boolean useStateBackend(String file) {
-        return stateBackend != null && file.endsWith(".gyro") && !file.contains(GyroCore.INIT_FILE);
+        return remoteStateBackend != null && file.endsWith(".gyro") && !file.contains(GyroCore.INIT_FILE);
     }
 
     public Object convertValue(Type returnType, Object object) {
