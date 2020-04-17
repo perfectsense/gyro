@@ -119,6 +119,8 @@ public class Workflow {
         Map<String, Object> execution = getExecution(root.getCurrent());
         Stage stage = null;
 
+        root.backup();
+
         if (execution != null) {
             ((List<String>) execution.get("executedStages")).stream()
                 .map(this::getStage)
@@ -137,7 +139,6 @@ public class Workflow {
                 ui.write("\n");
             }
 
-            RootScope pendingRoot = RootScope.copy(root, true, true, false);
             int indexOfCurrentStage = executedStages.indexOf(stage);
 
             if (indexOfCurrentStage > -1) {
@@ -151,15 +152,17 @@ public class Workflow {
                 executedStages.add(stage);
             }
 
+            root.restore();
+
             for (Stage executedStage : executedStages) {
-                executedStage.apply(ui, state, currentResource, pendingResource, pendingRoot);
+                executedStage.apply(ui, state, currentResource, pendingResource, root);
             }
 
             ui.indent();
 
             try {
-                stage.execute(ui, state, currentResource, pendingRoot);
-                stage = stage.prompt(ui, state, pendingRoot.getCurrent());
+                stage.execute(ui, state, currentResource, root);
+                stage = stage.prompt(ui, state, root.getCurrent());
             } finally {
                 ui.unindent();
             }

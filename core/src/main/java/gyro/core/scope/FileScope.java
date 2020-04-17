@@ -20,10 +20,12 @@ import java.util.AbstractCollection;
 import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
 import com.google.common.base.Preconditions;
+import gyro.core.GyroException;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.Resource;
 
@@ -31,27 +33,12 @@ public class FileScope extends Scope {
 
     private final String file;
 
+    private Map<String, Object> backup;
+
     public FileScope(RootScope parent, String file) {
         super(parent);
 
         this.file = Preconditions.checkNotNull(file);
-    }
-
-    public static FileScope copy(RootScope parent, FileScope fileScope, boolean workflowResourceOnly) {
-        FileScope scope = new FileScope(parent, fileScope.getFile());
-
-        if (workflowResourceOnly) {
-            for (Map.Entry<String, Object> entry : fileScope.entrySet()) {
-                Object value = entry.getValue();
-
-                if (value instanceof Resource && DiffableInternals.getModifiedIn((Resource) value) != null) {
-                    scope.put(entry.getKey(), value);
-                }
-            }
-        } else {
-            scope.putAll(fileScope);
-        }
-        return scope;
     }
 
     public String getFile() {
@@ -159,5 +146,33 @@ public class FileScope extends Scope {
                 return FileScope.super.values().size();
             }
         };
+    }
+
+    FileScope copyWorkflowOnlyFileScope(RootScope parent) {
+        FileScope scope = new FileScope(parent, getFile());
+
+        for (Map.Entry<String, Object> entry : entrySet()) {
+            Object value = entry.getValue();
+
+            if (value instanceof Resource && DiffableInternals.getModifiedIn((Resource) value) != null) {
+                scope.put(entry.getKey(), value);
+            }
+        }
+        return scope;
+    }
+
+    void backupFileScope() {
+        if (backup != null) {
+            new GyroException("Existing backup found!");
+        }
+        backup = new LinkedHashMap<>(this);
+    }
+
+    void restoreFileScope() {
+        if (backup == null) {
+            new GyroException("No backup found!");
+        }
+        clear();
+        putAll(backup);
     }
 }

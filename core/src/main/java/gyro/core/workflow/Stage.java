@@ -109,7 +109,7 @@ public class Stage {
         State state,
         Resource currentResource,
         RootScope pendingRootScope) {
-        RootScope newPendingRootScope = RootScope.copy(pendingRootScope, true, false, true);
+        RootScope newPendingRootScope = pendingRootScope.copyWorkflowOnlyRootScope();
         RootScope newCurrentRootScope = newPendingRootScope.getCurrent();
 
         Diff diff = new Diff(

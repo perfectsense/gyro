@@ -188,38 +188,6 @@ public class RootScope extends FileScope {
         put("ENV", System.getenv());
     }
 
-    public static RootScope copy(
-        RootScope rootScope,
-        Boolean inWorkflow,
-        boolean evaluateCurrent,
-        boolean workflowResourceOnly) {
-        RootScope current = rootScope.getCurrent();
-
-        if (current != null) {
-            current = copy(current, inWorkflow, evaluateCurrent, workflowResourceOnly);
-        }
-        RootScope scope = new RootScope(
-            rootScope.getFile(),
-            rootScope.getBackend(),
-            current,
-            rootScope.getLoadFiles(),
-            inWorkflow);
-
-        if (current == null && evaluateCurrent) {
-            scope.evaluate();
-        } else {
-            scope.load();
-            scope.putAll(rootScope);
-            scope.getFileScopes()
-                .addAll(rootScope.getFileScopes()
-                    .stream()
-                    .map(e -> FileScope.copy(scope, e, workflowResourceOnly))
-                    .collect(Collectors.toList()));
-            scope.processRootSettings();
-        }
-        return scope;
-    }
-
     public NodeEvaluator getEvaluator() {
         return evaluator;
     }
@@ -408,6 +376,50 @@ public class RootScope extends FileScope {
 
         if (!errors.isEmpty()) {
             throw new ValidationErrorException(errors);
+        }
+    }
+
+    public RootScope copyWorkflowOnlyRootScope() {
+        RootScope current = getCurrent();
+
+        if (current != null) {
+            current = current.copyWorkflowOnlyRootScope();
+        }
+        RootScope rootScope = new RootScope(getFile(), getBackend(), current, getLoadFiles(), true);
+
+        rootScope.load();
+        rootScope.putAll(this);
+        rootScope.getFileScopes()
+            .addAll(getFileScopes()
+                .stream()
+                .map(e -> e.copyWorkflowOnlyFileScope(rootScope))
+                .collect(Collectors.toList()));
+        rootScope.processRootSettings();
+        return rootScope;
+    }
+
+    public void backup() {
+        RootScope current = getCurrent();
+
+        if (current != null) {
+            current.backup();
+        }
+
+        for (FileScope fileScope : getFileScopes()) {
+            fileScope.backupFileScope();
+        }
+    }
+
+    public void restore() {
+        RootScope current = getCurrent();
+
+        if (current != null) {
+            current.getFileScopes().forEach(FileScope::clear);
+            current.evaluate();
+        }
+
+        for (FileScope fileScope : getFileScopes()) {
+            fileScope.restoreFileScope();
         }
     }
 
