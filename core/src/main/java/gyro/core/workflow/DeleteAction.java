@@ -40,8 +40,9 @@ public class DeleteAction extends Action {
     @Override
     public void execute(GyroUI ui, State state, Scope scope) {
         RootScope pending = scope.getRootScope();
-        NodeEvaluator evaluator = pending.getEvaluator();
-        Object resource = evaluator.visit(this.resource, pending);
+        RootScope current = pending.getCurrent();
+        NodeEvaluator evaluator = current.getEvaluator();
+        Object resource = evaluator.visit(this.resource, current);
 
         if (resource == null) {
             throw new GyroException("Can't delete a null resource!");
