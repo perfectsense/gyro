@@ -19,8 +19,6 @@ package gyro.core;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
 
 import com.psddev.dari.util.Lazy;
 import com.psddev.dari.util.ThreadLocalStack;
@@ -28,13 +26,11 @@ import org.apache.commons.lang3.StringUtils;
 
 public class GyroCore {
 
+    private static FileBackend stateBackend;
+
     public static final String INIT_FILE = ".gyro/init.gyro";
 
-    public static final String STATE_BACKEND = "gyro-state";
-
     private static final ThreadLocalStack<GyroUI> UI = new ThreadLocalStack<>();
-
-    private static final Map<String, FileBackend> FILE_BACKEND_MAP = new HashMap<>();
 
     private static final Lazy<Path> HOME_DIRECTORY = new Lazy<Path>() {
 
@@ -76,12 +72,12 @@ public class GyroCore {
         return UI.pop();
     }
 
-    public static void putFileBackends(Map<String, FileBackend> fileBackends) {
-        fileBackends.forEach(FILE_BACKEND_MAP::put);
+    public static FileBackend getStateBackend() {
+        return stateBackend;
     }
 
-    public static FileBackend getFileBackend(String key) {
-        return FILE_BACKEND_MAP.get(key);
+    public static void setStateBackend(FileBackend stateBackend) {
+        GyroCore.stateBackend = stateBackend;
     }
 
     public static Path getHomeDirectory() {

@@ -52,7 +52,7 @@ public class StateCopyCommand implements GyroCommand {
             return;
         }
 
-        FileBackend remoteBackend = GyroCore.getFileBackend(GyroCore.STATE_BACKEND);
+        FileBackend remoteBackend = GyroCore.getStateBackend();
 
         if (remoteBackend == null) {
             throw new GyroException(

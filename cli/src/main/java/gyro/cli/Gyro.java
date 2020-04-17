@@ -32,7 +32,7 @@ import gyro.core.Abort;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.LocalFileBackend;
-import gyro.core.backend.FileBackendsSettings;
+import gyro.core.backend.StateBackendSettings;
 import gyro.core.command.AbstractCommand;
 import gyro.core.command.GyroCommand;
 import gyro.core.command.GyroCommandGroup;
@@ -73,7 +73,7 @@ public class Gyro {
                 .map(d -> new RootScope(GyroCore.INIT_FILE, new LocalFileBackend(d), null, null))
                 .ifPresent(r -> {
                     r.load();
-                    GyroCore.putFileBackends(r.getSettings(FileBackendsSettings.class).getFileBackends());
+                    GyroCore.setStateBackend(r.getSettings(StateBackendSettings.class).getStateBackend());
                 });
 
             gyro.init(Arrays.asList(arguments));
