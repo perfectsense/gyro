@@ -16,15 +16,7 @@
 
 package gyro.core;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.LinkedHashSet;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import com.psddev.dari.util.IoUtils;
-import gyro.util.Bug;
+import gyro.core.command.StateCopyCommand;
 
 public class RemoteStateBackend {
 
@@ -45,99 +37,24 @@ public class RemoteStateBackend {
     }
 
     public boolean isLocalBackendEmpty() {
-        return list(localBackend).noneMatch(f -> f.endsWith(".gyro"));
+        try {
+            return localBackend.list().noneMatch(f -> f.endsWith(".gyro"));
+        } catch (Exception error) {
+            throw new GyroException(
+                String.format("Can't list files in @|bold %s|@!", localBackend),
+                error);
+        }
     }
 
     public void deleteLocalBackend() {
         localBackend.deleteDirectory();
     }
 
-    public boolean copyToRemote(boolean deleteInput, boolean displayMessaging) {
-        boolean copyBackends = copyBackends(localBackend, remoteBackend, deleteInput, displayMessaging);
+    public void copyToRemote(boolean deleteInput, boolean displayMessaging) {
+        StateCopyCommand.copyBackends(localBackend, remoteBackend, deleteInput, displayMessaging);
 
         if (deleteInput) {
             deleteLocalBackend();
-        }
-
-        return copyBackends;
-    }
-
-    public boolean copyToLocal(boolean deleteInput, boolean displayMessaging) {
-        boolean copyBackends = copyBackends(remoteBackend, localBackend, deleteInput, displayMessaging);
-
-        if (deleteInput) {
-            deleteLocalBackend();
-        }
-
-        return copyBackends;
-    }
-
-    private static boolean copyBackends(
-        FileBackend inputBackend,
-        FileBackend outputBackend,
-        boolean deleteInput,
-        boolean displayMessaging) {
-        GyroUI ui = GyroCore.ui();
-        LinkedHashSet<String> files = list(inputBackend)
-            .filter(f -> f.endsWith(".gyro") && !f.contains(GyroCore.INIT_FILE))
-            .collect(Collectors.toCollection(LinkedHashSet::new));
-
-        if (files.isEmpty()) {
-            if (displayMessaging) {
-                ui.write("\n@|bold,green No state files found.|@\n");
-            }
-            return false;
-        }
-
-        if (displayMessaging) {
-            files.forEach(file -> ui.write("@|green + Copy file: %s|@\n", file));
-
-            if (!ui.readBoolean(
-                Boolean.FALSE,
-                "\nAre you sure you want to copy all files? @|red This will overwrite existing files!|@")) {
-                return false;
-            }
-        }
-
-        files.forEach(file -> {
-            if (displayMessaging) {
-                ui.write("@|magenta + Copying file: %s|@\n", file);
-            }
-
-            try (OutputStream out = new GyroOutputStream(outputBackend, file)) {
-                InputStream in = new GyroInputStream(inputBackend, file);
-                IoUtils.copy(in, out);
-            } catch (IOException error) {
-                throw new Bug(error);
-            }
-
-            if (deleteInput) {
-                delete(inputBackend, file);
-            }
-        });
-
-        return true;
-    }
-
-    private static void delete(FileBackend fileBackend, String file) {
-        try {
-            fileBackend.delete(file);
-
-        } catch (Exception error) {
-            throw new GyroException(
-                String.format("Can't delete @|bold %s|@ in @|bold %s|@!", file, fileBackend),
-                error);
-        }
-    }
-
-    private static Stream<String> list(FileBackend fileBackend) {
-        try {
-            return fileBackend.list();
-
-        } catch (Exception error) {
-            throw new GyroException(
-                String.format("Can't list files in @|bold %s|@!", fileBackend),
-                error);
         }
     }
 }

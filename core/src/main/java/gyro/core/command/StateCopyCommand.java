@@ -16,47 +16,47 @@
 
 package gyro.core.command;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Path;
+import java.util.LinkedHashSet;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import com.psddev.dari.util.IoUtils;
 import gyro.core.FileBackend;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
+import gyro.core.GyroInputStream;
+import gyro.core.GyroOutputStream;
+import gyro.core.GyroUI;
 import gyro.core.LocalFileBackend;
-import gyro.core.RemoteStateBackend;
+import gyro.util.Bug;
 import io.airlift.airline.Command;
-import io.airlift.airline.Help;
 import io.airlift.airline.Option;
-import io.airlift.airline.model.MetadataLoader;
 
-@Command(name = "copy", description = "Copy state files between local and remote backend.")
+@Command(name = "copy", description = "Copy state files between named backends. Use 'local' to copy to/from your local directory. Use 'default' to copy to/from an unnamed backend in your 'init.gyro'.")
 public class StateCopyCommand implements GyroCommand {
 
-    @Option(name = "--to-local", description = "Pull state files from a remote backend and copy to local backend")
-    private boolean toLocal;
+    @Option(name = "--to", description = "Specifies the name of the backend to push state files to", required = true)
+    private String to;
 
-    @Option(name = "--to-remote", description = "Push state files from local backend and copy to a remote backend")
-    private boolean toRemote;
+    @Option(name = "--from", description = "Specifies the name of the backend to pull state files from", required = true)
+    private String from;
 
-    public boolean getToLocal() {
-        return toLocal;
+    public String getTo() {
+        return to;
     }
 
-    public boolean getToRemote() {
-        return toRemote;
+    public String getFrom() {
+        return from;
     }
 
     @Override
     public void execute() throws Exception {
-        if ((getToLocal() && getToRemote()) || (!getToLocal() && !getToRemote())) {
-            Help.help(MetadataLoader.loadCommand(StateCopyCommand.class));
-            return;
-        }
-
-        FileBackend remoteBackend = GyroCore.getStateBackend();
-
-        if (remoteBackend == null) {
-            throw new GyroException(
-                "Could not find a 'gyro-state' file backend in the 'init.gyro'! Add a file backend with the name 'gyro-state' to copy state files to/from.");
+        if (getTo().equals(getFrom())) {
+            throw new GyroException(String.format("Cannot specify '%s' backend for both to and from!", getTo()));
         }
 
         Path rootDir = GyroCore.getRootDirectory();
@@ -66,20 +66,105 @@ public class StateCopyCommand implements GyroCommand {
                 "Not a gyro project directory, use 'gyro init <plugins>...' to create one. See 'gyro help init' for detailed usage.");
         }
 
-        LocalFileBackend localStateBackend = new LocalFileBackend(rootDir.resolve(".gyro/state"));
-        RemoteStateBackend remoteStateBackend = new RemoteStateBackend(remoteBackend, localStateBackend);
-        boolean copiedFiles;
+        FileBackend toBackend;
+        FileBackend fromBackend;
 
-        if (getToLocal()) {
-            GyroCore.ui().write("\n@|bold,white Looking for remote state files...|@\n\n");
-            copiedFiles = remoteStateBackend.copyToLocal(false, true);
+        if ("local".equals(getTo())) {
+            toBackend = new LocalFileBackend(rootDir.resolve(".gyro/state"));
         } else {
-            GyroCore.ui().write("\n@|bold,white Looking for local state files...|@\n\n");
-            copiedFiles = remoteStateBackend.copyToRemote(false, true);
+            toBackend = GyroCore.getStateBackend(getTo());
         }
 
+        if ("local".equals(getFrom())) {
+            fromBackend = new LocalFileBackend(rootDir.resolve(".gyro/state"));
+        } else {
+            fromBackend = GyroCore.getStateBackend(getFrom());
+        }
+
+        if (toBackend == null || fromBackend == null) {
+            throw new GyroException(String.format(
+                "Could not find specified state-backend '%s' in '.gyro/init.gyro'!",
+                toBackend != null ? getFrom() : getTo()));
+        }
+
+        boolean copiedFiles;
+
+        GyroCore.ui().write("\n@|bold,white Looking for state files...|@\n\n");
+        copiedFiles = copyBackends(fromBackend, toBackend, false, true);
+
         if (copiedFiles) {
-            GyroCore.ui().write("\n@|bold,green OK|@\n");
+            GyroCore.ui().write(String.format(
+                "\n@|bold,green State files copied.|@ You may now delete files from '%s' if they are no longer needed.\n",
+                getFrom()));
+        }
+    }
+
+    public static boolean copyBackends(
+        FileBackend inputBackend,
+        FileBackend outputBackend,
+        boolean deleteInput,
+        boolean displayMessaging) {
+        GyroUI ui = GyroCore.ui();
+        LinkedHashSet<String> files = list(inputBackend)
+            .filter(f -> f.endsWith(".gyro") && !f.contains(GyroCore.INIT_FILE))
+            .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        if (files.isEmpty()) {
+            if (displayMessaging) {
+                ui.write("\n@|bold,green No state files found.|@\n");
+            }
+            return false;
+        }
+
+        if (displayMessaging) {
+            files.forEach(file -> ui.write("@|green + Copy file: %s|@\n", file));
+
+            if (!ui.readBoolean(
+                Boolean.FALSE,
+                "\nAre you sure you want to copy all files? @|red This will overwrite existing files!|@")) {
+                return false;
+            }
+        }
+
+        files.forEach(file -> {
+            if (displayMessaging) {
+                ui.write("@|magenta + Copying file: %s|@\n", file);
+            }
+
+            try (OutputStream out = new GyroOutputStream(outputBackend, file)) {
+                InputStream in = new GyroInputStream(inputBackend, file);
+                IoUtils.copy(in, out);
+            } catch (IOException error) {
+                throw new Bug(error);
+            }
+
+            if (deleteInput) {
+                delete(inputBackend, file);
+            }
+        });
+
+        return true;
+    }
+
+    private static void delete(FileBackend fileBackend, String file) {
+        try {
+            fileBackend.delete(file);
+
+        } catch (Exception error) {
+            throw new GyroException(
+                String.format("Can't delete @|bold %s|@ in @|bold %s|@!", file, fileBackend),
+                error);
+        }
+    }
+
+    private static Stream<String> list(FileBackend fileBackend) {
+        try {
+            return fileBackend.list();
+
+        } catch (Exception error) {
+            throw new GyroException(
+                String.format("Can't list files in @|bold %s|@!", fileBackend),
+                error);
         }
     }
 }
