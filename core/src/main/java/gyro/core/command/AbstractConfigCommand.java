@@ -102,7 +102,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             }
         }
 
-        RemoteStateBackend remoteStateBackend = Optional.ofNullable(GyroCore.getStateBackend())
+        RemoteStateBackend remoteStateBackend = Optional.ofNullable(GyroCore.getStateBackend("default"))
             .map(sb -> new RemoteStateBackend(sb, new LocalFileBackend(rootDir.resolve(".gyro/.temp-state"))))
             .orElse(null);
 

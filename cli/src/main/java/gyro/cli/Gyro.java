@@ -73,7 +73,7 @@ public class Gyro {
                 .map(d -> new RootScope(GyroCore.INIT_FILE, new LocalFileBackend(d), null, null))
                 .ifPresent(r -> {
                     r.load();
-                    GyroCore.setStateBackend(r.getSettings(StateBackendSettings.class).getStateBackend());
+                    GyroCore.putStateBackends(r.getSettings(StateBackendSettings.class).getStateBackends());
                 });
 
             gyro.init(Arrays.asList(arguments));

@@ -18,10 +18,10 @@ package gyro.core.backend;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Method;
+import java.util.Optional;
 
 import com.google.common.base.CaseFormat;
 import gyro.core.FileBackend;
-import gyro.core.GyroException;
 import gyro.core.Reflections;
 import gyro.core.Type;
 import gyro.core.directive.DirectiveProcessor;
@@ -34,37 +34,34 @@ public class StateBackendDirectiveProcessor extends DirectiveProcessor<RootScope
 
     @Override
     public void process(RootScope scope, DirectiveNode node) throws Exception {
-        validateArguments(node, 0, 2);
+        validateArguments(node, 1, 2);
         String type = getArgument(scope, node, String.class, 0);
-        String name = getArgument(scope, node, String.class, 1);
+        String name = Optional.ofNullable(getArgument(scope, node, String.class, 1)).orElse("default");
 
         StateBackendSettings stateBackendSettings = scope.getSettings(StateBackendSettings.class);
 
-        if (stateBackendSettings.getStateBackend() != null
-            && !name.equals(stateBackendSettings.getStateBackend().getName())) {
-            throw new GyroException(node, "Only one 'state-backend' is allowed!");
-        }
+        stateBackendSettings.getStateBackends().computeIfAbsent(name, n -> {
+            Scope bodyScope = evaluateBody(scope, node);
 
-        Scope bodyScope = evaluateBody(scope, node);
+            FileBackendsSettings fileBackendsSettings = scope.getSettings(FileBackendsSettings.class);
+            Class<? extends FileBackend> fileBackendClass = fileBackendsSettings.getFileBackendsClasses().get(type);
 
-        FileBackendsSettings fileBackendsSettings = scope.getSettings(FileBackendsSettings.class);
-        Class<? extends FileBackend> fileBackendClass = fileBackendsSettings.getFileBackendsClasses().get(type);
+            FileBackend fileBackend = Reflections.newInstance(fileBackendClass);
 
-        FileBackend fileBackend = Reflections.newInstance(fileBackendClass);
+            for (PropertyDescriptor property : Reflections.getBeanInfo(fileBackendClass).getPropertyDescriptors()) {
 
-        for (PropertyDescriptor property : Reflections.getBeanInfo(fileBackendClass).getPropertyDescriptors()) {
-
-            Method setter = property.getWriteMethod();
-            if (setter != null) {
-                Reflections.invoke(setter, fileBackend, scope.convertValue(
-                    setter.getGenericParameterTypes()[0],
-                    bodyScope.get(CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, property.getName()))));
+                Method setter = property.getWriteMethod();
+                if (setter != null) {
+                    Reflections.invoke(setter, fileBackend, scope.convertValue(
+                        setter.getGenericParameterTypes()[0],
+                        bodyScope.get(CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, property.getName()))));
+                }
             }
-        }
 
-        fileBackend.setName(name);
-        fileBackend.setRootScope(scope);
-        stateBackendSettings.setStateBackend(fileBackend);
+            fileBackend.setName(n);
+            fileBackend.setRootScope(scope);
+            return fileBackend;
+        });
     }
 
 }

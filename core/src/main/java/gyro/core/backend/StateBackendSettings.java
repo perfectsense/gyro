@@ -16,19 +16,24 @@
 
 package gyro.core.backend;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import gyro.core.FileBackend;
 import gyro.core.scope.Settings;
 
 public class StateBackendSettings extends Settings {
 
-    private FileBackend stateBackend;
+    private Map<String, FileBackend> stateBackends;
 
-    public FileBackend getStateBackend() {
-        return stateBackend;
+    public Map<String, FileBackend> getStateBackends() {
+        if (stateBackends == null) {
+            stateBackends = new HashMap<>();
+        }
+        return stateBackends;
     }
 
-    public void setStateBackend(FileBackend stateBackend) {
-        this.stateBackend = stateBackend;
+    public void setStateBackends(Map<String, FileBackend> stateBackends) {
+        this.stateBackends = stateBackends;
     }
-
 }
