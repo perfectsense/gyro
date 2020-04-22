@@ -22,6 +22,7 @@ import java.util.Optional;
 
 import com.google.common.base.CaseFormat;
 import gyro.core.FileBackend;
+import gyro.core.GyroException;
 import gyro.core.Reflections;
 import gyro.core.Type;
 import gyro.core.directive.DirectiveProcessor;
@@ -37,6 +38,10 @@ public class StateBackendDirectiveProcessor extends DirectiveProcessor<RootScope
         validateArguments(node, 1, 2);
         String type = getArgument(scope, node, String.class, 0);
         String name = Optional.ofNullable(getArgument(scope, node, String.class, 1)).orElse("default");
+
+        if ("local".equals(name)) {
+            throw new GyroException("'local' cannot be used as a 'state-backend' name!");
+        }
 
         StateBackendSettings stateBackendSettings = scope.getSettings(StateBackendSettings.class);
 
