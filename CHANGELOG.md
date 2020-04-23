@@ -11,7 +11,7 @@ ENHANCEMENTS:
 
 ISSUES FIXED:
 
-* core: Fix finder to use `@Filter` annotation for fields having differnt bean name. ([237](https://github.com/perfectsense/gyro/issues/237))
+* core: Fix finder to use `@Filter` annotation for fields having different bean name. ([237](https://github.com/perfectsense/gyro/issues/237))
 * core: Resource creation fails when dependencies are spread across multiple files. ([243](https://github.com/perfectsense/gyro/issues/243))
 * workflow: `@Wait` directive does not properly evaluate the "n" option given. ([246](https://github.com/perfectsense/gyro/issues/246))
 * core: Allow `@for` to iterate over sets. ([248](https://github.com/perfectsense/gyro/issues/248))
@@ -19,7 +19,7 @@ ISSUES FIXED:
 * core: Using `@external-query` under a resource block fails. ([251](https://github.com/perfectsense/gyro/issues/251))
 * core: Fix `credentials` option for `@external-query`. ([252](https://github.com/perfectsense/gyro/issues/252))
 * workflow: Recover from a failed workflow stage. ([254](https://github.com/perfectsense/gyro/issues/254))
-* workflow: `@wait` directive not resolving variables whn used inside a workflow. ([259](https://github.com/perfectsense/gyro/issues/259))
+* workflow: `@wait` directive not resolving variables when used inside a workflow. ([259](https://github.com/perfectsense/gyro/issues/259))
 
 MISC:
 
