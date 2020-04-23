@@ -1,7 +1,29 @@
 CHANGELOG
 =========
 
-## 0.99.2 (Unreleased)
+## 0.99.3 (Unreleased)
+
+## 0.99.2 (April 23rd, 2020)
+
+ENHANCEMENTS:
+
+* core: Add `version` command to report current version and check for newer version. ([230](https://github.com/perfectsense/gyro/issues/230))
+
+ISSUES FIXED:
+
+* core: Fix finder to use `@Filter` annotation for fields having differnt bean name. ([237](https://github.com/perfectsense/gyro/issues/237))
+* core: Resource creation fails when dependencies are spread across multiple files. ([243](https://github.com/perfectsense/gyro/issues/243))
+* workflow: `@Wait` directive does not properly evaluate the "n" option given. ([246](https://github.com/perfectsense/gyro/issues/246))
+* core: Allow `@for` to iterate over sets. ([248](https://github.com/perfectsense/gyro/issues/248))
+* core: Deleting a resource created using `@uses-credentials` fails. ([250](https://github.com/perfectsense/gyro/issues/250))
+* core: Using `@external-query` under a resource block fails. ([251](https://github.com/perfectsense/gyro/issues/251))
+* core: Fix `credentials` option for `@external-query`. ([252](https://github.com/perfectsense/gyro/issues/252))
+* workflow: Recover from a failed workflow stage. ([254](https://github.com/perfectsense/gyro/issues/254))
+* workflow: `@wait` directive not resolving variables whn used inside a workflow. ([259](https://github.com/perfectsense/gyro/issues/259))
+
+MISC:
+
+* Add preprocessor to modify nodes before evaluation. ([241](https://github.com/perfectsense/gyro/issues/241))
 
 ## 0.99.1 (January 30th, 2020)
 
