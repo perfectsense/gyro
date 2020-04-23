@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-def releaseVersion = '0.99.2'
+def releaseVersion = '0.99.3'
 def releaseBuild = false;
 
 if (System.getenv('TRAVIS_BRANCH') && System.getenv('TRAVIS_PULL_REQUEST') == 'false') {
