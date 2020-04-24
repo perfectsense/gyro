@@ -22,19 +22,26 @@ import gyro.core.scope.RootScope;
 public class VirtualRootScope extends RootScope {
 
     private final String virtualName;
+    private final RootScope current;
 
     public VirtualRootScope(RootScope scope, String virtualName) {
         super(scope.getFile(), scope.getBackend(), null, scope.getLoadFiles());
         this.virtualName = virtualName;
+        this.current = scope;
         putAll(scope);
         getFileScopes().addAll(scope.getFileScopes());
     }
 
     @Override
     public Resource findResource(String fullName) {
-        String[] names = fullName.split("::");
-        names[names.length - 1] = virtualName + "/" + names[names.length - 1];
-        return super.findResource(String.join("::", names));
+        String name = fullName;
+        if (!fullName.contains("/")) {
+            String[] names = fullName.split("::");
+            names[names.length - 1] = virtualName + "/" + names[names.length - 1];
+            name = String.join("::", names);
+        }
+
+        return current.findResource(name);
     }
 
     @Override
