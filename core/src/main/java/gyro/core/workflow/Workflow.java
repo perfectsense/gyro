@@ -115,59 +115,74 @@ public class Workflow {
         State state,
         Resource currentResource,
         Resource pendingResource) {
+        root.enterWorkflow();
 
-        Map<String, Object> execution = getExecution(root.getCurrent());
-        Stage stage = null;
+        try {
 
-        root.backup();
+            Map<String, Object> execution = getExecution(root.getCurrent());
+            Stage stage = null;
 
-        if (execution != null) {
-            ((List<String>) execution.get("executedStages")).stream()
-                .map(this::getStage)
-                .collect(Collectors.toCollection(() -> executedStages));
-            stage = executedStages.get(executedStages.size() - 1);
-            ui.write("\n@|magenta · Resuming from %s stage|@\n", stage.getName());
-        } else {
-            stage = stages.values().iterator().next();
-        }
-
-        // TODO: optimize performance.
-        while (stage != null) {
-            ui.write("\n@|magenta · Executing %s stage|@\n", stage.getName());
-
-            if (ui.isVerbose()) {
-                ui.write("\n");
-            }
-
-            int indexOfCurrentStage = executedStages.indexOf(stage);
-
-            if (indexOfCurrentStage > -1) {
-                ListIterator<Stage> iterator = executedStages.listIterator(indexOfCurrentStage + 1);
-
-                while (iterator.hasNext()) {
-                    iterator.next();
-                    iterator.remove();
-                }
+            if (execution != null) {
+                ((List<String>) execution.get("executedStages")).stream()
+                    .map(this::getStage)
+                    .collect(Collectors.toCollection(() -> executedStages));
+                stage = executedStages.get(executedStages.size() - 1);
+                ui.write("\n@|magenta · Resuming from %s stage|@\n", stage.getName());
             } else {
-                executedStages.add(stage);
+                stage = stages.values().iterator().next();
             }
 
-            root.restore();
+            // TODO: optimize performance.
+            while (stage != null) {
+                ui.write("\n@|magenta · Executing %s stage|@\n", stage.getName());
 
-            for (Stage executedStage : executedStages) {
-                executedStage.apply(ui, state, currentResource, pendingResource, root);
+                if (ui.isVerbose()) {
+                    ui.write("\n");
+                }
+
+                int indexOfCurrentStage = executedStages.indexOf(stage);
+
+                if (indexOfCurrentStage > -1) {
+                    ListIterator<Stage> iterator = executedStages.listIterator(indexOfCurrentStage + 1);
+
+                    while (iterator.hasNext()) {
+                        iterator.next();
+                        iterator.remove();
+                    }
+                } else {
+                    executedStages.add(stage);
+                }
+
+                root.reevaluate();
+
+                List<String> toBeRemoved = new ArrayList<>();
+                List<ReplaceResource> toBeReplaced = new ArrayList<>();
+
+                for (Stage executedStage : executedStages) {
+                    executedStage.apply(
+                        ui,
+                        state,
+                        currentResource,
+                        pendingResource,
+                        root,
+                        toBeRemoved,
+                        toBeReplaced);
+                }
+
+                ui.indent();
+
+                try {
+                    stage.execute(ui, state, currentResource, root, toBeRemoved, toBeReplaced);
+                    stage = stage.prompt(ui, state, root.getCurrent());
+                } finally {
+                    ui.unindent();
+                }
             }
+            SUCCESSFULLY_EXECUTED_WORKFLOWS.add(this);
 
-            ui.indent();
-
-            try {
-                stage.execute(ui, state, currentResource, root);
-                stage = stage.prompt(ui, state, root.getCurrent());
-            } finally {
-                ui.unindent();
-            }
+        } finally {
+            root.exitWorkflow();
         }
-        SUCCESSFULLY_EXECUTED_WORKFLOWS.add(this);
 
         throw Retry.INSTANCE;
     }

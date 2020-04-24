@@ -20,20 +20,16 @@ import java.util.AbstractCollection;
 import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
 import com.google.common.base.Preconditions;
-import gyro.core.GyroException;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.Resource;
 
 public class FileScope extends Scope {
 
     private final String file;
-
-    private Map<String, Object> backup;
 
     public FileScope(RootScope parent, String file) {
         super(parent);
@@ -159,20 +155,5 @@ public class FileScope extends Scope {
             }
         }
         return scope;
-    }
-
-    void backupFileScope() {
-        if (backup != null) {
-            new GyroException("Existing backup found!");
-        }
-        backup = new LinkedHashMap<>(this);
-    }
-
-    void restoreFileScope() {
-        if (backup == null) {
-            new GyroException("No backup found!");
-        }
-        clear();
-        putAll(backup);
     }
 }

@@ -20,7 +20,6 @@ import java.util.List;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
-import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
@@ -51,46 +50,28 @@ public class UpdateAction extends Action {
     }
 
     @Override
-    public void execute(GyroUI ui, State state, Scope scope) {
+    public void execute(
+        GyroUI ui,
+        State state,
+        Scope scope,
+        List<String> toBeRemoved,
+        List<ReplaceResource> toBeReplaced) {
+
         RootScope pending = scope.getRootScope();
         RootScope current = pending.getCurrent();
-        NodeEvaluator currentEvaluator = current.getEvaluator();
-        Object currentResource = currentEvaluator.visit(this.resource, current);
 
-        if (currentResource == null) {
-            throw new GyroException("Can't update a null resource!");
-        }
-
-        if (!(currentResource instanceof Resource)) {
-            throw new GyroException(String.format(
-                "Can't update @|bold %s|@, an instance of @|bold %s|@, because it's not a resource!",
-                currentResource,
-                currentResource.getClass().getName()));
-        }
-
-        ModifiedIn modifiedIn = DiffableInternals.getModifiedIn((Resource) currentResource) == ModifiedIn.WORKFLOW_ONLY
+        Resource currentResource = visitResource(resource, current);
+        ModifiedIn modifiedIn = DiffableInternals.getModifiedIn(currentResource) == ModifiedIn.WORKFLOW_ONLY
             ? ModifiedIn.WORKFLOW_ONLY
             : ModifiedIn.BOTH;
-        DiffableInternals.setModifiedIn((Resource) currentResource, modifiedIn);
+        DiffableInternals.setModifiedIn(currentResource, modifiedIn);
 
-        NodeEvaluator evaluator = pending.getEvaluator();
-        Object resource = evaluator.visit(this.resource, scope);
-
-        if (resource == null) {
-            throw new GyroException("Can't update a null resource!");
-        }
-
-        if (!(resource instanceof Resource)) {
-            throw new GyroException(String.format(
-                "Can't update @|bold %s|@, an instance of @|bold %s|@, because it's not a resource!",
-                resource,
-                resource.getClass().getName()));
-        }
-
-        Resource pendingResource = (Resource) resource;
+        Resource pendingResource = visitResource(resource, scope);
         DiffableInternals.setModifiedIn(pendingResource, modifiedIn);
+
         DiffableInternals.disconnect(pendingResource);
         DiffableScope resourceScope = DiffableInternals.getScope(pendingResource);
+        NodeEvaluator evaluator = pending.getEvaluator();
 
         for (Node item : body) {
             evaluator.visit(item, resourceScope);
@@ -99,5 +80,4 @@ public class UpdateAction extends Action {
         DiffableType.getInstance(pendingResource).setValues(pendingResource, resourceScope);
         DiffableInternals.update(pendingResource);
     }
-
 }

@@ -20,12 +20,14 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -87,6 +89,7 @@ import gyro.core.virtual.VirtualDirectiveProcessor;
 import gyro.core.workflow.CreateDirectiveProcessor;
 import gyro.core.workflow.DefineDirectiveProcessor;
 import gyro.core.workflow.DeleteDirectiveProcessor;
+import gyro.core.workflow.ModifiedIn;
 import gyro.core.workflow.ReplaceDirectiveProcessor;
 import gyro.core.workflow.RestoreRootProcessor;
 import gyro.core.workflow.UpdateDirectiveProcessor;
@@ -105,8 +108,10 @@ public class RootScope extends FileScope {
     private final Set<String> loadFiles;
     private final Map<String, Resource> resources = new LinkedHashMap<>();
     private final List<FileScope> fileScopes = new ArrayList<>();
-    // TODO: separate workflow scope?
-    private final Boolean inWorkflow;
+    // Workflow related
+    private final AtomicBoolean inWorkflow = new AtomicBoolean();
+    private final Map<String, Resource> workflowRemovedResources = new HashMap<>();
+    private final Map<String, Resource> workflowReplacedResources = new HashMap<>();
 
     public RootScope(String file, FileBackend backend, RootScope current, Set<String> loadFiles) {
         this(file, backend, current, loadFiles, null);
@@ -128,7 +133,7 @@ public class RootScope extends FileScope {
         this.backend = backend;
         this.current = current;
         this.loadFiles = loadFiles != null ? ImmutableSet.copyOf(loadFiles) : ImmutableSet.of();
-        this.inWorkflow = inWorkflow;
+        this.inWorkflow.set(Boolean.TRUE.equals(inWorkflow));
 
         Stream.of(
             new PluginPreprocessor())
@@ -213,7 +218,15 @@ public class RootScope extends FileScope {
     }
 
     public boolean isInWorkflow() {
-        return Boolean.TRUE.equals(inWorkflow);
+        return inWorkflow.get();
+    }
+
+    public Map<String, Resource> getWorkflowRemovedResources() {
+        return workflowRemovedResources;
+    }
+
+    public Map<String, Resource> getWorkflowReplacedResources() {
+        return workflowReplacedResources;
     }
 
     public Stream<String> list() {
@@ -278,12 +291,17 @@ public class RootScope extends FileScope {
     }
 
     public Resource findResource(String name) {
-        return Stream.concat(Stream.of(this), getFileScopes().stream())
+        Resource resource = Stream.concat(Stream.of(this), getFileScopes().stream())
             .map(s -> s.get(name))
             .filter(Resource.class::isInstance)
             .map(Resource.class::cast)
             .findFirst()
             .orElse(null);
+
+        if (resource == null && inWorkflow.get()) {
+            resource = workflowRemovedResources.get(name);
+        }
+        return resource;
     }
 
     public <T extends Resource> T findResourceById(Class<T> resourceClass, Object id) {
@@ -394,33 +412,78 @@ public class RootScope extends FileScope {
                 .stream()
                 .map(e -> e.copyWorkflowOnlyFileScope(rootScope))
                 .collect(Collectors.toList()));
+        rootScope.getWorkflowRemovedResources().putAll(getWorkflowRemovedResources());
+        rootScope.getWorkflowReplacedResources().putAll(getWorkflowReplacedResources());
         rootScope.processRootSettings();
         return rootScope;
     }
 
-    public void backup() {
+    public void reevaluate() {
         RootScope current = getCurrent();
 
-        if (current != null) {
-            current.backup();
+        if (current == null) {
+            throw new GyroException("Reevaluate from pending root scope.");
         }
 
+        current.getFileScopes().clear();
+        current.evaluate();
+
+        Map<String, Map<String, ModifiedIn>> modifiedInFileScopes = new HashMap<>();
+
         for (FileScope fileScope : getFileScopes()) {
-            fileScope.backupFileScope();
+            Map<String, ModifiedIn> modifiedInMap = new HashMap<>();
+
+            for (Entry<String, Object> entry : fileScope.entrySet()) {
+                Object value = entry.getValue();
+
+                if (value instanceof Resource) {
+                    ModifiedIn modifiedIn = DiffableInternals.getModifiedIn((Diffable) value);
+
+                    if (modifiedIn != null) {
+                        modifiedInMap.put(entry.getKey(), modifiedIn);
+                    }
+                }
+            }
+
+            if (!modifiedInMap.isEmpty()) {
+                modifiedInFileScopes.put(fileScope.getFile(), modifiedInMap);
+            }
+        }
+
+        getFileScopes().clear();
+        evaluate();
+
+        for (FileScope fileScope : getFileScopes()) {
+            Map<String, ModifiedIn> modifiedInMap = modifiedInFileScopes.get(fileScope.getFile());
+
+            if (modifiedInMap != null) {
+                for (Entry<String, ModifiedIn> entry : modifiedInMap.entrySet()) {
+                    Object resource = fileScope.get(entry.getKey());
+
+                    if (resource instanceof Resource) {
+                        DiffableInternals.setModifiedIn((Diffable) resource, entry.getValue());
+                    }
+                }
+            }
         }
     }
 
-    public void restore() {
+    public void enterWorkflow() {
         RootScope current = getCurrent();
 
         if (current != null) {
-            current.getFileScopes().forEach(FileScope::clear);
-            current.evaluate();
+            current.enterWorkflow();
         }
+        inWorkflow.set(true);
+    }
 
-        for (FileScope fileScope : getFileScopes()) {
-            fileScope.restoreFileScope();
+    public void exitWorkflow() {
+        RootScope current = getCurrent();
+
+        if (current != null) {
+            current.exitWorkflow();
         }
+        inWorkflow.set(false);
     }
 
     private void evaluateFile(String file, Consumer<FileNode> consumer) {
