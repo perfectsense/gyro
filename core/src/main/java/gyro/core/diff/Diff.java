@@ -407,6 +407,7 @@ public class Diff {
     public void execute(GyroUI ui, State state) {
         executeCreateKeepUpdate(ui, state);
         executeReplace(ui, state);
+        executeReplaceActions(ui, state);
         executeDelete(ui, state);
     }
 
@@ -431,6 +432,15 @@ public class Diff {
             for (Diff d : change.getDiffs()) {
                 d.executeReplace(ui, state);
             }
+        }
+    }
+
+    private void executeReplaceActions(GyroUI ui, State state) {
+        for (ReplaceResource replaceResource : toBeReplaced) {
+            Resource resource = replaceResource.getResource();
+            Resource with = replaceResource.getWith();
+            ui.write("@|magenta ⤢ Replacing %s with %s|@\n", resource.primaryKey(), with.primaryKey());
+            state.replace(resource, with);
         }
     }
 

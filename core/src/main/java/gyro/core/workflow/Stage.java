@@ -142,15 +142,6 @@ public class Stage {
             )).getBytes(StandardCharsets.UTF_8));
         }
 
-        if (state != null && toBeReplaced != null) {
-            for (ReplaceResource replaceResource : toBeReplaced) {
-                Resource resource = replaceResource.getResource();
-                Resource with = replaceResource.getWith();
-                ui.write("@|magenta ⤢ Replacing %s with %s|@\n", resource.primaryKey(), with.primaryKey());
-                state.replace(resource, with);
-            }
-        }
-
         diff.execute(ui, state);
     }
 
