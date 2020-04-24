@@ -16,6 +16,12 @@
 
 package gyro.core.virtual;
 
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.Resource;
 import gyro.core.scope.RootScope;
 
@@ -42,6 +48,26 @@ public class VirtualRootScope extends RootScope {
         }
 
         return current.findResource(name);
+    }
+
+    @Override
+    public List<Resource> findSortedResources() {
+        return current.findSortedResources().stream()
+            .filter(r -> DiffableInternals.getName(r).startsWith(virtualName))
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Resource> findSortedResourcesIn(Set<String> diffFiles) {
+        return current.findSortedResourcesIn(diffFiles).stream()
+            .filter(r -> DiffableInternals.getName(r).startsWith(virtualName))
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public <T extends Resource> Stream<T> findResourcesByClass(Class<T> resourceClass) {
+        return current.findResourcesByClass(resourceClass)
+            .filter(r -> DiffableInternals.getName(r).startsWith(virtualName));
     }
 
     @Override
