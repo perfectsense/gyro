@@ -83,4 +83,19 @@ public class LocalFileBackend extends FileBackend {
         return rootDirectory.toString();
     }
 
+    public boolean deleteDirectory() {
+        return deleteDirectory(rootDirectory.toFile());
+    }
+
+    private boolean deleteDirectory(File directoryToBeDeleted) {
+        File[] allContents = directoryToBeDeleted.listFiles();
+        if (allContents != null) {
+            for (File file : allContents) {
+                deleteDirectory(file);
+            }
+        }
+
+        return directoryToBeDeleted.delete();
+    }
+
 }

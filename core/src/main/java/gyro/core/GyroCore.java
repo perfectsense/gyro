@@ -19,6 +19,9 @@ package gyro.core;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import com.psddev.dari.util.Lazy;
 import com.psddev.dari.util.ThreadLocalStack;
@@ -29,6 +32,8 @@ public class GyroCore {
     public static final String INIT_FILE = ".gyro/init.gyro";
 
     private static final ThreadLocalStack<GyroUI> UI = new ThreadLocalStack<>();
+
+    private static final ConcurrentMap<String, FileBackend> STATE_BACKENDS = new ConcurrentHashMap<>();
 
     private static final Lazy<Path> HOME_DIRECTORY = new Lazy<Path>() {
 
@@ -68,6 +73,14 @@ public class GyroCore {
 
     public static GyroUI popUi() {
         return UI.pop();
+    }
+
+    public static void putStateBackends(Map<String, FileBackend> stateBackends) {
+        stateBackends.forEach(STATE_BACKENDS::put);
+    }
+
+    public static FileBackend getStateBackend(String key) {
+        return STATE_BACKENDS.get(key);
     }
 
     public static Path getHomeDirectory() {

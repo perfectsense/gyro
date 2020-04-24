@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -37,6 +38,7 @@ import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.LocalFileBackend;
+import gyro.core.RemoteStateBackend;
 import gyro.core.auth.Credentials;
 import gyro.core.auth.CredentialsSettings;
 import gyro.core.diff.ChangeProcessor;
@@ -100,9 +102,24 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             }
         }
 
+        RemoteStateBackend remoteStateBackend = Optional.ofNullable(GyroCore.getStateBackend("default"))
+            .map(sb -> new RemoteStateBackend(sb, new LocalFileBackend(rootDir.resolve(".gyro/.temp-state"))))
+            .orElse(null);
+
+        if (remoteStateBackend != null && !remoteStateBackend.isLocalBackendEmpty()) {
+            if (!GyroCore.ui().readBoolean(
+                Boolean.FALSE,
+                "\n@|bold,red Temporary state files were detected, indicating a past failure pushing to a remote backend.\nWould you like to attempt to push the files to your remote backend?|@")) {
+                remoteStateBackend.deleteLocalBackend();
+            } else {
+                remoteStateBackend.copyToRemote(true, true);
+            }
+        }
+
         RootScope current = new RootScope(
             "../../" + GyroCore.INIT_FILE,
             new LocalFileBackend(rootDir.resolve(".gyro/state")),
+            remoteStateBackend,
             null,
             loadFiles);
 
