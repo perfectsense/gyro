@@ -24,7 +24,7 @@ public class VirtualRootScope extends RootScope {
     private final String virtualName;
 
     public VirtualRootScope(RootScope scope, String virtualName) {
-        super(scope.getFile(), scope.getBackend(), null, scope.getLoadFiles());
+        super(scope.getFile(), scope.getBackend(), scope.getRemoteStateBackend(), null, scope.getLoadFiles());
         this.virtualName = virtualName;
         putAll(scope);
         getFileScopes().addAll(scope.getFileScopes());
