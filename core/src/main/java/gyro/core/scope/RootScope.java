@@ -48,6 +48,8 @@ import gyro.core.auth.CredentialsPlugin;
 import gyro.core.auth.UsesCredentialsDirectiveProcessor;
 import gyro.core.backend.FileBackendDirectiveProcessor;
 import gyro.core.backend.FileBackendPlugin;
+import gyro.core.backend.LockBackendDirectiveProcessor;
+import gyro.core.backend.LockBackendPlugin;
 import gyro.core.backend.StateBackendDirectiveProcessor;
 import gyro.core.command.HighlanderDirectiveProcessor;
 import gyro.core.command.HighlanderSettings;
@@ -161,6 +163,7 @@ public class RootScope extends FileScope {
             new FileBackendPlugin(),
             new FinderPlugin(),
             new GlobalChangePlugin(),
+            new LockBackendPlugin(),
             new ModificationPlugin(),
             new ReferencePlugin(),
             new ResourcePlugin(),
@@ -185,6 +188,7 @@ public class RootScope extends FileScope {
             HighlanderDirectiveProcessor.class,
             IfDirectiveProcessor.class,
             LogDirectiveProcessor.class,
+            LockBackendDirectiveProcessor.class,
             MetadataDirectiveProcessor.class,
             PluginDirectiveProcessor.class,
             PrintDirectiveProcessor.class,
