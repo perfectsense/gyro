@@ -19,12 +19,15 @@ package gyro.core.command;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -38,6 +41,7 @@ import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.LocalFileBackend;
+import gyro.core.LockBackend;
 import gyro.core.RemoteStateBackend;
 import gyro.core.auth.Credentials;
 import gyro.core.auth.CredentialsSettings;
@@ -106,46 +110,83 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             .map(sb -> new RemoteStateBackend(sb, new LocalFileBackend(rootDir.resolve(".gyro/.temp-state"))))
             .orElse(null);
 
-        if (remoteStateBackend != null && !remoteStateBackend.isLocalBackendEmpty()) {
-            if (!GyroCore.ui().readBoolean(
-                Boolean.FALSE,
-                "\n@|bold,red Temporary state files were detected, indicating a past failure pushing to a remote backend.\nWould you like to attempt to push the files to your remote backend?|@")) {
-                remoteStateBackend.deleteLocalBackend();
-            } else {
-                remoteStateBackend.copyToRemote(true, true);
+        LockBackend lockBackend = GyroCore.getLockBackend();
+
+        if (lockBackend != null) {
+            if (remoteStateBackend != null) {
+                String lockId = remoteStateBackend.readLocal(LockBackend.TEMP_LOCK_ID_FILE);
+
+                if (lockId != null) {
+                    remoteStateBackend.deleteLocal(LockBackend.TEMP_LOCK_ID_FILE);
+
+                    try {
+                        lockBackend.unlock(lockId);
+                    } catch (Exception ex) {
+                        // Ignore - the temp lock ID file is out of sync with current lock
+                    }
+                }
             }
+
+            lockBackend.setLockId(UUID.randomUUID().toString());
+            lockBackend.lock();
+            lockBackend.updateLockInfo(String.format(
+                "Locked by '%s' running '%s' at '%s'.",
+                System.getProperty("user.name"),
+                String.join(" ", getUnparsedArguments()),
+                new SimpleDateFormat("HH:mm:ss zzz, MMM-dd").format(new Date())));
         }
 
-        RootScope current = new RootScope(
-            "../../" + GyroCore.INIT_FILE,
-            new LocalFileBackend(rootDir.resolve(".gyro/state")),
-            remoteStateBackend,
-            null,
-            loadFiles);
+        try {
+            if (remoteStateBackend != null && !remoteStateBackend.isLocalBackendEmpty()) {
+                if (!GyroCore.ui().readBoolean(
+                    Boolean.FALSE,
+                    "\n@|bold,red Temporary state files were detected, indicating a past failure pushing to a remote backend.\nWould you like to attempt to push the files to your remote backend?|@")) {
+                    remoteStateBackend.deleteLocalBackend();
+                } else {
+                    remoteStateBackend.copyToRemote(true, true);
+                }
+            }
 
-        current.evaluate();
+            RootScope current = new RootScope(
+                "../../" + GyroCore.INIT_FILE,
+                new LocalFileBackend(rootDir.resolve(".gyro/state")),
+                remoteStateBackend,
+                null,
+                loadFiles);
 
-        RootScope pending = new RootScope(
-            GyroCore.INIT_FILE,
-            new LocalFileBackend(rootDir),
-            current,
-            loadFiles);
+            current.evaluate();
 
-        if (!test) {
-            current.getSettings(CredentialsSettings.class)
-                .getCredentialsByName()
-                .values()
-                .forEach(Credentials::refresh);
+            RootScope pending = new RootScope(
+                GyroCore.INIT_FILE,
+                new LocalFileBackend(rootDir),
+                current,
+                loadFiles);
 
-            if (!skipRefresh) {
-                refreshResources(current);
+            if (!test) {
+                current.getSettings(CredentialsSettings.class)
+                    .getCredentialsByName()
+                    .values()
+                    .forEach(Credentials::refresh);
+
+                if (!skipRefresh) {
+                    refreshResources(current);
+                }
+            }
+            GyroCore.ui().setAuditPending(true);
+
+            pending.evaluate();
+            pending.validate();
+
+            doExecute(current, pending, new State(current, pending, test));
+        } finally {
+            if (lockBackend != null) {
+                if (!lockBackend.stayLocked()) {
+                    lockBackend.unlock();
+                } else if (remoteStateBackend != null) {
+                    remoteStateBackend.writeLocal(LockBackend.TEMP_LOCK_ID_FILE, lockBackend.getLockId());
+                }
             }
         }
-        GyroCore.ui().setAuditPending(true);
-
-        pending.evaluate();
-        pending.validate();
-        doExecute(current, pending, new State(current, pending, test));
     }
 
     private void refreshResources(RootScope scope) {

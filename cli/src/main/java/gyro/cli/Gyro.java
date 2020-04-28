@@ -32,6 +32,7 @@ import gyro.core.Abort;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.LocalFileBackend;
+import gyro.core.backend.LockBackendSettings;
 import gyro.core.backend.StateBackendSettings;
 import gyro.core.command.AbstractCommand;
 import gyro.core.command.GyroCommand;
@@ -74,6 +75,7 @@ public class Gyro {
                 .ifPresent(r -> {
                     r.load();
                     GyroCore.putStateBackends(r.getSettings(StateBackendSettings.class).getStateBackends());
+                    GyroCore.pushLockBackend(r.getSettings(LockBackendSettings.class).getLockBackend());
                 });
 
             gyro.init(Arrays.asList(arguments));
@@ -89,6 +91,7 @@ public class Gyro {
 
         } finally {
             GyroCore.popUi();
+            GyroCore.popLockBackend();
         }
     }
 
