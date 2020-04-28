@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.LinkedHashSet;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -32,6 +33,7 @@ import gyro.core.GyroInputStream;
 import gyro.core.GyroOutputStream;
 import gyro.core.GyroUI;
 import gyro.core.LocalFileBackend;
+import gyro.core.LockBackend;
 import gyro.util.Bug;
 import io.airlift.airline.Command;
 import io.airlift.airline.Option;
@@ -66,6 +68,13 @@ public class StateCopyCommand implements GyroCommand {
                 "Not a gyro project directory, use 'gyro init <plugins>...' to create one. See 'gyro help init' for detailed usage.");
         }
 
+        LockBackend lockBackend = GyroCore.getLockBackend();
+
+        if (lockBackend != null) {
+            lockBackend.setLockId(UUID.randomUUID().toString());
+            lockBackend.lock();
+        }
+
         FileBackend toBackend;
         FileBackend fromBackend;
 
@@ -90,7 +99,14 @@ public class StateCopyCommand implements GyroCommand {
         boolean copiedFiles;
 
         GyroCore.ui().write("\n@|bold,white Looking for state files...|@\n\n");
-        copiedFiles = copyBackends(fromBackend, toBackend, false, true);
+
+        try {
+            copiedFiles = copyBackends(fromBackend, toBackend, false, true);
+        } finally {
+            if (lockBackend != null) {
+                lockBackend.unlock();
+            }
+        }
 
         if (copiedFiles) {
             GyroCore.ui().write(String.format(
