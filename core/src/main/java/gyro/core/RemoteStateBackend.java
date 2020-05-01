@@ -16,12 +16,6 @@
 
 package gyro.core;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.util.stream.Collectors;
-
 import gyro.core.command.StateCopyCommand;
 
 public class RemoteStateBackend {
@@ -54,44 +48,6 @@ public class RemoteStateBackend {
 
     public void deleteLocalBackend() {
         localBackend.deleteDirectory();
-    }
-
-    public void writeLocal(String fileName, String contents) {
-        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(localBackend.openOutput(fileName)))) {
-            writer.write(contents);
-        } catch (Exception error) {
-            throw new GyroException(
-                String.format("Can't write @|bold %s|@ in @|bold %s|@!", fileName, localBackend),
-                error);
-        }
-    }
-
-    public String readLocal(String fileName) {
-        if (!localBackend.fileExists(fileName)) {
-            return null;
-        }
-
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(localBackend.openInput(fileName)))) {
-            return reader.lines().collect(Collectors.joining("\n"));
-        } catch (Exception error) {
-            throw new GyroException(
-                String.format("Can't read @|bold %s|@ in @|bold %s|@!", fileName, localBackend),
-                error);
-        }
-    }
-
-    public void deleteLocal(String fileName) {
-        try {
-            localBackend.delete(fileName);
-
-            if (isLocalBackendEmpty()) {
-                deleteLocalBackend();
-            }
-        } catch (Exception error) {
-            throw new GyroException(
-                String.format("Can't delete @|bold %s|@ in @|bold %s|@!", fileName, localBackend),
-                error);
-        }
     }
 
     public void copyToRemote(boolean deleteInput, boolean displayMessaging) {

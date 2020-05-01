@@ -106,24 +106,21 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             }
         }
 
-        RemoteStateBackend remoteStateBackend = Optional.ofNullable(GyroCore.getStateBackend("default"))
-            .map(sb -> new RemoteStateBackend(sb, new LocalFileBackend(rootDir.resolve(".gyro/.temp-state"))))
-            .orElse(null);
+        LocalFileBackend localTempBackend = new LocalFileBackend(rootDir.resolve(".gyro/.temp-state"));
 
         LockBackend lockBackend = GyroCore.getLockBackend();
 
         if (lockBackend != null) {
-            if (remoteStateBackend != null) {
-                String lockId = remoteStateBackend.readLocal(LockBackend.TEMP_LOCK_ID_FILE);
+            lockBackend.setLocalTempBackend(localTempBackend);
+            String lockId = lockBackend.readTempLockFile();
 
-                if (lockId != null) {
-                    remoteStateBackend.deleteLocal(LockBackend.TEMP_LOCK_ID_FILE);
+            if (lockId != null) {
+                lockBackend.deleteTempLockFile();
 
-                    try {
-                        lockBackend.unlock(lockId);
-                    } catch (Exception ex) {
-                        // Ignore - the temp lock ID file is out of sync with current lock
-                    }
+                try {
+                    lockBackend.unlock(lockId);
+                } catch (Exception ex) {
+                    // Ignore - the temp lock ID file is out of sync with current lock
                 }
             }
 
@@ -134,9 +131,14 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
                 System.getProperty("user.name"),
                 String.join(" ", getUnparsedArguments()),
                 new SimpleDateFormat("HH:mm:ss zzz, MMM-dd").format(new Date())));
+            lockBackend.writeTempLockFile();
         }
 
         try {
+            RemoteStateBackend remoteStateBackend = Optional.ofNullable(GyroCore.getStateBackend("default"))
+                .map(sb -> new RemoteStateBackend(sb, localTempBackend))
+                .orElse(null);
+
             if (remoteStateBackend != null && !remoteStateBackend.isLocalBackendEmpty()) {
                 if (!GyroCore.ui().readBoolean(
                     Boolean.FALSE,
@@ -182,8 +184,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             if (lockBackend != null) {
                 if (!lockBackend.stayLocked()) {
                     lockBackend.unlock();
-                } else if (remoteStateBackend != null) {
-                    remoteStateBackend.writeLocal(LockBackend.TEMP_LOCK_ID_FILE, lockBackend.getLockId());
+                    lockBackend.deleteTempLockFile();
                 }
             }
         }

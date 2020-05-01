@@ -16,15 +16,22 @@
 
 package gyro.core;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.util.stream.Collectors;
+
 import gyro.core.scope.RootScope;
 
 public abstract class LockBackend {
 
-    public static final String TEMP_LOCK_ID_FILE = "TempLockId.txt";
+    private static final String TEMP_LOCK_ID_FILE = "TempLockId.txt";
 
     private RootScope rootScope;
     private String lockId;
     private Boolean stayLocked;
+    private LocalFileBackend localTempBackend;
 
     public RootScope getRootScope() {
         return rootScope;
@@ -48,6 +55,10 @@ public abstract class LockBackend {
 
     public void setStayLocked(Boolean stayLocked) {
         this.stayLocked = stayLocked;
+    }
+
+    public void setLocalTempBackend(LocalFileBackend localTempBackend) {
+        this.localTempBackend = localTempBackend;
     }
 
     /**
@@ -76,4 +87,45 @@ public abstract class LockBackend {
     public void updateLockInfo(String info) throws Exception {
         updateLockInfo(getLockId(), info);
     }
+
+    public void writeTempLockFile() {
+        try (BufferedWriter writer =
+            new BufferedWriter(new OutputStreamWriter(localTempBackend.openOutput(TEMP_LOCK_ID_FILE)))) {
+            writer.write(lockId);
+        } catch (Exception error) {
+            throw new GyroException(
+                String.format("Can't write @|bold %s|@ in @|bold %s|@!", TEMP_LOCK_ID_FILE, localTempBackend),
+                error);
+        }
+    }
+
+    public String readTempLockFile() {
+        if (!localTempBackend.fileExists(TEMP_LOCK_ID_FILE)) {
+            return null;
+        }
+
+        try (BufferedReader reader =
+            new BufferedReader(new InputStreamReader(localTempBackend.openInput(TEMP_LOCK_ID_FILE)))) {
+            return reader.lines().collect(Collectors.joining("\n"));
+        } catch (Exception error) {
+            throw new GyroException(
+                String.format("Can't read @|bold %s|@ in @|bold %s|@!", TEMP_LOCK_ID_FILE, localTempBackend),
+                error);
+        }
+    }
+
+    public void deleteTempLockFile() {
+        try {
+            localTempBackend.delete(TEMP_LOCK_ID_FILE);
+
+            if (!localTempBackend.list().findAny().isPresent()) {
+                localTempBackend.deleteDirectory();
+            }
+        } catch (Exception error) {
+            throw new GyroException(
+                String.format("Can't delete @|bold %s|@ in @|bold %s|@!", TEMP_LOCK_ID_FILE, localTempBackend),
+                error);
+        }
+    }
+
 }
