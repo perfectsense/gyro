@@ -16,6 +16,8 @@
 
 package gyro.core.command;
 
+import java.util.Optional;
+
 import gyro.core.GyroCore;
 import gyro.core.GyroUI;
 import gyro.core.RemoteStateBackend;
@@ -113,6 +115,8 @@ public class UpCommand extends AbstractConfigCommand {
             } catch (Exception ex) {
                 ui.write("\n\n@|red Error pushing state files to remote: |@" + ex.getMessage()
                     + "\n\n@|red Run 'gyro up' again to retry.\n\n|@");
+
+                Optional.ofNullable(GyroCore.getLockBackend()).ifPresent(l -> l.setStayLocked(true));
             }
         }
     }

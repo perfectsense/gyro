@@ -33,7 +33,7 @@ public class StateCommandGroup implements GyroCommandGroup {
 
     @Override
     public List<Class<?>> getCommands() {
-        return Arrays.asList(StateCopyCommand.class);
+        return Arrays.asList(StateCopyCommand.class, StateForceUnlockCommand.class);
     }
 
     @Override
