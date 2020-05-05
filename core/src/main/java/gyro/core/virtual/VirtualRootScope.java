@@ -75,4 +75,7 @@ public class VirtualRootScope extends RootScope {
         throw new UnsupportedOperationException();
     }
 
+    public String getVirtualName() {
+        return virtualName;
+    }
 }
