@@ -98,4 +98,7 @@ public class LocalFileBackend extends FileBackend {
         return directoryToBeDeleted.delete();
     }
 
+    public boolean fileExists(String file) {
+        return Files.exists(rootDirectory.resolve(file));
+    }
 }
