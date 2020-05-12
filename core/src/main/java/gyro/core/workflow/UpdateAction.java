@@ -78,6 +78,7 @@ public class UpdateAction extends Action {
         }
 
         DiffableType.getInstance(pendingResource).setValues(pendingResource, resourceScope);
+        DiffableInternals.getConfiguredFields(pendingResource).addAll(resourceScope.keySet());
         DiffableInternals.update(pendingResource);
     }
 }

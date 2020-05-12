@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.psddev.dari.util.IoUtils;
@@ -247,11 +246,7 @@ public class State {
 
     private List<Node> toBodyNodes(Diffable diffable, Resource resource) {
         List<Node> body = new ArrayList<>();
-        Set<String> configuredFields = DiffableInternals.getConfiguredFields(diffable);
-
-        if (!configuredFields.isEmpty()) {
-            body.add(toPairNode("_configured-fields", configuredFields, resource));
-        }
+        body.add(toPairNode("_configured-fields", DiffableInternals.getConfiguredFields(diffable), resource));
 
         if (!Boolean.TRUE.equals(removeModifiedInField)
             && diffable.equals(resource)
