@@ -94,7 +94,6 @@ import gyro.core.virtual.VirtualDirectiveProcessor;
 import gyro.core.workflow.CreateDirectiveProcessor;
 import gyro.core.workflow.DefineDirectiveProcessor;
 import gyro.core.workflow.DeleteDirectiveProcessor;
-import gyro.core.workflow.ModifiedIn;
 import gyro.core.workflow.ReplaceDirectiveProcessor;
 import gyro.core.workflow.RestoreRootProcessor;
 import gyro.core.workflow.UpdateDirectiveProcessor;
@@ -479,72 +478,8 @@ public class RootScope extends FileScope {
         return rootScope;
     }
 
-    public void reevaluate() {
-        RootScope current = getCurrent();
-
-        if (current == null) {
-            throw new GyroException("Reevaluate from pending root scope.");
-        }
-
-        current.getFileScopes().clear();
-        current.evaluate();
-
-        Map<String, Map<String, ModifiedIn>> modifiedInFileScopes = new HashMap<>();
-
-        for (FileScope fileScope : getFileScopes()) {
-            Map<String, ModifiedIn> modifiedInMap = new HashMap<>();
-
-            for (Entry<String, Object> entry : fileScope.entrySet()) {
-                Object value = entry.getValue();
-
-                if (value instanceof Resource) {
-                    ModifiedIn modifiedIn = DiffableInternals.getModifiedIn((Diffable) value);
-
-                    if (modifiedIn != null) {
-                        modifiedInMap.put(entry.getKey(), modifiedIn);
-                    }
-                }
-            }
-
-            if (!modifiedInMap.isEmpty()) {
-                modifiedInFileScopes.put(fileScope.getFile(), modifiedInMap);
-            }
-        }
-
-        getFileScopes().clear();
-        evaluate();
-
-        for (FileScope fileScope : getFileScopes()) {
-            Map<String, ModifiedIn> modifiedInMap = modifiedInFileScopes.get(fileScope.getFile());
-
-            if (modifiedInMap != null) {
-                for (Entry<String, ModifiedIn> entry : modifiedInMap.entrySet()) {
-                    Object resource = fileScope.get(entry.getKey());
-
-                    if (resource instanceof Resource) {
-                        DiffableInternals.setModifiedIn((Diffable) resource, entry.getValue());
-                    }
-                }
-            }
-        }
-    }
-
-    public void enterWorkflow() {
-        RootScope current = getCurrent();
-
-        if (current != null) {
-            current.enterWorkflow();
-        }
+    public void setWorkflow() {
         inWorkflow.set(true);
-    }
-
-    public void exitWorkflow() {
-        RootScope current = getCurrent();
-
-        if (current != null) {
-            current.exitWorkflow();
-        }
-        inWorkflow.set(false);
     }
 
     private void evaluateFile(String file, Consumer<FileNode> consumer) {
