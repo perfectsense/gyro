@@ -78,7 +78,9 @@ public class Stage {
         State state,
         Resource currentResource,
         Resource pendingResource,
-        RootScope pendingRootScope) {
+        RootScope pendingRootScope,
+        List<String> toBeRemoved,
+        List<ReplaceResource> toBeReplaced) {
 
         DiffableScope pendingScope = DiffableInternals.getScope(pendingResource);
         FileScope pendingFileScope = pendingScope.getFileScope();
@@ -101,20 +103,24 @@ public class Stage {
         scope.put("CURRENT", currentResource);
         scope.put("PENDING", pendingResource);
 
-        Defer.execute(actions, a -> a.execute(ui, state, scope));
+        Defer.execute(actions, a -> a.execute(ui, state, scope, toBeRemoved, toBeReplaced));
     }
 
     public void execute(
         GyroUI ui,
         State state,
         Resource currentResource,
-        RootScope pendingRootScope) {
-        RootScope newPendingRootScope = RootScope.copy(pendingRootScope, true, false, true);
+        RootScope pendingRootScope,
+        List<String> toBeRemoved,
+        List<ReplaceResource> toBeReplaced) {
+        RootScope newPendingRootScope = pendingRootScope.copyWorkflowOnlyRootScope();
         RootScope newCurrentRootScope = newPendingRootScope.getCurrent();
 
         Diff diff = new Diff(
             newCurrentRootScope.findSortedResourcesIn(newCurrentRootScope.getLoadFiles()),
-            newPendingRootScope.findSortedResourcesIn(newPendingRootScope.getLoadFiles()));
+            newPendingRootScope.findSortedResourcesIn(newPendingRootScope.getLoadFiles()),
+            toBeRemoved,
+            toBeReplaced);
 
         diff.diff();
 

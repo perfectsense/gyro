@@ -55,7 +55,13 @@ public class CreateAction extends Action {
     }
 
     @Override
-    public void execute(GyroUI ui, State state, Scope scope) {
+    public void execute(
+        GyroUI ui,
+        State state,
+        Scope scope,
+        List<String> toBeRemoved,
+        List<ReplaceResource> toBeReplaced) {
+
         NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
 
         Optional.ofNullable(evaluator.visit(

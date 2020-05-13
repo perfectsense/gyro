@@ -37,23 +37,6 @@ public class FileScope extends Scope {
         this.file = Preconditions.checkNotNull(file);
     }
 
-    public static FileScope copy(RootScope parent, FileScope fileScope, boolean workflowResourceOnly) {
-        FileScope scope = new FileScope(parent, fileScope.getFile());
-
-        if (workflowResourceOnly) {
-            for (Map.Entry<String, Object> entry : fileScope.entrySet()) {
-                Object value = entry.getValue();
-
-                if (value instanceof Resource && DiffableInternals.getModifiedIn((Resource) value) != null) {
-                    scope.put(entry.getKey(), value);
-                }
-            }
-        } else {
-            scope.putAll(fileScope);
-        }
-        return scope;
-    }
-
     public String getFile() {
         return file;
     }
@@ -159,5 +142,18 @@ public class FileScope extends Scope {
                 return FileScope.super.values().size();
             }
         };
+    }
+
+    FileScope copyWorkflowOnlyFileScope(RootScope parent) {
+        FileScope scope = new FileScope(parent, getFile());
+
+        for (Map.Entry<String, Object> entry : entrySet()) {
+            Object value = entry.getValue();
+
+            if (value instanceof Resource && DiffableInternals.getModifiedIn((Resource) value) != null) {
+                scope.put(entry.getKey(), value);
+            }
+        }
+        return scope;
     }
 }

@@ -27,6 +27,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
 import gyro.core.GyroException;
@@ -41,6 +42,7 @@ import gyro.core.scope.NodeEvaluator;
 import gyro.core.scope.Scope;
 import gyro.core.scope.State;
 import gyro.core.workflow.ModifiedIn;
+import gyro.core.workflow.ReplaceResource;
 import gyro.lang.ast.Node;
 
 public class Diff {
@@ -48,6 +50,22 @@ public class Diff {
     private final List<Diffable> currentDiffables;
     private final List<Diffable> pendingDiffables;
     private final List<Change> changes = new ArrayList<>();
+
+    // Workflow related
+    private final AtomicBoolean honorWorkflowResources = new AtomicBoolean();
+    private final List<String> toBeRemoved = new ArrayList<>();
+    private final List<ReplaceResource> toBeReplaced = new ArrayList<>();
+
+    public Diff(
+        Collection<? extends Diffable> currentDiffables,
+        Collection<? extends Diffable> pendingDiffables,
+        List<String> toBeRemoved,
+        List<ReplaceResource> toBeReplaced) {
+        this(currentDiffables, pendingDiffables);
+        this.honorWorkflowResources.set(true);
+        this.toBeRemoved.addAll(toBeRemoved);
+        this.toBeReplaced.addAll(toBeReplaced);
+    }
 
     public Diff(Collection<? extends Diffable> currentDiffables, Collection<? extends Diffable> pendingDiffables) {
         this.currentDiffables = currentDiffables != null
@@ -79,18 +97,10 @@ public class Diff {
         return changes;
     }
 
-    public void diffIgnoringWorkflow() {
-        diff(true);
-    }
-
     public void diff() {
-        diff(false);
-    }
-
-    private void diff(boolean ignoreWorkflowResources) {
         Stream<Diffable> currentDiffableStream = this.currentDiffables.stream();
 
-        if (ignoreWorkflowResources) {
+        if (!honorWorkflowResources.get()) {
             currentDiffableStream = currentDiffableStream
                 .filter(e -> !(e instanceof Resource)
                     || DiffableInternals.getModifiedIn(e) != ModifiedIn.WORKFLOW_ONLY);
@@ -102,9 +112,14 @@ public class Diff {
         );
 
         for (Diffable pendingDiffable : pendingDiffables) {
-            if (ignoreWorkflowResources
+            if (!honorWorkflowResources.get()
                 && pendingDiffable instanceof Resource
                 && DiffableInternals.getModifiedIn(pendingDiffable) == ModifiedIn.WORKFLOW_ONLY) {
+                continue;
+            }
+            String pendingDiffableKey = pendingDiffable.primaryKey();
+
+            if (toBeRemoved.contains(pendingDiffableKey)) {
                 continue;
             }
 
@@ -112,7 +127,7 @@ public class Diff {
                 DiffableInternals.reevaluate(pendingDiffable);
             }
 
-            Diffable currentDiffable = currentDiffables.remove(pendingDiffable.primaryKey());
+            Diffable currentDiffable = currentDiffables.remove(pendingDiffableKey);
 
             changes.add(currentDiffable == null
                 ? newCreate(pendingDiffable)
@@ -340,11 +355,18 @@ public class Diff {
     }
 
     public boolean write(GyroUI ui) {
-        if (!hasChanges()) {
+        if (!hasChanges() && toBeReplaced.isEmpty()) {
             return false;
         }
 
         boolean written = false;
+
+        for (ReplaceResource replaceResource : toBeReplaced) {
+            Resource resource = replaceResource.getResource();
+            Resource with = replaceResource.getWith();
+            ui.write("@|cyan ⤢ Replace %s with %s|@\n", resource.primaryKey(), with.primaryKey());
+            written = true;
+        }
 
         for (Change change : getChanges()) {
             List<Diff> changeDiffs = change.getDiffs();
@@ -385,6 +407,7 @@ public class Diff {
     public void execute(GyroUI ui, State state) {
         executeCreateKeepUpdate(ui, state);
         executeReplace(ui, state);
+        executeReplaceActions(ui, state);
         executeDelete(ui, state);
     }
 
@@ -409,6 +432,15 @@ public class Diff {
             for (Diff d : change.getDiffs()) {
                 d.executeReplace(ui, state);
             }
+        }
+    }
+
+    private void executeReplaceActions(GyroUI ui, State state) {
+        for (ReplaceResource replaceResource : toBeReplaced) {
+            Resource resource = replaceResource.getResource();
+            Resource with = replaceResource.getWith();
+            ui.write("@|magenta ⤢ Replacing %s with %s|@\n", resource.primaryKey(), with.primaryKey());
+            state.replace(resource, with);
         }
     }
 

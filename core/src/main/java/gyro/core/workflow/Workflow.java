@@ -19,6 +19,7 @@ package gyro.core.workflow;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -31,7 +32,10 @@ import gyro.core.GyroException;
 import gyro.core.GyroInputStream;
 import gyro.core.GyroUI;
 import gyro.core.diff.Retry;
+import gyro.core.resource.Diffable;
+import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.Resource;
+import gyro.core.scope.FileScope;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
 import gyro.core.scope.State;
@@ -49,6 +53,7 @@ public class Workflow {
     private final RootScope root;
     private final Map<String, Stage> stages;
     private final List<Stage> executedStages = new ArrayList<>();
+    private final Map<String, Map<String, ModifiedIn>> modifiedInFileScopeMap = new HashMap<>();
 
     public Workflow(String type, String name, Scope scope) {
         this.type = Preconditions.checkNotNull(type);
@@ -137,7 +142,6 @@ public class Workflow {
                 ui.write("\n");
             }
 
-            RootScope pendingRoot = RootScope.copy(root, true, true, false);
             int indexOfCurrentStage = executedStages.indexOf(stage);
 
             if (indexOfCurrentStage > -1) {
@@ -151,15 +155,31 @@ public class Workflow {
                 executedStages.add(stage);
             }
 
+            RootScope pending = copyRootScope();
+
+            List<String> toBeRemoved = new ArrayList<>();
+            List<ReplaceResource> toBeReplaced = new ArrayList<>();
+
             for (Stage executedStage : executedStages) {
-                executedStage.apply(ui, state, currentResource, pendingResource, pendingRoot);
+                executedStage.apply(
+                    ui,
+                    state,
+                    currentResource,
+                    pendingResource,
+                    pending,
+                    toBeRemoved,
+                    toBeReplaced);
             }
 
             ui.indent();
 
             try {
-                stage.execute(ui, state, currentResource, pendingRoot);
-                stage = stage.prompt(ui, state, pendingRoot.getCurrent());
+                stage.execute(ui, state, currentResource, pending, toBeRemoved, toBeReplaced);
+                stage = stage.prompt(ui, state, pending.getCurrent());
+
+                if (stage != null) {
+                    backupModifiedInValues(pending);
+                }
             } finally {
                 ui.unindent();
             }
@@ -167,5 +187,65 @@ public class Workflow {
         SUCCESSFULLY_EXECUTED_WORKFLOWS.add(this);
 
         throw Retry.INSTANCE;
+    }
+
+    private void backupModifiedInValues(RootScope pending) {
+        modifiedInFileScopeMap.clear();
+
+        for (FileScope fileScope : pending.getFileScopes()) {
+            Map<String, ModifiedIn> modifiedInMap = new HashMap<>();
+
+            for (Map.Entry<String, Object> entry : fileScope.entrySet()) {
+                Object value = entry.getValue();
+
+                if (value instanceof Resource) {
+                    ModifiedIn modifiedIn = DiffableInternals.getModifiedIn((Diffable) value);
+
+                    if (modifiedIn != null) {
+                        modifiedInMap.put(entry.getKey(), modifiedIn);
+                    }
+                }
+            }
+
+            if (!modifiedInMap.isEmpty()) {
+                modifiedInFileScopeMap.put(fileScope.getFile(), modifiedInMap);
+            }
+        }
+    }
+
+    private void restoreModifiedInValues(RootScope pending) {
+        for (FileScope fileScope : pending.getFileScopes()) {
+            Map<String, ModifiedIn> modifiedInMap = modifiedInFileScopeMap.get(fileScope.getFile());
+
+            if (modifiedInMap != null) {
+                for (Map.Entry<String, ModifiedIn> entry : modifiedInMap.entrySet()) {
+                    Object resource = fileScope.get(entry.getKey());
+
+                    if (resource instanceof Resource) {
+                        DiffableInternals.setModifiedIn((Diffable) resource, entry.getValue());
+                    }
+                }
+            }
+        }
+    }
+
+    private RootScope copyRootScope() {
+        RootScope current = root.getCurrent();
+        current.setWorkflow();
+        current.getFileScopes().clear();
+        current.evaluate();
+
+        RootScope pending = new RootScope(
+            root.getFile(),
+            root.getBackend(),
+            null,
+            current,
+            root.getLoadFiles(),
+            true);
+        pending.evaluate();
+
+        restoreModifiedInValues(pending);
+
+        return pending;
     }
 }

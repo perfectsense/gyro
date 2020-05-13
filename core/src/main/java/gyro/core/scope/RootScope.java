@@ -20,12 +20,14 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -111,8 +113,10 @@ public class RootScope extends FileScope {
     private final Set<String> loadFiles;
     private final Map<String, Resource> resources = new LinkedHashMap<>();
     private final List<FileScope> fileScopes = new ArrayList<>();
-    // TODO: separate workflow scope?
-    private final Boolean inWorkflow;
+    // Workflow related
+    private final AtomicBoolean inWorkflow = new AtomicBoolean();
+    private final Map<String, Resource> workflowRemovedResources = new HashMap<>();
+    private final Map<String, Resource> workflowReplacedResources = new HashMap<>();
 
     public RootScope(String file, FileBackend backend, RootScope current, Set<String> loadFiles) {
         this(file, backend, null, current, loadFiles);
@@ -150,7 +154,7 @@ public class RootScope extends FileScope {
         this.remoteStateBackend = remoteStateBackend;
         this.current = current;
         this.loadFiles = loadFiles != null ? ImmutableSet.copyOf(loadFiles) : ImmutableSet.of();
-        this.inWorkflow = inWorkflow;
+        this.inWorkflow.set(Boolean.TRUE.equals(inWorkflow));
 
         Stream.of(
             new PluginPreprocessor())
@@ -213,39 +217,6 @@ public class RootScope extends FileScope {
         put("ENV", System.getenv());
     }
 
-    public static RootScope copy(
-        RootScope rootScope,
-        Boolean inWorkflow,
-        boolean evaluateCurrent,
-        boolean workflowResourceOnly) {
-        RootScope current = rootScope.getCurrent();
-
-        if (current != null) {
-            current = copy(current, inWorkflow, evaluateCurrent, workflowResourceOnly);
-        }
-        RootScope scope = new RootScope(
-            rootScope.getFile(),
-            rootScope.getBackend(),
-            rootScope.getRemoteStateBackend(),
-            current,
-            rootScope.getLoadFiles(),
-            inWorkflow);
-
-        if (current == null && evaluateCurrent) {
-            scope.evaluate();
-        } else {
-            scope.load();
-            scope.putAll(rootScope);
-            scope.getFileScopes()
-                .addAll(rootScope.getFileScopes()
-                    .stream()
-                    .map(e -> FileScope.copy(scope, e, workflowResourceOnly))
-                    .collect(Collectors.toList()));
-            scope.processRootSettings();
-        }
-        return scope;
-    }
-
     public NodeEvaluator getEvaluator() {
         return evaluator;
     }
@@ -275,7 +246,15 @@ public class RootScope extends FileScope {
     }
 
     public boolean isInWorkflow() {
-        return Boolean.TRUE.equals(inWorkflow);
+        return inWorkflow.get();
+    }
+
+    public Map<String, Resource> getWorkflowRemovedResources() {
+        return workflowRemovedResources;
+    }
+
+    public Map<String, Resource> getWorkflowReplacedResources() {
+        return workflowReplacedResources;
     }
 
     public Stream<String> list() {
@@ -366,12 +345,17 @@ public class RootScope extends FileScope {
     }
 
     public Resource findResource(String name) {
-        return Stream.concat(Stream.of(this), getFileScopes().stream())
+        Resource resource = Stream.concat(Stream.of(this), getFileScopes().stream())
             .map(s -> s.get(name))
             .filter(Resource.class::isInstance)
             .map(Resource.class::cast)
             .findFirst()
             .orElse(null);
+
+        if (resource == null && inWorkflow.get()) {
+            resource = workflowRemovedResources.get(name);
+        }
+        return resource;
     }
 
     public <T extends Resource> T findResourceById(Class<T> resourceClass, Object id) {
@@ -465,6 +449,37 @@ public class RootScope extends FileScope {
         if (!errors.isEmpty()) {
             throw new ValidationErrorException(errors);
         }
+    }
+
+    public RootScope copyWorkflowOnlyRootScope() {
+        RootScope current = getCurrent();
+
+        if (current != null) {
+            current = current.copyWorkflowOnlyRootScope();
+        }
+        RootScope rootScope = new RootScope(
+            getFile(),
+            getBackend(),
+            getRemoteStateBackend(),
+            current,
+            getLoadFiles(),
+            true);
+
+        rootScope.load();
+        rootScope.putAll(this);
+        rootScope.getFileScopes()
+            .addAll(getFileScopes()
+                .stream()
+                .map(e -> e.copyWorkflowOnlyFileScope(rootScope))
+                .collect(Collectors.toList()));
+        rootScope.getWorkflowRemovedResources().putAll(getWorkflowRemovedResources());
+        rootScope.getWorkflowReplacedResources().putAll(getWorkflowReplacedResources());
+        rootScope.processRootSettings();
+        return rootScope;
+    }
+
+    public void setWorkflow() {
+        inWorkflow.set(true);
     }
 
     private void evaluateFile(String file, Consumer<FileNode> consumer) {

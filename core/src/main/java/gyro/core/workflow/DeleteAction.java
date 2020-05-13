@@ -16,10 +16,12 @@
 
 package gyro.core.workflow;
 
-import gyro.core.GyroException;
+import java.util.List;
+
 import gyro.core.GyroUI;
+import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.Resource;
-import gyro.core.scope.NodeEvaluator;
+import gyro.core.scope.Defer;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
 import gyro.core.scope.State;
@@ -38,24 +40,30 @@ public class DeleteAction extends Action {
     }
 
     @Override
-    public void execute(GyroUI ui, State state, Scope scope) {
+    public void execute(
+        GyroUI ui,
+        State state,
+        Scope scope,
+        List<String> toBeRemoved,
+        List<ReplaceResource> toBeReplaced) {
+
         RootScope pending = scope.getRootScope();
-        NodeEvaluator evaluator = pending.getEvaluator();
-        Object resource = evaluator.visit(this.resource, pending);
+        RootScope current = pending.getCurrent();
+        ModifiedIn modifiedIn = null;
 
-        if (resource == null) {
-            throw new GyroException("Can't delete a null resource!");
+        try {
+            Resource currentResource = visitResource(this.resource, current);
+            modifiedIn = DiffableInternals.getModifiedIn(currentResource) == ModifiedIn.WORKFLOW_ONLY
+                ? ModifiedIn.WORKFLOW_ONLY
+                : ModifiedIn.BOTH;
+            DiffableInternals.setModifiedIn(currentResource, modifiedIn);
+            current.getWorkflowRemovedResources().putIfAbsent(currentResource.primaryKey(), currentResource);
+        } catch (Defer e) {
+            // This is to support recovery of delete action.
         }
 
-        if (!(resource instanceof Resource)) {
-            throw new GyroException(String.format(
-                "Can't delete @|bold %s|@, an instance of @|bold %s|@, because it's not a resource!",
-                resource,
-                resource.getClass().getName()));
-        }
-
-        String fullName = ((Resource) resource).primaryKey();
-
-        pending.getFileScopes().forEach(s -> s.remove(fullName));
+        Resource pendingResource = visitResource(this.resource, pending);
+        DiffableInternals.setModifiedIn(pendingResource, modifiedIn == null ? ModifiedIn.WORKFLOW_ONLY : modifiedIn);
+        toBeRemoved.add(pendingResource.primaryKey());
     }
 }

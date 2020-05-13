@@ -16,11 +16,43 @@
 
 package gyro.core.workflow;
 
+import java.util.List;
+
+import com.psddev.dari.util.StringUtils;
+import gyro.core.GyroException;
 import gyro.core.GyroUI;
+import gyro.core.resource.Resource;
 import gyro.core.scope.Scope;
 import gyro.core.scope.State;
+import gyro.lang.ast.Node;
 
 public abstract class Action {
 
-    public abstract void execute(GyroUI ui, State state, Scope scope);
+    public abstract void execute(
+        GyroUI ui,
+        State state,
+        Scope scope,
+        List<String> toBeRemoved,
+        List<ReplaceResource> toBeReplaced);
+
+    Resource visitResource(Node node, Scope scope) {
+        Object resource = scope.getRootScope().getEvaluator().visit(node, scope);
+
+        if (resource == null) {
+            throw new GyroException(String.format("Can't %s a null resource!", getActionName()));
+        }
+
+        if (!(resource instanceof Resource)) {
+            throw new GyroException(String.format(
+                "Can't %s @|bold %s|@, an instance of @|bold %s|@, because it's not a resource!",
+                getActionName(),
+                resource,
+                resource.getClass().getName()));
+        }
+        return (Resource) resource;
+    }
+
+    private String getActionName() {
+        return StringUtils.removeEnd(getClass().getSimpleName(), "Action").toLowerCase();
+    }
 }
