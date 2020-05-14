@@ -1,7 +1,25 @@
 CHANGELOG
 =========
 
-## 0.99.3 (Unreleased)
+## 0.99.4 (Unreleased)
+
+## 0.99.3 (May 14th, 2020)
+
+ENHANCEMENTS:
+
+* core: Add `@state-backend` allowing users to store and use state files remotely. ([236](https://github.com/perfectsense/gyro/issues/236))
+* core: Introduces an abstract class `LockBackend`. The provider specific implementation allows locking of state files to avoid simultaneous modifications. ([269](https://github.com/perfectsense/gyro/issues/269))
+
+ISSUES FIXED:
+
+* core: Fix reference to non configured fields. ([263](https://github.com/perfectsense/gyro/issues/263))
+* core: Maintain resource creation order based on dependencies across multiple files. ([256](https://github.com/perfectsense/gyro/issues/256))
+* core: Make `Find*` methods work when used within a virtual resource. ([275](https://github.com/perfectsense/gyro/issues/275))
+* workflow: Resolve references removed out of workflow scope. ([274](https://github.com/perfectsense/gyro/issues/274))
+* core: Attach parent resource to a subresource on creation. ([282](https://github.com/perfectsense/gyro/issues/282))
+* core: Fix validation annotations to work on Sets. ([285](https://github.com/perfectsense/gyro/issues/285))
+* workflow: Fix updating non-configured fields when using `@workflow::update`. ([287](https://github.com/perfectsense/gyro/issues/287))
+* core: Fix `_configured-fields` of complex types to only have user configured fields. ([288](https://github.com/perfectsense/gyro/issues/288))
 
 ## 0.99.2 (April 23rd, 2020)
 
