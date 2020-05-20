@@ -26,15 +26,22 @@ import gyro.core.diff.Retry;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.State;
 import io.airlift.airline.Command;
+import io.airlift.airline.Option;
 
 @Command(name = "up", description = "Updates all resources to match the configuration.")
 public class UpCommand extends AbstractConfigCommand {
 
     private boolean auditStarted;
 
+    @Option(name = "--skip-version-check")
+    public boolean skipVersionCheck;
+
     @Override
     public void doExecute(RootScope current, RootScope pending, State state) throws Exception {
-        VersionCommand.printUpdateVersion();
+        if (!skipVersionCheck) {
+            VersionCommand.printUpdateVersion();
+        }
+
         GyroUI ui = GyroCore.ui();
 
         ui.write("\n@|bold,white Looking for changes...\n\n|@");
