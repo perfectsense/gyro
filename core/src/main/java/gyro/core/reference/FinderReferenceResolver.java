@@ -30,6 +30,7 @@ import gyro.core.finder.FinderSettings;
 import gyro.core.finder.FinderType;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.Resource;
+import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
 import gyro.lang.ast.value.ReferenceNode;
 
@@ -45,7 +46,9 @@ public class FinderReferenceResolver extends ReferenceResolver {
 
         String type = (String) arguments.remove(0);
 
-        Class<? extends Finder<Resource>> finderClass = scope.getRootScope()
+        RootScope rootScope = scope.getRootScope();
+
+        Class<? extends Finder<Resource>> finderClass = rootScope
             .getSettings(FinderSettings.class)
             .getFinderClasses()
             .get(type);
@@ -57,7 +60,8 @@ public class FinderReferenceResolver extends ReferenceResolver {
         }
 
         FinderType<? extends Finder<Resource>> finderType = FinderType.getInstance(finderClass);
-        Finder<Resource> finder = finderType.newInstance(scope);
+        Finder<Resource> finder =
+            finderType.newInstance(rootScope.getCurrent() != null ? rootScope.getCurrent() : scope);
         Optional.ofNullable(getOptionArgument(scope, node, "credentials", String.class, 0))
             .ifPresent(finder::setCredentials);
         List<Resource> resources = null;
