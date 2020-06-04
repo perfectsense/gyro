@@ -16,7 +16,9 @@
 
 package gyro.core.workflow;
 
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import gyro.core.GyroUI;
 import gyro.core.resource.DiffableInternals;
@@ -45,17 +47,22 @@ public class DeleteAction extends Action {
         State state,
         Scope scope,
         List<String> toBeRemoved,
-        List<ReplaceResource> toBeReplaced) {
+        List<ReplaceResource> toBeReplaced,
+        Workflow workflow) {
 
         RootScope pending = scope.getRootScope();
         RootScope current = pending.getCurrent();
-        ModifiedIn modifiedIn = null;
+        Set<String> modifiedIn = null;
 
         try {
             Resource currentResource = visitResource(this.resource, current);
-            modifiedIn = DiffableInternals.getModifiedIn(currentResource) == ModifiedIn.WORKFLOW_ONLY
-                ? ModifiedIn.WORKFLOW_ONLY
-                : ModifiedIn.BOTH;
+            modifiedIn = DiffableInternals.getModifiedIn(currentResource);
+
+            if (modifiedIn == null) {
+                modifiedIn = new LinkedHashSet<>();
+                modifiedIn.add(Workflow.MAIN_RESOURCE);
+            }
+            modifiedIn.add(workflow.getType());
             DiffableInternals.setModifiedIn(currentResource, modifiedIn);
             current.getWorkflowRemovedResources().putIfAbsent(currentResource.primaryKey(), currentResource);
         } catch (Defer e) {
@@ -63,7 +70,7 @@ public class DeleteAction extends Action {
         }
 
         Resource pendingResource = visitResource(this.resource, pending);
-        DiffableInternals.setModifiedIn(pendingResource, modifiedIn == null ? ModifiedIn.WORKFLOW_ONLY : modifiedIn);
+        DiffableInternals.setModifiedIn(pendingResource, modifiedIn);
         toBeRemoved.add(pendingResource.primaryKey());
     }
 }

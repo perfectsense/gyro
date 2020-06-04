@@ -33,7 +33,8 @@ public abstract class Action {
         State state,
         Scope scope,
         List<String> toBeRemoved,
-        List<ReplaceResource> toBeReplaced);
+        List<ReplaceResource> toBeReplaced,
+        Workflow workflow);
 
     Resource visitResource(Node node, Scope scope) {
         Object resource = scope.getRootScope().getEvaluator().visit(node, scope);

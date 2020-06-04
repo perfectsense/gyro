@@ -29,6 +29,7 @@ import gyro.core.Abort;
 import gyro.core.GyroOutputStream;
 import gyro.core.GyroUI;
 import gyro.core.diff.Diff;
+import gyro.core.diff.Retry;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
 import gyro.core.resource.Resource;
@@ -103,7 +104,7 @@ public class Stage {
         scope.put("CURRENT", currentResource);
         scope.put("PENDING", pendingResource);
 
-        Defer.execute(actions, a -> a.execute(ui, state, scope, toBeRemoved, toBeReplaced));
+        Defer.execute(actions, a -> a.execute(ui, state, scope, toBeRemoved, toBeReplaced, workflow));
     }
 
     public void execute(
@@ -112,15 +113,17 @@ public class Stage {
         Resource currentResource,
         RootScope pendingRootScope,
         List<String> toBeRemoved,
-        List<ReplaceResource> toBeReplaced) {
-        RootScope newPendingRootScope = pendingRootScope.copyWorkflowOnlyRootScope();
+        List<ReplaceResource> toBeReplaced,
+        Map<String, Object> execution) {
+        RootScope newPendingRootScope = pendingRootScope.copyWorkflowOnlyRootScope(workflow);
         RootScope newCurrentRootScope = newPendingRootScope.getCurrent();
 
         Diff diff = new Diff(
             newCurrentRootScope.findSortedResourcesIn(newCurrentRootScope.getLoadFiles()),
             newPendingRootScope.findSortedResourcesIn(newPendingRootScope.getLoadFiles()),
             toBeRemoved,
-            toBeReplaced);
+            toBeReplaced,
+            workflow);
 
         diff.diff();
 
@@ -134,23 +137,38 @@ public class Stage {
         }
 
         try (GyroOutputStream output = newCurrentRootScope.openOutput(Workflow.EXECUTION_FILE)) {
-            output.write(ObjectUtils.toJson(ImmutableMap.of(
-                "type", DiffableType.getInstance(currentResource).getName(),
-                "name", DiffableInternals.getName(currentResource),
-                "workflow", workflow.getName(),
-                "executedStages", workflow.getExecutedStages().stream().map(Stage::getName).collect(Collectors.toList())
-            )).getBytes(StandardCharsets.UTF_8));
+            execution.put(DiffableType.getInstance(currentResource).getName(), ImmutableMap.of(
+                "name",
+                DiffableInternals.getName(currentResource),
+                "workflow",
+                workflow.getName(),
+                "executedStages",
+                workflow.getExecutedStages().stream().map(Stage::getName).collect(Collectors.toList())));
+            output.write(ObjectUtils.toJson(execution).getBytes(StandardCharsets.UTF_8));
         }
 
-        diff.execute(ui, state);
+        try {
+            diff.execute(ui, state);
+        } catch (Retry retry) {
+            // Do nothing
+        }
     }
 
-    public Stage prompt(GyroUI ui, State state, RootScope currentRootScope) {
+    public Stage prompt(GyroUI ui, State state, RootScope currentRootScope, Map<String, Object> execution) {
         int transitionsSize = transitions.size();
 
         if (transitionsSize == 0) {
-            currentRootScope.delete(Workflow.EXECUTION_FILE);
-            state.setRemoveModifiedInField(true);
+            execution.remove(workflow.getType());
+
+            if (execution.isEmpty()) {
+                currentRootScope.delete(Workflow.EXECUTION_FILE);
+                state.setRemoveModifiedInField(true);
+            } else {
+                try (GyroOutputStream output = currentRootScope.openOutput(Workflow.EXECUTION_FILE)) {
+                    output.write(ObjectUtils.toJson(execution).getBytes(StandardCharsets.UTF_8));
+                }
+                state.setRemoveFromModifiedIn(workflow.getType());
+            }
             state.save();
             return null;
 

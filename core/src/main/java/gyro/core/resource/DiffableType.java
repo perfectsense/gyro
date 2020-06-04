@@ -40,7 +40,6 @@ import gyro.core.scope.DiffableScope;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
 import gyro.core.validation.ValidationError;
-import gyro.core.workflow.ModifiedIn;
 import gyro.lang.ast.Node;
 import gyro.parser.antlr4.GyroParser;
 
@@ -225,11 +224,11 @@ public class DiffableType<D extends Diffable> {
         }
 
         if (diffable.modifiedIn == null) {
-            diffable.modifiedIn = Optional.ofNullable(values.get("_modified-in"))
-                .filter(String.class::isInstance)
-                .map(String.class::cast)
-                .map(ModifiedIn::fromString)
-                .orElse(null);
+            Collection<String> modifiedInCollection = (Collection<String>) values.get("_modified-in");
+
+            if (modifiedInCollection != null) {
+                diffable.modifiedIn = new LinkedHashSet<>(modifiedInCollection);
+            }
         }
 
         Set<String> invalidFieldNames = values.keySet()

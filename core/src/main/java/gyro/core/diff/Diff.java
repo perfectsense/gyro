@@ -41,8 +41,8 @@ import gyro.core.scope.DiffableScope;
 import gyro.core.scope.NodeEvaluator;
 import gyro.core.scope.Scope;
 import gyro.core.scope.State;
-import gyro.core.workflow.ModifiedIn;
 import gyro.core.workflow.ReplaceResource;
+import gyro.core.workflow.Workflow;
 import gyro.lang.ast.Node;
 
 public class Diff {
@@ -55,16 +55,19 @@ public class Diff {
     private final AtomicBoolean honorWorkflowResources = new AtomicBoolean();
     private final List<String> toBeRemoved = new ArrayList<>();
     private final List<ReplaceResource> toBeReplaced = new ArrayList<>();
+    private Workflow workflow;
 
     public Diff(
         Collection<? extends Diffable> currentDiffables,
         Collection<? extends Diffable> pendingDiffables,
         List<String> toBeRemoved,
-        List<ReplaceResource> toBeReplaced) {
+        List<ReplaceResource> toBeReplaced,
+        Workflow workflow) {
         this(currentDiffables, pendingDiffables);
         this.honorWorkflowResources.set(true);
         this.toBeRemoved.addAll(toBeRemoved);
         this.toBeReplaced.addAll(toBeReplaced);
+        this.workflow = workflow;
     }
 
     public Diff(Collection<? extends Diffable> currentDiffables, Collection<? extends Diffable> pendingDiffables) {
@@ -103,7 +106,8 @@ public class Diff {
         if (!honorWorkflowResources.get()) {
             currentDiffableStream = currentDiffableStream
                 .filter(e -> !(e instanceof Resource)
-                    || DiffableInternals.getModifiedIn(e) != ModifiedIn.WORKFLOW_ONLY);
+                    || DiffableInternals.getModifiedIn(e) == null
+                    || DiffableInternals.getModifiedIn(e).contains(Workflow.MAIN_RESOURCE));
         }
         Map<String, Diffable> currentDiffables = currentDiffableStream.collect(
             LinkedHashMap::new,
@@ -114,7 +118,8 @@ public class Diff {
         for (Diffable pendingDiffable : pendingDiffables) {
             if (!honorWorkflowResources.get()
                 && pendingDiffable instanceof Resource
-                && DiffableInternals.getModifiedIn(pendingDiffable) == ModifiedIn.WORKFLOW_ONLY) {
+                && DiffableInternals.getModifiedIn(pendingDiffable) != null
+                && DiffableInternals.getModifiedIn(pendingDiffable).contains(workflow.getType())) {
                 continue;
             }
             String pendingDiffableKey = pendingDiffable.primaryKey();

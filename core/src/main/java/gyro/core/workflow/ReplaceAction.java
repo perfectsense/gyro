@@ -16,7 +16,9 @@
 
 package gyro.core.workflow;
 
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.google.common.base.Preconditions;
 import gyro.core.GyroUI;
@@ -51,7 +53,8 @@ public class ReplaceAction extends Action {
         State state,
         Scope scope,
         List<String> toBeRemoved,
-        List<ReplaceResource> toBeReplaced) {
+        List<ReplaceResource> toBeReplaced,
+        Workflow workflow) {
 
         RootScope pending = scope.getRootScope();
         RootScope current = pending.getCurrent();
@@ -71,9 +74,14 @@ public class ReplaceAction extends Action {
             return;
         }
 
-        ModifiedIn modifiedIn = DiffableInternals.getModifiedIn(currentResource) == ModifiedIn.WORKFLOW_ONLY
-            ? ModifiedIn.WORKFLOW_ONLY
-            : ModifiedIn.BOTH;
+        Set<String> modifiedIn = DiffableInternals.getModifiedIn(currentResource);
+
+        if (modifiedIn == null) {
+            modifiedIn = new LinkedHashSet<>();
+            modifiedIn.add(Workflow.MAIN_RESOURCE);
+        }
+        modifiedIn.add(workflow.getType());
+
         current.getWorkflowReplacedResources().putIfAbsent(currentResourceKey, currentResource);
 
         Resource currentWith = visitResource(this.with, current);
