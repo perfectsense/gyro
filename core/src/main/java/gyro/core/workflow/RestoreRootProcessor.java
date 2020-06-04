@@ -51,13 +51,12 @@ public class RestoreRootProcessor extends RootProcessor {
             if (currentExecution != null) {
                 resourceName = ObjectUtils.to(String.class, currentExecution.get("name"));
                 resource = root.findResource(resourceType + "::" + resourceName);
+                workflowName = ObjectUtils.to(String.class, currentExecution.get("workflow"));
+                executedStageNames = ObjectUtils.to(LIST_TYPE_REFERENCE, currentExecution.get("executedStages"));
 
                 if (resource != null) {
                     break;
                 }
-
-                workflowName = ObjectUtils.to(String.class, currentExecution.get("workflow"));
-                executedStageNames = ObjectUtils.to(LIST_TYPE_REFERENCE, currentExecution.get("executedStages"));
             }
         }
 
