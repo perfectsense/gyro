@@ -97,6 +97,7 @@ import gyro.core.workflow.DeleteDirectiveProcessor;
 import gyro.core.workflow.ReplaceDirectiveProcessor;
 import gyro.core.workflow.RestoreRootProcessor;
 import gyro.core.workflow.UpdateDirectiveProcessor;
+import gyro.core.workflow.Workflow;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.FileNode;
 import gyro.parser.antlr4.GyroParser;
@@ -451,11 +452,11 @@ public class RootScope extends FileScope {
         }
     }
 
-    public RootScope copyWorkflowOnlyRootScope() {
+    public RootScope copyWorkflowOnlyRootScope(Workflow workflow) {
         RootScope current = getCurrent();
 
         if (current != null) {
-            current = current.copyWorkflowOnlyRootScope();
+            current = current.copyWorkflowOnlyRootScope(workflow);
         }
         RootScope rootScope = new RootScope(
             getFile(),
@@ -470,7 +471,7 @@ public class RootScope extends FileScope {
         rootScope.getFileScopes()
             .addAll(getFileScopes()
                 .stream()
-                .map(e -> e.copyWorkflowOnlyFileScope(rootScope))
+                .map(e -> e.copyWorkflowOnlyFileScope(rootScope, workflow))
                 .collect(Collectors.toList()));
         rootScope.getWorkflowRemovedResources().putAll(getWorkflowRemovedResources());
         rootScope.getWorkflowReplacedResources().putAll(getWorkflowReplacedResources());

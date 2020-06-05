@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.psddev.dari.util.IoUtils;
@@ -63,6 +64,7 @@ public class State {
     private final Map<String, FileScope> states = new HashMap<>();
     private final Map<String, String> newNames = new HashMap<>();
     private Boolean removeModifiedInField;
+    private String removeFromModifiedIn;
 
     public State(RootScope current, RootScope pending, boolean test) {
         this.root = new RootScope(
@@ -95,6 +97,10 @@ public class State {
 
     public void setRemoveModifiedInField(Boolean removeModifiedInField) {
         this.removeModifiedInField = removeModifiedInField;
+    }
+
+    public void setRemoveFromModifiedIn(String removeFromModifiedIn) {
+        this.removeFromModifiedIn = removeFromModifiedIn;
     }
 
     public void update(Change change) {
@@ -248,11 +254,17 @@ public class State {
         List<Node> body = new ArrayList<>();
         body.add(toPairNode("_configured-fields", DiffableInternals.getConfiguredFields(diffable), resource));
 
-        if (!Boolean.TRUE.equals(removeModifiedInField)
-            && diffable.equals(resource)
-            && DiffableInternals.getModifiedIn(resource) != null) {
-            body.add(toPairNode("_modified-in", DiffableInternals.getModifiedIn(resource).toString(), resource));
+        if (!Boolean.TRUE.equals(removeModifiedInField) && diffable.equals(resource)) {
+            Set<String> workflows = DiffableInternals.getModifiedIn(resource);
+
+            if (workflows != null) {
+                if (removeFromModifiedIn != null) {
+                    workflows.remove(removeFromModifiedIn);
+                }
+                body.add(toPairNode("_modified-in", workflows, resource));
+            }
         }
+
         body.addAll(DiffableInternals.getScope(diffable).getStateNodes());
 
         for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {

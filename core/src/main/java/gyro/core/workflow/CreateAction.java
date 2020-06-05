@@ -16,8 +16,10 @@
 
 package gyro.core.workflow;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -60,9 +62,13 @@ public class CreateAction extends Action {
         State state,
         Scope scope,
         List<String> toBeRemoved,
-        List<ReplaceResource> toBeReplaced) {
+        List<ReplaceResource> toBeReplaced,
+        Workflow workflow) {
 
         NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
+
+        Set<String> modifiedIn = new LinkedHashSet<>();
+        modifiedIn.add(workflow.getType());
 
         Optional.ofNullable(evaluator.visit(
             new ResourceNode(
@@ -72,6 +78,6 @@ public class CreateAction extends Action {
             scope))
             .filter(Resource.class::isInstance)
             .map(Resource.class::cast)
-            .ifPresent(e -> DiffableInternals.setModifiedIn(e, ModifiedIn.WORKFLOW_ONLY));
+            .ifPresent(e -> DiffableInternals.setModifiedIn(e, modifiedIn));
     }
 }

@@ -20,14 +20,17 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.google.common.base.Preconditions;
 import com.psddev.dari.util.IoUtils;
 import com.psddev.dari.util.ObjectUtils;
+import com.psddev.dari.util.TypeReference;
 import gyro.core.GyroException;
 import gyro.core.GyroInputStream;
 import gyro.core.GyroUI;
@@ -46,14 +49,19 @@ public class Workflow {
     public static final String EXECUTION_FILE = "workflow-execution.json";
     public static final String STAGE_TYPE_NAME = "stage";
 
+    public static final String MAIN_RESOURCE = "main";
+
     private static final List<Workflow> SUCCESSFULLY_EXECUTED_WORKFLOWS = new ArrayList<>();
+    private static final TypeReference<Map<String, Object>> MAP_TYPE_REFERENCE = new TypeReference<>() {
+
+    };
 
     private final String type;
     private final String name;
     private final RootScope root;
     private final Map<String, Stage> stages;
     private final List<Stage> executedStages = new ArrayList<>();
-    private final Map<String, Map<String, ModifiedIn>> modifiedInFileScopeMap = new HashMap<>();
+    private final Map<String, Map<String, Set<String>>> modifiedInFileScopeMap = new HashMap<>();
 
     public Workflow(String type, String name, Scope scope) {
         this.type = Preconditions.checkNotNull(type);
@@ -122,15 +130,23 @@ public class Workflow {
         Resource pendingResource) {
 
         Map<String, Object> execution = getExecution(root.getCurrent());
-        Stage stage = null;
 
-        if (execution != null) {
-            ((List<String>) execution.get("executedStages")).stream()
+        if (execution == null) {
+            execution = new LinkedHashMap<>();
+        }
+
+        Stage stage = null;
+        Map<String, Object> currentExecution = ObjectUtils.to(MAP_TYPE_REFERENCE, execution.get(type));
+
+        if (currentExecution != null) {
+            ((List<String>) currentExecution.get("executedStages")).stream()
                 .map(this::getStage)
                 .collect(Collectors.toCollection(() -> executedStages));
             stage = executedStages.get(executedStages.size() - 1);
             ui.write("\n@|magenta · Resuming from %s stage|@\n", stage.getName());
-        } else {
+        }
+
+        if (stage == null) {
             stage = stages.values().iterator().next();
         }
 
@@ -156,6 +172,7 @@ public class Workflow {
             }
 
             RootScope pending = copyRootScope();
+            state = new State(pending.getCurrent(), pending, state.isTest());
 
             List<String> toBeRemoved = new ArrayList<>();
             List<ReplaceResource> toBeReplaced = new ArrayList<>();
@@ -174,8 +191,8 @@ public class Workflow {
             ui.indent();
 
             try {
-                stage.execute(ui, state, currentResource, pending, toBeRemoved, toBeReplaced);
-                stage = stage.prompt(ui, state, pending.getCurrent());
+                stage.execute(ui, state, currentResource, pending, toBeRemoved, toBeReplaced, execution);
+                stage = stage.prompt(ui, state, pending.getCurrent(), execution);
 
                 if (stage != null) {
                     backupModifiedInValues(pending);
@@ -193,13 +210,13 @@ public class Workflow {
         modifiedInFileScopeMap.clear();
 
         for (FileScope fileScope : pending.getFileScopes()) {
-            Map<String, ModifiedIn> modifiedInMap = new HashMap<>();
+            Map<String, Set<String>> modifiedInMap = new LinkedHashMap<>();
 
             for (Map.Entry<String, Object> entry : fileScope.entrySet()) {
                 Object value = entry.getValue();
 
                 if (value instanceof Resource) {
-                    ModifiedIn modifiedIn = DiffableInternals.getModifiedIn((Diffable) value);
+                    Set<String> modifiedIn = DiffableInternals.getModifiedIn((Diffable) value);
 
                     if (modifiedIn != null) {
                         modifiedInMap.put(entry.getKey(), modifiedIn);
@@ -215,10 +232,10 @@ public class Workflow {
 
     private void restoreModifiedInValues(RootScope pending) {
         for (FileScope fileScope : pending.getFileScopes()) {
-            Map<String, ModifiedIn> modifiedInMap = modifiedInFileScopeMap.get(fileScope.getFile());
+            Map<String, Set<String>> modifiedInMap = modifiedInFileScopeMap.get(fileScope.getFile());
 
             if (modifiedInMap != null) {
-                for (Map.Entry<String, ModifiedIn> entry : modifiedInMap.entrySet()) {
+                for (Map.Entry<String, Set<String>> entry : modifiedInMap.entrySet()) {
                     Object resource = fileScope.get(entry.getKey());
 
                     if (resource instanceof Resource) {
