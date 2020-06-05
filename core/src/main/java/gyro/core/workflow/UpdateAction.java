@@ -73,9 +73,20 @@ public class UpdateAction extends Action {
         DiffableScope resourceScope = DiffableInternals.getScope(pendingResource);
         NodeEvaluator evaluator = pending.getEvaluator();
 
+        Scope workflowScope = new Scope(resourceScope);
+
+        workflowScope.put("NAME", scope.get("NAME"));
+        workflowScope.put("CURRENT", scope.get("CURRENT"));
+        workflowScope.put("PENDING", scope.get("PENDING"));
+
         for (Node item : body) {
-            evaluator.visit(item, resourceScope);
+            evaluator.visit(item, workflowScope);
         }
+
+        workflowScope.remove("PENDING");
+        workflowScope.remove("CURRENT");
+        workflowScope.remove("NAME");
+        resourceScope.putAll(workflowScope);
 
         DiffableType.getInstance(pendingResource).setValues(pendingResource, resourceScope);
         DiffableInternals.getConfiguredFields(pendingResource).addAll(resourceScope.keySet());
