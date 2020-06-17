@@ -30,12 +30,15 @@ import java.util.stream.Collectors;
 
 import com.psddev.dari.util.IoUtils;
 import com.psddev.dari.util.ObjectUtils;
+import gyro.core.diff.ChangeProcessor;
+import gyro.core.diff.ChangeSettings;
 import gyro.core.diff.Diff;
 import gyro.core.diff.Retry;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
 import gyro.core.resource.Resource;
+import gyro.core.resource.WaitChangeProcessor;
 import gyro.core.scope.Defer;
 import gyro.core.scope.DiffableScope;
 import gyro.core.scope.FileScope;
@@ -300,6 +303,13 @@ public abstract class WorkflowReplacer {
 
     protected Resource findResource(String resourceName) {
         return scope.getRootScope().findResource(resourceName);
+    }
+
+    protected void addWaiter(Resource pendingResource, Waiter waiter, String description) {
+        DiffableScope scope = DiffableInternals.getScope(pendingResource);
+        List<ChangeProcessor> processors = scope.getSettings(ChangeSettings.class).getProcessors();
+
+        processors.add(new WaitChangeProcessor(scope, waiter, description));
     }
 
     protected Resource findCurrentResource(String resourceName) {

@@ -28,6 +28,7 @@ public class Waiter {
     private long atMost;
     private long checkEvery;
     private boolean prompt;
+    private WaitCheck check;
 
     public Waiter() {
         atMost(10, TimeUnit.SECONDS);
@@ -48,6 +49,15 @@ public class Waiter {
     public Waiter prompt(boolean prompt) {
         this.prompt = prompt;
         return this;
+    }
+
+    public Waiter withCheck(WaitCheck check) {
+        this.check = check;
+        return this;
+    }
+
+    public boolean start() {
+        return until(check);
     }
 
     public boolean until(WaitCheck check) {

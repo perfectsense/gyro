@@ -31,11 +31,20 @@ public class WaitChangeProcessor extends ChangeProcessor {
     private final DiffableScope parent;
     private final Waiter waiter;
     private final Node condition;
+    private final String description;
 
     public WaitChangeProcessor(DiffableScope parent, Waiter waiter, Node condition) {
         this.parent = parent;
         this.waiter = waiter;
         this.condition = condition;
+        this.description = null;
+    }
+
+    public WaitChangeProcessor(DiffableScope parent, Waiter waiter, String description) {
+        this.parent = parent;
+        this.waiter = waiter;
+        this.description = description;
+        this.condition = null;
     }
 
     public DiffableScope getParent() {
@@ -55,21 +64,31 @@ public class WaitChangeProcessor extends ChangeProcessor {
                 return;
             }
 
-            ui.write("@|magenta ⧖ Waiting for: %s|@\n", condition);
+            if (condition != null) {
+                ui.write("@|magenta ⧖ Waiting for: %s|@\n", condition);
 
-            NodeEvaluator evaluator = parent.getRootScope().getEvaluator();
-            ObjectScope scope = new ObjectScope(parent, resource);
+                NodeEvaluator evaluator = parent.getRootScope().getEvaluator();
+                ObjectScope scope = new ObjectScope(parent, resource);
 
-            ui.indented(() ->
-                waiter.until(() -> {
+                ui.indented(() ->
+                    waiter.until(() -> {
+                        ui.write("@|magenta ✓ Checking |@");
+
+                        boolean result = Boolean.TRUE.equals(evaluator.visit(condition, scope));
+
+                        ui.write(result ? "@|green PASSED|@" : "@|red FAILED|@\n");
+                        return result;
+                    })
+                );
+            } else {
+                ui.write("@|magenta ⧖ Waiting for: %s|@\n", description);
+
+                ui.indented(() -> {
                     ui.write("@|magenta ✓ Checking |@");
-
-                    boolean result = Boolean.TRUE.equals(evaluator.visit(condition, scope));
-
+                    boolean result = waiter.start();
                     ui.write(result ? "@|green PASSED|@" : "@|red FAILED|@\n");
-                    return result;
-                })
-            );
+                });
+            }
         });
     }
 
