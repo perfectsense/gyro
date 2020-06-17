@@ -71,6 +71,8 @@ import gyro.core.preprocessor.PreprocessorSettings;
 import gyro.core.reference.FinderReferenceResolver;
 import gyro.core.reference.ReferencePlugin;
 import gyro.core.reference.ReferenceSettings;
+import gyro.core.replacer.WorkflowReplacerDirectiveProcessor;
+import gyro.core.replacer.WorkflowReplacerPlugin;
 import gyro.core.repo.RepositoryDirectiveProcessor;
 import gyro.core.resource.DescriptionDirectiveProcessor;
 import gyro.core.resource.Diffable;
@@ -161,6 +163,7 @@ public class RootScope extends FileScope {
             .forEach(p -> getSettings(PreprocessorSettings.class).getPreprocessors().add(p));
 
         Stream.of(
+            new WorkflowReplacerPlugin(),
             new AuditorPlugin(),
             new CredentialsPlugin(),
             new DirectivePlugin(),
@@ -180,6 +183,7 @@ public class RootScope extends FileScope {
             .forEach(p -> getSettings(ChangeSettings.class).getProcessors().add(p));
 
         Stream.of(
+            WorkflowReplacerDirectiveProcessor.class,
             AuditorDirectiveProcessor.class,
             CreateDirectiveProcessor.class,
             CredentialsDirectiveProcessor.class,
