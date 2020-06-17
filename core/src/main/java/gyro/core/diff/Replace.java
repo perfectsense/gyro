@@ -21,6 +21,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import gyro.core.GyroUI;
+import gyro.core.WorkflowReplacer;
+import gyro.core.replacer.WorkflowReplacerSettings;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.DiffableField;
 import gyro.core.resource.DiffableInternals;
@@ -36,6 +38,7 @@ public class Replace extends Change {
     private final Diffable pendingDiffable;
     private final Set<DiffableField> changedFields;
     private final Workflow workflow;
+    private final WorkflowReplacer workflowReplacer;
 
     public Replace(Diffable currentDiffable, Diffable pendingDiffable, Set<DiffableField> changedFields) {
         this.currentDiffable = currentDiffable;
@@ -54,8 +57,13 @@ public class Replace extends Change {
                 .findFirst()
                 .orElse(null);
 
+            this.workflowReplacer = DiffableInternals.getScope(pendingResource)
+                .getSettings(WorkflowReplacerSettings.class)
+                .getWorkflowReplacer();
+
         } else {
             this.workflow = null;
+            this.workflowReplacer = null;
         }
     }
 
@@ -86,7 +94,9 @@ public class Replace extends Change {
             .map(DiffableField::getName)
             .collect(Collectors.joining(", ")));
 
-        if (workflow != null) {
+        if (workflowReplacer != null) {
+            ui.write("using %s", workflowReplacer.label());
+        } else if (workflow != null) {
             ui.write("using %s", workflow.getName());
 
         } else {
@@ -105,7 +115,7 @@ public class Replace extends Change {
 
     @Override
     public ExecutionResult execute(GyroUI ui, State state, List<ChangeProcessor> processors) {
-        if (workflow == null) {
+        if (workflow == null && workflowReplacer == null) {
             return ExecutionResult.SKIPPED;
         }
 
@@ -113,8 +123,13 @@ public class Replace extends Change {
             ui.write("\n");
         }
 
-        ui.write("\n@|magenta ~ Executing %s workflow|@", workflow.getName());
-        workflow.execute(ui, state, (Resource) currentDiffable, (Resource) pendingDiffable);
+        if (workflowReplacer != null) {
+            ui.write("\n@|magenta ~ Executing %s workflow replacer|@\n", workflowReplacer.label());
+            workflowReplacer.execute(ui, state, (Resource) currentDiffable, (Resource) pendingDiffable);
+        } else {
+            ui.write("\n@|magenta ~ Executing %s workflow|@", workflow.getName());
+            workflow.execute(ui, state, (Resource) currentDiffable, (Resource) pendingDiffable);
+        }
         state.update(this);
         return ExecutionResult.OK;
     }
