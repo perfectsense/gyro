@@ -69,7 +69,7 @@ public class UpdateAction extends Action {
         Resource pendingResource = visitResource(resource, scope);
         DiffableInternals.setModifiedIn(pendingResource, modifiedIn);
 
-        DiffableInternals.disconnect(pendingResource);
+        DiffableInternals.disconnect(pendingResource, scope);
         DiffableScope resourceScope = DiffableInternals.getScope(pendingResource);
         NodeEvaluator evaluator = pending.getEvaluator();
 
