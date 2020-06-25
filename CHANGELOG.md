@@ -7,7 +7,7 @@ CHANGELOG
 
 ENHANCEMENTS:
 
-* core: Add ability to supress version check on `gyro up`. ([294](https://github.com/perfectsense/gyro/issues/294))
+* core: Add ability to suppress version check on `gyro up`. ([294](https://github.com/perfectsense/gyro/issues/294))
 * core: Implement a Diff command. ([302](https://github.com/perfectsense/gyro/issues/302))
 
 ISSUES FIXED:
