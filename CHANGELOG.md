@@ -1,7 +1,18 @@
 CHANGELOG
 =========
 
-## 0.99.4 (Unreleased)
+## 0.99.5 (Unreleased)
+
+## 0.99.4 (June 25th, 2020)
+
+ENHANCEMENTS:
+
+* core: Add ability to supress version check on `gyro up`. ([294](https://github.com/perfectsense/gyro/issues/294))
+* core: Implement a Diff command. ([302](https://github.com/perfectsense/gyro/issues/302))
+
+ISSUES FIXED:
+
+* workflow: Fix incorrect execution of workflow step. ([297](https://github.com/perfectsense/gyro/issues/297))
 
 ## 0.99.3 (May 14th, 2020)
 
