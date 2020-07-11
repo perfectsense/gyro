@@ -48,7 +48,6 @@ import io.airlift.airline.Cli;
 import io.airlift.airline.Command;
 import io.airlift.airline.Help;
 import org.reflections.Reflections;
-import org.reflections.util.ClasspathHelper;
 import org.slf4j.LoggerFactory;
 
 public class Gyro {
@@ -215,8 +214,7 @@ public class Gyro {
 
     public static Reflections getReflections() {
         if (reflections == null) {
-            reflections = new Reflections(new org.reflections.util.ConfigurationBuilder()
-                .setUrls(ClasspathHelper.forPackage("gyro")));
+            reflections = Reflections.collect();
         }
 
         return reflections;

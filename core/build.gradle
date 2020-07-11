@@ -15,6 +15,18 @@
  */
 import org.apache.tools.ant.filters.ReplaceTokens
 
+plugins {
+    id "io.github.manosbatsis.gradle.plugin.reflections" version "1.1"
+}
+
+reflections {
+    dependsOn classes
+}
+
+jar {
+    dependsOn reflections
+}
+
 dependencies {
     api project(':gyro-lang')
     api project(':gyro-util')
