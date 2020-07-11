@@ -77,6 +77,7 @@ public class PluginDirectiveProcessor extends DirectiveProcessor<RootScope> {
                         // Filter out directories and non-class files.
                         .filter(entry -> !entry.isDirectory())
                         .filter(entry -> entry.getName().endsWith(".class"))
+                        .filter(entry -> entry.getName().startsWith("gyro/"))
 
                         // Map path/filename to Class name.
                         .map(entry -> {
