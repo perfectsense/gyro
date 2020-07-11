@@ -16,7 +16,13 @@
 
 package gyro.core.plugin;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.lang.reflect.Modifier;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -28,7 +34,6 @@ import gyro.core.Type;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.scope.RootScope;
 import gyro.lang.ast.block.DirectiveNode;
-import org.eclipse.aether.resolution.DependencyResult;
 
 @Type("plugin")
 public class PluginDirectiveProcessor extends DirectiveProcessor<RootScope> {
@@ -45,11 +50,29 @@ public class PluginDirectiveProcessor extends DirectiveProcessor<RootScope> {
 
         Thread.currentThread().setContextClassLoader(pluginClassLoader);
 
+        Path cachePath = settings.getCachePath();
+        Path cachedArtifactInfoPath = cachePath.resolve("info");
+
+        Map<String, File> artifactFiles = new HashMap<>();
+        try {
+            try (BufferedReader br = new BufferedReader(new FileReader(cachedArtifactInfoPath.toFile()))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    if (line.trim().isEmpty()) {
+                        continue;
+                    }
+
+                    String[] p = line.split(" ");
+                    artifactFiles.put(p[0], new File(p[1]));
+                }
+            }
+        } catch (Exception error) {
+            throw new GyroException("Can't load the cache info!");
+        }
+
         settings.addClasses(CLASSES_BY_ARTIFACT_COORDS.computeIfAbsent(artifactCoords, ac -> {
             try {
-                DependencyResult result = settings.getDependencyResult(ac);
-
-                try (JarFile jar = new JarFile(result.getRoot().getArtifact().getFile())) {
+                try (JarFile jar = new JarFile(artifactFiles.get(ac))) {
                     return jar.stream().parallel()
                         // Filter out directories and non-class files.
                         .filter(entry -> !entry.isDirectory())
