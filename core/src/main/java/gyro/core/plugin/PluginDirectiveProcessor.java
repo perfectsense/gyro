@@ -17,13 +17,11 @@
 package gyro.core.plugin;
 
 import java.lang.reflect.Modifier;
-import java.util.Enumeration;
-import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.stream.Collectors;
 
 import gyro.core.GyroException;
 import gyro.core.Type;
@@ -51,36 +49,35 @@ public class PluginDirectiveProcessor extends DirectiveProcessor<RootScope> {
             try {
                 DependencyResult result = settings.getDependencyResult(ac);
 
-                Set<Class<?>> classes = new LinkedHashSet<>();
-
                 try (JarFile jar = new JarFile(result.getRoot().getArtifact().getFile())) {
-                    for (Enumeration<JarEntry> e = jar.entries(); e.hasMoreElements(); ) {
-                        JarEntry entry = e.nextElement();
+                    return jar.stream().parallel()
+                        // Filter out directories and non-class files.
+                        .filter(entry -> !entry.isDirectory())
+                        .filter(entry -> entry.getName().endsWith(".class"))
 
-                        if (entry.isDirectory()) {
-                            continue;
-                        }
+                        // Map path/filename to Class name.
+                        .map(entry -> {
+                            String name = entry.getName();
 
-                        String name = entry.getName();
+                            name = name.substring(0, name.length() - 6);
+                            name = name.replace('/', '.');
 
-                        if (!name.endsWith(".class")) {
-                            continue;
-                        }
+                            return name;
+                        })
 
-                        name = name.substring(0, name.length() - 6);
-                        name = name.replace('/', '.');
-                        Class<?> c = Class.forName(name, false, pluginClassLoader);
+                        // Look up class to for it to load.
+                        .map(name -> {
+                            try {
+                                return Class.forName(name, false, pluginClassLoader);
+                            } catch (ClassNotFoundException e) {
+                                throw new RuntimeException(e);
+                            }
+                        })
 
-                        int modifiers = c.getModifiers();
-
-                        if (!Modifier.isAbstract(modifiers) && !Modifier.isInterface(modifiers)) {
-                            classes.add(c);
-                        }
-                    }
+                        // Ignore abstract classes and interfaces.
+                        .filter(c -> !Modifier.isAbstract(c.getModifiers()) && !Modifier.isInterface(c.getModifiers()))
+                        .collect(Collectors.toSet());
                 }
-
-                return classes;
-
             } catch (Exception error) {
                 throw new GyroException(
                     String.format("Can't load the @|bold %s|@ plugin!", ac),
@@ -88,5 +85,4 @@ public class PluginDirectiveProcessor extends DirectiveProcessor<RootScope> {
             }
         }));
     }
-
 }
