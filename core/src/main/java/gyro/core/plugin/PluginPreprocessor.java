@@ -14,6 +14,7 @@ import gyro.core.scope.Scope;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.DirectiveNode;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
+import org.eclipse.aether.DefaultRepositoryCache;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.artifact.Artifact;
@@ -62,6 +63,21 @@ public class PluginPreprocessor extends Preprocessor {
         NodeEvaluator evaluator = new NodeEvaluator();
         evaluator.evaluate(scope, repositoryNodes);
 
+        DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
+
+        locator.addService(RepositoryConnectorFactory.class, BasicRepositoryConnectorFactory.class);
+        locator.addService(TransporterFactory.class, FileTransporterFactory.class);
+        locator.addService(TransporterFactory.class, HttpTransporterFactory.class);
+
+        RepositorySystem system = locator.getService(RepositorySystem.class);
+        DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();
+        String localDir = Paths.get(System.getProperty("user.home"), ".m2", "repository").toString();
+        LocalRepository local = new LocalRepository(localDir);
+        LocalRepositoryManager manager = system.newLocalRepositoryManager(session, local);
+
+        session.setLocalRepositoryManager(manager);
+        session.setCache(new DefaultRepositoryCache());
+
         for (String ac : artifactCoords) {
             if (settings.pluginInitialized(ac)) {
                 continue;
@@ -69,20 +85,6 @@ public class PluginPreprocessor extends Preprocessor {
 
             try {
                 GyroCore.ui().write("@|magenta ↓ Loading plugin:|@ %s\n", ac);
-
-                DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
-
-                locator.addService(RepositoryConnectorFactory.class, BasicRepositoryConnectorFactory.class);
-                locator.addService(TransporterFactory.class, FileTransporterFactory.class);
-                locator.addService(TransporterFactory.class, HttpTransporterFactory.class);
-
-                RepositorySystem system = locator.getService(RepositorySystem.class);
-                DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();
-                String localDir = Paths.get(System.getProperty("user.home"), ".m2", "repository").toString();
-                LocalRepository local = new LocalRepository(localDir);
-                LocalRepositoryManager manager = system.newLocalRepositoryManager(session, local);
-
-                session.setLocalRepositoryManager(manager);
 
                 Artifact artifact = new DefaultArtifact(ac);
                 Dependency dependency = new Dependency(artifact, JavaScopes.RUNTIME);
