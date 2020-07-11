@@ -37,10 +37,24 @@ import gyro.lang.ast.value.ReferenceNode;
 @Type("external-query")
 public class FinderReferenceResolver extends ReferenceResolver {
 
+    private static final Map<String, List<Resource>> QUERY_CACHE = new HashMap<>();
+
     @Override
     public Object resolve(ReferenceNode node, Scope scope) {
         validateArguments(node, 1, 2);
         validateOptionArguments(node, "credentials", 0, 1);
+        validateOptionArguments(node, "cache", 0, 1);
+
+        String cacheKey = getOptionArgument(scope, node, "cache", String.class, 0);
+        List<Resource> resources = null;
+        if (cacheKey != null) {
+            resources = QUERY_CACHE.get(cacheKey);
+        }
+
+        if (resources != null) {
+            resources.forEach(r -> DiffableInternals.update(r));
+            return resources;
+        }
 
         List<Object> arguments = getArguments(scope, node, Object.class);
 
@@ -64,7 +78,6 @@ public class FinderReferenceResolver extends ReferenceResolver {
             finderType.newInstance(rootScope.getCurrent() != null ? rootScope.getCurrent() : scope);
         Optional.ofNullable(getOptionArgument(scope, node, "credentials", String.class, 0))
             .ifPresent(finder::setCredentials);
-        List<Resource> resources = null;
 
         if (!arguments.isEmpty()) {
             @SuppressWarnings("unchecked")
@@ -81,6 +94,10 @@ public class FinderReferenceResolver extends ReferenceResolver {
         }
 
         resources.forEach(r -> DiffableInternals.update(r));
+
+        if (cacheKey != null) {
+            QUERY_CACHE.put(cacheKey, resources);
+        }
 
         return resources;
     }
