@@ -18,6 +18,7 @@ package gyro.core.plugin;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -45,6 +46,7 @@ public class PluginSettings extends Settings {
 
     private List<Plugin> plugins;
     private List<Class<?>> otherClasses;
+    private Path cachePath;
 
     private final LoadingCache<Plugin, LoadingCache<Class<?>, Boolean>> call = CacheBuilder.newBuilder()
         .build(new CacheLoader<Plugin, LoadingCache<Class<?>, Boolean>>() {
@@ -115,6 +117,14 @@ public class PluginSettings extends Settings {
                 }
             }
         }
+    }
+
+    public Path getCachePath() {
+        return cachePath;
+    }
+
+    public void setCachePath(Path cachePath) {
+        this.cachePath = cachePath;
     }
 
     public PluginClassLoader getPluginClassLoader() {
