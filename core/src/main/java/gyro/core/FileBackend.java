@@ -51,4 +51,15 @@ public abstract class FileBackend {
 
     public abstract void delete(String file) throws Exception;
 
+    public boolean exists(String file) throws Exception {
+        try (InputStream inputStream = openInput(file)) {
+            if (inputStream != null) {
+                return true;
+            }
+
+            return false;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }
