@@ -36,13 +36,4 @@ class PluginClassLoader extends URLClassLoader {
     public List<URL> getPluginUrls() {
         return pluginUrls;
     }
-
-    @Override
-    protected Class<?> findClass(String name) throws ClassNotFoundException {
-        if (name.endsWith("Customizer")) {
-            return null;
-        }
-
-        return super.findClass(name);
-    }
 }
