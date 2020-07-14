@@ -33,8 +33,8 @@ public abstract class GyroAuditableUI implements GyroUI {
 
     public abstract String doReplace(String message, Object... arguments);
 
-    public void finishAuditors(Map<String, Object> log) {
-        finishAuditors(log, false);
+    public void finishAuditors() {
+        finishAuditors(null, false);
     }
 
     @Override
@@ -76,7 +76,7 @@ public abstract class GyroAuditableUI implements GyroUI {
                     throw new GyroException(ex.getMessage());
                 }
             });
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> finishAuditors(log)));
+        Runtime.getRuntime().addShutdownHook(new Thread(this::finishAuditors));
         flushPendingWrites();
     }
 
