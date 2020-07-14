@@ -17,8 +17,10 @@
 package gyro.core.audit;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import gyro.core.GyroException;
@@ -93,6 +95,13 @@ public class MetadataDirectiveProcessor extends DirectiveProcessor<DiffableScope
                 Map<String, Object> existingMetadata = finalStageMetadata.putIfAbsent(stageName, metadata);
 
                 if (existingMetadata != null) {
+                    if (metadata.isEmpty()) {
+                        Set<Object> objects = existingMetadata.containsKey("VALUE")
+                            ? (Set<Object>) existingMetadata.get("VALUE")
+                            : new HashSet<>();
+                        objects.add(getArgument(scope, node, String.class, 0));
+                        existingMetadata.put("VALUE", objects);
+                    }
                     existingMetadata.putAll(metadata);
                 }
             });
