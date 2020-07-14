@@ -39,6 +39,7 @@ import gyro.lang.ast.value.ValueNode;
 @Type("metadata")
 public class MetadataDirectiveProcessor extends DirectiveProcessor<DiffableScope> {
 
+    private static final String METADATA_KEY = "METADATA_KEY";
     private static final Map<String, Map<String, Map<String, Object>>> METADATA_BY_WORKFLOW = new ConcurrentHashMap<>();
 
     public static Map<String, Object> getMetadata() {
@@ -96,11 +97,11 @@ public class MetadataDirectiveProcessor extends DirectiveProcessor<DiffableScope
 
                 if (existingMetadata != null) {
                     if (metadata.isEmpty()) {
-                        Set<Object> objects = existingMetadata.containsKey("VALUE")
-                            ? (Set<Object>) existingMetadata.get("VALUE")
+                        Set<Object> objects = existingMetadata.containsKey(METADATA_KEY)
+                            ? (Set<Object>) existingMetadata.get(METADATA_KEY)
                             : new HashSet<>();
                         objects.add(getArgument(scope, node, String.class, 0));
-                        existingMetadata.put("VALUE", objects);
+                        existingMetadata.put(METADATA_KEY, objects);
                     }
                     existingMetadata.putAll(metadata);
                 }
