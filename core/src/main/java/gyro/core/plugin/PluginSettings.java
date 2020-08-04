@@ -103,19 +103,20 @@ public class PluginSettings extends Settings {
         }
 
         for (Plugin plugin : plugins) {
-            for (Class<?> otherClass : otherClasses) {
-                try {
-                    call.get(plugin).get(otherClass);
+            otherClasses.stream().parallel()
+                .forEach(otherClass -> {
+                    try {
+                        call.get(plugin).get(otherClass);
 
-                } catch (ExecutionException error) {
-                    throw new GyroException(
-                        String.format(
-                            "Can't load @|bold %s|@ using the @|bold %s|@ plugin!",
-                            otherClass.getName(),
-                            plugin.getClass().getName()),
-                        error.getCause());
-                }
-            }
+                    } catch (ExecutionException error) {
+                        throw new GyroException(
+                            String.format(
+                                "Can't load @|bold %s|@ using the @|bold %s|@ plugin!",
+                                otherClass.getName(),
+                                plugin.getClass().getName()),
+                            error.getCause());
+                    }
+                });
         }
     }
 
