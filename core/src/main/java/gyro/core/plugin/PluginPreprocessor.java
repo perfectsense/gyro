@@ -68,6 +68,7 @@ public class PluginPreprocessor extends Preprocessor {
         String cacheKey = StringUtils.hex(StringUtils.md5(StringUtils.join(artifactCoords, " ")));
         Path cachePath = Paths.get(System.getProperty("user.home"), ".gyro", "cache", cacheKey);
         Path cachedDependencyInfoPath = cachePath.resolve("deps");
+        Path cachedArtifactInfoPath = cachePath.resolve("info");
         settings.setCachePath(cachePath);
 
         if (artifactCoords.stream().allMatch(settings::pluginInitialized)) {
@@ -104,6 +105,8 @@ public class PluginPreprocessor extends Preprocessor {
                 }
             }
 
+            Files.deleteIfExists(cachedDependencyInfoPath);
+            Files.deleteIfExists(cachedArtifactInfoPath);
             Files.createDirectories(cachePath);
         } catch (Exception ioe) {
             ioe.printStackTrace();
@@ -147,7 +150,6 @@ public class PluginPreprocessor extends Preprocessor {
 
                 // Write file to map ac to a file for later loading.
                 Path file = result.getRoot().getArtifact().getFile().toPath();
-                Path cachedArtifactInfoPath = cachePath.resolve("info");
 
                 BufferedWriter writer = new BufferedWriter(new FileWriter(cachedArtifactInfoPath.toFile(), true));
                 writer.newLine();

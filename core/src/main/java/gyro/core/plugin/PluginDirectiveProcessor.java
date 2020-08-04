@@ -19,7 +19,10 @@ package gyro.core.plugin;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.lang.reflect.Modifier;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -94,6 +97,11 @@ public class PluginDirectiveProcessor extends DirectiveProcessor<RootScope> {
                             try {
                                 return Class.forName(name, false, pluginClassLoader);
                             } catch (ClassNotFoundException e) {
+                                try {
+                                    Files.deleteIfExists(cachePath.resolve("deps"));
+                                } catch (IOException er) {
+                                    // Ignore
+                                }
                                 throw new RuntimeException(e);
                             }
                         })
@@ -103,6 +111,14 @@ public class PluginDirectiveProcessor extends DirectiveProcessor<RootScope> {
                         .collect(Collectors.toSet());
                 }
             } catch (Exception error) {
+                if (error instanceof NoSuchFileException) {
+                    try {
+                        Files.deleteIfExists(cachedArtifactInfoPath);
+                    } catch (IOException ex) {
+                        // Ignore
+                    }
+                }
+
                 throw new GyroException(
                     String.format("Can't load the @|bold %s|@ plugin!", ac),
                     error);
