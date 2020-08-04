@@ -107,30 +107,29 @@ public class PluginSettings extends Settings {
         }
 
         for (Plugin plugin : plugins) {
-            otherClasses.stream().parallel()
-                .forEach(otherClass -> {
-                    try {
-                        call.get(plugin).get(otherClass);
+            for (Class<?> otherClass : otherClasses) {
+                try {
+                    call.get(plugin).get(otherClass);
 
-                    } catch (ExecutionError error) {
-                        if (ExceptionUtils.getRootCause(error) instanceof ClassNotFoundException) {
-                            try {
-                                Files.deleteIfExists(getCachePath().resolve("deps"));
-                            } catch (IOException e) {
-                                // Ignore
-                            }
+                } catch (ExecutionError error) {
+                    if (ExceptionUtils.getRootCause(error) instanceof ClassNotFoundException) {
+                        try {
+                            Files.deleteIfExists(getCachePath().resolve("deps"));
+                        } catch (IOException e) {
+                            // Ignore
                         }
-
-                        throw error;
-                    } catch (ExecutionException error) {
-                        throw new GyroException(
-                            String.format(
-                                "Can't load @|bold %s|@ using the @|bold %s|@ plugin!",
-                                otherClass.getName(),
-                                plugin.getClass().getName()),
-                            error.getCause());
                     }
-                });
+
+                    throw error;
+                } catch (ExecutionException error) {
+                    throw new GyroException(
+                        String.format(
+                            "Can't load @|bold %s|@ using the @|bold %s|@ plugin!",
+                            otherClass.getName(),
+                            plugin.getClass().getName()),
+                        error.getCause());
+                }
+            }
         }
     }
 
