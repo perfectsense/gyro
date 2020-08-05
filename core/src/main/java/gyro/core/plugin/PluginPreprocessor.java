@@ -5,6 +5,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -108,8 +109,8 @@ public class PluginPreprocessor extends Preprocessor {
             Files.deleteIfExists(cachedDependencyInfoPath);
             Files.deleteIfExists(cachedArtifactInfoPath);
             Files.createDirectories(cachePath);
-        } catch (Exception ioe) {
-            ioe.printStackTrace();
+        } catch (IOException ioe) {
+            throw new GyroException("Failed to read/write plugin cache file(s)!", ioe);
         }
 
         NodeEvaluator evaluator = new NodeEvaluator();
@@ -178,7 +179,7 @@ public class PluginPreprocessor extends Preprocessor {
             }
             writer.close();
         } catch (Exception ex) {
-            ex.printStackTrace();
+            throw new GyroException("Failed to write plugin cache file!", ex);
         }
 
         return nodes;
