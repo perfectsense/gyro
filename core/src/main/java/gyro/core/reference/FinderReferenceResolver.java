@@ -124,4 +124,7 @@ public class FinderReferenceResolver extends ReferenceResolver {
         return filter;
     }
 
+    public static void bustCache() {
+        QUERY_CACHE.clear();
+    }
 }
