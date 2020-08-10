@@ -47,15 +47,11 @@ public abstract class FileBackend {
 
     public abstract InputStream openInput(String file) throws Exception;
 
-    public abstract OutputStream openOutput(String file, FileBackendAccess acl) throws Exception;
+    public abstract OutputStream openOutput(String file) throws Exception;
 
     public abstract void delete(String file) throws Exception;
 
     public abstract boolean exists(String file) throws Exception;
 
-    public abstract void copy(String source, String destination, FileBackendAccess acl) throws Exception;
-
-    public OutputStream openOutput(String file) throws Exception {
-        return openOutput(file, FileBackendAccess.PRIVATE);
-    }
+    public abstract void copy(String source, String destination) throws Exception;
 }
