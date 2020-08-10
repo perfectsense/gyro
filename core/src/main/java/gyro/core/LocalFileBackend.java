@@ -55,7 +55,7 @@ public class LocalFileBackend extends FileBackend {
     }
 
     @Override
-    public OutputStream openOutput(String file, FileBackendAccess acl) throws IOException {
+    public OutputStream openOutput(String file) throws IOException {
         Path finalFile = rootDirectory.resolve(file);
         Path finalDir = finalFile.getParent();
 
@@ -86,7 +86,7 @@ public class LocalFileBackend extends FileBackend {
     }
 
     @Override
-    public void copy(String source, String destination, FileBackendAccess acl) throws Exception {
+    public void copy(String source, String destination) throws Exception {
         try (InputStream inputStream = openInput(source); OutputStream outputStream = openOutput(destination)) {
             IoUtils.copy(inputStream, outputStream);
         }
