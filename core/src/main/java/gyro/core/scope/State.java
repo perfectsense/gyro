@@ -229,8 +229,7 @@ public class State {
                     throw new Bug(error);
                 }
 
-                try (OutputStream out = root.openOutput(file)) {
-                    InputStream in = root.openInput(tempFile);
+                try (InputStream in = root.openInput(tempFile); OutputStream out = root.openOutput(file)) {
                     IoUtils.copy(in, out);
 
                     root.delete(tempFile);

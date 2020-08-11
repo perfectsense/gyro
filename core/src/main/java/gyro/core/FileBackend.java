@@ -51,4 +51,7 @@ public abstract class FileBackend {
 
     public abstract void delete(String file) throws Exception;
 
+    public abstract boolean exists(String file) throws Exception;
+
+    public abstract void copy(String source, String destination) throws Exception;
 }
