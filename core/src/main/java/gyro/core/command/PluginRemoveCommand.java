@@ -21,9 +21,7 @@ import java.util.stream.Collectors;
 
 import gyro.core.GyroCore;
 import gyro.lang.ast.block.DirectiveNode;
-import io.airlift.airline.Command;
-import io.airlift.airline.Help;
-import io.airlift.airline.model.MetadataLoader;
+import picocli.CommandLine.Command;
 
 @Command(name = "remove", description = "Remove one or more plugins.")
 public class PluginRemoveCommand extends PluginCommand {
@@ -31,7 +29,7 @@ public class PluginRemoveCommand extends PluginCommand {
     @Override
     protected void executeSubCommand() throws Exception {
         if (getPlugins().isEmpty()) {
-            Help.help(MetadataLoader.loadCommand(PluginRemoveCommand.class));
+            //Help.help(MetadataLoader.loadCommand(PluginRemoveCommand.class));
             return;
         }
 
@@ -77,5 +75,4 @@ public class PluginRemoveCommand extends PluginCommand {
             .map(p -> String.format("@|bold %s|@ has been removed.%n", p))
             .forEach(GyroCore.ui()::write);
     }
-
 }

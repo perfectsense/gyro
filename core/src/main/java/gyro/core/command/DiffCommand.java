@@ -21,7 +21,7 @@ import gyro.core.GyroUI;
 import gyro.core.diff.Diff;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.State;
-import io.airlift.airline.Command;
+import picocli.CommandLine.Command;
 
 @Command(name = "diff", description = "Shows differences between the configuration and the cloud.")
 public class DiffCommand extends AbstractConfigCommand {

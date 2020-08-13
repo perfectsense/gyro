@@ -20,14 +20,14 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import gyro.core.GyroCore;
 import gyro.core.GyroUI;
-import io.airlift.airline.Option;
-import io.airlift.airline.OptionType;
 import org.slf4j.LoggerFactory;
+import picocli.CommandLine.Option;
 
 /**
  * Basic {@link GyroCommand} implementation that adds the global {@code -debug} option for more detailed logging.
@@ -38,12 +38,12 @@ import org.slf4j.LoggerFactory;
  * <li>{@link #doExecute()}</li>
  * </ul>
  */
-public abstract class AbstractCommand implements GyroCommand {
+public abstract class AbstractCommand implements GyroCommand, Callable<Integer> {
 
-    @Option(type = OptionType.GLOBAL, name = "--debug", description = "Debug mode")
+    @Option(names = "--debug", description = "Debug mode.")
     public boolean debug;
 
-    @Option(name = "--verbose")
+    @Option(names = "--verbose", description = "Detailed view of the diff engines result.")
     private boolean verbose;
 
     private List<String> unparsedArguments;
@@ -73,6 +73,12 @@ public abstract class AbstractCommand implements GyroCommand {
         }
 
         doExecute();
+    }
+
+    @Override
+    public Integer call() throws Exception {
+        execute();
+        return 0;
     }
 
     public boolean isDebug() {

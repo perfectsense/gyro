@@ -21,10 +21,8 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
@@ -34,7 +32,6 @@ import gyro.core.GyroException;
 import gyro.core.LocalFileBackend;
 import gyro.core.backend.LockBackendSettings;
 import gyro.core.backend.StateBackendSettings;
-import gyro.core.command.AbstractCommand;
 import gyro.core.command.GyroCommand;
 import gyro.core.command.GyroCommandGroup;
 import gyro.core.scope.Defer;
@@ -44,18 +41,17 @@ import gyro.lang.Locatable;
 import gyro.lang.SyntaxError;
 import gyro.lang.SyntaxErrorException;
 import gyro.util.Bug;
-import io.airlift.airline.Cli;
-import io.airlift.airline.Command;
-import io.airlift.airline.Help;
 import org.reflections.Reflections;
 import org.reflections.util.ClasspathHelper;
 import org.slf4j.LoggerFactory;
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
 
+@Command(name = "gyro", mixinStandardHelpOptions = true)
 public class Gyro {
 
-    private Cli<Object> cli;
+    private CommandLine commandLine;
     private List<String> arguments;
-    private Set<Class<?>> commands = new HashSet<>();
 
     public static Reflections reflections;
 
@@ -159,40 +155,47 @@ public class Gyro {
             }
         }
 
-        Cli.CliBuilder<Object> builder = Cli.<Object>builder(appName);
-
+        CommandLine commandLine = new CommandLine(this);
         List<Class<?>> groupCommands = new ArrayList<>();
+
+        // Add commands part of a GyroCommandGroup
         for (Class<? extends GyroCommandGroup> c : getReflections().getSubTypesOf(GyroCommandGroup.class)) {
             GyroCommandGroup group = gyro.core.Reflections.newInstance(c);
+            commandLine.addSubcommand(null, group);
             groupCommands.addAll(group.getCommands());
-
-            builder.withGroup(group.getName())
-                .withDescription(group.getDescription())
-                .withDefaultCommand(group.getDefaultCommand())
-                .withCommands(group.getCommands());
         }
 
-        commands().add(Help.class);
+        // Add all other commands that are not previously added
         for (Class<?> c : getReflections().getSubTypesOf(GyroCommand.class)) {
             if (c.isAnnotationPresent(Command.class) && !groupCommands.contains(c)) {
-                commands().add(c);
+                Object o = gyro.core.Reflections.newInstance(c);
+                commandLine.addSubcommand(null, o);
             }
         }
 
-        builder.withDescription("Gyro.")
-            .withDefaultCommand(Help.class)
-            .withCommands(commands());
+        commandLine
+            .setExecutionExceptionHandler(Gyro::invalidUserInput);
+        commandLine.setExecutionStrategy(new CommandLine.RunLast());
+        this.commandLine = commandLine;
 
-        this.cli = builder.build();
         this.arguments = arguments;
     }
 
-    public Set<Class<?>> commands() {
-        return commands;
+    // custom handler for invalid input that does not print usage help
+    private static int invalidUserInput(Exception e, CommandLine commandLine, CommandLine.ParseResult parseResult) {
+        commandLine.getErr().println("ERROR: " + e.getMessage());
+        commandLine.getErr().println("Try '"
+            + commandLine.getCommandSpec().qualifiedName()
+            + " --help' for more information.");
+        return CommandLine.ExitCode.USAGE;
     }
 
-    public void run() throws Exception {
-        Object command = cli.parse(arguments);
+    public void run() {
+        int execute = commandLine.execute(this.arguments.toArray(new String[0]));
+
+        System.out.println("\n --> " + execute);
+
+        /*Object command = cli.parse(arguments);
 
         if (command instanceof Runnable) {
             ((Runnable) command).run();
@@ -210,7 +213,7 @@ public class Gyro {
                 command.getClass().getName(),
                 Runnable.class.getName(),
                 GyroCommand.class.getName()));
-        }
+        }*/
     }
 
     public static Reflections getReflections() {

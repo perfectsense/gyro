@@ -17,9 +17,9 @@
 package gyro.core.command;
 
 import gyro.core.GyroCore;
-import io.airlift.airline.Command;
+import picocli.CommandLine.Command;
 
-@Command(name = "list", description = "List installed plugins.")
+@Command(name = "list", description = "List installed plugins.", subcommands = PluginAddCommand.class)
 public class PluginListCommand extends PluginCommand {
 
     @Override
@@ -32,5 +32,4 @@ public class PluginListCommand extends PluginCommand {
             .map(p -> String.format("@|bold %s|@%n", p))
             .forEach(GyroCore.ui()::write);
     }
-
 }

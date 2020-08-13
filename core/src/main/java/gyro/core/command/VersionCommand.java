@@ -13,19 +13,13 @@ import javax.xml.xpath.XPathFactory;
 
 import com.psddev.dari.util.IoUtils;
 import gyro.core.GyroCore;
-import io.airlift.airline.Command;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
+import picocli.CommandLine.Command;
 
 @Command(name = "version", description = "Display the version of Gyro.")
 public class VersionCommand extends AbstractCommand {
-
-    @Override
-    protected void doExecute() throws Exception {
-        VersionCommand.printVersion();
-        VersionCommand.printUpdateVersion();
-    }
 
     public static void printVersion() throws IOException {
         ComparableVersion currentVersion = VersionCommand.getCurrentVersion();
@@ -37,8 +31,7 @@ public class VersionCommand extends AbstractCommand {
         ComparableVersion latestVersion = VersionCommand.getLatestVersion();
 
         if (latestVersion != null) {
-            Boolean isUpdateAvailable = currentVersion.compareTo(latestVersion) < 0;
-            if (isUpdateAvailable) {
+            if (currentVersion.compareTo(latestVersion) < 0) {
                 VersionCommand.renderUpdateMessage(latestVersion.toString(), getOsName());
             }
         }
@@ -67,7 +60,7 @@ public class VersionCommand extends AbstractCommand {
             XPath xpath = XPathFactory.newInstance().newXPath();
             String version = (String) xpath.evaluate("/metadata/versioning/latest", dDoc, XPathConstants.STRING);
 
-            latestVersion = new ComparableVersion((String) version);
+            latestVersion = new ComparableVersion(version);
         } catch (
             Exception error) {
             GyroCore.ui().write("@|red Error when trying to get the latest version info.|@\n");
@@ -102,5 +95,11 @@ public class VersionCommand extends AbstractCommand {
                 "Download the new release at @|blue https://artifactory.psdops.com/gyro-releases/gyro/gyro-cli-%1$s/%2$s/gyro-cli-%1$s-%2$s.zip|@\n",
                 osName,
                 latestVersion);
+    }
+
+    @Override
+    protected void doExecute() throws Exception {
+        VersionCommand.printVersion();
+        VersionCommand.printUpdateVersion();
     }
 }

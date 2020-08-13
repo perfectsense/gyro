@@ -25,16 +25,15 @@ import gyro.core.diff.Diff;
 import gyro.core.diff.Retry;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.State;
-import io.airlift.airline.Command;
-import io.airlift.airline.Option;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
 
-@Command(name = "up", description = "Updates all resources to match the configuration.")
+@Command(name = "up", description = "Updates all resources to match the configuration.", mixinStandardHelpOptions = true)
 public class UpCommand extends AbstractConfigCommand {
 
-    private boolean auditStarted;
-
-    @Option(name = "--skip-version-check")
+    @Option(names = "--skip-version-check", description = "Skips checking for the latest version.")
     public boolean skipVersionCheck;
+    private boolean auditStarted;
 
     @Override
     public void doExecute(RootScope current, RootScope pending, State state) throws Exception {

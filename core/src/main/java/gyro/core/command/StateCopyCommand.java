@@ -35,85 +35,17 @@ import gyro.core.GyroUI;
 import gyro.core.LocalFileBackend;
 import gyro.core.LockBackend;
 import gyro.util.Bug;
-import io.airlift.airline.Command;
-import io.airlift.airline.Option;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
 
 @Command(name = "copy", description = "Copy state files between named backends. Use 'local' to copy to/from your local directory. Use 'default' to copy to/from an unnamed backend in your 'init.gyro'.")
 public class StateCopyCommand implements GyroCommand {
 
-    @Option(name = "--to", description = "Specifies the name of the backend to push state files to", required = true)
+    @Option(names = "--to", description = "Specifies the name of the backend to push state files to", required = true)
     private String to;
 
-    @Option(name = "--from", description = "Specifies the name of the backend to pull state files from", required = true)
+    @Option(names = "--from", description = "Specifies the name of the backend to pull state files from", required = true)
     private String from;
-
-    public String getTo() {
-        return to;
-    }
-
-    public String getFrom() {
-        return from;
-    }
-
-    @Override
-    public void execute() throws Exception {
-        if (getTo().equals(getFrom())) {
-            throw new GyroException(String.format("Cannot specify '%s' backend for both to and from!", getTo()));
-        }
-
-        Path rootDir = GyroCore.getRootDirectory();
-
-        if (rootDir == null) {
-            throw new GyroException(
-                "Not a gyro project directory, use 'gyro init <plugins>...' to create one. See 'gyro help init' for detailed usage.");
-        }
-
-        LockBackend lockBackend = GyroCore.getLockBackend();
-
-        if (lockBackend != null) {
-            lockBackend.setLockId(UUID.randomUUID().toString());
-            lockBackend.lock();
-        }
-
-        FileBackend toBackend;
-        FileBackend fromBackend;
-
-        if ("local".equals(getTo())) {
-            toBackend = new LocalFileBackend(rootDir.resolve(".gyro/state"));
-        } else {
-            toBackend = GyroCore.getStateBackend(getTo());
-        }
-
-        if ("local".equals(getFrom())) {
-            fromBackend = new LocalFileBackend(rootDir.resolve(".gyro/state"));
-        } else {
-            fromBackend = GyroCore.getStateBackend(getFrom());
-        }
-
-        if (toBackend == null || fromBackend == null) {
-            throw new GyroException(String.format(
-                "Could not find specified state-backend '%s' in '.gyro/init.gyro'!",
-                toBackend != null ? getFrom() : getTo()));
-        }
-
-        boolean copiedFiles;
-
-        GyroCore.ui().write("\n@|bold,white Looking for state files...|@\n\n");
-
-        try {
-            copiedFiles = copyBackends(fromBackend, toBackend, false, true);
-        } finally {
-            if (lockBackend != null) {
-                lockBackend.unlock();
-            }
-        }
-
-        if (copiedFiles) {
-            GyroCore.ui().write(String.format(
-                "\n@|bold,green State files copied.|@ You may now delete files from '%s' if they are no longer needed.\n",
-                getFrom()));
-        }
-    }
 
     public static boolean copyBackends(
         FileBackend inputBackend,
@@ -181,6 +113,74 @@ public class StateCopyCommand implements GyroCommand {
             throw new GyroException(
                 String.format("Can't list files in @|bold %s|@!", fileBackend),
                 error);
+        }
+    }
+
+    public String getTo() {
+        return to;
+    }
+
+    public String getFrom() {
+        return from;
+    }
+
+    @Override
+    public void execute() throws Exception {
+        if (getTo().equals(getFrom())) {
+            throw new GyroException(String.format("Cannot specify '%s' backend for both to and from!", getTo()));
+        }
+
+        Path rootDir = GyroCore.getRootDirectory();
+
+        if (rootDir == null) {
+            throw new GyroException(
+                "Not a gyro project directory, use 'gyro init <plugins>...' to create one. See 'gyro help init' for detailed usage.");
+        }
+
+        LockBackend lockBackend = GyroCore.getLockBackend();
+
+        if (lockBackend != null) {
+            lockBackend.setLockId(UUID.randomUUID().toString());
+            lockBackend.lock();
+        }
+
+        FileBackend toBackend;
+        FileBackend fromBackend;
+
+        if ("local".equals(getTo())) {
+            toBackend = new LocalFileBackend(rootDir.resolve(".gyro/state"));
+        } else {
+            toBackend = GyroCore.getStateBackend(getTo());
+        }
+
+        if ("local".equals(getFrom())) {
+            fromBackend = new LocalFileBackend(rootDir.resolve(".gyro/state"));
+        } else {
+            fromBackend = GyroCore.getStateBackend(getFrom());
+        }
+
+        if (toBackend == null || fromBackend == null) {
+            throw new GyroException(String.format(
+                "Could not find specified state-backend '%s' in '.gyro/init.gyro'!",
+                toBackend != null ? getFrom() : getTo()));
+        }
+
+        boolean copiedFiles;
+
+        GyroCore.ui().write("\n@|bold,white Looking for state files...|@\n\n");
+
+        try {
+            copiedFiles = copyBackends(fromBackend, toBackend, false, true);
+        } finally {
+            if (lockBackend != null) {
+                lockBackend.unlock();
+            }
+        }
+
+        if (copiedFiles) {
+            GyroCore.ui().write(String.format(
+                "\n@|bold,green State files copied.|@ You may now delete files from '%s' if they are no longer needed.\n",
+                getFrom()));
         }
     }
 }

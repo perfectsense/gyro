@@ -25,7 +25,4 @@ public interface GyroCommandGroup {
     String getDescription();
 
     List<Class<?>> getCommands();
-
-    Class<?> getDefaultCommand();
-
 }

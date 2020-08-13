@@ -24,9 +24,6 @@ import java.util.stream.Collectors;
 
 import gyro.core.GyroCore;
 import gyro.core.repo.RepositorySettings;
-import io.airlift.airline.Command;
-import io.airlift.airline.Help;
-import io.airlift.airline.model.MetadataLoader;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
@@ -48,6 +45,7 @@ import org.eclipse.aether.transport.file.FileTransporterFactory;
 import org.eclipse.aether.transport.http.HttpTransporterFactory;
 import org.eclipse.aether.util.artifact.JavaScopes;
 import org.eclipse.aether.util.filter.DependencyFilterUtils;
+import picocli.CommandLine.Command;
 
 @Command(name = "add", description = "Add one or more plugins.")
 public class PluginAddCommand extends PluginCommand {
@@ -57,7 +55,7 @@ public class PluginAddCommand extends PluginCommand {
     @Override
     protected void executeSubCommand() throws Exception {
         if (getPlugins().isEmpty()) {
-            Help.help(MetadataLoader.loadCommand(PluginAddCommand.class));
+            //Help.help(MetadataLoader.loadCommand(PluginAddCommand.class));
             return;
         }
 

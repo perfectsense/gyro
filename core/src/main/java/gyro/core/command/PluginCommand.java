@@ -23,6 +23,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 import gyro.core.FileBackend;
@@ -37,13 +38,13 @@ import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.block.FileNode;
 import gyro.parser.antlr4.GyroParser;
 import gyro.util.Bug;
-import io.airlift.airline.Arguments;
+//import picocli.CommandLine.Command;
 
-public abstract class PluginCommand implements GyroCommand {
+public abstract class PluginCommand implements GyroCommand, Callable<Integer> {
 
-    @Arguments(description =
+    /*@Command(description =
         "A space separated list of plugins specified in the format of <group>:<artifact>:<version>. "
-            + "For example: gyro:gyro-aws-provider:0.1-SNAPSHOT")
+            + "For example: gyro:gyro-aws-provider:0.1-SNAPSHOT")*/
     private List<String> plugins;
 
     private List<DirectiveNode> pluginNodes;
@@ -64,6 +65,12 @@ public abstract class PluginCommand implements GyroCommand {
 
     public List<DirectiveNode> getRepositoryNodes() {
         return repositoryNodes;
+    }
+
+    @Override
+    public Integer call() throws Exception {
+        execute();
+        return 0;
     }
 
     @Override

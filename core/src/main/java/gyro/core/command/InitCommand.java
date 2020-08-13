@@ -25,13 +25,13 @@ import java.util.List;
 
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
-import io.airlift.airline.Arguments;
-import io.airlift.airline.Command;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Parameters;
 
 @Command(name = "init", description = "Initialize a Gyro working directory.")
 public class InitCommand extends AbstractCommand {
 
-    @Arguments(description = "A list of plugins specified in the format of <group>:<artifact>:<version>. "
+    @Parameters(description = "A list of plugins specified in the format of <group>:<artifact>:<version>. "
         + "For example: gyro:gyro-aws-provider:0.1-SNAPSHOT")
     private List<String> plugins;
 

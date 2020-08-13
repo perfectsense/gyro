@@ -19,13 +19,13 @@ package gyro.core.command;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.LockBackend;
-import io.airlift.airline.Command;
-import io.airlift.airline.Option;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
 
 @Command(name = "force-unlock", description = "Forcefully unlock the current lock. Must pass the ID of the lock.")
 public class StateForceUnlockCommand implements GyroCommand {
 
-    @Option(name = "--lock-id", description = "The ID of the current lock you wish to unlock", required = true)
+    @Option(names = "--lock-id", description = "The ID of the current lock you wish to unlock", required = true)
     private String lockId;
 
     @Override
