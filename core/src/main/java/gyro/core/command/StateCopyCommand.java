@@ -47,28 +47,6 @@ public class StateCopyCommand implements GyroCommand {
     @Option(names = "--from", description = "Specifies the name of the backend to pull state files from", required = true)
     private String from;
 
-    private static void delete(FileBackend fileBackend, String file) {
-        try {
-            fileBackend.delete(file);
-
-        } catch (Exception error) {
-            throw new GyroException(
-                String.format("Can't delete @|bold %s|@ in @|bold %s|@!", file, fileBackend),
-                error);
-        }
-    }
-
-    private static Stream<String> list(FileBackend fileBackend) {
-        try {
-            return fileBackend.list();
-
-        } catch (Exception error) {
-            throw new GyroException(
-                String.format("Can't list files in @|bold %s|@!", fileBackend),
-                error);
-        }
-    }
-
     public String getTo() {
         return to;
     }
@@ -182,5 +160,27 @@ public class StateCopyCommand implements GyroCommand {
         });
 
         return true;
+    }
+
+    private static void delete(FileBackend fileBackend, String file) {
+        try {
+            fileBackend.delete(file);
+
+        } catch (Exception error) {
+            throw new GyroException(
+                String.format("Can't delete @|bold %s|@ in @|bold %s|@!", file, fileBackend),
+                error);
+        }
+    }
+
+    private static Stream<String> list(FileBackend fileBackend) {
+        try {
+            return fileBackend.list();
+
+        } catch (Exception error) {
+            throw new GyroException(
+                String.format("Can't list files in @|bold %s|@!", fileBackend),
+                error);
+        }
     }
 }
