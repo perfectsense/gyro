@@ -47,53 +47,6 @@ public class StateCopyCommand implements GyroCommand {
     @Option(names = "--from", description = "Specifies the name of the backend to pull state files from", required = true)
     private String from;
 
-    public static boolean copyBackends(
-        FileBackend inputBackend,
-        FileBackend outputBackend,
-        boolean deleteInput,
-        boolean displayMessaging) {
-        GyroUI ui = GyroCore.ui();
-        LinkedHashSet<String> files = list(inputBackend)
-            .filter(f -> f.endsWith(".gyro") && !f.contains(GyroCore.INIT_FILE))
-            .collect(Collectors.toCollection(LinkedHashSet::new));
-
-        if (files.isEmpty()) {
-            if (displayMessaging) {
-                ui.write("\n@|bold,green No state files found.|@\n");
-            }
-            return false;
-        }
-
-        if (displayMessaging) {
-            files.forEach(file -> ui.write("@|green + Copy file: %s|@\n", file));
-
-            if (!ui.readBoolean(
-                Boolean.FALSE,
-                "\nAre you sure you want to copy all files? @|red This will overwrite existing files!|@")) {
-                return false;
-            }
-        }
-
-        files.forEach(file -> {
-            if (displayMessaging) {
-                ui.write("@|magenta + Copying file: %s|@\n", file);
-            }
-
-            try (InputStream in = new GyroInputStream(inputBackend, file);
-                OutputStream out = new GyroOutputStream(outputBackend, file)) {
-                IoUtils.copy(in, out);
-            } catch (IOException error) {
-                throw new Bug(error);
-            }
-
-            if (deleteInput) {
-                delete(inputBackend, file);
-            }
-        });
-
-        return true;
-    }
-
     private static void delete(FileBackend fileBackend, String file) {
         try {
             fileBackend.delete(file);
@@ -182,5 +135,52 @@ public class StateCopyCommand implements GyroCommand {
                 "\n@|bold,green State files copied.|@ You may now delete files from '%s' if they are no longer needed.\n",
                 getFrom()));
         }
+    }
+
+    public static boolean copyBackends(
+        FileBackend inputBackend,
+        FileBackend outputBackend,
+        boolean deleteInput,
+        boolean displayMessaging) {
+        GyroUI ui = GyroCore.ui();
+        LinkedHashSet<String> files = list(inputBackend)
+            .filter(f -> f.endsWith(".gyro") && !f.contains(GyroCore.INIT_FILE))
+            .collect(Collectors.toCollection(LinkedHashSet::new));
+
+        if (files.isEmpty()) {
+            if (displayMessaging) {
+                ui.write("\n@|bold,green No state files found.|@\n");
+            }
+            return false;
+        }
+
+        if (displayMessaging) {
+            files.forEach(file -> ui.write("@|green + Copy file: %s|@\n", file));
+
+            if (!ui.readBoolean(
+                Boolean.FALSE,
+                "\nAre you sure you want to copy all files? @|red This will overwrite existing files!|@")) {
+                return false;
+            }
+        }
+
+        files.forEach(file -> {
+            if (displayMessaging) {
+                ui.write("@|magenta + Copying file: %s|@\n", file);
+            }
+
+            try (InputStream in = new GyroInputStream(inputBackend, file);
+                OutputStream out = new GyroOutputStream(outputBackend, file)) {
+                IoUtils.copy(in, out);
+            } catch (IOException error) {
+                throw new Bug(error);
+            }
+
+            if (deleteInput) {
+                delete(inputBackend, file);
+            }
+        });
+
+        return true;
     }
 }
