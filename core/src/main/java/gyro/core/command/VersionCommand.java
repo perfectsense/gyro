@@ -21,6 +21,12 @@ import picocli.CommandLine.Command;
 @Command(name = "version", description = "Display the version of Gyro.", mixinStandardHelpOptions = true)
 public class VersionCommand extends AbstractCommand {
 
+    @Override
+    protected void doExecute() throws Exception {
+        VersionCommand.printVersion();
+        VersionCommand.printUpdateVersion();
+    }
+
     public static void printVersion() throws IOException {
         ComparableVersion currentVersion = VersionCommand.getCurrentVersion();
         VersionCommand.renderVersionMessage(currentVersion.toString());
@@ -95,11 +101,5 @@ public class VersionCommand extends AbstractCommand {
                 "Download the new release at @|blue https://artifactory.psdops.com/gyro-releases/gyro/gyro-cli-%1$s/%2$s/gyro-cli-%1$s-%2$s.zip|@\n",
                 osName,
                 latestVersion);
-    }
-
-    @Override
-    protected void doExecute() throws Exception {
-        VersionCommand.printVersion();
-        VersionCommand.printUpdateVersion();
     }
 }
