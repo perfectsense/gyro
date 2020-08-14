@@ -19,10 +19,12 @@ package gyro.cli;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
@@ -32,6 +34,7 @@ import gyro.core.GyroException;
 import gyro.core.LocalFileBackend;
 import gyro.core.backend.LockBackendSettings;
 import gyro.core.backend.StateBackendSettings;
+import gyro.core.command.AbstractCommand;
 import gyro.core.command.GyroCommand;
 import gyro.core.command.GyroCommandGroup;
 import gyro.core.scope.Defer;
@@ -156,14 +159,17 @@ public class Gyro {
         }
 
         CommandLine commandLine = new CommandLine(this);
-        List<Class<?>> groupCommands = new ArrayList<>();
+        commandLine.setExecutionExceptionHandler(Gyro::invalidUserInput);
 
         // Add commands part of a GyroCommandGroup
         for (Class<? extends GyroCommandGroup> c : getReflections().getSubTypesOf(GyroCommandGroup.class)) {
             GyroCommandGroup group = gyro.core.Reflections.newInstance(c);
             commandLine.addSubcommand(null, group);
-            groupCommands.addAll(group.getCommands());
         }
+
+        Set<? extends Class<?>> groupCommands = getSubCommands(commandLine).stream()
+            .map(o -> o.getCommandSpec().userObject().getClass())
+            .collect(Collectors.toSet());
 
         // Add all other commands that are not previously added
         for (Class<?> c : getReflections().getSubTypesOf(GyroCommand.class)) {
@@ -173,47 +179,42 @@ public class Gyro {
             }
         }
 
-        commandLine
-            .setExecutionExceptionHandler(Gyro::invalidUserInput);
-        commandLine.setExecutionStrategy(new CommandLine.RunLast());
         this.commandLine = commandLine;
 
         this.arguments = arguments;
     }
 
-    // custom handler for invalid input that does not print usage help
-    private static int invalidUserInput(Exception e, CommandLine commandLine, CommandLine.ParseResult parseResult) {
-        commandLine.getErr().println("ERROR: " + e.getMessage());
-        commandLine.getErr().println("Try '"
-            + commandLine.getCommandSpec().qualifiedName()
-            + " --help' for more information.");
-        return CommandLine.ExitCode.USAGE;
+    private Set<CommandLine> getSubCommands(CommandLine commandLine) {
+        Set<CommandLine> commandLines = new HashSet<>();
+        commandLines.add(commandLine);
+        Set<CommandLine> subCommandLines = new HashSet<>(commandLine.getSubcommands().values());
+
+        for (CommandLine subCommandLine : subCommandLines) {
+            commandLines.addAll(getSubCommands(subCommandLine));
+        }
+
+        return commandLines;
+    }
+
+    // custom handler for invalid input
+    private static int invalidUserInput(Exception error, CommandLine commandLine, CommandLine.ParseResult parseResult) {
+        writeError(error);
+        return 0;
     }
 
     public void run() {
-        int execute = commandLine.execute(this.arguments.toArray(new String[0]));
 
-        System.out.println("\n --> " + execute);
+        CommandLine.ParseResult parseResult = commandLine.parseArgs(arguments.toArray(new String[0]));
 
-        /*Object command = cli.parse(arguments);
-
-        if (command instanceof Runnable) {
-            ((Runnable) command).run();
-
-        } else if (command instanceof GyroCommand) {
-            if (command instanceof AbstractCommand) {
-                ((AbstractCommand) command).setUnparsedArguments(arguments);
+        if (parseResult.hasSubcommand()) {
+            CommandLine.ParseResult subcommand = parseResult.subcommand();
+            Object commandObject = subcommand.commandSpec().userObject();
+            if (commandObject instanceof AbstractCommand) {
+                ((AbstractCommand) commandObject).setUnparsedArguments(arguments);
             }
+        }
 
-            ((GyroCommand) command).execute();
-
-        } else {
-            throw new IllegalStateException(String.format(
-                "[%s] must be an instance of [%s] or [%s]!",
-                command.getClass().getName(),
-                Runnable.class.getName(),
-                GyroCommand.class.getName()));
-        }*/
+        commandLine.execute(this.arguments.toArray(new String[0]));
     }
 
     public static Reflections getReflections() {

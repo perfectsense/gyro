@@ -22,7 +22,7 @@ import gyro.core.LockBackend;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
-@Command(name = "force-unlock", description = "Forcefully unlock the current lock. Must pass the ID of the lock.")
+@Command(name = "force-unlock", description = "Forcefully unlock the current lock. Must pass the ID of the lock.", mixinStandardHelpOptions = true)
 public class StateForceUnlockCommand implements GyroCommand {
 
     @Option(names = "--lock-id", description = "The ID of the current lock you wish to unlock", required = true)

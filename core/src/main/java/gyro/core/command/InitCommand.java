@@ -28,7 +28,7 @@ import gyro.core.GyroException;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "init", description = "Initialize a Gyro working directory.")
+@Command(name = "init", description = "Initialize a Gyro working directory.", mixinStandardHelpOptions = true)
 public class InitCommand extends AbstractCommand {
 
     @Parameters(description = "A list of plugins specified in the format of <group>:<artifact>:<version>. "

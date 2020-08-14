@@ -23,7 +23,7 @@ import gyro.core.scope.RootScope;
 import gyro.core.scope.State;
 import picocli.CommandLine.Command;
 
-@Command(name = "diff", description = "Shows differences between the configuration and the cloud.")
+@Command(name = "diff", description = "Shows differences between the configuration and the cloud.", mixinStandardHelpOptions = true)
 public class DiffCommand extends AbstractConfigCommand {
 
     @Override

@@ -16,23 +16,34 @@
 
 package gyro.core.command;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import gyro.core.GyroCore;
 import gyro.lang.ast.block.DirectiveNode;
+import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
-@Command(name = "remove", description = "Remove one or more plugins.")
+@Command(name = "remove", description = "Remove one or more plugins.", mixinStandardHelpOptions = true)
 public class PluginRemoveCommand extends PluginCommand {
+
+    @CommandLine.Parameters(description =
+        "A space separated list of plugins specified in the format of <group>:<artifact>:<version>. "
+            + "For example: gyro:gyro-aws-provider:0.1-SNAPSHOT", arity = "1")
+    private List<String> plugins;
+
+    @Override
+    public List<String> getPlugins() {
+        if (plugins == null) {
+            plugins = Collections.emptyList();
+        }
+
+        return plugins;
+    }
 
     @Override
     protected void executeSubCommand() throws Exception {
-        if (getPlugins().isEmpty()) {
-            //Help.help(MetadataLoader.loadCommand(PluginRemoveCommand.class));
-            return;
-        }
-
         List<DirectiveNode> removeNodes = getPluginNodes()
             .stream()
             .filter(this::pluginNodeExist)

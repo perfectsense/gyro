@@ -18,6 +18,7 @@ package gyro.core.command;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -45,20 +46,30 @@ import org.eclipse.aether.transport.file.FileTransporterFactory;
 import org.eclipse.aether.transport.http.HttpTransporterFactory;
 import org.eclipse.aether.util.artifact.JavaScopes;
 import org.eclipse.aether.util.filter.DependencyFilterUtils;
+import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
-@Command(name = "add", description = "Add one or more plugins.")
+@Command(name = "add", description = "Add one or more plugins.", mixinStandardHelpOptions = true)
 public class PluginAddCommand extends PluginCommand {
+
+    @CommandLine.Parameters(description =
+        "A space separated list of plugins specified in the format of <group>:<artifact>:<version>. "
+            + "For example: gyro:gyro-aws-provider:0.1-SNAPSHOT", arity = "1")
+    private List<String> plugins;
 
     private List<RemoteRepository> repositories;
 
     @Override
-    protected void executeSubCommand() throws Exception {
-        if (getPlugins().isEmpty()) {
-            //Help.help(MetadataLoader.loadCommand(PluginAddCommand.class));
-            return;
+    public List<String> getPlugins() {
+        if (plugins == null) {
+            plugins = Collections.emptyList();
         }
 
+        return plugins;
+    }
+
+    @Override
+    protected void executeSubCommand() throws Exception {
         GyroCore.ui().write("\n");
 
         Set<String> installedPlugins = getPlugins()

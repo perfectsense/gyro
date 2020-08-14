@@ -16,9 +16,6 @@
 
 package gyro.core.command;
 
-import java.util.Arrays;
-import java.util.List;
-
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "state",
@@ -29,18 +26,4 @@ import picocli.CommandLine;
         StateForceUnlockCommand.class })
 public class StateCommandGroup implements GyroCommandGroup {
 
-    @Override
-    public String getName() {
-        return "state";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Manage state.";
-    }
-
-    @Override
-    public List<Class<?>> getCommands() {
-        return Arrays.asList(StateCopyCommand.class, StateForceUnlockCommand.class);
-    }
 }

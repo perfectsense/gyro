@@ -18,7 +18,7 @@ import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import picocli.CommandLine.Command;
 
-@Command(name = "version", description = "Display the version of Gyro.")
+@Command(name = "version", description = "Display the version of Gyro.", mixinStandardHelpOptions = true)
 public class VersionCommand extends AbstractCommand {
 
     public static void printVersion() throws IOException {
