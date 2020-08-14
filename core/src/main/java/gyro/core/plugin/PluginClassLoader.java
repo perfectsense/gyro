@@ -22,12 +22,18 @@ import java.util.List;
 
 class PluginClassLoader extends URLClassLoader {
 
+    private List<URL> pluginUrls;
+
     public PluginClassLoader() {
         super(new URL[0], PluginClassLoader.class.getClassLoader());
     }
 
     public void add(List<URL> urls) {
         urls.forEach(this::addURL);
+        pluginUrls = urls;
     }
 
+    public List<URL> getPluginUrls() {
+        return pluginUrls;
+    }
 }

@@ -1,9 +1,19 @@
 package gyro.core.plugin;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.psddev.dari.util.StringUtils;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.preprocessor.Preprocessor;
@@ -14,6 +24,7 @@ import gyro.core.scope.Scope;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.DirectiveNode;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
+import org.eclipse.aether.DefaultRepositoryCache;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.artifact.Artifact;
@@ -55,12 +66,70 @@ public class PluginPreprocessor extends Preprocessor {
             }
         }
 
+        String cacheKey = StringUtils.hex(StringUtils.md5(StringUtils.join(artifactCoords, " ")));
+        Path cachePath = Paths.get(System.getProperty("user.home"), ".gyro", "cache", cacheKey);
+        Path cachedDependencyInfoPath = cachePath.resolve("deps");
+        Path cachedArtifactInfoPath = cachePath.resolve("info");
+        settings.setCachePath(cachePath);
+
         if (artifactCoords.stream().allMatch(settings::pluginInitialized)) {
             return nodes;
         }
 
+        try {
+            // Use $HOME/.gyro/cache/<key> to load jars if it exists.
+            if (Files.exists(cachedDependencyInfoPath)) {
+                PluginClassLoader classLoader = settings.getPluginClassLoader();
+
+                boolean refreshDependencies = false;
+
+                List<URL> jars = new ArrayList<>();
+                try (BufferedReader br = new BufferedReader(new FileReader(cachedDependencyInfoPath.toFile()))) {
+                    String line;
+                    while ((line = br.readLine()) != null) {
+                        if (line.trim().isEmpty()) {
+                            continue;
+                        }
+
+                        if (!new File(line).exists()) {
+                            refreshDependencies = true;
+                            break;
+                        }
+
+                        jars.add(new URL("file:///" + line));
+                    }
+                }
+
+                if (!refreshDependencies) {
+                    classLoader.add(jars);
+                    return nodes;
+                }
+            }
+
+            Files.deleteIfExists(cachedDependencyInfoPath);
+            Files.deleteIfExists(cachedArtifactInfoPath);
+            Files.createDirectories(cachePath);
+        } catch (IOException ioe) {
+            throw new GyroException("Failed to read/write plugin cache file(s)!", ioe);
+        }
+
         NodeEvaluator evaluator = new NodeEvaluator();
         evaluator.evaluate(scope, repositoryNodes);
+
+        DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
+
+        locator.addService(RepositoryConnectorFactory.class, BasicRepositoryConnectorFactory.class);
+        locator.addService(TransporterFactory.class, FileTransporterFactory.class);
+        locator.addService(TransporterFactory.class, HttpTransporterFactory.class);
+
+        RepositorySystem system = locator.getService(RepositorySystem.class);
+        DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();
+        String localDir = Paths.get(System.getProperty("user.home"), ".m2", "repository").toString();
+        LocalRepository local = new LocalRepository(localDir);
+        LocalRepositoryManager manager = system.newLocalRepositoryManager(session, local);
+
+        session.setLocalRepositoryManager(manager);
+        session.setCache(new DefaultRepositoryCache());
 
         for (String ac : artifactCoords) {
             if (settings.pluginInitialized(ac)) {
@@ -70,22 +139,8 @@ public class PluginPreprocessor extends Preprocessor {
             try {
                 GyroCore.ui().write("@|magenta ↓ Loading plugin:|@ %s\n", ac);
 
-                DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
-
-                locator.addService(RepositoryConnectorFactory.class, BasicRepositoryConnectorFactory.class);
-                locator.addService(TransporterFactory.class, FileTransporterFactory.class);
-                locator.addService(TransporterFactory.class, HttpTransporterFactory.class);
-
-                RepositorySystem system = locator.getService(RepositorySystem.class);
-                DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();
-                String localDir = Paths.get(System.getProperty("user.home"), ".m2", "repository").toString();
-                LocalRepository local = new LocalRepository(localDir);
-                LocalRepositoryManager manager = system.newLocalRepositoryManager(session, local);
-
-                session.setLocalRepositoryManager(manager);
-
-                Artifact artifact = new DefaultArtifact(ac);
-                Dependency dependency = new Dependency(artifact, JavaScopes.RUNTIME);
+                Artifact pluginArtifact = new DefaultArtifact(ac);
+                Dependency dependency = new Dependency(pluginArtifact, JavaScopes.RUNTIME);
                 DependencyFilter filter = DependencyFilterUtils.classpathFilter(JavaScopes.RUNTIME);
                 List<RemoteRepository> repositories = scope.getSettings(RepositorySettings.class).getRepositories();
                 CollectRequest collectRequest = new CollectRequest(dependency, repositories);
@@ -94,8 +149,16 @@ public class PluginPreprocessor extends Preprocessor {
 
                 settings.putDependencyResult(ac, result);
 
-                for (ArtifactResult ar : result.getArtifactResults()) {
-                    settings.putArtifactIfNewer(ar.getArtifact());
+                // Write file to map ac to a file for later loading.
+                Path file = result.getRoot().getArtifact().getFile().toPath();
+
+                BufferedWriter writer = new BufferedWriter(new FileWriter(cachedArtifactInfoPath.toFile(), true));
+                writer.newLine();
+                writer.write(ac + " " + file.toString());
+                writer.close();
+
+                for (ArtifactResult artifactResult : result.getArtifactResults()) {
+                    settings.putArtifactIfNewer(artifactResult.getArtifact());
                 }
             } catch (Exception error) {
                 throw new GyroException(
@@ -105,6 +168,19 @@ public class PluginPreprocessor extends Preprocessor {
         }
 
         settings.addAllUrls();
+
+        // -- Build local cache of dependency data.
+        try {
+
+            BufferedWriter writer = new BufferedWriter(new FileWriter(cachedDependencyInfoPath.toFile(), true));
+            for (URL url : settings.getPluginClassLoader().getPluginUrls()) {
+                writer.write(url.toURI().getPath());
+                writer.newLine();
+            }
+            writer.close();
+        } catch (Exception ex) {
+            throw new GyroException("Failed to write plugin cache file!", ex);
+        }
 
         return nodes;
     }

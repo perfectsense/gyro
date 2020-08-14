@@ -32,6 +32,7 @@ import gyro.core.GyroException;
 import gyro.core.GyroInputStream;
 import gyro.core.GyroUI;
 import gyro.core.diff.Retry;
+import gyro.core.reference.FinderReferenceResolver;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.Resource;
@@ -137,6 +138,8 @@ public class Workflow {
         // TODO: optimize performance.
         while (stage != null) {
             ui.write("\n@|magenta · Executing %s stage|@\n", stage.getName());
+
+            FinderReferenceResolver.bustCache();
 
             if (ui.isVerbose()) {
                 ui.write("\n");

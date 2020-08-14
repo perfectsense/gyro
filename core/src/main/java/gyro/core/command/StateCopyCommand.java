@@ -79,8 +79,8 @@ public class StateCopyCommand implements GyroCommand {
                 ui.write("@|magenta + Copying file: %s|@\n", file);
             }
 
-            try (OutputStream out = new GyroOutputStream(outputBackend, file)) {
-                InputStream in = new GyroInputStream(inputBackend, file);
+            try (InputStream in = new GyroInputStream(inputBackend, file);
+                OutputStream out = new GyroOutputStream(outputBackend, file)) {
                 IoUtils.copy(in, out);
             } catch (IOException error) {
                 throw new Bug(error);
