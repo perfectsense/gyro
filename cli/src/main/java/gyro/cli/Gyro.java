@@ -159,7 +159,6 @@ public class Gyro {
         }
 
         CommandLine commandLine = new CommandLine(this);
-        commandLine.setExecutionExceptionHandler(Gyro::invalidUserInput);
 
         // Add commands part of a GyroCommandGroup
         for (Class<? extends GyroCommandGroup> c : getReflections().getSubTypesOf(GyroCommandGroup.class)) {
@@ -179,6 +178,9 @@ public class Gyro {
             }
         }
 
+        commandLine.setParameterExceptionHandler(Gyro::handleParseException);
+        commandLine.setExecutionExceptionHandler(Gyro::invalidUserInput);
+
         this.commandLine = commandLine;
 
         this.arguments = arguments;
@@ -196,22 +198,43 @@ public class Gyro {
         return commandLines;
     }
 
+    public static int handleParseException(CommandLine.ParameterException ex, String[] args) {
+        String message = ex.getMessage();
+
+        if (message.startsWith("Unmatched argument")) {
+            message = "Unrecognized command: " + message.split(":")[1];
+        } else if (message.startsWith("Unknown option")) {
+            message = "Unrecognized option: " + message.split(":")[1];
+        }
+
+        GyroCore.ui().write(String.format("\n@|red %s|@\n\n", message));
+
+        CommandLine commandLine = ex.getCommandLine();
+        commandLine.usage(commandLine.getOut());
+        return 1;
+    }
+
     // custom handler for invalid input
     private static int invalidUserInput(Exception error, CommandLine commandLine, CommandLine.ParseResult parseResult) {
         writeError(error);
-        return 0;
+        return 2;
     }
 
     public void run() {
 
-        CommandLine.ParseResult parseResult = commandLine.parseArgs(arguments.toArray(new String[0]));
+        try {
+            CommandLine.ParseResult parseResult = commandLine.parseArgs(arguments.toArray(new String[0]));
 
-        if (parseResult.hasSubcommand()) {
-            CommandLine.ParseResult subcommand = parseResult.subcommand();
-            Object commandObject = subcommand.commandSpec().userObject();
-            if (commandObject instanceof AbstractCommand) {
-                ((AbstractCommand) commandObject).setUnparsedArguments(arguments);
+            if (parseResult.hasSubcommand()) {
+                CommandLine.ParseResult subcommand = parseResult.subcommand();
+                Object commandObject = subcommand.commandSpec().userObject();
+                if (commandObject instanceof AbstractCommand) {
+                    ((AbstractCommand) commandObject).setUnparsedArguments(arguments);
+                }
             }
+        } catch (CommandLine.UnmatchedArgumentException | CommandLine.MissingParameterException ex) {
+            // Ignore
+            // The execute will handle throwing the error
         }
 
         commandLine.execute(this.arguments.toArray(new String[0]));
