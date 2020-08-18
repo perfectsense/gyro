@@ -40,10 +40,10 @@ import picocli.CommandLine.Option;
  */
 public abstract class AbstractCommand implements GyroCommand, Callable<Integer> {
 
-    @Option(names = "--debug", description = "Debug mode.")
+    @Option(names = "--debug", description = "Output cloud provider API request/response log data. Warning: Output may contain sensitive information.")
     public boolean debug;
 
-    @Option(names = "--verbose", description = "Detailed view of the diff engines result.")
+    @Option(names = "--verbose", description = "Show values of attributes that changed.")
     private boolean verbose;
 
     private List<String> unparsedArguments;

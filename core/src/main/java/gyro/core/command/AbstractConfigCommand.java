@@ -59,10 +59,10 @@ import picocli.CommandLine.Parameters;
 
 public abstract class AbstractConfigCommand extends AbstractCommand {
 
-    @Option(names = "--skip-refresh", description = "Show the difference in configuration without refreshing the resources.")
+    @Option(names = "--skip-refresh", description = "Skip state refresh. Warning: Skipping refresh may result in incorrect changes. Use with caution.")
     public boolean skipRefresh;
 
-    @Option(names = "--test", description = "Mock up of the action without calling API's.")
+    @Option(names = "--test", description = "Use for internal testing only. This flag will mock cloud provider API calls.")
     private boolean test;
 
     @Parameters
