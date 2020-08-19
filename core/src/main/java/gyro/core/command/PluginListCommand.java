@@ -16,6 +16,7 @@
 
 package gyro.core.command;
 
+import java.util.Collections;
 import java.util.List;
 
 import gyro.core.GyroCore;
@@ -26,7 +27,7 @@ public class PluginListCommand extends PluginCommand {
 
     @Override
     public List<String> getPlugins() {
-        return null;
+        return Collections.emptyList();
     }
 
     @Override
