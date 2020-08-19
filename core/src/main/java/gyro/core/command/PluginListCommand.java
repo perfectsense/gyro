@@ -22,7 +22,7 @@ import java.util.List;
 import gyro.core.GyroCore;
 import picocli.CommandLine.Command;
 
-@Command(name = "list", description = "List installed plugins.", mixinStandardHelpOptions = true, subcommands = PluginAddCommand.class)
+@Command(name = "list", description = "List installed plugins.", mixinStandardHelpOptions = true)
 public class PluginListCommand extends PluginCommand {
 
     @Override
