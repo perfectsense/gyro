@@ -35,6 +35,7 @@ import gyro.core.LocalFileBackend;
 import gyro.core.backend.LockBackendSettings;
 import gyro.core.backend.StateBackendSettings;
 import gyro.core.command.AbstractCommand;
+import gyro.core.command.AbstractDynamicCommand;
 import gyro.core.command.GyroCommand;
 import gyro.core.command.GyroCommandGroup;
 import gyro.core.scope.Defer;
@@ -177,6 +178,15 @@ public class Gyro {
                 commandLine.addSubcommand(null, o);
             }
         }
+
+        // Allow unmatched argument and options for dynamic command usages
+        getSubCommands(commandLine).forEach(cmd -> {
+            if (cmd.getCommandSpec().userObject() instanceof AbstractDynamicCommand) {
+                cmd.setUnmatchedArgumentsAllowed(true);
+                cmd.setUnmatchedOptionsAllowedAsOptionParameters(true);
+                cmd.setUnmatchedOptionsArePositionalParams(true);
+            }
+        });
 
         commandLine.setParameterExceptionHandler(Gyro::handleParseException);
         commandLine.setExecutionExceptionHandler(Gyro::invalidUserInput);
