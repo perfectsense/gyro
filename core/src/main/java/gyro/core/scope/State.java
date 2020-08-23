@@ -39,6 +39,7 @@ import gyro.core.GyroException;
 import gyro.core.diff.Change;
 import gyro.core.diff.Delete;
 import gyro.core.diff.Replace;
+import gyro.core.resource.CustomValue;
 import gyro.core.resource.Diffable;
 import gyro.core.resource.DiffableField;
 import gyro.core.resource.DiffableInternals;
@@ -293,6 +294,8 @@ public class State {
                 } else {
                     body.add(toPairNode(key, value, resource));
                 }
+            } else if (value instanceof CustomValue) {
+                body.add(new PairNode(toNode(key, resource), ((CustomValue) value).toStateNode()));
 
             } else {
                 throw new GyroException(String.format(
@@ -326,6 +329,9 @@ public class State {
             }
 
             return new ListNode(items);
+
+        } else if (value instanceof CustomValue) {
+            return ((CustomValue) value).toStateNode();
 
         } else if (value instanceof Map) {
             List<PairNode> entries = new ArrayList<>();

@@ -36,6 +36,7 @@ import com.google.common.cache.LoadingCache;
 import com.psddev.dari.util.ConversionException;
 import gyro.core.GyroException;
 import gyro.core.Reflections;
+import gyro.core.scope.DiffableScope;
 import gyro.core.scope.Scope;
 import gyro.core.validation.Required;
 import gyro.core.validation.ValidationError;
@@ -151,6 +152,16 @@ public class DiffableField {
     }
 
     public Object getValue(Diffable diffable) {
+        DiffableScope scope = DiffableInternals.getScope(diffable);
+
+        if (scope != null) {
+            Object value = scope.get(name);
+
+            if (value != null) {
+                return value;
+            }
+        }
+
         return Reflections.invoke(getter, diffable);
     }
 

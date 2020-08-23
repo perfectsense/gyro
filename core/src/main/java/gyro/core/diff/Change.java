@@ -26,6 +26,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.MapDifference;
+import com.google.common.collect.MapDifference.ValueDifference;
 import com.google.common.collect.Maps;
 import gyro.core.GyroUI;
 import gyro.core.resource.Diffable;
@@ -33,6 +34,7 @@ import gyro.core.resource.DiffableField;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
 import gyro.core.scope.State;
+import gyro.core.vault.VaultSecret;
 import org.apache.commons.lang3.StringUtils;
 
 public abstract class Change {
@@ -114,6 +116,20 @@ public abstract class Change {
                 .stream()
                 .map(e -> e.getKey() + ": " + stringify(e.getValue()))
                 .collect(Collectors.joining(", ")) + " }";
+        } else if (value instanceof ValueDifference) {
+            ValueDifference valueDifference = (ValueDifference) value;
+            if (valueDifference.rightValue() instanceof VaultSecret) {
+                return stringify(valueDifference.rightValue());
+            }
+
+            return String.format(
+                " %s → %s",
+                stringify(valueDifference.leftValue()),
+                stringify(valueDifference.rightValue()));
+
+        } else if (value instanceof Map.Entry) {
+            Map.Entry e = (Map.Entry) value;
+            return String.format(" %s: %s", e.getKey(), e.getValue());
 
         } else if (value instanceof String) {
             return "'" + value + "'";
@@ -157,6 +173,9 @@ public abstract class Change {
                 } else if (p == null) {
                     ui.write(" @|red -|@ %s", stringify(c));
 
+                } else if (p instanceof VaultSecret) {
+                    ui.write(" @|yellow ⟳|@ %s", stringify(p));
+
                 } else {
                     ui.write(" @|yellow ⟳|@ %s → %s", stringify(c), stringify(p));
                 }
@@ -179,16 +198,7 @@ public abstract class Change {
                 MapDifference<?, ?> diff = Maps.difference((Map<?, ?>) currentValue, (Map<?, ?>) pendingValue);
 
                 writeMapRemove(ui, diff.entriesOnlyOnLeft());
-
-                writeMap(
-                    ui,
-                    " @|yellow ⟳ {|@ %s @|yellow }|@",
-                    diff.entriesDiffering(),
-                    e -> String.format(
-                        "%s → %s",
-                        stringify(e.leftValue()),
-                        stringify(e.rightValue())));
-
+                writeMap(ui, " @|yellow ⟳ {|@ %s @|yellow }|@", diff.entriesDiffering(), this::stringify);
                 writeMapPut(ui, diff.entriesOnlyOnRight());
             }
 

@@ -90,6 +90,9 @@ import gyro.core.scope.converter.IterableToOne;
 import gyro.core.scope.converter.ResourceToIdObject;
 import gyro.core.validation.ValidationError;
 import gyro.core.validation.ValidationErrorException;
+import gyro.core.vault.VaultDirectiveProcessor;
+import gyro.core.vault.VaultPlugin;
+import gyro.core.vault.VaultReferenceResolver;
 import gyro.core.virtual.VirtualDirectiveProcessor;
 import gyro.core.workflow.CreateDirectiveProcessor;
 import gyro.core.workflow.DefineDirectiveProcessor;
@@ -171,7 +174,8 @@ public class RootScope extends FileScope {
             new ModificationPlugin(),
             new ReferencePlugin(),
             new ResourcePlugin(),
-            new RootPlugin())
+            new RootPlugin(),
+            new VaultPlugin())
             .forEach(p -> getSettings(PluginSettings.class).getPlugins().add(p));
 
         Stream.of(
@@ -202,12 +206,14 @@ public class RootScope extends FileScope {
             TypeDescriptionDirectiveProcessor.class,
             UpdateDirectiveProcessor.class,
             UsesCredentialsDirectiveProcessor.class,
+            VaultDirectiveProcessor.class,
             VirtualDirectiveProcessor.class,
             WaitDirectiveProcessor.class)
             .forEach(p -> getSettings(DirectiveSettings.class).addProcessor(p));
 
         Stream.of(
-            FinderReferenceResolver.class)
+            FinderReferenceResolver.class,
+            VaultReferenceResolver.class)
             .forEach(r -> getSettings(ReferenceSettings.class).addResolver(r));
 
         Stream.of(
