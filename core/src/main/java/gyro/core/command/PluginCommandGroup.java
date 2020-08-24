@@ -19,7 +19,7 @@ package gyro.core.command;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "plugin",
-    description = "Managed gyro plugins.",
+    description = "Manage gyro plugins.",
     synopsisHeading = "%n",
     header = "Add, remove, or list plugins defined in .gyro/init.gyro.",
     descriptionHeading = "%nDescription:%n%n",
