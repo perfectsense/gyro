@@ -49,9 +49,14 @@ import org.eclipse.aether.util.filter.DependencyFilterUtils;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
-@Command(name = "add", description = "Add one or more plugins.", mixinStandardHelpOptions = true)
+@Command(name = "add",
+    header = "Add one or more plugins to this project.",
+    synopsisHeading = "%n",
+    parameterListHeading = "%nParameters:%n",
+    optionListHeading = "%nOptions:%n",
+    usageHelpWidth = 100
+)
 public class PluginAddCommand extends PluginCommand {
-
     @CommandLine.Parameters(description =
         "A space separated list of plugins specified in the format of <group>:<artifact>:<version>. "
             + "For example: gyro:gyro-aws-provider:0.1-SNAPSHOT", arity = "1")

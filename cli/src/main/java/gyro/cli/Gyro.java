@@ -38,6 +38,7 @@ import gyro.core.command.AbstractCommand;
 import gyro.core.command.AbstractDynamicCommand;
 import gyro.core.command.GyroCommand;
 import gyro.core.command.GyroCommandGroup;
+import gyro.core.command.VersionCommand;
 import gyro.core.scope.Defer;
 import gyro.core.scope.RootScope;
 import gyro.core.validation.ValidationErrorException;
@@ -51,7 +52,11 @@ import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
-@Command(name = "gyro", mixinStandardHelpOptions = true)
+@Command(name = "gyro",
+    mixinStandardHelpOptions = true,
+    commandListHeading = "%nCommands:%n",
+    versionProvider = VersionCommand.class
+)
 public class Gyro {
 
     private CommandLine commandLine;

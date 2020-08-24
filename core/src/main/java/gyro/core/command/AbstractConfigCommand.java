@@ -65,7 +65,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
     @Option(names = "--test", description = "Use for internal testing only. This flag will mock cloud provider API calls.")
     private boolean test;
 
-    @Parameters
+    @Parameters(description = "Configuration files to process. Leave empty to process all files.")
     private List<String> files;
 
     protected abstract void doExecute(RootScope current, RootScope pending, State state) throws Exception;

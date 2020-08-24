@@ -22,7 +22,12 @@ import java.util.List;
 import gyro.core.GyroCore;
 import picocli.CommandLine.Command;
 
-@Command(name = "list", description = "List installed plugins.", mixinStandardHelpOptions = true)
+@Command(name = "list",
+    header = "List plugins installed on this project.",
+    synopsisHeading = "%n",
+    parameterListHeading = "%nParameters:%n",
+    optionListHeading = "%nOptions:%n"
+)
 public class PluginListCommand extends PluginCommand {
 
     @Override

@@ -25,7 +25,12 @@ import gyro.lang.ast.block.DirectiveNode;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
-@Command(name = "remove", description = "Remove one or more plugins.", mixinStandardHelpOptions = true)
+@Command(name = "remove",
+    header = "Remove one or more plugins from this project.",
+    synopsisHeading = "%n",
+    parameterListHeading = "%nParameters:%n",
+    optionListHeading = "%nOptions:%n"
+)
 public class PluginRemoveCommand extends PluginCommand {
 
     @CommandLine.Parameters(description =

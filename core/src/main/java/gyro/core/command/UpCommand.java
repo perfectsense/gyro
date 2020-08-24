@@ -28,7 +28,18 @@ import gyro.core.scope.State;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
-@Command(name = "up", description = "Updates all resources to match the configuration.", mixinStandardHelpOptions = true)
+@Command(name = "up",
+    synopsisHeading = "%n",
+    header = "Update cloud resources to match the configuration.",
+    descriptionHeading = "%nDescription:%n%n",
+    description = "Compare differences between gyro configuration and state. Any differences are displayed and"
+        + " can optionally be executed to update cloud resources to match the configuration.",
+    parameterListHeading = "%nParameters:%n",
+    optionListHeading = "%nOptions:%n",
+    usageHelpWidth = 100,
+    mixinStandardHelpOptions = true,
+    versionProvider = VersionCommand.class
+)
 public class UpCommand extends AbstractConfigCommand {
 
     @Option(names = "--skip-version-check", description = "Skips checking for the latest version.")

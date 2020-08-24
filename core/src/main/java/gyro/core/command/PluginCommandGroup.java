@@ -19,12 +19,22 @@ package gyro.core.command;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "plugin",
-    description = "Add, remove, or list plugins.",
+    description = "Managed gyro plugins.",
+    synopsisHeading = "%n",
+    header = "Add, remove, or list plugins defined in .gyro/init.gyro.",
+    descriptionHeading = "%nDescription:%n%n",
+    parameterListHeading = "%nParameters:%n",
+    optionListHeading = "%nOptions:%n",
+    commandListHeading = "%nCommands:%n",
+    usageHelpWidth = 100,
     mixinStandardHelpOptions = true,
+    versionProvider = VersionCommand.class,
     subcommands = {
         PluginListCommand.class,
         PluginAddCommand.class,
-        PluginRemoveCommand.class })
+        PluginRemoveCommand.class
+    }
+)
 public class PluginCommandGroup implements GyroCommandGroup {
 
 }

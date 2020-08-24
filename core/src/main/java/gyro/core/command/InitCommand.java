@@ -22,21 +22,30 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "init", description = "Initialize a Gyro working directory.", mixinStandardHelpOptions = true)
-public class InitCommand extends AbstractCommand {
+@Command(name = "init",
+    synopsisHeading = "%n",
+    header = "Initialize a new gyro project.",
+    descriptionHeading = "%nDescription:%n%n",
+    description = "This command creates an initial .gyro/init.gyro file.",
+    parameterListHeading = "%nParameters:%n",
+    optionListHeading = "%nOptions:%n",
+    usageHelpWidth = 100
+)
+public class InitCommand implements GyroCommand, Callable<Integer> {
 
     @Parameters(description = "A list of plugins specified in the format of <group>:<artifact>:<version>. "
-        + "For example: gyro:gyro-aws-provider:0.1-SNAPSHOT")
+        + "For example: gyro:gyro-aws-provider:0.1-SNAPSHOT", arity = "1")
     private List<String> plugins;
 
     @Override
-    protected void doExecute() throws Exception {
+    public void execute() throws Exception {
         if (plugins == null || plugins.isEmpty()) {
             throw new GyroException("List of plugins is required!");
         }
@@ -74,6 +83,16 @@ public class InitCommand extends AbstractCommand {
                 writer.write(plugin);
                 writer.write("'\n");
             }
+        }
+    }
+
+    @Override
+    public Integer call() throws Exception {
+        try {
+            execute();
+            return 0;
+        } catch (Exception ex) {
+            return 1;
         }
     }
 }
