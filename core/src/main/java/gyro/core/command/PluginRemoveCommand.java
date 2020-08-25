@@ -16,25 +16,39 @@
 
 package gyro.core.command;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import gyro.core.GyroCore;
 import gyro.lang.ast.block.DirectiveNode;
-import io.airlift.airline.Command;
-import io.airlift.airline.Help;
-import io.airlift.airline.model.MetadataLoader;
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
 
-@Command(name = "remove", description = "Remove one or more plugins.")
+@Command(name = "remove",
+    header = "Remove one or more plugins from this project.",
+    synopsisHeading = "%n",
+    parameterListHeading = "%nParameters:%n",
+    optionListHeading = "%nOptions:%n"
+)
 public class PluginRemoveCommand extends PluginCommand {
+
+    @CommandLine.Parameters(description =
+        "A space separated list of plugins specified in the format of <group>:<artifact>:<version>. "
+            + "For example: gyro:gyro-aws-provider:0.1-SNAPSHOT", arity = "1")
+    private List<String> plugins;
+
+    @Override
+    public List<String> getPlugins() {
+        if (plugins == null) {
+            plugins = Collections.emptyList();
+        }
+
+        return plugins;
+    }
 
     @Override
     protected void executeSubCommand() throws Exception {
-        if (getPlugins().isEmpty()) {
-            Help.help(MetadataLoader.loadCommand(PluginRemoveCommand.class));
-            return;
-        }
-
         List<DirectiveNode> removeNodes = getPluginNodes()
             .stream()
             .filter(this::pluginNodeExist)
@@ -77,5 +91,4 @@ public class PluginRemoveCommand extends PluginCommand {
             .map(p -> String.format("@|bold %s|@ has been removed.%n", p))
             .forEach(GyroCore.ui()::write);
     }
-
 }

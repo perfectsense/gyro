@@ -35,16 +35,22 @@ import gyro.core.GyroUI;
 import gyro.core.LocalFileBackend;
 import gyro.core.LockBackend;
 import gyro.util.Bug;
-import io.airlift.airline.Command;
-import io.airlift.airline.Option;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
 
-@Command(name = "copy", description = "Copy state files between named backends. Use 'local' to copy to/from your local directory. Use 'default' to copy to/from an unnamed backend in your 'init.gyro'.")
+@Command(name = "copy",
+    header = "Copy state files between state backends.",
+    synopsisHeading = "%n",
+    descriptionHeading = "%nDescription:%n%n",
+    description = "Use 'local' to copy to/from your local directory. Use 'default' to copy to/from an unnamed backend in your 'init.gyro'.",
+    optionListHeading = "%nOptions:%n%n"
+)
 public class StateCopyCommand implements GyroCommand {
 
-    @Option(name = "--to", description = "Specifies the name of the backend to push state files to", required = true)
+    @Option(names = "--to", description = "Specifies the name of the backend to push state files to", required = true)
     private String to;
 
-    @Option(name = "--from", description = "Specifies the name of the backend to pull state files from", required = true)
+    @Option(names = "--from", description = "Specifies the name of the backend to pull state files from", required = true)
     private String from;
 
     public String getTo() {

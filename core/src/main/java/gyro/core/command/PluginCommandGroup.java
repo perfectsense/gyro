@@ -16,29 +16,25 @@
 
 package gyro.core.command;
 
-import java.util.Arrays;
-import java.util.List;
+import picocli.CommandLine;
 
+@CommandLine.Command(name = "plugin",
+    description = "Manage gyro plugins.",
+    synopsisHeading = "%n",
+    header = "Add, remove, or list plugins defined in .gyro/init.gyro.",
+    descriptionHeading = "%nDescription:%n%n",
+    parameterListHeading = "%nParameters:%n",
+    optionListHeading = "%nOptions:%n",
+    commandListHeading = "%nCommands:%n",
+    usageHelpWidth = 100,
+    mixinStandardHelpOptions = true,
+    versionProvider = VersionCommand.class,
+    subcommands = {
+        PluginListCommand.class,
+        PluginAddCommand.class,
+        PluginRemoveCommand.class
+    }
+)
 public class PluginCommandGroup implements GyroCommandGroup {
-
-    @Override
-    public String getName() {
-        return "plugin";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Add, remove, or list plugins.";
-    }
-
-    @Override
-    public List<Class<?>> getCommands() {
-        return Arrays.asList(PluginAddCommand.class, PluginRemoveCommand.class, PluginListCommand.class);
-    }
-
-    @Override
-    public Class<?> getDefaultCommand() {
-        return PluginHelp.class;
-    }
 
 }

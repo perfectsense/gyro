@@ -54,18 +54,18 @@ import gyro.core.scope.FileScope;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
 import gyro.core.scope.State;
-import io.airlift.airline.Arguments;
-import io.airlift.airline.Option;
+import picocli.CommandLine.Option;
+import picocli.CommandLine.Parameters;
 
 public abstract class AbstractConfigCommand extends AbstractCommand {
 
-    @Option(name = "--skip-refresh")
+    @Option(names = "--skip-refresh", description = "Skip state refresh. Warning: Skipping refresh may result in incorrect changes. Use with caution.")
     public boolean skipRefresh;
 
-    @Option(name = "--test")
+    @Option(names = "--test", description = "Use for internal testing only. This flag will mock cloud provider API calls.")
     private boolean test;
 
-    @Arguments
+    @Parameters(description = "Configuration files to process. Leave empty to process all files.")
     private List<String> files;
 
     protected abstract void doExecute(RootScope current, RootScope pending, State state) throws Exception;

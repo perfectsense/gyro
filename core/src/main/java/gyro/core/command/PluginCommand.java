@@ -21,8 +21,8 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 import gyro.core.FileBackend;
@@ -37,26 +37,14 @@ import gyro.lang.ast.block.DirectiveNode;
 import gyro.lang.ast.block.FileNode;
 import gyro.parser.antlr4.GyroParser;
 import gyro.util.Bug;
-import io.airlift.airline.Arguments;
 
-public abstract class PluginCommand implements GyroCommand {
-
-    @Arguments(description =
-        "A space separated list of plugins specified in the format of <group>:<artifact>:<version>. "
-            + "For example: gyro:gyro-aws-provider:0.1-SNAPSHOT")
-    private List<String> plugins;
+public abstract class PluginCommand implements GyroCommand, Callable<Integer> {
 
     private List<DirectiveNode> pluginNodes;
 
     private List<DirectiveNode> repositoryNodes;
 
-    public List<String> getPlugins() {
-        if (plugins == null) {
-            plugins = Collections.emptyList();
-        }
-
-        return plugins;
-    }
+    public abstract List<String> getPlugins();
 
     public List<DirectiveNode> getPluginNodes() {
         return pluginNodes;
@@ -64,6 +52,12 @@ public abstract class PluginCommand implements GyroCommand {
 
     public List<DirectiveNode> getRepositoryNodes() {
         return repositoryNodes;
+    }
+
+    @Override
+    public Integer call() throws Exception {
+        execute();
+        return 0;
     }
 
     @Override

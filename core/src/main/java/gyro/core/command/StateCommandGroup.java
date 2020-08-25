@@ -16,29 +16,19 @@
 
 package gyro.core.command;
 
-import java.util.Arrays;
-import java.util.List;
+import picocli.CommandLine;
 
+@CommandLine.Command(name = "state",
+    header = "Commands to manage state backends.",
+    synopsisHeading = "%n",
+    descriptionHeading = "%nDescription:%n%n",
+    description = "Copy between state backends or unlock a state backend.",
+    optionListHeading = "%nOptions:%n%n",
+    commandListHeading = "%nCommands:%n%n",
+    subcommands = {
+        StateCopyCommand.class,
+        StateForceUnlockCommand.class
+    })
 public class StateCommandGroup implements GyroCommandGroup {
-
-    @Override
-    public String getName() {
-        return "state";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Manage state.";
-    }
-
-    @Override
-    public List<Class<?>> getCommands() {
-        return Arrays.asList(StateCopyCommand.class, StateForceUnlockCommand.class);
-    }
-
-    @Override
-    public Class<?> getDefaultCommand() {
-        return StateHelp.class;
-    }
 
 }
