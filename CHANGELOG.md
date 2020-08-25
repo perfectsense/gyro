@@ -6,6 +6,9 @@ CHANGELOG
 ENHANCEMENTS:
 
 * core: Convert to `Picocli` for command line argument parsing. ([308](https://github.com/perfectsense/gyro/issues/308))
+
+PERFORMANCE:
+
 * core: Cache plugin depenedncy. ([311](https://github.com/perfectsense/gyro/issues/311))
 * core: Optimize plugin class loading. ([312](https://github.com/perfectsense/gyro/issues/312))
 * core: Cache `external-query`. ([313](https://github.com/perfectsense/gyro/issues/313))
