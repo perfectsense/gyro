@@ -1,7 +1,17 @@
 CHANGELOG
 =========
 
-## 0.99.5 (Unreleased)
+## 0.99.5 (August 25th, 2020)
+
+ENHANCEMENTS:
+
+* core: Convert to `Picocli` for command line argument parsing. ([308](https://github.com/perfectsense/gyro/issues/308))
+* core: Cache plugin depenedncy. ([311](https://github.com/perfectsense/gyro/issues/311))
+* core: Optimize plugin class loading. ([312](https://github.com/perfectsense/gyro/issues/312))
+* core: Cache `external-query`. ([313](https://github.com/perfectsense/gyro/issues/313))
+* core: Implement Beaninfo on diffable. ([314](https://github.com/perfectsense/gyro/issues/314))
+* core: Add `exists(String file)` method to FileBackend. ([315](https://github.com/perfectsense/gyro/issues/315))
+* core: Add `copy(String source, String destination)` method to FileBackend. ([316](https://github.com/perfectsense/gyro/issues/316))
 
 ## 0.99.4 (June 25th, 2020)
 
