@@ -245,6 +245,8 @@ public class Gyro {
                 Object commandObject = subcommand.commandSpec().userObject();
                 if (commandObject instanceof AbstractCommand) {
                     ((AbstractCommand) commandObject).setUnparsedArguments(arguments);
+                } else if (commandObject instanceof AbstractDynamicCommand) {
+                    ((AbstractDynamicCommand) commandObject).setParseResult(parseResult);
                 }
             }
         } catch (CommandLine.UnmatchedArgumentException | CommandLine.MissingParameterException ex) {
