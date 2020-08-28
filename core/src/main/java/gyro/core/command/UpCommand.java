@@ -18,6 +18,7 @@ package gyro.core.command;
 
 import java.util.Optional;
 
+import gyro.core.Abort;
 import gyro.core.GyroCore;
 import gyro.core.GyroUI;
 import gyro.core.RemoteStateBackend;
@@ -69,7 +70,7 @@ public class UpCommand extends AbstractConfigCommand {
             }
 
             if (!ui.readBoolean(Boolean.FALSE, "\nAre you sure you want to change resources?")) {
-                break;
+                throw new Abort();
             }
 
             if (!auditStarted) {
