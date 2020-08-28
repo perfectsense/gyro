@@ -94,7 +94,6 @@ public class Gyro {
 
         } catch (Throwable error) {
             exitStatus = 1;
-
             GyroCore.ui().write("\n");
             writeError(error);
             GyroCore.ui().write("\n");
