@@ -74,6 +74,8 @@ public class Gyro {
         Gyro gyro = new Gyro();
         GyroCore.pushUi(new CliGyroUI());
 
+        int exitStatus = 0;
+
         try {
             Optional.ofNullable(GyroCore.getRootDirectory())
                 .map(d -> new RootScope(GyroCore.INIT_FILE, new LocalFileBackend(d), null, null))
@@ -87,9 +89,12 @@ public class Gyro {
             gyro.run();
 
         } catch (Abort error) {
+            exitStatus = 3;
             GyroCore.ui().write("\n@|red Aborted!|@\n\n");
 
         } catch (Throwable error) {
+            exitStatus = 1;
+
             GyroCore.ui().write("\n");
             writeError(error);
             GyroCore.ui().write("\n");
@@ -97,6 +102,7 @@ public class Gyro {
         } finally {
             GyroCore.popUi();
             GyroCore.popLockBackend();
+            System.exit(exitStatus);
         }
     }
 
