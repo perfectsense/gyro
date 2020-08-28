@@ -16,11 +16,24 @@
 
 package gyro.core.command;
 
-import gyro.core.GyroCore;
-import io.airlift.airline.Command;
+import java.util.Collections;
+import java.util.List;
 
-@Command(name = "list", description = "List installed plugins.")
+import gyro.core.GyroCore;
+import picocli.CommandLine.Command;
+
+@Command(name = "list",
+    header = "List plugins installed on this project.",
+    synopsisHeading = "%n",
+    parameterListHeading = "%nParameters:%n",
+    optionListHeading = "%nOptions:%n"
+)
 public class PluginListCommand extends PluginCommand {
+
+    @Override
+    public List<String> getPlugins() {
+        return Collections.emptyList();
+    }
 
     @Override
     protected void executeSubCommand() {
@@ -32,5 +45,4 @@ public class PluginListCommand extends PluginCommand {
             .map(p -> String.format("@|bold %s|@%n", p))
             .forEach(GyroCore.ui()::write);
     }
-
 }

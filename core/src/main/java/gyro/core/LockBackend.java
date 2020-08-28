@@ -100,7 +100,11 @@ public abstract class LockBackend {
     }
 
     public String readTempLockFile() {
-        if (!localTempBackend.fileExists(TEMP_LOCK_ID_FILE)) {
+        try {
+            if (!localTempBackend.exists(TEMP_LOCK_ID_FILE)) {
+                return null;
+            }
+        } catch (Exception e) {
             return null;
         }
 

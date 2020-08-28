@@ -18,7 +18,6 @@ import org.apache.tools.ant.filters.ReplaceTokens
 dependencies {
     api project(':gyro-lang')
     api project(':gyro-util')
-    api 'io.airlift:airline:0.8'
 
     implementation 'com.psddev:dari-util:3.3.607-xe0f27a'
     implementation 'net.jodah:typetools:0.6.1'
@@ -29,6 +28,7 @@ dependencies {
     implementation 'org.eclipse.aether:aether-impl:1.1.0'
     implementation 'org.eclipse.aether:aether-transport-file:1.1.0'
     implementation 'org.eclipse.aether:aether-transport-http:1.1.0'
+    api 'info.picocli:picocli:4.5.0'
 }
 
 processResources {

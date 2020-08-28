@@ -16,8 +16,11 @@
 
 package gyro.core.plugin;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -29,10 +32,12 @@ import java.util.stream.Collectors;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.ExecutionError;
 import gyro.core.GyroException;
 import gyro.core.Reflections;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.Settings;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.resolution.DependencyResult;
@@ -45,6 +50,7 @@ public class PluginSettings extends Settings {
 
     private List<Plugin> plugins;
     private List<Class<?>> otherClasses;
+    private Path cachePath;
 
     private final LoadingCache<Plugin, LoadingCache<Class<?>, Boolean>> call = CacheBuilder.newBuilder()
         .build(new CacheLoader<Plugin, LoadingCache<Class<?>, Boolean>>() {
@@ -105,6 +111,16 @@ public class PluginSettings extends Settings {
                 try {
                     call.get(plugin).get(otherClass);
 
+                } catch (ExecutionError error) {
+                    if (ExceptionUtils.getRootCause(error) instanceof ClassNotFoundException) {
+                        try {
+                            Files.deleteIfExists(getCachePath().resolve("deps"));
+                        } catch (IOException e) {
+                            // Ignore
+                        }
+                    }
+
+                    throw error;
                 } catch (ExecutionException error) {
                     throw new GyroException(
                         String.format(
@@ -115,6 +131,14 @@ public class PluginSettings extends Settings {
                 }
             }
         }
+    }
+
+    public Path getCachePath() {
+        return cachePath;
+    }
+
+    public void setCachePath(Path cachePath) {
+        this.cachePath = cachePath;
     }
 
     public PluginClassLoader getPluginClassLoader() {
