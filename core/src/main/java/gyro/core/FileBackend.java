@@ -20,6 +20,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.stream.Stream;
 
+import com.psddev.dari.util.ObjectUtils;
+import gyro.core.auth.Credentials;
+import gyro.core.auth.CredentialsSettings;
 import gyro.core.scope.RootScope;
 
 public abstract class FileBackend {
@@ -54,4 +57,23 @@ public abstract class FileBackend {
     public abstract boolean exists(String file) throws Exception;
 
     public abstract void copy(String source, String destination) throws Exception;
+
+    protected Credentials getCredentials(String provider) {
+        CredentialsSettings settings = getRootScope().getSettings(CredentialsSettings.class);
+        String credentialName = settings.getUseCredentials();
+
+        if (ObjectUtils.isBlank(credentialName)) {
+            credentialName = "default";
+        }
+
+        Credentials credentials = settings
+            .getCredentialsByName()
+            .get(String.format("%s::%s", provider, credentialName));
+
+        if (credentials == null) {
+            throw new GyroException(String.format("No credential found with name - %s.", credentialName));
+        }
+
+        return credentials;
+    }
 }
