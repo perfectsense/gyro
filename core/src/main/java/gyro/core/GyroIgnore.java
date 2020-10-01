@@ -179,7 +179,7 @@ public class GyroIgnore {
         String filePath,
         Set<String> filePathExceptionList,
         boolean isStateFile) {
-        // Remove the portion of the ptah that resembles it is a state file
+        // Remove the portion of the path that resembles it is a state file
         // The patterns mentioned in the gyroignore file dont take into state file paths
         // If the configured gyro file is to be ignore then so will its state file
             filePath = isStateFile ? filePath.replace("/.gyro/state", "/") : filePath;
