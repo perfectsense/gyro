@@ -168,7 +168,13 @@ public class DiffableField {
                     .orElse(null);
             }
 
-            Reflections.invoke(setter, diffable, scope.getRootScope().convertValue(type, value));
+            Object convertedValue = scope.getRootScope().convertValue(type, value);
+
+            if (value != null && convertedValue == null && (type instanceof Class && ((Class<?>) type).isEnum())) {
+                throw new ConversionException();
+            }
+
+            Reflections.invoke(setter, diffable, convertedValue);
 
         } catch (ConversionException error) {
             throw new GyroException(
