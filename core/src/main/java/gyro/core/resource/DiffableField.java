@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.google.common.base.CaseFormat;
 import com.google.common.cache.CacheBuilder;
@@ -171,7 +173,14 @@ public class DiffableField {
             Object convertedValue = scope.getRootScope().convertValue(type, value);
 
             if (value != null && convertedValue == null && (type instanceof Class && ((Class<?>) type).isEnum())) {
-                throw new ConversionException();
+                Object[] enumConstants = ((Class) type).getEnumConstants();
+
+                throw new GyroException(
+                    scope.getLocation(name),
+                    "Must be one of " + Stream.of(enumConstants)
+                        .map(v -> String.format("@|bold %s|@", v))
+                        .collect(Collectors.joining(", "))
+                );
             }
 
             Reflections.invoke(setter, diffable, convertedValue);
