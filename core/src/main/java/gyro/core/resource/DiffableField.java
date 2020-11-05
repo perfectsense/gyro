@@ -216,15 +216,15 @@ public class DiffableField {
 
             if (validatorClass != null) {
                 Validator<Annotation> validator = VALIDATORS.getUnchecked(validatorClass.value());
+                Type type = setter.getGenericParameterTypes()[0];
+                Object valueToTest = value;
 
-                if (!validator.isValid(diffable, annotation, value)) {
-                    if (!(annotation.annotationType().equals(Required.class)
-                        && validator.isValid(diffable, annotation, rawValue))) {
-                        errors.add(new ValidationError(diffable, name, validator.getMessage(annotation)));
-                    }
+                if ((annotation.annotationType().equals(ValidStrings.class) || annotation.annotationType()
+                    .equals(Required.class)) && type instanceof Class && ((Class<?>) type).isEnum()) {
+                    valueToTest = rawValue;
+                }
 
-                } else if (annotation.annotationType().equals(ValidStrings.class)
-                    && !validator.isValid(diffable, annotation, rawValue)) {
+                if (!validator.isValid(diffable, annotation, valueToTest)) {
                     errors.add(new ValidationError(diffable, name, validator.getMessage(annotation)));
                 }
             }
