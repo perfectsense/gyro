@@ -19,18 +19,27 @@ package gyro.core.auth;
 import gyro.core.Type;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.scope.DiffableScope;
+import gyro.core.scope.Scope;
 import gyro.lang.ast.block.DirectiveNode;
 
 @Type("uses-credentials")
-public class UsesCredentialsDirectiveProcessor extends DirectiveProcessor<DiffableScope> {
+public class UsesCredentialsDirectiveProcessor extends DirectiveProcessor<Scope> {
 
     @Override
-    public void process(DiffableScope scope, DirectiveNode node) {
+    public void process(Scope scope, DirectiveNode node) {
         validateArguments(node, 1, 1);
-        scope.getSettings(CredentialsSettings.class).setUseCredentials(getArgument(scope, node, String.class, 0));
 
-        if (scope.getStateNodes().stream().noneMatch(o -> o.equals(node))) {
-            scope.getStateNodes().add(node);
+        if (scope instanceof DiffableScope) {
+            DiffableScope diffableScope = (DiffableScope) scope;
+            diffableScope.getSettings(CredentialsSettings.class)
+                .setUseCredentials(getArgument(scope, node, String.class, 0));
+            if (diffableScope.getStateNodes().stream().noneMatch(o -> o.equals(node))) {
+                diffableScope.getStateNodes().add(node);
+            }
+        } else {
+            scope.getRootScope()
+                .getSettings(CredentialsSettings.class)
+                .setUseCredentials(getArgument(scope, node, String.class, 0));
         }
     }
 
