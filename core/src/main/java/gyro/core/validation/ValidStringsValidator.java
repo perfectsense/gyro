@@ -24,7 +24,8 @@ public class ValidStringsValidator extends AbstractValidator<ValidStrings> {
 
     @Override
     protected boolean validate(ValidStrings annotation, Object value) {
-        return value instanceof String && Arrays.asList(annotation.value()).contains(value);
+        return (value instanceof String || value instanceof Enum) && Arrays.asList(annotation.value())
+            .contains(value.toString());
     }
 
     @Override
