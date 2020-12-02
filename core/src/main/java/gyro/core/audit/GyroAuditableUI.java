@@ -85,7 +85,7 @@ public abstract class GyroAuditableUI implements GyroUI {
         if (log == null) {
             log = new HashMap<>();
         }
-        log.putAll(MetadataDirectiveProcessor.getMetadata());
+        //log.putAll(MetadataDirectiveProcessor.getMetadata());
         Map<String, Object> finalLog = log;
 
         GyroAuditor.AUDITOR_BY_NAME.values().stream()

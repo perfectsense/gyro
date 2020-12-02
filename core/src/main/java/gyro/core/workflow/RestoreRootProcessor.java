@@ -41,7 +41,7 @@ public class RestoreRootProcessor extends RootProcessor {
 
         String workflowName = (String) execution.get("workflow");
 
-        Workflow workflow = root.getSettings(WorkflowSettings.class)
+        root.getSettings(WorkflowSettings.class)
             .getWorkflows()
             .stream()
             .filter(w -> resourceType.equals(w.getType()) && workflowName.equals(w.getName()))
