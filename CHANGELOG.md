@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+## 1.0.0 (December 16th, 2020)
+
+ENHANCEMENTS:
+
+* core: Validate enum type fields. ([329](https://github.com/perfectsense/gyro/issues/329))
+* core: Implement gyro exit codes. ([325](https://github.com/perfectsense/gyro/issues/329))
+
 ## 0.99.5 (August 25th, 2020)
 
 ENHANCEMENTS:
