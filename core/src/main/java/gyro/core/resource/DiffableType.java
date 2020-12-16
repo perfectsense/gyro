@@ -43,6 +43,7 @@ import gyro.core.validation.ValidationError;
 import gyro.core.workflow.ModifiedIn;
 import gyro.lang.ast.Node;
 import gyro.parser.antlr4.GyroParser;
+import gyro.util.Bug;
 
 public class DiffableType<D extends Diffable> {
 
@@ -156,7 +157,12 @@ public class DiffableType<D extends Diffable> {
         diffable.external = true;
         diffable.scope = new DiffableScope(root, null);
 
+        if (idField == null) {
+            throw new Bug(String.format("%s is missing @Id annotation.", diffableClass.getName()));
+        }
+
         idField.setValue(diffable, id);
+
         return diffable;
     }
 
