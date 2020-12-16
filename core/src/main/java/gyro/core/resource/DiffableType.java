@@ -158,7 +158,7 @@ public class DiffableType<D extends Diffable> {
         diffable.scope = new DiffableScope(root, null);
 
         if (idField == null) {
-            throw new Bug(String.format("%s is missing having @Id annotation on its reference field.", diffableClass.getName()));
+            throw new Bug(String.format("%s is missing @Id annotation.", diffableClass.getName()));
         }
 
         idField.setValue(diffable, id);
