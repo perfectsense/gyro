@@ -1,7 +1,7 @@
 CHANGELOG
 =========
 
-## 1.0.0 (December 16th, 2020)
+## 1.0.0 (January 7th, 2021)
 
 ENHANCEMENTS:
 
