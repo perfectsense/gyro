@@ -21,7 +21,7 @@ first, definitely won't be the last, haha. That's ok though, gyro sandwiches are
 ### Background
 
 Gyro was built by [Brightspot](https://www.brightspot.com) to automate the creation and
-management of the cloud infrastructure we use to run Brightspot CMS for
+management of the cloud infrastructure we use to run **Brightspot CMS** for
 our clients. We integrated several tools that are part of our DevOps lifecycle such as Chef to
 install and configure software on our hosts, ssh to log into hosts, and service discovery to drain
 traffic during maintenance. We use workflows to deploy our code using with the blue/green model. We
