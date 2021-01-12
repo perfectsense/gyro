@@ -1,6 +1,17 @@
 CHANGELOG
 =========
 
+## 1.0.0 (January 12th, 2021)
+
+ENHANCEMENTS:
+
+* core: Validate enum type fields. ([329](https://github.com/perfectsense/gyro/issues/329))
+* core: Implement gyro exit codes. ([325](https://github.com/perfectsense/gyro/issues/325))
+
+ISSUES FIXED:
+
+* core: Fix error on finders if resource has missing @Id field. ([334](https://github.com/perfectsense/gyro/issues/334))
+
 ## 0.99.5 (August 25th, 2020)
 
 ENHANCEMENTS:
