@@ -27,7 +27,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
 import gyro.core.GyroException;
@@ -41,31 +40,13 @@ import gyro.core.scope.DiffableScope;
 import gyro.core.scope.NodeEvaluator;
 import gyro.core.scope.Scope;
 import gyro.core.scope.State;
-import gyro.core.workflow.ModifiedIn;
-import gyro.core.workflow.ReplaceResource;
 import gyro.lang.ast.Node;
 
 public class Diff {
 
-    private final List<Diffable> currentDiffables;
+    protected final List<Diffable> currentDiffables;
     private final List<Diffable> pendingDiffables;
     private final List<Change> changes = new ArrayList<>();
-
-    // Workflow related
-    private final AtomicBoolean honorWorkflowResources = new AtomicBoolean();
-    private final List<String> toBeRemoved = new ArrayList<>();
-    private final List<ReplaceResource> toBeReplaced = new ArrayList<>();
-
-    public Diff(
-        Collection<? extends Diffable> currentDiffables,
-        Collection<? extends Diffable> pendingDiffables,
-        List<String> toBeRemoved,
-        List<ReplaceResource> toBeReplaced) {
-        this(currentDiffables, pendingDiffables);
-        this.honorWorkflowResources.set(true);
-        this.toBeRemoved.addAll(toBeRemoved);
-        this.toBeReplaced.addAll(toBeReplaced);
-    }
 
     public Diff(Collection<? extends Diffable> currentDiffables, Collection<? extends Diffable> pendingDiffables) {
         this.currentDiffables = currentDiffables != null
@@ -98,13 +79,10 @@ public class Diff {
     }
 
     public void diff() {
-        Stream<Diffable> currentDiffableStream = this.currentDiffables.stream();
+        diff(this.currentDiffables.stream());
+    }
 
-        if (!honorWorkflowResources.get()) {
-            currentDiffableStream = currentDiffableStream
-                .filter(e -> !(e instanceof Resource)
-                    || DiffableInternals.getModifiedIn(e) != ModifiedIn.WORKFLOW_ONLY);
-        }
+    public void diff(Stream<Diffable> currentDiffableStream) {
         Map<String, Diffable> currentDiffables = currentDiffableStream.collect(
             LinkedHashMap::new,
             (map, r) -> map.put(r.primaryKey(), r),
@@ -112,14 +90,7 @@ public class Diff {
         );
 
         for (Diffable pendingDiffable : pendingDiffables) {
-            if (!honorWorkflowResources.get()
-                && pendingDiffable instanceof Resource
-                && DiffableInternals.getModifiedIn(pendingDiffable) == ModifiedIn.WORKFLOW_ONLY) {
-                continue;
-            }
-            String pendingDiffableKey = pendingDiffable.primaryKey();
-
-            if (toBeRemoved.contains(pendingDiffableKey)) {
+            if (skipDiffableDiff(pendingDiffable)) {
                 continue;
             }
 
@@ -127,7 +98,7 @@ public class Diff {
                 DiffableInternals.reevaluate(pendingDiffable);
             }
 
-            Diffable currentDiffable = currentDiffables.remove(pendingDiffableKey);
+            Diffable currentDiffable = currentDiffables.remove(pendingDiffable.primaryKey());
 
             changes.add(currentDiffable == null
                 ? newCreate(pendingDiffable)
@@ -137,6 +108,10 @@ public class Diff {
         for (Diffable resource : currentDiffables.values()) {
             changes.add(newDelete(resource));
         }
+    }
+
+    public boolean skipDiffableDiff(Diffable pendingDiffable) {
+        return false;
     }
 
     @SuppressWarnings("unchecked")
@@ -355,17 +330,12 @@ public class Diff {
     }
 
     public boolean write(GyroUI ui) {
-        if (!hasChanges() && toBeReplaced.isEmpty()) {
+        return write(ui, false);
+    }
+
+    public boolean write(GyroUI ui, boolean written) {
+        if (!hasChanges()) {
             return false;
-        }
-
-        boolean written = false;
-
-        for (ReplaceResource replaceResource : toBeReplaced) {
-            Resource resource = replaceResource.getResource();
-            Resource with = replaceResource.getWith();
-            ui.write("@|cyan ⤢ Replace %s with %s|@\n", resource.primaryKey(), with.primaryKey());
-            written = true;
         }
 
         for (Change change : getChanges()) {
@@ -405,10 +375,13 @@ public class Diff {
     }
 
     public void execute(GyroUI ui, State state) {
+        preDeleteExecute(ui, state);
+        executeDelete(ui, state);
+    }
+
+    public void preDeleteExecute(GyroUI ui, State state) {
         executeCreateKeepUpdate(ui, state);
         executeReplace(ui, state);
-        executeReplaceActions(ui, state);
-        executeDelete(ui, state);
     }
 
     private void executeCreateKeepUpdate(GyroUI ui, State state) {
@@ -432,15 +405,6 @@ public class Diff {
             for (Diff d : change.getDiffs()) {
                 d.executeReplace(ui, state);
             }
-        }
-    }
-
-    private void executeReplaceActions(GyroUI ui, State state) {
-        for (ReplaceResource replaceResource : toBeReplaced) {
-            Resource resource = replaceResource.getResource();
-            Resource with = replaceResource.getWith();
-            ui.write("@|magenta ⤢ Replacing %s with %s|@\n", resource.primaryKey(), with.primaryKey());
-            state.replace(resource, with);
         }
     }
 

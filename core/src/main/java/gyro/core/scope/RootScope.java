@@ -44,7 +44,6 @@ import gyro.core.PrintDirectiveProcessor;
 import gyro.core.RemoteStateBackend;
 import gyro.core.audit.AuditorDirectiveProcessor;
 import gyro.core.audit.AuditorPlugin;
-import gyro.core.audit.MetadataDirectiveProcessor;
 import gyro.core.auth.CredentialsDirectiveProcessor;
 import gyro.core.auth.CredentialsPlugin;
 import gyro.core.auth.UsesCredentialsDirectiveProcessor;
@@ -91,12 +90,7 @@ import gyro.core.scope.converter.ResourceToIdObject;
 import gyro.core.validation.ValidationError;
 import gyro.core.validation.ValidationErrorException;
 import gyro.core.virtual.VirtualDirectiveProcessor;
-import gyro.core.workflow.CreateDirectiveProcessor;
-import gyro.core.workflow.DefineDirectiveProcessor;
-import gyro.core.workflow.DeleteDirectiveProcessor;
-import gyro.core.workflow.ReplaceDirectiveProcessor;
 import gyro.core.workflow.RestoreRootProcessor;
-import gyro.core.workflow.UpdateDirectiveProcessor;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.FileNode;
 import gyro.parser.antlr4.GyroParser;
@@ -181,10 +175,7 @@ public class RootScope extends FileScope {
 
         Stream.of(
             AuditorDirectiveProcessor.class,
-            CreateDirectiveProcessor.class,
             CredentialsDirectiveProcessor.class,
-            DefineDirectiveProcessor.class,
-            DeleteDirectiveProcessor.class,
             DescriptionDirectiveProcessor.class,
             ExtendsDirectiveProcessor.class,
             FileBackendDirectiveProcessor.class,
@@ -193,14 +184,11 @@ public class RootScope extends FileScope {
             IfDirectiveProcessor.class,
             LogDirectiveProcessor.class,
             LockBackendDirectiveProcessor.class,
-            MetadataDirectiveProcessor.class,
             PluginDirectiveProcessor.class,
             PrintDirectiveProcessor.class,
-            ReplaceDirectiveProcessor.class,
             RepositoryDirectiveProcessor.class,
             StateBackendDirectiveProcessor.class,
             TypeDescriptionDirectiveProcessor.class,
-            UpdateDirectiveProcessor.class,
             UsesCredentialsDirectiveProcessor.class,
             VirtualDirectiveProcessor.class,
             WaitDirectiveProcessor.class)
