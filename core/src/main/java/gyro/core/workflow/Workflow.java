@@ -52,6 +52,7 @@ public class Workflow {
     private final String type;
     private final String name;
     private final RootScope root;
+    private final FileScope fileScope;
     private final Map<String, Stage> stages;
     private final List<Stage> executedStages = new ArrayList<>();
     private final Map<String, Map<String, ModifiedIn>> modifiedInFileScopeMap = new HashMap<>();
@@ -60,6 +61,7 @@ public class Workflow {
         this.type = Preconditions.checkNotNull(type);
         this.name = Preconditions.checkNotNull(name);
         this.root = Preconditions.checkNotNull(scope).getRootScope();
+        this.fileScope = scope.getFileScope();
 
         @SuppressWarnings("unchecked")
         List<Scope> stageScopes = (List<Scope>) scope.get(STAGE_TYPE_NAME);
@@ -250,5 +252,9 @@ public class Workflow {
         restoreModifiedInValues(pending);
 
         return pending;
+    }
+
+    public FileScope getFileScope() {
+        return this.fileScope;
     }
 }
