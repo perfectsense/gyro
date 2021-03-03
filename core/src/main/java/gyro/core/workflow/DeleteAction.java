@@ -62,7 +62,7 @@ public class DeleteAction extends Action {
             // This is to support recovery of delete action.
         }
 
-        Resource pendingResource = visitResource(this.resource, pending);
+        Resource pendingResource = visitResource(this.resource, scope);
         DiffableInternals.setModifiedIn(pendingResource, modifiedIn == null ? ModifiedIn.WORKFLOW_ONLY : modifiedIn);
         toBeRemoved.add(pendingResource.primaryKey());
     }

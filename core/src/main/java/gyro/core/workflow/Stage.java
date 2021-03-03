@@ -17,6 +17,7 @@
 package gyro.core.workflow;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -99,9 +100,15 @@ public class Stage {
             }
         }
 
+        List<String> variableKeys = new ArrayList<>(scope.keySet());
+
         scope.put("NAME", DiffableInternals.getName(pendingResource));
         scope.put("CURRENT", currentResource);
         scope.put("PENDING", pendingResource);
+
+        for (String key : variableKeys) {
+            scope.getRootScope().getCurrent().put(key, scope.get(key));
+        }
 
         Defer.execute(actions, a -> a.execute(ui, state, scope, toBeRemoved, toBeReplaced));
     }
