@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+## 1.0.1 (March 3rd, 2021)
+
+ISSUES FIXED:
+
+* core: Fix workflow action defined using variables. ([342](https://github.com/perfectsense/gyro/issues/342))
+* core: Fix choosing workflow based on a declared file. ([343](https://github.com/perfectsense/gyro/issues/343))
+
 ## 1.0.0 (January 12th, 2021)
 
 ENHANCEMENTS:
