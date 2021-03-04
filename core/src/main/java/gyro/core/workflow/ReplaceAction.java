@@ -17,6 +17,7 @@
 package gyro.core.workflow;
 
 import java.util.List;
+import java.util.Map;
 
 import com.google.common.base.Preconditions;
 import gyro.core.GyroUI;
@@ -29,10 +30,12 @@ import gyro.lang.ast.Node;
 
 public class ReplaceAction extends Action {
 
+    private final Scope scope;
     private final Node resource;
     private final Node with;
 
-    public ReplaceAction(Node resource, Node with) {
+    public ReplaceAction(Scope scope, Node resource, Node with) {
+        this.scope = Preconditions.checkNotNull(scope);
         this.resource = Preconditions.checkNotNull(resource);
         this.with = Preconditions.checkNotNull(with);
     }
@@ -49,20 +52,30 @@ public class ReplaceAction extends Action {
     public void execute(
         GyroUI ui,
         State state,
-        Scope scope,
+        Scope stageScope,
         List<String> toBeRemoved,
         List<ReplaceResource> toBeReplaced) {
 
-        RootScope pending = scope.getRootScope();
+        Scope actionScope = new Scope(stageScope);
+
+        for (Map.Entry<String, Object> entry : scope.entrySet()) {
+            Object value = entry.getValue();
+
+            if (!(value instanceof Resource)) {
+                actionScope.put(entry.getKey(), value);
+            }
+        }
+
+        RootScope pending = actionScope.getRootScope();
         RootScope current = pending.getCurrent();
 
         Resource currentResource = visitResource(this.resource, current);
         String currentResourceKey = currentResource.primaryKey();
 
-        Resource pendingResource = visitResource(this.resource, scope);
+        Resource pendingResource = visitResource(this.resource, actionScope);
         String pendingResourceKey = pendingResource.primaryKey();
 
-        Resource pendingWith = visitResource(this.with, scope);
+        Resource pendingWith = visitResource(this.with, actionScope);
 
         if (current.getWorkflowReplacedResources().containsKey(currentResourceKey)) {
             DiffableInternals.setModifiedIn(currentResource, null);
