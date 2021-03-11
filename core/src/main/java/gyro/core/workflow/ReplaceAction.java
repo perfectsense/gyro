@@ -69,8 +69,18 @@ public class ReplaceAction extends Action {
         RootScope pending = actionScope.getRootScope();
         RootScope current = pending.getCurrent();
 
-        Resource currentResource = visitResource(this.resource, current);
+        for (Scope s = actionScope, p; (p = s.getParent()) != null; s = p) {
+            if (p instanceof RootScope) {
+                s.setParent(current);
+            }
+        }
+        Resource currentResource = visitResource(this.resource, actionScope);
         String currentResourceKey = currentResource.primaryKey();
+        for (Scope s = actionScope, p; (p = s.getParent()) != null; s = p) {
+            if (p instanceof RootScope) {
+                s.setParent(pending);
+            }
+        }
 
         Resource pendingResource = visitResource(this.resource, actionScope);
         String pendingResourceKey = pendingResource.primaryKey();
@@ -89,7 +99,17 @@ public class ReplaceAction extends Action {
             : ModifiedIn.BOTH;
         current.getWorkflowReplacedResources().putIfAbsent(currentResourceKey, currentResource);
 
-        Resource currentWith = visitResource(this.with, current);
+        for (Scope s = actionScope, p; (p = s.getParent()) != null; s = p) {
+            if (p instanceof RootScope) {
+                s.setParent(current);
+            }
+        }
+        Resource currentWith = visitResource(this.with, actionScope);
+        for (Scope s = actionScope, p; (p = s.getParent()) != null; s = p) {
+            if (p instanceof RootScope) {
+                s.setParent(pending);
+            }
+        }
         current.getWorkflowRemovedResources().putIfAbsent(currentWith.primaryKey(), currentWith);
         current.getWorkflowRemovedResources().putIfAbsent(currentResourceKey, currentResource);
 

@@ -33,7 +33,7 @@ import gyro.util.MapWrapper;
 
 public class Scope extends MapWrapper<String, Object> {
 
-    private final Scope parent;
+    private Scope parent;
     private final Map<Object, String> names = new IdentityHashMap<>();
     private final Map<String, Node> locations = new HashMap<>();
 
@@ -67,6 +67,10 @@ public class Scope extends MapWrapper<String, Object> {
 
     public Scope getParent() {
         return parent;
+    }
+
+    public void setParent(Scope parent) {
+        this.parent = parent;
     }
 
     @SuppressWarnings("unchecked")
