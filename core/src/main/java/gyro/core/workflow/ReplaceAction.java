@@ -69,18 +69,10 @@ public class ReplaceAction extends Action {
         RootScope pending = actionScope.getRootScope();
         RootScope current = pending.getCurrent();
 
-        for (Scope s = actionScope, p; (p = s.getParent()) != null; s = p) {
-            if (p instanceof RootScope) {
-                s.setParent(current);
-            }
-        }
+        swapScopeParent(actionScope, current);
         Resource currentResource = visitResource(this.resource, actionScope);
         String currentResourceKey = currentResource.primaryKey();
-        for (Scope s = actionScope, p; (p = s.getParent()) != null; s = p) {
-            if (p instanceof RootScope) {
-                s.setParent(pending);
-            }
-        }
+        swapScopeParent(actionScope, pending);
 
         Resource pendingResource = visitResource(this.resource, actionScope);
         String pendingResourceKey = pendingResource.primaryKey();
@@ -99,17 +91,10 @@ public class ReplaceAction extends Action {
             : ModifiedIn.BOTH;
         current.getWorkflowReplacedResources().putIfAbsent(currentResourceKey, currentResource);
 
-        for (Scope s = actionScope, p; (p = s.getParent()) != null; s = p) {
-            if (p instanceof RootScope) {
-                s.setParent(current);
-            }
-        }
+        swapScopeParent(actionScope, current);
         Resource currentWith = visitResource(this.with, actionScope);
-        for (Scope s = actionScope, p; (p = s.getParent()) != null; s = p) {
-            if (p instanceof RootScope) {
-                s.setParent(pending);
-            }
-        }
+        swapScopeParent(actionScope, pending);
+
         current.getWorkflowRemovedResources().putIfAbsent(currentWith.primaryKey(), currentWith);
         current.getWorkflowRemovedResources().putIfAbsent(currentResourceKey, currentResource);
 
@@ -121,5 +106,22 @@ public class ReplaceAction extends Action {
 
         toBeReplaced.add(new ReplaceResource(pendingResource, pendingWith));
         toBeRemoved.add(pendingResourceKey);
+    }
+
+    /**
+     * Swap the RootScope of scope with the provided RootScope.
+     *
+     * This is necessary to preserve the local action scope while evaluating
+     * nodes in the current scope (aka the scope created from state files).
+     *
+     * @param scope
+     * @param rootscope
+     */
+    private void swapScopeParent(Scope scope, RootScope rootscope) {
+        for (Scope s = scope, p; (p = s.getParent()) != null; s = p) {
+            if (p instanceof RootScope) {
+                s.setParent(rootscope);
+            }
+        }
     }
 }
