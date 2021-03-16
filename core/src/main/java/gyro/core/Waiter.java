@@ -18,6 +18,8 @@ package gyro.core;
 
 import java.util.concurrent.TimeUnit;
 
+import gyro.core.resource.Diffable;
+import gyro.core.resource.DiffableInternals;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,11 +30,37 @@ public class Waiter {
     private long atMost;
     private long checkEvery;
     private boolean prompt;
+    private boolean skip;
 
     public Waiter() {
         atMost(10, TimeUnit.SECONDS);
         checkEvery(1, TimeUnit.SECONDS);
         prompt(true);
+    }
+
+    public Waiter resourceOverrides(Diffable diffable, TimeoutSettings.Action action) {
+        TimeoutSettings.Timeout timeout = DiffableInternals.getScope(diffable)
+            .getSettings(TimeoutSettings.class)
+            .getTimeouts()
+            .get(action);
+
+        if (timeout.getAtMostDuration() != null) {
+            atMost(timeout.getAtMostDuration(), TimeUnit.SECONDS);
+        }
+
+        if (timeout.getCheckEveryDuration() != null) {
+            checkEvery(timeout.getAtMostDuration(), TimeUnit.SECONDS);
+        }
+
+        if (timeout.isPrompt() != null) {
+            prompt(timeout.isPrompt());
+        }
+
+        if (timeout.isSkip() != null) {
+            skip(timeout.isSkip());
+        }
+
+        return this;
     }
 
     public Waiter atMost(long duration, TimeUnit unit) {
@@ -50,7 +78,16 @@ public class Waiter {
         return this;
     }
 
+    public Waiter skip(boolean skip) {
+        this.skip = skip;
+        return this;
+    }
+
     public boolean until(WaitCheck check) {
+        if (skip) {
+            return true;
+        }
+
         do {
             long startTime = System.currentTimeMillis();
 
