@@ -34,6 +34,7 @@ import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableSet;
 import com.psddev.dari.util.Converter;
+import gyro.core.DependsOnDirectiveProcessor;
 import gyro.core.FileBackend;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
@@ -186,6 +187,7 @@ public class RootScope extends FileScope {
             CredentialsDirectiveProcessor.class,
             DefineDirectiveProcessor.class,
             DeleteDirectiveProcessor.class,
+            DependsOnDirectiveProcessor.class,
             DescriptionDirectiveProcessor.class,
             ExtendsDirectiveProcessor.class,
             FileBackendDirectiveProcessor.class,
