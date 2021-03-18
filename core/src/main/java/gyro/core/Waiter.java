@@ -44,6 +44,10 @@ public class Waiter {
             .getTimeouts()
             .get(action);
 
+        if (timeout == null) {
+            return this;
+        }
+
         if (timeout.getAtMostDuration() != null) {
             atMost(timeout.getAtMostDuration(), TimeUnit.SECONDS);
         }
