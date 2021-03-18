@@ -69,21 +69,25 @@ public class Waiter {
 
     public Waiter atMost(long duration, TimeUnit unit) {
         this.atMost = unit.toMillis(duration);
+
         return this;
     }
 
     public Waiter checkEvery(long duration, TimeUnit unit) {
         this.checkEvery = unit.toMillis(duration);
+
         return this;
     }
 
     public Waiter prompt(boolean prompt) {
         this.prompt = prompt;
+
         return this;
     }
 
     public Waiter skip(boolean skip) {
         this.skip = skip;
+
         return this;
     }
 
