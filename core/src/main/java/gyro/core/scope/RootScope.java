@@ -42,6 +42,7 @@ import gyro.core.GyroOutputStream;
 import gyro.core.LogDirectiveProcessor;
 import gyro.core.PrintDirectiveProcessor;
 import gyro.core.RemoteStateBackend;
+import gyro.core.TimeoutDirectiveProcessor;
 import gyro.core.audit.AuditorDirectiveProcessor;
 import gyro.core.audit.AuditorPlugin;
 import gyro.core.audit.MetadataDirectiveProcessor;
@@ -199,6 +200,7 @@ public class RootScope extends FileScope {
             ReplaceDirectiveProcessor.class,
             RepositoryDirectiveProcessor.class,
             StateBackendDirectiveProcessor.class,
+            TimeoutDirectiveProcessor.class,
             TypeDescriptionDirectiveProcessor.class,
             UpdateDirectiveProcessor.class,
             UsesCredentialsDirectiveProcessor.class,
