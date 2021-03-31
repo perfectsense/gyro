@@ -334,7 +334,13 @@ public class RootScope extends FileScope {
             stream = stream.filter(r -> diffFiles.contains(DiffableInternals.getScope(r).getFileScope().getFile()));
         }
 
-        return stream.collect(Collectors.toList());
+        List<Resource> resources = new ArrayList<>();
+
+        for (Object resource : stream.toArray()) {
+            resources.add((Resource) resource);
+        }
+
+        return resources;
     }
 
     public <T extends Resource> Stream<T> findResourcesByClass(Class<T> resourceClass) {
