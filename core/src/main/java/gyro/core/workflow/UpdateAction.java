@@ -17,6 +17,7 @@
 package gyro.core.workflow;
 
 import java.util.List;
+import java.util.Map;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -33,10 +34,12 @@ import gyro.lang.ast.Node;
 
 public class UpdateAction extends Action {
 
+    private final Scope scope;
     private final Node resource;
     private final List<Node> body;
 
-    public UpdateAction(Node resource, List<Node> body) {
+    public UpdateAction(Scope scope, Node resource, List<Node> body) {
+        this.scope = Preconditions.checkNotNull(scope);
         this.resource = Preconditions.checkNotNull(resource);
         this.body = ImmutableList.copyOf(Preconditions.checkNotNull(body));
     }
@@ -53,11 +56,21 @@ public class UpdateAction extends Action {
     public void execute(
         GyroUI ui,
         State state,
-        Scope scope,
+        Scope stageScope,
         List<String> toBeRemoved,
         List<ReplaceResource> toBeReplaced) {
 
-        RootScope pending = scope.getRootScope();
+        Scope actionScope = new Scope(stageScope);
+
+        for (Map.Entry<String, Object> entry : scope.entrySet()) {
+            Object value = entry.getValue();
+
+            if (!(value instanceof Resource)) {
+                actionScope.put(entry.getKey(), value);
+            }
+        }
+
+        RootScope pending = actionScope.getRootScope();
         RootScope current = pending.getCurrent();
 
         Resource currentResource = visitResource(resource, current);
@@ -66,10 +79,10 @@ public class UpdateAction extends Action {
             : ModifiedIn.BOTH;
         DiffableInternals.setModifiedIn(currentResource, modifiedIn);
 
-        Resource pendingResource = visitResource(resource, scope);
+        Resource pendingResource = visitResource(resource, actionScope);
         DiffableInternals.setModifiedIn(pendingResource, modifiedIn);
 
-        DiffableInternals.disconnect(pendingResource, scope);
+        DiffableInternals.disconnect(pendingResource, actionScope);
         DiffableScope resourceScope = DiffableInternals.getScope(pendingResource);
         NodeEvaluator evaluator = pending.getEvaluator();
 
