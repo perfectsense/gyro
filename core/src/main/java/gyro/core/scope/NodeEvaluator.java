@@ -108,7 +108,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         .put(">", (l, r) -> compare(l, r) > 0)
         .put(">=", (l, r) -> compare(l, r) >= 0)
         .put("and", (l, r) -> test(l) && test(r))
-        .put("or", (l, r) -> test(l) && test(r))
+        .put("or", (l, r) -> test(l) || test(r))
         .build();
 
     private static Object doArithmetic(
