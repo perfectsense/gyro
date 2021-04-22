@@ -16,11 +16,15 @@
 
 package gyro.core.auth;
 
+import java.util.Collections;
+
 import gyro.core.Type;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.scope.DiffableScope;
+import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
 import gyro.lang.ast.block.DirectiveNode;
+import gyro.lang.ast.value.ValueNode;
 
 @Type("uses-credentials")
 public class UsesCredentialsDirectiveProcessor extends DirectiveProcessor<Scope> {
@@ -29,17 +33,31 @@ public class UsesCredentialsDirectiveProcessor extends DirectiveProcessor<Scope>
     public void process(Scope scope, DirectiveNode node) {
         validateArguments(node, 1, 1);
 
+        String argument = getArgument(scope, node, String.class, 0);
+        RootScope root = scope.getRootScope();
         if (scope instanceof DiffableScope) {
             DiffableScope diffableScope = (DiffableScope) scope;
             diffableScope.getSettings(CredentialsSettings.class)
-                .setUseCredentials(getArgument(scope, node, String.class, 0));
-            if (diffableScope.getStateNodes().stream().noneMatch(o -> o.equals(node))) {
-                diffableScope.getStateNodes().add(node);
+                .setUseCredentials(argument);
+            DirectiveNode stateNode = new DirectiveNode(
+                node.getName(),
+                Collections.singletonList(new ValueNode(argument)),
+                node.getOptions(),
+                node.getBody(),
+                node.getSections());
+            if (diffableScope.getStateNodes().stream().filter(o -> o instanceof DirectiveNode).noneMatch(o -> {
+                DirectiveNode directiveNode = (DirectiveNode) o;
+                String directiveNodeArgument = (String) root.convertValue(
+                    String.class, root.getEvaluator().visit(directiveNode.getArguments().get(0), scope));
+                String stateNodeArgument = (String) root.convertValue(
+                    String.class, root.getEvaluator().visit(stateNode.getArguments().get(0), scope));
+                return directiveNode.getName().equals(stateNode.getName()) && directiveNodeArgument.equals(
+                    stateNodeArgument);
+            })) {
+                diffableScope.getStateNodes().add(stateNode);
             }
         } else {
-            scope.getRootScope()
-                .getSettings(CredentialsSettings.class)
-                .setUseCredentials(getArgument(scope, node, String.class, 0));
+            root.getSettings(CredentialsSettings.class).setUseCredentials(argument);
         }
     }
 
