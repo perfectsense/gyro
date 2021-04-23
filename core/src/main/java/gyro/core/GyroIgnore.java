@@ -182,24 +182,24 @@ public class GyroIgnore {
         // Remove the portion of the path that resembles it is a state file
         // The patterns mentioned in the gyroignore file dont take into state file paths
         // If the configured gyro file is to be ignore then so will its state file
-            filePath = isStateFile ? filePath.replace("/.gyro/state", "/") : filePath;
+        filePath = isStateFile ? filePath.replace("/.gyro/state", "/") : filePath;
 
-            try {
-                // For patterns starting with a `!` character resembles a special case
-                // If the pattern matches the file path, then the file needs to be included
-                if (pattern.startsWith("!")) {
-                    pattern = pattern.replaceFirst("!", "");
-                    if (Pattern.matches(pattern, filePath)) {
-                        filePathExceptionList.add(filePath);
-                    }
-
-                    return false;
-                } else {
-                    return Pattern.matches(pattern, filePath) && !filePathExceptionList.contains(filePath);
+        try {
+            // For patterns starting with a `!` character resembles a special case
+            // If the pattern matches the file path, then the file needs to be included
+            if (pattern.startsWith("!")) {
+                pattern = pattern.replaceFirst("!", "");
+                if (Pattern.matches(pattern, filePath)) {
+                    filePathExceptionList.add(filePath);
                 }
-            } catch (PatternSyntaxException ex) {
-                //ignore a bad pattern
+
                 return false;
+            } else {
+                return Pattern.matches(pattern, filePath) && !filePathExceptionList.contains(filePath);
             }
+        } catch (PatternSyntaxException ex) {
+            //ignore a bad pattern
+            return false;
+        }
     }
 }
