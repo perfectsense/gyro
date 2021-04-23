@@ -21,10 +21,16 @@ import gyro.lang.Locatable;
 public class GyroException extends RuntimeException {
 
     private final Locatable locatable;
+    private final Boolean showHelp;
 
-    public GyroException(Locatable locatable, String message, Throwable cause) {
+    public GyroException(Locatable locatable, String message, Throwable cause, Boolean showHelp) {
         super(message, cause);
         this.locatable = locatable;
+        this.showHelp = showHelp;
+    }
+
+    public GyroException(Locatable locatable, String message, Throwable cause) {
+        this(locatable, message, cause, false);
     }
 
     public GyroException(Locatable locatable, String message) {
@@ -39,8 +45,16 @@ public class GyroException extends RuntimeException {
         this(null, message, cause);
     }
 
+    public GyroException(String message, Throwable cause, Boolean showHelp) {
+        this(null, message, cause, showHelp);
+    }
+
     public GyroException(String message) {
         this(null, message, null);
+    }
+
+    public GyroException(String message, Boolean showHelp) {
+        this(null, message, null, showHelp);
     }
 
     public GyroException(Throwable cause) {
@@ -51,4 +65,7 @@ public class GyroException extends RuntimeException {
         return locatable;
     }
 
+    public Boolean showHelp() {
+        return showHelp;
+    }
 }

@@ -95,7 +95,7 @@ public class Gyro {
         } catch (Throwable error) {
             exitStatus = 1;
             GyroCore.ui().write("\n");
-            writeError(error);
+            writeError(error, null);
             GyroCore.ui().write("\n");
 
         } finally {
@@ -105,7 +105,7 @@ public class Gyro {
         }
     }
 
-    private static void writeError(Throwable error) {
+    private static void writeError(Throwable error, CommandLine commandLine) {
         if (error instanceof Defer) {
             ((Defer) error).write(GyroCore.ui());
 
@@ -123,7 +123,12 @@ public class Gyro {
 
             if (cause != null) {
                 GyroCore.ui().write("\n@|red Caused by:|@ ");
-                writeError(cause);
+                writeError(cause, null);
+            }
+
+            if (commandLine != null && ((GyroException) error).showHelp()) {
+                GyroCore.ui().write("\n\n");
+                commandLine.usage(commandLine.getOut());
             }
 
         } else if (error instanceof SyntaxErrorException) {
@@ -236,7 +241,7 @@ public class Gyro {
 
     // custom handler for invalid input
     private static int invalidUserInput(Exception error, CommandLine commandLine, CommandLine.ParseResult parseResult) {
-        writeError(error);
+        writeError(error, commandLine);
         return 2;
     }
 
