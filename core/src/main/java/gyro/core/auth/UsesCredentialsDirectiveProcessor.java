@@ -45,15 +45,10 @@ public class UsesCredentialsDirectiveProcessor extends DirectiveProcessor<Scope>
                 node.getOptions(),
                 node.getBody(),
                 node.getSections());
-            if (diffableScope.getStateNodes().stream().filter(o -> o instanceof DirectiveNode).noneMatch(o -> {
-                DirectiveNode directiveNode = (DirectiveNode) o;
-                String directiveNodeArgument = (String) root.convertValue(
-                    String.class, root.getEvaluator().visit(directiveNode.getArguments().get(0), scope));
-                String stateNodeArgument = (String) root.convertValue(
-                    String.class, root.getEvaluator().visit(stateNode.getArguments().get(0), scope));
-                return directiveNode.getName().equals(stateNode.getName()) && directiveNodeArgument.equals(
-                    stateNodeArgument);
-            })) {
+            if (diffableScope.getStateNodes().stream()
+                .filter(o -> o instanceof DirectiveNode)
+                .map(o -> ((DirectiveNode) o))
+                .noneMatch(o -> o.getName().equals(node.getName()))) {
                 diffableScope.getStateNodes().add(stateNode);
             }
         } else {
