@@ -35,16 +35,19 @@ public class UsesCredentialsDirectiveProcessor extends DirectiveProcessor<Scope>
 
         String argument = getArgument(scope, node, String.class, 0);
         RootScope root = scope.getRootScope();
+        
         if (scope instanceof DiffableScope) {
             DiffableScope diffableScope = (DiffableScope) scope;
             diffableScope.getSettings(CredentialsSettings.class)
                 .setUseCredentials(argument);
+            
             DirectiveNode stateNode = new DirectiveNode(
                 node.getName(),
                 Collections.singletonList(new ValueNode(argument)),
                 node.getOptions(),
                 node.getBody(),
                 node.getSections());
+            
             if (diffableScope.getStateNodes().stream()
                 .filter(o -> o instanceof DirectiveNode)
                 .map(o -> ((DirectiveNode) o))
