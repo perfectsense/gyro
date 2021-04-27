@@ -1,6 +1,19 @@
 CHANGELOG
 =========
 
+## 1.0.2 (April 27th, 2021)
+
+ENHANCEMENTS:
+
+* core: Implement @timeout directive. ([352](https://github.com/perfectsense/gyro/issues/352))
+* core: Implement @depends-on directive. ([354](https://github.com/perfectsense/gyro/issues/354))
+
+ISSUES FIXED:
+
+* core: Fix @uses-credentials to resolve variables correctly. ([341](https://github.com/perfectsense/gyro/issues/341))
+* core: Allow @for to work inside @workflow::define stages. ([349](https://github.com/perfectsense/gyro/issues/349))
+* core: Fix bug with OR logic. ([361](https://github.com/perfectsense/gyro/issues/361))
+
 ## 1.0.1 (March 3rd, 2021)
 
 ISSUES FIXED:
