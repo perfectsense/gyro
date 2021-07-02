@@ -44,7 +44,7 @@ public abstract class AbstractCommand implements GyroCommand, Callable<Integer> 
     public boolean debug;
 
     @Option(names = "--verbose", description = "Show values of attributes that changed.")
-    private boolean verbose;
+    private boolean verbose = true;
 
     private List<String> unparsedArguments;
 
