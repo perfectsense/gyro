@@ -117,7 +117,7 @@ public class ConfiguredFieldsChangeProcessor extends ChangeProcessor {
         return diffableConfiguredFields;
     }
 
-    private void restoreConfiguredFields(Resource resource) {
+    private synchronized void restoreConfiguredFields(Resource resource) {
         updateConfiguredFields(
             resource,
             DiffableInternals.getScope(resource)
