@@ -22,13 +22,13 @@ public enum ExecutionResult {
 
     OK {
         public void write(GyroUI ui) {
-            ui.write(ui.isVerbose() ? "\n@|bold,green OK|@\n\n" : " @|bold,green OK|@\n");
+            ui.write(ui.isVerbose() ? "@|bold,green OK|@\n\n" : " @|bold,green OK|@\n");
         }
     },
 
     SKIPPED {
         public void write(GyroUI ui) {
-            ui.write(ui.isVerbose() ? "\n@|bold,yellow SKIPPED|@\n\n" : " @|bold,yellow SKIPPED|@\n");
+            ui.write(ui.isVerbose() ? "@|bold,yellow SKIPPED|@\n\n" : " @|bold,yellow SKIPPED|@\n");
         }
     };
 

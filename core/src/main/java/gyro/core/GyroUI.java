@@ -38,6 +38,8 @@ public interface GyroUI {
 
     void unindent();
 
+    boolean isIndented();
+
     void write(String message, Object... arguments);
 
     void replace(String message, Object... arguments);

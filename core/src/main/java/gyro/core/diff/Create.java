@@ -62,10 +62,6 @@ public class Create extends Change {
     @Override
     public void writeExecution(GyroUI ui) {
         ui.write("@|magenta + Creating %s|@", getLabel(diffable, true));
-
-        if (ui.isVerbose()) {
-            writeFields(ui);
-        }
     }
 
     @Override

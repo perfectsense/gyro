@@ -390,15 +390,17 @@ public class Diff {
 
             if (!change.getDiffable().writePlan(ui, change)) {
                 change.writePlan(ui);
-            }
 
-            ui.write(ui.isVerbose() ? "\n\n" : "\n");
+                ui.write("\n");
+            }
 
             ui.indented(() -> {
                 for (Diff d : change.getDiffs()) {
                     d.write(ui);
                 }
             });
+
+            ui.write(!ui.isIndented() ? "\n" : "");
         }
 
         return written;

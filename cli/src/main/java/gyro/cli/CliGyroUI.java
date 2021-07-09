@@ -50,6 +50,11 @@ public class CliGyroUI extends GyroAuditableUI {
         this.verbose = verbose;
     }
 
+    @Override
+    public boolean isIndented() {
+        return indentLevel != 0;
+    }
+
     public int getIndentSize() {
         return indentSize;
     }

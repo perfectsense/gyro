@@ -13,7 +13,7 @@ import org.apache.commons.lang.time.StopWatch;
 public class ElapsedTimeChangeProcessor extends ChangeProcessor {
 
     private Map<Resource, StopWatch> stopWatches = new HashMap<>();
-    private static final String ELAPSED_TIME_MESSAGE = " (elapsed time: @|green %s|@)";
+    private static final String ELAPSED_TIME_MESSAGE = " (elapsed time: @|green %s|@) ";
 
     private synchronized StopWatch start(Resource resource) {
         StopWatch stopWatch = stopWatches.computeIfAbsent(resource, r -> new StopWatch());
