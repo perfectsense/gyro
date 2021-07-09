@@ -117,7 +117,7 @@ public class ConfiguredFieldsChangeProcessor extends ChangeProcessor {
         return diffableConfiguredFields;
     }
 
-    private synchronized void restoreConfiguredFields(Resource resource) {
+    private void restoreConfiguredFields(Resource resource) {
         updateConfiguredFields(
             resource,
             DiffableInternals.getScope(resource)
@@ -150,8 +150,8 @@ public class ConfiguredFieldsChangeProcessor extends ChangeProcessor {
                     if (primaryKey == null) {
                         continue;
                     }
+
                     configuredFieldsHierarchies.stream()
-                        .parallel()
                         .filter(e -> primaryKey.equals(e.getPrimaryKey()))
                         .findAny()
                         .ifPresent(e -> updateConfiguredFields(fieldDiffable, e));
