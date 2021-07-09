@@ -216,7 +216,9 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
                     processors.addAll(0, s.getSettings(ChangeSettings.class).getProcessors());
                 }
 
-                refreshes.add(new Refresh(resource, refreshService.submit(() -> {
+                refreshes.add(new Refresh(resource, ui, refreshService.submit(() -> {
+                    GyroCore.pushUi(ui);
+
                     started.incrementAndGet();
 
                     for (ChangeProcessor processor : processors) {
@@ -284,9 +286,11 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
         public final Resource resource;
         public final Future<Boolean> future;
+        public final GyroUI ui;
 
-        public Refresh(Resource resource, Future<Boolean> future) {
+        public Refresh(Resource resource, GyroUI ui, Future<Boolean> future) {
             this.resource = resource;
+            this.ui = ui;
             this.future = future;
         }
 
