@@ -73,7 +73,6 @@ public class Update extends Change {
     @Override
     public void writeExecution(GyroUI ui) {
         ui.write("@|magenta ⟳ Updating %s|@", getLabel(currentDiffable, true));
-        writeFields(ui);
     }
 
     @Override
