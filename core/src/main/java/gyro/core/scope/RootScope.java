@@ -385,26 +385,42 @@ public class RootScope extends FileScope {
     }
 
     public List<Node> load() {
+        return load(true, true);
+    }
+
+    public List<Node> load(boolean evaluateBody, boolean validate) {
         List<Node> nodes = new ArrayList<>();
 
         evaluateFile(getFile(), node -> nodes.addAll(node.getBody()));
 
-        List<Node> finalNodes = nodes;
-        try {
-            for (Preprocessor pp : getSettings(PreprocessorSettings.class).getPreprocessors()) {
-                finalNodes = pp.preprocess(finalNodes, this);
-            }
-            evaluator.evaluateBody(finalNodes, this);
+        if (validate) {
+            ScopingPolice.validateLocalImmutability(nodes);
+        }
 
-        } catch (Defer error) {
-            // Ignore for now since this is reevaluated later.
+        List<Node> finalNodes = nodes;
+
+        if (evaluateBody) {
+            try {
+                for (Preprocessor pp : getSettings(PreprocessorSettings.class).getPreprocessors()) {
+                    finalNodes = pp.preprocess(finalNodes, this);
+                }
+
+                evaluator.evaluateBody(finalNodes, this);
+
+            } catch (Defer error) {
+                // Ignore for now since this is reevaluated later.
+            }
         }
 
         return finalNodes;
     }
 
+    public List<Node> getNodes() {
+        return load(false, false);
+    }
+
     public void evaluate() {
-        List<Node> nodes = load();
+        List<Node> nodes = load(true, false);
         Set<String> existingFiles;
 
         try (Stream<String> s = list()) {

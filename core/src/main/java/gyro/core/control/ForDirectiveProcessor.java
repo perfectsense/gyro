@@ -17,6 +17,7 @@
 package gyro.core.control;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +26,9 @@ import java.util.Set;
 import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.core.directive.DirectiveProcessor;
+import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
+import gyro.core.scope.ScopingPolice;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.DirectiveNode;
 import gyro.util.CascadingMap;
@@ -39,6 +42,8 @@ public class ForDirectiveProcessor extends DirectiveProcessor<Scope> {
 
         List<String> variables = getArguments(scope, node, String.class);
         List<Node> inArguments = validateOptionArguments(node, "in", 1, 1);
+        validateScopedVariables(scope, node, variables);
+
         Node inNode = inArguments.get(0);
         Object in = scope.getRootScope().getEvaluator().visit(inNode, scope);
 
@@ -102,6 +107,20 @@ public class ForDirectiveProcessor extends DirectiveProcessor<Scope> {
         scope.getRootScope().getEvaluator().evaluateBody(
             node.getBody(),
             new Scope(scope, new CascadingMap<>(scope, values)));
+    }
+
+    private void validateScopedVariables(Scope scope, DirectiveNode node, List<String> variables) {
+        RootScope rootScope = scope.getRootScope();
+        Set<String> globalScopedVariables = !scope.equals(rootScope)
+            ? new HashSet<>(ScopingPolice.getNodeVariables(scope.getRootScope().getNodes()))
+            : new HashSet<>();
+        Set<String> fileScopedVariables = scope.keySet();
+
+        // variable check
+        ScopingPolice.validateVariables(node, node.getBody(), variables, fileScopedVariables, globalScopedVariables);
+
+        // body check
+        ScopingPolice.validateBody(node, node.getBody(), variables, fileScopedVariables, globalScopedVariables);
     }
 
 }
