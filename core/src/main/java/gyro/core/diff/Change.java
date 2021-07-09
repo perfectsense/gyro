@@ -129,7 +129,7 @@ public abstract class Change {
         Diffable currentDiffable,
         Diffable pendingDiffable) {
 
-        ui.write("\n· %s: ", field.getName());
+        ui.write("\n  · %s: ", field.getName());
 
         Object currentValue = field.getValue(currentDiffable);
         Object pendingValue = field.getValue(pendingDiffable);
