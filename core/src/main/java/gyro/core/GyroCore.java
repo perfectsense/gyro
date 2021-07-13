@@ -29,6 +29,8 @@ import org.apache.commons.lang3.StringUtils;
 
 public class GyroCore {
 
+    public static final String UI_FILE = ".gyro/ui.gyro";
+
     public static final String INIT_FILE = ".gyro/init.gyro";
 
     private static final ThreadLocalStack<GyroUI> UI = new ThreadLocalStack<>();
