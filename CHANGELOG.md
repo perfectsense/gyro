@@ -1,6 +1,19 @@
 CHANGELOG
 =========
 
+## 1.1.0 (July 13th, 2021)
+
+ENHANCEMENTS:
+
+* core: Simplify diff output of collections to improve readability. ([367](https://github.com/perfectsense/gyro/pull/367))
+* core: Enable verbose output by default. ([368](https://github.com/perfectsense/gyro/pull/368))
+* core: Display elapsed time duration. ([369](https://github.com/perfectsense/gyro/pull/369))
+
+ISSUES FIXED:
+
+* core: Fix @for from overwriting key/values in parent scope. ([210](https://github.com/perfectsense/gyro/issues/210))
+* core: Fix concurrent modification error. ([240](https://github.com/perfectsense/gyro/issues/240))
+
 ## 1.0.2 (April 27th, 2021)
 
 ENHANCEMENTS:
