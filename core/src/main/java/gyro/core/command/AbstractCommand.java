@@ -43,8 +43,8 @@ public abstract class AbstractCommand implements GyroCommand, Callable<Integer> 
     @Option(names = "--debug", description = "Output cloud provider API request/response log data. Warning: Output may contain sensitive information.")
     public boolean debug;
 
-    @Option(names = "--verbose", description = "Show values of attributes that changed.")
-    private boolean verbose = true;
+    @Option(names = "--no-verbose", description = "Hide values of attributes that changed.")
+    private boolean noVerbose;
 
     private List<String> unparsedArguments;
 
@@ -60,7 +60,7 @@ public abstract class AbstractCommand implements GyroCommand, Callable<Integer> 
 
     @Override
     public void execute() throws Exception {
-        GyroCore.ui().setVerbose(verbose);
+        GyroCore.ui().setVerbose(!noVerbose);
 
         if (debug || "debug".equalsIgnoreCase(System.getenv("GYRO_LOG"))) {
             System.getProperties().setProperty("org.openstack4j.core.transport.internal.HttpLoggingFilter", "true");
