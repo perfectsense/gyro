@@ -12,7 +12,7 @@ on:
       - release/*
 
 env:
-  BRANCH: ${{ env.GIT_BRANCH_NAME }}
+  BRANCH: ${GITHUB_REF:11}
 
 jobs:
   build-linux:
@@ -58,5 +58,7 @@ jobs:
       with:
         java-version: '11'
         distribution: 'adopt'
+    - name: Set up zip
+      run: choco install zip
     - name: Build with Gradle
       run: ./gradlew
