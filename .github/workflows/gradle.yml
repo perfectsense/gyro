@@ -12,7 +12,7 @@ on:
       - release/*
 
 env:
-  BRANCH: ${{ env.GIT_BRANCH_NAME }}
+  BRANCH: ${GITHUB_REF:11}
 
 jobs:
   build-linux:
