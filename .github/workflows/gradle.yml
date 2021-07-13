@@ -58,5 +58,7 @@ jobs:
       with:
         java-version: '11'
         distribution: 'adopt'
+    - name: Set up zip
+      run: choco install zip
     - name: Build with Gradle
       run: ./gradlew
