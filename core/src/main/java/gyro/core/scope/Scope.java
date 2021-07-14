@@ -103,50 +103,15 @@ public class Scope extends MapWrapper<String, Object> {
     public Object find(Node node, String key) {
         for (Scope s = this; s != null; s = s.parent) {
             if (s.containsKey(key)) {
-
-                if (s.get(key) instanceof Diffable && !(s.get(key) instanceof Resource)) {
-                    Diffable diffableObject = (Diffable) s.get(key);
-                    if (DiffableType.getInstance(diffableObject.getClass()).getFields().stream().anyMatch(
-                        DiffableField::isOutput)) {
-                        Diffable parent = diffableObject.parent();
-                        if (parent != null) {
-                            List<String> parentFields = DiffableType.getInstance(parent.getClass())
-                                .getFields()
-                                .stream()
-                                .map(
-                                    DiffableField::getName)
-                                .collect(Collectors.toList());
-                            for (String field : parentFields) {
-                                Object value = Optional.ofNullable(DiffableType.getInstance(parent.getClass())
-                                    .getField(field)).map(f -> f.getValue(parent)).orElse(null);
-                                Object evaluatedObject = null;
-                                if (value instanceof List) {
-                                    for (Object o1 : (ArrayList) value) {
-                                        evaluatedObject = getObject(diffableObject, o1);
-                                        if (evaluatedObject != null) {
-                                            return evaluatedObject;
-                                        }
-                                    }
-                                } else if (value instanceof Set) {
-                                    for (Object o1 : (HashSet) value) {
-                                        evaluatedObject = getObject(diffableObject, o1);
-                                        if (evaluatedObject != null) {
-                                            return evaluatedObject;
-                                        }
-                                    }
-                                } else {
-                                    evaluatedObject = getObject(diffableObject, value);
-                                }
-
-                                if (evaluatedObject != null) {
-                                    return evaluatedObject;
-                                }
-                            }
-                        }
+                Object value = s.get(key);
+                if (value instanceof Diffable && !(value instanceof Resource)) {
+                    Object evaluatedObject = getObject((Diffable) value);
+                    if (evaluatedObject != null) {
+                        return evaluatedObject;
                     }
                 }
 
-                return s.get(key);
+                return value;
             }
         }
 
@@ -155,12 +120,56 @@ public class Scope extends MapWrapper<String, Object> {
             key));
     }
 
-    private Object getObject(Diffable diffableObject, Object o1) {
-        if (o1 instanceof Diffable) {
-            Diffable diffable1 = (Diffable) o1;
-            if (diffable1.primaryKey().equals(diffableObject.primaryKey()) && diffable1.getClass()
-                .equals(diffableObject.getClass())) {
-                return diffable1;
+    private Object getObject(Diffable diffableObject) {
+        if (DiffableType.getInstance(diffableObject.getClass()).getFields().stream().anyMatch(
+            DiffableField::isOutput)) {
+            Diffable parent = diffableObject.parent();
+            if (parent != null) {
+                List<String> parentFields = DiffableType.getInstance(parent.getClass())
+                    .getFields().stream().map(DiffableField::getName).collect(Collectors.toList());
+                for (String field : parentFields) {
+                    Object evaluatedObject = getObject(diffableObject, parent, field);
+                    if (evaluatedObject != null) {
+                        return evaluatedObject;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private Object getObject(Diffable diffableObject, Diffable parent, String field) {
+        Object value = Optional.ofNullable(DiffableType.getInstance(parent.getClass())
+            .getField(field)).map(f -> f.getValue(parent)).orElse(null);
+        Object evaluatedObject = null;
+        if (value instanceof List) {
+            for (Object objectFromParent : (ArrayList) value) {
+                evaluatedObject = getObject(diffableObject, objectFromParent);
+                if (evaluatedObject != null) {
+                    break;
+                }
+            }
+        } else if (value instanceof Set) {
+            for (Object objectFromParent : (HashSet) value) {
+                evaluatedObject = getObject(diffableObject, objectFromParent);
+                if (evaluatedObject != null) {
+                    break;
+                }
+            }
+        } else {
+            evaluatedObject = getObject(diffableObject, value);
+        }
+
+        return evaluatedObject;
+    }
+
+    private Object getObject(Diffable diffable, Object objectFromParent) {
+        if (objectFromParent instanceof Diffable) {
+            Diffable diffableFromParent = (Diffable) objectFromParent;
+            if (diffableFromParent.primaryKey().equals(diffable.primaryKey()) && diffableFromParent.getClass()
+                .equals(diffable.getClass())) {
+                return diffableFromParent;
             }
         }
 
