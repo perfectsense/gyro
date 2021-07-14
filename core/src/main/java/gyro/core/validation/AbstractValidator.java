@@ -42,7 +42,9 @@ public abstract class AbstractValidator<A extends Annotation> implements Validat
             return ((Map<?, ?>) value).keySet().stream().allMatch(o -> isValid(diffable, annotation, o));
 
         } else {
-            return validate(annotation, value);
+            // TODO: fix validating output fields. (maybe validate again after reevaluating during runtime)
+            //return validate(annotation, value);
+            return value.toString().equals("<output>") || validate(annotation, value); // Skips validation if it finds an output field
         }
     }
 
