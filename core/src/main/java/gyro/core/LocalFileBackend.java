@@ -42,8 +42,8 @@ public class LocalFileBackend extends FileBackend {
             return Files.find(rootDirectory, Integer.MAX_VALUE, (file, attributes) -> attributes.isRegularFile())
                 .map(rootDirectory::relativize)
                 .map(Path::toString)
-                .filter(f -> !f.startsWith(".gyro" + File.separator) && f.endsWith(".gyro"));
-
+                .filter(f -> !f.startsWith(".gyro" + File.separator) && f.endsWith(".gyro"))
+                .filter(f -> !GyroIgnore.ignoreFile(rootDirectory, f));
         } else {
             return Stream.empty();
         }
