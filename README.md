@@ -1,7 +1,7 @@
 <img src="etc/gyro.png" height="200"/>
 
 [![Gitter](https://img.shields.io/gitter/room/perfectsense/gyro)](https://gitter.im/perfectsense/gyro)
-[![TravisCI](https://api.travis-ci.org/perfectsense/gyro.svg?branch=master)](https://travis-ci.org/perfectsense/gyro)
+[![TravisCI](https://api.travis-ci.com/perfectsense/gyro.svg?branch=master)](https://travis-ci.com/perfectsense/gyro)
 [![Apache License 2.0](https://img.shields.io/github/license/perfectsense/gyro)](https://github.com/perfectsense/gyro/blob/master/LICENSE)
 
 Gyro is command-line tool for creating, updating, and maintaining cloud infrastructure. Gyro makes
