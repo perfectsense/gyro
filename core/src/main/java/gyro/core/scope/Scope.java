@@ -18,16 +18,24 @@ package gyro.core.scope;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import gyro.core.Reflections;
+import gyro.core.resource.Diffable;
+import gyro.core.resource.DiffableField;
+import gyro.core.resource.DiffableType;
+import gyro.core.resource.Resource;
 import gyro.lang.ast.Node;
 import gyro.util.MapWrapper;
 
@@ -95,13 +103,77 @@ public class Scope extends MapWrapper<String, Object> {
     public Object find(Node node, String key) {
         for (Scope s = this; s != null; s = s.parent) {
             if (s.containsKey(key)) {
-                return s.get(key);
+                Object value = s.get(key);
+                if (value instanceof Diffable && !(value instanceof Resource)) {
+                    Object evaluatedObject = getObject((Diffable) value);
+                    if (evaluatedObject != null) {
+                        return evaluatedObject;
+                    }
+                }
+
+                return value;
             }
         }
 
         throw new Defer(node, String.format(
             "Can't resolve @|bold %s|@!",
             key));
+    }
+
+    private Object getObject(Diffable diffableObject) {
+        if (DiffableType.getInstance(diffableObject.getClass()).getFields().stream().anyMatch(
+            DiffableField::isOutput)) {
+            Diffable parent = diffableObject.parent();
+            if (parent != null) {
+                List<String> parentFields = DiffableType.getInstance(parent.getClass())
+                    .getFields().stream().map(DiffableField::getName).collect(Collectors.toList());
+                for (String field : parentFields) {
+                    Object evaluatedObject = getObject(diffableObject, parent, field);
+                    if (evaluatedObject != null) {
+                        return evaluatedObject;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private Object getObject(Diffable diffableObject, Diffable parent, String field) {
+        Object value = Optional.ofNullable(DiffableType.getInstance(parent.getClass())
+            .getField(field)).map(f -> f.getValue(parent)).orElse(null);
+        Object evaluatedObject = null;
+        if (value instanceof List) {
+            for (Object objectFromParent : (ArrayList) value) {
+                evaluatedObject = getObject(diffableObject, objectFromParent);
+                if (evaluatedObject != null) {
+                    break;
+                }
+            }
+        } else if (value instanceof Set) {
+            for (Object objectFromParent : (HashSet) value) {
+                evaluatedObject = getObject(diffableObject, objectFromParent);
+                if (evaluatedObject != null) {
+                    break;
+                }
+            }
+        } else {
+            evaluatedObject = getObject(diffableObject, value);
+        }
+
+        return evaluatedObject;
+    }
+
+    private Object getObject(Diffable diffable, Object objectFromParent) {
+        if (objectFromParent instanceof Diffable) {
+            Diffable diffableFromParent = (Diffable) objectFromParent;
+            if (diffableFromParent.primaryKey().equals(diffable.primaryKey()) && diffableFromParent.getClass()
+                .equals(diffable.getClass())) {
+                return diffableFromParent;
+            }
+        }
+
+        return null;
     }
 
     @SuppressWarnings("unchecked")
