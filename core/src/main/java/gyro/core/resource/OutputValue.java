@@ -18,9 +18,10 @@ package gyro.core.resource;
 
 public class OutputValue {
 
+    public static final String OUTPUT_FIELD_VALUE = "__OUTPUT_VALUE__";
+
     @Override
     public String toString() {
-        return "<output>";
+        return OUTPUT_FIELD_VALUE;
     }
-
 }

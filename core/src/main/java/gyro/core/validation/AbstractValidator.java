@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 import gyro.core.resource.Diffable;
+import gyro.core.resource.OutputValue;
 
 public abstract class AbstractValidator<A extends Annotation> implements Validator<A> {
 
@@ -42,7 +43,7 @@ public abstract class AbstractValidator<A extends Annotation> implements Validat
             return ((Map<?, ?>) value).keySet().stream().allMatch(o -> isValid(diffable, annotation, o));
 
         } else {
-            return value.toString().equals("<output>") || validate(annotation, value);
+            return value.toString().equals(OutputValue.OUTPUT_FIELD_VALUE) || validate(annotation, value);
         }
     }
 
