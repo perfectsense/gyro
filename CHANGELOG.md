@@ -1,6 +1,12 @@
 CHANGELOG
 =========
 
+## 1.1.1 (July 26th, 2021)
+
+ISSUES FIXED:
+
+* core: Fix re-evaluating output fields to get proper value.
+
 ## 1.1.0 (July 13th, 2021)
 
 ENHANCEMENTS:
