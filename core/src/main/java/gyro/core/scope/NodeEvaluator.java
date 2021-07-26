@@ -220,6 +220,10 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
     }
 
     public static Object getValue(Node node, Object object, String key) {
+        if (object != null && OutputValue.OUTPUT_VALUE.equals(object.toString())) {
+            return new OutputValue();
+        }
+
         if ("*".equals(key)) {
             return new GlobCollection(object);
 
