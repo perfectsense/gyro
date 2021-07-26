@@ -46,5 +46,4 @@ public abstract class AbstractValidator<A extends Annotation> implements Validat
             return value.toString().equals(OutputValue.OUTPUT_VALUE) || validate(annotation, value);
         }
     }
-
 }

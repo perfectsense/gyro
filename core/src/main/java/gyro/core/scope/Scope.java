@@ -107,7 +107,7 @@ public class Scope extends MapWrapper<String, Object> {
                 if (value instanceof Diffable && !(value instanceof Resource)) {
                     Object evaluatedObject = getObject((Diffable) value);
                     if (evaluatedObject != null) {
-                        return evaluatedObject;
+                        value = evaluatedObject;
                     }
                 }
 
@@ -120,7 +120,11 @@ public class Scope extends MapWrapper<String, Object> {
             key));
     }
 
+    /**
+     * Searches for a Diffable in it's parent for updated values in case there were any changes to the state.
+     */
     private Object getObject(Diffable diffableObject) {
+        Object object = null;
         if (DiffableType.getInstance(diffableObject.getClass()).getFields().stream().anyMatch(
             DiffableField::isOutput)) {
             Diffable parent = diffableObject.parent();
@@ -128,21 +132,23 @@ public class Scope extends MapWrapper<String, Object> {
                 List<String> parentFields = DiffableType.getInstance(parent.getClass())
                     .getFields().stream().map(DiffableField::getName).collect(Collectors.toList());
                 for (String field : parentFields) {
-                    Object evaluatedObject = getObject(diffableObject, parent, field);
-                    if (evaluatedObject != null) {
-                        return evaluatedObject;
+                    object = getObject(diffableObject, parent, field);
+                    if (object != null) {
+                        break;
                     }
                 }
             }
         }
 
-        return null;
+        return object;
     }
 
+    @SuppressWarnings("rawtypes")
     private Object getObject(Diffable diffableObject, Diffable parent, String field) {
         Object value = Optional.ofNullable(DiffableType.getInstance(parent.getClass())
             .getField(field)).map(f -> f.getValue(parent)).orElse(null);
         Object evaluatedObject = null;
+
         if (value instanceof List) {
             for (Object objectFromParent : (ArrayList) value) {
                 evaluatedObject = getObject(diffableObject, objectFromParent);
@@ -150,6 +156,7 @@ public class Scope extends MapWrapper<String, Object> {
                     break;
                 }
             }
+
         } else if (value instanceof Set) {
             for (Object objectFromParent : (HashSet) value) {
                 evaluatedObject = getObject(diffableObject, objectFromParent);
@@ -157,6 +164,7 @@ public class Scope extends MapWrapper<String, Object> {
                     break;
                 }
             }
+
         } else {
             evaluatedObject = getObject(diffableObject, value);
         }
@@ -165,15 +173,16 @@ public class Scope extends MapWrapper<String, Object> {
     }
 
     private Object getObject(Diffable diffable, Object objectFromParent) {
+        Object object = null;
         if (objectFromParent instanceof Diffable) {
             Diffable diffableFromParent = (Diffable) objectFromParent;
             if (diffableFromParent.primaryKey().equals(diffable.primaryKey()) && diffableFromParent.getClass()
                 .equals(diffable.getClass())) {
-                return diffableFromParent;
+                object = diffableFromParent;
             }
         }
 
-        return null;
+        return object;
     }
 
     @SuppressWarnings("unchecked")
