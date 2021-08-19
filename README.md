@@ -1,7 +1,7 @@
 <img src="etc/gyro.png" height="200"/>
 
 [![Gitter](https://img.shields.io/gitter/room/perfectsense/gyro)](https://gitter.im/perfectsense/gyro)
-[![TravisCI](https://api.travis-ci.org/perfectsense/gyro.svg?branch=master)](https://travis-ci.org/perfectsense/gyro)
+[![TravisCI](https://api.travis-ci.com/perfectsense/gyro.svg?branch=master)](https://travis-ci.com/perfectsense/gyro)
 [![Apache License 2.0](https://img.shields.io/github/license/perfectsense/gyro)](https://github.com/perfectsense/gyro/blob/master/LICENSE)
 
 Gyro is command-line tool for creating, updating, and maintaining cloud infrastructure. Gyro makes
@@ -20,8 +20,8 @@ first, definitely won't be the last, haha. That's ok though, gyro sandwiches are
 
 ### Background
 
-Gyro was built by [Perfect Sense](https://www.perfectsensedigital.com) to automate the creation and
-management of the cloud infrastructure we use to run [Brightspot](https://www.brightspot.com) for
+Gyro was built by [Brightspot](https://www.brightspot.com) to automate the creation and
+management of the cloud infrastructure we use to run **Brightspot CMS** for
 our clients. We integrated several tools that are part of our DevOps lifecycle such as Chef to
 install and configure software on our hosts, ssh to log into hosts, and service discovery to drain
 traffic during maintenance. We use workflows to deploy our code using with the blue/green model. We

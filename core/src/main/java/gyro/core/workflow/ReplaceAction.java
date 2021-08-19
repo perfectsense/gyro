@@ -16,11 +16,13 @@
 
 package gyro.core.workflow;
 
+import java.util.List;
+import java.util.Map;
+
 import com.google.common.base.Preconditions;
-import gyro.core.GyroException;
 import gyro.core.GyroUI;
+import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.Resource;
-import gyro.core.scope.NodeEvaluator;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
 import gyro.core.scope.State;
@@ -28,10 +30,12 @@ import gyro.lang.ast.Node;
 
 public class ReplaceAction extends Action {
 
+    private final Scope scope;
     private final Node resource;
     private final Node with;
 
-    public ReplaceAction(Node resource, Node with) {
+    public ReplaceAction(Scope scope, Node resource, Node with) {
+        this.scope = Preconditions.checkNotNull(scope);
         this.resource = Preconditions.checkNotNull(resource);
         this.with = Preconditions.checkNotNull(with);
     }
@@ -45,48 +49,79 @@ public class ReplaceAction extends Action {
     }
 
     @Override
-    public void execute(GyroUI ui, State state, RootScope pending, Scope scope) {
-        NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
-        Object resource = evaluator.visit(this.resource, scope);
+    public void execute(
+        GyroUI ui,
+        State state,
+        Scope stageScope,
+        List<String> toBeRemoved,
+        List<ReplaceResource> toBeReplaced) {
 
-        if (resource == null) {
-            throw new GyroException("Can't replace a null resource!");
+        Scope actionScope = new Scope(stageScope);
+
+        for (Map.Entry<String, Object> entry : scope.entrySet()) {
+            Object value = entry.getValue();
+
+            if (!(value instanceof Resource)) {
+                actionScope.put(entry.getKey(), value);
+            }
         }
 
-        if (!(resource instanceof Resource)) {
-            throw new GyroException(String.format(
-                "Can't replace @|bold %s|@, an instance of @|bold %s|@, because it's not a resource!",
-                resource,
-                resource.getClass().getName()));
+        RootScope pending = actionScope.getRootScope();
+        RootScope current = pending.getCurrent();
+
+        swapScopeParent(actionScope, current);
+        Resource currentResource = visitResource(this.resource, actionScope);
+        String currentResourceKey = currentResource.primaryKey();
+        swapScopeParent(actionScope, pending);
+
+        Resource pendingResource = visitResource(this.resource, actionScope);
+        String pendingResourceKey = pendingResource.primaryKey();
+
+        Resource pendingWith = visitResource(this.with, actionScope);
+
+        if (current.getWorkflowReplacedResources().containsKey(currentResourceKey)) {
+            DiffableInternals.setModifiedIn(currentResource, null);
+            toBeRemoved.add(pendingResourceKey);
+            toBeRemoved.add(pendingWith.primaryKey());
+            return;
         }
 
-        Object with = evaluator.visit(this.with, scope);
+        ModifiedIn modifiedIn = DiffableInternals.getModifiedIn(currentResource) == ModifiedIn.WORKFLOW_ONLY
+            ? ModifiedIn.WORKFLOW_ONLY
+            : ModifiedIn.BOTH;
+        current.getWorkflowReplacedResources().putIfAbsent(currentResourceKey, currentResource);
 
-        if (with == null) {
-            throw new GyroException(String.format(
-                "Can't @|bold %s|@ resource with a null!",
-                resource));
-        }
+        swapScopeParent(actionScope, current);
+        Resource currentWith = visitResource(this.with, actionScope);
+        swapScopeParent(actionScope, pending);
 
-        if (!(with instanceof Resource)) {
-            throw new GyroException(String.format(
-                "Can't @|bold %s|@ resource with @|bold %s|@, an instance of @|bold %s|@, because it's not a resource!",
-                resource,
-                with,
-                with.getClass().getName()));
-        }
+        current.getWorkflowRemovedResources().putIfAbsent(currentWith.primaryKey(), currentWith);
+        current.getWorkflowRemovedResources().putIfAbsent(currentResourceKey, currentResource);
 
-        Resource resourceResource = (Resource) resource;
-        Resource withResource = (Resource) with;
-        String resourceKey = resourceResource.primaryKey();
+        DiffableInternals.setModifiedIn(pendingResource, modifiedIn);
 
-        ui.write("@|magenta ⤢ Replacing %s with %s|@\n", resourceKey, withResource.primaryKey());
+        DiffableInternals.setModifiedIn(pendingWith, modifiedIn);
 
-        if (state != null) {
-            state.replace(resourceResource, withResource);
-        }
+        DiffableInternals.setModifiedIn(currentResource, modifiedIn);
 
-        pending.getFileScopes().forEach(s -> s.remove(resourceKey));
+        toBeReplaced.add(new ReplaceResource(pendingResource, pendingWith));
+        toBeRemoved.add(pendingResourceKey);
     }
 
+    /**
+     * Swap the RootScope of scope with the provided RootScope.
+     *
+     * This is necessary to preserve the local action scope while evaluating
+     * nodes in the current scope (aka the scope created from state files).
+     *
+     * @param scope
+     * @param rootscope
+     */
+    private void swapScopeParent(Scope scope, RootScope rootscope) {
+        for (Scope s = scope, p; (p = s.getParent()) != null; s = p) {
+            if (p instanceof RootScope) {
+                s.setParent(rootscope);
+            }
+        }
+    }
 }

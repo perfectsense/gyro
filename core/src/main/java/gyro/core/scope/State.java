@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.psddev.dari.util.IoUtils;
@@ -63,9 +62,15 @@ public class State {
     private final boolean test;
     private final Map<String, FileScope> states = new HashMap<>();
     private final Map<String, String> newNames = new HashMap<>();
+    private Boolean removeModifiedInField;
 
     public State(RootScope current, RootScope pending, boolean test) {
-        this.root = new RootScope(current.getFile(), current.getBackend(), null, current.getLoadFiles());
+        this.root = new RootScope(
+            current.getFile(),
+            current.getBackend(),
+            current.getRemoteStateBackend(),
+            null,
+            current.getLoadFiles());
 
         root.evaluate();
 
@@ -86,6 +91,10 @@ public class State {
 
     public boolean isTest() {
         return test;
+    }
+
+    public void setRemoveModifiedInField(Boolean removeModifiedInField) {
+        this.removeModifiedInField = removeModifiedInField;
     }
 
     public void update(Change change) {
@@ -220,8 +229,7 @@ public class State {
                     throw new Bug(error);
                 }
 
-                try (OutputStream out = root.openOutput(file)) {
-                    InputStream in = root.openInput(tempFile);
+                try (InputStream in = root.openInput(tempFile); OutputStream out = root.openOutput(file)) {
                     IoUtils.copy(in, out);
 
                     root.delete(tempFile);
@@ -237,12 +245,13 @@ public class State {
 
     private List<Node> toBodyNodes(Diffable diffable, Resource resource) {
         List<Node> body = new ArrayList<>();
-        Set<String> configuredFields = DiffableInternals.getConfiguredFields(diffable);
+        body.add(toPairNode("_configured-fields", DiffableInternals.getConfiguredFields(diffable), resource));
 
-        if (!configuredFields.isEmpty()) {
-            body.add(toPairNode("_configured-fields", configuredFields, resource));
+        if (!Boolean.TRUE.equals(removeModifiedInField)
+            && diffable.equals(resource)
+            && DiffableInternals.getModifiedIn(resource) != null) {
+            body.add(toPairNode("_modified-in", DiffableInternals.getModifiedIn(resource).toString(), resource));
         }
-
         body.addAll(DiffableInternals.getScope(diffable).getStateNodes());
 
         for (DiffableField field : DiffableType.getInstance(diffable.getClass()).getFields()) {

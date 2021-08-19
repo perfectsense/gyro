@@ -20,6 +20,7 @@ import java.util.List;
 
 import gyro.core.Type;
 import gyro.core.directive.DirectiveProcessor;
+import gyro.core.scope.DiffableScope;
 import gyro.core.scope.Scope;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.DirectiveNode;
@@ -31,9 +32,10 @@ public class CreateDirectiveProcessor extends DirectiveProcessor<Scope> {
     public void process(Scope scope, DirectiveNode node) {
         List<Node> arguments = validateArguments(node, 2, 2);
 
-        scope.getSettings(WorkflowSettings.class)
+        Scope stageScope = scope instanceof DiffableScope ? scope : scope.getClosest(DiffableScope.class);
+        stageScope.getSettings(WorkflowSettings.class)
             .getActions()
-            .add(new CreateAction(arguments.get(0), arguments.get(1), node.getBody()));
+            .add(new CreateAction(scope, arguments.get(0), arguments.get(1), node.getBody()));
     }
 
 }

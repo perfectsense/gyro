@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Perfect Sense, Inc.
+ * Copyright 2020, Perfect Sense, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,23 @@
  * limitations under the License.
  */
 
-package gyro.core.command;
+package gyro.core.workflow;
 
-import java.util.Collections;
-
-import io.airlift.airline.Help;
-
-public class PluginHelp extends Help {
+public enum ModifiedIn {
+    WORKFLOW_ONLY,
+    BOTH;
 
     @Override
-    public void run() {
-        help(global, Collections.singletonList("plugin"));
+    public String toString() {
+        return name();
     }
 
+    public static ModifiedIn fromString(String name) {
+        for (ModifiedIn value : ModifiedIn.values()) {
+            if (value.toString().equals(name)) {
+                return value;
+            }
+        }
+        throw new IllegalArgumentException("no value found:" + name);
+    }
 }

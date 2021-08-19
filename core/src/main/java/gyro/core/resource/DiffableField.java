@@ -38,6 +38,7 @@ import gyro.core.GyroException;
 import gyro.core.Reflections;
 import gyro.core.scope.Scope;
 import gyro.core.validation.Required;
+import gyro.core.validation.ValidStrings;
 import gyro.core.validation.ValidationError;
 import gyro.core.validation.Validator;
 import gyro.core.validation.ValidatorClass;
@@ -57,6 +58,7 @@ public class DiffableField {
         });
 
     private final String name;
+    private Object rawValue;
     private final Method getter;
     private final Method setter;
     private final boolean updatable;
@@ -101,6 +103,7 @@ public class DiffableField {
 
     protected DiffableField(DiffableField field) {
         name = field.name;
+        rawValue = field.rawValue;
         getter = field.getter;
         setter = field.setter;
         updatable = field.updatable;
@@ -168,6 +171,7 @@ public class DiffableField {
                     .orElse(null);
             }
 
+            rawValue = value;
             Reflections.invoke(setter, diffable, scope.getRootScope().convertValue(type, value));
 
         } catch (ConversionException error) {
@@ -212,8 +216,15 @@ public class DiffableField {
 
             if (validatorClass != null) {
                 Validator<Annotation> validator = VALIDATORS.getUnchecked(validatorClass.value());
+                Type type = setter.getGenericParameterTypes()[0];
+                Object valueToTest = value;
 
-                if (!validator.isValid(diffable, annotation, value)) {
+                if ((annotation.annotationType().equals(ValidStrings.class) || annotation.annotationType()
+                    .equals(Required.class)) && type instanceof Class && ((Class<?>) type).isEnum()) {
+                    valueToTest = rawValue;
+                }
+
+                if (!validator.isValid(diffable, annotation, valueToTest)) {
                     errors.add(new ValidationError(diffable, name, validator.getMessage(annotation)));
                 }
             }

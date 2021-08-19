@@ -43,7 +43,6 @@ public class FileBackendDirectiveProcessor extends DirectiveProcessor<RootScope>
         Class<? extends FileBackend> fileBackendClass = settings.getFileBackendsClasses().get(type);
 
         FileBackend fileBackend = Reflections.newInstance(fileBackendClass);
-        fileBackend.setName(name);
 
         for (PropertyDescriptor property : Reflections.getBeanInfo(fileBackendClass).getPropertyDescriptors()) {
 
@@ -54,6 +53,9 @@ public class FileBackendDirectiveProcessor extends DirectiveProcessor<RootScope>
                     bodyScope.get(CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, property.getName()))));
             }
         }
+
+        fileBackend.setName(name);
+        fileBackend.setRootScope(scope);
         settings.getFileBackends().put(name, fileBackend);
     }
 

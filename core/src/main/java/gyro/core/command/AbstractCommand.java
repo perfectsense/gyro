@@ -20,14 +20,14 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import gyro.core.GyroCore;
 import gyro.core.GyroUI;
-import io.airlift.airline.Option;
-import io.airlift.airline.OptionType;
 import org.slf4j.LoggerFactory;
+import picocli.CommandLine.Option;
 
 /**
  * Basic {@link GyroCommand} implementation that adds the global {@code -debug} option for more detailed logging.
@@ -38,13 +38,13 @@ import org.slf4j.LoggerFactory;
  * <li>{@link #doExecute()}</li>
  * </ul>
  */
-public abstract class AbstractCommand implements GyroCommand {
+public abstract class AbstractCommand implements GyroCommand, Callable<Integer> {
 
-    @Option(type = OptionType.GLOBAL, name = "--debug", description = "Debug mode")
+    @Option(names = "--debug", description = "Output cloud provider API request/response log data. Warning: Output may contain sensitive information.")
     public boolean debug;
 
-    @Option(name = "--verbose")
-    private boolean verbose;
+    @Option(names = "--no-verbose", description = "Hide values of attributes that changed.")
+    private boolean noVerbose;
 
     private List<String> unparsedArguments;
 
@@ -60,7 +60,7 @@ public abstract class AbstractCommand implements GyroCommand {
 
     @Override
     public void execute() throws Exception {
-        GyroCore.ui().setVerbose(verbose);
+        GyroCore.ui().setVerbose(!noVerbose);
 
         if (debug || "debug".equalsIgnoreCase(System.getenv("GYRO_LOG"))) {
             System.getProperties().setProperty("org.openstack4j.core.transport.internal.HttpLoggingFilter", "true");
@@ -73,6 +73,12 @@ public abstract class AbstractCommand implements GyroCommand {
         }
 
         doExecute();
+    }
+
+    @Override
+    public Integer call() throws Exception {
+        execute();
+        return 0;
     }
 
     public boolean isDebug() {

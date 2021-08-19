@@ -19,12 +19,12 @@ package gyro.cli;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
@@ -32,9 +32,13 @@ import gyro.core.Abort;
 import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.LocalFileBackend;
+import gyro.core.backend.LockBackendSettings;
+import gyro.core.backend.StateBackendSettings;
 import gyro.core.command.AbstractCommand;
+import gyro.core.command.AbstractDynamicCommand;
 import gyro.core.command.GyroCommand;
 import gyro.core.command.GyroCommandGroup;
+import gyro.core.command.VersionCommand;
 import gyro.core.scope.Defer;
 import gyro.core.scope.RootScope;
 import gyro.core.validation.ValidationErrorException;
@@ -42,18 +46,21 @@ import gyro.lang.Locatable;
 import gyro.lang.SyntaxError;
 import gyro.lang.SyntaxErrorException;
 import gyro.util.Bug;
-import io.airlift.airline.Cli;
-import io.airlift.airline.Command;
-import io.airlift.airline.Help;
 import org.reflections.Reflections;
 import org.reflections.util.ClasspathHelper;
 import org.slf4j.LoggerFactory;
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
 
+@Command(name = "gyro",
+    mixinStandardHelpOptions = true,
+    commandListHeading = "%nCommands:%n",
+    versionProvider = VersionCommand.class
+)
 public class Gyro {
 
-    private Cli<Object> cli;
+    private CommandLine commandLine;
     private List<String> arguments;
-    private Set<Class<?>> commands = new HashSet<>();
 
     public static Reflections reflections;
 
@@ -67,28 +74,38 @@ public class Gyro {
         Gyro gyro = new Gyro();
         GyroCore.pushUi(new CliGyroUI());
 
+        int exitStatus = 0;
+
         try {
             Optional.ofNullable(GyroCore.getRootDirectory())
                 .map(d -> new RootScope(GyroCore.INIT_FILE, new LocalFileBackend(d), null, null))
-                .ifPresent(RootScope::load);
+                .ifPresent(r -> {
+                    r.load();
+                    GyroCore.putStateBackends(r.getSettings(StateBackendSettings.class).getStateBackends());
+                    GyroCore.pushLockBackend(r.getSettings(LockBackendSettings.class).getLockBackend());
+                });
 
             gyro.init(Arrays.asList(arguments));
             gyro.run();
 
         } catch (Abort error) {
+            exitStatus = 3;
             GyroCore.ui().write("\n@|red Aborted!|@\n\n");
 
         } catch (Throwable error) {
+            exitStatus = 1;
             GyroCore.ui().write("\n");
-            writeError(error);
+            writeError(error, null);
             GyroCore.ui().write("\n");
 
         } finally {
             GyroCore.popUi();
+            GyroCore.popLockBackend();
+            System.exit(exitStatus);
         }
     }
 
-    private static void writeError(Throwable error) {
+    private static void writeError(Throwable error, CommandLine commandLine) {
         if (error instanceof Defer) {
             ((Defer) error).write(GyroCore.ui());
 
@@ -106,7 +123,12 @@ public class Gyro {
 
             if (cause != null) {
                 GyroCore.ui().write("\n@|red Caused by:|@ ");
-                writeError(cause);
+                writeError(cause, null);
+            }
+
+            if (commandLine != null && ((GyroException) error).showHelp()) {
+                GyroCore.ui().write("\n\n");
+                commandLine.usage(commandLine.getOut());
             }
 
         } else if (error instanceof SyntaxErrorException) {
@@ -152,58 +174,97 @@ public class Gyro {
             }
         }
 
-        Cli.CliBuilder<Object> builder = Cli.<Object>builder(appName);
+        CommandLine commandLine = new CommandLine(this);
 
-        List<Class<?>> groupCommands = new ArrayList<>();
+        // Add commands part of a GyroCommandGroup
         for (Class<? extends GyroCommandGroup> c : getReflections().getSubTypesOf(GyroCommandGroup.class)) {
             GyroCommandGroup group = gyro.core.Reflections.newInstance(c);
-            groupCommands.addAll(group.getCommands());
-
-            builder.withGroup(group.getName())
-                .withDescription(group.getDescription())
-                .withDefaultCommand(group.getDefaultCommand())
-                .withCommands(group.getCommands());
+            commandLine.addSubcommand(null, group);
         }
 
-        commands().add(Help.class);
+        Set<? extends Class<?>> groupCommands = getSubCommands(commandLine).stream()
+            .map(o -> o.getCommandSpec().userObject().getClass())
+            .collect(Collectors.toSet());
+
+        // Add all other commands that are not previously added
         for (Class<?> c : getReflections().getSubTypesOf(GyroCommand.class)) {
             if (c.isAnnotationPresent(Command.class) && !groupCommands.contains(c)) {
-                commands().add(c);
+                Object o = gyro.core.Reflections.newInstance(c);
+                commandLine.addSubcommand(null, o);
             }
         }
 
-        builder.withDescription("Gyro.")
-            .withDefaultCommand(Help.class)
-            .withCommands(commands());
+        // Allow unmatched argument and options for dynamic command usages
+        getSubCommands(commandLine).forEach(cmd -> {
+            if (cmd.getCommandSpec().userObject() instanceof AbstractDynamicCommand) {
+                cmd.setUnmatchedArgumentsAllowed(true);
+                cmd.setUnmatchedOptionsAllowedAsOptionParameters(true);
+                cmd.setUnmatchedOptionsArePositionalParams(true);
+            }
+        });
 
-        this.cli = builder.build();
+        commandLine.setParameterExceptionHandler(Gyro::handleParseException);
+        commandLine.setExecutionExceptionHandler(Gyro::invalidUserInput);
+
+        this.commandLine = commandLine;
+
         this.arguments = arguments;
     }
 
-    public Set<Class<?>> commands() {
-        return commands;
+    private Set<CommandLine> getSubCommands(CommandLine commandLine) {
+        Set<CommandLine> commandLines = new HashSet<>();
+        commandLines.add(commandLine);
+        Set<CommandLine> subCommandLines = new HashSet<>(commandLine.getSubcommands().values());
+
+        for (CommandLine subCommandLine : subCommandLines) {
+            commandLines.addAll(getSubCommands(subCommandLine));
+        }
+
+        return commandLines;
     }
 
-    public void run() throws Exception {
-        Object command = cli.parse(arguments);
+    public static int handleParseException(CommandLine.ParameterException ex, String[] args) {
+        String message = ex.getMessage();
 
-        if (command instanceof Runnable) {
-            ((Runnable) command).run();
-
-        } else if (command instanceof GyroCommand) {
-            if (command instanceof AbstractCommand) {
-                ((AbstractCommand) command).setUnparsedArguments(arguments);
-            }
-
-            ((GyroCommand) command).execute();
-
-        } else {
-            throw new IllegalStateException(String.format(
-                "[%s] must be an instance of [%s] or [%s]!",
-                command.getClass().getName(),
-                Runnable.class.getName(),
-                GyroCommand.class.getName()));
+        if (message.startsWith("Unmatched argument")) {
+            message = "Unrecognized command: " + message.split(":")[1];
+        } else if (message.startsWith("Unknown option")) {
+            message = "Unrecognized option: " + message.split(":")[1];
         }
+
+        GyroCore.ui().write(String.format("\n@|red %s|@\n\n", message));
+
+        CommandLine commandLine = ex.getCommandLine();
+        commandLine.usage(commandLine.getOut());
+        return 1;
+    }
+
+    // custom handler for invalid input
+    private static int invalidUserInput(Exception error, CommandLine commandLine, CommandLine.ParseResult parseResult) {
+        writeError(error, commandLine);
+        return 2;
+    }
+
+    public void run() {
+
+        try {
+            CommandLine.ParseResult parseResult = commandLine.parseArgs(arguments.toArray(new String[0]));
+
+            if (parseResult.hasSubcommand()) {
+                CommandLine.ParseResult subcommand = parseResult.subcommand();
+                Object commandObject = subcommand.commandSpec().userObject();
+                if (commandObject instanceof AbstractCommand) {
+                    ((AbstractCommand) commandObject).setUnparsedArguments(arguments);
+                } else if (commandObject instanceof AbstractDynamicCommand) {
+                    ((AbstractDynamicCommand) commandObject).setParseResult(parseResult);
+                }
+            }
+        } catch (CommandLine.UnmatchedArgumentException | CommandLine.MissingParameterException ex) {
+            // Ignore
+            // The execute will handle throwing the error
+        }
+
+        commandLine.execute(this.arguments.toArray(new String[0]));
     }
 
     public static Reflections getReflections() {

@@ -51,6 +51,7 @@ public class Replace extends Change {
                 .getWorkflows()
                 .stream()
                 .filter(w -> w.getType().equals(DiffableType.getInstance(pendingResource.getClass()).getName()))
+                .filter(w -> w.getFileScope().getFile().equals(DiffableInternals.getScope(pendingResource).getFileScope().getFile()))
                 .findFirst()
                 .orElse(null);
 

@@ -16,19 +16,47 @@
 
 package gyro.core.auth;
 
+import java.util.Collections;
+
 import gyro.core.Type;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.scope.DiffableScope;
+import gyro.core.scope.RootScope;
+import gyro.core.scope.Scope;
 import gyro.lang.ast.block.DirectiveNode;
+import gyro.lang.ast.value.ValueNode;
 
 @Type("uses-credentials")
-public class UsesCredentialsDirectiveProcessor extends DirectiveProcessor<DiffableScope> {
+public class UsesCredentialsDirectiveProcessor extends DirectiveProcessor<Scope> {
 
     @Override
-    public void process(DiffableScope scope, DirectiveNode node) {
+    public void process(Scope scope, DirectiveNode node) {
         validateArguments(node, 1, 1);
-        scope.getSettings(CredentialsSettings.class).setUseCredentials(getArgument(scope, node, String.class, 0));
-        scope.getStateNodes().add(node);
+
+        String argument = getArgument(scope, node, String.class, 0);
+        RootScope root = scope.getRootScope();
+
+        if (scope instanceof DiffableScope) {
+            DiffableScope diffableScope = (DiffableScope) scope;
+            diffableScope.getSettings(CredentialsSettings.class)
+                .setUseCredentials(argument);
+
+            DirectiveNode stateNode = new DirectiveNode(
+                node.getName(),
+                Collections.singletonList(new ValueNode(argument)),
+                node.getOptions(),
+                node.getBody(),
+                node.getSections());
+
+            if (diffableScope.getStateNodes().stream()
+                .filter(o -> o instanceof DirectiveNode)
+                .map(o -> ((DirectiveNode) o))
+                .noneMatch(o -> o.getName().equals(node.getName()))) {
+                diffableScope.getStateNodes().add(stateNode);
+            }
+        } else {
+            root.getSettings(CredentialsSettings.class).setUseCredentials(argument);
+        }
     }
 
 }

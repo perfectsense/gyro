@@ -26,6 +26,8 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.stream.Stream;
 
+import com.psddev.dari.util.IoUtils;
+
 public class LocalFileBackend extends FileBackend {
 
     private final Path rootDirectory;
@@ -79,8 +81,34 @@ public class LocalFileBackend extends FileBackend {
     }
 
     @Override
+    public boolean exists(String file) throws Exception {
+        return Files.exists(rootDirectory.resolve(file));
+    }
+
+    @Override
+    public void copy(String source, String destination) throws Exception {
+        try (InputStream inputStream = openInput(source); OutputStream outputStream = openOutput(destination)) {
+            IoUtils.copy(inputStream, outputStream);
+        }
+    }
+
+    @Override
     public String toString() {
         return rootDirectory.toString();
     }
 
+    public boolean deleteDirectory() {
+        return deleteDirectory(rootDirectory.toFile());
+    }
+
+    private boolean deleteDirectory(File directoryToBeDeleted) {
+        File[] allContents = directoryToBeDeleted.listFiles();
+        if (allContents != null) {
+            for (File file : allContents) {
+                deleteDirectory(file);
+            }
+        }
+
+        return directoryToBeDeleted.delete();
+    }
 }

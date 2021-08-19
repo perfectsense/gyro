@@ -16,30 +16,51 @@
 
 package gyro.core.command;
 
+import java.util.Optional;
+
+import gyro.core.Abort;
 import gyro.core.GyroCore;
 import gyro.core.GyroUI;
+import gyro.core.RemoteStateBackend;
 import gyro.core.diff.Diff;
 import gyro.core.diff.Retry;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.State;
-import io.airlift.airline.Command;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
 
-@Command(name = "up", description = "Updates all resources to match the configuration.")
+@Command(name = "up",
+    synopsisHeading = "%n",
+    header = "Update cloud resources to match the configuration.",
+    descriptionHeading = "%nDescription:%n%n",
+    description = "Compare differences between gyro configuration and state. Any differences are displayed and"
+        + " can optionally be executed to update cloud resources to match the configuration.",
+    parameterListHeading = "%nParameters:%n",
+    optionListHeading = "%nOptions:%n",
+    usageHelpWidth = 100,
+    mixinStandardHelpOptions = true,
+    versionProvider = VersionCommand.class
+)
 public class UpCommand extends AbstractConfigCommand {
 
+    @Option(names = "--skip-version-check", description = "Skips checking for the latest version.")
+    public boolean skipVersionCheck;
     private boolean auditStarted;
 
     @Override
     public void doExecute(RootScope current, RootScope pending, State state) throws Exception {
-        VersionCommand.printUpdateVersion();
+        if (!skipVersionCheck) {
+            VersionCommand.printUpdateVersion();
+        }
+
         GyroUI ui = GyroCore.ui();
 
         ui.write("\n@|bold,white Looking for changes...\n\n|@");
 
         while (true) {
             Diff diff = new Diff(
-                current.findResourcesIn(current.getLoadFiles()),
-                pending.findResourcesIn(pending.getLoadFiles()));
+                current.findSortedResourcesIn(current.getLoadFiles()),
+                pending.findSortedResourcesIn(pending.getLoadFiles()));
 
             diff.diff();
 
@@ -49,7 +70,7 @@ public class UpCommand extends AbstractConfigCommand {
             }
 
             if (!ui.readBoolean(Boolean.FALSE, "\nAre you sure you want to change resources?")) {
-                break;
+                throw new Abort();
             }
 
             if (!auditStarted) {
@@ -66,7 +87,12 @@ public class UpCommand extends AbstractConfigCommand {
             } catch (Retry error) {
                 ui.write("\n@|bold,white Relooking for changes after workflow...\n\n|@");
 
-                current = new RootScope(current.getFile(), current.getBackend(), null, current.getLoadFiles());
+                current = new RootScope(
+                    current.getFile(),
+                    current.getBackend(),
+                    current.getRemoteStateBackend(),
+                    null,
+                    current.getLoadFiles());
 
                 current.evaluate();
 
@@ -80,9 +106,36 @@ public class UpCommand extends AbstractConfigCommand {
                 pending.validate();
 
                 state = new State(current, pending, state.isTest());
+            } catch (Exception ex) {
+                ui.write("\n\n");
+                pushToRemote(current, ui);
+
+                throw ex;
             }
         }
 
+        pushToRemote(current, ui);
+
         ui.finishAuditors(null, true);
+    }
+
+    private void pushToRemote(RootScope current, GyroUI ui) {
+        RemoteStateBackend remoteStateBackend = current.getRemoteStateBackend();
+        if (remoteStateBackend != null && !remoteStateBackend.isLocalBackendEmpty()) {
+            ui.write(ui.isVerbose()
+                ? "@|bold,white Pushing state files to remote backend...|@"
+                : "\n@|bold,white Pushing state files to remote backend...|@");
+
+            try {
+                remoteStateBackend.copyToRemote(true, false);
+                ui.write(ui.isVerbose() ? "\n@|bold,green OK|@\n\n" : "@|bold,green  OK|@\n");
+
+            } catch (Exception ex) {
+                ui.write("\n\n@|red Error pushing state files to remote: |@" + ex.getMessage()
+                    + "\n\n@|red Run 'gyro up' again to retry.\n\n|@");
+
+                Optional.ofNullable(GyroCore.getLockBackend()).ifPresent(l -> l.setStayLocked(true));
+            }
+        }
     }
 }

@@ -19,6 +19,9 @@ package gyro.core;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import com.psddev.dari.util.Lazy;
 import com.psddev.dari.util.ThreadLocalStack;
@@ -29,6 +32,10 @@ public class GyroCore {
     public static final String INIT_FILE = ".gyro/init.gyro";
 
     private static final ThreadLocalStack<GyroUI> UI = new ThreadLocalStack<>();
+
+    private static final ThreadLocalStack<LockBackend> LOCK_BACKENDS = new ThreadLocalStack<>();
+
+    private static final ConcurrentMap<String, FileBackend> STATE_BACKENDS = new ConcurrentHashMap<>();
 
     private static final Lazy<Path> HOME_DIRECTORY = new Lazy<Path>() {
 
@@ -70,6 +77,28 @@ public class GyroCore {
         return UI.pop();
     }
 
+    public static LockBackend getLockBackend() {
+        return LOCK_BACKENDS.get();
+    }
+
+    public static void pushLockBackend(LockBackend lockBackend) {
+        if (lockBackend != null) {
+            LOCK_BACKENDS.push(lockBackend);
+        }
+    }
+
+    public static LockBackend popLockBackend() {
+        return LOCK_BACKENDS.pop();
+    }
+
+    public static void putStateBackends(Map<String, FileBackend> stateBackends) {
+        stateBackends.forEach(STATE_BACKENDS::put);
+    }
+
+    public static FileBackend getStateBackend(String key) {
+        return STATE_BACKENDS.get(key);
+    }
+
     public static Path getHomeDirectory() {
         return HOME_DIRECTORY.get();
     }
@@ -77,5 +106,4 @@ public class GyroCore {
     public static Path getRootDirectory() {
         return ROOT_DIRECTORY.get();
     }
-
 }

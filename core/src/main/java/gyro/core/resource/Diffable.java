@@ -16,6 +16,12 @@
 
 package gyro.core.resource;
 
+import java.awt.Image;
+import java.beans.BeanDescriptor;
+import java.beans.BeanInfo;
+import java.beans.EventSetDescriptor;
+import java.beans.MethodDescriptor;
+import java.beans.PropertyDescriptor;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -30,8 +36,9 @@ import gyro.core.diff.Change;
 import gyro.core.scope.DiffableScope;
 import gyro.core.scope.FileScope;
 import gyro.core.validation.ValidationError;
+import gyro.core.workflow.ModifiedIn;
 
-public abstract class Diffable {
+public abstract class Diffable implements BeanInfo {
 
     boolean external;
     Diffable parent;
@@ -39,6 +46,7 @@ public abstract class Diffable {
     DiffableScope scope;
     Change change;
     Set<String> configuredFields;
+    ModifiedIn modifiedIn;
     final List<Modification<? extends Diffable>> modifications = new ArrayList<>();
 
     public abstract String primaryKey();
@@ -75,7 +83,9 @@ public abstract class Diffable {
     }
 
     protected <T extends Diffable> T newSubresource(Class<T> diffableClass) {
-        return DiffableType.getInstance(diffableClass).newInternal(new DiffableScope(scope, null), null);
+        T t = DiffableType.getInstance(diffableClass).newInternal(new DiffableScope(scope, null), null);
+        t.parent = this;
+        return t;
     }
 
     protected void requires(String fieldName) {
@@ -149,6 +159,48 @@ public abstract class Diffable {
         }
 
         return builder.toString();
+    }
+
+    // -- BeanInfo
+
+    @Override
+    public BeanDescriptor getBeanDescriptor() {
+        return new BeanDescriptor(getClass());
+    }
+
+    @Override
+    public EventSetDescriptor[] getEventSetDescriptors() {
+        return null;
+    }
+
+    @Override
+    public int getDefaultEventIndex() {
+        return -1;
+    }
+
+    @Override
+    public PropertyDescriptor[] getPropertyDescriptors() {
+        return null;
+    }
+
+    @Override
+    public int getDefaultPropertyIndex() {
+        return -1;
+    }
+
+    @Override
+    public MethodDescriptor[] getMethodDescriptors() {
+        return null;
+    }
+
+    @Override
+    public BeanInfo[] getAdditionalBeanInfo() {
+        return null;
+    }
+
+    @Override
+    public Image getIcon(int iconKind) {
+        return null;
     }
 
     /**

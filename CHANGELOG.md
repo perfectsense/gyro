@@ -1,7 +1,121 @@
 CHANGELOG
 =========
 
-## 0.99.2 (Unreleased)
+## 1.1.1 (July 26th, 2021)
+
+ISSUES FIXED:
+
+* core: Fix re-evaluating output fields to get proper value.
+
+## 1.1.0 (July 13th, 2021)
+
+ENHANCEMENTS:
+
+* core: Simplify diff output of collections to improve readability. ([367](https://github.com/perfectsense/gyro/pull/367))
+* core: Enable verbose output by default. ([368](https://github.com/perfectsense/gyro/pull/368))
+* core: Display elapsed time duration. ([369](https://github.com/perfectsense/gyro/pull/369))
+
+ISSUES FIXED:
+
+* core: Fix @for from overwriting key/values in parent scope. ([210](https://github.com/perfectsense/gyro/issues/210))
+* core: Fix concurrent modification error. ([240](https://github.com/perfectsense/gyro/issues/240))
+
+## 1.0.2 (April 27th, 2021)
+
+ENHANCEMENTS:
+
+* core: Implement @timeout directive. ([352](https://github.com/perfectsense/gyro/issues/352))
+* core: Implement @depends-on directive. ([354](https://github.com/perfectsense/gyro/issues/354))
+
+ISSUES FIXED:
+
+* core: Fix @uses-credentials to resolve variables correctly. ([341](https://github.com/perfectsense/gyro/issues/341))
+* core: Allow @for to work inside @workflow::define stages. ([349](https://github.com/perfectsense/gyro/issues/349))
+* core: Fix bug with OR logic. ([361](https://github.com/perfectsense/gyro/issues/361))
+
+## 1.0.1 (March 3rd, 2021)
+
+ISSUES FIXED:
+
+* core: Fix workflow action defined using variables. ([342](https://github.com/perfectsense/gyro/issues/342))
+* core: Fix choosing workflow based on a declared file. ([343](https://github.com/perfectsense/gyro/issues/343))
+
+## 1.0.0 (January 12th, 2021)
+
+ENHANCEMENTS:
+
+* core: Validate enum type fields. ([329](https://github.com/perfectsense/gyro/issues/329))
+* core: Implement gyro exit codes. ([325](https://github.com/perfectsense/gyro/issues/325))
+
+ISSUES FIXED:
+
+* core: Fix error on finders if resource has missing @Id field. ([334](https://github.com/perfectsense/gyro/issues/334))
+
+## 0.99.5 (August 25th, 2020)
+
+ENHANCEMENTS:
+
+* core: Convert to `Picocli` for command line argument parsing. ([308](https://github.com/perfectsense/gyro/issues/308))
+
+PERFORMANCE:
+
+* core: Cache plugin depenedncy. ([311](https://github.com/perfectsense/gyro/issues/311))
+* core: Optimize plugin class loading. ([312](https://github.com/perfectsense/gyro/issues/312))
+* core: Cache `external-query`. ([313](https://github.com/perfectsense/gyro/issues/313))
+* core: Implement Beaninfo on diffable. ([314](https://github.com/perfectsense/gyro/issues/314))
+* core: Add `exists(String file)` method to FileBackend. ([315](https://github.com/perfectsense/gyro/issues/315))
+* core: Add `copy(String source, String destination)` method to FileBackend. ([316](https://github.com/perfectsense/gyro/issues/316))
+
+## 0.99.4 (June 25th, 2020)
+
+ENHANCEMENTS:
+
+* core: Add ability to suppress version check on `gyro up`. ([294](https://github.com/perfectsense/gyro/issues/294))
+* core: Implement a Diff command. ([302](https://github.com/perfectsense/gyro/issues/302))
+
+ISSUES FIXED:
+
+* workflow: Fix incorrect execution of workflow step. ([297](https://github.com/perfectsense/gyro/issues/297))
+
+## 0.99.3 (May 14th, 2020)
+
+ENHANCEMENTS:
+
+* core: Add `@state-backend` allowing users to store and use state files remotely. ([236](https://github.com/perfectsense/gyro/issues/236))
+* core: Introduces an abstract class `LockBackend`. The provider specific implementation allows locking of state files to avoid simultaneous modifications. ([269](https://github.com/perfectsense/gyro/issues/269))
+
+ISSUES FIXED:
+
+* core: Fix reference to non configured fields. ([263](https://github.com/perfectsense/gyro/issues/263))
+* core: Maintain resource creation order based on dependencies across multiple files. ([256](https://github.com/perfectsense/gyro/issues/256))
+* core: Make `Find*` methods work when used within a virtual resource. ([275](https://github.com/perfectsense/gyro/issues/275))
+* workflow: Resolve references removed out of workflow scope. ([274](https://github.com/perfectsense/gyro/issues/274))
+* core: Attach parent resource to a subresource on creation. ([282](https://github.com/perfectsense/gyro/issues/282))
+* core: Fix validation annotations to work on Sets. ([285](https://github.com/perfectsense/gyro/issues/285))
+* workflow: Fix updating non-configured fields when using `@workflow::update`. ([287](https://github.com/perfectsense/gyro/issues/287))
+* core: Fix `_configured-fields` of complex types to only have user configured fields. ([288](https://github.com/perfectsense/gyro/issues/288))
+
+## 0.99.2 (April 23rd, 2020)
+
+ENHANCEMENTS:
+
+* core: Add `version` command to report current version and check for newer version. ([230](https://github.com/perfectsense/gyro/issues/230))
+
+ISSUES FIXED:
+
+* core: Fix finder to use `@Filter` annotation for fields having different bean name. ([237](https://github.com/perfectsense/gyro/issues/237))
+* core: Resource creation fails when dependencies are spread across multiple files. ([243](https://github.com/perfectsense/gyro/issues/243))
+* workflow: `@Wait` directive does not properly evaluate the "n" option given. ([246](https://github.com/perfectsense/gyro/issues/246))
+* core: Allow `@for` to iterate over sets. ([248](https://github.com/perfectsense/gyro/issues/248))
+* core: Deleting a resource created using `@uses-credentials` fails. ([250](https://github.com/perfectsense/gyro/issues/250))
+* core: Using `@external-query` under a resource block fails. ([251](https://github.com/perfectsense/gyro/issues/251))
+* core: Fix `credentials` option for `@external-query`. ([252](https://github.com/perfectsense/gyro/issues/252))
+* workflow: Recover from a failed workflow stage. ([254](https://github.com/perfectsense/gyro/issues/254))
+* workflow: `@wait` directive not resolving variables when used inside a workflow. ([259](https://github.com/perfectsense/gyro/issues/259))
+
+MISC:
+
+* Add preprocessor to modify nodes before evaluation. ([241](https://github.com/perfectsense/gyro/issues/241))
 
 ## 0.99.1 (January 30th, 2020)
 

@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -13,13 +15,14 @@ import javax.xml.xpath.XPathFactory;
 
 import com.psddev.dari.util.IoUtils;
 import gyro.core.GyroCore;
-import io.airlift.airline.Command;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
 
-@Command(name = "version", description = "Display the version of Gyro.")
-public class VersionCommand extends AbstractCommand {
+@Command(name = "version", description = "Display the version of Gyro.", mixinStandardHelpOptions = true)
+public class VersionCommand extends AbstractCommand implements CommandLine.IVersionProvider {
 
     @Override
     protected void doExecute() throws Exception {
@@ -37,8 +40,7 @@ public class VersionCommand extends AbstractCommand {
         ComparableVersion latestVersion = VersionCommand.getLatestVersion();
 
         if (latestVersion != null) {
-            Boolean isUpdateAvailable = currentVersion.compareTo(latestVersion) < 0;
-            if (isUpdateAvailable) {
+            if (currentVersion.compareTo(latestVersion) < 0) {
                 VersionCommand.renderUpdateMessage(latestVersion.toString(), getOsName());
             }
         }
@@ -67,7 +69,7 @@ public class VersionCommand extends AbstractCommand {
             XPath xpath = XPathFactory.newInstance().newXPath();
             String version = (String) xpath.evaluate("/metadata/versioning/latest", dDoc, XPathConstants.STRING);
 
-            latestVersion = new ComparableVersion((String) version);
+            latestVersion = new ComparableVersion(version);
         } catch (
             Exception error) {
             GyroCore.ui().write("@|red Error when trying to get the latest version info.|@\n");
@@ -92,7 +94,7 @@ public class VersionCommand extends AbstractCommand {
     }
 
     private static void renderVersionMessage(String version) {
-        GyroCore.ui().write("\nYou're running version @|blue %s|@ of Gyro.\n", version);
+        GyroCore.ui().write("You're running version @|blue %s|@ of Gyro.\n", version);
     }
 
     private static void renderUpdateMessage(String latestVersion, String osName) {
@@ -102,5 +104,34 @@ public class VersionCommand extends AbstractCommand {
                 "Download the new release at @|blue https://artifactory.psdops.com/gyro-releases/gyro/gyro-cli-%1$s/%2$s/gyro-cli-%1$s-%2$s.zip|@\n",
                 osName,
                 latestVersion);
+    }
+
+    @Override
+    public String[] getVersion() throws Exception {
+        List<String> versionOutput = new ArrayList<>();
+
+        ComparableVersion currentVersion = VersionCommand.getCurrentVersion();
+        ComparableVersion latestVersion = VersionCommand.getLatestVersion();
+
+        versionOutput.add(
+            String.format("You're running version @|blue %s|@ of Gyro.\n", getCurrentVersion().toString())
+        );
+
+        if (latestVersion != null) {
+            if (currentVersion.compareTo(latestVersion) < 0) {
+                versionOutput.add(
+                    String.format("A new version of Gyro is available: @|blue %s|@\n", latestVersion)
+                );
+
+                versionOutput.add(
+                    String.format(
+                        "Download the new release at @|blue https://artifactory.psdops.com/gyro-releases/gyro/gyro-cli-%1$s/%2$s/gyro-cli-%1$s-%2$s.zip|@\n",
+                        getOsName(),
+                        latestVersion)
+                );
+            }
+        }
+
+        return versionOutput.toArray(new String[0]);
     }
 }

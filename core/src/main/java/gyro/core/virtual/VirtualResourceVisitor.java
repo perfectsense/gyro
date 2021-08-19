@@ -75,6 +75,7 @@ public class VirtualResourceVisitor extends ResourceVisitor {
         RootScope virtualRoot = new RootScope(
             root.getFile(),
             root.getBackend(),
+            root.getRemoteStateBackend(),
             new VirtualRootScope(root.getCurrent(), name),
             root.getLoadFiles());
 
@@ -90,7 +91,7 @@ public class VirtualResourceVisitor extends ResourceVisitor {
 
         String prefix = name + "/";
 
-        for (Resource resource : virtualRoot.findResources()) {
+        for (Resource resource : virtualRoot.findSortedResources()) {
             DiffableInternals.setName(resource, prefix + DiffableInternals.getName(resource));
             file.put(resource.primaryKey(), resource);
         }

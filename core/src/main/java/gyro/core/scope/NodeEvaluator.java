@@ -108,7 +108,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         .put(">", (l, r) -> compare(l, r) > 0)
         .put(">=", (l, r) -> compare(l, r) >= 0)
         .put("and", (l, r) -> test(l) && test(r))
-        .put("or", (l, r) -> test(l) && test(r))
+        .put("or", (l, r) -> test(l) || test(r))
         .build();
 
     private static Object doArithmetic(
@@ -220,6 +220,10 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
     }
 
     public static Object getValue(Node node, Object object, String key) {
+        if (object != null && OutputValue.OUTPUT_VALUE.equals(object.toString())) {
+            return new OutputValue();
+        }
+
         if ("*".equals(key)) {
             return new GlobCollection(object);
 
@@ -475,6 +479,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
 
         RootScope root = scope.getRootScope();
         Object value = root.get(type);
+        Resource resource = null;
 
         if (value == null) {
             throw new Defer(node, String.format(
@@ -506,7 +511,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             }
 
             DiffableType<Resource> resourceType = DiffableType.getInstance((Class<Resource>) c);
-            Resource resource = resourceType.newInternal(bodyScope, name);
+            resource = resourceType.newInternal(bodyScope, name);
             bodyScope.getSettings(SelfSettings.class).setSelf(resource);
             bodyScope = new DiffableScope(bodyScope);
 
@@ -518,9 +523,10 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
             }
 
             resourceType.setValues(resource, bodyScope);
+            Resource finalResource = resource;
             Optional.ofNullable(root.getCurrent())
                 .map(s -> s.findResource(fullName))
-                .ifPresent(r -> copy(r, resource));
+                .ifPresent(r -> copy(r, finalResource));
 
             bodyScope.process(resource);
             file.put(fullName, resource);
@@ -538,7 +544,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
         }
 
         removeTypeNode(node);
-        return null;
+        return resource;
     }
 
     public void copy(Diffable currentResource, Diffable pendingResource) {
@@ -748,7 +754,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                 throw new WildcardDefer(node, referenceName);
             }
 
-            Stream<Resource> s = root.findResources()
+            Stream<Resource> s = root.findSortedResources()
                 .stream()
                 .filter(r -> referenceName.equals(DiffableType.getInstance(r.getClass()).getName()));
 

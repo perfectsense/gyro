@@ -17,6 +17,7 @@
 package gyro.core.control;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,7 @@ import java.util.Set;
 import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.core.directive.DirectiveProcessor;
+import gyro.core.resource.Diffable;
 import gyro.core.scope.Scope;
 import gyro.lang.ast.Node;
 import gyro.lang.ast.block.DirectiveNode;
@@ -99,9 +101,19 @@ public class ForDirectiveProcessor extends DirectiveProcessor<Scope> {
     }
 
     private void processBody(DirectiveNode node, Scope scope, Map<String, Object> values) {
+        Map<String, Object> frame = new HashMap<>();
+
         scope.getRootScope().getEvaluator().evaluateBody(
             node.getBody(),
-            new Scope(scope, new CascadingMap<>(scope, values)));
+            new Scope(scope, new CascadingMap<>(frame, values, scope)));
+
+        for (String key : frame.keySet()) {
+            Object value = frame.get(key);
+
+            if (value instanceof List || value instanceof Set || value instanceof Diffable) {
+                scope.putIfAbsent(key, value);
+            }
+        }
     }
 
 }

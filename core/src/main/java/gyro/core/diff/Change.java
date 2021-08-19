@@ -20,9 +20,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.MapDifference;
@@ -39,6 +39,8 @@ public abstract class Change {
 
     private final List<Diff> diffs = new ArrayList<>();
     final AtomicBoolean changed = new AtomicBoolean();
+    private static final Pattern DIFF_SUBTRACT = Pattern.compile("\\[-(?<sub>[^-\\]]+)-\\]");
+    private static final Pattern DIFF_ADDITION = Pattern.compile("\\{\\+(?<add>[^+\\}]+)\\+\\}");
 
     public List<Diff> getDiffs() {
         return diffs;
@@ -129,7 +131,7 @@ public abstract class Change {
         Diffable currentDiffable,
         Diffable pendingDiffable) {
 
-        ui.write("\n· %s: ", field.getName());
+        ui.write("\n  · %s: ", field.getName());
 
         Object currentValue = field.getValue(currentDiffable);
         Object pendingValue = field.getValue(pendingDiffable);
@@ -144,28 +146,12 @@ public abstract class Change {
             int currentListSize = currentList.size();
             int pendingListSize = pendingList.size();
 
-            for (int i = 0, l = Math.max(currentListSize, pendingListSize); i < l; ++i) {
-                Object c = i < currentListSize ? currentList.get(i) : null;
-                Object p = i < pendingListSize ? pendingList.get(i) : null;
+            List<String> currentStringified = currentList.stream().map(this::stringify).collect(Collectors.toList());
+            List<String> pendingStringified = pendingList.stream().map(this::stringify).collect(Collectors.toList());
 
-                if (Objects.equals(c, p)) {
-                    ui.write(stringify(c));
-
-                } else if (c == null) {
-                    ui.write(" @|green +|@ %s", stringify(p));
-
-                } else if (p == null) {
-                    ui.write(" @|red -|@ %s", stringify(c));
-
-                } else {
-                    ui.write(" @|yellow ⟳|@ %s → %s", stringify(c), stringify(p));
-                }
-
-                if (i < l - 1) {
-                    ui.write(",");
-                }
-            }
-
+            ui.write(" @|red -[%s]|@ → @|green +[%s]|@",
+                StringUtils.join(currentStringified, ", "),
+                StringUtils.join(pendingStringified, ", "));
         } else if ((currentValue == null || currentValue instanceof Map)
             && (pendingValue == null || pendingValue instanceof Map)) {
 
@@ -215,5 +201,4 @@ public abstract class Change {
     private void writeMapRemove(GyroUI ui, Map<?, ?> map) {
         writeMap(ui, " @|red -{|@ %s @|red }|@", map, this::stringify);
     }
-
 }

@@ -16,10 +16,14 @@
 
 package gyro.core.workflow;
 
-import gyro.core.GyroException;
+import java.util.List;
+import java.util.Map;
+
+import com.google.common.base.Preconditions;
 import gyro.core.GyroUI;
+import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.Resource;
-import gyro.core.scope.NodeEvaluator;
+import gyro.core.scope.Defer;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
 import gyro.core.scope.State;
@@ -27,10 +31,12 @@ import gyro.lang.ast.Node;
 
 public class DeleteAction extends Action {
 
+    private final Scope scope;
     private final Node resource;
 
-    public DeleteAction(Node resource) {
-        this.resource = resource;
+    public DeleteAction(Scope scope, Node resource) {
+        this.scope = Preconditions.checkNotNull(scope);
+        this.resource = Preconditions.checkNotNull(resource);
     }
 
     public Node getResource() {
@@ -38,24 +44,40 @@ public class DeleteAction extends Action {
     }
 
     @Override
-    public void execute(GyroUI ui, State state, RootScope pending, Scope scope) {
-        NodeEvaluator evaluator = scope.getRootScope().getEvaluator();
-        Object resource = evaluator.visit(this.resource, scope);
+    public void execute(
+        GyroUI ui,
+        State state,
+        Scope stageScope,
+        List<String> toBeRemoved,
+        List<ReplaceResource> toBeReplaced) {
 
-        if (resource == null) {
-            throw new GyroException("Can't delete a null resource!");
+        Scope actionScope = new Scope(stageScope);
+
+        for (Map.Entry<String, Object> entry : this.scope.entrySet()) {
+            Object value = entry.getValue();
+
+            if (!(value instanceof Resource)) {
+                actionScope.put(entry.getKey(), value);
+            }
         }
 
-        if (!(resource instanceof Resource)) {
-            throw new GyroException(String.format(
-                "Can't delete @|bold %s|@, an instance of @|bold %s|@, because it's not a resource!",
-                resource,
-                resource.getClass().getName()));
+        RootScope pending = actionScope.getRootScope();
+        RootScope current = pending.getCurrent();
+        ModifiedIn modifiedIn = null;
+
+        try {
+            Resource currentResource = visitResource(this.resource, current);
+            modifiedIn = DiffableInternals.getModifiedIn(currentResource) == ModifiedIn.WORKFLOW_ONLY
+                ? ModifiedIn.WORKFLOW_ONLY
+                : ModifiedIn.BOTH;
+            DiffableInternals.setModifiedIn(currentResource, modifiedIn);
+            current.getWorkflowRemovedResources().putIfAbsent(currentResource.primaryKey(), currentResource);
+        } catch (Defer e) {
+            // This is to support recovery of delete action.
         }
 
-        String fullName = ((Resource) resource).primaryKey();
-
-        pending.getFileScopes().forEach(s -> s.remove(fullName));
+        Resource pendingResource = visitResource(this.resource, actionScope);
+        DiffableInternals.setModifiedIn(pendingResource, modifiedIn == null ? ModifiedIn.WORKFLOW_ONLY : modifiedIn);
+        toBeRemoved.add(pendingResource.primaryKey());
     }
-
 }

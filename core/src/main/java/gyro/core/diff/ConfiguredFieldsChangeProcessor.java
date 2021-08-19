@@ -150,8 +150,8 @@ public class ConfiguredFieldsChangeProcessor extends ChangeProcessor {
                     if (primaryKey == null) {
                         continue;
                     }
+
                     configuredFieldsHierarchies.stream()
-                        .parallel()
                         .filter(e -> primaryKey.equals(e.getPrimaryKey()))
                         .findAny()
                         .ifPresent(e -> updateConfiguredFields(fieldDiffable, e));

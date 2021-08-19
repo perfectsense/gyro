@@ -19,8 +19,10 @@ package gyro.core.validation;
 import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import gyro.core.resource.Diffable;
+import gyro.core.resource.OutputValue;
 
 public abstract class AbstractValidator<A extends Annotation> implements Validator<A> {
 
@@ -34,12 +36,14 @@ public abstract class AbstractValidator<A extends Annotation> implements Validat
         } else if (value instanceof List) {
             return ((List<?>) value).stream().allMatch(o -> isValid(diffable, annotation, o));
 
+        } else if (value instanceof Set) {
+            return ((Set<?>) value).stream().allMatch(o -> isValid(diffable, annotation, o));
+
         } else if (value instanceof Map) {
             return ((Map<?, ?>) value).keySet().stream().allMatch(o -> isValid(diffable, annotation, o));
 
         } else {
-            return validate(annotation, value);
+            return value.toString().equals(OutputValue.OUTPUT_VALUE) || validate(annotation, value);
         }
     }
-
 }

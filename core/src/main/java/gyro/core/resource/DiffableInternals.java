@@ -16,6 +16,7 @@
 
 package gyro.core.resource;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -27,6 +28,9 @@ import gyro.core.diff.Change;
 import gyro.core.scope.DiffableScope;
 import gyro.core.scope.NodeEvaluator;
 import gyro.core.scope.RootScope;
+import gyro.core.scope.Scope;
+import gyro.core.workflow.ModifiedIn;
+import gyro.lang.ast.Node;
 import gyro.lang.ast.block.BlockNode;
 
 public final class DiffableInternals {
@@ -56,6 +60,14 @@ public final class DiffableInternals {
         }
 
         return diffable.configuredFields;
+    }
+
+    public static ModifiedIn getModifiedIn(Diffable diffable) {
+        return diffable.modifiedIn;
+    }
+
+    public static void setModifiedIn(Diffable diffable, ModifiedIn modifiedIn) {
+        diffable.modifiedIn = modifiedIn;
     }
 
     @SuppressWarnings("unchecked")
@@ -100,11 +112,43 @@ public final class DiffableInternals {
      * Create a new scope that is disconnected from the original configuration.
      *
      * @param diffable The diffable to disconnect
+     * @param scope parent scope to override
      */
-    public static void disconnect(Diffable diffable) {
-        diffable.scope = new DiffableScope(diffable.scope.getParent(), null);
+    public static void disconnect(Diffable diffable, Scope scope) {
+        if (scope == null) {
+            scope = diffable.scope.getParent();
+        }
+
+        diffable.scope = new DiffableScope(scope, null);
 
         disconnectChildren(diffable);
+    }
+
+    /**
+     * Create a new scope that is disconnected from the original configuration.
+     *
+     * @param diffable The diffable to disconnect
+     */
+    public static void disconnect(Diffable diffable) {
+        disconnect(diffable, null);
+    }
+
+    /**
+     * Create a new scope that is disconnected from the original configuration.
+     *
+     * @param diffable The diffable to disconnect
+     * @param keepStateNodes A flag signifying if state nodes be copied back to the new scope
+     */
+    public static void disconnect(Diffable diffable, boolean keepStateNodes) {
+        List<Node> stateNodes = new ArrayList<>();
+
+        if (keepStateNodes) {
+            stateNodes = diffable.scope.getStateNodes();
+        }
+
+        disconnect(diffable);
+
+        diffable.scope.getStateNodes().addAll(stateNodes);
     }
 
     private static void disconnectChildren(Diffable diffable) {

@@ -16,15 +16,22 @@
 
 package gyro.core.workflow;
 
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.psddev.dari.util.ObjectUtils;
 import gyro.core.Abort;
+import gyro.core.GyroOutputStream;
 import gyro.core.GyroUI;
 import gyro.core.diff.Diff;
 import gyro.core.resource.DiffableInternals;
+import gyro.core.resource.DiffableType;
 import gyro.core.resource.Resource;
 import gyro.core.scope.Defer;
 import gyro.core.scope.DiffableScope;
@@ -72,7 +79,9 @@ public class Stage {
         State state,
         Resource currentResource,
         Resource pendingResource,
-        RootScope pendingRootScope) {
+        RootScope pendingRootScope,
+        List<String> toBeRemoved,
+        List<ReplaceResource> toBeReplaced) {
 
         DiffableScope pendingScope = DiffableInternals.getScope(pendingResource);
         FileScope pendingFileScope = pendingScope.getFileScope();
@@ -91,26 +100,34 @@ public class Stage {
             }
         }
 
+        List<String> variableKeys = new ArrayList<>(scope.keySet());
+
         scope.put("NAME", DiffableInternals.getName(pendingResource));
         scope.put("CURRENT", currentResource);
         scope.put("PENDING", pendingResource);
 
-        Defer.execute(actions, a -> a.execute(ui, state, pendingRootScope, scope));
+        for (String key : variableKeys) {
+            scope.getRootScope().getCurrent().put(key, scope.get(key));
+        }
+
+        Defer.execute(actions, a -> a.execute(ui, state, scope, toBeRemoved, toBeReplaced));
     }
 
     public void execute(
         GyroUI ui,
         State state,
         Resource currentResource,
-        Resource pendingResource,
-        RootScope currentRootScope,
-        RootScope pendingRootScope) {
-
-        apply(ui, state, currentResource, pendingResource, pendingRootScope);
+        RootScope pendingRootScope,
+        List<String> toBeRemoved,
+        List<ReplaceResource> toBeReplaced) {
+        RootScope newPendingRootScope = pendingRootScope.copyWorkflowOnlyRootScope();
+        RootScope newCurrentRootScope = newPendingRootScope.getCurrent();
 
         Diff diff = new Diff(
-            currentRootScope.findResourcesIn(currentRootScope.getLoadFiles()),
-            pendingRootScope.findResourcesIn(pendingRootScope.getLoadFiles()));
+            newCurrentRootScope.findSortedResourcesIn(newCurrentRootScope.getLoadFiles()),
+            newPendingRootScope.findSortedResourcesIn(newPendingRootScope.getLoadFiles()),
+            toBeRemoved,
+            toBeReplaced);
 
         diff.diff();
 
@@ -123,14 +140,25 @@ public class Stage {
             }
         }
 
+        try (GyroOutputStream output = newCurrentRootScope.openOutput(Workflow.EXECUTION_FILE)) {
+            output.write(ObjectUtils.toJson(ImmutableMap.of(
+                "type", DiffableType.getInstance(currentResource).getName(),
+                "name", DiffableInternals.getName(currentResource),
+                "workflow", workflow.getName(),
+                "executedStages", workflow.getExecutedStages().stream().map(Stage::getName).collect(Collectors.toList())
+            )).getBytes(StandardCharsets.UTF_8));
+        }
+
         diff.execute(ui, state);
     }
 
-    public Stage prompt(GyroUI ui, RootScope currentRootScope) {
+    public Stage prompt(GyroUI ui, State state, RootScope currentRootScope) {
         int transitionsSize = transitions.size();
 
         if (transitionsSize == 0) {
             currentRootScope.delete(Workflow.EXECUTION_FILE);
+            state.setRemoveModifiedInField(true);
+            state.save();
             return null;
 
         } else if (transitionsSize == 1) {
@@ -158,5 +186,4 @@ public class Stage {
             }
         }
     }
-
 }

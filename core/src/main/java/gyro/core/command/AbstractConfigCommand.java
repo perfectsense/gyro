@@ -19,11 +19,15 @@ package gyro.core.command;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -37,6 +41,8 @@ import gyro.core.GyroCore;
 import gyro.core.GyroException;
 import gyro.core.GyroUI;
 import gyro.core.LocalFileBackend;
+import gyro.core.LockBackend;
+import gyro.core.RemoteStateBackend;
 import gyro.core.auth.Credentials;
 import gyro.core.auth.CredentialsSettings;
 import gyro.core.diff.ChangeProcessor;
@@ -48,18 +54,18 @@ import gyro.core.scope.FileScope;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
 import gyro.core.scope.State;
-import io.airlift.airline.Arguments;
-import io.airlift.airline.Option;
+import picocli.CommandLine.Option;
+import picocli.CommandLine.Parameters;
 
 public abstract class AbstractConfigCommand extends AbstractCommand {
 
-    @Option(name = "--skip-refresh")
+    @Option(names = "--skip-refresh", description = "Skip state refresh. Warning: Skipping refresh may result in incorrect changes. Use with caution.")
     public boolean skipRefresh;
 
-    @Option(name = "--test")
+    @Option(names = "--test", description = "Use for internal testing only. This flag will mock cloud provider API calls.")
     private boolean test;
 
-    @Arguments
+    @Parameters(description = "Configuration files to process. Leave empty to process all files.")
     private List<String> files;
 
     protected abstract void doExecute(RootScope current, RootScope pending, State state) throws Exception;
@@ -100,35 +106,88 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             }
         }
 
-        RootScope current = new RootScope(
-            "../../" + GyroCore.INIT_FILE,
-            new LocalFileBackend(rootDir.resolve(".gyro/state")),
-            null,
-            loadFiles);
+        LocalFileBackend localTempBackend = new LocalFileBackend(rootDir.resolve(".gyro/.temp-state"));
 
-        current.evaluate();
+        LockBackend lockBackend = GyroCore.getLockBackend();
 
-        RootScope pending = new RootScope(
-            GyroCore.INIT_FILE,
-            new LocalFileBackend(rootDir),
-            current,
-            loadFiles);
+        if (lockBackend != null) {
+            lockBackend.setLocalTempBackend(localTempBackend);
+            String lockId = lockBackend.readTempLockFile();
 
-        if (!test) {
-            current.getSettings(CredentialsSettings.class)
-                .getCredentialsByName()
-                .values()
-                .forEach(Credentials::refresh);
+            if (lockId != null) {
+                lockBackend.deleteTempLockFile();
 
-            if (!skipRefresh) {
-                refreshResources(current);
+                try {
+                    lockBackend.unlock(lockId);
+                } catch (Exception ex) {
+                    // Ignore - the temp lock ID file is out of sync with current lock
+                }
+            }
+
+            lockBackend.setLockId(UUID.randomUUID().toString());
+            lockBackend.lock();
+            lockBackend.updateLockInfo(String.format(
+                "Locked by '%s' running '%s' at '%s'.",
+                System.getProperty("user.name"),
+                String.join(" ", getUnparsedArguments()),
+                new SimpleDateFormat("HH:mm:ss zzz, MMM-dd").format(new Date())));
+            lockBackend.writeTempLockFile();
+        }
+
+        try {
+            RemoteStateBackend remoteStateBackend = Optional.ofNullable(GyroCore.getStateBackend("default"))
+                .map(sb -> new RemoteStateBackend(sb, localTempBackend))
+                .orElse(null);
+
+            if (remoteStateBackend != null && !remoteStateBackend.isLocalBackendEmpty()) {
+                if (!GyroCore.ui().readBoolean(
+                    Boolean.FALSE,
+                    "\n@|bold,red Temporary state files were detected, indicating a past failure pushing to a remote backend.\nWould you like to attempt to push the files to your remote backend?|@")) {
+                    remoteStateBackend.deleteLocalBackend();
+                } else {
+                    remoteStateBackend.copyToRemote(true, true);
+                }
+            }
+
+            RootScope current = new RootScope(
+                "../../" + GyroCore.INIT_FILE,
+                new LocalFileBackend(rootDir.resolve(".gyro/state")),
+                remoteStateBackend,
+                null,
+                loadFiles);
+
+            current.evaluate();
+
+            RootScope pending = new RootScope(
+                GyroCore.INIT_FILE,
+                new LocalFileBackend(rootDir),
+                current,
+                loadFiles);
+
+            if (!test) {
+                current.getSettings(CredentialsSettings.class)
+                    .getCredentialsByName()
+                    .values()
+                    .forEach(Credentials::refresh);
+
+                if (!skipRefresh) {
+                    refreshResources(current);
+                }
+            }
+            GyroCore.ui().setAuditPending(true);
+
+            pending.evaluate();
+            pending.validate();
+
+            doExecute(current, pending, new State(current, pending, test));
+        } finally {
+            if (lockBackend != null) {
+                if (!lockBackend.stayLocked()) {
+                    lockBackend.unlock();
+                    lockBackend.deleteTempLockFile();
+                }
             }
         }
-        GyroCore.ui().setAuditPending(true);
-
-        pending.evaluate();
-        pending.validate();
-        doExecute(current, pending, new State(current, pending, test));
     }
 
     private void refreshResources(RootScope scope) {
@@ -157,7 +216,9 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
                     processors.addAll(0, s.getSettings(ChangeSettings.class).getProcessors());
                 }
 
-                refreshes.add(new Refresh(resource, refreshService.submit(() -> {
+                refreshes.add(new Refresh(resource, ui, refreshService.submit(() -> {
+                    GyroCore.pushUi(ui);
+
                     started.incrementAndGet();
 
                     for (ChangeProcessor processor : processors) {
@@ -177,7 +238,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
                     done.incrementAndGet();
 
                     if (keep) {
-                        DiffableInternals.disconnect(resource);
+                        DiffableInternals.disconnect(resource, true);
                         DiffableInternals.update(resource);
                         return false;
 
@@ -225,9 +286,11 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
         public final Resource resource;
         public final Future<Boolean> future;
+        public final GyroUI ui;
 
-        public Refresh(Resource resource, Future<Boolean> future) {
+        public Refresh(Resource resource, GyroUI ui, Future<Boolean> future) {
             this.resource = resource;
+            this.ui = ui;
             this.future = future;
         }
 
