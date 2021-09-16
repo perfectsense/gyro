@@ -65,8 +65,8 @@ class RepositoryDirectiveProcessorTest {
 
             assertThat(repositories).hasSize(3);
             assertThat(repositories.get(0).getUrl()).isEqualTo(url);
-            assertThat(repositories.get(1)).isEqualTo(RepositorySettings.CENTRAL);
-            assertThat(repositories.get(2)).isEqualTo(RepositorySettings.RELEASE);
+            assertThat(repositories.get(1)).isEqualTo(RepositorySettings.RELEASE);
+            assertThat(repositories.get(2)).isEqualTo(RepositorySettings.CENTRAL);
         }
     }
 

@@ -36,8 +36,8 @@ class RepositorySettingsTest extends AbstractBeanTest<RepositorySettings> {
     @Test
     void getRepositoriesNew() {
         assertThat(new RepositorySettings().getRepositories()).containsExactly(
-            RepositorySettings.CENTRAL,
-            RepositorySettings.RELEASE);
+            RepositorySettings.RELEASE,
+            RepositorySettings.CENTRAL);
     }
 
 }
