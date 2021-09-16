@@ -1,6 +1,14 @@
 CHANGELOG
 =========
 
+## 1.1.2 (September 16th, 2021)
+
+ENHANCEMENTS:
+
+* core: Allow `@depends-on` inside `@for`. ([382](https://github.com/perfectsense/gyro/pull/382))
+* core: Use newWorkStealingPool to get more accurate refresh timing. ([383](https://github.com/perfectsense/gyro/pull/383))
+* core: Speed up repository resolution. ([384](https://github.com/perfectsense/gyro/pull/384))
+
 ## 1.1.1 (July 26th, 2021)
 
 ISSUES FIXED:
