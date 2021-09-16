@@ -33,7 +33,7 @@ public class RepositoryDirectiveProcessor extends DirectiveProcessor<RootScope> 
 
         scope.getSettings(RepositorySettings.class)
             .getRepositories()
-            .add(new RemoteRepository.Builder(url, "default", url).build());
+            .add(0, new RemoteRepository.Builder(url, "default", url).build());
     }
 
 }
