@@ -44,8 +44,8 @@ public class RepositorySettings extends Settings {
         if (repositories == null) {
             repositories = new ArrayList<>();
 
-            repositories.add(CENTRAL);
             repositories.add(RELEASE);
+            repositories.add(CENTRAL);
         }
 
         return repositories;
