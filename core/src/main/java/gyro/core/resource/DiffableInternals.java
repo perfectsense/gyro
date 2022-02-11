@@ -83,6 +83,10 @@ public final class DiffableInternals {
         diffable.change = change;
     }
 
+    public static void setParent(Diffable diffable, Diffable parent) {
+        diffable.parent = parent;
+    }
+
     public static void reevaluate(Diffable diffable) {
         DiffableScope oldScope = diffable.scope;
 
