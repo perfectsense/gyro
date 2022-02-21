@@ -13,6 +13,8 @@ on:
 
 env:
   GITHUB_ACTIONS_PULL_REQUEST: ${{ github.event.pull_request.number }}
+  GRADLE_DEPLOY_USER: ${{ secrets.GRADLE_DEPLOY_USER }}
+  GRADLE_DEPLOY_PASSWORD: ${{ secrets.GRADLE_DEPLOY_PASSWORD }}
 
 jobs:
   build-linux:
