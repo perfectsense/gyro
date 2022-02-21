@@ -69,7 +69,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Set up zip
-        run: choco install zip
+        run: choco install --skip-download-cache zip
 
       - name: Build with Gradle
         run: ./gradlew
