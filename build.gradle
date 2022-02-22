@@ -21,7 +21,7 @@ if (System.getenv('CI')) {
     defaultTasks 'build', 'publish'
 
     releaseBuild = System.getenv('GITHUB_ACTIONS_PULL_REQUEST') == '' &&
-            System.getenv('GITHUB_REF').startWith("refs/head/release/");
+            System.getenv('GITHUB_REF').startsWith("refs/head/release/");
 } else {
     defaultTasks 'build', 'publishToMavenLocal'
 }
