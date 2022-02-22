@@ -17,10 +17,11 @@
 def releaseVersion = '1.2.0'
 def releaseBuild = false;
 
-if (System.getenv('TRAVIS_BRANCH') && System.getenv('TRAVIS_PULL_REQUEST') == 'false') {
+if (System.getenv('CI')) {
     defaultTasks 'build', 'publish'
 
-    releaseBuild = System.getenv('TRAVIS_BRANCH').startsWith("release/");
+    releaseBuild = System.getenv('GITHUB_ACTIONS_PULL_REQUEST') == '' &&
+            System.getenv('GITHUB_REF').startWith("refs/head/release/");
 } else {
     defaultTasks 'build', 'publishToMavenLocal'
 }
@@ -102,6 +103,6 @@ subprojects {
 
 // Only publish JARs once during the Linux build.
 configure(subprojects.findAll { it.name != 'gyro-cli' }) {
-    def osName = System.getenv('TRAVIS_OS_NAME') ?: 'unix'
-    publishMavenPublicationToMavenRepository.onlyIf { osName.equals("linux") }
+    def osName = System.getenv('OSTYPE') ?: 'linux-gnu'
+    publishMavenPublicationToMavenRepository.onlyIf { osName.equals("linux-gnu") }
 }

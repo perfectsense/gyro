@@ -48,9 +48,13 @@ task createDistributionBinary(type: Copy) {
     into 'dist'
 }
 
-def OS_NAME = System.getenv('TRAVIS_OS_NAME') ?: 'unix'
+def OS_NAME = "";
 if (Os.isFamily(Os.FAMILY_WINDOWS)) {
     OS_NAME = 'windows'
+} else if (Os.isFamily(Os.FAMILY_MAC)) {
+    OS_NAME = 'macos';
+} else {
+    OS_NAME = 'linux';
 }
 
 task bundleDistribution(type: Exec) {
