@@ -21,7 +21,8 @@ if (System.getenv('CI')) {
     defaultTasks 'build', 'publish'
 
     project.logger.lifecycle(' --> ' + System.getenv('GITHUB_REF'))
-
+    project.logger.lifecycle('--> ' + System.getenv('GITHUB_ACTIONS_PULL_REQUEST') == '' &&
+            System.getenv('GITHUB_REF').startsWith("refs/tags/release/"))
     releaseBuild = System.getenv('GITHUB_ACTIONS_PULL_REQUEST') == '' &&
             System.getenv('GITHUB_REF').startsWith("refs/head/release/");
 } else {
