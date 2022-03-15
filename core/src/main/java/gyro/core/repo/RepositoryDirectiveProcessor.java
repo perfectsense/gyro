@@ -16,10 +16,15 @@
 
 package gyro.core.repo;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
+import gyro.core.GyroException;
 import gyro.core.Type;
 import gyro.core.directive.DirectiveProcessor;
 import gyro.core.scope.RootScope;
 import gyro.lang.ast.block.DirectiveNode;
+import org.eclipse.aether.repository.Proxy;
 import org.eclipse.aether.repository.RemoteRepository;
 
 @Type("repository")
@@ -31,9 +36,34 @@ public class RepositoryDirectiveProcessor extends DirectiveProcessor<RootScope> 
 
         String url = getArgument(scope, node, String.class, 0);
 
+        URL proxyUrl = proxy();
+        Proxy proxy = null;
+        if (proxyUrl != null) {
+            proxy = new Proxy(proxyUrl.getProtocol(), proxyUrl.getHost(), proxyUrl.getPort());
+        }
+
+        RemoteRepository remoteRepository = new RemoteRepository.Builder(url, "default", url)
+            .setProxy(proxy)
+            .build();
+
         scope.getSettings(RepositorySettings.class)
             .getRepositories()
-            .add(new RemoteRepository.Builder(url, "default", url).build());
+            .add(0, remoteRepository);
     }
 
+    static URL proxy() {
+        String proxy = System.getenv("http_proxy") != null
+            ? System.getenv("http_proxy")
+            : System.getenv("https_proxy");
+
+        if (proxy != null) {
+            try {
+                return new URL(proxy);
+            } catch (MalformedURLException ex) {
+                throw new GyroException(ex);
+            }
+        }
+
+        return null;
+    }
 }

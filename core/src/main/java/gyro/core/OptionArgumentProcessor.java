@@ -79,7 +79,7 @@ public class OptionArgumentProcessor {
             }
 
             throw new GyroException(
-                hasMaximum ? arguments.get(maximum) : locatable,
+                locatable,
                 String.format(
                     "%s requires %s arguments!",
                     errorName,

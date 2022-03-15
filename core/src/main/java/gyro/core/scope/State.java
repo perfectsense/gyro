@@ -316,6 +316,10 @@ public class State {
 
             return new ValueNode(value);
 
+        } else if (value instanceof Enum<?>) {
+
+            return new ValueNode(((Enum) value).name());
+
         } else if (value instanceof Collection) {
             List<Node> items = new ArrayList<>();
 

@@ -16,36 +16,48 @@
 
 package gyro.core.repo;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 import gyro.core.scope.Settings;
+import org.eclipse.aether.repository.Proxy;
 import org.eclipse.aether.repository.RemoteRepository;
 
 public class RepositorySettings extends Settings {
 
-    /**
-     * The default Maven central repository.
-     *
-     * @see <a href="https://maven.apache.org/guides/introduction/introduction-to-the-pom.html#Super_POM">Super POM</a>
-     */
-    public static final RemoteRepository CENTRAL = new RemoteRepository.Builder(
-        "central",
-        "default",
-        "https://repo.maven.apache.org/maven2").build();
-    public static final RemoteRepository RELEASE = new RemoteRepository.Builder(
-        "http://artifactory.psdops.com/gyro-releases",
-        "default",
-        "http://artifactory.psdops.com/gyro-releases").build();
-
     private List<RemoteRepository> repositories;
+
+    public static final RemoteRepository CENTRAL;
+
+    public static final RemoteRepository RELEASE;
+
+    static {
+        URL proxyUrl = RepositoryDirectiveProcessor.proxy();
+        Proxy proxy = null;
+        if (proxyUrl != null) {
+            proxy = new Proxy(proxyUrl.getProtocol(), proxyUrl.getHost(), proxyUrl.getPort());
+        }
+
+        CENTRAL = new RemoteRepository
+            .Builder("central", "default", "https://repo.maven.apache.org/maven2")
+            .setProxy(proxy)
+            .build();
+
+        RELEASE = new RemoteRepository.Builder(
+            "https://artifactory.psdops.com/gyro-releases",
+            "default",
+            "https://artifactory.psdops.com/gyro-releases")
+            .setProxy(proxy)
+            .build();
+    }
 
     public List<RemoteRepository> getRepositories() {
         if (repositories == null) {
             repositories = new ArrayList<>();
 
-            repositories.add(CENTRAL);
             repositories.add(RELEASE);
+            repositories.add(CENTRAL);
         }
 
         return repositories;

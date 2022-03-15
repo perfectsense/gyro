@@ -712,7 +712,15 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                     }
 
                     // Remove duplicate arguments
-                    Set<String> argumentSet = arguments.stream().map(o -> (String) o).collect(Collectors.toSet());
+                    Set<String> argumentSet;
+                    try {
+                        argumentSet = arguments.stream().map(o -> (String) o).collect(Collectors.toSet());
+                    } catch (java.lang.ClassCastException cce) {
+                        throw new GyroException(
+                            node,
+                            String.format("Can't resolve @|bold %s|@ reference!", referenceName),
+                            cce);
+                    }
 
                     for (Object argument : argumentSet) {
                         Object resourceValue = resourceResolver((String) argument, referenceName, node, root);
