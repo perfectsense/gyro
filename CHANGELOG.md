@@ -1,6 +1,19 @@
 CHANGELOG
 =========
 
+## 1.1.3rc1 (March 2nd, 2022)
+
+ENHANCEMENTS:
+
+* core: Allow parent to be set using DiffableInternals. ([389](https://github.com/perfectsense/gyro/pull/389))
+* core: Add support for http proxy via `http_proxy`. ([391](https://github.com/perfectsense/gyro/pull/391))
+
+ISSUES FIXED:
+
+* core: Fix error when enums are used as part of a list. ([387](https://github.com/perfectsense/gyro/pull/387))
+* core: Handle class cast exception during parsing to show error config line. ([388](https://github.com/perfectsense/gyro/pull/388))
+* core: Handle NPE when using resolvers and supplying less than min arguments. ([392](https://github.com/perfectsense/gyro/pull/392))
+
 ## 1.1.2 (September 16th, 2021)
 
 ENHANCEMENTS:
