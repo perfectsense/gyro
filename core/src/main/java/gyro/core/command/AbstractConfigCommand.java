@@ -62,6 +62,9 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
     @Option(names = "--skip-refresh", description = "Skip state refresh. Warning: Skipping refresh may result in incorrect changes. Use with caution.")
     public boolean skipRefresh;
 
+    @Option(names = "--local-refresh", description = "Only refresh resources found in the current working directory.")
+    public boolean localRefresh;
+
     @Option(names = "--test", description = "Use for internal testing only. This flag will mock cloud provider API calls.")
     private boolean test;
 
@@ -204,6 +207,13 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         List<Refresh> refreshes = new ArrayList<>();
 
         for (FileScope fileScope : scope.getFileScopes()) {
+            String currentDirectory = System.getProperty("user.dir");
+            String currentFile = GyroCore.getRootDirectory().resolve(fileScope.getFile()).getParent().toString();
+
+            if (!currentDirectory.equals(currentFile) && localRefresh) {
+                continue;
+            }
+
             for (Object value : fileScope.values()) {
                 if (!(value instanceof Resource)) {
                     continue;
