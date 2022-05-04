@@ -5,6 +5,12 @@ CHANGELOG
 
 ENHANCEMENTS:
 
+* core: Add `--local-refresh` option to gyro, limiting resource refresh to only current working directory. ([401](https://github.com/perfectsense/gyro/pull/401))
+
+## 1.1.3rc1 (March 2nd, 2022)
+
+ENHANCEMENTS:
+
 * core: Allow parent to be set using DiffableInternals. ([389](https://github.com/perfectsense/gyro/pull/389))
 * core: Add support for http proxy via `http_proxy`. ([391](https://github.com/perfectsense/gyro/pull/391))
 
