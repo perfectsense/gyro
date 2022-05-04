@@ -16,6 +16,7 @@
 
 def releaseVersion = '1.1.3rc2'
 def releaseBuild = false;
+import org.apache.tools.ant.taskdefs.condition.Os;
 
 if (System.getenv('CI')) {
     defaultTasks 'build', 'publish'
@@ -103,6 +104,5 @@ subprojects {
 
 // Only publish JARs once during the Linux build.
 configure(subprojects.findAll { it.name != 'gyro-cli' }) {
-    def osName = System.getenv('OSTYPE') ?: 'linux-gnu'
-    publishMavenPublicationToMavenRepository.onlyIf { osName.equals("linux-gnu") }
+    publishMavenPublicationToMavenRepository.onlyIf { Os.isFamily(Os.FAMILY_UNIX) && !Os.isFamily(Os.FAMILY_MAC) }
 }
