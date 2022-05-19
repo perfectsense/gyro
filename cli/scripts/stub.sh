@@ -14,7 +14,7 @@ fi
 java=$EXECUTION_DIRECTORY/gyro-rt/bin/java
 if [ ! -x $java ];
 then
-    java=`which java 2>/dev/null` || java=$JAVA_HOME/bin/java
+    java=$(command -v java) || java=$JAVA_HOME/bin/java
     if [ ! -x $java ];
     then
         echo "ERROR: Unable to locate a Java 11 runtime."
