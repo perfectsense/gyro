@@ -14,11 +14,7 @@ fi
 java=$EXECUTION_DIRECTORY/gyro-rt/bin/java
 if [ ! -x $java ];
 then
-    java=`which java`
-    if [ ! -x $java ];
-    then
-        java=$JAVA_HOME/bin/java
-    fi
+    java=`which java 2>/dev/null` || java=$JAVA_HOME/bin/java
 fi
 
 # Suppress JDK9+ reflection warnings.
