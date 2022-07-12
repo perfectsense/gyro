@@ -58,6 +58,7 @@ subprojects {
         implementation 'ch.qos.logback:logback-classic:1.2.3'
         implementation 'org.slf4j:log4j-over-slf4j:1.7.16'
         implementation 'org.slf4j:slf4j-api:1.7.16'
+        implementation 'com.fasterxml.jackson.core:jackson-core:2.13.1'
 
         testImplementation 'com.psddev:test:4.1-SNAPSHOT'
         testImplementation 'org.assertj:assertj-core:3.11.1'
