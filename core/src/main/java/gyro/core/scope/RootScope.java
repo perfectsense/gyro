@@ -79,7 +79,6 @@ import gyro.core.resource.Diffable;
 import gyro.core.resource.DiffableField;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
-import gyro.core.resource.ElapsedTimeChangeProcessor;
 import gyro.core.resource.ExtendsDirectiveProcessor;
 import gyro.core.resource.ModificationChangeProcessor;
 import gyro.core.resource.ModificationPlugin;
@@ -179,8 +178,7 @@ public class RootScope extends FileScope {
 
         Stream.of(
             new ModificationChangeProcessor(),
-            new ConfiguredFieldsChangeProcessor(),
-            new ElapsedTimeChangeProcessor())
+            new ConfiguredFieldsChangeProcessor())
             .forEach(p -> getSettings(ChangeSettings.class).getProcessors().add(p));
 
         Stream.of(
