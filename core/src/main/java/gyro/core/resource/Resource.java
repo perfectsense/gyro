@@ -16,6 +16,9 @@
 
 package gyro.core.resource;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -26,6 +29,17 @@ import gyro.core.scope.State;
 public abstract class Resource extends Diffable {
 
     public abstract boolean refresh();
+
+    public Map<? extends Resource, Boolean> batchRefresh(List<? extends Resource> resources) {
+        Map<Resource, Boolean> refreshResults = new HashMap<>();
+
+        for (Resource resource : resources) {
+            boolean keep = resource.refresh();
+            refreshResults.put(resource, keep);
+        }
+
+        return refreshResults;
+    }
 
     public abstract void create(GyroUI ui, State state) throws Exception;
 

@@ -22,6 +22,8 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -205,6 +207,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
         ExecutorService refreshService = Executors.newWorkStealingPool(25);
         List<Refresh> refreshes = new ArrayList<>();
+        Map<DiffableType, List<Resource>> refreshQueues = new HashMap<>();
 
         for (FileScope fileScope : scope.getFileScopes()) {
             String currentDirectory = System.getProperty("user.dir");
@@ -226,84 +229,117 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
                     processors.addAll(0, s.getSettings(ChangeSettings.class).getProcessors());
                 }
 
-                refreshes.add(new Refresh(resource, ui, refreshService.submit(() -> {
-                    GyroCore.pushUi(ui);
+                List<Resource> refreshQueue =
+                    refreshQueues.computeIfAbsent(DiffableType.getInstance(resource), m -> new ArrayList<>());
+                refreshQueue.add(resource);
+            }
+        }
 
-                    started.incrementAndGet();
+        for (DiffableType type : refreshQueues.keySet()) {
+            int count = refreshQueues.get(type).size();
+            ui.write("Refreshing @|magenta,bold %s|@ resources: @|green %s|@\n", type.getName(), count);
+
+            List<Resource> refreshQueue = refreshQueues.get(type);
+
+            refreshes.add(new Refresh(refreshQueue, ui, refreshService.submit(() -> {
+                GyroCore.pushUi(ui);
+
+                if (refreshQueue.isEmpty()) {
+                    return false;
+                }
+
+                started.incrementAndGet();
+
+                // Run beforeRefresh processors
+                for (Resource resource : refreshQueue) {
+                    List<ChangeProcessor> processors = new ArrayList<>();
+                    for (Scope s = DiffableInternals.getScope(resource); s != null; s = s.getParent()) {
+                        processors.addAll(0, s.getSettings(ChangeSettings.class).getProcessors());
+                    }
 
                     for (ChangeProcessor processor : processors) {
                         processor.beforeRefresh(ui, resource);
                     }
+                }
 
-                    boolean keep = resource.refresh();
+                Resource peek = refreshQueue.get(0);
+                Map<? extends Resource, Boolean> refreshResults = peek.batchRefresh(refreshQueue);
+
+                // Run afterRefresh processors
+                for (Resource resource : refreshQueue) {
+                    List<ChangeProcessor> processors = new ArrayList<>();
+                    for (Scope s = DiffableInternals.getScope(resource); s != null; s = s.getParent()) {
+                        processors.addAll(0, s.getSettings(ChangeSettings.class).getProcessors());
+                    }
 
                     for (ChangeProcessor processor : processors) {
                         processor.afterRefresh(ui, resource);
                     }
 
-                    if (keep) {
+                    if (refreshResults.containsKey(resource) && refreshResults.get(resource)) {
                         DiffableInternals.getModifications(resource).forEach(m -> m.refresh(resource));
-                    }
-
-                    done.incrementAndGet();
-
-                    if (keep) {
                         DiffableInternals.disconnect(resource, true);
                         DiffableInternals.update(resource);
-                        return false;
-
-                    } else {
-                        return true;
                     }
-                })));
-            }
+                }
+
+                done.incrementAndGet();
+
+                return true;
+            })));
         }
 
         refreshService.shutdown();
 
-        for (Refresh refresh : refreshes) {
-            Resource resource = refresh.resource;
-            String typeName = DiffableType.getInstance(resource).getName();
-            String name = DiffableInternals.getName(resource);
+        int refreshCount = 0;
 
+        for (Refresh refresh : refreshes) {
             try {
-                if (refresh.future.get()) {
+                refresh.future.get();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+
+            for (Resource resource : refresh.resources) {
+                String typeName = DiffableType.getInstance(resource).getName();
+                String name = DiffableInternals.getName(resource);
+
+                if (refresh.isRefreshed(resource)) {
                     ui.replace("@|magenta - Removing from state:|@ %s %s\n", typeName, name);
                     scope.getFileScopes().forEach(s -> s.remove(resource.primaryKey()));
                 }
 
-            } catch (ExecutionException error) {
-                refreshService.shutdownNow();
-                messageService.shutdown();
-
-                ui.write("\n");
-
-                throw new GyroException(
-                    String.format("Can't refresh @|bold %s %s|@ resource!", typeName, name),
-                    error.getCause());
-
-            } catch (InterruptedException error) {
-                Thread.currentThread().interrupt();
-                return;
+                refreshCount++;
             }
         }
 
         messageService.shutdown();
-        ui.replace("@|magenta ⟳ Refreshed resources:|@ %s\n", refreshes.size());
+        ui.replace("@|magenta ⟳ Refreshed resources:|@ %s\n", refreshCount);
     }
 
     private static class Refresh {
 
-        public final Resource resource;
+        public final List<Resource> resources;
+        public final Set<Resource> refreshed;
         public final Future<Boolean> future;
         public final GyroUI ui;
 
-        public Refresh(Resource resource, GyroUI ui, Future<Boolean> future) {
-            this.resource = resource;
+        public Refresh(List<Resource> resources, GyroUI ui, Future<Boolean> future) {
+            this.resources = resources;
             this.ui = ui;
             this.future = future;
+            this.refreshed = new HashSet<>();
         }
 
+        public boolean isRefreshed(Resource resource) {
+            return refreshed.contains(resource);
+        }
+
+        public void markRefreshed(Resource resource) {
+            refreshed.add(resource);
+        }
     }
 
 }
