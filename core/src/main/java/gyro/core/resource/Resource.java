@@ -16,11 +16,16 @@
 
 package gyro.core.resource;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import gyro.core.GyroUI;
 import gyro.core.auth.Credentials;
@@ -33,9 +38,20 @@ public abstract class Resource extends Diffable {
     public Map<? extends Resource, Boolean> batchRefresh(List<? extends Resource> resources) {
         Map<Resource, Boolean> refreshResults = new HashMap<>();
 
+        ExecutorService refreshService = Executors.newWorkStealingPool(24);
+        List<Refresh> refreshes = new ArrayList<>();
+
         for (Resource resource : resources) {
-            boolean keep = resource.refresh();
-            refreshResults.put(resource, keep);
+            refreshes.add(new Refresh(resource, refreshService.submit(() -> resource.refresh())));
+        }
+
+        try {
+            for (Refresh refresh : refreshes) {
+                refreshResults.put(refresh.resource, refresh.future.get());
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            refreshService.shutdown();
+            throw new RuntimeException(e);
         }
 
         return refreshResults;
@@ -65,5 +81,16 @@ public abstract class Resource extends Diffable {
     @Override
     public String primaryKey() {
         return String.format("%s::%s", DiffableType.getInstance(getClass()).getName(), name);
+    }
+
+    private static class Refresh {
+
+        public final Resource resource;
+        public final Future<Boolean> future;
+
+        public Refresh(Resource resource, Future<Boolean> future) {
+            this.resource = resource;
+            this.future = future;
+        }
     }
 }

@@ -20,6 +20,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -56,6 +57,7 @@ import gyro.core.scope.FileScope;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
 import gyro.core.scope.State;
+import org.apache.commons.lang.time.StopWatch;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
@@ -236,16 +238,13 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         }
 
         for (DiffableType type : refreshQueues.keySet()) {
-            int count = refreshQueues.get(type).size();
-            ui.write("Refreshing @|magenta,bold %s|@ resources: @|green %s|@\n", type.getName(), count);
-
             List<Resource> refreshQueue = refreshQueues.get(type);
 
             refreshes.add(new Refresh(refreshQueue, ui, refreshService.submit(() -> {
                 GyroCore.pushUi(ui);
 
                 if (refreshQueue.isEmpty()) {
-                    return false;
+                    return 0L;
                 }
 
                 started.incrementAndGet();
@@ -263,7 +262,10 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
                 }
 
                 Resource peek = refreshQueue.get(0);
+                StopWatch stopWatch = new StopWatch();
+                stopWatch.start();
                 Map<? extends Resource, Boolean> refreshResults = peek.batchRefresh(refreshQueue);
+                stopWatch.stop();
 
                 // Run afterRefresh processors
                 for (Resource resource : refreshQueue) {
@@ -285,7 +287,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
                 done.incrementAndGet();
 
-                return true;
+                return stopWatch.getTime();
             })));
         }
 
@@ -294,13 +296,29 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
         int refreshCount = 0;
 
         for (Refresh refresh : refreshes) {
+            long refreshDuration = 0;
             try {
-                refresh.future.get();
+                refreshDuration = refresh.future.get();
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             } catch (ExecutionException e) {
                 throw new RuntimeException(e);
             }
+
+            Duration duration = Duration.ofMillis(refreshDuration);
+
+            String time = "";
+            if (duration.getSeconds() <= 10) {
+                time = String.format("%dms", duration.toMillis());
+            } else {
+                time = String.format("%dm%ds", duration.toMinutes(), (duration.getSeconds() - (duration.toMinutes() * 60)));
+            }
+
+            ui.write("Refreshing @|magenta,bold %s|@: @|green %s|@ %s refreshed in @|green %s|@ elapsed\n",
+                refresh.diffableTypeName(),
+                refresh.count(),
+                refresh.count() == 1 ? "resource" : "resources",
+                time);
 
             for (Resource resource : refresh.resources) {
                 String typeName = DiffableType.getInstance(resource).getName();
@@ -323,14 +341,26 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
         public final List<Resource> resources;
         public final Set<Resource> refreshed;
-        public final Future<Boolean> future;
+        public final Future<Long> future;
         public final GyroUI ui;
 
-        public Refresh(List<Resource> resources, GyroUI ui, Future<Boolean> future) {
+        public Refresh(List<Resource> resources, GyroUI ui, Future<Long> future) {
             this.resources = resources;
             this.ui = ui;
             this.future = future;
             this.refreshed = new HashSet<>();
+        }
+
+        public long count() {
+            return resources.size();
+        }
+
+        public String diffableTypeName() {
+            if (resources.isEmpty()) {
+                return "unknown";
+            }
+
+            return DiffableType.getInstance(resources.get(0)).getName();
         }
 
         public boolean isRefreshed(Resource resource) {
