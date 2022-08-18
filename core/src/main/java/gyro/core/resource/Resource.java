@@ -50,8 +50,9 @@ public abstract class Resource extends Diffable {
                 refreshResults.put(refresh.resource, refresh.future.get());
             }
         } catch (InterruptedException | ExecutionException e) {
-            refreshService.shutdown();
             throw new RuntimeException(e);
+        } finally {
+            refreshService.shutdown();
         }
 
         return refreshResults;
