@@ -35,8 +35,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -198,14 +196,9 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
     }
 
     private void refreshResources(RootScope scope) {
-        ScheduledExecutorService messageService = Executors.newSingleThreadScheduledExecutor();
         GyroUI ui = GyroCore.ui();
         AtomicInteger started = new AtomicInteger();
         AtomicInteger done = new AtomicInteger();
-
-        messageService.scheduleAtFixedRate(() -> {
-            ui.replace("@|magenta ⟳ Refreshing resources:|@ %s started, %s done", started.get(), done.get());
-        }, 0, 100, TimeUnit.MILLISECONDS);
 
         ExecutorService refreshService = Executors.newWorkStealingPool();
         List<Refresh> refreshes = new ArrayList<>();
@@ -333,7 +326,6 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             }
         }
 
-        messageService.shutdown();
         ui.replace("@|magenta ⟳ Refreshed resources:|@ %s\n", refreshCount);
     }
 
