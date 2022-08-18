@@ -42,7 +42,7 @@ public abstract class Resource extends Diffable {
         List<Refresh> refreshes = new ArrayList<>();
 
         for (Resource resource : resources) {
-            refreshes.add(new Refresh(resource, refreshService.submit(() -> resource.refresh())));
+            refreshes.add(new Refresh(resource, refreshService.submit(resource::refresh)));
         }
 
         try {

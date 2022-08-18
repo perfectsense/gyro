@@ -292,9 +292,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             long refreshDuration = 0;
             try {
                 refreshDuration = refresh.future.get();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            } catch (ExecutionException e) {
+            } catch (InterruptedException | ExecutionException e) {
                 throw new RuntimeException(e);
             }
 
