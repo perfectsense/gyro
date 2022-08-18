@@ -207,7 +207,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             ui.replace("@|magenta ⟳ Refreshing resources:|@ %s started, %s done", started.get(), done.get());
         }, 0, 100, TimeUnit.MILLISECONDS);
 
-        ExecutorService refreshService = Executors.newWorkStealingPool(25);
+        ExecutorService refreshService = Executors.newWorkStealingPool();
         List<Refresh> refreshes = new ArrayList<>();
         Map<DiffableType, List<Resource>> refreshQueues = new HashMap<>();
 

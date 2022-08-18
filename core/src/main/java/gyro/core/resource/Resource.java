@@ -38,7 +38,7 @@ public abstract class Resource extends Diffable {
     public Map<? extends Resource, Boolean> batchRefresh(List<? extends Resource> resources) {
         Map<Resource, Boolean> refreshResults = new HashMap<>();
 
-        ExecutorService refreshService = Executors.newWorkStealingPool(24);
+        ExecutorService refreshService = Executors.newWorkStealingPool();
         List<Refresh> refreshes = new ArrayList<>();
 
         for (Resource resource : resources) {
