@@ -24,18 +24,15 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import gyro.core.GyroCore;
@@ -197,13 +194,12 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
 
     private void refreshResources(RootScope scope) {
         GyroUI ui = GyroCore.ui();
-        AtomicInteger started = new AtomicInteger();
-        AtomicInteger done = new AtomicInteger();
 
         ExecutorService refreshService = Executors.newWorkStealingPool();
         List<Refresh> refreshes = new ArrayList<>();
         Map<DiffableType, List<Resource>> refreshQueues = new HashMap<>();
 
+        // Group Resources by type.
         for (FileScope fileScope : scope.getFileScopes()) {
             String currentDirectory = System.getProperty("user.dir");
             String currentFile = GyroCore.getRootDirectory().resolve(fileScope.getFile()).getParent().toString();
@@ -230,6 +226,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             }
         }
 
+        // Refresh each type as a group.
         for (DiffableType type : refreshQueues.keySet()) {
             List<Resource> refreshQueue = refreshQueues.get(type);
 
@@ -237,10 +234,12 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
                 GyroCore.pushUi(ui);
 
                 if (refreshQueue.isEmpty()) {
-                    return 0L;
+                    return null;
                 }
 
-                started.incrementAndGet();
+                Resource peek = refreshQueue.get(0);
+                StopWatch stopWatch = new StopWatch();
+                stopWatch.start();
 
                 // Run beforeRefresh processors
                 for (Resource resource : refreshQueue) {
@@ -254,11 +253,7 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
                     }
                 }
 
-                Resource peek = refreshQueue.get(0);
-                StopWatch stopWatch = new StopWatch();
-                stopWatch.start();
                 Map<? extends Resource, Boolean> refreshResults = peek.batchRefresh(refreshQueue);
-                stopWatch.stop();
 
                 // Run afterRefresh processors
                 for (Resource resource : refreshQueue) {
@@ -278,87 +273,51 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
                     }
                 }
 
-                done.incrementAndGet();
+                stopWatch.stop();
+                Duration duration = Duration.ofMillis(stopWatch.getTime());
 
-                return stopWatch.getTime();
+                String time = "";
+                if (duration.getSeconds() <= 10) {
+                    time = String.format("%dms", duration.toMillis());
+                } else {
+                    time = String.format("%dm%ds", duration.toMinutes(), (duration.getSeconds() - (duration.toMinutes() * 60)));
+                }
+
+                ui.write("Refreshing @|magenta,bold %s|@: @|green %s|@ %s refreshed in @|green %s|@ elapsed\n",
+                    DiffableType.getInstance(peek).getName(),
+                    refreshResults.size(),
+                    refreshResults.size() == 1 ? "resource" : "resources",
+                    time);
+
+                for (Resource resource : refreshResults.keySet()) {
+                    boolean refreshed = refreshResults.get(resource);
+
+                    String typeName = DiffableType.getInstance(resource).getName();
+                    String name = DiffableInternals.getName(resource);
+
+                    if (!refreshed) {
+                        ui.replace("@|magenta - Removing from state:|@ %s %s\n", typeName, name);
+                        scope.getFileScopes().forEach(s -> s.remove(resource.primaryKey()));
+                    }
+                }
+
+                return null;
             })));
         }
 
         refreshService.shutdown();
-
-        int refreshCount = 0;
-
-        for (Refresh refresh : refreshes) {
-            long refreshDuration = 0;
-            try {
-                refreshDuration = refresh.future.get();
-            } catch (InterruptedException | ExecutionException e) {
-                throw new RuntimeException(e);
-            }
-
-            Duration duration = Duration.ofMillis(refreshDuration);
-
-            String time = "";
-            if (duration.getSeconds() <= 10) {
-                time = String.format("%dms", duration.toMillis());
-            } else {
-                time = String.format("%dm%ds", duration.toMinutes(), (duration.getSeconds() - (duration.toMinutes() * 60)));
-            }
-
-            ui.write("Refreshing @|magenta,bold %s|@: @|green %s|@ %s refreshed in @|green %s|@ elapsed\n",
-                refresh.diffableTypeName(),
-                refresh.count(),
-                refresh.count() == 1 ? "resource" : "resources",
-                time);
-
-            for (Resource resource : refresh.resources) {
-                String typeName = DiffableType.getInstance(resource).getName();
-                String name = DiffableInternals.getName(resource);
-
-                if (refresh.isRefreshed(resource)) {
-                    ui.replace("@|magenta - Removing from state:|@ %s %s\n", typeName, name);
-                    scope.getFileScopes().forEach(s -> s.remove(resource.primaryKey()));
-                }
-
-                refreshCount++;
-            }
-        }
-
-        ui.replace("@|magenta ⟳ Refreshed resources:|@ %s\n", refreshCount);
     }
 
     private static class Refresh {
 
         public final List<Resource> resources;
-        public final Set<Resource> refreshed;
-        public final Future<Long> future;
+        public final Future<?> future;
         public final GyroUI ui;
 
-        public Refresh(List<Resource> resources, GyroUI ui, Future<Long> future) {
+        public Refresh(List<Resource> resources, GyroUI ui, Future<?> future) {
             this.resources = resources;
             this.ui = ui;
             this.future = future;
-            this.refreshed = new HashSet<>();
-        }
-
-        public long count() {
-            return resources.size();
-        }
-
-        public String diffableTypeName() {
-            if (resources.isEmpty()) {
-                return "unknown";
-            }
-
-            return DiffableType.getInstance(resources.get(0)).getName();
-        }
-
-        public boolean isRefreshed(Resource resource) {
-            return refreshed.contains(resource);
-        }
-
-        public void markRefreshed(Resource resource) {
-            refreshed.add(resource);
         }
     }
 
