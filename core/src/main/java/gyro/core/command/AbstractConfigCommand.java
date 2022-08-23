@@ -48,6 +48,7 @@ import gyro.core.diff.ChangeProcessor;
 import gyro.core.diff.ChangeSettings;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
+import gyro.core.resource.RefreshException;
 import gyro.core.resource.Resource;
 import gyro.core.scope.FileScope;
 import gyro.core.scope.RootScope;
@@ -308,8 +309,29 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             for (Refresh refresh : refreshes) {
                 try {
                     refresh.future.get();
-                } catch (InterruptedException | ExecutionException e) {
-                    throw new GyroException(e);
+                } catch (InterruptedException erorr) {
+                    Thread.currentThread().interrupt();
+                    return;
+                } catch (ExecutionException error) {
+                    Throwable cause = error.getCause();
+                    if (cause instanceof RefreshException) {
+                        ui.write("\n");
+
+                        RefreshException refreshException = (RefreshException) cause;
+
+                        Resource resource = refreshException.getResource();
+                        String typeName = DiffableType.getInstance(resource).getName();
+                        String name = DiffableInternals.getName(resource);
+
+                        throw new GyroException(
+                            String.format("Can't refresh @|bold %s %s|@ resource!", typeName, name),
+                            error.getCause());
+                    } else {
+
+                        throw new GyroException(
+                            String.format("Can't refresh @|bold %s |@ resource group!", refresh.typeName()),
+                            error.getCause());
+                    }
                 }
             }
         }
@@ -327,6 +349,11 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
             this.resources = resources;
             this.ui = ui;
             this.future = future;
+        }
+
+        public String typeName() {
+            Resource resource = resources.get(0);
+            return DiffableType.getInstance(resource).getName();
         }
     }
 

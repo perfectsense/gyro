@@ -45,14 +45,16 @@ public abstract class Resource extends Diffable {
             refreshes.add(new Refresh(resource, refreshService.submit(resource::refresh)));
         }
 
-        try {
-            for (Refresh refresh : refreshes) {
+        for (Refresh refresh : refreshes) {
+            try {
                 refreshResults.put(refresh.resource, refresh.future.get());
+            } catch (ExecutionException error) {
+                throw new RefreshException(error, refresh.resource);
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+            } finally {
+                refreshService.shutdown();
             }
-        } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException(e);
-        } finally {
-            refreshService.shutdown();
         }
 
         return refreshResults;
