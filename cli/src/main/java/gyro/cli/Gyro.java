@@ -86,7 +86,7 @@ public class Gyro {
                 });
 
             gyro.init(Arrays.asList(arguments));
-            gyro.run();
+            exitStatus = gyro.run();
 
         } catch (Abort error) {
             exitStatus = 3;
@@ -245,7 +245,7 @@ public class Gyro {
         return 2;
     }
 
-    public void run() {
+    public int run() {
 
         try {
             CommandLine.ParseResult parseResult = commandLine.parseArgs(arguments.toArray(new String[0]));
@@ -264,7 +264,7 @@ public class Gyro {
             // The execute will handle throwing the error
         }
 
-        commandLine.execute(this.arguments.toArray(new String[0]));
+        return commandLine.execute(this.arguments.toArray(new String[0]));
     }
 
     public static Reflections getReflections() {
