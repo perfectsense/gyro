@@ -41,17 +41,6 @@ public class ElapsedTimeChangeProcessor extends ChangeProcessor {
     }
 
     @Override
-    public void beforeRefresh(GyroUI ui, Resource resource) throws Exception {
-        start(resource);
-    }
-
-    @Override
-    public void afterRefresh(GyroUI ui, Resource resource) throws Exception {
-        String elapsed = stop(ui, resource);
-        ui.write("Refreshing @|magenta,bold %s|@ took: @|green %s|@\n", resource.primaryKey(), elapsed);
-    }
-
-    @Override
     public void beforeCreate(GyroUI ui, State state, Resource resource) throws Exception {
         start(resource);
     }

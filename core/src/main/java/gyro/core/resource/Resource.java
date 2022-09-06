@@ -16,8 +16,16 @@
 
 package gyro.core.resource;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import gyro.core.GyroUI;
 import gyro.core.auth.Credentials;
@@ -26,6 +34,31 @@ import gyro.core.scope.State;
 public abstract class Resource extends Diffable {
 
     public abstract boolean refresh();
+
+    public Map<? extends Resource, Boolean> batchRefresh(List<? extends Resource> resources) {
+        Map<Resource, Boolean> refreshResults = new HashMap<>();
+
+        ExecutorService refreshService = Executors.newWorkStealingPool();
+        List<Refresh> refreshes = new ArrayList<>();
+
+        for (Resource resource : resources) {
+            refreshes.add(new Refresh(resource, refreshService.submit(resource::refresh)));
+        }
+
+        for (Refresh refresh : refreshes) {
+            try {
+                refreshResults.put(refresh.resource, refresh.future.get());
+            } catch (ExecutionException error) {
+                throw new RefreshException(error, refresh.resource);
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+            } finally {
+                refreshService.shutdown();
+            }
+        }
+
+        return refreshResults;
+    }
 
     public abstract void create(GyroUI ui, State state) throws Exception;
 
@@ -51,5 +84,16 @@ public abstract class Resource extends Diffable {
     @Override
     public String primaryKey() {
         return String.format("%s::%s", DiffableType.getInstance(getClass()).getName(), name);
+    }
+
+    private static class Refresh {
+
+        public final Resource resource;
+        public final Future<Boolean> future;
+
+        public Refresh(Resource resource, Future<Boolean> future) {
+            this.resource = resource;
+            this.future = future;
+        }
     }
 }

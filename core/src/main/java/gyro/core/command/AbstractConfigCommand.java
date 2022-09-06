@@ -20,8 +20,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -32,9 +34,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import gyro.core.GyroCore;
@@ -49,11 +48,13 @@ import gyro.core.diff.ChangeProcessor;
 import gyro.core.diff.ChangeSettings;
 import gyro.core.resource.DiffableInternals;
 import gyro.core.resource.DiffableType;
+import gyro.core.resource.RefreshException;
 import gyro.core.resource.Resource;
 import gyro.core.scope.FileScope;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.Scope;
 import gyro.core.scope.State;
+import org.apache.commons.lang.time.StopWatch;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
@@ -194,18 +195,13 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
     }
 
     private void refreshResources(RootScope scope) {
-        ScheduledExecutorService messageService = Executors.newSingleThreadScheduledExecutor();
         GyroUI ui = GyroCore.ui();
-        AtomicInteger started = new AtomicInteger();
-        AtomicInteger done = new AtomicInteger();
 
-        messageService.scheduleAtFixedRate(() -> {
-            ui.replace("@|magenta ⟳ Refreshing resources:|@ %s started, %s done", started.get(), done.get());
-        }, 0, 100, TimeUnit.MILLISECONDS);
-
-        ExecutorService refreshService = Executors.newWorkStealingPool(25);
+        ExecutorService refreshService = Executors.newWorkStealingPool();
         List<Refresh> refreshes = new ArrayList<>();
+        Map<DiffableType, List<Resource>> refreshQueues = new HashMap<>();
 
+        // Group Resources by type.
         for (FileScope fileScope : scope.getFileScopes()) {
             String currentDirectory = System.getProperty("user.dir");
             String currentFile = GyroCore.getRootDirectory().resolve(fileScope.getFile()).getParent().toString();
@@ -226,84 +222,139 @@ public abstract class AbstractConfigCommand extends AbstractCommand {
                     processors.addAll(0, s.getSettings(ChangeSettings.class).getProcessors());
                 }
 
-                refreshes.add(new Refresh(resource, ui, refreshService.submit(() -> {
-                    GyroCore.pushUi(ui);
+                List<Resource> refreshQueue =
+                    refreshQueues.computeIfAbsent(DiffableType.getInstance(resource), m -> new ArrayList<>());
+                refreshQueue.add(resource);
+            }
+        }
 
-                    started.incrementAndGet();
+        // Refresh each type as a group.
+        for (DiffableType type : refreshQueues.keySet()) {
+            List<Resource> refreshQueue = refreshQueues.get(type);
+
+            refreshes.add(new Refresh(refreshQueue, ui, refreshService.submit(() -> {
+                GyroCore.pushUi(ui);
+
+                if (refreshQueue.isEmpty()) {
+                    return null;
+                }
+
+                Resource peek = refreshQueue.get(0);
+                StopWatch stopWatch = new StopWatch();
+                stopWatch.start();
+
+                // Run beforeRefresh processors
+                for (Resource resource : refreshQueue) {
+                    List<ChangeProcessor> processors = new ArrayList<>();
+                    for (Scope s = DiffableInternals.getScope(resource); s != null; s = s.getParent()) {
+                        processors.addAll(0, s.getSettings(ChangeSettings.class).getProcessors());
+                    }
 
                     for (ChangeProcessor processor : processors) {
                         processor.beforeRefresh(ui, resource);
                     }
+                }
 
-                    boolean keep = resource.refresh();
+                Map<? extends Resource, Boolean> refreshResults = peek.batchRefresh(refreshQueue);
+
+                // Run afterRefresh processors
+                for (Resource resource : refreshQueue) {
+                    List<ChangeProcessor> processors = new ArrayList<>();
+                    for (Scope s = DiffableInternals.getScope(resource); s != null; s = s.getParent()) {
+                        processors.addAll(0, s.getSettings(ChangeSettings.class).getProcessors());
+                    }
 
                     for (ChangeProcessor processor : processors) {
                         processor.afterRefresh(ui, resource);
                     }
 
-                    if (keep) {
+                    if (refreshResults.containsKey(resource) && refreshResults.get(resource)) {
                         DiffableInternals.getModifications(resource).forEach(m -> m.refresh(resource));
-                    }
-
-                    done.incrementAndGet();
-
-                    if (keep) {
                         DiffableInternals.disconnect(resource, true);
                         DiffableInternals.update(resource);
-                        return false;
-
-                    } else {
-                        return true;
                     }
-                })));
+                }
+
+                stopWatch.stop();
+                Duration duration = Duration.ofMillis(stopWatch.getTime());
+
+                String time = "";
+                if (duration.getSeconds() <= 10) {
+                    time = String.format("%dms", duration.toMillis());
+                } else {
+                    time = String.format("%dm%ds", duration.toMinutes(), (duration.getSeconds() - (duration.toMinutes() * 60)));
+                }
+
+                ui.write("Refreshing @|magenta,bold %s|@: @|green %s|@ %s refreshed in @|green %s|@ elapsed\n",
+                    DiffableType.getInstance(peek).getName(),
+                    refreshResults.size(),
+                    refreshResults.size() == 1 ? "resource" : "resources",
+                    time);
+
+                for (Resource resource : refreshResults.keySet()) {
+                    boolean refreshed = refreshResults.get(resource);
+
+                    String typeName = DiffableType.getInstance(resource).getName();
+                    String name = DiffableInternals.getName(resource);
+
+                    if (!refreshed) {
+                        ui.replace("@|magenta - Removing from state:|@ %s %s\n", typeName, name);
+                        scope.getFileScopes().forEach(s -> s.remove(resource.primaryKey()));
+                    }
+                }
+
+                return null;
+            })));
+
+            for (Refresh refresh : refreshes) {
+                try {
+                    refresh.future.get();
+                } catch (InterruptedException erorr) {
+                    Thread.currentThread().interrupt();
+                    return;
+                } catch (ExecutionException error) {
+                    Throwable cause = error.getCause();
+                    if (cause instanceof RefreshException) {
+                        ui.write("\n");
+
+                        RefreshException refreshException = (RefreshException) cause;
+
+                        Resource resource = refreshException.getResource();
+                        String typeName = DiffableType.getInstance(resource).getName();
+                        String name = DiffableInternals.getName(resource);
+
+                        throw new GyroException(
+                            String.format("Can't refresh @|bold %s %s|@ resource!", typeName, name),
+                            error.getCause());
+                    } else {
+
+                        throw new GyroException(
+                            String.format("Can't refresh @|bold %s |@ resource group!", refresh.typeName()),
+                            error.getCause());
+                    }
+                }
             }
         }
 
         refreshService.shutdown();
-
-        for (Refresh refresh : refreshes) {
-            Resource resource = refresh.resource;
-            String typeName = DiffableType.getInstance(resource).getName();
-            String name = DiffableInternals.getName(resource);
-
-            try {
-                if (refresh.future.get()) {
-                    ui.replace("@|magenta - Removing from state:|@ %s %s\n", typeName, name);
-                    scope.getFileScopes().forEach(s -> s.remove(resource.primaryKey()));
-                }
-
-            } catch (ExecutionException error) {
-                refreshService.shutdownNow();
-                messageService.shutdown();
-
-                ui.write("\n");
-
-                throw new GyroException(
-                    String.format("Can't refresh @|bold %s %s|@ resource!", typeName, name),
-                    error.getCause());
-
-            } catch (InterruptedException error) {
-                Thread.currentThread().interrupt();
-                return;
-            }
-        }
-
-        messageService.shutdown();
-        ui.replace("@|magenta ⟳ Refreshed resources:|@ %s\n", refreshes.size());
     }
 
     private static class Refresh {
 
-        public final Resource resource;
-        public final Future<Boolean> future;
+        public final List<Resource> resources;
+        public final Future<?> future;
         public final GyroUI ui;
 
-        public Refresh(Resource resource, GyroUI ui, Future<Boolean> future) {
-            this.resource = resource;
+        public Refresh(List<Resource> resources, GyroUI ui, Future<?> future) {
+            this.resources = resources;
             this.ui = ui;
             this.future = future;
         }
 
+        public String typeName() {
+            Resource resource = resources.get(0);
+            return DiffableType.getInstance(resource).getName();
+        }
     }
 
 }
