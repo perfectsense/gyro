@@ -179,8 +179,8 @@ public class RootScope extends FileScope {
 
         Stream.of(
             new ModificationChangeProcessor(),
-            new ElapsedTimeChangeProcessor(),
-            new ConfiguredFieldsChangeProcessor())
+            new ConfiguredFieldsChangeProcessor(),
+            new ElapsedTimeChangeProcessor())
             .forEach(p -> getSettings(ChangeSettings.class).getProcessors().add(p));
 
         Stream.of(
