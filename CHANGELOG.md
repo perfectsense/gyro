@@ -1,6 +1,16 @@
 CHANGELOG
 =========
 
+## 1.2.0 (September 6th, 2022)
+
+ENHANCEMENTS:
+
+* core: Allow batch refresh. ([389](https://github.com/perfectsense/gyro/pull/405))
+
+ISSUES FIXED:
+
+* core: Fix returning exit status on gyro runs. ([387](https://github.com/perfectsense/gyro/pull/406))
+
 ## 1.1.3rc1 (March 2nd, 2022)
 
 ENHANCEMENTS:
