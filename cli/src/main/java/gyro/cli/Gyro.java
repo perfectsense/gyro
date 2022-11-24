@@ -19,6 +19,8 @@ package gyro.cli;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -41,6 +43,7 @@ import gyro.core.command.GyroCommandGroup;
 import gyro.core.command.VersionCommand;
 import gyro.core.scope.Defer;
 import gyro.core.scope.RootScope;
+import gyro.core.ui.GyroUINotAvailableException;
 import gyro.core.validation.ValidationErrorException;
 import gyro.lang.Locatable;
 import gyro.lang.SyntaxError;
@@ -71,22 +74,37 @@ public class Gyro {
     public static void main(String[] arguments) {
         ((Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME)).setLevel(Level.OFF);
 
-        Gyro gyro = new Gyro();
         GyroCore.pushUi(new CliGyroUI());
 
         int exitStatus = 0;
+        boolean uiOverridden = false;
 
         try {
-            Optional.ofNullable(GyroCore.getRootDirectory())
-                .map(d -> new RootScope(GyroCore.INIT_FILE, new LocalFileBackend(d), null, null))
-                .ifPresent(r -> {
-                    r.load();
-                    GyroCore.putStateBackends(r.getSettings(StateBackendSettings.class).getStateBackends());
-                    GyroCore.pushLockBackend(r.getSettings(LockBackendSettings.class).getLockBackend());
-                });
+            Path rootDirectory = GyroCore.getRootDirectory();
 
+            if (rootDirectory != null) {
+                if (Files.exists(rootDirectory.resolve(GyroCore.UI_FILE).normalize())) {
+                    new RootScope(GyroCore.UI_FILE, new LocalFileBackend(rootDirectory), null, null).load();
+                    uiOverridden = true;
+                }
+
+                Optional.of(rootDirectory)
+                    .map(d -> new RootScope(GyroCore.INIT_FILE, new LocalFileBackend(d), null, null))
+                    .ifPresent(r -> {
+                        r.load();
+                        GyroCore.putStateBackends(r.getSettings(StateBackendSettings.class).getStateBackends());
+                        GyroCore.pushLockBackend(r.getSettings(LockBackendSettings.class).getLockBackend());
+                    });
+            }
+
+            Gyro gyro = new Gyro();
             gyro.init(Arrays.asList(arguments));
             exitStatus = gyro.run();
+
+        } catch (GyroUINotAvailableException e) {
+            exitStatus = 4;
+            System.err.print("GyroCloudUI is not available.: ");
+            System.err.println(e.getMessage());
 
         } catch (Abort error) {
             exitStatus = 3;
@@ -99,6 +117,9 @@ public class Gyro {
             GyroCore.ui().write("\n");
 
         } finally {
+            if (uiOverridden) {
+                GyroCore.popUi();
+            }
             GyroCore.popUi();
             GyroCore.popLockBackend();
             System.exit(exitStatus);

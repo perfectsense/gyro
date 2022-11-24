@@ -91,6 +91,8 @@ import gyro.core.scope.converter.DiffableScopeToDiffable;
 import gyro.core.scope.converter.IdObjectToResource;
 import gyro.core.scope.converter.IterableToOne;
 import gyro.core.scope.converter.ResourceToIdObject;
+import gyro.core.ui.UIDirectiveProcessor;
+import gyro.core.ui.UIPlugin;
 import gyro.core.validation.ValidationError;
 import gyro.core.validation.ValidationErrorException;
 import gyro.core.virtual.VirtualDirectiveProcessor;
@@ -174,7 +176,8 @@ public class RootScope extends FileScope {
             new ModificationPlugin(),
             new ReferencePlugin(),
             new ResourcePlugin(),
-            new RootPlugin())
+            new RootPlugin(),
+            new UIPlugin())
             .forEach(p -> getSettings(PluginSettings.class).getPlugins().add(p));
 
         Stream.of(
@@ -206,6 +209,7 @@ public class RootScope extends FileScope {
             StateBackendDirectiveProcessor.class,
             TimeoutDirectiveProcessor.class,
             TypeDescriptionDirectiveProcessor.class,
+            UIDirectiveProcessor.class,
             UpdateDirectiveProcessor.class,
             UsesCredentialsDirectiveProcessor.class,
             VirtualDirectiveProcessor.class,
