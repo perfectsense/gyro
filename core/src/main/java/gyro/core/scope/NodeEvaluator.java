@@ -771,7 +771,13 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                 s = s.filter(r -> DiffableInternals.getName(r).startsWith(prefix));
             }
 
-            value = s.collect(Collectors.toList());
+            List<Resource> resources = s.collect(Collectors.toList());
+
+            if (resources.isEmpty()) {
+                throw new FindDefer(node, referenceName, resourceName);
+            }
+
+            value = resources;
 
         } else {
             Resource resource = root.findResource(referenceName + "::" + resourceName);
