@@ -339,6 +339,12 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                 addTypeNode(top, item);
             }
         }
+
+        if (node instanceof DirectiveNode) {
+            for (Node item : ((DirectiveNode) node).getBody()) {
+                addTypeNode(top, item);
+            }
+        }
     }
 
     public void evaluateBody(List<Node> body, Scope scope) {
@@ -771,13 +777,7 @@ public class NodeEvaluator implements NodeVisitor<Scope, Object, RuntimeExceptio
                 s = s.filter(r -> DiffableInternals.getName(r).startsWith(prefix));
             }
 
-            List<Resource> resources = s.collect(Collectors.toList());
-
-            if (resources.isEmpty()) {
-                throw new FindDefer(node, referenceName, resourceName);
-            }
-
-            value = resources;
+            value = s.collect(Collectors.toList());
 
         } else {
             Resource resource = root.findResource(referenceName + "::" + resourceName);
