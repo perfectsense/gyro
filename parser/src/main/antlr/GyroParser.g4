@@ -126,6 +126,7 @@ index
     | ASTERISK
     | NUMBERS
     | string
+    | reference
     ;
 
 item

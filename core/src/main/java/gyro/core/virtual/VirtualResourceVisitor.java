@@ -17,6 +17,9 @@
 package gyro.core.virtual;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
 import gyro.core.directive.DirectiveProcessor;
@@ -80,7 +83,13 @@ public class VirtualResourceVisitor extends ResourceVisitor {
             root.getLoadFiles());
 
         virtualRoot.getSettingsByClass().putAll(root.getSettingsByClass().asMap());
+        virtualRoot.getCurrent().getSettingsByClass().putAll(root.getSettingsByClass().asMap());
+        virtualRoot.getCurrent().getRootScope().getSettingsByClass().putAll(root.getSettingsByClass().asMap());
         virtualRoot.putAll(root);
+
+        Map<String, Resource> currentResources = root.getResources();
+        Set<String> resourceKeys = currentResources.keySet();
+        virtualRoot.putAll(currentResources);
 
         FileScope file = scope.getFileScope();
         FileScope virtualFile = new FileScope(virtualRoot, file.getFile());
@@ -91,10 +100,12 @@ public class VirtualResourceVisitor extends ResourceVisitor {
 
         String prefix = name + "/";
 
-        for (Resource resource : virtualRoot.findSortedResources()) {
+        List<Resource> newSortedResources = virtualRoot.findSortedResources().stream()
+            .filter(r -> !resourceKeys.contains(r.primaryKey())).collect(Collectors.toList());
+
+        for (Resource resource : newSortedResources) {
             DiffableInternals.setName(resource, prefix + DiffableInternals.getName(resource));
             file.put(resource.primaryKey(), resource);
         }
     }
-
 }
