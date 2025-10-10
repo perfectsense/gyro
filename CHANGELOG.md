@@ -1,6 +1,17 @@
 CHANGELOG
 =========
 
+## 1.3.0 (October 10th, 2025)
+
+ENHANCEMENTS:
+
+* core: Support for accessing virtual resources across scopes ([417](https://github.com/perfectsense/gyro/pull/417))
+
+ISSUES FIXED:
+
+* dependency: Explicitly include Guava 33.2.1-jre to avoid conflicts with google provider ([411](https://github.com/perfectsense/gyro/pull/411))
+* core: Defer resolving resources ending with a wildcard ([414](https://github.com/perfectsense/gyro/pull/414))
+
 ## 1.2.0 (September 6th, 2022)
 
 ENHANCEMENTS:
