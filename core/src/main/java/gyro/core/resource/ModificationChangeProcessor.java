@@ -45,7 +45,7 @@ public class ModificationChangeProcessor extends GlobalChangeProcessor {
         Resource current,
         Resource pending,
         Set<DiffableField> changedFields) throws Exception {
-        for (Modification modification : DiffableInternals.getModifications(current)) {
+        for (Modification modification : DiffableInternals.getModifications(pending)) {
             modification.beforeUpdate(ui, state, current, pending, changedFields);
         }
     }
@@ -57,7 +57,7 @@ public class ModificationChangeProcessor extends GlobalChangeProcessor {
         Resource current,
         Resource pending,
         Set<DiffableField> changedFields) throws Exception {
-        for (Modification modification : DiffableInternals.getModifications(current)) {
+        for (Modification modification : DiffableInternals.getModifications(pending)) {
             modification.afterUpdate(ui, state, current, pending, changedFields);
         }
     }
