@@ -22,6 +22,8 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -30,8 +32,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 import com.psddev.dari.util.IoUtils;
@@ -271,7 +275,11 @@ public class State {
                 body.add(toPairNode(key, value, resource));
 
             } else if (value instanceof Date) {
-                body.add(toPairNode(key, value.toString(), resource));
+                DateFormat fmt = new SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.ENGLISH);
+                fmt.setTimeZone(TimeZone.getTimeZone("UTC"));
+                String formatted = fmt.format((Date) value);
+
+                body.add(toPairNode(key, formatted, resource));
 
             } else if (value instanceof Enum<?>) {
                 body.add(toPairNode(key, ((Enum) value).name(), resource));
