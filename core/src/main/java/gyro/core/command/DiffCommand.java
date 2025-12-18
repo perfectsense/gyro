@@ -22,6 +22,7 @@ import gyro.core.diff.Diff;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.State;
 import picocli.CommandLine.Command;
+
 import static picocli.CommandLine.Option;
 
 @Command(name = "diff",
