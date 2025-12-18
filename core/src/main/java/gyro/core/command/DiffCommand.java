@@ -22,6 +22,7 @@ import gyro.core.diff.Diff;
 import gyro.core.scope.RootScope;
 import gyro.core.scope.State;
 import picocli.CommandLine.Command;
+import static picocli.CommandLine.Option;
 
 @Command(name = "diff",
     header = "Shows differences between the configuration and the cloud.",
@@ -35,6 +36,11 @@ import picocli.CommandLine.Command;
     versionProvider = VersionCommand.class
 )
 public class DiffCommand extends AbstractConfigCommand {
+
+    @Option(names = { "--exitcode" }, description = "Exit with exit code")
+    public boolean exitWithCode;
+
+    private int exitCode = 0;
 
     @Override
     public void doExecute(RootScope current, RootScope pending, State state) throws Exception {
@@ -50,6 +56,14 @@ public class DiffCommand extends AbstractConfigCommand {
 
         if (!diff.write(ui)) {
             ui.write("\n@|bold,green No changes.|@\n\n");
+        } else if (exitWithCode) { // pending changes && exit with exit code
+            exitCode = 16;
         }
+    }
+
+    @Override
+    public Integer call() throws Exception {
+        execute();
+        return exitCode;
     }
 }
