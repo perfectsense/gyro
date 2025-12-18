@@ -38,7 +38,7 @@ import static picocli.CommandLine.Option;
 )
 public class DiffCommand extends AbstractConfigCommand {
 
-    @Option(names = { "--exitcode" }, description = "Exit with exit code")
+    @Option(names = "--exitcode", description = "Exit with exit code")
     public boolean exitWithCode;
 
     private int exitCode = 0;
