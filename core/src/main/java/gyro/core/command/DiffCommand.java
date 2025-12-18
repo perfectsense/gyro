@@ -57,7 +57,7 @@ public class DiffCommand extends AbstractConfigCommand {
         if (!diff.write(ui)) {
             ui.write("\n@|bold,green No changes.|@\n\n");
         } else if (exitWithCode) { // pending changes && exit with exit code
-            exitCode = 16;
+            exitCode = 1;
         }
     }
 
