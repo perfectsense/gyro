@@ -38,7 +38,7 @@ import static picocli.CommandLine.Option;
 )
 public class DiffCommand extends AbstractConfigCommand {
 
-    @Option(names = "--exitcode", description = "Exit with exit code")
+    @Option(names = "--exitcode", description = "Exit with exit code 3 when a diff is detected")
     public boolean exitWithCode;
 
     private int exitCode = 0;
@@ -58,7 +58,7 @@ public class DiffCommand extends AbstractConfigCommand {
         if (!diff.write(ui)) {
             ui.write("\n@|bold,green No changes.|@\n\n");
         } else if (exitWithCode) { // pending changes && exit with exit code
-            exitCode = 1;
+            exitCode = 3;
         }
     }
 
