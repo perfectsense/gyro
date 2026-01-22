@@ -28,7 +28,7 @@ import picocli.CommandLine.Command;
     synopsisHeading = "%n",
     header = "Refresh state from cloud providers without changing resources.",
     descriptionHeading = "%nDescription:%n%n",
-    description = "Refreshes Gyro state with actual cloud resources, "
+    description = "Refreshes Gyro state with cloud resources upstream, "
         + "without creating, updating, or deleting resources.",
     parameterListHeading = "%nParameters:%n",
     optionListHeading = "%nOptions:%n",
@@ -50,15 +50,15 @@ public class RefreshStateCommand extends AbstractConfigCommand {
 
         diff.diff();
 
-        for (Change change : diff.getChanges()) {
-            state.update(change);
-        }
-        state.save();
-
         if (!diff.write(ui)) {
             ui.write("\n@|bold,green No changes.|@\n\n");
         } else {
             ui.write("\n@|bold,white Detected drift. Updating state file(s) only.|@\n\n");
         }
+
+        for (Change change : diff.getChanges()) {
+            state.update(change);
+        }
+        state.save();
     }
 }
